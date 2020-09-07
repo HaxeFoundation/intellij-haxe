@@ -6,6 +6,7 @@
 //
 package com.intellij.codeInsight;
 
+import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -28,7 +29,14 @@ public abstract class AbstractEnterActionTestCase extends LightPlatformCodeInsig
   @Override
   protected void tearDown() throws Exception {
     CodeStyleSettingsManager.getInstance(getProject()).dropTemporarySettings();
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     super.tearDown();
+  }
+
+  protected void addSuppressedException(Throwable e) {
+    // This is overridden for IDEA pre 18.3 version compatibilities' sake.  It can be removed
+    // when we no longer test with those products.
+    HaxeTestUtils.suppressException(e, this);
   }
 
   protected void doGetIndentTest(final PsiFile file, final int lineNum, final String expected) {

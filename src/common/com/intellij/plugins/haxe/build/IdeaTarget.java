@@ -43,6 +43,10 @@ public class IdeaTarget {
   // of the compatibility strings possible.
   //
 
+  public static final boolean IS_VERSION_20_2_COMPATIBLE = (SDK_CODELINE >= 202);
+  public static final boolean IS_VERSION_20_1_COMPATIBLE = (SDK_CODELINE >= 201);
+  public static final boolean IS_VERSION_20_COMPATIBLE = (IS_VERSION_20_1_COMPATIBLE || IS_VERSION_20_2_COMPATIBLE);
+
   public static final boolean IS_VERSION_19_3_COMPATIBLE = (SDK_CODELINE >= 193);
   public static final boolean IS_VERSION_19_2_COMPATIBLE = (SDK_CODELINE >= 192);
   public static final boolean IS_VERSION_19_1_COMPATIBLE = (SDK_CODELINE >= 191);

@@ -19,7 +19,9 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.TokenType;
+import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;
 import com.intellij.psi.impl.source.tree.TreeElement;
 import org.jetbrains.annotations.NotNull;
@@ -29,8 +31,11 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 9/22/14.
  */
 public class HaxeDummyASTNode  extends LazyParseableElement {
-  public HaxeDummyASTNode(String text) {
+  final private Project project;
+
+  public HaxeDummyASTNode(@NotNull String text, @NotNull Project project) {
     super(TokenType.DUMMY_HOLDER, text);
+    this.project = project;
   }
 
   public static boolean isDummyNode(@NotNull ASTNode node) {
@@ -51,4 +56,14 @@ public class HaxeDummyASTNode  extends LazyParseableElement {
     return null;
   }
 
+  // Supports PsiElement.getProject(), so that we don't fail the getParent() test.
+  @Override
+  public PsiManagerEx getManager() {
+    return PsiManagerEx.getInstanceEx(project);
+  }
+
+  @NotNull
+  public Project getProject() {
+    return project;
+  }
 }

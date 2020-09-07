@@ -102,6 +102,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   @Override
+  @NotNull
   public ItemPresentation getPresentation() {
     return new ItemPresentation() {
       @Override
@@ -131,10 +132,13 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             result.append("(").append(parameterList).append(")");
           }
 
-          final ResultHolder resultType = model.getResultType();
-          if (resultType != null) {
-            result.append(":");
-            result.append(resultType.toString());
+          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
+          if (null != typeTag) {
+            final String typeName = HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeTag);
+            if (!typeName.isEmpty()) {
+              result.append(':');
+              result.append(typeName);
+            }
           }
         }
 

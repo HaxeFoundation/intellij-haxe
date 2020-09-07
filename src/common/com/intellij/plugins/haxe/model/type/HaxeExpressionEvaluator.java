@@ -287,23 +287,22 @@ public class HaxeExpressionEvaluator {
       final HaxeComponentName name = ((HaxeLocalVarDeclaration)element).getComponentName();
       final HaxeVarInit init = ((HaxeLocalVarDeclaration)element).getVarInit();
       final HaxeTypeTag typeTag = ((HaxeLocalVarDeclaration)element).getTypeTag();
-      ResultHolder result = SpecificHaxeClassReference.getUnknown(element).createHolder();
+      final ResultHolder unknownResult = SpecificHaxeClassReference.getUnknown(element).createHolder();
+      final ResultHolder initResult = init != null
+                                      ? handle(init, context, resolver)
+                                      : unknownResult;
+      final ResultHolder typeTagResult = typeTag != null
+                                         ? HaxeTypeResolver.getTypeFromTypeTag(typeTag, element)
+                                         : unknownResult;
+
+      ResultHolder result = typeTag != null ? typeTagResult : initResult;
+
       if (init != null) {
-        result = handle(init, context, resolver);
-      }
-      if (typeTag != null) {
-        result = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-      }
-
-      if (typeTag != null) {
-        final ResultHolder tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-        if (!tag.canAssign(result)) {
-          result = tag.duplicate();
-
+        if (!typeTagResult.canAssign(initResult)) {
           context.addError(
             element,
-            "Can't assign " + result + " to " + tag,
-            new HaxeTypeTagChangeFixer(typeTag, result.getType()),
+            "Can't assign " + initResult + " to " + typeTagResult,
+            new HaxeTypeTagChangeFixer(typeTag, initResult.getType()),
             new HaxeTypeTagRemoveFixer(typeTag)
           );
         }
@@ -860,6 +859,8 @@ public class HaxeExpressionEvaluator {
     HaxeExpressionEvaluatorContext context,
     HaxeGenericResolver resolver
   ) {
+    if (!context.isReportingErrors()) return;
+
     List<Argument> parameterTypes = ftype.getArguments();
     int len = Math.min(parameterTypes.size(), parameterExpressions.size());
     for (int n = 0; n < len; n++) {

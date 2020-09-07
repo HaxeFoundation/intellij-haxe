@@ -34,6 +34,7 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesProcessor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,6 +43,19 @@ import java.util.Collection;
  * @author: Fedor.Korotkov
  */
 public class HaxeMoveTest extends MultiFileTestCase {
+
+  @Override
+  protected void tearDown() throws Exception {
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+    super.tearDown();
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    // This override is only required until we no longer support pre 2018.3 IDEA builds.
+    HaxeTestUtils.suppressException(e, this);
+  }
+
+
   @Override
   protected String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH;

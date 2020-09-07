@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStruc
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
 import gnu.trove.THashSet;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.util.List;
@@ -35,6 +36,18 @@ import java.util.Set;
  * @author: Fedor.Korotkov
  */
 public class HaxeSourceRootDetectionTest extends PlatformTestCase {
+
+  @Override
+  protected void tearDown() throws Exception {
+    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+    super.tearDown();
+  }
+
+  protected void addSuppressedException(@NotNull Throwable e) {
+    // This override is only required until we no longer support pre 2018.3 IDEA builds.
+    HaxeTestUtils.suppressException(e, this);
+  }
+
   private void doTest(String... expected) {
     final String dirPath = FileUtil.toSystemDependentName(HaxeTestUtils.BASE_TEST_DATA_PATH + "/rootDetection/") + getTestName(true);
     final File dir = new File(dirPath);

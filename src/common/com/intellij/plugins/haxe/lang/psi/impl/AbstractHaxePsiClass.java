@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.io.FileUtil;
@@ -588,19 +589,28 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
 
-  public static AbstractHaxePsiClass EMPTY_FACADE = new AbstractHaxePsiClass(new HaxeDummyASTNode("EMPTY_FACADE")) {
-    @Nullable
-    @Override
-    public HaxeGenericParam getGenericParam() {
-      return null;
-    }
+  @NotNull
+  public static AbstractHaxePsiClass createEmptyFacade(Project project) {
+    return new AbstractHaxePsiClass(new HaxeDummyASTNode("EMPTY_FACADE", project)) {
+      @Nullable
+      @Override
+      public HaxeGenericParam getGenericParam() {
+        return null;
+      }
 
-    @Nullable
-    @Override
-    public HaxeComponentName getComponentName() {
-      return null;
-    }
-  };
+      @Nullable
+      @Override
+      public HaxeComponentName getComponentName() {
+        return null;
+      }
+
+      @NotNull
+      @Override
+      public Project getProject() {
+        return ((HaxeDummyASTNode)getNode()).getProject();
+      }
+    };
+  }
 
   @Override
   public void delete() {

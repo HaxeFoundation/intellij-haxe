@@ -129,7 +129,7 @@ the team support them (though the plugin may work, and will usually install).
 
 *IDEA releases 2016 and later require JDK 8.  Later JDKs can be used as the
 primary development environment if you so choose, but **they are not allowed
-as a target environment, nor can any language features later that Java8 be used
+as a target environment, nor can any language features later than Java8 be used
 in source code targeted for release as part of this plugin**.*
 
 JetBrains JRE's are recommended (and default in the project files).  You can
@@ -402,10 +402,10 @@ then copy the relevant section to CHANGELOG.md.
 can test and tag it.
 
 5. Build *each* of the releases: For each release, run the Gradle build task (or your local equivalent) 
-    - `./gradlew buildPlugin -PtargetVersion=2016.3.5`
-    - `./gradlew buildPlugin -PtargetVersion=2017.2`
-    - `./gradlew buildPlugin -PtargetVersion=2017.3`
-    - `./gradlew buildPlugin -PtargetVersion=2018.1`
+    - `./gradlew buildPlugin -PtargetVersion=2018.3.6`
+    - `./gradlew buildPlugin -PtargetVersion=2019.3.5`
+    - `./gradlew buildPlugin -PtargetVersion=2020.2.1`
+    
 
 6. Smoke test *each* of the releases.  A smoke test includes installing the releases in a primary *(NOT debug)* 
 instance of IDEA and verifying basic functionality:  
@@ -421,7 +421,7 @@ instance of IDEA and verifying basic functionality:
     - Run the project
 
 7. Run the unit tests on all versions:
-    - `./gradlew test -PtargetVersion=2016.3.5`, etc.
+    - `./gradlew test -PtargetVersion=2018.3.6`, etc.
     
 8. Tag the commit using the agreed upon release number: `git tag -a 0.9.5 -m "Release 0.9.5"`
 
@@ -430,7 +430,7 @@ instance of IDEA and verifying basic functionality:
 10. Create a release on github, using the tag you just created:
     - [https://github.com/HaxeFoundation/intellij-haxe/releases](https://github.com/HaxeFoundation/intellij-haxe/releases)
     - Sign in and draft a new release, using the tag you just added. 
-    - Upload all of the release jars to the release.
+    - Upload all of the release jars to the github release page.
     - Add the change notes for the most recent changes (between this release and the last).
     - Mark it as pre-release if appropriate.
     - Submit
@@ -458,7 +458,7 @@ applying your changes against the develop branch.
 6. Create a pull request (against the develop branch, not master), and wait for comments.
 7. If you get comments that require changes, address those and return to step 2.
 8. When you get an “OK to merge,” or "approved," message from anyone on the team: 
-Eric, @EricBishton; Ilya Malanin, @Mayakwd; (others as they become regular contributors,) go ahead
+Eric, @EricBishton; (others as they become regular contributors,) go ahead
 and merge your changes to develop.  A clean merge requires no further testing,
 as Travis-CI will do it for you.  However any build break must be addressed immediately.  A build
 that has conflicts requires manual resolution and must be re-tested locally prior to push.  For regular

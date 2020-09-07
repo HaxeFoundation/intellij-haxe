@@ -10,17 +10,23 @@ jobs:
   include:
     - os: osx
       osx_image: xcode9.3
-      env: IDEA_VERSION=2019.2
+      env: IDEA_VERSION=2020.2
 
+    - os: linux
+      env: IDEA_VERSION=2020.2
+      jdk: openjdk8
+    - os: linux
+      env: IDEA_VERSION=2020.1.4
+      jdk: openjdk8
     - os: linux
       env: IDEA_VERSION=2019.3.5
       jdk: openjdk8
-    - os: linux
-      env: IDEA_VERSION=2019.2.4
-      jdk: openjdk8
-    - os: linux
-      env: IDEA_VERSION=2019.1.4
-      jdk: openjdk8
+#    - os: linux
+#      env: IDEA_VERSION=2019.2.4
+#      jdk: openjdk8
+#    - os: linux
+#      env: IDEA_VERSION=2019.1.4
+#      jdk: openjdk8
     - os: linux
       env: IDEA_VERSION=2018.2.8
       jdk: openjdk8

@@ -1,0 +1,55 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2020 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
+tasks.withType(Test) {
+  testLogging {
+    // set options for log level LIFECYCLE
+    events TestLogEvent.FAILED,
+           TestLogEvent.PASSED,
+           TestLogEvent.SKIPPED,
+           TestLogEvent.STANDARD_OUT
+    exceptionFormat TestExceptionFormat.FULL
+    showExceptions true
+    showCauses true
+    showStackTraces true
+
+    // set options for log level DEBUG and INFO
+    debug {
+      events TestLogEvent.STARTED,
+             TestLogEvent.FAILED,
+             TestLogEvent.PASSED,
+             TestLogEvent.SKIPPED,
+             TestLogEvent.STANDARD_ERROR,
+             TestLogEvent.STANDARD_OUT
+      exceptionFormat TestExceptionFormat.FULL
+    }
+    info.events = debug.events
+    info.exceptionFormat = debug.exceptionFormat
+
+    afterSuite { desc, result ->
+      if (!desc.parent) { // will match the outermost suite
+        def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+        def startItem = '|  ', endItem = '  |'
+        def repeatLength = startItem.length() + output.length() + endItem.length()
+        println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+      }
+    }
+  }
+}

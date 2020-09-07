@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * ================================================================
+ *
+ * Primarily extracted from HaxeLineMarkerProvider, provided under the same license.
  */
 package com.intellij.plugins.haxe.ide;
 
@@ -48,20 +52,23 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * @author: Fedor.Korotkov
+ * Worker/implementation class for {@link HaxeLineMarkerProvider}.
+ *
+ * Extracted so that HaxeLineMarker can be minimally tweaked for version changes.
+ * IDEA 2020.2 changed the signature for {@link LineMarkerProvider#collectSlowLineMarkers}.
+ *
+ * Original @author: Fedor.Korotkov
  */
-public class HaxeLineMarkerProvider implements LineMarkerProvider {
-
+public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
   @Override
   public LineMarkerInfo getLineMarkerInfo(@NotNull PsiElement element) {
     return null;
   }
 
-  @Override
-  public void collectSlowLineMarkers(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
+  protected void collectSlowLineMarkersWorker(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
     for (PsiElement element : elements) {
       if (element instanceof HaxeClass) {
-        collectClassMarkers(result, (HaxeClass)element);
+        HaxeLineMarkerProviderNS.collectClassMarkers(result, (HaxeClass)element);
       }
     }
   }
@@ -81,11 +88,11 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.getNamedSubComponents(haxeClass)) {
       final HaxeComponentType type = HaxeComponentType.typeOf(haxeNamedComponent);
       if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-        LineMarkerInfo item = tryCreateOverrideMarker(haxeNamedComponent, superItems);
+        LineMarkerInfo item = HaxeLineMarkerProviderNS.tryCreateOverrideMarker(haxeNamedComponent, superItems);
         if (item != null) {
           result.add(item);
         }
-        item = tryCreateImplementationMarker(haxeNamedComponent, subItems, isInterface);
+        item = HaxeLineMarkerProviderNS.tryCreateImplementationMarker(haxeNamedComponent, subItems, isInterface);
         if (item != null) {
           result.add(item);
         }
@@ -93,7 +100,7 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
     }
 
     if (!subClasses.isEmpty()) {
-      final LineMarkerInfo marker = createImplementationMarker(haxeClass, subClasses);
+      final LineMarkerInfo marker = HaxeLineMarkerProviderNS.createImplementationMarker(haxeClass, subClasses);
       if (marker != null) {
         result.add(marker);
       }
@@ -115,8 +122,8 @@ public class HaxeLineMarkerProvider implements LineMarkerProvider {
       return null;
     }
     final PsiElement element = componentName.getIdentifier().getFirstChild();
-    HaxeMethodDeclaration methodDeclaration = namedComponent instanceof HaxeMethodDeclaration?
-                                                                    (HaxeMethodDeclaration)namedComponent : null;
+    HaxeMethodDeclaration methodDeclaration = namedComponent instanceof HaxeMethodDeclaration ?
+                                              (HaxeMethodDeclaration)namedComponent : null;
     final boolean overrides = methodDeclaration != null &&
                               HaxeResolveUtil.getDeclarationTypes(methodDeclaration.getMethodModifierList()).
                                 contains(HaxeTokenTypes.KOVERRIDE);

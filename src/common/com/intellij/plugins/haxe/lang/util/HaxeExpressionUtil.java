@@ -36,7 +36,7 @@ import java.util.List;
 
 public class HaxeExpressionUtil {
   private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static {LOG.setLevel(Level.DEBUG);}  // Remove when done debugging.
+  //static {LOG.setLevel(Level.DEBUG);}  // Remove when done debugging.
 
   private static final ThreadLocal<ArrayList<PsiElement>> constantsInProcess =
     new ThreadLocal<>().withInitial(()->new ArrayList<>());

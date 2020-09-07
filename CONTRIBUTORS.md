@@ -1,14 +1,9 @@
 Recent contributors
 -----------------------------------
- - Alexander Kuzmenko <alex@stablex.ru>
- - Eric Bishton <ebishton@ix.netcom.com>
+ - Dan Korostelev <nadako@gmail.com>
  - Eric Bishton <eric@bishtonsoftware.com>
  - EricBishton <ebishton@ix.netcom.com>
  - GitHub <noreply@github.com>
- - Ilya Malanin <loremipsum.inside@gmail.com>
- - m0rkeulv <github@m0rkeulv.net>
- - mayakwd <loremipsum.inside@gmail.com>
- - unknown <github@m0rkeulv.net>
 
 All contributors
 -----------------------------------
@@ -25,6 +20,7 @@ All contributors
 - Carlos Ballesteros Velasco <soywiz@gmail.com>
 - Chris Decoster <impaler777@gmail.com>
 - Constantine Plotnikov <constantine.plotnikov@gmail.com>
+- Dan Korostelev <nadako@gmail.com>
 - David Nemcok <nemcok.david@gmail.com>
 - Denis.Zhdanov <denzhdanov@gmail.com>
 - Dmitry Avdeev <Dmitry.Avdeev@jetbrains.com>

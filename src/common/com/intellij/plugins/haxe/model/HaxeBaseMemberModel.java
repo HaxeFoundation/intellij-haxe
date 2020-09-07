@@ -96,6 +96,7 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
 
   public abstract HaxeClassModel getDeclaringClass();
 
+  @Deprecated
   public ResultHolder getResultType() {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
   }
@@ -105,7 +106,12 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
   }
 
   public String getPresentableText(HaxeMethodContext context) {
-    return this.getName() + ":" + getResultType();
+    PsiElement basePsi = getBasePsi();
+    if (basePsi instanceof HaxeNamedComponent) {
+      AbstractHaxeNamedComponent nc = (AbstractHaxeNamedComponent)basePsi;
+      return nc.getPresentation().getPresentableText();
+    }
+    return this.getName();
   }
 
   @Nullable

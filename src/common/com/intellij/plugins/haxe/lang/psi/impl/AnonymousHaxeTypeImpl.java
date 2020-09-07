@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +64,12 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType"));
+    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType", AnonymousHaxeTypeImpl.this.getProject())) {
+      @NotNull
+      @Override
+      public Project getProject() {
+        return ((HaxeDummyASTNode)getNode()).getProject();
+      }
+    };
   }
 }

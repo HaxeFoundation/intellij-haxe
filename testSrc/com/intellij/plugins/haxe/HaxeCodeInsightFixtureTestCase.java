@@ -40,7 +40,6 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.testFramework.builders.JavaModuleFixtureBuilder;
 import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
@@ -48,8 +47,6 @@ import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -104,6 +101,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   @Override
   protected void tearDown() throws Exception {
     try {
+      HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
       myFixture.tearDown();
     }
     catch (Throwable e) {
@@ -118,19 +116,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   protected void addSuppressedException(@NotNull Throwable e) {
     // This routine is overridden for compatibility's sake only.  It can be deleted when we no longer
     // test with pre 18.3 versions of idea.
-
-    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
-      try {
-        Method sase = super.getClass().getDeclaredMethod("addSuppressedException", Throwable.class);
-        sase.invoke(e);
-      }
-      catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-        // TODO: Bubble the exception out??
-        assertEmpty("Could not find or execute addSuppressedException. Was it removed?");
-      }
-    } else {
-      assertEmpty("Exception during teardown:" + e.getMessage() + "\n" + e.getStackTrace());
-    }
+    HaxeTestUtils.suppressException(e, this);
   }
 
     /**

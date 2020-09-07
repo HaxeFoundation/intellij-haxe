@@ -22,6 +22,9 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * Utilities to help debug this plugin.
  *
@@ -207,6 +210,14 @@ public class HaxeDebugUtil {
     builder.append(line);
 
     return builder.toString();
+  }
+
+  public static String getExceptionStackAsString(Throwable e) {
+    StringWriter writer = new StringWriter();
+    PrintWriter pwriter = new PrintWriter(writer);
+    e.printStackTrace(pwriter);
+    writer.flush();
+    return writer.getBuffer().toString();
   }
 
   /**

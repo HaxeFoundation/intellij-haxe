@@ -75,7 +75,7 @@ public class HaxeGenericSpecialization implements Cloneable {
      * A third would be to remove HaxeGenericResolver altogether and make the models use this class.
      */
     if (null == element) {
-      element = SpecificTypeReference.UNKNOWN_CONTEXT;
+      element = SpecificTypeReference.createUnknownContext();
     }
 
     Map<String, HaxeClassResolveResult> innerMap = getMapWithInnerSpecializations(element);
@@ -156,7 +156,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     final Map<String, HaxeClassResolveResult> result = new THashMap<>();
     for (String key : map.keySet()) {
       final HaxeClassResolveResult value = map.get(key);
-      if (key.startsWith(prefixToRemove)) {
+      if (!prefixToRemove.isEmpty() && key.startsWith(prefixToRemove)) {
         String newKey = key.substring(prefixToRemove.length());
         result.put(newKey, value);
       }

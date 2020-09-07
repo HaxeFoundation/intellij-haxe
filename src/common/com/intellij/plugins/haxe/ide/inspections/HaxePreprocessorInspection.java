@@ -49,7 +49,7 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
   @NotNull
   @Override
   public String getDisplayName() {
-    return HaxeBundle.message("haxe.inspection.preprocessor.symbol.long.name");
+    return HaxeBundle.message("haxe.inspection.preprocessor.symbol.name");
   }
 
   @Override
@@ -60,7 +60,7 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
   @NotNull
   @Override
   public String getShortName() {
-    return HaxeBundle.message("haxe.inspection.preprocessor.symbol.name");
+    return "HaxePreprocessorInspection";
   }
 
   @Nullable

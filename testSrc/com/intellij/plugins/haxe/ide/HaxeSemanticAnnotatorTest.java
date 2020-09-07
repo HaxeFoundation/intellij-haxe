@@ -20,19 +20,29 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.ide.ui.EditorOptionsTopHitProvider;
+import com.intellij.codeInspection.InspectionToolProvider;
+import com.intellij.codeInspection.LocalInspectionTool;
+import com.intellij.codeInspection.ex.InspectionProfileImpl;
+import com.intellij.codeInspection.ex.InspectionToolWrapper;
+import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.build.IdeaTarget;
+import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
-import com.intellij.plugins.haxe.util.HaxeTestUtils;
+import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -51,8 +61,31 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
+    registerAllInspectionsForTesting(HaxeSemanticAnnotator.getInspectionProvider(), myFixture.getProject());
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
+
+  public void registerAllInspectionsForTesting(InspectionToolProvider provider, Project project) {
+    InspectionProfileManager mgr = InspectionProfileManager.getInstance(project);
+    InspectionProfileImpl profile = mgr.getCurrentProfile();
+
+    try {
+      Class<? extends LocalInspectionTool>[] classes = provider.getInspectionClasses();
+      for (Class<? extends LocalInspectionTool> c : classes) {
+
+        Constructor<? extends LocalInspectionTool> constructor = c.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        InspectionToolWrapper<?, ?> wrapper = new LocalInspectionToolWrapper(constructor.newInstance());
+
+        Map<String, List<String>> dependencies = new HashMap<>();
+        profile.addTool(project, wrapper, dependencies);
+        profile.enableTool(wrapper.getShortName(), project);
+      }
+    } catch (Exception ex) {
+      assertNotNull(ex.toString());
+    }
+  }
+
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
     doTestInternal(true, false, false, additionalFiles);
@@ -449,7 +482,17 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-    doTestNoFixWithWarnings();
+    if (!IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
+      doTestNoFixWithWarnings();
+    }
+  }
+
+  public void testMissingInterfaceMethodsOnConstrainedGenericOverrides() throws Exception {
+    // Pre-2020.1, the underlying (Java) class/symbol map code worked a bit differently, and the
+    // missing overrides were not detected.
+    if (IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
+      doTestNoFixWithWarnings();
+    }
   }
 
   //public void testAssignmentOfParameterizedType() throws Exception {
