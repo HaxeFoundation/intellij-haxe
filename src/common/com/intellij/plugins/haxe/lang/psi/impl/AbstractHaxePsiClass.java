@@ -603,6 +603,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       public HaxeComponentName getComponentName() {
         return null;
       }
+
+      @NotNull
+      @Override
+      public Project getProject() {
+        return ((HaxeDummyASTNode)getNode()).getProject();
+      }
     };
   }
 

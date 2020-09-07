@@ -61,4 +61,9 @@ public class HaxeDummyASTNode  extends LazyParseableElement {
   public PsiManagerEx getManager() {
     return PsiManagerEx.getInstanceEx(project);
   }
+
+  @NotNull
+  public Project getProject() {
+    return project;
+  }
 }
