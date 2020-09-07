@@ -2,7 +2,7 @@ Haxe plugin for Intellij IDEA and Android Studio
 ======================================
 
 This plugin allows you to develop multi-platform programs using the [Haxe](http://haxe.org/) language with [Intellij IDEA](http://www.jetbrains.com/idea), [Android Studio](https://developer.android.com/studio/) and other IntelliJ IDEA-based IDEs by JetBrains.
-It requires Intellij IDEA Ultimate or Community Edition, versions 2016.1 through 2019.1, or Android Studio versions 2.2 through 3.4. 
+It requires Intellij IDEA Ultimate or Community Edition, versions 2016.1 through 2020.2, or Android Studio versions 2.2 through 4.0. 
 
 #### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
@@ -10,14 +10,10 @@ the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](h
 
 #### Past Versions Announcement
 
-Very, very few users are continuing to use this plugin with older versions of IDEA.  Plugin version 0.11.2 was the last
-version published that supported IDEA 15.x and previous.  (If you and/or your business need these or previous versions supported, then
+Very, very few users are continuing to use this plugin with older versions of IDEA.  Plugin version 1.3 will be the last to officially support
+IDE versions prior to 2018.3.5.  (If you and/or your business need these or previous versions supported, then
 [contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
 can be arranged.) 
-
-#### We have moved!
-As of January 2017, the primary maintained branch of this plugin has moved to the Haxe Foundation's github repository.  Please update your
-links and git clones to point to [http://github.com/HaxeFoundation/intellij-haxe](http://github.com/HaxeFoundation/intellij-haxe)
 
 Install
 -------

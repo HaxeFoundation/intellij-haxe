@@ -379,6 +379,9 @@ public class HaxeTypeResolver {
         }
         references.add(partResult);
       }
+    } else if (null != resolvedHaxeClass) {
+      // A bare type declaration uses the default types.
+      // TODO: Add types with constraints, if known, or "unknown" for all declared paratmers here.
     }
     //type.getTypeParam();
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
