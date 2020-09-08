@@ -43,4 +43,8 @@ public class ExternDeclarationTest extends DeclarationTestBase {
   public void testFinal() throws Throwable {
     doTest(true);
   }
+
+  public void testExternInline() throws Throwable {
+    doTest(true);
+  }
 }
