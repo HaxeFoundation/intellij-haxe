@@ -79,14 +79,14 @@
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
-  <version>1.3@plugin.dev.version@ for @plugin.compatibility.description@</version>
+  <version>1.3.1@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
       <p>1.3.1 (HaxeFoundation release)</p>
       <ul>
         <li>Allow both 'inline' and 'extern' to exist on functions and vars.</li>
-        <li>Correctly resolve when 'using' classes such as StringTools.</li>
-        <li>Understand and resolve expressions inside of parenthesis.</li>
+        <li>Correctly resolve when 'using' static extensions such as StringTools.</li>
+        <li>Correctly resolve expressions inside of parenthesis.</li>
       </ul>
       <p>1.3 (HaxeFoundation release)</p>
       <ul>

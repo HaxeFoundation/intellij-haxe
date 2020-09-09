@@ -1,4 +1,11 @@
 # Changelog
+  <p>1.3.1 (HaxeFoundation release)</p>
+  <ul>
+    <li>Allow both 'inline' and 'extern' to exist on functions and vars.</li>
+    <li>Correctly resolve when 'using' static extensions such as StringTools.</li>
+    <li>Correctly resolve expressions inside of parenthesis.</li>
+  </ul>
+    
   <p>1.3 (HaxeFoundation release)</p>
   <ul>
     <li>IDEA Versions 2020.2, 2020.1 and 2019.3 support.</li>
