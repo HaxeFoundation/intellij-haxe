@@ -82,6 +82,10 @@
   <version>1.3@plugin.dev.version@ for @plugin.compatibility.description@</version>
   <change-notes>
   <![CDATA[
+      <p>1.3.1 (HaxeFoundation release)</p>
+      <ul>
+        <li>Allow both 'inline' and 'extern' to exist on functions and vars.
+      </ul>
       <p>1.3 (HaxeFoundation release)</p>
       <ul>
         <li>IDEA Versions 2020.2, 2020.1 and 2019.3 support.</li>
