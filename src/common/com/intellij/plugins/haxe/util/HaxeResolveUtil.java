@@ -28,8 +28,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
@@ -72,8 +71,17 @@ public class HaxeResolveUtil {
     }
 
     if (leftExpression instanceof HaxeReference) return (HaxeReference)leftExpression;
-    if (leftExpression instanceof HaxeParenthesizedExpression && ((HaxeParenthesizedExpression)leftExpression).getTypeCheckExpr() != null) {
-      return ((HaxeParenthesizedExpression)leftExpression).getTypeCheckExpr();
+    if (leftExpression instanceof HaxeParenthesizedExpression) {
+      HaxeTypeCheckExpr typeCheck = ((HaxeParenthesizedExpression)leftExpression).getTypeCheckExpr();
+      if (null != typeCheck) {
+        return typeCheck;
+      }
+
+      PsiElement leftParen = leftExpression.getFirstChild();
+      PsiElement child = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftParen);
+      if (null != child && !HaxeTokenTypes.PRPAREN.equals(child.getNode().getElementType())) {
+        return new HaxeParenthesizedExpressionReferenceImpl(child);
+      }
     }
 
     return null;

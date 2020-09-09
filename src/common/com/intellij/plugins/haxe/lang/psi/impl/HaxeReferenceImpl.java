@@ -212,13 +212,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // the resolveToParents logic (here, at least).
     //
 
-    List<? extends PsiElement> cachedNames =
-      (HaxeResolver.INSTANCE).resolve(this, incompleteCode);
+    List<? extends PsiElement> cachedNames = doResolve(this, incompleteCode);
 
     // CandidateInfo does some extra resolution work when checking validity, so
     // the results have to be turned into a CandidateInfoArray, and not just passed
     // around as the list that HaxeResolver returns.
     return toCandidateInfoArray(resolveToParents ? resolveNamesToParents(cachedNames) : cachedNames);
+  }
+
+  protected List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
+    return (HaxeResolver.INSTANCE).resolve(reference, incompleteCode);
   }
 
   /**
