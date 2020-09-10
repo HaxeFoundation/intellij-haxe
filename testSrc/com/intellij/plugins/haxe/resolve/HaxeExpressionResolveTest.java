@@ -55,4 +55,8 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  public void testDynamicExtension() {
+    doTest();
+  }
+
 }
