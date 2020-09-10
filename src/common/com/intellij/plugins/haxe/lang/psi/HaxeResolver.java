@@ -372,7 +372,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<HaxeUsingModel> usingModels = fileModel != null ? fileModel.getUsingModels() : Collections.emptyList();
       HaxeMethodModel foundMethod = null;
       for (int i = usingModels.size() - 1; i >= 0; --i) {
-        foundMethod = usingModels.get(i).findExtensionMethod(identifier, leftClass);
+        foundMethod = usingModels.get(i).findExtensionMethod(identifier, leftExpression.getSpecificClassReference(reference, leftExpression.getGenericResolver()));
         if (null != foundMethod) {
           if (LOG.isTraceEnabled()) LOG.trace("Found method in 'using' import: " + foundMethod.getName());
           return Collections.singletonList(foundMethod.getBasePsi());
@@ -599,8 +599,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // try find using
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
       if (fileModel != null) {
+        SpecificHaxeClassReference leftClassReference =
+          SpecificHaxeClassReference.withGenerics(classModel.getReference(), null == resolver ? null : resolver.getSpecificsFor(leftClass));
         for (HaxeUsingModel model : fileModel.getUsingModels()) {
-          HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClass);
+          HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClassReference);
           if (method != null) {
             isExtension.set(true);
             return asList(method.getNamePsi());
