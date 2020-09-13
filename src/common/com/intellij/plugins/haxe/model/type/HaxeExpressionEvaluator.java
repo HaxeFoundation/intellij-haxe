@@ -125,28 +125,34 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeForStatement) {
-      final HaxeComponentName name = ((HaxeForStatement)element).getComponentName();
-      final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
-      final PsiElement body = element.getLastChild();
-      context.beginScope();
-      try {
-        final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
-        SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue).getType();
-        if (iterableValue.isConstant()) {
-          final Object constant = iterableValue.getConstant();
-          if (constant instanceof HaxeRange) {
-            type = type.withRangeConstraint((HaxeRange)constant);
+      HaxeForStatement forStatement = (HaxeForStatement)element;
+        final HaxeKeyValueIterator keyValueIterator = forStatement.getKeyValueIterator();
+        final HaxeComponentName name = forStatement.getComponentName();
+        final HaxeIterable iterable = forStatement.getIterable();
+        final PsiElement body = element.getLastChild();
+        context.beginScope();
+
+        try {
+          final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
+          SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue).getType();
+          if (iterableValue.isConstant()) {
+            final Object constant = iterableValue.getConstant();
+            if (constant instanceof HaxeRange) {
+              type = type.withRangeConstraint((HaxeRange)constant);
+            }
           }
+          if (name != null) {
+            context.setLocal(name.getText(), new ResultHolder(type));
+          } else if (keyValueIterator != null) {
+              context.setLocal(keyValueIterator.getIteratorkey().getComponentName().getText(), new ResultHolder(type));
+              context.setLocal(keyValueIterator.getIteratorValue().getComponentName().getText(), new ResultHolder(type));
+          }
+          return handle(body, context, resolver);
         }
-        if (name != null) {
-          context.setLocal(name.getText(), new ResultHolder(type));
+        finally {
+          context.endScope();
         }
-        return handle(body, context, resolver);
       }
-      finally {
-        context.endScope();
-      }
-    }
 
     if (element instanceof HaxeSwitchStatement) {
       // TODO: Evaluating result of switch statement should properly implemented

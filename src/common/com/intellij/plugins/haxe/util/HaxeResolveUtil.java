@@ -28,7 +28,9 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeParenthesizedExpressionReferenceImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
@@ -601,6 +603,43 @@ public class HaxeResolveUtil {
       final HaxeClass haxeClass = (HaxeClass)element;
       return HaxeClassResolveResult.create(haxeClass, specialization);
     }
+    if (element instanceof HaxeIteratorkey || element instanceof HaxeIteratorValue) {
+        final HaxeForStatement forStatement = getParentForStatement(element);
+        final HaxeIterable iterable = forStatement.getIterable();
+        if (iterable == null) {
+          // iterable is @Nullable
+          // (sometimes when you're typing for statement it becames null for short time)
+          return HaxeClassResolveResult.EMPTY;
+        }
+        final HaxeExpression expression = iterable.getExpression();
+        if (expression instanceof HaxeReference) {
+          final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
+          final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+          final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
+          final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
+
+          // find keyValue iterator type
+          HaxeClassResolveResult keyValueIteratorResult =
+            getResolveMethodReturnType(resolver, resolveResultHaxeClass, "keyValueIterator",
+                                       resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
+
+
+          HaxeClass iteratorClass = keyValueIteratorResult.getHaxeClass();
+          HaxeClassResolveResult iteratorResult =
+            getResolveMethodReturnType(resolver, iteratorClass, "next", keyValueIteratorResult.getSpecialization());
+
+          HaxeClass keyValueType = iteratorResult.getHaxeClass();
+
+          if (element instanceof HaxeIteratorkey) {
+           return  resolveFieldType(resolver, keyValueType, "key",  iteratorResult.getSpecialization());
+          }
+
+          if (element instanceof  HaxeIteratorValue) {
+            return  resolveFieldType(resolver, keyValueType, "value", iteratorResult.getSpecialization());
+          }
+        }
+        return HaxeClassResolveResult.EMPTY;
+    }
     if (element instanceof HaxeForStatement) {
       final HaxeIterable iterable = ((HaxeForStatement)element).getIterable();
       if (iterable == null) {
@@ -615,23 +654,18 @@ public class HaxeResolveUtil {
         final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
         final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
         // try next
-        HaxeClassResolveResult result =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null ? null
-                                    : resolveResultHaxeClass.findHaxeMethodByName("next", resolver), resultSpecialization);
+        HaxeClassResolveResult result = getResolveMethodReturnType(resolver, resolveResultHaxeClass, "next", resultSpecialization);
         if (result.getHaxeClass() != null) {
           return result;
         }
         // try iterator
         HaxeClassResolveResult iteratorResult =
-          getHaxeClassResolveResult(resolveResultHaxeClass == null
-                                    ? null : resolveResultHaxeClass.findHaxeMethodByName("iterator", resolver),
-                                    resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
+          getResolveMethodReturnType(resolver, resolveResultHaxeClass, "iterator",
+                                     resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
+
         HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
         // Now, look for iterator's next
-        result =
-          getHaxeClassResolveResult(iteratorResultHaxeClass == null
-                                    ? null : iteratorResultHaxeClass.findHaxeMethodByName("next", resolver),
-                                    iteratorResult.getSpecialization());
+        result =  getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
 
         return result;
       }
@@ -664,6 +698,25 @@ public class HaxeResolveUtil {
       return result;
     }
     return getHaxeClassResolveResult(initExpression, specialization);
+  }
+
+  @NotNull
+  private static HaxeForStatement getParentForStatement(PsiElement iterator) {
+    PsiElement keyValueIterator = iterator.getParent();
+      return  (HaxeForStatement)keyValueIterator.getParent();
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult getResolveMethodReturnType(HaxeGenericResolver resolver, HaxeClass haxeClass,
+                                                                   String MethodName, HaxeGenericSpecialization specialization) {
+
+    return getHaxeClassResolveResult(haxeClass == null ? null : haxeClass.findHaxeMethodByName(MethodName, resolver),  specialization);
+  }
+
+  @NotNull
+  private static HaxeClassResolveResult resolveFieldType(HaxeGenericResolver resolver, HaxeClass haxeClass,
+                                                         String FieldName, HaxeGenericSpecialization specialization) {
+    return getHaxeClassResolveResult(haxeClass == null ? null : haxeClass.findHaxeFieldByName(FieldName, resolver), specialization);
   }
 
   @NotNull

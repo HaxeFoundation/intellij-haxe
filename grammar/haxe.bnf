@@ -469,9 +469,17 @@ private notBlockStatement ::= ('untyped' statement ';'?)
                             | tryStatement
                             | expression
 
-forStatement ::= 'for' '(' componentName 'in' iterable')' statement ';'?
+forStatement ::= 'for' '(' forDeclaration 'in' iterable')' statement ';'?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
 // XXX: Somehow or another, forStatement must derive from AbstractHaxeNamedComponent, or variable resolution will break.
+private forDeclaration ::= keyValueIterator | componentName
+iteratorkey ::= componentName
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+iteratorValue ::= componentName
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+keyValueIterator ::= iteratorkey fatArrowOperator iteratorValue
+
+
 
 iterable ::= expression
 
