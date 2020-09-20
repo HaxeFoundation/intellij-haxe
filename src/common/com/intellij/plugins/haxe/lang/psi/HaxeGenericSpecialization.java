@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2019 Eric Bishton
+ * Copyright 2017-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,6 +100,11 @@ public class HaxeGenericSpecialization implements Cloneable {
       for (String name : resolver.names()) {
         ResultHolder holder = resolver.resolve(name);
         PsiElement context = holder.getElementContext();
+        if (context == element) {
+          // Going circular. Happens on a function with type parameters.  Skip this one
+          // because the caller is already dealing with it, and there is no further type info.
+          continue;
+        }
         if (context instanceof HaxeClass) {
           HaxeClassResolveResult resolved =
             HaxeClassResolveResult.create((HaxeClass)context, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
