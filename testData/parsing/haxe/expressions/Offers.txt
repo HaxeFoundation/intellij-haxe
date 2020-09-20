@@ -43,8 +43,8 @@ Haxe File
                       HaxePsiToken:ID('toString')
                   HaxePsiToken:(('(')
                   HaxePsiToken:)(')')
-                  PsiErrorElement:'&&', '(', '.', '...', <<, <expression>, <operation>, '?', '[' or '||' expected, got '\'
-                    PsiElement(BAD_CHARACTER)('\')
+                PsiErrorElement:'(', '.', <<, <operation>, LONG_TEMPLATE_ENTRY_END or '[' expected, got '\'
+                  PsiElement(BAD_CHARACTER)('\')
                 HaxePsiToken:ID('n')
                 HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
               HaxePsiToken:REGULAR_STRING_PART('\n')

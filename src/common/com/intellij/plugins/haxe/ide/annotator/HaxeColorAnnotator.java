@@ -51,7 +51,7 @@ import java.util.Set;
 public class HaxeColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
-    if (isNewOperator(node)) {
+    if (isNewOperator(node) || isIsOperator(node)) {
       holder.createInfoAnnotation(node, null).setTextAttributes(TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD));
     }
 
@@ -119,6 +119,12 @@ public class HaxeColorAnnotator implements Annotator {
   private static boolean isNewOperator(PsiElement element) {
     return HaxeTokenTypes.ONEW.toString().equals(element.getText()) &&
            element.getParent() instanceof HaxeNewExpression;
+  }
+
+  private static boolean isIsOperator(PsiElement element) {
+    // No token type available (yet)
+    return "is".equals(element.getText()) &&
+           element.getParent() instanceof HaxeIsTypeExpression;
   }
 
   /** Checks for keywords that are NOT PsiStatements; those are handled by IDEA.

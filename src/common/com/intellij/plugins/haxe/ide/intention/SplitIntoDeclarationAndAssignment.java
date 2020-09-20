@@ -56,7 +56,7 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     HaxeLocalVarDeclaration localVarDeclaration = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclaration.class);
     if (localVarDeclaration != null) {
       HaxeVarInit varInit = localVarDeclaration.getVarInit();
-      return localVarDeclaration.getPropertyDeclaration() == null && varInit != null;
+      return varInit != null;
     }
     return false;
   }
