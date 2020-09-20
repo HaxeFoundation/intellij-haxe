@@ -54,7 +54,7 @@ Haxe File
                 LITERAL_EXPRESSION
                   HaxePsiToken:null('null')
               HaxePsiToken:?('?')
-              PREFIX_EXPRESSION
+              VALUE_EXPRESSION
                 THROW_STATEMENT
                   HaxePsiToken:throw('throw')
                   STRING_LITERAL_EXPRESSION

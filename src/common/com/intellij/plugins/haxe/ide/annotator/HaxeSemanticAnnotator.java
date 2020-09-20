@@ -94,6 +94,8 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
       TypeCheckExpressionChecker.check((HaxeTypeCheckExpr)element, holder);
     } else if (element instanceof HaxeAssignExpression) {
       AssignExpressionChecker.check((HaxeAssignExpression)element, holder);
+    } else if (element instanceof HaxeIsTypeExpression) {
+      IsTypeExpressionChecker.check((HaxeIsTypeExpression)element, holder);
     }
   }
 }
@@ -113,6 +115,7 @@ enum SemanticAnnotatorInspections {
   INHERITED_INTERFACE_METHOD_SIGNATURE(new InheritedInterfaceMethodSignatureInspection()),
   INTERFACE_METHOD_SIGNATURE(new InterfaceMethodSignatureInspection()),
   INVALID_TYPE_NAME(new InvalidTypeNameInspection()),
+  IS_TYPE_INSPECTION(new IsTypeExpressionInspection()),
   METHOD_OVERRIDE_CHECK(new MethodOverrideInspection()),
   METHOD_SIGNATURE_COMPATIBILITY(new MethodSignatureCompatiblityInspection()),
   MISSING_INTERFACE_METHODS(new MissingInterfaceMethodInspection()),
@@ -238,6 +241,13 @@ enum SemanticAnnotatorInspections {
     }
   }
 
+  public static class IsTypeExpressionInspection extends HaxeAnnotatorInspection {
+    public IsTypeExpressionInspection() {
+      super("haxe.inspections.is.type.expression.inspection.name",
+            "haxe.inspections.is.type.expression.inspection.description");
+    }
+  }
+
   public static class MethodOverrideInspection extends HaxeAnnotatorInspection {
     public MethodOverrideInspection() {
       super("haxe.inspections.method.override.name",
@@ -345,7 +355,16 @@ enum SemanticAnnotatorInspections {
 }
 
 
+class IsTypeExpressionChecker {
+  public static void check(
+    final HaxeIsTypeExpression expr,
+    final HaxeAnnotationHolder holder
+  ) {
+    if (!IS_TYPE_INSPECTION.isEnabled(expr)) return;
 
+
+  }
+}
 
 class TypeCheckExpressionChecker {
   public static void check(
