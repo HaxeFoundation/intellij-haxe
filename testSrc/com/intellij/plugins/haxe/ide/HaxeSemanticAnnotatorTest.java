@@ -579,4 +579,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testInitializeEnumMapWithMapLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  public void testCrashWhileAnnotating() throws Exception {
+    // A stack overflow was occurring while annotating, and there's no better place to
+    // put this test at the moment, soo....
+    doTestNoFixWithoutWarnings();
+  }
 }
