@@ -419,22 +419,26 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final Set<SpecificHaxeClassReference> list = new HashSet<>();
     if (null == model) return list;
 
+    boolean isEnumType = isContextEnumType(context);
     // For enumName, add Enum<enumName>.
     // TODO: FlatEnum
     if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
-      SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
-        model.getReference(), resolver.getSpecifics(), null, null, context);
-      list.add(SpecificHaxeClassReference.getEnum(context, ref));
       list.add(SpecificHaxeClassReference.getEnumValue(context));
+      if(isEnumType) {
+        SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
+          model.getReference(), resolver.getSpecifics(), null, null, context);
+        list.add(SpecificHaxeClassReference.getEnum(context, ref));
+      }
     }
 
     // For Enum<enumName>, add enumName.
     else if (model.isAbstract() && "Enum".equals(model.getQualifiedInfo().getPresentableText())) {
       ResultHolder[] specifics = resolver.getSpecifics();
       if (specifics.length == 1) {
-        SpecificHaxeClassReference ref = specifics[0].getClassType();
-        list.add(ref);
         list.add(SpecificHaxeClassReference.getEnumValue(context));
+        if(isEnumType) {
+          list.add(specifics[0].getClassType());
+        }
       }
     }
 

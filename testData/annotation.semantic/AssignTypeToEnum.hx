@@ -14,7 +14,7 @@ class ClassTypeAssignmentTest {
         var <error descr="Incompatible type: String should be Enum<TestEnum>">specificEnumTemplate3:Enum<TestEnum> = ""</error>;                                    // [Wrong] Not enum Type
         var <error descr="Incompatible type: String should be Enum<TestEnum>">specificEnumTemplate4:Enum<TestEnum> = myString</error>;                              // [Wrong] Not enum Type
         var <error descr="Incompatible type: ClassTypeAssignmentTest should be Enum<TestEnum>">specificEnumTemplate5:Enum<TestEnum> = myClassObject</error>;        // [Wrong] Not enum Type
-        var specificEnumTemplate5:Enum<TestEnum> = myEnumObject;        // [Wrong] Not enum Type (but enum value)
+        var <error descr="Incompatible type: TestEnum should be Enum<TestEnum>">specificEnumTemplate5:Enum<TestEnum> = myEnumObject</error>;                        // [Wrong] Not enum Type (enum value)
         var <error descr="Incompatible type: String should be Enum<TestEnum>">specificEnumTemplate6:Enum<TestEnum> = String</error> ;                               // [Wrong] incompatible types Enum Vs Class
         var <error descr="Incompatible type: OtherClass should be Enum<TestEnum>">specificEnumTemplate7:Enum<TestEnum> = OtherClass</error>;                        // [Wrong] incompatible types Enum Vs Class
         var <error descr="Incompatible type: OtherEnum should be Enum<TestEnum>">specificEnumTemplate7:Enum<TestEnum> = OtherEnum</error>;                          // [Wrong] wrong Enum
