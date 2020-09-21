@@ -20,10 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypedefDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.model.*;
@@ -262,6 +259,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     stack.push(model.haxeClass);
 
     list.addAll(getCompatibleMapTypes(model, genericResolver));
+    list.addAll(getCompatibleClassTypes(model, genericResolver, direction));
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
     list.addAll(getCompatibleEnumTypes(model, genericResolver));
 
@@ -302,6 +300,80 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
 
     return list;
+  }
+
+  private Set<SpecificHaxeClassReference> getCompatibleClassTypes(HaxeClassModel model,
+                                                                  HaxeGenericResolver genericResolver,
+                                                                  Compatibility direction) {
+    HashSet<SpecificHaxeClassReference> references = new HashSet<>();
+    genericResolver.getSpecifics();
+
+    if (direction == Compatibility.ASSIGNABLE_TO) {
+      // allow types to be assigned to variables of type Class<T>, Enum<T>
+      ResultHolder myType = new ResultHolder(withoutConstantValue());
+      ResultHolder any = new ResultHolder(getStdClass("Any", context, new ResultHolder[0]));
+
+      boolean isClassType = isContextClassType(context);
+      boolean isEnumType = isContextEnumType(context);
+      String typeName = getTypeName(context);
+
+      if (typeName != null) {
+        if (isEnumType) {
+          SpecificHaxeClassReference specificType = getStdClass("Enum", context, new ResultHolder[]{myType});
+          //TODO Tmp Workaround for "Any" due to missing @:to/@:from support, remove when support is in place
+          SpecificHaxeClassReference dynamicClass = getStdClass("Enum", context, new ResultHolder[]{any});
+          references.add(specificType);
+          references.add(dynamicClass);
+        }
+        // use "else if" here as  enum is also class in this code
+        else if (isClassType) {
+          SpecificHaxeClassReference specificType = getStdClass("Class", context, new ResultHolder[]{myType});
+          //TODO Tmp Workaround for "Any" due to missing @:to/@:from support, remove when support is in place
+          SpecificHaxeClassReference dynamicClass = getStdClass("Class", context, new ResultHolder[]{any});
+          references.add(specificType);
+          references.add(dynamicClass);
+        }
+      }
+    }
+    return references;
+  }
+
+  private boolean isContextEnumType(PsiElement context) {
+    if(context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+
+      if(resolve instanceof HaxeClass) {
+        HaxeClass resolved = (HaxeClass) resolve;
+        return resolved.isEnum();
+      }
+    }
+    return false;
+  }
+
+  private boolean isContextClassType(PsiElement context) {
+    if(context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+
+      return resolve instanceof HaxeClass;
+    }
+    return false;
+  }
+
+  private String getTypeName(PsiElement context) {
+    if(context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+
+      if(resolve instanceof HaxeClass) {
+        HaxeClass resolved = (HaxeClass) resolve;
+        if(element.getText().equals(resolved.getName())) {
+          return resolved.getName();
+        }
+      }
+    }
+    return null;
   }
 
   private Set<SpecificHaxeClassReference> getCompatibleMapTypes(HaxeClassModel model, HaxeGenericResolver resolver) {
