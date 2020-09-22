@@ -61,14 +61,16 @@ allprojects {
         ideaBaseDir = "${rootDir}/idea-IU"
         ideaTargetDir = "${ideaBaseDir}/ideaIU-${ideaVersion}"
 
+        grammerDir = "${haxePluginDir}/grammar"
         //Note: path is system directory separator sensitive, file.absolutePath solves this for us
-        grammarHaxe = file("${haxePluginDir}/grammar/haxe.bnf").absolutePath
-        grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
-        grammarMetadata = file("${haxePluginDir}/grammar/metadata.bnf").absolutePath
+        grammarHaxe = file("${grammerDir}/haxe.bnf").absolutePath
+        grammarHxml = file("${grammerDir}/hxml.bnf").absolutePath
+        grammarMetadata = file("${grammerDir}/metadata.bnf").absolutePath
 
-        haxeFlex = file("${haxePluginDir}/grammar/haxe.flex").absolutePath
-        hxmlFlex = file("${haxePluginDir}/grammar/hxml.flex").absolutePath
-        metadataFlex = file("${haxePluginDir}/grammar/metadata.flex").absolutePath
+
+        haxeFlex = file("${grammerDir}/haxe.flex").absolutePath
+        hxmlFlex = file("${grammerDir}/hxml.flex").absolutePath
+        metadataFlex = file("${grammerDir}/metadata.flex").absolutePath
 
 
         flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
@@ -356,8 +358,8 @@ task generateIdeaSdkIdentifer(group: 'generate') {
 }
 
 task cleanGenDirIfSourcesChanged(group: 'other') {
-    inputs.files "${haxeFlex}", "${hxmlFlex}", "${metadataFlex}", "${grammarHaxe}", "${grammarHxml}", "${grammarMetadata}"
-    outputs.files "${haxeFlex}", "${hxmlFlex}", "${metadataFlex}", "${grammarHaxe}", "${grammarHxml}", "${grammarMetadata}"
+    inputs.dir "${grammerDir}"
+    outputs.dir "${grammerDir}"
     doLast {
         delete "$generatedSrcDir"
     }
