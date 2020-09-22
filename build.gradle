@@ -66,9 +66,9 @@ allprojects {
         grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
         grammarMetadata = file("${haxePluginDir}/grammar/metadata.bnf").absolutePath
 
-        haxeFlex = file("src/common/com/intellij/plugins/haxe/lang/lexer/haxe.flex").absolutePath
-        hxmlFlex = file("src/common/com/intellij/plugins/haxe/hxml/lexer/hxml.flex").absolutePath
-        metadataFlex = file("src/common/com/intellij/plugins/haxe/metadata/lexer/metadata.flex").absolutePath
+        haxeFlex = file("${haxePluginDir}/grammar/haxe.flex").absolutePath
+        hxmlFlex = file("${haxePluginDir}/grammar/hxml.flex").absolutePath
+        metadataFlex = file("${haxePluginDir}/grammar/metadata.flex").absolutePath
 
 
         flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
