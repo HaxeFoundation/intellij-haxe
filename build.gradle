@@ -355,8 +355,16 @@ task generateIdeaSdkIdentifer(group: 'generate') {
   }
 }
 
+task cleanGenDirIfSourcesChanged(group: 'other') {
+    inputs.files "${haxeFlex}", "${hxmlFlex}", "${metadataFlex}", "${grammarHaxe}", "${grammarHxml}", "${grammarMetadata}"
+    outputs.files "${haxeFlex}", "${hxmlFlex}", "${metadataFlex}", "${grammarHaxe}", "${grammarHxml}", "${grammarMetadata}"
+    doLast {
+        delete "$generatedSrcDir"
+    }
+
+}
 task generateSources(group: 'generate') {
-    dependsOn 'cleanGenerated'
+    dependsOn 'cleanGenDirIfSourcesChanged'
     dependsOn 'generateIdeaSdkIdentifer'
     // See template.gradle for generateVersionSpecificSources task.
     dependsOn 'generateVersionSpecificSources'
