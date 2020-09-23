@@ -313,8 +313,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       ResultHolder myType = new ResultHolder(withoutConstantValue());
       ResultHolder any = new ResultHolder(getStdClass("Any", context, new ResultHolder[0]));
 
-      boolean isClassType = isContextClassType(context);
-      boolean isEnumType = isContextEnumType(context);
+      boolean isClassType = isContextAType(context);
+      boolean isEnumType = isContextAnEnumType(context);
       String typeName = getTypeName(context);
 
       if (typeName != null) {
@@ -338,7 +338,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return references;
   }
 
-  private boolean isContextEnumType(PsiElement context) {
+  private boolean isContextAnEnumType(PsiElement context) {
     if(context instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression element = (HaxeReferenceExpression)context;
       PsiElement resolve = element.resolve();
@@ -351,24 +351,29 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return false;
   }
 
-  private boolean isContextClassType(PsiElement context) {
-    if(context instanceof HaxeReferenceExpression) {
+  private boolean isContextAType(PsiElement context) {
+    if (context instanceof HaxeType) {
+      return true;
+    }
+    else if (context instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression element = (HaxeReferenceExpression)context;
       PsiElement resolve = element.resolve();
-
       return resolve instanceof HaxeClass;
     }
     return false;
   }
 
   private String getTypeName(PsiElement context) {
-    if(context instanceof HaxeReferenceExpression) {
+    if (context instanceof HaxeType) {
+      return context.getText();
+    }
+    else if (context instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression element = (HaxeReferenceExpression)context;
       PsiElement resolve = element.resolve();
 
-      if(resolve instanceof HaxeClass) {
-        HaxeClass resolved = (HaxeClass) resolve;
-        if(element.getText().equals(resolved.getName())) {
+      if (resolve instanceof HaxeClass) {
+        HaxeClass resolved = (HaxeClass)resolve;
+        if (element.getText().equals(resolved.getName())) {
           return resolved.getName();
         }
       }
@@ -419,7 +424,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final Set<SpecificHaxeClassReference> list = new HashSet<>();
     if (null == model) return list;
 
-    boolean isEnumType = isContextEnumType(context);
+    boolean isEnumType = isContextAnEnumType(context);
     // For enumName, add Enum<enumName>.
     // TODO: FlatEnum
     if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
