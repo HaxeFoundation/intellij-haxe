@@ -24,7 +24,9 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -202,7 +204,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
     HaxeClassModel model = getHaxeClassModel();
-    if (null == model || !model.hasGenericParams()) {
+
+    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
       // This breaks for generic types.  The first check of the generic sets up
       // the compatible types, and then all other instances are checked against that set.
@@ -393,7 +397,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
     if (specifics.length == 2) {
       if (MAP.equals(name) || IMAP.equals(name)) {
-        list.add((SpecificHaxeClassReference)getExpectedMapType(specifics[0], specifics[1]));
+//        list.add((SpecificHaxeClassReference)getExpectedMapType(specifics[0], specifics[1]));
         list.add((getStdClass(MAP, this.context, specifics)));
         list.add((getStdClass(IMAP, this.context, specifics)));
       }
@@ -425,10 +429,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (null == model) return list;
 
     boolean isEnumType = isContextAnEnumType(context);
+    boolean instanceIsExpected = canBeEnumInstance();
     // For enumName, add Enum<enumName>.
     // TODO: FlatEnum
     if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
-      list.add(SpecificHaxeClassReference.getEnumValue(context));
+      if (instanceIsExpected) {
+        list.add(SpecificHaxeClassReference.getEnumValue(context));
+      }
       if(isEnumType) {
         SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
           model.getReference(), resolver.getSpecifics(), null, null, context);
@@ -440,7 +447,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     else if (model.isAbstract() && "Enum".equals(model.getQualifiedInfo().getPresentableText())) {
       ResultHolder[] specifics = resolver.getSpecifics();
       if (specifics.length == 1) {
-        list.add(SpecificHaxeClassReference.getEnumValue(context));
+        if (instanceIsExpected) {
+          list.add(SpecificHaxeClassReference.getEnumValue(context));
+        }
         if(isEnumType) {
           list.add(specifics[0].getClassType());
         }
@@ -448,6 +457,20 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
 
     return list;
+  }
+
+  private boolean canBeEnumInstance() {
+
+    PsiElement element = context;
+    while (null != element && !(element instanceof PsiFile)) {
+
+      if (element instanceof HaxeTypeParam) return false;
+      if (element instanceof HaxeParameter) return true;
+      if (element instanceof HaxeVarInit) return true;
+
+      element = element.getParent();
+    }
+    return true;
   }
 
   private Set<SpecificHaxeClassReference> getInferTypesInternal() {
@@ -499,7 +522,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable HaxeType type,
                                                              HaxeGenericResolver genericResolver) {
     if (type == null) return null;
-    SpecificHaxeClassReference classType = HaxeTypeResolver.getTypeFromType(type).getClassType();
+    SpecificHaxeClassReference classType = HaxeTypeResolver.getTypeFromType(type, genericResolver).getClassType();
     return propagateGenericsToType(classType, genericResolver);
   }
 

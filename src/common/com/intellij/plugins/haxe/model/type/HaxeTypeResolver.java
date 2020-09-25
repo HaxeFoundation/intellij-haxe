@@ -346,12 +346,32 @@ public class HaxeTypeResolver {
    * See {@link SpecificHaxeClassReference#propagateGenericsToType(SpecificHaxeClassReference, HaxeGenericResolver)}
    * to fully resolve generic parameters.
    *
+   * NOTE: If types were constrained in scope, (e.g. {@code subClass<T:Constraint> extends superClass<T>})the type
+   *       parameter resolves to the constraint type because that's what {@link HaxeResolver#resolve} returns.
+   *
    * @param type - Type reference.
    * @return - resolved type with non-generic parameters resolved.
    *           (e.g. &lt;T&gt; will remain an unresolved reference to T.)
    */
   @NotNull
   static public ResultHolder getTypeFromType(@NotNull HaxeType type) {
+    return getTypeFromType(type, null);
+  }
+
+  /**
+   * Resolves the type reference in HaxeType, including type parameters,
+   * and fully resolving type parameters if they are fully specified types or
+   * appear in the HaxeGenericResolver.
+   * See {@link SpecificHaxeClassReference#propagateGenericsToType(SpecificHaxeClassReference, HaxeGenericResolver)}
+   * to fully resolve generic parameters.
+   *
+   * @param type - Type reference.
+   * @param resolver - Resolver containing a type->parameter map.
+   * @return - resolved type with non-generic parameters resolved.
+   *           (e.g. &lt;T&gt; will remain an unresolved reference to T.)
+   */
+  @NotNull
+  static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
     HaxeReferenceExpression expression = type.getReferenceExpression();
@@ -368,11 +388,19 @@ public class HaxeTypeResolver {
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         ResultHolder partResult = null;
-        if (part.getFunctionType() != null) {
-          partResult = getTypeFromFunctionType(part.getFunctionType());
+        if (null != resolver) {
+          partResult = resolver.resolve(part.getText());
         }
-        if (part.getTypeOrAnonymous() != null) {
-          partResult = getTypeFromTypeOrAnonymous(part.getTypeOrAnonymous());
+        if (null == partResult) {
+          HaxeFunctionType fnType = part.getFunctionType();
+          if (fnType != null) {
+            partResult = getTypeFromFunctionType(fnType);
+          } else {
+            HaxeTypeOrAnonymous toa = part.getTypeOrAnonymous();
+            if (toa != null) {
+              partResult = getTypeFromTypeOrAnonymous(toa);
+            }
+          }
         }
         if (null == partResult) {
           partResult = SpecificTypeReference.getUnknown(type).createHolder();
