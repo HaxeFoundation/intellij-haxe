@@ -28,14 +28,10 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -271,6 +267,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
     list.addAll(getCompatibleEnumTypes(model, genericResolver));
+    list.addAll(emptyCollectionAssignment(direction));
 
     if (!model.isAbstract()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
@@ -309,6 +306,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
 
     return list;
+  }
+
+  private List<SpecificHaxeClassReference> emptyCollectionAssignment(Compatibility direction) {
+    if (direction == Compatibility.ASSIGNABLE_TO && context instanceof HaxeArrayLiteral && null == ((HaxeArrayLiteral)context).getExpressionList()) {
+      ResultHolder unknownHolder = SpecificTypeReference.getUnknown(context).createHolder();
+      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolder, unknownHolder);
+      return Collections.singletonList(holder);
+    }
+    return Collections.emptyList();
   }
 
 

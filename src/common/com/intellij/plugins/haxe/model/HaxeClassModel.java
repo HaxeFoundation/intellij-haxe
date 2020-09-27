@@ -156,7 +156,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Nullable
   public SpecificHaxeClassReference getUnderlyingClassReference(HaxeGenericResolver resolver) {
-    if (!isAbstract()) return null;
+    if (!isAbstract() && !isTypedef()) return null;
 
     PsiElement element = getBasePsi();
     HaxeTypeOrAnonymous typeOrAnon = getUnderlyingType();

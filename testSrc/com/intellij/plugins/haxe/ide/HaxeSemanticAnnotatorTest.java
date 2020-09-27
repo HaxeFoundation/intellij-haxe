@@ -593,5 +593,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testAssignEmptyCollection() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
 
 }

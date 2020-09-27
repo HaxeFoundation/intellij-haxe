@@ -120,6 +120,18 @@ public class HaxeClassReference {
     HaxeClass otherClass = other.getHaxeClass();
     if (null == otherClass) return false;
 
+    // resolve typedefs for correct comparison
+    if (myClass.getModel().isTypedef()) {
+      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(myClass.getContext());
+      SpecificHaxeClassReference reference = myClass.getModel().getUnderlyingClassReference(resolver);
+      if (reference != null) myClass = reference.getHaxeClass();
+    }
+    if (otherClass.getModel().isTypedef()) {
+      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(otherClass.getContext());
+      SpecificHaxeClassReference reference = otherClass.getModel().getUnderlyingClassReference(resolver);
+      if (reference != null) myClass = reference.getHaxeClass();
+    }
+
     // Optimization
     ASTNode myNode = myClass.getNode();
     ASTNode otherNode = otherClass.getNode();
