@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
-import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections.*;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
 
@@ -403,7 +403,7 @@ class TypeTagChecker {
     final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
     final ResultHolder initType = getTypeFromVarInit(initExpression);
 
-    if (!varType.canAssign(initType, true)) {
+    if (!varType.canAssign(initType)) {
 
       HaxeAnnotation annotation = typeMismatch(erroredElement, initType.toStringWithoutConstant(),
                                                varType.toStringWithoutConstant());

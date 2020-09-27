@@ -116,9 +116,6 @@ public class ResultHolder {
   public boolean canAssign(ResultHolder that) {
     return HaxeTypeCompatible.canAssignToFrom(this, that);
   }
-  public boolean canAssign(ResultHolder that, boolean variableInit) {
-    return HaxeTypeCompatible.canAssignToFrom(this, that, variableInit);
-  }
 
   public void removeConstant() {
     setType(getType().withoutConstantValue());

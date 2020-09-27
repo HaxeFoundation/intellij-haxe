@@ -38,17 +38,11 @@ public class HaxeTypeCompatible {
   }
 
   static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from) {
-    return canAssignToFrom(to, from, false);
-  }
-  static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from, boolean variableInit) {
     if (null == to || null == from) return false;
-    return canAssignToFrom(to, from.getType(), variableInit);
+    return canAssignToFrom(to, from.getType());
   }
 
   static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
-    return canAssignToFrom(to, from, false);
-  }
-  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean variableInit) {
     if (null == to || null == from) return false;
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
@@ -56,7 +50,7 @@ public class HaxeTypeCompatible {
     else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
-    return canAssignToFrom(to.getType(), from.getType(), variableInit);
+    return canAssignToFrom(to.getType(), from.getType());
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
@@ -79,17 +73,10 @@ public class HaxeTypeCompatible {
     return null;  // XXX: Should throw exception instead??
   }
 
-  static public boolean canAssignToFrom(
-    @Nullable SpecificTypeReference to,
-    @Nullable SpecificTypeReference from
-  ) {
-    return canAssignToFrom(to,from,false);
-  }
 
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
-    @Nullable SpecificTypeReference from,
-    boolean variableInit
+    @Nullable SpecificTypeReference from
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
@@ -102,7 +89,7 @@ public class HaxeTypeCompatible {
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
-      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, variableInit);
+      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from);
     }
 
     return false;
@@ -158,14 +145,6 @@ public class HaxeTypeCompatible {
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
-    return canAssignToFromType(to,from, false);
-  }
-
-  static private boolean canAssignToFromType(
-    @NotNull SpecificHaxeClassReference to,
-    @NotNull SpecificHaxeClassReference from,
-    boolean variableInit
-  ) {
 
     // Null<T> is a special case.  It must act like a T in all ways.  Whereas,
     // any other abstract must act like it hides its internal types.
@@ -175,30 +154,30 @@ public class HaxeTypeCompatible {
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
       String toName = to.getHaxeClass().getName();
       switch (toName) {
-        case "EnumValue":
+        case SpecificTypeReference.ENUM_VALUE:
           return handleEnumValue(to,from);
-        case "Class":
+        case SpecificTypeReference.CLASS:
           return handleClassType(to,from);
-        case "Enum":
+        case SpecificTypeReference.ENUM:
           return handleEnumType(to,from);
       }
     }
 
-    if (canAssignToFromSpecificType(to, from, variableInit)) return true;
+    if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (canAssignToFromSpecificType(compatibleType, from, variableInit)) return true;
+      if (canAssignToFromSpecificType(compatibleType, from)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (canAssignToFromSpecificType(to, compatibleType, variableInit)) return true;
+      if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
 
     compatibleTypes = from.getInferTypes();
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (canAssignToFromSpecificType(to, compatibleType, variableInit)) return true;
+      if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
 
     // Last ditch effort...
@@ -206,7 +185,7 @@ public class HaxeTypeCompatible {
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
-    return from.isContextAnEnumDeclaration();
+    return (from.isEnumType() && from.isEnumValue()) || from.isContextAnEnumDeclaration();
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
@@ -224,8 +203,7 @@ public class HaxeTypeCompatible {
 
   static private boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
-    @NotNull SpecificHaxeClassReference from,
-    boolean variableInit
+    @NotNull SpecificHaxeClassReference from
   ) {
     if (to.isDynamic() || from.isDynamic()) {
       return true;
@@ -255,11 +233,11 @@ public class HaxeTypeCompatible {
               fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
             }
 
-            if (!canAssignToFrom(toSpecific, fromSpecific, variableInit)) {
+            if (!canAssignToFrom(toSpecific, fromSpecific)) {
               return false;
             }
           } else {
-            if (!canAssignToFrom(toHolder, fromHolder, variableInit)) return false;
+            if (!canAssignToFrom(toHolder, fromHolder)) return false;
           }
         }
         return true;
