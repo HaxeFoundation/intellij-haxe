@@ -417,13 +417,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (null == model) return list;
 
     boolean isEnumType = isContextAnEnumType();
-    boolean instanceIsExpected = canBeEnumInstance();
     // For enumName, add Enum<enumName>.
     // TODO: FlatEnum
     if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
-      if (instanceIsExpected) {
-        list.add(SpecificHaxeClassReference.getEnumValue(context));
-      }
       if(isEnumType) {
         SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
           model.getReference(), resolver.getSpecifics(), null, null, context);
@@ -435,9 +431,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     else if (model.isAbstract() && "Enum".equals(model.getQualifiedInfo().getPresentableText())) {
       ResultHolder[] specifics = resolver.getSpecifics();
       if (specifics.length == 1) {
-        if (instanceIsExpected) {
-          list.add(SpecificHaxeClassReference.getEnumValue(context));
-        }
         if(isEnumType) {
           list.add(specifics[0].getClassType());
         }
@@ -445,20 +438,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
 
     return list;
-  }
-
-  private boolean canBeEnumInstance() {
-
-    PsiElement element = context;
-    while (null != element && !(element instanceof PsiFile)) {
-
-      if (element instanceof HaxeTypeParam) return false;
-      if (element instanceof HaxeParameter) return true;
-      if (element instanceof HaxeVarInit) return true;
-
-      element = element.getParent();
-    }
-    return false;
   }
 
   private Set<SpecificHaxeClassReference> getInferTypesInternal() {

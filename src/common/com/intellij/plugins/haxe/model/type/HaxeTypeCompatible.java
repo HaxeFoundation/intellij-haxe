@@ -241,19 +241,24 @@ public class HaxeTypeCompatible {
 
           ResultHolder toHolder = to.getSpecifics()[n];
           ResultHolder fromHolder = from.getSpecifics()[n];
+          if(toHolder.equals(fromHolder)) continue;
 
-          SpecificHaxeClassReference toSpecific = toHolder.getClassType();
-          SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
+          if (toHolder.isClassType() && !toHolder.isUnknown() && fromHolder.isClassType() && !fromHolder.isUnknown()) {
+            SpecificHaxeClassReference toSpecific = toHolder.getClassType();
+            SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
 
-          if (toSpecific != null && !toSpecific.isCoreType()) {
-            toSpecific = getStdClass(toSpecific.isEnumType() ? "Enum" : "Class", to.context, new ResultHolder[]{toHolder});
-          }
-          if (fromSpecific != null && !fromSpecific.isCoreType()) {
-            fromSpecific = getStdClass(fromSpecific.isEnumType() ? "Enum" : "Class", from.context, new ResultHolder[]{fromHolder});
-          }
+            if (toSpecific != null && !toSpecific.isCoreType() ) {
+              toSpecific = getStdClass(toSpecific.isEnumType() ? "Enum" : "Class", to.context, new ResultHolder[]{toHolder});
+            }
+            if (fromSpecific != null && !fromSpecific.isCoreType() ) {
+              fromSpecific = getStdClass(fromSpecific.isEnumType() ? "Enum" : "Class", from.context, new ResultHolder[]{fromHolder});
+            }
 
-          if (!canAssignToFrom(toSpecific, fromSpecific, variableInit)) {
-            return false;
+            if (!canAssignToFrom(toSpecific, fromSpecific, variableInit)) {
+              return false;
+            }
+          } else {
+            if (!canAssignToFrom(toHolder, fromHolder, variableInit)) return false;
           }
         }
         return true;
