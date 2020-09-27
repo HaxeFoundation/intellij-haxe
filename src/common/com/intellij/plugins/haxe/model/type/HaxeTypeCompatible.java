@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -243,15 +244,15 @@ public class HaxeTypeCompatible {
           ResultHolder fromHolder = from.getSpecifics()[n];
           if(toHolder.equals(fromHolder)) continue;
 
-          if (toHolder.isClassType() && !toHolder.isUnknown() && fromHolder.isClassType() && !fromHolder.isUnknown()) {
+          if (typeCanBeWrapped(toHolder) && typeCanBeWrapped(fromHolder)) {
             SpecificHaxeClassReference toSpecific = toHolder.getClassType();
             SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
 
-            if (toSpecific != null && !toSpecific.isCoreType() ) {
-              toSpecific = getStdClass(toSpecific.isEnumType() ? "Enum" : "Class", to.context, new ResultHolder[]{toHolder});
+            if (toSpecific != null && !toSpecific.isCoreType()) {
+              toSpecific = wrapType(toHolder, to.context, toSpecific.isEnumType());
             }
-            if (fromSpecific != null && !fromSpecific.isCoreType() ) {
-              fromSpecific = getStdClass(fromSpecific.isEnumType() ? "Enum" : "Class", from.context, new ResultHolder[]{fromHolder});
+            if (fromSpecific != null && !fromSpecific.isCoreType()) {
+              fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
             }
 
             if (!canAssignToFrom(toSpecific, fromSpecific, variableInit)) {
@@ -269,5 +270,20 @@ public class HaxeTypeCompatible {
       }
     }
     return false;
+  }
+
+  @NotNull
+  private static SpecificHaxeClassReference wrapType(@NotNull ResultHolder type, @NotNull PsiElement context, boolean useEnum) {
+    return getStdClass(useEnum ? "Enum" : "Class", context, new ResultHolder[]{type});
+  }
+
+  // We only want to wrap "real" types in Class<T>, ex Class<String>
+  // Other combinations makes little to no sense ( Class<Null> or Class<int->int> etc. )
+  private static boolean typeCanBeWrapped(ResultHolder holder) {
+    return holder.isClassType()
+           && !holder.isFunctionType()
+           && !holder.isUnknown()
+           && !holder.isVoid()
+           && !holder.isDynamic();
   }
 }
