@@ -185,7 +185,8 @@ public class HaxeTypeCompatible {
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
-    return (from.isEnumType() && from.isEnumValue()) || from.isContextAnEnumDeclaration();
+    if(to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) return true;
+    return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
