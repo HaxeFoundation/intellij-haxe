@@ -212,8 +212,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeClassModel model = getHaxeClassModel();
 
     boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
-    if(false) {
-    //if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
+    if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
       // This breaks for generic types.  The first check of the generic sets up
       // the compatible types, and then all other instances are checked against that set.
@@ -326,12 +325,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return false;
   }
   public  boolean isContextAnEnumDeclaration() {
-    if(context instanceof HaxeEnumDeclaration) {
-      //HaxeEnumDeclaration element = (HaxeEnumDeclaration)context;;
-         return true;
-      //}
-    }
-    return false;
+    return context instanceof HaxeEnumDeclaration;
   }
 
   public  boolean isContextAType() {

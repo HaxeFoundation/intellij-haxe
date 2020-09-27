@@ -206,8 +206,6 @@ public class HaxeTypeCompatible {
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     return from.isContextAnEnumDeclaration();
-    //if(!from.isContextAnEnumDeclaration()) return false;
-    //return canAssignToFromType(to, from);
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
