@@ -586,13 +586,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithoutWarnings();
   }
 
-  public void testAssignTypeToClassAny() throws Exception {
-    doTestNoFixWithWarnings();
-  }
-  public void testAssignTypeToClassDynamic() throws Exception {
-    doTestNoFixWithWarnings();
-  }
-  public void testAssignTypeToClassType() throws Exception {
+  public void testAssignTypeToClass() throws Exception {
     doTestNoFixWithWarnings();
   }
   public void testAssignTypeToEnum() throws Exception {

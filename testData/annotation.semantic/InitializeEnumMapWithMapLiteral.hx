@@ -27,12 +27,12 @@ class InitializeEnumMapWithMapLiteral {
         t.mape = t.map;
 
         // Errors below here...
-        t.mapv = m;
-        t.map = t.enummap;
-        t.mapv = t.enummap;
-        t.enummap = t.mapv;
-        t.map = t.mapv;
-        t.mapv = t.map;
+        t.mapv = <error descr="Incompatible type: Map<MyEnum, String> should be Map<EnumValue, String>">m</error>;
+        t.map = <error descr="Incompatible type: EnumValueMap<MyEnum, String> should be Map<MyEnum, String>">t.enummap</error>;
+        t.mapv = <error descr="Incompatible type: EnumValueMap<MyEnum, String> should be Map<EnumValue, String>">t.enummap</error>;
+        t.enummap = <error descr="Incompatible type: Map<EnumValue, String> should be EnumValueMap<MyEnum, String>">t.mapv</error>;
+        t.map = <error descr="Incompatible type: Map<EnumValue, String> should be Map<MyEnum, String>">t.mapv</error>;
+        t.mapv = <error descr="Incompatible type: Map<MyEnum, String> should be Map<EnumValue, String>">t.map</error>;
     }
 
     public function new() {

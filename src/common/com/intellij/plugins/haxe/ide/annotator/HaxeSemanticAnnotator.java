@@ -403,7 +403,7 @@ class TypeTagChecker {
     final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
     final ResultHolder initType = getTypeFromVarInit(initExpression);
 
-    if (!varType.canAssign(initType)) {
+    if (!varType.canAssign(initType, true)) {
 
       HaxeAnnotation annotation = typeMismatch(erroredElement, initType.toStringWithoutConstant(),
                                                varType.toStringWithoutConstant());
