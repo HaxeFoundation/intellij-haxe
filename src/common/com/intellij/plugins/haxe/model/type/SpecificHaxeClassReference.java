@@ -39,20 +39,22 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
 
-  @NotNull private final HaxeClassReference clazz;
+  @NotNull private final HaxeClassReference classReference;
   @NotNull private final ResultHolder[] specifics;
   @Nullable private final Object constantValue;
   @Nullable private final HaxeRange rangeConstraint;
 
+  private HaxeClass clazz;
+
   public SpecificHaxeClassReference(
-    @NotNull HaxeClassReference clazz,
+    @NotNull HaxeClassReference classReference,
     @NotNull ResultHolder[] specifics,
     @Nullable Object constantValue,
     @Nullable HaxeRange rangeConstraint,
     @NotNull PsiElement context
   ) {
     super(context);
-    this.clazz = clazz;
+    this.classReference = classReference;
     this.specifics = specifics;
     this.constantValue = constantValue;
     this.rangeConstraint = rangeConstraint;
@@ -75,7 +77,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public HaxeClass getHaxeClass() {
-    return this.getHaxeClassReference().getHaxeClass();
+    if(clazz == null || !clazz.isValid()) {
+      clazz = this.getHaxeClassReference().getHaxeClass();
+    }
+    return clazz;
   }
 
   public boolean isEnumType() {
@@ -525,13 +530,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public boolean canBeTypeVariable() {
-    return clazz.clazz == null;
+    return classReference.classModel == null;
 
   }
 
   @NotNull
   HaxeClassReference getHaxeClassReference() {
-    return clazz;
+    return classReference;
   }
 
   @NotNull
