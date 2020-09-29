@@ -20,21 +20,18 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypedefDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -42,20 +39,22 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
 
-  @NotNull private final HaxeClassReference clazz;
+  @NotNull private final HaxeClassReference classReference;
   @NotNull private final ResultHolder[] specifics;
   @Nullable private final Object constantValue;
   @Nullable private final HaxeRange rangeConstraint;
 
+  private HaxeClass clazz;
+
   public SpecificHaxeClassReference(
-    @NotNull HaxeClassReference clazz,
+    @NotNull HaxeClassReference classReference,
     @NotNull ResultHolder[] specifics,
     @Nullable Object constantValue,
     @Nullable HaxeRange rangeConstraint,
     @NotNull PsiElement context
   ) {
     super(context);
-    this.clazz = clazz;
+    this.classReference = classReference;
     this.specifics = specifics;
     this.constantValue = constantValue;
     this.rangeConstraint = rangeConstraint;
@@ -78,7 +77,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public HaxeClass getHaxeClass() {
-    return this.getHaxeClassReference().getHaxeClass();
+    if(clazz == null || !clazz.isValid()) {
+      clazz = this.getHaxeClassReference().getHaxeClass();
+    }
+    return clazz;
+  }
+
+  public boolean isEnumType() {
+    return (this.getHaxeClass() instanceof  HaxeEnumDeclaration);
   }
 
   public HaxeClassModel getHaxeClassModel() {
@@ -205,7 +211,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
     HaxeClassModel model = getHaxeClassModel();
-    if (null == model || !model.hasGenericParams()) {
+
+    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
       // This breaks for generic types.  The first check of the generic sets up
       // the compatible types, and then all other instances are checked against that set.
@@ -261,9 +269,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
-    list.addAll(getCompatibleMapTypes(model, genericResolver));
+    list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
     list.addAll(getCompatibleEnumTypes(model, genericResolver));
+    list.addAll(emptyCollectionAssignment(direction));
 
     if (!model.isAbstract()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
@@ -304,7 +313,68 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return list;
   }
 
-  private Set<SpecificHaxeClassReference> getCompatibleMapTypes(HaxeClassModel model, HaxeGenericResolver resolver) {
+  private List<SpecificHaxeClassReference> emptyCollectionAssignment(Compatibility direction) {
+    if (direction == Compatibility.ASSIGNABLE_TO && context instanceof HaxeArrayLiteral && null == ((HaxeArrayLiteral)context).getExpressionList()) {
+      ResultHolder unknownHolder = SpecificTypeReference.getUnknown(context).createHolder();
+      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolder, unknownHolder);
+      return Collections.singletonList(holder);
+    }
+    return Collections.emptyList();
+  }
+
+
+  public boolean isContextAnEnumType() {
+    if(context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+
+      if(resolve instanceof HaxeClass) {
+        HaxeClass resolved = (HaxeClass) resolve;
+        return resolved.isEnum();
+      }
+    }
+    return false;
+  }
+  public  boolean isContextAnEnumDeclaration() {
+    return context instanceof HaxeEnumDeclaration;
+  }
+
+  public  boolean isContextAType() {
+    if (context instanceof HaxeType) {
+      return true;
+    }
+    else if (context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+      return resolve instanceof HaxeClass;
+    }
+    return false;
+  }
+
+  public boolean isCoreType() {
+    HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());
+    return list.stream().anyMatch(meta -> meta.isCompileTimeMeta() &&  meta.isType("coreType"));
+  }
+
+  private String getTypeName(PsiElement context) {
+    if (context instanceof HaxeType) {
+      return context.getText();
+    }
+    else if (context instanceof HaxeReferenceExpression) {
+      HaxeReferenceExpression element = (HaxeReferenceExpression)context;
+      PsiElement resolve = element.resolve();
+
+      if (resolve instanceof HaxeClass) {
+        HaxeClass resolved = (HaxeClass)resolve;
+        if (element.getText().equals(resolved.getName())) {
+          return resolved.getName();
+        }
+      }
+    }
+    return null;
+  }
+
+  private Set<SpecificHaxeClassReference> getCompatibleMapTypes(HaxeClassModel model, HaxeGenericResolver resolver, Compatibility direction) {
     // See note on SpecificTypeReference.getExpectedMapType().
 
     final Set<SpecificHaxeClassReference> list = new HashSet<>();
@@ -315,16 +385,26 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     ResultHolder[] specifics = resolver.getSpecifics();
 
     if (specifics.length == 2) {
-      if (MAP.equals(name) || IMAP.equals(name)) {
-        list.add((SpecificHaxeClassReference)getExpectedMapType(specifics[0], specifics[1]));
-        list.add((getStdClass(MAP, this.context, specifics)));
-        list.add((getStdClass(IMAP, this.context, specifics)));
+      switch (name) {
+        case MAP:
+          list.add((getStdClass(MAP, this.context, specifics)));
+          list.add((getStdClass(IMAP, this.context, specifics)));
+          break;
+        case IMAP:
+          list.add((getStdClass(IMAP, this.context, specifics)));
+          break;
+          // Object map is Extern class known to be compatible  with Map
+        case OBJECT_MAP:
+          list.add((getStdClass(IMAP, this.context, specifics)));
+          list.add((getStdClass(MAP, this.context, specifics)));
+          break;
+          // special behavior for assignment
+        case ENUM_VALUE_MAP:
+          if(direction == Compatibility.ASSIGNABLE_FROM) list.add((getStdClass(MAP, this.context, specifics)));
+          list.add((getStdClass(IMAP, this.context, specifics)));
+          break;
+        }
       }
-      else if (ENUM_VALUE_MAP.equals(name) || OBJECT_MAP.equals(name)) {
-        list.add((getStdClass(MAP, this.context, specifics)));
-        list.add((getStdClass(IMAP, this.context, specifics)));
-      }
-    }
     else if (specifics.length == 1) {
       ResultHolder[] newSpecifics = null;
 
@@ -347,22 +427,24 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final Set<SpecificHaxeClassReference> list = new HashSet<>();
     if (null == model) return list;
 
+    boolean isEnumType = isContextAnEnumType();
     // For enumName, add Enum<enumName>.
     // TODO: FlatEnum
     if (model instanceof HaxeEnumModel || (model.isEnum() && model.isAbstract())) {
-      SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
-        model.getReference(), resolver.getSpecifics(), null, null, context);
-      list.add(SpecificHaxeClassReference.getEnum(context, ref));
-      list.add(SpecificHaxeClassReference.getEnumValue(context));
+      if(isEnumType) {
+        SpecificHaxeClassReference ref = new SpecificHaxeClassReference(
+          model.getReference(), resolver.getSpecifics(), null, null, context);
+        list.add(SpecificHaxeClassReference.getEnum(context, ref));
+      }
     }
 
     // For Enum<enumName>, add enumName.
     else if (model.isAbstract() && "Enum".equals(model.getQualifiedInfo().getPresentableText())) {
       ResultHolder[] specifics = resolver.getSpecifics();
       if (specifics.length == 1) {
-        SpecificHaxeClassReference ref = specifics[0].getClassType();
-        list.add(ref);
-        list.add(SpecificHaxeClassReference.getEnumValue(context));
+        if(isEnumType) {
+          list.add(specifics[0].getClassType());
+        }
       }
     }
 
@@ -418,7 +500,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable HaxeType type,
                                                              HaxeGenericResolver genericResolver) {
     if (type == null) return null;
-    SpecificHaxeClassReference classType = HaxeTypeResolver.getTypeFromType(type).getClassType();
+    SpecificHaxeClassReference classType = HaxeTypeResolver.getTypeFromType(type, genericResolver).getClassType();
     return propagateGenericsToType(classType, genericResolver);
   }
 
@@ -448,13 +530,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Override
   public boolean canBeTypeVariable() {
-    return clazz.clazz == null;
+    return classReference.classModel == null;
 
   }
 
   @NotNull
   HaxeClassReference getHaxeClassReference() {
-    return clazz;
+    return classReference;
   }
 
   @NotNull

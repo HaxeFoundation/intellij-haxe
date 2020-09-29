@@ -54,6 +54,15 @@ public class ResultHolder {
     return (type instanceof SpecificHaxeClassReference) ? (SpecificHaxeClassReference)type : null;
   }
 
+  @Nullable
+  public boolean isFunctionType() {
+    return (type instanceof SpecificFunctionReference);
+  }
+  @Nullable
+  public boolean isClassType() {
+    return (type instanceof SpecificHaxeClassReference);
+  }
+
   public boolean isUnknown() {
     return type.isUnknown();
   }

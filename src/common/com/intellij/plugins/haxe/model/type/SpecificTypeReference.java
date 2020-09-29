@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -41,6 +42,7 @@ public abstract class SpecificTypeReference {
   public static final String DYNAMIC = "Dynamic";
   public static final String ENUM_VALUE = "EnumValue";
   public static final String ENUM = "Enum";  // For Enum<EnumName>
+  public static final String CLASS = "Class";  // For Class<Type>
   public static final String FLAT_ENUM = "haxe.Constraints.FlatEnum";
   public static final String UNKNOWN = "unknown"; // TODO: Should NOT a legal type name.
   public static final String ITERATOR = "Iterator";
@@ -284,6 +286,7 @@ public abstract class SpecificTypeReference {
 
   final public boolean isEnumValue() {
     return (this instanceof SpecificEnumValueReference)
+        || (this.getConstant() instanceof HaxeEnumValueDeclaration)
         || isEnumValueClass();
   }
 

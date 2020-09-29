@@ -34,20 +34,22 @@ public class HaxeClassReference {
   public final String name;
   @NotNull
   public final PsiElement elementContext;
-  public final HaxeClassModel clazz;
+  public final HaxeClassModel classModel;
+
+  public HaxeClass clazz;
 
   private static final Key<Pair<Integer, String>> CLASS_NAME_KEY = new Key<>("HAXE_CLASS_NAME");
 
-  public HaxeClassReference(@NotNull HaxeClassModel clazz, @NotNull PsiElement elementContext) {
-    this.name = getClassName(clazz);
+  public HaxeClassReference(@NotNull HaxeClassModel classModel, @NotNull PsiElement elementContext) {
+    this.name = getClassName(classModel);
     this.elementContext = elementContext;
-    this.clazz = clazz;
+    this.classModel = classModel;
   }
 
   public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
-    this.clazz = null;
+    this.classModel = null;
   }
 
   private String getClassName(HaxeClassModel clazz) {
@@ -79,8 +81,9 @@ public class HaxeClassReference {
   }
 
   public HaxeClass getHaxeClass() {
-    if (this.clazz != null) return this.clazz.getPsi();
-    HaxeClass clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
+    if (this.classModel != null) return classModel.getPsi();
+    if (this.clazz != null) return clazz;
+    clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);
       // Null is a legitimate answer in the case of Dynamic or Unknown.
@@ -119,6 +122,18 @@ public class HaxeClassReference {
 
     HaxeClass otherClass = other.getHaxeClass();
     if (null == otherClass) return false;
+
+    // resolve typedefs for correct comparison
+    if (myClass.getModel().isTypedef()) {
+      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(myClass.getContext());
+      SpecificHaxeClassReference reference = myClass.getModel().getUnderlyingClassReference(resolver);
+      if (reference != null) myClass = reference.getHaxeClass();
+    }
+    if (otherClass.getModel().isTypedef()) {
+      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(otherClass.getContext());
+      SpecificHaxeClassReference reference = otherClass.getModel().getUnderlyingClassReference(resolver);
+      if (reference != null) myClass = reference.getHaxeClass();
+    }
 
     // Optimization
     ASTNode myNode = myClass.getNode();

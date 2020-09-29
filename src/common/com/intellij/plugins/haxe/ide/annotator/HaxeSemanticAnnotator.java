@@ -52,8 +52,8 @@ import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
-import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections.*;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
 

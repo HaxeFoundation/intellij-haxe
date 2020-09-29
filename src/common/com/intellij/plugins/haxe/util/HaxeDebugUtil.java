@@ -15,12 +15,14 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -31,6 +33,40 @@ import java.io.StringWriter;
  * Created by ebishton on 4/25/17.
  */
 public class HaxeDebugUtil {
+
+  public static final Logger cacheDebugLog = Logger.getInstance("#DisableCacheForDebugging");
+  private static boolean disabledManually = false;
+
+  /**
+   * Tells whether the log name "#DisableCacheForDebugging" been for debugging or
+   * {@link HaxeDebugUtil#disableCaching} has been set true;
+   *
+   * The intended use for this is to set the above log name via the
+   * "Help->Diagnostic Tools->Debug Log Settings" menu in the instance of IDEA being debugged.
+   *
+   * {@see HaxeDebugUtil#disableCaching(setting)} to set via debugger evaluation.
+   *
+   * @return Whether the setting is set and caching should be disabled.
+   */
+  public static boolean isCachingDisabled() {
+    return disabledManually || cacheDebugLog.isDebugEnabled();
+  }
+
+  /**
+   * Disable caching manually.  This may be set in addition to (or instead of)
+   * the Debug Log Settings entry, and does NOT override it.
+   *
+   * This method is provided so that caching can be disabled during a debugging session
+   * by evaluating this method.
+   *
+   * >>>>>>>>  This should **never** appear in application code. <<<<<<<<
+   *
+   * @param newSetting whether to enable or disable caching.
+   */
+  @TestOnly
+  public static void disableCaching(boolean newSetting) {
+    disabledManually = newSetting;
+  }
 
   /**
    * Count the number of times a class appears on the current thread's stack.

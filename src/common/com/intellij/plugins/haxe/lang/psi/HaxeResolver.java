@@ -71,8 +71,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    // Set this true when debugging the resolver.
-    boolean skipCachingForDebug = false;  // Should always be false when checked in.
+    /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
+    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
 
     // Kill circular resolutions -- before checking the cache.
     if (isResolving(reference)) {
@@ -175,7 +175,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
-    if (result == null) result = checkByTreeWalk(reference);
+    if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
     if (result == null) {
       // try super field
       List<? extends PsiElement> superElements =
@@ -238,6 +238,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return result;
   }
 
+  /**
+   * Walks up the scope from the reference, trying to find the named type.
+   *
+   * For instance, it will find a type constraint from a subClass if the reference is a type parameter
+   * for a sub-class.  For example: {@code myType<K:constrainedType> extends superType<K> } will
+   * resolve to {@code constrainedType} if the reference being resolved is the second {@code K}.
+   *
+   * @param reference
+   * @return
+   */
   private List<? extends PsiElement> checkByTreeWalk(HaxeReference reference) {
     final List<PsiElement> result = new ArrayList<>();
     PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, reference.getText()), reference, null, new ResolveState());

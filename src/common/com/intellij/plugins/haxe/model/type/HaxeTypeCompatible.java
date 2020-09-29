@@ -19,11 +19,17 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.Set;
+
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
@@ -67,12 +73,14 @@ public class HaxeTypeCompatible {
     return null;  // XXX: Should throw exception instead??
   }
 
+
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
+    if (to.isAny()) return true;
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
       SpecificFunctionReference toRef = asFunctionReference(to);
@@ -143,6 +151,18 @@ public class HaxeTypeCompatible {
     to = getUnderlyingClassIfAbstractNull(to);
     from = getUnderlyingClassIfAbstractNull(from);
 
+    if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
+      String toName = to.getHaxeClass().getName();
+      switch (toName) {
+        case SpecificTypeReference.ENUM_VALUE:
+          return handleEnumValue(to,from);
+        case SpecificTypeReference.CLASS:
+          return handleClassType(to,from);
+        case SpecificTypeReference.ENUM:
+          return handleEnumType(to,from);
+      }
+    }
+
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
@@ -164,6 +184,24 @@ public class HaxeTypeCompatible {
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
   }
 
+  private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    if(to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) return true;
+    return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
+  }
+  private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
+    if(!from.isContextAType() || from.isContextAnEnumType()) return false;
+    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
+    return canAssignToFromType(typeParameter, from);
+  }
+  private static boolean handleEnumType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
+    if(!from.isContextAnEnumType()) return false;
+    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
+    return canAssignToFromType(typeParameter, from);
+  }
+
+
   static private boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
@@ -180,8 +218,27 @@ public class HaxeTypeCompatible {
       if (to.getSpecifics().length == from.getSpecifics().length) {
         int specificsLength = to.getSpecifics().length;
         for (int n = 0; n < specificsLength; n++) {
-          if (!canAssignToFrom(to.getSpecifics()[n], from.getSpecifics()[n])) {
-            return false;
+
+          ResultHolder toHolder = to.getSpecifics()[n];
+          ResultHolder fromHolder = from.getSpecifics()[n];
+          if(toHolder.equals(fromHolder)) continue;
+
+          if (typeCanBeWrapped(toHolder) && typeCanBeWrapped(fromHolder)) {
+            SpecificHaxeClassReference toSpecific = toHolder.getClassType();
+            SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
+
+            if (toSpecific != null && !toSpecific.isCoreType()) {
+              toSpecific = wrapType(toHolder, to.context, toSpecific.isEnumType());
+            }
+            if (fromSpecific != null && !fromSpecific.isCoreType()) {
+              fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
+            }
+
+            if (!canAssignToFrom(toSpecific, fromSpecific)) {
+              return false;
+            }
+          } else {
+            if (!canAssignToFrom(toHolder, fromHolder)) return false;
           }
         }
         return true;
@@ -192,5 +249,20 @@ public class HaxeTypeCompatible {
       }
     }
     return false;
+  }
+
+  @NotNull
+  private static SpecificHaxeClassReference wrapType(@NotNull ResultHolder type, @NotNull PsiElement context, boolean useEnum) {
+    return getStdClass(useEnum ? "Enum" : "Class", context, new ResultHolder[]{type});
+  }
+
+  // We only want to wrap "real" types in Class<T>, ex Class<String>
+  // Other combinations makes little to no sense ( Class<Null> or Class<int->int> etc. )
+  private static boolean typeCanBeWrapped(ResultHolder holder) {
+    return holder.isClassType()
+           && !holder.isFunctionType()
+           && !holder.isUnknown()
+           && !holder.isVoid()
+           && !holder.isDynamic();
   }
 }
