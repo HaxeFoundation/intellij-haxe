@@ -290,7 +290,7 @@ task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'genera
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
 }
 
-task generateHaxeLexer(dependsOn:'generateHaxeParser', type: GenerateLexer) {
+task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: GenerateLexer) {
     source = "${haxeFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer"
     targetClass = "com.intellij.plugins.haxe.lang.lexer._HaxeLexer"
@@ -299,7 +299,7 @@ task generateHaxeLexer(dependsOn:'generateHaxeParser', type: GenerateLexer) {
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer/_HaxeLexer.java").exists() }
 
 }
-task generateHxmlLexer(dependsOn:'generateHxmlParser', type: GenerateLexer) {
+task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: GenerateLexer) {
     source = "${hxmlFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer"
     targetClass = "com.intellij.plugins.haxe.hxml.lexer.HXMLLexer"
@@ -308,7 +308,7 @@ task generateHxmlLexer(dependsOn:'generateHxmlParser', type: GenerateLexer) {
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer/HXMLLexer.java").exists() }
 
 }
-task generateMetadataLexer(dependsOn:'generateMetadataParser', type: GenerateLexer) {
+task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser', type: GenerateLexer) {
     source = "${metadataFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer"
     targetClass = "com.intellij.plugins.haxe.metadata.lexer.MetadataLexer"
