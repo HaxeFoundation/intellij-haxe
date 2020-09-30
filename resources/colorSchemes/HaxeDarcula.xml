@@ -1,9 +1,8 @@
 <?xml version='1.0'?>
 <!--
   ~ Copyright 2000-2013 JetBrains s.r.o.
-  ~ Copyright 2014-2014 AS3Boyan
+  ~ Copyright 2014-2020 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
-  ~ Copyright 2019 Eric Bishton
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -36,7 +35,7 @@
   </option>
   <option name="HAXE_UNPARSEABLE_DATA">
     <value>
-      <option name="BACKGROUND" value="F0F0F0"/>
+      <option name="BACKGROUND" value="3C3C3C"/>
     </value>
   </option>
 </list>

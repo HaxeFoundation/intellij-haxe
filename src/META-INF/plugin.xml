@@ -1028,7 +1028,7 @@
                         serviceImplementation="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
-    <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDefault.xml"/>
+    <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDarcula.xml"/>
 
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <langCodeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeLanguageCodeStyleSettingsProvider"/>
