@@ -20,8 +20,10 @@
 plugins {
     id 'de.undercouch.download' version '3.3.0'
     id 'org.jetbrains.intellij' version '0.4.9'
+    id "org.jetbrains.grammarkit" version "2020.2.1"
 }
 
+import org.jetbrains.grammarkit.tasks.*
 
 if (!project.hasProperty('targetVersion')) {
     ext.ideaVersion = "${defaultIdeaVersion}"
@@ -59,10 +61,17 @@ allprojects {
         ideaBaseDir = "${rootDir}/idea-IU"
         ideaTargetDir = "${ideaBaseDir}/ideaIU-${ideaVersion}"
 
+        grammerDir = "${haxePluginDir}/grammar"
         //Note: path is system directory separator sensitive, file.absolutePath solves this for us
-        grammarHaxe = file("${haxePluginDir}/grammar/haxe.bnf").absolutePath
-        grammarHxml = file("${haxePluginDir}/grammar/hxml.bnf").absolutePath
-        grammarMetadata = file("${haxePluginDir}/grammar/metadata.bnf").absolutePath
+        grammarHaxe = file("${grammerDir}/haxe.bnf").absolutePath
+        grammarHxml = file("${grammerDir}/hxml.bnf").absolutePath
+        grammarMetadata = file("${grammerDir}/metadata.bnf").absolutePath
+
+
+        haxeFlex = file("${grammerDir}/haxe.flex").absolutePath
+        hxmlFlex = file("${grammerDir}/hxml.flex").absolutePath
+        metadataFlex = file("${grammerDir}/metadata.flex").absolutePath
+
 
         flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
         flexTargetFile = "idea-flex.skeleton"
@@ -281,6 +290,35 @@ task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'genera
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
 }
 
+task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: GenerateLexer) {
+    source = "${haxeFlex}"
+    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer"
+    targetClass = "com.intellij.plugins.haxe.lang.lexer._HaxeLexer"
+
+    inputs.file "${haxeFlex}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer/_HaxeLexer.java").exists() }
+
+}
+task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: GenerateLexer) {
+    source = "${hxmlFlex}"
+    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer"
+    targetClass = "com.intellij.plugins.haxe.hxml.lexer.HXMLLexer"
+
+    inputs.file "${hxmlFlex}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer/HXMLLexer.java").exists() }
+
+}
+task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser', type: GenerateLexer) {
+    source = "${metadataFlex}"
+    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer"
+    targetClass = "com.intellij.plugins.haxe.metadata.lexer.MetadataLexer"
+
+    inputs.file "${metadataFlex}"
+    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java").exists() }
+
+}
+
+
 
 task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
     workingDir = "${toolDir}"
@@ -319,13 +357,22 @@ task generateIdeaSdkIdentifer(group: 'generate') {
   }
 }
 
+task cleanGenDirIfSourcesChanged(group: 'other') {
+    inputs.dir "${grammerDir}"
+    outputs.dir "${grammerDir}"
+    doLast {
+        delete "$generatedSrcDir"
+    }
+
+}
 task generateSources(group: 'generate') {
+    dependsOn 'cleanGenDirIfSourcesChanged'
     dependsOn 'generateIdeaSdkIdentifer'
     // See template.gradle for generateVersionSpecificSources task.
     dependsOn 'generateVersionSpecificSources'
-    dependsOn 'generateHaxeParser'
-    dependsOn 'generateHxmlParser'
-    dependsOn 'generateMetadataParser'
+    dependsOn 'generateHaxeLexer'
+    dependsOn 'generateHxmlLexer'
+    dependsOn 'generateMetadataLexer'
 }
 
 Properties findSdkValuesAndProperties(File buildFile) {
