@@ -26,8 +26,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
@@ -73,14 +72,19 @@ public class HaxeTypeCompatible {
     return null;  // XXX: Should throw exception instead??
   }
 
+  static public boolean canAssignToFrom(
+    @Nullable SpecificTypeReference to,
+    @Nullable SpecificTypeReference from) {
+    return canAssignToFrom(to,from, false);
+  }
 
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
-    @Nullable SpecificTypeReference from
+    @Nullable SpecificTypeReference from,
+    Boolean skipAbstractCast
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
-    if (to.isAny()) return true;
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
       SpecificFunctionReference toRef = asFunctionReference(to);
@@ -89,7 +93,7 @@ public class HaxeTypeCompatible {
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
-      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from);
+      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, skipAbstractCast);
     }
 
     return false;
@@ -145,6 +149,13 @@ public class HaxeTypeCompatible {
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
+    return canAssignToFromType(to,from, false);
+  }
+  static private boolean canAssignToFromType(
+    @NotNull SpecificHaxeClassReference to,
+    @NotNull SpecificHaxeClassReference from,
+    Boolean skipAbstractCast
+  ) {
 
     // Null<T> is a special case.  It must act like a T in all ways.  Whereas,
     // any other abstract must act like it hides its internal types.
@@ -180,29 +191,57 @@ public class HaxeTypeCompatible {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
 
+    // skip flag to prevent stack overflow (@:to & @:from can be circular so we dont want to do a deep scan)
+    if(!skipAbstractCast) {
+      if(from.isAbstract()) {
+        // if FROM  can cast to  TO
+        List<SpecificHaxeClassReference> valuesFromCanBe = from.getHaxeClassModel().getCastableToTypesList(from);
+        for (SpecificHaxeClassReference compatibleType : valuesFromCanBe) {
+          // if  any of the values FROM can be is assignable to TO return true
+          if (canAssignToFromSpecificType(to, compatibleType)) {
+            return true;
+          }
+        }
+      }
+      if(to.isAbstract()) {
+        // if TO can Accept FROM
+        List<SpecificHaxeClassReference> valuesToAccepts = to.getHaxeClassModel().getCastableFromTypesList(to);
+        for (SpecificHaxeClassReference compatibleType : valuesToAccepts) {
+          // if FROM can be assigned to any of the values TO accepts return true
+          if (canAssignToFromSpecificType(compatibleType, from)) {
+            return true;
+          }
+        }
+      }
+    }
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) return true;
+    if(from.isEnumClass()) return false;
     return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
     if(!from.isContextAType() || from.isContextAnEnumType()) return false;
     SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
+    // The compiler does not accept types to be assigned to Class<Any> without being casted
+    // This is probably due to the abstract "cast methods" only working on object instances.
+    if(typeParameter.isAny() && !from.isAny()) return false;
     return canAssignToFromType(typeParameter, from);
   }
   private static boolean handleEnumType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
     if(!from.isContextAnEnumType()) return false;
+    if(from.isEnumValueClass()) return false;
     SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
     return canAssignToFromType(typeParameter, from);
   }
 
 
-  static private boolean canAssignToFromSpecificType(
+  static public boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
@@ -227,13 +266,25 @@ public class HaxeTypeCompatible {
             SpecificHaxeClassReference toSpecific = toHolder.getClassType();
             SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
 
-            if (toSpecific != null && !toSpecific.isCoreType()) {
-              toSpecific = wrapType(toHolder, to.context, toSpecific.isEnumType());
+            if(toSpecific != null) {
+              if (toSpecific.isEnumValueClass()) {
+                ResultHolder dynamic = SpecificTypeReference.getAny(from.context).createHolder();
+                toSpecific = wrapType(dynamic, from.context, true);
+              }
+              else if (!toSpecific.isCoreType()) {
+                toSpecific = wrapType(toHolder, to.context, toSpecific.isEnumType());
+              }
             }
-            if (fromSpecific != null && !fromSpecific.isCoreType()) {
-              fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
+            if(fromSpecific != null) {
+              if (fromSpecific.isEnumValueClass()) {
+                ResultHolder dynamic = SpecificTypeReference.getAny(from.context).createHolder();
+                fromSpecific = wrapType(dynamic, from.context, true);
+              }
+              else
+                if (!fromSpecific.isCoreType()) {
+                fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
+              }
             }
-
             if (!canAssignToFrom(toSpecific, fromSpecific)) {
               return false;
             }

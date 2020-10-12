@@ -172,6 +172,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
+        if(specific == null)  specific = getUnknown(context).createHolder();// null safety
         resolver.add(paramModel.getName(), specific);
       }
     }
@@ -269,9 +270,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
+    //TODO: this is a workaround for map classes  until @:multiType  & @:followWithAbstracts support is implemented
     list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
+
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
-    list.addAll(getCompatibleEnumTypes(model, genericResolver));
     list.addAll(emptyCollectionAssignment(direction));
 
     if (!model.isAbstract()) {
@@ -535,7 +537,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @NotNull
-  HaxeClassReference getHaxeClassReference() {
+  public HaxeClassReference getHaxeClassReference() {
     return classReference;
   }
 

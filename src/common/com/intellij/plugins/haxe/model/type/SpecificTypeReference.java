@@ -19,10 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -282,6 +279,16 @@ public abstract class SpecificTypeReference {
   /** Tell whether the class is the Enum<type> abstract class. */
   final public boolean isEnumClass() {
     return isNamedType(ENUM);
+  }
+  final public boolean isClass() {
+    return isNamedType(CLASS);
+  }
+  final public boolean isAbstract() {
+    if (this instanceof SpecificHaxeClassReference) {
+      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+      return reference.getHaxeClass() instanceof  HaxeAbstractClassDeclaration;
+    }
+    return false;
   }
 
   final public boolean isEnumValue() {
