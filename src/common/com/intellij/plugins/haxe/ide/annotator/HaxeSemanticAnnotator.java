@@ -455,7 +455,7 @@ class FieldChecker {
     if (field.isProperty()) {
       checkProperty(field, holder);
     } else {
-      if (FINAL_FIELD_IS_INITIALIZED.isEnabled(var)) {
+      if (FINAL_FIELD_IS_INITIALIZED.isEnabled(var) &&  !isParentInterface(var)) {
         if (field.isFinal() && !field.hasInitializer()) {
           if (field.isStatic()) {
             holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()));
@@ -503,6 +503,10 @@ class FieldChecker {
         }
       }
     }
+  }
+
+  private static boolean isParentInterface(HaxeFieldDeclaration var) {
+    return var.getParent() instanceof HaxeInterfaceBody;
   }
 
   private static boolean isFieldInitializedInTheConstructor(HaxeFieldModel field) {

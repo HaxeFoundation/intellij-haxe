@@ -271,6 +271,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testFinalKeywordInInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testStaticsInExtended() throws Exception {
     doTestNoFixWithoutWarnings();
   }
