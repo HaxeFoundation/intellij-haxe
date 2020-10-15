@@ -402,6 +402,7 @@ class TypeTagChecker {
   ) {
     final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
     final ResultHolder initType = getTypeFromVarInit(initExpression);
+    initType.setInitExpression();
 
     if (!varType.canAssign(initType)) {
 

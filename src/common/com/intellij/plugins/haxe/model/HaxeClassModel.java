@@ -40,7 +40,6 @@ import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignT
 import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
 import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -212,59 +211,65 @@ public class HaxeClassModel implements HaxeExposableModel {
     return types;
   }
 
-  public List<SpecificHaxeClassReference> getCastableToTypesList(SpecificHaxeClassReference reference) {
+  public List<SpecificHaxeClassReference> getCastableToTypesList(SpecificHaxeClassReference sourceType) {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
 
-    return methodsWithMetadata.stream()
-      .filter(methodModel -> castMethodAcceptsReference(reference, methodModel))
-      .map(m -> replaceTypeIfGenericParameterName(m, replaceUnknownSpecificsWithDynamic(m, getReturnType(m))))
-      .filter(Objects::nonNull)
+    return  methodsWithMetadata.stream()
+      .filter(methodModel -> castMethodAcceptsSource(sourceType, methodModel))
+      .map(m -> SetSpecificsConstraints(m, getReturnType(m)))
       .collect(toList());
   }
 
-  private boolean castMethodAcceptsReference(SpecificHaxeClassReference reference, HaxeMethodModel methodModel) {
-    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
-    //cast methods seems to accept both  parameterless methods and single parameter methods
-    if (parameter == null) return true; // if no param then "this" is  the  input type
 
-    // if we got a parameter make sure we can actually call the method with this object
-    parameter = replaceUnknownSpecificsWithDynamic(methodModel, parameter);
-    return canAssignToFrom(parameter, reference,  true);
+  private boolean castMethodAcceptsSource(SpecificHaxeClassReference reference, HaxeMethodModel methodModel) {
+    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
+    //implicit cast methods seems to accept both parameter-less methods and single parameter methods
+    if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
+    SpecificHaxeClassReference parameterWithRealRealSpecifics = SetSpecificsConstraints(methodModel, parameter);
+
+    if(reference.isAbstract()) {
+      SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
+      if(canAssignToFrom(parameterWithRealRealSpecifics, underlying, false)) return true;
+    }
+
+    return canAssignToFrom(parameterWithRealRealSpecifics, reference, false);
   }
 
-  public List<SpecificHaxeClassReference> getCastableFromTypesList(SpecificHaxeClassReference reference) {
+  public List<SpecificHaxeClassReference> getImplicitCastTypesList(SpecificHaxeClassReference targetType) {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
 
     return methodsWithMetadata.stream()
-      .filter(m-> canAssignToFrom(reference, getReturnType(m),true))
-      .map(this::mapAndResolveReturnType)
+      // if return types can not be assign to target then skip this castMethod
+      .filter(m-> canAssignToFrom(targetType, SetSpecificsConstraints(m, getReturnType(m)), false))
+      .map(this::getImplicitCastFromType)// TODO consider applying generics from targetType to be more strict about what methods are supported ?
       .filter(Objects::nonNull)
       .collect(toList());
   }
 
 
-  private SpecificHaxeClassReference mapAndResolveReturnType(HaxeMethodModel methodModel) {
+  private SpecificHaxeClassReference getImplicitCastFromType(HaxeMethodModel methodModel) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
-    return replaceUnknownSpecificsWithDynamic(methodModel, parameter);
+    return SetSpecificsConstraints(methodModel, parameter);
   }
 
-  private SpecificHaxeClassReference replaceUnknownSpecificsWithDynamic(HaxeMethodModel methodModel, SpecificHaxeClassReference parameter) {
-    ResultHolder[] specifics = parameter.getGenericResolver().getSpecifics();
+  private SpecificHaxeClassReference SetSpecificsConstraints(HaxeMethodModel methodModel, SpecificHaxeClassReference classReference) {
+    ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
     ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
-    SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, parameter);
+
+    SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, classReference);
     return SpecificHaxeClassReference.withGenerics(reference.getHaxeClassReference(), newSpecifics);
   }
 
-  //caching method lookup
+  //caching  implicit cast  method lookup results
   private List<HaxeMethodModel> getCastToMethods() {
     if (castToMethods != null) return castToMethods;
     castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
     return castToMethods;
   }
-  //caching method lookup
+  //caching implicit cast method lookup  results
   private List<HaxeMethodModel> getCastFromMethods() {
     if (castFromMethods != null) return castFromMethods;
     castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
@@ -272,8 +277,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   private SpecificHaxeClassReference getReturnType(HaxeMethodModel model) {
-    SpecificHaxeClassReference returnType = model.getFunctionType().getReturnType().getClassType();
-    return convertGenericType(model, returnType);
+    return model.getFunctionType().getReturnType().getClassType();
   }
 
   private SpecificHaxeClassReference getTypeOfFirstParameter(HaxeMethodModel model) {
@@ -281,7 +285,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     if (arguments.isEmpty()) return null;
 
     SpecificHaxeClassReference argumentType = arguments.get(0).getType().getClassType();
-    return convertGenericType(model, argumentType);
+    return argumentType;
   }
 
 

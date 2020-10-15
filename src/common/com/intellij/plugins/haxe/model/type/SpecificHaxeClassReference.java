@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -32,6 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -271,7 +275,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     stack.push(model.haxeClass);
 
     //TODO: this is a workaround for map classes  until @:multiType  & @:followWithAbstracts support is implemented
-    list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
+    //list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
 
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
     list.addAll(emptyCollectionAssignment(direction));
@@ -351,6 +355,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       return resolve instanceof HaxeClass;
     }
     return false;
+  }
+
+  public boolean isTypeDef() {
+    return clazz instanceof HaxeTypedefDeclaration;
   }
 
   public boolean isCoreType() {
@@ -542,7 +550,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @NotNull
-  ResultHolder[] getSpecifics() {
+  public ResultHolder[] getSpecifics() {
     return specifics;
   }
 
