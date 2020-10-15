@@ -273,8 +273,10 @@ public class HaxeTypeCompatible {
             if (!canAssignToFrom(toSpecific, fromSpecific)) {
               if(initExpression) {
                 //HACK make sure we can assign collection literals / init expressions to types with with EnumValue specific
-                if (toSpecific.isEnumValueClass() && fromSpecific.isEnumClass()) return true;
-                if (fromSpecific.isEnumValueClass() && toSpecific.isEnumClass()) return true;
+                if(toSpecific != null  && fromSpecific!= null) {
+                  if (toSpecific.isEnumValueClass() && fromSpecific.isEnumClass()) return true;
+                  if (fromSpecific.isEnumValueClass() && toSpecific.isEnumClass()) return true;
+                }
               }
               return false;
             }
