@@ -274,9 +274,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
-    //TODO: this is a workaround for map classes  until @:multiType  & @:followWithAbstracts support is implemented
-    //list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
-
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
     list.addAll(emptyCollectionAssignment(direction));
 
