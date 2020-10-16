@@ -10,5 +10,6 @@ class FinalInInterface implements TestInterface {
 
 interface TestInterface {
     final field:Int;
+    <error descr="Default values on interfaces are not allowed">final fieldWrong:Int = 1;</error>
     final function test():Void;
 }

@@ -455,13 +455,20 @@ class FieldChecker {
     if (field.isProperty()) {
       checkProperty(field, holder);
     } else {
-      if (FINAL_FIELD_IS_INITIALIZED.isEnabled(var) &&  !isParentInterface(var)) {
-        if (field.isFinal() && !field.hasInitializer()) {
-          if (field.isStatic()) {
-            holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()));
-          }
-          else if (!isFieldInitializedInTheConstructor(field)) {
-            holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()));
+      if (FINAL_FIELD_IS_INITIALIZED.isEnabled(var)) {
+        if (field.isFinal()) {
+          if (!field.hasInitializer()) {
+            if (!isParentInterface(var)) {
+              if (field.isStatic()) {
+                holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()));
+              } else if (!isFieldInitializedInTheConstructor(field)) {
+                holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()));
+              }
+            }
+          } else {
+            if (isParentInterface(var)) {
+              holder.createErrorAnnotation(var, HaxeBundle.message("haxe.semantic.final.static.var.init.interface", field.getName()));
+            }
           }
         }
       }
