@@ -29,6 +29,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
+import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -637,9 +638,11 @@ class ClassChecker {
     checkModifiers(clazz, holder);
     checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
-    checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
-    checkInterfacesMethods(clazz, holder);
+    if(!clazzPsi.isInterface()) {
+      checkInterfaces(clazz, holder);
+      checkInterfacesMethods(clazz, holder);
+    }
     // TODO: checkInterfacesFields for properties and vars.
   }
 
@@ -801,38 +804,42 @@ class ClassChecker {
     if (intReference.getHaxeClass() != null) {
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods(null)) {
         if (!intMethod.isStatic()) {
-          // Implemented method not necessarily located in current class
-          final PsiMethod[] methods = clazz.haxeClass.findMethodsByName(intMethod.getName(), true);
-          final PsiMethod psiMethod = ContainerUtil.find(methods, new Condition<PsiMethod>() {
-            @Override
-            public boolean value(PsiMethod method) {
-              return method instanceof HaxeMethod;
-            }
-          });
 
-          if (psiMethod == null) {
+          List<HaxeMethod> methods = clazz.haxeClass.getHaxeMethods(null);
+          Optional<HaxeMethodModel> methodResult = methods.stream()
+            .filter(method -> intMethod.getName().equals(method.getName()))
+            .map(HaxeMethodPsiMixin::getModel)
+            .findFirst();
+
+
+
+          if (!methodResult.isPresent()) {
             if (checkMissingInterfaceMethods) {
               missingMethods.add(intMethod);
               missingMethodsNames.add(intMethod.getName());
             }
           } else {
-            final HaxeMethod method = (HaxeMethod)psiMethod;
-            final HaxeMethodModel methodModel = method.getModel();
+            final HaxeMethodModel methodModel = methodResult.get();
 
             // We should check if signature in inherited method differs from method provided by interface
             if (methodModel.getDeclaringClass() != clazz) {
-              if (checkInheritedInterfaceMethodSignature && MethodChecker.checkIfMethodSignatureDiffers(methodModel, intMethod)) {
-                final HaxeClass parentClass = methodModel.getDeclaringClass().haxeClass;
+              if(methodModel.getDeclaringClass().isInterface()) {
+                missingMethods.add(methodModel);
+                missingMethodsNames.add(intMethod.getName());
+              } else {
+                if (checkInheritedInterfaceMethodSignature && MethodChecker.checkIfMethodSignatureDiffers(methodModel, intMethod)) {
+                  final HaxeClass parentClass = methodModel.getDeclaringClass().haxeClass;
 
-                final String errorMessage = HaxeBundle.message(
-                  "haxe.semantic.implemented.super.method.signature.differs",
-                  method.getName(),
-                  parentClass.getQualifiedName(),
-                  intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
-                  methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
-                );
+                  final String errorMessage = HaxeBundle.message(
+                    "haxe.semantic.implemented.super.method.signature.differs",
+                    methodModel.getName(),
+                    parentClass.getQualifiedName(),
+                    intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
+                    methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
+                  );
 
-                holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
+                  holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
+                }
               }
             } else {
               if (checkInterfaceMethodSignature) {

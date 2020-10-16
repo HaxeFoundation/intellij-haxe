@@ -242,6 +242,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testImplementSignature() throws Exception {
     doTestNoFixWithWarnings();
   }
+  public void testImplementMethods() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   public void testImplementExternInterface() throws Exception {
     doTestNoFixWithWarnings();
