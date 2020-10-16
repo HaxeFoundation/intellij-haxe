@@ -799,10 +799,10 @@ class ClassChecker {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClass() != null) {
+      List<HaxeMethod> methods = clazz.haxeClass.getHaxeMethods(null);
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods(null)) {
         if (!intMethod.isStatic()) {
 
-          List<HaxeMethod> methods = clazz.haxeClass.getHaxeMethods(null);
           Optional<HaxeMethodModel> methodResult = methods.stream()
             .filter(method -> intMethod.getName().equals(method.getName()))
             .map(HaxeMethodPsiMixin::getModel)
