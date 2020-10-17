@@ -213,6 +213,14 @@ Here's a snippet you can use: (Thanks to @isBatak)
     }
   #end
   ```
+  
+Auto Complete For Haxelibs
+--------------------------
+1. Navigate to File -> Project Structure -> Modules -> Dependencies
+2. Click the + to Add a new Library of type Haxe.
+3. Select the folder that contains haxelib.json
+
+For example, to enable auto complete for OpenFl 9.0.2, the folder with haxelib.json is located at `HaxeInstallPath/haxe/lib/openfl/9,0,2` .
 
 Contribute
 ----------
