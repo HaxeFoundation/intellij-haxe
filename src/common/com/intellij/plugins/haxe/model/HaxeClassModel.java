@@ -384,7 +384,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public List<HaxeFieldModel> getFields() {
     // TODO: Figure out if this needs to deal with forwarded fields in abstracts.
-    HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class);
+    HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class, HaxeInterfaceBody.class);
 
     if (body != null) {
       return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)

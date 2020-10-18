@@ -418,8 +418,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  public List<HaxeNamedComponent>getAllHaxeFields(HaxeComponentType... fromTypes) {
-    return getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypes);
+  public List<HaxeFieldDeclaration>getAllHaxeFields(HaxeComponentType... fromTypes) {
+    List<HaxeNamedComponent> fields = getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypes);
+    final List<HaxeFieldDeclaration> result = new ArrayList<>();
+    for (HaxeNamedComponent field : fields) {
+      result.add((HaxeFieldDeclaration)field);
+    }
+    return result;
   }
 
   @NotNull
