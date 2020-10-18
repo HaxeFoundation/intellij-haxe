@@ -352,6 +352,23 @@ public class HaxeResolveUtil {
     return result;
   }
 
+  public static List<HaxeNamedComponent> getAllNamedSubComponentsFromClassType(HaxeClass haxeClass, HaxeComponentType... fromTypes) {
+    List<HaxeNamedComponent> components = getNamedSubComponents(haxeClass);
+    List<HaxeComponentType> types = Arrays.asList(fromTypes);
+    HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
+    if (types.contains(type)) {
+      components.addAll(getNamedSubComponents(haxeClass));
+    }
+    PsiClass[] supers = haxeClass.getSupers();
+    for (PsiClass superComponent : supers) {
+      type = HaxeComponentType.typeOf(superComponent);
+      if (types.contains(type)) {
+        components.addAll(getNamedSubComponents((HaxeClass)superComponent));
+      }
+    }
+    return components;
+  }
+
   /**
    * Gets all elements defined in a class' body.  This does NOT check superTypes for named elements.
    *

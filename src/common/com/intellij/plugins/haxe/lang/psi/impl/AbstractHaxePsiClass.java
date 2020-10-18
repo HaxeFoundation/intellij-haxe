@@ -407,6 +407,29 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return PsiClassImplUtil.getAllMethods(this);
   }
 
+  @NotNull
+  public List<HaxeMethod>getAllHaxeMethods(HaxeComponentType... fromTypes) {
+    List<HaxeNamedComponent> methods = getAllHaxeNamedComponents(HaxeComponentType.METHOD, fromTypes);
+    final List<HaxeMethod> result = new ArrayList<>();
+    for (HaxeNamedComponent method : methods) {
+      result.add((HaxeMethod)method);
+    }
+    return result;
+  }
+
+  @NotNull
+  public List<HaxeNamedComponent>getAllHaxeFields(HaxeComponentType... fromTypes) {
+    return getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypes);
+  }
+
+  @NotNull
+  public List<HaxeNamedComponent>getAllHaxeNamedComponents(HaxeComponentType componentType, HaxeComponentType... fromTypes) {
+    final List<HaxeNamedComponent> allNamedComponents = HaxeResolveUtil.getAllNamedSubComponentsFromClassType(this, fromTypes);
+    return HaxeResolveUtil.filterNamedComponentsByType(allNamedComponents, componentType);
+
+  }
+
+
   @Override
   @NotNull
   public PsiMethod[] getConstructors() {

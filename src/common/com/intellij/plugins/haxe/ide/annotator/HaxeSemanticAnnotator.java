@@ -30,6 +30,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.generation.OverrideImplementMethodFix;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
@@ -47,11 +48,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
+import static java.util.stream.Collectors.toList;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
 
@@ -652,11 +655,11 @@ class ClassChecker {
       checkForDuplicateModifier(holder, "private",
                                 list.stream()
                                   .filter((modifier)->!Objects.isNull(modifier.getPrivateKeyWord()))
-                                  .collect(Collectors.toList()));
+                                  .collect(toList()));
       checkForDuplicateModifier(holder, "final",
                                 list.stream()
                                   .filter((modifier)->!Objects.isNull(modifier.getFinalKeyWord()))
-                                  .collect(Collectors.toList()));
+                                  .collect(toList()));
       if (modifiers instanceof HaxeExternClassModifierList) {
         checkForDuplicateModifier(holder, "extern", ((HaxeExternClassModifierList)modifiers).getExternKeyWordList());
       }
@@ -799,13 +802,15 @@ class ClassChecker {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClass() != null) {
-      List<HaxeMethod> methods = clazz.haxeClass.getHaxeMethods(null);
+      List<HaxeMethodModel> methods = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
+        .map(HaxeMethodPsiMixin::getModel)
+        .collect(toList());
+
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods(null)) {
         if (!intMethod.isStatic()) {
 
           Optional<HaxeMethodModel> methodResult = methods.stream()
             .filter(method -> intMethod.getName().equals(method.getName()))
-            .map(HaxeMethodPsiMixin::getModel)
             .findFirst();
 
 
