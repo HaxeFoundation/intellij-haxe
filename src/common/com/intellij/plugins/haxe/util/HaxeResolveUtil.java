@@ -47,6 +47,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -355,17 +356,17 @@ public class HaxeResolveUtil {
   public static List<HaxeNamedComponent> getAllNamedSubComponentsFromClassType(HaxeClass haxeClass, HaxeComponentType... fromTypes) {
     List<HaxeNamedComponent> components = getNamedSubComponents(haxeClass);
     List<HaxeComponentType> types = Arrays.asList(fromTypes);
-    HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
-    if (types.contains(type)) {
+
+    components.addAll(Stream.of(haxeClass.getSupers())
+                        .filter(superComponent -> types.contains(HaxeComponentType.typeOf(superComponent)))
+                        .map(superComponent -> getAllNamedSubComponentsFromClassType((HaxeClass)superComponent, fromTypes))
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()));
+
+    if (types.contains(HaxeComponentType.typeOf(haxeClass))) {
       components.addAll(getNamedSubComponents(haxeClass));
     }
-    PsiClass[] supers = haxeClass.getSupers();
-    for (PsiClass superComponent : supers) {
-      type = HaxeComponentType.typeOf(superComponent);
-      if (types.contains(type)) {
-        components.addAll(getNamedSubComponents((HaxeClass)superComponent));
-      }
-    }
+
     return components;
   }
 
