@@ -31,7 +31,7 @@ public class ResultHolder {
 
   @NotNull
   private SpecificTypeReference type;
-
+  private boolean initExpression = false;
   private boolean canMutate = true;
   private int mutationCount = 0;
 
@@ -75,7 +75,7 @@ public class ResultHolder {
     return type.isDynamic();
   }
 
-  boolean initExpression = false;
+
   public boolean isInitExpression() {
     return initExpression;
   }

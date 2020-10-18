@@ -222,7 +222,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
 
-  private boolean castMethodAcceptsSource(SpecificHaxeClassReference reference, HaxeMethodModel methodModel) {
+  private boolean castMethodAcceptsSource(@NotNull SpecificHaxeClassReference reference, @NotNull HaxeMethodModel methodModel) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     //implicit cast methods seems to accept both parameter-less methods and single parameter methods
     if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
@@ -248,14 +248,15 @@ public class HaxeClassModel implements HaxeExposableModel {
       .collect(toList());
   }
 
-
-  private SpecificHaxeClassReference getImplicitCastFromType(HaxeMethodModel methodModel) {
+  @Nullable
+  private SpecificHaxeClassReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
     return SetSpecificsConstraints(methodModel, parameter);
   }
 
-  private SpecificHaxeClassReference SetSpecificsConstraints(HaxeMethodModel methodModel, SpecificHaxeClassReference classReference) {
+  @NotNull
+  private SpecificHaxeClassReference SetSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
     ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
     ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
 
@@ -264,28 +265,32 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   //caching  implicit cast  method lookup results
+  @NotNull
   private List<HaxeMethodModel> getCastToMethods() {
     if (castToMethods != null) return castToMethods;
     castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
     return castToMethods;
   }
   //caching implicit cast method lookup  results
+  @NotNull
   private List<HaxeMethodModel> getCastFromMethods() {
     if (castFromMethods != null) return castFromMethods;
     castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
     return castFromMethods;
   }
 
-  private SpecificHaxeClassReference getReturnType(HaxeMethodModel model) {
-    return model.getFunctionType().getReturnType().getClassType();
+  @NotNull
+  private SpecificHaxeClassReference getReturnType(@NotNull HaxeMethodModel model) {
+    SpecificHaxeClassReference type = model.getFunctionType().getReturnType().getClassType();
+    return type != null ? type :  SpecificTypeReference.getUnknown(model.getFunctionType().getReturnType().getElementContext());
   }
 
-  private SpecificHaxeClassReference getTypeOfFirstParameter(HaxeMethodModel model) {
+  @Nullable
+  private SpecificHaxeClassReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
     List<SpecificFunctionReference.Argument> arguments = model.getFunctionType().getArguments();
     if (arguments.isEmpty()) return null;
 
-    SpecificHaxeClassReference argumentType = arguments.get(0).getType().getClassType();
-    return argumentType;
+    return arguments.get(0).getType().getClassType();
   }
 
 
