@@ -489,9 +489,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-    if (!IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
       doTestNoFixWithWarnings();
-    }
   }
 
   public void testMissingInterfaceMethodsOnConstrainedGenericOverrides() throws Exception {
