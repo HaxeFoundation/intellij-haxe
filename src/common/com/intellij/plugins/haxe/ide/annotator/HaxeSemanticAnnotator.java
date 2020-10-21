@@ -47,8 +47,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
@@ -885,17 +883,12 @@ class ClassChecker {
             }
 
             HaxeFieldModel model = new HaxeFieldModel(fieldDeclaration);
-            HaxeGenericResolver scopeResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(model.getBasePsi());
-            HaxeGenericResolver scopeResolver2 = HaxeGenericResolverUtil.generateResolverFromScopeParents(intField.getBasePsi());
+            HaxeGenericResolver classFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(model.getBasePsi());
+            HaxeGenericResolver interfaceFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(intField.getBasePsi());
 
-
-            boolean typesAreCompatible = canAssignToFrom(intField.getResultType(scopeResolver2), model.getResultType(scopeResolver));
+            boolean typesAreCompatible = canAssignToFrom(intField.getResultType(interfaceFieldResolver), model.getResultType(classFieldResolver));
 
             if(!typesAreCompatible) {
-              //TODO :
-              // for some reason the canAssignToFrom does not work properly, debugging with cache on make strange results where
-              // for instance a custom class type cna be assigned a String etc. It looks like a caching issue, and even when caching
-              // is disabled getInferTypes() looks like it return both super and sub classes  meaning this  check  wont work as expected.
               holder.createErrorAnnotation(fieldDeclaration.getNode(), "Field " +fieldDeclaration.getName()
                                                                        + " has different type than in  "
                                                                        + intReference.getHaxeClass().getName());
