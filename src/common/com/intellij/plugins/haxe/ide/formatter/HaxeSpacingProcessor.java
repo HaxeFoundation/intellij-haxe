@@ -103,7 +103,7 @@ public class HaxeSpacingProcessor {
   }
 
   private String nodeText(Block child) {
-    String name = null == child ? "<null child>" : child.getDebugName();
+    String name = null == child ? "<null child>" : (child instanceof HaxeBlock) ? ((HaxeBlock)child).getDebugName() : null;
     if (null == name && child instanceof AbstractBlock) name = ((AbstractBlock)child).getNode().getText();
     if (null == name) name = child.getClass().getName();
     return name;
