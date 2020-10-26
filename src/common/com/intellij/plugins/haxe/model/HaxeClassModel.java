@@ -34,12 +34,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.HaxeComponentType.*;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
+import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
+import static java.util.stream.Collectors.toList;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
+
+  // cache casting method results
+  private List<HaxeMethodModel> castToMethods;
+  private List<HaxeMethodModel> castFromMethods;
 
   public HaxeClassModel(@NotNull HaxeClass haxeClass) {
     this.haxeClass = haxeClass;
@@ -203,6 +210,90 @@ public class HaxeClassModel implements HaxeExposableModel {
     }
     return types;
   }
+
+  public List<SpecificHaxeClassReference> getCastableToTypesList(SpecificHaxeClassReference sourceType) {
+    if (!isAbstract()) return Collections.emptyList();
+    List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
+
+    return  methodsWithMetadata.stream()
+      .filter(methodModel -> castMethodAcceptsSource(sourceType, methodModel))
+      .map(m -> SetSpecificsConstraints(m, getReturnType(m)))
+      .collect(toList());
+  }
+
+
+  private boolean castMethodAcceptsSource(@NotNull SpecificHaxeClassReference reference, @NotNull HaxeMethodModel methodModel) {
+    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
+    //implicit cast methods seems to accept both parameter-less methods and single parameter methods
+    if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
+    SpecificHaxeClassReference parameterWithRealRealSpecifics = SetSpecificsConstraints(methodModel, parameter);
+
+    if(reference.isAbstract()) {
+      SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
+      if(canAssignToFrom(parameterWithRealRealSpecifics, underlying, false)) return true;
+    }
+
+    return canAssignToFrom(parameterWithRealRealSpecifics, reference, false);
+  }
+
+  public List<SpecificHaxeClassReference> getImplicitCastTypesList(SpecificHaxeClassReference targetType) {
+    if (!isAbstract()) return Collections.emptyList();
+    List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
+
+    return methodsWithMetadata.stream()
+      // if return types can not be assign to target then skip this castMethod
+      .filter(m-> canAssignToFrom(targetType, SetSpecificsConstraints(m, getReturnType(m)), false))
+      .map(this::getImplicitCastFromType)// TODO consider applying generics from targetType to be more strict about what methods are supported ?
+      .filter(Objects::nonNull)
+      .collect(toList());
+  }
+
+  @Nullable
+  private SpecificHaxeClassReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel) {
+    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
+    if (parameter == null) return null;
+    return SetSpecificsConstraints(methodModel, parameter);
+  }
+
+  @NotNull
+  private SpecificHaxeClassReference SetSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
+    ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
+    ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
+
+    SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, classReference);
+    return SpecificHaxeClassReference.withGenerics(reference.getHaxeClassReference(), newSpecifics);
+  }
+
+  //caching  implicit cast  method lookup results
+  @NotNull
+  private List<HaxeMethodModel> getCastToMethods() {
+    if (castToMethods != null) return castToMethods;
+    castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
+    return castToMethods;
+  }
+  //caching implicit cast method lookup  results
+  @NotNull
+  private List<HaxeMethodModel> getCastFromMethods() {
+    if (castFromMethods != null) return castFromMethods;
+    castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
+    return castFromMethods;
+  }
+
+  @NotNull
+  private SpecificHaxeClassReference getReturnType(@NotNull HaxeMethodModel model) {
+    SpecificHaxeClassReference type = model.getFunctionType().getReturnType().getClassType();
+    return type != null ? type :  SpecificTypeReference.getUnknown(model.getFunctionType().getReturnType().getElementContext());
+  }
+
+  @Nullable
+  private SpecificHaxeClassReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
+    List<SpecificFunctionReference.Argument> arguments = model.getFunctionType().getArguments();
+    if (arguments.isEmpty()) return null;
+
+    return arguments.get(0).getType().getClassType();
+  }
+
+
 
   // @TODO: this should be properly parsed in haxe.bnf so searching for from is not required
   public List<HaxeType> getAbstractFromList() {
@@ -390,7 +481,7 @@ public class HaxeClassModel implements HaxeExposableModel {
       return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
         .stream()
         .map(HaxeFieldModel::new)
-        .collect(Collectors.toList());
+        .collect(toList());
     } else {
       return Collections.emptyList();
     }
