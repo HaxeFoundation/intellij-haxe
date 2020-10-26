@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.ide.formatter;
 import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.build.FieldWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
@@ -42,6 +43,7 @@ import static java.lang.Integer.max;
  * @author: Fedor.Korotkov
  */
 public class HaxeSpacingProcessor {
+  private final static Logger LOG = Logger.getInstance("#HaxeSpacingProcessor");
   private final ASTNode myNode;
   private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
@@ -65,7 +67,10 @@ public class HaxeSpacingProcessor {
   }
 
   // Use this for debugging.  Beware: It is incredibly slow to log all of this.
-  private String composeSpacingData(Block child1, Block child2) {
+  private String composeSpacingBlockData(Block child1, Block child2) {
+    if (!(child1 instanceof AbstractBlock) || !(child2 instanceof AbstractBlock)) {
+      return "Children not abstract blocks:" + nodeText(child1) + ", " + nodeText(child2);
+    }
     final IElementType elementType = myNode.getElementType();
     final IElementType parentType = myNode.getTreeParent() == null ? null : myNode.getTreeParent().getElementType();
     final ASTNode node1 = ((AbstractBlock)child1).getNode();
@@ -97,7 +102,30 @@ public class HaxeSpacingProcessor {
     return b.toString();
   }
 
+  private String nodeText(Block child) {
+    String name = null == child ? "<null child>" : child.getDebugName();
+    if (null == name && child instanceof AbstractBlock) name = ((AbstractBlock)child).getNode().getText();
+    if (null == name) name = child.getClass().getName();
+    return name;
+  }
+
+  private String composeSpacingData(Block child1, Block child2, Spacing spacing) {
+    String sp = null != spacing ? spacing.toString() : "<null spacing>";
+    return "Between " + nodeText(child1) + " and " + nodeText(child2) + ", spacing is " + sp;
+  }
+
   public Spacing getSpacing(Block child1, Block child2) {
+    if (LOG.isTraceEnabled()) {
+      LOG.trace(composeSpacingBlockData(child1, child2));
+    }
+    Spacing spacing = getSpacingInternal(child1, child2);
+    if (LOG.isDebugEnabled()) {
+      LOG.debug(composeSpacingData(child1, child2, spacing));
+    }
+    return spacing;
+  }
+
+  public Spacing getSpacingInternal(Block child1, Block child2) {
     if (!(child1 instanceof AbstractBlock) || !(child2 instanceof AbstractBlock)) {
       return null;
     }
@@ -214,17 +242,26 @@ public class HaxeSpacingProcessor {
     //
     //Spacing before left braces
     //
+    // NOTE: BLOCK_STATEMENTs that are a single sub-element of an enclosing block,
+    //       such as GUARDED_STATEMENT or DO_WHILE_BODY are presented as the enclosing
+    //       statement type and are NOT presented as a separate BLOCK_STATEMENT sub-element.
+    //
     if (elementType == IF_STATEMENT) {
       if (type2 == GUARDED_STATEMENT && typeType2 == BLOCK_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_IF_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
     }
+    if (type2 == DO_WHILE_BODY && typeType2 == BLOCK_STATEMENT) {
+      if (elementType == WHILE_STATEMENT) {
+        return setBraceSpace(mySettings.SPACE_BEFORE_WHILE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
+      }
+      else if(elementType == DO_WHILE_STATEMENT) {
+        return setBraceSpace(mySettings.SPACE_BEFORE_DO_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
+      }
+    }
     if (type2 == BLOCK_STATEMENT) {
       if (elementType == ELSE_STATEMENT) { // else if (elementType == IF_STATEMENT && type1 == KELSE) {
         return setBraceSpace(mySettings.SPACE_BEFORE_ELSE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
-      }
-      else if (elementType == WHILE_STATEMENT || elementType == DO_WHILE_STATEMENT) {
-        return setBraceSpace(mySettings.SPACE_BEFORE_WHILE_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
       else if (elementType == FOR_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_FOR_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());

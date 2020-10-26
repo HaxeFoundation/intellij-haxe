@@ -82,6 +82,7 @@
       oFAT_ARROW="=>"
 
       oNEW="new"
+      // oIS="is"
 
       ppIF="#if"
       ppELSE="#else"
@@ -176,7 +177,7 @@
     generate=[names="long" ]
 }
 
-haxeFile ::= packageStatement? topLevelList
+haxeFile ::= packageStatement* topLevelList
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
@@ -191,20 +192,43 @@ private metaKeyWord ::= embeddedMeta | '@'
  * is matched before things closer to the top.  Thus, unsignedShiftRight must come
  * after shiftRight so that it has priority.
  */
-shiftLeftOperator ::= '<<'
-shiftRightOperator ::= <<shiftRight>>
-unsignedShiftRightOperator ::= <<unsignedShiftRight>>
+fake operator ::= ":" | ";" | "," |"." | "==" | "=" | "!=" | "!" | "~" | "++" | "+=" | "+" | "--" | "-="
+              | "-" | "?" | "||" | "|" | "|=" | "&&" | "&=" | "&" | "<<=" | "<<" | "<=" | "<" | "^="
+              | "^" | "*=" | "*" | "/=" | "/" | "%=" | "%"
+              | <<unsignedShiftRightAssign>> | <<shiftRightAssign>> | <<unsignedShiftRight>> | <<shiftRight>>
+              | <<gtEq>> | ">" | "..." | "in" | '->' | "=>" | "new" | "is"
 
-shiftLeftAssignOperator ::= '<<='
-shiftRightAssignOperator ::= <<shiftRightAssign>>
-unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>
+shiftLeftOperator ::= '<<'                                          { extends=operator }
+shiftRightOperator ::= <<shiftRight>>                               { extends=operator }
+unsignedShiftRightOperator ::= <<unsignedShiftRight>>               { extends=operator }
+
+shiftLeftAssignOperator ::= '<<='                                   { extends=operator }
+shiftRightAssignOperator ::= <<shiftRightAssign>>                   { extends=operator }
+unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>   { extends=operator }
 
 shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
 shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
-assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
-compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | '>'
-bitOperation ::= '|' | '&' | '^'
+// TODO: Rename *.operation rules to *.operator.
+assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator  { extends=operator }
+private gt ::= '>' !'>' // Cheaper than the predicates for all of the possible shift operators.
+compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | gt     { extends=operator }
+bitOperation ::= '|' | '&' | '^'      { extends=operator }
+
+// These are private simply so that the test goldens don't all have to be updated.
+private additiveOperator ::= '+' | '-'        { extends=operator }
+private assignableOperator ::= '++' | '--'    { extends=operator }
+private colonOperator ::= ':'                 { extends=operator }
+isOperator ::= 'is'                   { extends=operator }
+private iteratorOperator ::= '...'            { extends=operator }
+private logicAndOperator ::= '&&'             { extends=operator }
+private logicOrOperator ::= '||'              { extends=operator }
+private moduloOperator ::= '%'                { extends=operator }
+private multiplicativeOperator ::= '*' | '/'  { extends=operator }
+private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
+private questionOperator ::= '?'              { extends=operator }
+private suffixOperator ::= '!'                { extends=operator }
+
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -486,8 +510,11 @@ keyValueIterator ::= iteratorkey fatArrowOperator iteratorValue
 
 iterable ::= expression
 
-whileStatement ::= 'while' '(' expression ')' statement ';'?
-doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
+doWhileBody ::= statement
+whileStatement ::= 'while' '(' expression ')' doWhileBody ';'?
+  { methods=[guard="expression" body="doWhileBody"]}
+doWhileStatement ::= 'do' doWhileBody 'while' '(' expression ')' ';'
+  { methods=[guard="expression" body="doWhileBody"] extends="whileStatement" }
 
 private returnValue ::= objectLiteral
                       | ("macro"? statement)
@@ -501,6 +528,7 @@ continueStatement ::= 'continue' ';'
 
 throwStatement ::= 'throw' expression ';'?
 
+// TODO: Allow multiple, comma delimited, expressions on switch statement.
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{' (switchCase | defaultCase)* '}'
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
@@ -539,40 +567,62 @@ private fatArrowOperator ::= '=>'
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>') !metaKeyWord
 
-expression ::= isTypeExpression
-             | assignExpression
-             | iteratorExpression
+// This list is in reversed operator precedence order -- lowest on top.
+// The things on top are still matched first.
+// The lookahead predicate on valueExpression is required for suffix expressions to be parsed properly,
+// even though the suffix expressions appear before the value.
+expression ::= assignExpression
              | ternaryExpression
              | logicOrExpression
              | logicAndExpression
+             | iteratorExpression
              | compareExpression
              | bitwiseExpression
              | shiftExpression
              | additiveExpression
              | multiplicativeExpression
              | moduloExpression
+             | isTypeExpression         // With Haxe 4.2, won't compile with prefix; lower than postfix or value.
              | prefixExpression
-             | suffixExpression
-             | valueExpression
-             {extraRoot=true recoverWhile=expression_recover}
+             | postfixExpression
+             | valueExpression !suffixOperator !assignableOperator
+             { extraRoot=true recoverWhile=expression_recover }
 
-assignExpression ::= expression (assignOperation) expression  { rightAssociative=true }
-isTypeExpression ::= expression 'is' (typeWrapper | objectLiteral) { }
-iteratorExpression ::= expression '...' expression
-ternaryExpression ::= expression '?' expression ':' expression { rightAssociative=true }
-logicOrExpression ::= expression '||' expression
-logicAndExpression ::= expression '&&' expression
-compareExpression ::= expression compareOperation expression
-bitwiseExpression ::= expression bitOperation expression
-shiftExpression ::= expression shiftOperator expression
-additiveExpression ::= expression ( '+' | '-' ) expression
-multiplicativeExpression ::= expression ( '*' | '/' ) expression
-moduloExpression ::= expression '%' expression
-prefixExpression ::= ( '-' | '--' | '++' | '!' | '~' ) expression
-suffixExpression ::= expression  ( '--' | '++' | '!' )
+assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
+isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="/expression[0]" operator="isOperator"] }
+iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
+ternaryExpression ::= expression questionOperator expression colonOperator expression
+  { rightAssociative=true
+    methods=[ guardExpression="/expression[0]"
+              guardedExpression="/expression[1]"
+              elseExpression="/expression[2]"]
+  }
+logicOrExpression ::= expression logicOrOperator expression                   { extends=binaryExpression }
+logicAndExpression ::= expression logicAndOperator expression                 { extends=binaryExpression }
+compareExpression ::= expression compareOperation expression                  { extends=binaryExpression }
+bitwiseExpression ::= expression bitOperation expression                      { extends=binaryExpression }
+shiftExpression ::= expression shiftOperator expression                       { extends=binaryExpression }
+additiveExpression ::= expression additiveOperator expression                 { extends=binaryExpression }
+multiplicativeExpression ::= expression multiplicativeOperator expression     { extends=binaryExpression }
+moduloExpression ::= expression moduloOperator expression                     { extends=binaryExpression }
+prefixExpression ::= (prefixOperator (postfixExpression | valueExpression))
+                   | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
+postfixExpression ::= (assignableValueExpression assignableOperator)
+                   | notSuffixExpression                                      { extends=unaryExpression }
+notSuffixExpression ::= valueExpression suffixOperator                        { extends=postfixExpression }
 valueExpression ::= value
+
+// These fake rules won't be in the parser, but the PSI will contain a HaxeBinaryExpression class
+// which will be the superclass of the extending classes in the PSI.
+fake binaryExpression ::= expression* operator+ {
+  methods=[leftExpression="/expression[0]" rightExpression="/expression[1]" operator="/operator[0]"]
+}
+fake unaryExpression ::= expression* operator+ {
+  methods=[expression="/expression[0]" operator="/operator[0]"]
+}
+private assignableValueExpression ::= referenceExpression (qualifiedReferenceExpression)* arrayAccessExpression*
 
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
@@ -691,7 +741,7 @@ anonymousType ::= anonymousTypeBody // Yes, we need two levels to keep parity wi
 anonymousTypeBody ::= anonymousTypeWithEmptyBody | regularAnonymousTypeBody
 private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
 private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
-private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBodyList
+private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (sep anonymousInterfaceBodyList)?
 private anonymousInterfaceBodyList ::= (interfaceBodyPart | optionalFieldDeclaration)+  {recoverWhile="interface_body_part_recover"}
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?

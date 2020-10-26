@@ -78,8 +78,8 @@ public class HaxeExpressionEvaluator {
     catch (Throwable t) {
       // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
       LOG.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
+    return SpecificHaxeClassReference.getUnknown(element != null ? element : context.root).createHolder();
   }
 
   @NotNull
@@ -220,7 +220,8 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeWhileStatement) {
-      List<HaxeExpression> list = ((HaxeWhileStatement)element).getExpressionList();
+      HaxeDoWhileBody whileBody = ((HaxeWhileStatement)element).getBody();
+      List<HaxeExpression> list = null != whileBody ? whileBody.getExpressionList() : Collections.emptyList();
       SpecificTypeReference type = null;
       HaxeExpression lastExpression = null;
       for (HaxeExpression expression : list) {

@@ -20,8 +20,6 @@
 package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.codeInsight.daemon.impl.HighlightRangeExtension;
-import com.intellij.codeInspection.InspectionToolProvider;
-import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
@@ -52,8 +50,8 @@ import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
-import static com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
+import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
 
@@ -64,8 +62,8 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
     return (file.getLanguage().isKindOf(HaxeLanguage.INSTANCE));
   }
 
-  public static SemanticAnnotatorInspections.Registrar getInspectionProvider() {
-    return new SemanticAnnotatorInspections.Registrar();
+  public static HaxeSemanticAnnotatorInspections.Registrar getInspectionProvider() {
+    return new HaxeSemanticAnnotatorInspections.Registrar();
   }
 
   @Override
@@ -100,261 +98,6 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
   }
 }
 
-/**
- * List of inspections that need to be displayed in the settings dialogs.
- */
-enum SemanticAnnotatorInspections {
-
-  ASSIGNMENT_TYPE_COMPATIBILITY_CHECK(new AssignmentTypeCompatibilityInspection()),
-  DUPLICATE_CLASS_MODIFIERS(new DuplicateClassModifierInspection()),
-  DUPLICATE_FIELDS(new DuplicateFieldInspection()),
-  FIELD_REDEFINITION(new FieldRedefinitionInspection()),
-  FINAL_FIELD_IS_INITIALIZED(new FinalFieldIsInitializedInspection()),
-  INCOMPATIBLE_INITIALIZATION(new IncompatibleInitializationInspection()),
-  INCOMPATIBLE_TYPE_CHECKS(new IncompatibleTypeChecksInspection()),
-  INHERITED_INTERFACE_METHOD_SIGNATURE(new InheritedInterfaceMethodSignatureInspection()),
-  INTERFACE_METHOD_SIGNATURE(new InterfaceMethodSignatureInspection()),
-  INVALID_TYPE_NAME(new InvalidTypeNameInspection()),
-  IS_TYPE_INSPECTION(new IsTypeExpressionInspection()),
-  METHOD_OVERRIDE_CHECK(new MethodOverrideInspection()),
-  METHOD_SIGNATURE_COMPATIBILITY(new MethodSignatureCompatiblityInspection()),
-  MISSING_INTERFACE_METHODS(new MissingInterfaceMethodInspection()),
-  MISSING_TYPE_TAG_ON_EXTERN_AND_INTERFACE(new MissingTypeTagOnExternAndInterfaceInspection()),
-  OPTIONAL_WITH_INITIALIZER(new InitializerOnOptionalMethodArgumentInspection()),
-  PACKAGE_NAME_CHECK(new PackageNameInspection()),
-  PARAMETER_INITIALIZER_TYPES(new ParameterInitializerTypeInspection()),
-  PARAMETER_ORDERING_CHECK(new ParameterOrderingInspection()),
-  PROPERTY_ACCESSOR_EXISTENCE(new PropertyAccessorExistenceInspection()),
-  PROPERTY_ACCESSOR_VALID(new PropertyAccessorValidInspection()),
-  PROPERTY_CANNOT_BE_FINAL(new PropertyCannotBeFinalInspection()),
-  PROPERTY_IS_NOT_REAL_VARIABLE(new PropertyIsNotARealVarialeInspection()),
-  REPEATED_PARAMETER_NAME_CHECK(new ParameterNameDuplicatedInspection()),
-  STRING_INTERPOLATION_QUOTE_CHECK(new StringInterpolationQuoteInspection()),
-  SUPERCLASS_TYPE_COMPATIBILITY(new SuperclassTypeCompatibilityInspection()),
-  SUPERINTERFACE_TYPE(new SuperInterfaceTypeCompatibilityInspection()),
-  ;
-
-  HaxeAnnotatorInspection inspection;
-
-  public boolean isEnabled(PsiElement element) {return inspection.isEnabled(element);}
-
-  SemanticAnnotatorInspections(@NotNull HaxeAnnotatorInspection inspection) {
-    this.inspection = inspection;
-  }
-
-  public static class Registrar implements InspectionToolProvider {
-    @NotNull
-    @Override
-    public Class<? extends LocalInspectionTool>[] getInspectionClasses() {
-      SemanticAnnotatorInspections[] constants = SemanticAnnotatorInspections.class.getEnumConstants();
-      int length = constants == null ? 0 : constants.length;
-      //noinspection unchecked
-      Class<? extends HaxeAnnotatorInspection>[] classes = new Class[length];
-
-      for (int i = 0; i < length; i++) {
-        SemanticAnnotatorInspections sai = constants[i];
-        classes[i] = sai.inspection.getClass();
-      }
-
-      return classes;
-    }
-  }
-
-  // We *have* to use discrete classes for each inspection because the dialog
-  // mechanism works directly with the class (not the instance!) and has to find
-  // a no-argument constructor.  It won't work with a single class and a closure,
-  // either, because the closure is not available at the time that the class is loaded.
-
-  public static class AssignmentTypeCompatibilityInspection extends HaxeAnnotatorInspection {
-    public AssignmentTypeCompatibilityInspection() {
-      super("haxe.inspections.assignment.type.compatibility.name",
-            "haxe.inspections.assignment.type.compatibility.description");
-    }
-  }
-
-  public static class DuplicateClassModifierInspection extends HaxeAnnotatorInspection {
-    public DuplicateClassModifierInspection() {
-      super("haxe.inspections.duplicate.class.modifier.name",
-            "haxe.inspections.duplicate.class.modifier.description");
-    }
-  }
-
-  public static class DuplicateFieldInspection extends HaxeAnnotatorInspection {
-    public DuplicateFieldInspection() {
-      super("haxe.inspections.duplicated.field.name",
-            "haxe.inspections.duplicated.field.description");
-    }
-  }
-
-  public static class FieldRedefinitionInspection extends HaxeAnnotatorInspection {
-    public FieldRedefinitionInspection() {
-      super("haxe.inspections.field.redefinition.inspection.name",
-            "haxe.inspections.field.redefinition.inspection.description");
-    }
-  }
-
-  public static class FinalFieldIsInitializedInspection extends HaxeAnnotatorInspection {
-    public FinalFieldIsInitializedInspection() {
-      super("haxe.inspections.final.field.is.initialized.inspection.name",
-            "haxe.inspections.final.field.is.initialized.inspection.description");
-    }
-  }
-
-  public static class IncompatibleInitializationInspection extends HaxeAnnotatorInspection {
-    public IncompatibleInitializationInspection() {
-      super("haxe.inspections.incompatible.initialization.inspection.name",
-            "haxe.inspections.incompatible.initialization.inspection.description");
-    }
-  }
-
-  public static class IncompatibleTypeChecksInspection extends HaxeAnnotatorInspection {
-    public IncompatibleTypeChecksInspection() {
-      super("haxe.inspections.incompatible.type.checks.inspection.name");
-    }
-  }
-
-  public static class InheritedInterfaceMethodSignatureInspection extends HaxeAnnotatorInspection {
-    public InheritedInterfaceMethodSignatureInspection() {
-      super("haxe.inspections.inherited.interface.method.signature.name",
-            "haxe.inspections.inherited.interface.method.signature.description");
-    }
-  }
-
-  public static class InitializerOnOptionalMethodArgumentInspection extends HaxeAnnotatorInspection {
-    public InitializerOnOptionalMethodArgumentInspection() {
-      super("haxe.inspections.initializer.on.optional.method.argument.name",
-            "haxe.inspections.initializer.on.optional.method.argument.description");
-    }
-  }
-
-  public static class InterfaceMethodSignatureInspection extends HaxeAnnotatorInspection {
-    public InterfaceMethodSignatureInspection() {
-      super("haxe.inspections.interface.methods.signature.name",
-            "haxe.inspections.interface.methods.signature.description");
-    }
-  }
-
-  public static class InvalidTypeNameInspection extends HaxeAnnotatorInspection {
-    public InvalidTypeNameInspection() {
-      super("haxe.inspections.type.name.casing.name",
-            "haxe.inspections.type.name.casing.description");
-    }
-  }
-
-  public static class IsTypeExpressionInspection extends HaxeAnnotatorInspection {
-    public IsTypeExpressionInspection() {
-      super("haxe.inspections.is.type.expression.inspection.name",
-            "haxe.inspections.is.type.expression.inspection.description");
-    }
-  }
-
-  public static class MethodOverrideInspection extends HaxeAnnotatorInspection {
-    public MethodOverrideInspection() {
-      super("haxe.inspections.method.override.name",
-            "haxe.inspections.method.override.description");
-    }
-  }
-
-  public static class MethodSignatureCompatiblityInspection extends HaxeAnnotatorInspection {
-    public MethodSignatureCompatiblityInspection() {
-      super("haxe.inspections.method.signature.compatiblity.name",
-            "haxe.inspections.method.signature.compatiblity.description");
-    }
-  }
-
-  public static class MissingInterfaceMethodInspection extends HaxeAnnotatorInspection {
-    public MissingInterfaceMethodInspection() {
-      super("haxe.inspections.missing.interface.methods.name",
-            "haxe.inspections.missing.interface.methods.description");
-    }
-  }
-
-  public static class MissingTypeTagOnExternAndInterfaceInspection extends HaxeAnnotatorInspection {
-    public MissingTypeTagOnExternAndInterfaceInspection() {
-      super("haxe.inspections.missing.type.tag.on.extern.or.interface.name",
-            "haxe.inspections.missing.type.tag.on.extern.or.interface.description");
-    }
-  }
-
-  public static class PackageNameInspection extends HaxeAnnotatorInspection {
-    public PackageNameInspection() {
-      super("haxe.inspections.package.name.name",
-            "haxe.inspections.package.name.description");
-    }
-  }
-
-  public static class ParameterInitializerTypeInspection extends HaxeAnnotatorInspection {
-    public ParameterInitializerTypeInspection() {
-      super("haxe.inspections.parameter.initializer.type.name",
-            "haxe.inspections.parameter.initializer.type.description");
-    }
-  }
-
-  public static class ParameterNameDuplicatedInspection extends HaxeAnnotatorInspection {
-    public ParameterNameDuplicatedInspection() {
-      super("haxe.inspections.parameter.name.duplicated.name",
-            "haxe.inspections.parameter.name.duplicated.description");
-    }
-  }
-
-  public static class ParameterOrderingInspection extends HaxeAnnotatorInspection {
-    public ParameterOrderingInspection() {
-      super("haxe.inspections.parameter.ordering.name",
-            "haxe.inspections.parameter.ordering.description");
-    }
-  }
-
-  public static class PropertyAccessorExistenceInspection extends HaxeAnnotatorInspection {
-    public PropertyAccessorExistenceInspection() {
-      super("haxe.inspections.property.accessor.existence.name",
-            "haxe.inspections.property.accessor.existence.description");
-    }
-  }
-
-  public static class PropertyAccessorValidInspection extends HaxeAnnotatorInspection {
-    public PropertyAccessorValidInspection() {
-      super("haxe.inspections.property.accessor.valid.name",
-            "haxe.inspections.property.accessor.valid.description");
-    }
-  }
-
-  public static class PropertyCannotBeFinalInspection extends HaxeAnnotatorInspection {
-    public PropertyCannotBeFinalInspection() {
-      super("haxe.inspections.property.cannot.be.final.name",
-            "haxe.inspections.property.cannot.be.final.description");
-    }
-  }
-
-  public static class PropertyIsNotARealVarialeInspection extends HaxeAnnotatorInspection {
-    public PropertyIsNotARealVarialeInspection() {
-      super("haxe.inspections.property.is.not.a.real.variable.name",
-            "haxe.inspections.property.is.not.a.real.variable.description");
-    }
-  }
-
-  public static class StringInterpolationQuoteInspection extends HaxeAnnotatorInspection {
-    public StringInterpolationQuoteInspection() {
-      super("haxe.inspections.string.interpolation.quote.name",
-            "haxe.inspections.string.interpolation.quote.description");
-    }
-  }
-
-  public static class SuperclassTypeCompatibilityInspection extends HaxeAnnotatorInspection {
-    public SuperclassTypeCompatibilityInspection() {
-      super("haxe.inspections.superclass.type.compatibility.name",
-            "haxe.inspections.superclass.type.compatibility.description");
-    }
-  }
-
-  public static class SuperInterfaceTypeCompatibilityInspection extends HaxeAnnotatorInspection {
-    public SuperInterfaceTypeCompatibilityInspection() {
-      super("haxe.inspections.superinterface.type.compatibility.name",
-            "haxe.inspections.superinterface.type.compatibility.description");
-    }
-  }
-}
-
-
 class IsTypeExpressionChecker {
   public static void check(
     final HaxeIsTypeExpression expr,
@@ -362,7 +105,170 @@ class IsTypeExpressionChecker {
   ) {
     if (!IS_TYPE_INSPECTION.isEnabled(expr)) return;
 
+    PsiElement rhsType = getRightHandType(expr);
+    if (null != rhsType) {
+      annotateTypeError(rhsType, holder);
+    } else {
+      PsiElement rhs = getRightHandElement(expr);
+      holder.createErrorAnnotation(null != rhs ? rhs : expr, HaxeBundle.message("haxe.semantic.is.operator.rhs.must.be.type"));
+    }
 
+    if (IS_TYPE_INSPECTION_4dot1_COMPATIBLE.isEnabled(expr)) {
+
+      PsiElement lhs = expr.getLeftExpression();
+      if (isComplexExpression(lhs)) {
+        Annotation annotation =
+          holder.createErrorAnnotation(lhs, HaxeBundle.message("haxe.semantic.is.operator.lhs.cannot.be.complex.expression"));
+        annotation.registerFix(wrapLhsFixer(lhs));
+        annotation.registerFix(wrapInnerIsFixer(expr));
+      }
+
+      PsiElement parent = expr.getParent();
+      if (parent instanceof HaxeAssignExpression) {
+        // "a = b is expression" parses (in our parser) as "a = (b is expression)", so the parent is actually the assignment.
+        TextRange assignMarkerRange = new TextRange(parent.getTextOffset(), lhs.getTextRange().getEndOffset());
+
+        Annotation annotation =
+          holder.createErrorAnnotation(assignMarkerRange, HaxeBundle.message("haxe.semantic.is.operator.4_1.lhs.cannot.be.assignment"));
+        annotation
+          .registerFix(HaxeSurroundFixer.withParens(HaxeBundle.message("haxe.quickfix.wrap.assignment.with.parenthesis"), expr, assignMarkerRange));
+        annotation.registerFix(wrapExpressionFixer(expr));
+      } else if (parent instanceof HaxeVarInit) {
+        TextRange initMarkerRange = new TextRange(parent.getTextOffset(), lhs.getTextRange().getEndOffset());
+        Annotation annotation =
+          holder.createErrorAnnotation(initMarkerRange, HaxeBundle.message("haxe.semantic.is.operator.4_1.lhs.cannot.be.var.init"));
+        annotation.registerFix(wrapInnerIsFixer(expr));
+
+        HaxeExpression initExpression = ((HaxeVarInit)parent).getExpression();
+        if (null != initExpression) {
+          annotation.registerFix(wrapExpressionFixer(initExpression));
+        }
+      } else if ( parent instanceof HaxeBinaryExpression
+                  || parent instanceof HaxeSwitchStatement
+                  || parent instanceof HaxeExpressionList
+                  || parent instanceof HaxeMapInitializerExpressionList
+                  || parent instanceof HaxeTernaryExpression
+                  || parent instanceof HaxeReturnStatement
+                  || parent instanceof HaxeDoWhileBody
+                  || parent instanceof HaxeTryStatement
+                  || parent instanceof HaxeFunctionLiteral
+                  || parent instanceof HaxeForStatement
+                  || parent instanceof HaxeMapInitializerExpression
+                  || parent instanceof HaxeBlockStatement
+                  || parent instanceof HaxeThrowStatement
+      ) {
+        annotateIs(holder, expr, HaxeBundle.message("haxe.semantic.unparenthesized.is.expression.cannot.be.used.here.pre.4.2.semantics"));
+      } else if (parent instanceof HaxeGuard
+               ||parent instanceof HaxeWhileStatement) {
+        annotateIs(holder, expr,
+                   HaxeBundle.message(
+                     "haxe.semantic.is.expression.requires.double.parenthesis.when.used.as.a.guard.expression.pre.4.2.semantics"));
+      }
+    }
+
+    // Recolor the keyword, because error markings revert the color.
+    recolorIsKeyword(holder, expr);
+  }
+
+  private static void recolorIsKeyword(AnnotationHolder holder, HaxeIsTypeExpression element) {
+    HaxeIsOperator op = element.getOperator();
+    HaxeColorAnnotator.colorizeKeyword(holder, op);
+  }
+
+  @NotNull
+  private static Annotation annotateIs(HaxeAnnotationHolder holder, HaxeIsTypeExpression expr, String message) {
+    if (null == message) {
+      message = HaxeBundle.message("haxe.semantic.unparenthesized.is.expression.cannot.be.used.here");
+    }
+    Annotation annotation = holder.createErrorAnnotation(expr, message);
+    annotation.registerFix(wrapInnerIsFixer(expr));
+    return annotation;
+  }
+
+  @NotNull
+  private static HaxeSurroundFixer wrapInnerIsFixer(@NotNull HaxeIsTypeExpression expr) {
+    PsiElement lhs = expr.getLeftExpression();
+    if (lhs instanceof HaxeBinaryExpression) {
+      PsiElement lhsrhs = ((HaxeBinaryExpression)lhs).getRightExpression();
+      if (null != lhsrhs) {
+        PsiElement rhs = getRightHandElement(expr);
+        if (null == rhs) rhs = UsefulPsiTreeUtil.getLastChild(expr, HaxePsiCompositeElement.class);
+        if (null != rhs) {
+          return wrapIsFixer(lhsrhs, rhs);
+        }
+      }
+    }
+    return wrapIsFixer(expr);
+  }
+
+  @NotNull
+  private static HaxeSurroundFixer wrapIsFixer(@NotNull HaxeIsTypeExpression expr) {
+    return HaxeSurroundFixer.withParens(HaxeBundle.message("haxe.quickfix.wrap.is.expression.with.parenthesis"), expr, expr.getTextRange());
+  }
+
+  @NotNull
+  private static HaxeSurroundFixer wrapIsFixer(@NotNull PsiElement first, @NotNull PsiElement last) {
+    TextRange range = first.getTextRange().union(last.getTextRange());
+    return HaxeSurroundFixer.withParens(HaxeBundle.message("haxe.quickfix.wrap.is.expression.with.parenthesis"), first, range);
+  }
+
+  @NotNull
+  private static HaxeSurroundFixer wrapExpressionFixer(@NotNull PsiElement expr) {
+    return HaxeSurroundFixer.withParens(HaxeBundle.message("haxe.quickfix.wrap.expression.with.parenthesis"), expr, expr.getTextRange());
+  }
+
+  @NotNull
+  private static HaxeSurroundFixer wrapLhsFixer(@NotNull PsiElement expr) {
+    return HaxeSurroundFixer.withParens(HaxeBundle.message("haxe.quickfix.wrap.left.hand.side.with.parenthesis"), expr, expr.getTextRange());
+  }
+
+
+  @Nullable
+  private static PsiElement getRightHandType(HaxeIsTypeExpression expr) {
+    PsiElement el = expr.getFunctionType();
+    if (null == el) {
+      HaxeTypeOrAnonymous toa = expr.getTypeOrAnonymous();
+      if (null != toa) {
+        el = toa.getAnonymousType();
+        if (null == el) el = toa.getType();
+      }
+    }
+    if (null == el) {
+      PsiElement rhs = getRightHandElement(expr);
+      if (rhs instanceof HaxeObjectLiteral) el = rhs;
+    }
+    return el;
+  }
+
+  @Nullable
+  private static PsiElement getRightHandElement(HaxeIsTypeExpression expr) {
+    List<HaxeExpression> exprs = expr.getExpressionList();
+    if (exprs.size() > 1) {
+      return exprs.get(1);
+    }
+    return null;
+  }
+
+  private static void annotateTypeError(PsiElement type, HaxeAnnotationHolder holder) {
+    if (type instanceof HaxeType) {
+      HaxeType hx = (HaxeType)type;
+      if (null != hx.getTypeParam()) {
+        holder.createErrorAnnotation(type, HaxeBundle.message("haxe.semantic.is.operator.type.cannot.have.parameters"));
+      }
+      HaxeReferenceExpression ref = hx.getReferenceExpression();
+      PsiElement found = ref.resolve();
+      if (found instanceof HaxeLocalVarDeclaration) {
+        holder.createErrorAnnotation(type, HaxeBundle.message("haxe.semantic.is.operator.rhs.must.be.type"));
+      }
+    } else {
+      holder.createErrorAnnotation(type, HaxeBundle.message("haxe.semantic.is.operator.type.not.supported" ));
+    }
+  }
+
+  private static boolean isComplexExpression(PsiElement expr) {
+    return expr instanceof HaxeBinaryExpression
+        || expr instanceof HaxeTernaryExpression
+        || expr instanceof HaxeIsTypeExpression;
   }
 }
 
@@ -1232,17 +1138,24 @@ class MethodChecker {
 
 class PackageChecker {
   static public void check(final HaxePackageStatement element, final HaxeAnnotationHolder holder) {
+
+    HaxeFile file = (HaxeFile)element.getContainingFile();
+    if (element != file.getPackageStatement()) {  // If it's not the first one...
+      holder.createErrorAnnotation(element, "Multiple package names are not allowed.")
+        .registerFix(new HaxeRemoveElementFixer("Remove extra package declaration", element, StripSpaces.BOTH));
+    }
+
     if (!PACKAGE_NAME_CHECK.isEnabled(element)) return;
 
     final HaxeReferenceExpression expression = element.getReferenceExpression();
     String packageName = (expression != null) ? expression.getText() : "";
-    PsiDirectory fileDirectory = element.getContainingFile().getParent();
+    PsiDirectory fileDirectory = file.getParent();
     if (fileDirectory == null) return;
     List<PsiFileSystemItem> fileRange = PsiFileUtils.getRange(PsiFileUtils.findRoot(fileDirectory), fileDirectory);
     fileRange.remove(0);
     String actualPath = PsiFileUtils.getListPath(fileRange);
     final String actualPackage = actualPath.replace('/', '.');
-    final String actualPackage2 = HaxeResolveUtil.getPackageName(element.getContainingFile());
+    final String actualPackage2 = HaxeResolveUtil.getPackageName(file);
     // @TODO: Should use HaxeResolveUtil
 
     for (String s : StringUtils.split(packageName, '.')) {

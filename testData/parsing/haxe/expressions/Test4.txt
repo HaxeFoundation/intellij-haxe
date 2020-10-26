@@ -106,7 +106,7 @@ Haxe File
               VAR_INIT
                 HaxePsiToken:=('=')
                 ADDITIVE_EXPRESSION
-                  SUFFIX_EXPRESSION
+                  POSTFIX_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
@@ -126,7 +126,7 @@ Haxe File
               VAR_INIT
                 HaxePsiToken:=('=')
                 ADDITIVE_EXPRESSION
-                  SUFFIX_EXPRESSION
+                  POSTFIX_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')

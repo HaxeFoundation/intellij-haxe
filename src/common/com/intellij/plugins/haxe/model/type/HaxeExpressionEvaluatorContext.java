@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public class HaxeExpressionEvaluatorContext {
 
   public AnnotationHolder holder;
   private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
-  public PsiElement root;
+  public final PsiElement root;
 
   public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder) {
     this.root = body;

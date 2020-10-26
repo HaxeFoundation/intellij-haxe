@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +23,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeDoWhileStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeGuardedStatement;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementUtils;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
@@ -38,7 +40,7 @@ public class HaxeDoWhileSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeDoWhileStatement whileStatement =
       (HaxeDoWhileStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "do {\n} while(a);");
-    List<HaxeBlockStatement> blockStatementList = whileStatement.getBlockStatementList();
+    List<HaxeBlockStatement> blockStatementList = whileStatement.getBody().getBlockStatementList();
     addStatements(blockStatementList.get(0), elements);
     return whileStatement;
   }

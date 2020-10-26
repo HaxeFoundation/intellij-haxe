@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,6 +146,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     myTestStyleSettings.SPACE_BEFORE_IF_LBRACE = false;
     myTestStyleSettings.SPACE_BEFORE_ELSE_LBRACE = false;
     myTestStyleSettings.SPACE_BEFORE_FOR_LBRACE = false;
+    myTestStyleSettings.SPACE_BEFORE_DO_LBRACE = false;
     myTestStyleSettings.SPACE_BEFORE_WHILE_LBRACE = false;
     myTestStyleSettings.SPACE_BEFORE_SWITCH_LBRACE = false;
     myTestStyleSettings.SPACE_BEFORE_TRY_LBRACE = false;

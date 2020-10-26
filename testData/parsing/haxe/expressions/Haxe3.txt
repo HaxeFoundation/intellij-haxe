@@ -164,16 +164,17 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('$cond')
               HaxePsiToken:)(')')
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('trace')
-                HaxePsiToken:(('(')
-                EXPRESSION_LIST
+              DO_WHILE_BODY
+                CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      HaxePsiToken:ID('$e')
-                HaxePsiToken:)(')')
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
+                  EXPRESSION_LIST
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('$e')
+                  HaxePsiToken:)(')')
               HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       PsiElement(EMBEDDED_META)
@@ -248,7 +249,7 @@ Haxe File
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('10')
               HaxePsiToken:,(',')
-              SUFFIX_EXPRESSION
+              POSTFIX_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('x')

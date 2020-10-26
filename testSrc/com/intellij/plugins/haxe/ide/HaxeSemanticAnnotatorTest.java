@@ -33,16 +33,15 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -57,21 +56,27 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTestInternal(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings, String... additionalFiles) throws Exception {
+  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
+                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
+                      String... additionalFiles)
+    throws Exception
+  {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    registerAllInspectionsForTesting(HaxeSemanticAnnotator.getInspectionProvider(), myFixture.getProject());
+    registerInspectionsForTesting(HaxeSemanticAnnotator.getInspectionProvider(), myFixture.getProject(), unsetInspections);
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 
-  public void registerAllInspectionsForTesting(InspectionToolProvider provider, Project project) {
+  public void registerInspectionsForTesting(InspectionToolProvider provider, Project project,
+                                            @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections) {
     InspectionProfileManager mgr = InspectionProfileManager.getInstance(project);
     InspectionProfileImpl profile = mgr.getCurrentProfile();
 
     try {
       Class<? extends LocalInspectionTool>[] classes = provider.getInspectionClasses();
       for (Class<? extends LocalInspectionTool> c : classes) {
+        if (null != unsetInspections && unsetInspections.contains(c)) continue;
 
         Constructor<? extends LocalInspectionTool> constructor = c.getDeclaredConstructor();
         constructor.setAccessible(true);
@@ -86,17 +91,20 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     }
   }
 
+  private void doTestSkippingAnnotators(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
+    doTest(true, false, false, unsetInspections);
+  }
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
-    doTestInternal(true, false, false, additionalFiles);
+    doTest(true, false, false, null, additionalFiles);
   }
 
   private void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
-    doTestInternal(false, false, false, additionalFiles);
+    doTest(false, false, false, null, additionalFiles);
   }
 
-  private void doTest(String... filters) throws Exception {
-    doTestInternal(false, false, false);
+  private void doTestActions(String... filters) throws Exception {
+    doTest(false, false, false, null);
 
     List<IntentionAction> intentions = myFixture.getAvailableIntentions();
     for (final IntentionAction action : intentions) {
@@ -112,23 +120,23 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testFixPackage() throws Exception {
-    doTest("Fix package");
+    doTestActions("Fix package");
   }
 
   public void testRemoveOverride() throws Exception {
-    doTest("Remove override");
+    doTestActions("Remove override");
   }
 
   public void testRemoveFinal() throws Exception {
-    doTest("Remove final from Base.test");  // @:final, but the @: is no longer in the fix message.
+    doTestActions("Remove final from Base.test");  // @:final, but the @: is no longer in the fix message.
   }
 
   public void testChangeArgumentType() throws Exception {
-    doTest(HaxeBundle.message("haxe.quickfix.change.variable.type"));
+    doTestActions(HaxeBundle.message("haxe.quickfix.change.variable.type"));
   }
 
   public void testRemoveArgumentInit() throws Exception {
-    doTest(HaxeBundle.message("haxe.quickfix.remove.initializer"));
+    doTestActions(HaxeBundle.message("haxe.quickfix.remove.initializer"));
   }
 
   public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
@@ -200,7 +208,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testUcFirstClassName() throws Exception {
-    doTest("Change name");
+    doTestActions("Change name");
   }
 
   public void testUcFirstClassName2() throws Exception {
@@ -220,7 +228,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOverrideSignature() throws Exception {
-    doTest("Remove argument");
+    doTestActions("Remove argument");
   }
 
   public void testOverrideSignature2() throws Exception {
@@ -228,11 +236,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testOverrideSignature3() throws Exception {
-    doTest("Remove argument");
+    doTestActions("Remove argument");
   }
 
   public void testOverrideSignature4() throws Exception {
-    doTest("Remove argument");
+    doTestActions("Remove argument");
   }
 
   public void testOverrideSignature5() throws Exception {
@@ -604,5 +612,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+
+
+  public void testIsKeywordFor4_2() throws Throwable {
+    HashSet skipAnnotators = new HashSet();
+    skipAnnotators.add(HaxeSemanticAnnotatorInspections.IsTypeExpressionInspection4dot1Compatible.class);
+    doTestSkippingAnnotators(skipAnnotators);
+  }
+
+  public void testIsKeywordFor4_1() throws Throwable {
+    doTestSkippingAnnotators(new HashSet<>());
+  }
 
 }

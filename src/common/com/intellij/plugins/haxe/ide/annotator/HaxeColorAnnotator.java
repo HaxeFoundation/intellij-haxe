@@ -3,7 +3,7 @@
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,8 @@ public class HaxeColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
     if (isNewOperator(node) || isIsOperator(node)) {
-      holder.createInfoAnnotation(node, null).setTextAttributes(TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD));
+      colorizeKeyword(holder, node);
+      return;
     }
 
     PsiElement element = node;
@@ -75,11 +76,12 @@ public class HaxeColorAnnotator implements Annotator {
           if (element != null) node = element;
         }
         holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
+        return;
       }
     }
     if (isKeyword(element)) {
-      TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-      holder.createInfoAnnotation(node, null).setTextAttributes(attributesKey);
+      colorizeKeyword(holder, node);
+      return;
     }
 
     final ASTNode astNode = node.getNode();
@@ -90,9 +92,11 @@ public class HaxeColorAnnotator implements Annotator {
         //annotateCompilationExpression(node, holder);
         //FIXME Temporary override:
         holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR);
+        return;
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
         holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
+        return;
       }
       if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
         holder.createInfoAnnotation(node, "Unparseable data").setTextAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA);
@@ -114,6 +118,11 @@ public class HaxeColorAnnotator implements Annotator {
       annotation.setTextAttributes(TextAttributesKey.find(attributeName));
       annotation.registerFix(new HaxeDefineIntention(word, definitions.contains(word)), range);
     }
+  }
+
+  public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
+    TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
+    holder.createInfoAnnotation(element, null).setTextAttributes(attributesKey);
   }
 
   private static boolean isNewOperator(PsiElement element) {

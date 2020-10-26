@@ -80,5 +80,7 @@ type ::= META_TYPE {name="Metadata type"}
 
 private ctMetaArgs ::= CT_META_ARGS {name="Expression or expression list" elementType=content}
 private rtMetaArgs ::= RT_META_ARGS {name="Constant, Array, or Object declaration" elementType=content}
+
+// Old
 private haxeCode ::= HAXE_CODE {name="Metadata value" elementType=content}
 content ::= (haxeCode | ctMetaArgs | rtMetaArgs) {name="Metadata value"}
