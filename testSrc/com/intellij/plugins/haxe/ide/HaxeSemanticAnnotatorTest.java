@@ -166,6 +166,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAbstractFromTo() throws Exception {
     doTestNoFixWithWarnings();
   }
+  public void testAbstractFromToMetadata() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   public void testAbstractAssignmentFromTo1() throws Exception {
     doTestNoFixWithWarnings();
