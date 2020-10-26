@@ -39,6 +39,7 @@ import static java.util.stream.Collectors.toList;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
+  private static final Key<String> CACHE_NAME_KEY = new Key<>("HAXE_CACHE_NAME_KEY");
   private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_KEY = new Key<>("HAXE_COMPATIBLE_TYPES");
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
@@ -218,6 +219,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeClassModel model = getHaxeClassModel();
 
     boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    validateCache(model, context);
+
     if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
       // This breaks for generic types.  The first check of the generic sets up
@@ -264,6 +267,21 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
   }
 
+  //TODO : in some strange cases the cache does not seem to be invalidated when a type changes for a field
+  // causing interface comparability to fail, this is a cheap workaround for thins problem that invalidates
+  // the cache if the type name changes.
+  private void validateCache(HaxeClassModel model, PsiElement context) {
+    if (model == null) return;
+    String name = model.getName();
+    String cacheName = this.context.getUserData(CACHE_NAME_KEY);
+    if(true || !name.equals(cacheName)) {
+      context.putUserData(COMPATIBLE_TYPES_KEY, null);
+      context.putUserData(INFER_TYPES_KEY, null);
+      context.putUserData(CACHE_NAME_KEY, name);
+    }
+  }
+
+
   private Set<SpecificHaxeClassReference> getCompatibleTypesInternal(Compatibility direction) {
     final Stack<HaxeClass> stack = processedElements.get();
     final HaxeClassModel model = getHaxeClassModel();
@@ -292,13 +310,16 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           list.addAll(type.getCompatibleTypesInternal(direction));
         }
       }
-
-      final List<HaxeClassReferenceModel> interfaces = model.getImplementingInterfaces();
-      for (HaxeClassReferenceModel interfaceReference : interfaces) {
-        SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
-        if (type != null) {
-          list.add(type);
-          list.addAll(type.getCompatibleTypesInternal(direction));
+      // var myVar:MyClass can not be assigned any object with the same interface,
+      // but an interface can be assigned any object that implements it
+      if(direction == Compatibility.ASSIGNABLE_TO) {
+        final List<HaxeClassReferenceModel> interfaces = model.getImplementingInterfaces();
+        for (HaxeClassReferenceModel interfaceReference : interfaces) {
+          SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
+          if (type != null) {
+            list.add(type);
+            list.addAll(type.getCompatibleTypesInternal(direction));
+          }
         }
       }
     } else {

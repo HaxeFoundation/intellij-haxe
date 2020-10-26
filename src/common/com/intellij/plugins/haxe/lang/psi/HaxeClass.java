@@ -84,7 +84,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   List<HaxeMethod> getAllHaxeMethods(HaxeComponentType... fromTypes);
 
   @NotNull
-  List<HaxeNamedComponent> getAllHaxeFields(HaxeComponentType... fromTypes);
+  List<HaxeFieldDeclaration> getAllHaxeFields(HaxeComponentType... fromTypes);
 
   @NotNull
   List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver);

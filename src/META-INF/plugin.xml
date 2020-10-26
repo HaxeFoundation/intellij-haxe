@@ -85,6 +85,7 @@
       <p>Unreleased changes</p>
       <ul>
         <li>Recognize and use static extensions having unifiable (assignable) types. (Issue #964)</li>
+        <li>Checks field and property implementations when implementing interfaces</li>
         <li>Improved method implementation checks for interfaces</li>
         <li>Recognize implicit cast methods in Abstracts (Methods annotated with @:to / @From)</li>
       </ul>
