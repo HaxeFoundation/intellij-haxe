@@ -1,6 +1,6 @@
 package;
 
-class FinalInInterface implements TestInterface {
+class FinalInInterface implements <error descr="Not implemented fields: fieldWrong">TestInterface</error> {
 
     public final field:Int = 1;
     public function test() {}

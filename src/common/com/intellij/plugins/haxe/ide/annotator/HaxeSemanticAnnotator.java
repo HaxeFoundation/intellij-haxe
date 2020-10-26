@@ -26,9 +26,9 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.generation.OverrideImplementMethodFix;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
@@ -40,18 +40,18 @@ import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
-import com.intellij.util.containers.ContainerUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static java.util.stream.Collectors.toList;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
 
@@ -327,6 +327,7 @@ class TypeTagChecker {
   ) {
     final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
     final ResultHolder initType = getTypeFromVarInit(initExpression);
+    initType.setInitExpression();
 
     if (!varType.canAssign(initType)) {
 
@@ -573,10 +574,12 @@ class ClassChecker {
     checkModifiers(clazz, holder);
     checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
-    checkInterfaces(clazz, holder);
     checkExtends(clazz, holder);
-    checkInterfacesMethods(clazz, holder);
-    // TODO: checkInterfacesFields for properties and vars.
+    if(!clazzPsi.isInterface()) {
+      checkInterfaces(clazz, holder);
+      checkInterfacesMethods(clazz, holder);
+      checkInterfacesFields(clazz, holder);
+    }
   }
 
   static private void checkModifiers(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
@@ -588,11 +591,11 @@ class ClassChecker {
       checkForDuplicateModifier(holder, "private",
                                 list.stream()
                                   .filter((modifier)->!Objects.isNull(modifier.getPrivateKeyWord()))
-                                  .collect(Collectors.toList()));
+                                  .collect(toList()));
       checkForDuplicateModifier(holder, "final",
                                 list.stream()
                                   .filter((modifier)->!Objects.isNull(modifier.getFinalKeyWord()))
-                                  .collect(Collectors.toList()));
+                                  .collect(toList()));
       if (modifiers instanceof HaxeExternClassModifierList) {
         checkForDuplicateModifier(holder, "extern", ((HaxeExternClassModifierList)modifiers).getExternKeyWordList());
       }
@@ -722,6 +725,127 @@ class ClassChecker {
       checkInterfaceMethods(clazz, reference, holder, checkMissingInterfaceMethods, checkInterfaceMethodSignature, checkInheritedInterfaceMethodSignature);
     }
   }
+  private static void checkInterfacesFields(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
+    //TODO add settings for this feature
+
+    for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
+      checkInterfaceFields(clazz, reference, holder);
+    }
+  }
+
+  private static void checkInterfaceFields(
+    final HaxeClassModel clazz,
+    final HaxeClassReferenceModel intReference,
+    final HaxeAnnotationHolder holder) {
+
+    final List<HaxeFieldModel> missingFields = new ArrayList<>();
+    final List<String> missingFieldNames = new ArrayList<>();
+
+    if (intReference.getHaxeClass() != null) {
+      List<HaxeFieldDeclaration> fields = clazz.haxeClass.getAllHaxeFields(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
+      for (HaxeFieldModel intField : intReference.getHaxeClass().getFields()) {
+        if (!intField.isStatic()) {
+
+
+          Optional<HaxeFieldDeclaration> fieldResult = fields.stream()
+            .filter(method -> intField.getName().equals(method.getName()))
+            .findFirst();
+
+          if (!fieldResult.isPresent()) {
+              missingFields.add(intField);
+              missingFieldNames.add(intField.getName());
+          } else {
+            final HaxeFieldDeclaration fieldDeclaration = fieldResult.get();
+
+            if(intField.getPropertyDeclarationPsi() != null) {
+              HaxePropertyAccessor intGetter = intField.getGetterPsi();
+              HaxePropertyAccessor intSetter = intField.getSetterPsi();
+              HaxePropertyDeclaration propertyDeclaration = fieldDeclaration.getPropertyDeclaration();
+
+              if(propertyDeclaration == null) {
+                // some combinations are compatible with normal variables
+                if (intGetter.getText().equals("default") && (intSetter.getText().equals("never") || intSetter.getText().equals("null"))) {
+                  continue;
+                }
+                if (intGetter.getText().equals("never") && (intSetter.getText().equals("null"))) {
+                  continue;
+                }
+
+                // @TODO: Move error messages to  bundle
+                holder.createErrorAnnotation(fieldDeclaration.getOriginalElement(), "Field " +fieldDeclaration.getName()
+                                                                    + " has different property access than in  "
+                                                                    + intReference.getHaxeClass().getName());
+              }else {
+                HaxePropertyAccessor getter = propertyDeclaration.getPropertyAccessorList().get(0);
+                HaxePropertyAccessor setter = propertyDeclaration.getPropertyAccessorList().get(1);
+
+
+                if (intGetter != null && getter != null) {
+                  if (!intGetter.getText().equals(getter.getText())) {
+                    holder.createErrorAnnotation(getter.getElement(), "Field " +fieldDeclaration.getName()
+                                                                        + " has different property access than in  "
+                                                                        + intReference.getHaxeClass().getName());
+                  }
+                }
+
+                if (intSetter != null && setter != null) {
+                  if (!intSetter.getText().equals(setter.getText())) {
+                    holder.createErrorAnnotation(setter.getElement(), "Field " +fieldDeclaration.getName()
+                                                                        + " has different property access than in  "
+                                                                        + intReference.getHaxeClass().getName());
+                  }
+                }
+              }
+            }
+
+            HaxeFieldDeclaration intFieldDeclaration = (HaxeFieldDeclaration)intField.getPsiField();
+            HaxeMutabilityModifier modifier = intFieldDeclaration.getMutabilityModifier();
+
+            HaxeMutabilityModifier mutabilityModifier = fieldDeclaration.getMutabilityModifier();
+            if(!modifier.getText().equals(mutabilityModifier.getText())) {
+              holder.createErrorAnnotation(fieldDeclaration.getNode(), "Field " +fieldDeclaration.getName()
+                                                                + " has different mutability than in  "
+                                                                + intReference.getHaxeClass().getName());
+            }
+
+            HaxeFieldModel model = new HaxeFieldModel(fieldDeclaration);
+            HaxeGenericResolver classFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(model.getBasePsi());
+            HaxeGenericResolver interfaceFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(intField.getBasePsi());
+
+            boolean typesAreCompatible = canAssignToFrom(intField.getResultType(interfaceFieldResolver), model.getResultType(classFieldResolver));
+
+            if(!typesAreCompatible) {
+              holder.createErrorAnnotation(fieldDeclaration.getNode(), "Field " +fieldDeclaration.getName()
+                                                                       + " has different type than in  "
+                                                                       + intReference.getHaxeClass().getName());
+            }
+          }
+      }
+    }
+
+    if (missingFields.size() > 0) {
+      // @TODO: Move to bundle
+      Annotation annotation = holder.createErrorAnnotation(
+        intReference.getPsi(),
+        "Not implemented fields: " + StringUtils.join(missingFieldNames, ", ")
+      );
+      annotation.registerFix(new HaxeFixer("Implement fields") {
+        @Override
+        public void run() {
+          OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
+          for (HaxeFieldModel field : missingFields) {
+            fix.addElementToProcess(field.getPsiField());
+          }
+
+          PsiElement basePsi = clazz.getBasePsi();
+          Project p = basePsi.getProject();
+          fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
+        }
+      });
+    }
+  }
+}
+
 
   private static void checkInterfaceMethods(
     final HaxeClassModel clazz,
@@ -735,40 +859,46 @@ class ClassChecker {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClass() != null) {
+      List<HaxeMethodModel> methods = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
+        .map(HaxeMethodPsiMixin::getModel)
+        .collect(toList());
+
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods(null)) {
         if (!intMethod.isStatic()) {
-          // Implemented method not necessarily located in current class
-          final PsiMethod[] methods = clazz.haxeClass.findMethodsByName(intMethod.getName(), true);
-          final PsiMethod psiMethod = ContainerUtil.find(methods, new Condition<PsiMethod>() {
-            @Override
-            public boolean value(PsiMethod method) {
-              return method instanceof HaxeMethod;
-            }
-          });
 
-          if (psiMethod == null) {
+          Optional<HaxeMethodModel> methodResult = methods.stream()
+            .filter(method -> intMethod.getName().equals(method.getName()))
+            .findFirst();
+
+
+
+          if (!methodResult.isPresent()) {
             if (checkMissingInterfaceMethods) {
               missingMethods.add(intMethod);
               missingMethodsNames.add(intMethod.getName());
             }
           } else {
-            final HaxeMethod method = (HaxeMethod)psiMethod;
-            final HaxeMethodModel methodModel = method.getModel();
+            final HaxeMethodModel methodModel = methodResult.get();
 
             // We should check if signature in inherited method differs from method provided by interface
             if (methodModel.getDeclaringClass() != clazz) {
-              if (checkInheritedInterfaceMethodSignature && MethodChecker.checkIfMethodSignatureDiffers(methodModel, intMethod)) {
-                final HaxeClass parentClass = methodModel.getDeclaringClass().haxeClass;
+              if(methodModel.getDeclaringClass().isInterface()) {
+                missingMethods.add(methodModel);
+                missingMethodsNames.add(intMethod.getName());
+              } else {
+                if (checkInheritedInterfaceMethodSignature && MethodChecker.checkIfMethodSignatureDiffers(methodModel, intMethod)) {
+                  final HaxeClass parentClass = methodModel.getDeclaringClass().haxeClass;
 
-                final String errorMessage = HaxeBundle.message(
-                  "haxe.semantic.implemented.super.method.signature.differs",
-                  method.getName(),
-                  parentClass.getQualifiedName(),
-                  intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
-                  methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
-                );
+                  final String errorMessage = HaxeBundle.message(
+                    "haxe.semantic.implemented.super.method.signature.differs",
+                    methodModel.getName(),
+                    parentClass.getQualifiedName(),
+                    intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
+                    methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
+                  );
 
-                holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
+                  holder.createErrorAnnotation(intReference.getPsi(), errorMessage);
+                }
               }
             } else {
               if (checkInterfaceMethodSignature) {
@@ -1022,7 +1152,7 @@ class MethodChecker {
       // Order of assignment compatibility is to parent, from subclass.
       ResultHolder currentParamType = currentParam.getType(scopeResolver);
       ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? scopeResolver : resolvedParent.getGenericResolver());
-      if (!HaxeTypeCompatible.canAssignToFrom(parentParamType, currentParamType)) {
+      if (!canAssignToFrom(parentParamType, currentParamType)) {
         HaxeAnnotation annotation =
           typeMismatch(currentParam.getBasePsi(), currentParamType.toString(), parentParamType.toString())
           .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), ()->{
@@ -1075,7 +1205,7 @@ class MethodChecker {
     ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
 
     // Order of assignment compatibility is to parent, from subclass.
-    if (!HaxeTypeCompatible.canAssignToFrom(parentResult.getType(), currentResult.getType())) {
+    if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       HaxeAnnotation annotation =
         returnTypeMismatch(psi, currentResult.getType().toStringWithoutConstant(), parentResult.getType().toStringWithConstant())
@@ -1123,7 +1253,7 @@ class MethodChecker {
     for (int n = 0; n < parametersCount; n++) {
       final HaxeParameterModel sourceParam = sourceParameters.get(n);
       final HaxeParameterModel prototypeParam = prototypeParameters.get(n);
-      if (!HaxeTypeCompatible.canAssignToFrom(sourceParam.getType(), prototypeParam.getType()) ||
+      if (!canAssignToFrom(sourceParam.getType(), prototypeParam.getType()) ||
           sourceParam.isOptional() != prototypeParam.isOptional()) {
         return true;
       }

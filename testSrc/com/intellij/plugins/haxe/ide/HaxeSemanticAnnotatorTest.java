@@ -174,6 +174,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAbstractFromTo() throws Exception {
     doTestNoFixWithWarnings();
   }
+  public void testAbstractFromToMetadata() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   public void testAbstractAssignmentFromTo1() throws Exception {
     doTestNoFixWithWarnings();
@@ -248,6 +251,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testImplementSignature() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+  public void testImplementMethods() throws Exception {
     doTestNoFixWithWarnings();
   }
 
@@ -494,9 +500,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-    if (!IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
       doTestNoFixWithWarnings();
-    }
   }
 
   public void testMissingInterfaceMethodsOnConstrainedGenericOverrides() throws Exception {
