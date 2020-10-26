@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -32,6 +33,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -172,6 +176,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
+        if(specific == null)  specific = getUnknown(context).createHolder();// null safety
         resolver.add(paramModel.getName(), specific);
       }
     }
@@ -269,9 +274,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
-    list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
-    list.addAll(getCompatibleEnumTypes(model, genericResolver));
     list.addAll(emptyCollectionAssignment(direction));
 
     if (!model.isAbstract()) {
@@ -349,6 +352,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       return resolve instanceof HaxeClass;
     }
     return false;
+  }
+
+  public boolean isTypeDef() {
+    return clazz instanceof HaxeTypedefDeclaration;
   }
 
   public boolean isCoreType() {
@@ -535,12 +542,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @NotNull
-  HaxeClassReference getHaxeClassReference() {
+  public HaxeClassReference getHaxeClassReference() {
     return classReference;
   }
 
   @NotNull
-  ResultHolder[] getSpecifics() {
+  public ResultHolder[] getSpecifics() {
     return specifics;
   }
 
