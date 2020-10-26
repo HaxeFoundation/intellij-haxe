@@ -38,22 +38,23 @@ Haxe File
             HaxePsiToken:;(';')
           DO_WHILE_STATEMENT
             HaxePsiToken:do('do')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('trace')
-                HaxePsiToken:(('(')
-                EXPRESSION_LIST
-                  PREFIX_EXPRESSION
-                    HaxePsiToken:++('++')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('i')
-                HaxePsiToken:)(')')
-              HaxePsiToken:;(';')
-              HaxePsiToken:}('}')
+            DO_WHILE_BODY
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
+                  EXPRESSION_LIST
+                    PREFIX_EXPRESSION
+                      HaxePsiToken:++('++')
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('i')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
             HaxePsiToken:while('while')
             HaxePsiToken:(('(')
             COMPARE_EXPRESSION

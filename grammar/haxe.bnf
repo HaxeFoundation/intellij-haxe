@@ -82,6 +82,7 @@
       oFAT_ARROW="=>"
 
       oNEW="new"
+      // oIS="is"
 
       ppIF="#if"
       ppELSE="#else"
@@ -164,19 +165,19 @@
     name(".*Operation")="operation"
     name(".*Statement")="statement"
 
-    extends(".*(Expression|Literal)")="expression"
+    extends(".*Expression")=expression // Must be by itself to use the Pratt algorithm for recursion.
+    extends(".*Literal")=expression
     /* extends(".*Statement")="statement"
      */
     implements(".*Statement")="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"
     mixin(".*Statement")="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl"
-    pin(".*Expression")=1
     pin(".*Statement")=1
 //    pin(".*Meta")=1
 
-    generate=[names="short"]
+    generate=[names="long" ]
 }
 
-haxeFile ::= packageStatement? topLevelList
+haxeFile ::= packageStatement* topLevelList
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
@@ -191,20 +192,43 @@ private metaKeyWord ::= embeddedMeta | '@'
  * is matched before things closer to the top.  Thus, unsignedShiftRight must come
  * after shiftRight so that it has priority.
  */
-shiftLeftOperator ::= '<<'
-shiftRightOperator ::= <<shiftRight>>
-unsignedShiftRightOperator ::= <<unsignedShiftRight>>
+fake operator ::= ":" | ";" | "," |"." | "==" | "=" | "!=" | "!" | "~" | "++" | "+=" | "+" | "--" | "-="
+              | "-" | "?" | "||" | "|" | "|=" | "&&" | "&=" | "&" | "<<=" | "<<" | "<=" | "<" | "^="
+              | "^" | "*=" | "*" | "/=" | "/" | "%=" | "%"
+              | <<unsignedShiftRightAssign>> | <<shiftRightAssign>> | <<unsignedShiftRight>> | <<shiftRight>>
+              | <<gtEq>> | ">" | "..." | "in" | '->' | "=>" | "new" | "is"
 
-shiftLeftAssignOperator ::= '<<='
-shiftRightAssignOperator ::= <<shiftRightAssign>>
-unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>
+shiftLeftOperator ::= '<<'                                          { extends=operator }
+shiftRightOperator ::= <<shiftRight>>                               { extends=operator }
+unsignedShiftRightOperator ::= <<unsignedShiftRight>>               { extends=operator }
+
+shiftLeftAssignOperator ::= '<<='                                   { extends=operator }
+shiftRightAssignOperator ::= <<shiftRightAssign>>                   { extends=operator }
+unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>   { extends=operator }
 
 shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
 shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
-assignOperation ::= '=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | shiftAssignOperator
-compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | '>'
-bitOperation ::= '|' | '&' | '^'
+// TODO: Rename *.operation rules to *.operator.
+assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator  { extends=operator }
+private gt ::= '>' !'>' // Cheaper than the predicates for all of the possible shift operators.
+compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | gt     { extends=operator }
+bitOperation ::= '|' | '&' | '^'      { extends=operator }
+
+// These are private simply so that the test goldens don't all have to be updated.
+private additiveOperator ::= '+' | '-'        { extends=operator }
+private assignableOperator ::= '++' | '--'    { extends=operator }
+private colonOperator ::= ':'                 { extends=operator }
+isOperator ::= 'is'                   { extends=operator }
+private iteratorOperator ::= '...'            { extends=operator }
+private logicAndOperator ::= '&&'             { extends=operator }
+private logicOrOperator ::= '||'              { extends=operator }
+private moduloOperator ::= '%'                { extends=operator }
+private multiplicativeOperator ::= '*' | '/'  { extends=operator }
+private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
+private questionOperator ::= '?'              { extends=operator }
+private suffixOperator ::= '!'                { extends=operator }
+
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -321,10 +345,13 @@ private enumConstructorParameters ::= parenthesizedParameterList
 
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+optionalFieldDeclaration ::= fieldModifier* mutabilityModifier '?' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
-localVarDeclaration ::= componentName propertyDeclaration? typeTag? varInit?
-{recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+localVarDeclaration ::= componentName typeTag? varInit?
+  {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
 private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
@@ -446,7 +473,7 @@ type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 typeOrAnonymous ::= type | anonymousType
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
-blockStatement ::= '{' !(objectLiteralElementList) statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
+blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
 private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
@@ -486,8 +513,11 @@ keyValueIterator ::= iteratorkey fatArrowOperator iteratorValue
 
 iterable ::= expression
 
-whileStatement ::= 'while' '(' expression ')' statement ';'?
-doWhileStatement ::= 'do' statement 'while' '(' expression ')' ';'
+doWhileBody ::= statement
+whileStatement ::= 'while' '(' expression ')' doWhileBody ';'?
+  { methods=[guard="expression" body="doWhileBody"]}
+doWhileStatement ::= 'do' doWhileBody 'while' '(' expression ')' ';'
+  { methods=[guard="expression" body="doWhileBody"] extends="whileStatement" }
 
 private returnValue ::= objectLiteral
                       | ("macro"? statement)
@@ -501,6 +531,7 @@ continueStatement ::= 'continue' ';'
 
 throwStatement ::= 'throw' expression ';'?
 
+// TODO: Allow multiple, comma delimited, expressions on switch statement.
 switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{' (switchCase | defaultCase)* '}'
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
@@ -513,6 +544,7 @@ private switch_case_recover ::= !('case' | 'default' | '}' | ID)
 defaultCase ::= 'default' ':' switchCaseBlock? {pin=1 extends="switchCase"}
 
 guard ::= 'if' '(' expression ')'
+private guard_recovery ::= !('(' | ')' | '{')
 guardedStatement ::= statement
 elseStatement ::= 'else' statement
 ifStatement ::= guard guardedStatement (';'? elseStatement)? ';'? {pin=2}
@@ -538,57 +570,63 @@ private fatArrowOperator ::= '=>'
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
-expression ::= assignExpressionWrapper {recoverWhile="expression_recover" name="expression"}
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>')
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>') !metaKeyWord
 
-private assignExpressionWrapper ::= iteratorExpressionWrapper assignExpression?
-left assignExpression ::= assignOperation iteratorExpressionWrapper { pin=2 }
+// This list is in reversed operator precedence order -- lowest on top.
+// The things on top are still matched first.
+// The lookahead predicate on valueExpression is required for suffix expressions to be parsed properly,
+// even though the suffix expressions appear before the value.
+expression ::= assignExpression
+             | ternaryExpression
+             | logicOrExpression
+             | logicAndExpression
+             | iteratorExpression
+             | compareExpression
+             | bitwiseExpression
+             | shiftExpression
+             | additiveExpression
+             | multiplicativeExpression
+             | moduloExpression
+             | isTypeExpression         // With Haxe 4.2, won't compile with prefix; lower than postfix or value.
+             | prefixExpression
+             | postfixExpression
+             | valueExpression !suffixOperator !assignableOperator
+             { extraRoot=true recoverWhile=expression_recover }
 
-private iteratorExpressionWrapper ::= ternaryExpressionWrapper iteratorExpression?
-private iteratorOperator ::= '...'
-left iteratorExpression ::= iteratorOperator ternaryExpressionWrapper {pin=2}
+assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
+isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="/expression[0]" operator="isOperator"] }
+iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
+ternaryExpression ::= expression questionOperator expression colonOperator expression
+  { rightAssociative=true
+    methods=[ guardExpression="/expression[0]"
+              guardedExpression="/expression[1]"
+              elseExpression="/expression[2]"]
+  }
+logicOrExpression ::= expression logicOrOperator expression                   { extends=binaryExpression }
+logicAndExpression ::= expression logicAndOperator expression                 { extends=binaryExpression }
+compareExpression ::= expression compareOperation expression                  { extends=binaryExpression }
+bitwiseExpression ::= expression bitOperation expression                      { extends=binaryExpression }
+shiftExpression ::= expression shiftOperator expression                       { extends=binaryExpression }
+additiveExpression ::= expression additiveOperator expression                 { extends=binaryExpression }
+multiplicativeExpression ::= expression multiplicativeOperator expression     { extends=binaryExpression }
+moduloExpression ::= expression moduloOperator expression                     { extends=binaryExpression }
+prefixExpression ::= (prefixOperator (postfixExpression | valueExpression))
+                   | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
+postfixExpression ::= (assignableValueExpression assignableOperator)
+                   | notSuffixExpression                                      { extends=unaryExpression }
+notSuffixExpression ::= valueExpression suffixOperator                        { extends=postfixExpression }
+valueExpression ::= value
 
-private ternaryExpressionWrapper ::= logicOrExpressionWrapper ternaryExpression?
-private ternaryFirstOperator ::= '?'
-private ternarySecondOperator ::= ':'
-left ternaryExpression ::= ternaryFirstOperator expression ternarySecondOperator ternaryExpressionWrapper {pin=2}
+// These fake rules won't be in the parser, but the PSI will contain a HaxeBinaryExpression class
+// which will be the superclass of the extending classes in the PSI.
+fake binaryExpression ::= expression* operator+ {
+  methods=[leftExpression="/expression[0]" rightExpression="/expression[1]" operator="/operator[0]"]
+}
+fake unaryExpression ::= expression* operator+ {
+  methods=[expression="/expression[0]" operator="/operator[0]"]
+}
+private assignableValueExpression ::= referenceExpression (qualifiedReferenceExpression)* arrayAccessExpression*
 
-private logicOrExpressionWrapper ::= logicAndExpressionWrapper logicOrExpression*
-private logicOrExpressionOperator ::= '||'
-left logicOrExpression ::= logicOrExpressionOperator logicAndExpressionWrapper {pin=2}
-
-private logicAndExpressionWrapper ::= compareExpressionWrapper logicAndExpression*
-private logicAndExpressionOperator ::= '&&'
-left logicAndExpression ::= logicAndExpressionOperator compareExpressionWrapper {pin=2}
-
-private compareExpressionWrapper ::= bitwiseExpressionWrapper compareExpression*
-left compareExpression ::= compareOperation bitwiseExpressionWrapper {pin=2}
-
-private bitwiseExpressionWrapper ::= shiftExpressionWrapper bitwiseExpression*
-left bitwiseExpression ::= bitOperation shiftExpressionWrapper {pin=2}
-
-private shiftExpressionWrapper ::= additiveExpressionWrapper shiftExpression*
-left shiftExpression ::= shiftOperator additiveExpressionWrapper {pin=2}
-
-private additiveExpressionWrapper ::= multiplicativeExpressionWrapper additiveExpression*
-private additiveOperator ::= ('+' | '-')
-left additiveExpression ::= additiveOperator multiplicativeExpressionWrapper {pin=2}
-
-private multiplicativeExpressionWrapper ::= prefixExpression multiplicativeExpression*
-private multiplicativeOperator ::= ('*' | '/' | '%')
-left multiplicativeExpression ::= multiplicativeOperator (prefixExpression | suffixExpressionWrapper) {pin=2}
-
-private prefixOperator ::= ('-' | '--' | '++' | '!' | '~') {name="prefix operator"}
-prefixExpression ::= prefixOperator prefixExpression | suffixExpressionWrapper
-
-/* Technically, assignExpressions don't have higher priority than everything else.
- * But for parsing, this makes sense; otherwise, assignment operators that comprise
- * multiple lexemes (e.g. '>' '=') have their primary token(s) taken as an operator
- * while the leftover '=' causes a syntax error because it's not the expected expression.
- */
-private suffixExpressionWrapper ::= value (assignExpression | suffixExpression)*
-private suffixOperator ::= ('--' | '++')
-left suffixExpression ::= suffixOperator
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
 // In particular, callFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
@@ -599,15 +637,19 @@ private value ::= ('untyped' expression)
                 | callFunctionLiteral
                 | immediateArrayAccess
                 | (literalExpression qualifiedReferenceTail?)
+                | objectLiteral
                 | callOrArrayAccess
                 | ifStatement
                 | (castExpression qualifiedReferenceTail?)
                 | newExpressionOrCall
-                | parenthesizedExpressionOrCall
+                | parenthesizedExpressionOrCall  // Seems redundant with callOrArrayAccess
                 | tryStatement
                 | switchStatement
                 | throwStatement
-                | localVarDeclaration
+                | localVarDeclarationWithInit
+                | referenceExpression
+                | thisExpression
+                | superExpression
 {pin=2}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
@@ -638,7 +680,7 @@ regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
-parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')'
+parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')' {name="expression"}
 
 private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
@@ -692,20 +734,26 @@ private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
+
+//       The only difference between anonymous types and object literals are that object literals have values in their type tags.
+//       See parse_block_elt and parse_anonymous in grammar.mly (Haxe compiler sources).
+
 anonymousType ::= anonymousTypeBody // Yes, we need two levels to keep parity with other types.
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 anonymousTypeBody ::= anonymousTypeWithEmptyBody | regularAnonymousTypeBody
 private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
-private regularAnonymousTypeBody ::= '{' (extendedAnonymousTypeBody | simpleAnonymousTypeBody | interfaceBodyList) '}' {pin=2}
-private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (',' interfaceBodyList)?
-private simpleAnonymousTypeBody ::= anonymousTypeFieldList (',' interfaceBodyList)?
-
+private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
+private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
+private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (sep anonymousInterfaceBodyList)?
+private anonymousInterfaceBodyList ::= (interfaceBodyPart | optionalFieldDeclaration)+  {recoverWhile="interface_body_part_recover"}
+private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?
 typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 
 anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* {recoverWhile="object_literal_part_recover" pin=1}
+private sep ::= ',' | ';'
 anonymousTypeField ::= "?"? componentName typeTag
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 // Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
 // makes blockStatement be overridden by objectLiteral in return statements.

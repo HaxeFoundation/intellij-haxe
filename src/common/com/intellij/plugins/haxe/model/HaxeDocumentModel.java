@@ -2,7 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2015 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,19 +94,31 @@ public class HaxeDocumentModel {
   public void wrapElement(final PsiElement element, final String before, final String after, StripSpaces strip) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    this.replaceElementText(element, before + element.getText() + after, strip);
+    wrapTextRange(range, before, after, strip);
+  }
+
+  public void wrapTextRange(final TextRange range, String before, String after, final StripSpaces strip) {
+    if (range == null) return;
+    TextRange.assertProperRange(range);
+    if (null == before) before = "";
+    if (null == after) after = "";
+
+    String textToWrap = range.subSequence(document.getCharsSequence()).toString();
+    replaceElementText(range, before + textToWrap + after, strip);
   }
 
   public void addTextBeforeElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    replaceAndFormat(range, text);
+    TextRange toReplace = new TextRange(range.getStartOffset(), range.getStartOffset());
+    replaceAndFormat(toReplace, text);
   }
 
   public void addTextAfterElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();
-    replaceAndFormat(range, text);
+    TextRange toReplace = new TextRange(range.getEndOffset(), range.getEndOffset());
+    replaceAndFormat(toReplace, text);
   }
 
   /**

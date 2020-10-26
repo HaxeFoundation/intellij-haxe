@@ -87,7 +87,7 @@ Haxe File
           HaxePsiToken:{('{')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-            MULTIPLICATIVE_EXPRESSION
+            MODULO_EXPRESSION
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER

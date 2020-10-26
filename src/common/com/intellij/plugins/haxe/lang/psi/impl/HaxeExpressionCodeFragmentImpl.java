@@ -139,7 +139,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser());
 
       final PsiBuilder.Marker marker = enter_section_(builder, 0, _NONE_, "<code fragment>");
-      HaxeParser.expression(builder, 1);
+      HaxeParser.expression(builder, 1, 0);
       while (builder.getTokenType() != null) {
         builder.advanceLexer();
       }

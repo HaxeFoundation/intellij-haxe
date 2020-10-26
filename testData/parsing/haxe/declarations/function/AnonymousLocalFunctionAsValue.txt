@@ -26,7 +26,7 @@ Haxe File
                   HaxePsiToken:ID('a')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   IF_STATEMENT
                     GUARD
                       HaxePsiToken:if('if')

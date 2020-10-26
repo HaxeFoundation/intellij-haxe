@@ -100,7 +100,7 @@ Haxe File
                           IDENTIFIER
                             HaxePsiToken:ID('words')
                         HaxePsiToken:[('[')
-                        SUFFIX_EXPRESSION
+                        POSTFIX_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('i')

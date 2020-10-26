@@ -37,6 +37,9 @@ public interface HaxeTokenTypeSets {
 
   IElementType WSNLS = new HaxeElementType("WSNLS");
 
+  IElementType SINGLE_QUOTE = new HaxeElementType("'");
+  IElementType DOUBLE_QUOTE = new HaxeElementType("\"");
+
   TokenSet WHITESPACES = TokenSet.create(
     WSNLS,
     TokenType.WHITE_SPACE,
@@ -211,7 +214,7 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet UNARY_OPERATORS = TokenSet.create(
-    OPLUS_PLUS, OMINUS_MINUS, ONOT, OMINUS
+    OPLUS_PLUS, OMINUS_MINUS, ONOT, OMINUS, OCOMPLEMENT
   );
 
   TokenSet UNARY_READ_WRITE_OPERATORS = TokenSet.create(
@@ -227,7 +230,7 @@ public interface HaxeTokenTypeSets {
     OSHIFT_LEFT,
     SHIFT_RIGHT_OPERATOR,
     UNSIGNED_SHIFT_RIGHT_OPERATOR,
-    SHIFT_OPERATOR
+    SHIFT_LEFT_OPERATOR
   );
 
   TokenSet OPERATORS = TokenSet.create(
@@ -262,7 +265,8 @@ public interface HaxeTokenTypeSets {
     OREMAINDER,
     OSHIFT_RIGHT_ASSIGN,
     OGREATER_OR_EQUAL,
-    OGREATER
+    OGREATER,
+    IS_OPERATOR
   );
 
   TokenSet CLASS_BODY_TYPES = TokenSet.create(

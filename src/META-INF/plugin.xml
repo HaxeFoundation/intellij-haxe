@@ -85,6 +85,10 @@
       <p>Unreleased changes</p>
       <ul>
         <li>Recognize and use static extensions having unifiable (assignable) types. (Issue #964)</li>
+        <li>Add support for 'is' keyword.</li>
+        <li>Rewrite expression parsing.</li>
+        <li>Don't break parsing when multiple package statements occur in the same file. (Warning and quick-fix provided.)</li>
+        <li>Fixed NPE when typing 'cast' expressions.</li>
         <li>Checks field and property implementations when implementing interfaces</li>
         <li>Improved method implementation checks for interfaces</li>
         <li>Recognize implicit cast methods in Abstracts (Methods annotated with @:to / @From)</li>
@@ -1101,7 +1105,7 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
 
-    <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.SemanticAnnotatorInspections$Registrar"/>
+    <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
 
 <!--
     <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="com.intellij.plugins.haxe.HaxeBundle"

@@ -65,6 +65,7 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                    "SPACE_BEFORE_METHOD_LBRACE",
                                    "SPACE_BEFORE_IF_LBRACE",
                                    "SPACE_BEFORE_ELSE_LBRACE",
+                                   "SPACE_BEFORE_DO_LBRACE",
                                    "SPACE_BEFORE_WHILE_LBRACE",
                                    "SPACE_BEFORE_FOR_LBRACE",
                                    "SPACE_BEFORE_SWITCH_LBRACE",

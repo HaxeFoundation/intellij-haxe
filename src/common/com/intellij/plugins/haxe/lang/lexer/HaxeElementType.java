@@ -36,4 +36,10 @@ public class HaxeElementType extends IElementType {
     }
     return new HaxeElementType(name);
   }
+
+  public String asCode() {
+    // Because the debug string is pretty much what we want anyway,
+    // we'll just use that for now.
+    return super.toString();
+  }
 }

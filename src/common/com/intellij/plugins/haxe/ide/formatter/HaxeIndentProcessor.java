@@ -52,6 +52,8 @@ public class HaxeIndentProcessor {
     final IElementType parentType = parent != null ? parent.getElementType() : null;
     final ASTNode superParent = parent == null ? null : parent.getTreeParent();
     final IElementType superParentType = superParent == null ? null : superParent.getElementType();
+    final ASTNode firstChild = node.getFirstChildNode();
+    final IElementType firstChildType = firstChild == null ? null : firstChild.getElementType();
 
     final int braceStyle = FUNCTION_DEFINITION.contains(superParentType) ? settings.METHOD_BRACE_STYLE : settings.BRACE_STYLE;
 
@@ -98,10 +100,12 @@ public class HaxeIndentProcessor {
     if (parentType == FOR_STATEMENT && prevSiblingType == PRPAREN && elementType != BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == WHILE_STATEMENT && prevSiblingType == PRPAREN && elementType != BLOCK_STATEMENT) {
+    if (parentType == WHILE_STATEMENT && prevSiblingType == PRPAREN
+        && elementType == DO_WHILE_BODY && firstChildType != BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
-    if (parentType == DO_WHILE_STATEMENT && prevSiblingType == KDO && elementType != BLOCK_STATEMENT) {
+    if (parentType == DO_WHILE_STATEMENT && prevSiblingType == KDO
+        && elementType == DO_WHILE_BODY && firstChildType != BLOCK_STATEMENT) {
       return Indent.getNormalIndent();
     }
     if (parentType == RETURN_STATEMENT &&
