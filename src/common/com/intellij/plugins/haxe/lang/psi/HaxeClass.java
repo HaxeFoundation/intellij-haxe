@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -78,6 +79,12 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   @NotNull
   List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver);
+
+  @NotNull
+  List<HaxeMethod> getAllHaxeMethods(HaxeComponentType... fromTypes);
+
+  @NotNull
+  List<HaxeNamedComponent> getAllHaxeFields(HaxeComponentType... fromTypes);
 
   @NotNull
   List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver);
