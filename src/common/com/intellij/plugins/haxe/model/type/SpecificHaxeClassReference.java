@@ -339,8 +339,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   private List<SpecificHaxeClassReference> emptyCollectionAssignment(Compatibility direction) {
     if (direction == Compatibility.ASSIGNABLE_TO && context instanceof HaxeArrayLiteral && null == ((HaxeArrayLiteral)context).getExpressionList()) {
-      ResultHolder unknownHolder = SpecificTypeReference.getUnknown(context).createHolder();
-      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolder, unknownHolder);
+      ResultHolder unknownHolderKey = SpecificTypeReference.getUnknown(context).createHolder();
+      ResultHolder unknownHolderValue = SpecificTypeReference.getDynamic(context).createHolder();
+      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue);
       return Collections.singletonList(holder);
     }
     return Collections.emptyList();
