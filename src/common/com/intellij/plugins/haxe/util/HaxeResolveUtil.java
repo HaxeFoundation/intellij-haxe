@@ -23,8 +23,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -963,7 +966,15 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiElement searchInImports(HaxeFileModel file, String name) {
-    HaxeImportModel importModel = StreamUtil.reverse(file.getImportModels().stream())
+    PsiElement found = searchInSpecifiedImports(file, name);
+    if (null == found) found = searchInDirectoryImports(file, name);
+    return found;
+  }
+
+  @Nullable
+  public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
+
+    HaxeImportableModel importModel = StreamUtil.reverse(file.getOrderedImportAndUsingModels().stream())
       .filter(model -> {
         PsiElement exposedItem = model.exposeByName(name);
         return exposedItem != null;
@@ -974,6 +985,43 @@ public class HaxeResolveUtil {
       return importModel.exposeByName(name);
     }
     return null;
+  }
+
+  /**
+   * Searches for import.hx files between the file's directory and the source root,
+   * examining each for matches.
+   *
+   * @param file The file that has import statements to match.
+   * @param name The name of the Type that we are searching for.
+   * @return The PSI element for the Type, if found; null, otherwise.
+   */
+  @Nullable
+  private static PsiElement searchInDirectoryImports(HaxeFileModel file, String name) {
+    if (null == file || null == name) return null;
+
+    //final PsiElement basePsi = file.getBasePsi();
+    final VirtualFile vfile = file.getFile().getVirtualFile();
+    if (null == vfile) return null; // In memory files
+
+    final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
+    final VirtualFile sourceRoot = fileIndex.getSourceRootForFile(vfile);
+    if (null == sourceRoot) return null;
+
+    // test
+    HaxeFile haxeFile = file.getFile();
+    PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
+    final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
+    while (null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
+      PsiFile importFile = parentDirectory.findFile("import.hx");
+      if (importFile instanceof HaxeFile) {
+        HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
+        PsiElement found = searchInSpecifiedImports(importModel, name);
+        if (null != found) return found;
+      }
+      parentDirectory = parentDirectory.getParentDirectory();
+    }
+    return null;
+
   }
 
   @Nullable
