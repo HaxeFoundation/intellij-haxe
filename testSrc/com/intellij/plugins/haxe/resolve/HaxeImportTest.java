@@ -22,7 +22,7 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
 
-public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
   public void setUp() throws Exception {
@@ -33,7 +33,7 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
 
   @Override
   protected String getBasePath() {
-    return "/resolve/expressions/";
+    return "/resolve/import_hx/";
   }
 
   public void doTest(String... additionalFiles) {
@@ -43,23 +43,8 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, true, true);
   }
 
-  public void testStringArrayExpressions() {
-    doTest();
+  public void testImports() {
+    doTest("import.hx", "somepkg/import.hx", "somepkg/Helper.hx");
   }
 
-  public void testNewWithImmediate() {
-    doTest();
-  }
-
-  public void testArrayAccess() {
-    doTest();
-  }
-
-  public void testDynamicExtension() {
-    doTest();
-  }
-
-  public void testEnumExtensions() {
-    doTest();
-  }
 }

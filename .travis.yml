@@ -28,7 +28,7 @@ jobs:
 #      env: IDEA_VERSION=2019.1.4
 #      jdk: openjdk8
     - os: linux
-      env: IDEA_VERSION=2018.2.8
+      env: IDEA_VERSION=2018.3.6
       jdk: openjdk8
 #    - os: linux
 #      env: IDEA_VERSION=2017.3.5
@@ -41,7 +41,7 @@ jobs:
     - if: branch = develop AND type = push
       script: make
       env:
-        - IDEA_VERSION=2018.1.6 PLUGIN_VERSION=18 DEV_BUILD=.dev.${TRAVIS_COMMIT::7}
+        - IDEA_VERSION=2020.2.3 PLUGIN_VERSION=20 DEV_BUILD=.dev.${TRAVIS_COMMIT::7}
       after_success:
         - curl -k -i -F "userName=$PLUGIN_USER_NAME" -F "password=$PLUGIN_USER_PASS" -F channel=EAP -F pluginId=6873 -F "file=@intellij-haxe-$PLUGIN_VERSION.jar" https://plugins.jetbrains.com/plugin/uploadPlugin
 

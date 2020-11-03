@@ -191,6 +191,15 @@ public class HaxeFileModel implements HaxeExposableModel {
       .collect(Collectors.toList());
   }
 
+  public List<HaxeImportableModel> getOrderedImportAndUsingModels() {
+    return Arrays.stream(file.getChildren())
+      .filter(element -> element instanceof HaxeUsingStatement || element instanceof HaxeImportStatement)
+      .map(element -> element instanceof HaxeUsingStatement
+                      ? ((HaxeUsingStatement)element).getModel()
+                      : ((HaxeImportStatement)element).getModel())
+      .collect(Collectors.toList());
+  }
+
   public HaxePackageModel getPackageModel() {
     HaxeProjectModel project = HaxeProjectModel.fromElement(file);
     HaxeSourceRootModel result = project.getRoots().stream()

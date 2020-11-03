@@ -1,5 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +17,13 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface HaxeModel {
   String getName();
 
+  @NotNull
   PsiElement getBasePsi();
 
   @Nullable

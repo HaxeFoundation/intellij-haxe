@@ -365,6 +365,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
+    // TODO: Merge with resolveByClassAndSymbol()??  It is very similar to this method.
+
     String identifier =
       reference instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)reference).getIdentifier().getText() : reference.getText();
     final HaxeClassResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
@@ -379,13 +381,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeClass leftClass = leftExpression.getHaxeClass();
     if (leftClass != null) {
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference.getContainingFile());
-      List<HaxeUsingModel> usingModels = fileModel != null ? fileModel.getUsingModels() : Collections.emptyList();
+
+      // Add the global usings to the top of the list (so they're checked last).
+      HaxeProjectModel projectModel = HaxeProjectModel.fromElement(leftClass);
+      HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)projectModel.getStdPackage();
+      List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+
+      if (fileModel != null) {
+        usingModels.addAll(fileModel.getUsingModels());
+      }
+
       HaxeMethodModel foundMethod = null;
       for (int i = usingModels.size() - 1; i >= 0; --i) {
         foundMethod = usingModels.get(i).findExtensionMethod(identifier, leftExpression.getSpecificClassReference(reference, leftExpression.getGenericResolver()));
         if (null != foundMethod) {
+          isExtension.set(true);
           if (LOG.isTraceEnabled()) LOG.trace("Found method in 'using' import: " + foundMethod.getName());
-          return Collections.singletonList(foundMethod.getBasePsi());
+          return asList(foundMethod.getBasePsi());
         }
       }
     }
@@ -589,8 +601,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                                                                     @Nullable HaxeGenericResolver resolver,
                                                                     @NotNull HaxeReference reference) {
     if (leftClass != null) {
-      final HaxeClassModel classModel = leftClass.getModel();
-      HaxeMemberModel member = classModel.getMember(reference.getReferenceName(), resolver);
+      final HaxeClassModel leftClassModel = leftClass.getModel();
+      HaxeMemberModel member = leftClassModel.getMember(reference.getReferenceName(), resolver);
       if (member != null) return asList(member.getNamePsi());
 
       // if class is abstract try find in forwards
@@ -606,12 +618,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
       }
+
       // try find using
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
       if (fileModel != null) {
         SpecificHaxeClassReference leftClassReference =
-          SpecificHaxeClassReference.withGenerics(classModel.getReference(), null == resolver ? null : resolver.getSpecificsFor(leftClass));
-        for (HaxeUsingModel model : fileModel.getUsingModels()) {
+          SpecificHaxeClassReference.withGenerics(leftClassModel.getReference(), null == resolver ? null : resolver.getSpecificsFor(leftClass));
+
+        HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)HaxeProjectModel.fromElement(leftClass).getStdPackage();
+        List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+        usingModels.addAll(fileModel.getUsingModels());
+
+        for (int i = usingModels.size() - 1; i >= 0; --i) {
+          HaxeUsingModel model = usingModels.get(i);
           HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClassReference);
           if (method != null) {
             isExtension.set(true);

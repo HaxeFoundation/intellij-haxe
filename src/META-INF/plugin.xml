@@ -84,6 +84,7 @@
   <![CDATA[
       <p>Unreleased changes</p>
       <ul>
+        <li>Add support for import.hx</li>
         <li>Recognize and use static extensions having unifiable (assignable) types. (Issue #964)</li>
         <li>Add support for 'is' keyword.</li>
         <li>Rewrite expression parsing.</li>
@@ -92,6 +93,10 @@
         <li>Checks field and property implementations when implementing interfaces</li>
         <li>Improved method implementation checks for interfaces</li>
         <li>Recognize implicit cast methods in Abstracts (Methods annotated with @:to / @From)</li>
+        <li>Fix a few cases where empty square brackets were not recognized for initializing Maps. (Issue #980)</li>
+        <li>Updated which classes are auto-imported.</li>
+        <li>Follow usings as if they were imports when resolving identifiers.</li>
+        <li>Fixed resolving static extensions in usings. (Issue #992)</li>
       </ul>
       <p>1.3.1 (HaxeFoundation release)</p>
       <ul>
