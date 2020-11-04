@@ -19,6 +19,7 @@ class <info descr="null">Imports</info> {
   }
 
   public function <info descr="null">answer</info>() {  // Demonstrates two levels of import.hx work from Helper.hx.
-    trace("answer called");
+    trace("answer called.");
+    "Hello? Anybody there?".<info descr="null">show</info>();
   }
 }

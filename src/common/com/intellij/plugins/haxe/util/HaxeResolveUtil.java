@@ -997,31 +997,44 @@ public class HaxeResolveUtil {
    */
   @Nullable
   private static PsiElement searchInDirectoryImports(HaxeFileModel file, String name) {
-    if (null == file || null == name) return null;
 
-    //final PsiElement basePsi = file.getBasePsi();
+    final PsiElement[] found = new PsiElement[1];
+    walkDirectoryImports(file, (importModel) -> {
+      found[0] = searchInSpecifiedImports(importModel, name);
+      return (null == found[0]);
+    });
+    return found[0];
+  }
+
+  /**
+   * Calls a function on all import.hx files from the current directory toward the source root.
+   * @param file the starting file
+   * @param processor the function to call; it returns false to stop early, true to keep going.
+   * @return the last value returned from processor; true if processor was never called.
+   */
+  public static boolean walkDirectoryImports(HaxeFileModel file, @NotNull java.util.function.Function<HaxeFileModel, Boolean> processor) {
+    if (null == file) return true;
+
     final VirtualFile vfile = file.getFile().getVirtualFile();
-    if (null == vfile) return null; // In memory files
+    if (null == vfile) return true; // In memory files
 
     final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
     final VirtualFile sourceRoot = fileIndex.getSourceRootForFile(vfile);
-    if (null == sourceRoot) return null;
+    if (null == sourceRoot) return true;
 
-    // test
+    boolean keepRunning = true;
     HaxeFile haxeFile = file.getFile();
     PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
     final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
-    while (null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
+    while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
       PsiFile importFile = parentDirectory.findFile("import.hx");
       if (importFile instanceof HaxeFile) {
         HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
-        PsiElement found = searchInSpecifiedImports(importModel, name);
-        if (null != found) return found;
+        keepRunning = processor.apply(importModel);
       }
       parentDirectory = parentDirectory.getParentDirectory();
     }
-    return null;
-
+    return keepRunning;
   }
 
   @Nullable
