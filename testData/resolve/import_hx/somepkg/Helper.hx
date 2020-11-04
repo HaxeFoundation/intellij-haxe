@@ -16,4 +16,7 @@ class Helper {
   public function callme(i : Imports) {  // Imports brought in by import.hx at root level.
     i.answer();
   }
+  public static function show(s : String) {
+    trace(s);
+  }
 }

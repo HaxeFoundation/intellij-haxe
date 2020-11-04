@@ -1,1 +1,1 @@
-import somepkg.Helper;
+using somepkg.Helper;

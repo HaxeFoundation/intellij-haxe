@@ -385,7 +385,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // Add the global usings to the top of the list (so they're checked last).
       HaxeProjectModel projectModel = HaxeProjectModel.fromElement(leftClass);
       HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)projectModel.getStdPackage();
-      List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+      final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+
+      HaxeResolveUtil.walkDirectoryImports(fileModel, (importModel) -> {
+        usingModels.addAll(importModel.getUsingModels());
+        return true;
+      });
 
       if (fileModel != null) {
         usingModels.addAll(fileModel.getUsingModels());
@@ -600,6 +605,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass,
                                                                     @Nullable HaxeGenericResolver resolver,
                                                                     @NotNull HaxeReference reference) {
+    // TODO: This method is very similar to resolveChain, and they should probably be combined.
+
     if (leftClass != null) {
       final HaxeClassModel leftClassModel = leftClass.getModel();
       HaxeMemberModel member = leftClassModel.getMember(reference.getReferenceName(), resolver);
@@ -626,8 +633,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           SpecificHaxeClassReference.withGenerics(leftClassModel.getReference(), null == resolver ? null : resolver.getSpecificsFor(leftClass));
 
         HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)HaxeProjectModel.fromElement(leftClass).getStdPackage();
-        List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+        final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
         usingModels.addAll(fileModel.getUsingModels());
+
+        HaxeResolveUtil.walkDirectoryImports(fileModel, (importModel) -> {
+          usingModels.addAll(importModel.getUsingModels());
+          return true;
+        });
 
         for (int i = usingModels.size() - 1; i >= 0; --i) {
           HaxeUsingModel model = usingModels.get(i);
