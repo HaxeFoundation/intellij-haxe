@@ -172,6 +172,11 @@ public class HaxeTypeCompatible {
     to = getUnderlyingClassIfAbstractNull(to);
     from = getUnderlyingClassIfAbstractNull(from);
 
+    // getting underlying type  makes it easier to determine behaviors like
+    // Implicit cast for Abstracts etc.
+    to = getUnderlyingClassIfTypeDef(to);
+    from = getUnderlyingClassIfTypeDef(from);
+
     // check if type is one of the core types that needs custom logic
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
       String toName = to.getHaxeClass().getName();
@@ -206,6 +211,11 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  @NotNull
+  private static SpecificHaxeClassReference getUnderlyingClassIfTypeDef(@NotNull SpecificHaxeClassReference reference) {
+    return reference.isTypeDef() ? reference.resolveTypeDef() : reference;
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {

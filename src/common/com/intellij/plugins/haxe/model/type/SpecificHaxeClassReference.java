@@ -380,6 +380,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return clazz instanceof HaxeTypedefDeclaration;
   }
 
+  public SpecificHaxeClassReference resolveTypeDef() {
+    if(isTypeDef()) {
+      SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getTargetClass(getGenericResolver());
+      if (type != null) return type;
+    }
+    return this;
+  }
+
   public boolean isCoreType() {
     HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());
     return list.stream().anyMatch(meta -> meta.isCompileTimeMeta() &&  meta.isType("coreType"));

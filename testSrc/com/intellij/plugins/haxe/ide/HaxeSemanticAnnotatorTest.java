@@ -619,6 +619,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testImplicitCast() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testInitializeObjectWithGenericFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
