@@ -188,13 +188,15 @@ public class HaxeTypeCompatible {
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-    if (to.isAbstract() && transitive) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastTypesList(to));
+    SpecificHaxeClassReference resolvedTo = to.isTypeDef() ? to.resolveTypeDef() : to;
+    if (resolvedTo.isAbstract() && transitive) compatibleTypes.addAll(resolvedTo.getHaxeClassModel().getImplicitCastTypesList(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from, initExpression)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    if (from.isAbstract() && transitive) compatibleTypes.addAll(from.getHaxeClassModel().getCastableToTypesList(from));
+    SpecificHaxeClassReference resolvedFrom = from.isTypeDef() ? from.resolveTypeDef() : from;
+    if (resolvedFrom.isAbstract() && transitive) compatibleTypes.addAll(resolvedFrom.getHaxeClassModel().getCastableToTypesList(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType, initExpression)) return true;
     }
