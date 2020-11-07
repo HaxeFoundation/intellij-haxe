@@ -345,6 +345,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testAssignStringToDynamic() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   // var a:Int = (10.0 : Float);
   public void testInitializeIntWithTypeCheckFloat() throws Exception {
