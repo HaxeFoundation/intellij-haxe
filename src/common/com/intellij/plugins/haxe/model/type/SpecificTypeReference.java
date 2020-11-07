@@ -402,7 +402,7 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  private static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
+  public static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
     return HaxeProjectModel.fromElement(context).getStdPackage().getClassModel(name);
   }
 
