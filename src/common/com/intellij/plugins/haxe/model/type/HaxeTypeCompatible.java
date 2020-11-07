@@ -172,6 +172,11 @@ public class HaxeTypeCompatible {
     to = getUnderlyingClassIfAbstractNull(to);
     from = getUnderlyingClassIfAbstractNull(from);
 
+    // getting underlying type  makes it easier to determine behaviors like
+    // Implicit cast for Abstracts etc.
+    to = getUnderlyingClassIfTypeDef(to);
+    from = getUnderlyingClassIfTypeDef(from);
+
     // check if type is one of the core types that needs custom logic
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
       String toName = to.getHaxeClass().getName();
@@ -188,15 +193,13 @@ public class HaxeTypeCompatible {
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-    SpecificHaxeClassReference resolvedTo = to.isTypeDef() ? to.resolveTypeDef() : to;
-    if (resolvedTo.isAbstract() && transitive) compatibleTypes.addAll(resolvedTo.getHaxeClassModel().getImplicitCastTypesList(to));
+    if (to.isAbstract() && transitive) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastTypesList(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from, initExpression)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    SpecificHaxeClassReference resolvedFrom = from.isTypeDef() ? from.resolveTypeDef() : from;
-    if (resolvedFrom.isAbstract() && transitive) compatibleTypes.addAll(resolvedFrom.getHaxeClassModel().getCastableToTypesList(from));
+    if (from.isAbstract() && transitive) compatibleTypes.addAll(from.getHaxeClassModel().getCastableToTypesList(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType, initExpression)) return true;
     }
@@ -208,6 +211,11 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  @NotNull
+  private static SpecificHaxeClassReference getUnderlyingClassIfTypeDef(@NotNull SpecificHaxeClassReference reference) {
+    return reference.isTypeDef() ? reference.resolveTypeDef() : reference;
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
