@@ -619,7 +619,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
-
+  public void testInitializeObjectWithGenericFunction() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   public void testIsKeywordFor4_2() throws Throwable {
     HashSet skipAnnotators = new HashSet();

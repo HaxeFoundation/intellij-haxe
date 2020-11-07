@@ -93,6 +93,7 @@
         <li>Checks field and property implementations when implementing interfaces</li>
         <li>Improved method implementation checks for interfaces</li>
         <li>Recognize implicit cast methods in Abstracts (Methods annotated with @:to / @From)</li>
+        <li>Fix type incompatiblity warning when assigning parameterized (generic) function result type.</li>
         <li>Fix a few cases where empty square brackets were not recognized for initializing Maps. (Issue #980)</li>
         <li>Updated which classes are auto-imported.</li>
         <li>Follow usings as if they were imports when resolving identifiers.</li>

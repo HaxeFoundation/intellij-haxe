@@ -400,7 +400,7 @@ public class HaxeExpressionEvaluator {
           if (reference != null) {
             PsiElement subelement = reference.resolve();
             if (subelement instanceof HaxeMethod) {
-              functionType = ((HaxeMethod)subelement).getModel().getFunctionType();
+              functionType = ((HaxeMethod)subelement).getModel().getFunctionType(resolver);
             }
           }
         }
@@ -605,7 +605,7 @@ public class HaxeExpressionEvaluator {
       final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeBaseMemberModel.fromPsi(element), HaxeMethodModel.class);
       final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod(resolver) : null;
       if (parentMethod != null) {
-        return parentMethod.getFunctionType().createHolder();
+        return parentMethod.getFunctionType(resolver).createHolder();
       }
       context.addError(element, "Calling super without parent constructor");
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
