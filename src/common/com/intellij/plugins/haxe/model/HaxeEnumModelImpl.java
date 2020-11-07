@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.util.HaxeEnumValueUtil;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -124,12 +125,25 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
 
   @Override
   public HaxeMemberModel getMember(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
-    return getValue(name);
+    HaxeMemberModel value = getValue(name);
+    if (!isAbstract() && value == null) value = getEnumValueMember(name, resolver);
+    return  value;
+  }
+
+  @Nullable
+  private HaxeMemberModel getEnumValueMember(String name, HaxeGenericResolver resolver) {
+    HaxeClassModel model = HaxeEnumValueUtil.getEnumValueClassModel(this.getPsi());
+    if(model == null) return null;
+    return model.getMember(name, resolver);
   }
 
   @Override
   public List<HaxeMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
-    return getValuesStream().collect(Collectors.toList());
+    List<HaxeMemberModel> members = getValuesStream().collect(Collectors.toList());
+    if (!isAbstract()) {
+      members.addAll(HaxeEnumValueUtil.getEnumValueClassMembers(this.getPsi(), resolver));
+    }
+    return members;
   }
 
   @NotNull
