@@ -104,8 +104,7 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   }
 
   public boolean isOptional() {
-    final HaxeOptionalToken optionalToken = PsiTreeUtil.getChildOfType(this, HaxeOptionalToken.class);
-    return optionalToken != null;
+    return this instanceof  HaxeOptionalFieldDeclaration;
   }
 
   @Nullable
