@@ -159,9 +159,12 @@ class CallExpressionChecker {
         }
 
         ResultHolder parameterType = parameterModel.getType(resolver);
-        // TODO handle Enum assign check (skipping it for now)
-        if (isEnumAssignment(expressionType, parameterType)) return;
 
+        // if expression is enumValue we need to resolve the underlying enumType type to test assignment
+        if(expressionType.getType() instanceof SpecificEnumValueReference) {
+          SpecificHaxeClassReference enumType = ((SpecificEnumValueReference)expressionType.getType()).getEnumClass();
+          expressionType = enumType.createHolder();
+        }
 
         if (!canAssignToFrom(parameterType, expressionType)) {
           holder.createErrorAnnotation(expression.getTextRange(), "argument type does not match(expected " +
@@ -174,16 +177,6 @@ class CallExpressionChecker {
     }
   }
 
-  // TODO Temp method to check if we are attempting to assign enums (used to skip this case, should be removed when fixed)
-  private static boolean isEnumAssignment(ResultHolder expressionType, ResultHolder parameterType) {
-    SpecificTypeReference parameterTypeReference = parameterType.getType();
-    if(parameterTypeReference instanceof SpecificHaxeClassReference) {
-      SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)parameterTypeReference;
-      if(classReference.isEnumType() && expressionType.isEnumValueType()) return true;
-      if(classReference.isEnumValueClass() && expressionType.isEnumValueType()) return true;
-    }
-    return false;
-  }
 
   private static HaxeGenericResolver findGenericResolverFromVariable(HaxeCallExpression expr) {
     PsiElement[] children = expr.getExpression().getChildren();
