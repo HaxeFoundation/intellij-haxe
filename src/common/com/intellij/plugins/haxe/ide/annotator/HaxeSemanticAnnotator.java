@@ -130,17 +130,18 @@ class CallExpressionChecker {
       }
 
       if (expressionArgList.size() < minArgCount) {
-        //TODO  bundle and clean up //HaxeBundle.message("haxe.semantic.....")
         TextRange range = ((HaxeReferenceExpression)reference).getIdentifier().getTextRange();
-        holder.createErrorAnnotation(range, "Missing arguments(expected " + minArgCount + " but got " + expressionArgList.size() + ")");
+        String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", minArgCount, expressionArgList.size());
+        holder.createErrorAnnotation(range, message);
         return;
       }
+
       if (expressionArgList.size() > maxArgCount) {
-        //TODO  bundle and clean up //HaxeBundle.message("haxe.semantic.....")
-        holder.createErrorAnnotation(referenceParameterList.getTextRange(),
-                                     "Too many arguments (expected " + maxArgCount + " but got " + expressionArgList.size() + ")");
+        String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgCount, expressionArgList.size());
+        holder.createErrorAnnotation(referenceParameterList.getTextRange(), message);
         return;
       }
+
       for (int i = 0; i < expressionArgList.size(); i++) {
         HaxeExpression expression = expressionArgList.get(i);
         ResultHolder expressionType = findExpressionType(expression);
@@ -167,11 +168,11 @@ class CallExpressionChecker {
         }
 
         if (!canAssignToFrom(parameterType, expressionType)) {
-          holder.createErrorAnnotation(expression.getTextRange(), "argument type does not match(expected " +
-                                                                  parameterType.toPresentationString() +
-                                                                  " but got " +
-                                                                  expressionType.toPresentationString() +
-                                                                  ")");
+          String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
+                                              parameterType.toPresentationString(),
+                                              expressionType.toPresentationString());
+
+          holder.createErrorAnnotation(expression.getTextRange(), message);
         }
       }
     }
