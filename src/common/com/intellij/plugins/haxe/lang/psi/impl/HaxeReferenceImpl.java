@@ -579,7 +579,37 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeClassResolveResult.create(fn, specialization);
       }
     }
+    if(isType(resolve, HaxeParameter.class)) {
+      // check if  type parameters has multiple constraints and try to unify
+      HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
+      String typeName = tag != null ? tag.getTypeOrAnonymous().getText() : null;
+      PsiElement parameterList = resolve.getParent();
 
+      if(parameterList != null) {
+        HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
+        if(method != null) {
+          HaxeGenericParam genericParam = method.getGenericParam();
+          List<HaxeGenericListPart> partList =genericParam != null ? genericParam.getGenericListPartList() : null;
+          if(partList!= null) {
+            Optional<HaxeGenericListPart> match = partList.stream().filter(part -> Objects.equals(typeName, part.getName())).findFirst();
+            if(match.isPresent()) {
+              HaxeGenericListPart listPart = match.get();
+              HaxeTypeList list = listPart.getTypeList();
+              if(list != null) {
+                list.getTypeListPartList();
+                List<HaxeType> classReferences = list.getTypeListPartList().stream()
+                  .map(part -> part.getTypeOrAnonymous().getType())
+                  .filter(Objects::nonNull)
+                  .collect(Collectors.toList());
+
+                TypeParameterMultiType constraint = new TypeParameterMultiType(listPart.getContext().getNode(), classReferences);
+                return HaxeClassResolveResult.create(constraint);
+              }
+            }
+          }
+        }
+      }
+    }
     if (resolve != null) {
       return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
     }

@@ -458,13 +458,16 @@ oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymou
 typeTag ::= ':' typeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
+haxe4typeList ::= typeListPart ('&' typeListPart)+
+{extends=typeList}
+
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= regularGenericListPart | constGenericListPart
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-private regularGenericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))? {pin=2}
+private regularGenericListPart ::= componentName (':' ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart ))? {pin=2}
 // constGenericListPart is only available when the macroMember is '@:const' (constMeta).  It's only useful in macros.
 // We can't use constMeta here until the lexer returns a string for macros instead of META_ID.
-private constGenericListPart ::= constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
+private constGenericListPart ::= constantExpression (':' ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart ))? {pin=2}
 
 typeListPart ::= typeWrapper | literalExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
