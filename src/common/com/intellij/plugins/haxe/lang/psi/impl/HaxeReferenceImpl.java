@@ -188,16 +188,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
 
-  //public boolean resolveIsStaticExtension() {
-  //  // @TODO: DIRTY HACK! to avoid rewriting all the code!
-  //  List<? extends PsiElement> resolve = HaxeResolver.INSTANCE.resolve(this, true);
-  //  if(resolve.size() > 0) {
-  //    Boolean data = resolve.get(0).getUserData(HaxeResolver.isExtensionKey);
-  //    return data == null ? false : data;
-  //  }
-  //  return  false;
-  //}
-
   @NotNull
   @Override
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
