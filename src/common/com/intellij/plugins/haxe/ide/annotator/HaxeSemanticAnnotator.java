@@ -45,12 +45,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
+import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
-import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
 import static java.util.stream.Collectors.toList;
 
 public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension {
@@ -94,7 +96,154 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
       AssignExpressionChecker.check((HaxeAssignExpression)element, holder);
     } else if (element instanceof HaxeIsTypeExpression) {
       IsTypeExpressionChecker.check((HaxeIsTypeExpression)element, holder);
+    } else if (element instanceof HaxeCallExpression) {
+      CallExpressionChecker.check((HaxeCallExpression)element, holder);
     }
+  }
+}
+
+class CallExpressionChecker {
+  public static void check(
+    final HaxeCallExpression expr,
+    final HaxeAnnotationHolder holder
+  ) {
+
+    final HaxeReference reference = (HaxeReference)expr.getExpression();
+    final PsiElement target = reference.resolve();
+
+    if (target instanceof HaxeMethod) {
+      HaxeMethod method = (HaxeMethod)target;
+      boolean isStaticExtension = expr.resolveIsStaticExtension();
+      if(method.isStatic()) return; // isStaticExtension seems broken, always false
+      if(isStaticExtension) return; // TODO solve static
+
+      HaxeGenericSpecialization specialization = expr.getSpecialization();
+      List<HaxeParameterModel> parameters = method.getModel().getParameters();
+
+      long minArgCount = countRequiredArguments(parameters);
+      long maxArgCount = hasVarArgs(parameters) ? Long.MAX_VALUE : parameters.size();
+
+      List<HaxeExpression> expressionArgList = new LinkedList<>();
+      HaxeExpressionList referenceParameterList = expr.getExpressionList();
+      if (referenceParameterList != null) {
+        expressionArgList.addAll(referenceParameterList.getExpressionList());
+      }
+
+      if (expressionArgList.size() < minArgCount) {
+        //TODO  bundle and clean up //HaxeBundle.message("haxe.semantic.....")
+        TextRange range = ((HaxeReferenceExpression)reference).getIdentifier().getTextRange();
+        holder.createErrorAnnotation(range, "Missing arguments(expected " + minArgCount + " but got " + expressionArgList.size() + ")");
+        return;
+      }
+      if (expressionArgList.size() > maxArgCount) {
+        //TODO  bundle and clean up //HaxeBundle.message("haxe.semantic.....")
+        holder.createErrorAnnotation(referenceParameterList.getTextRange(),
+                                     "Too many arguments (expected " + maxArgCount + " but got " + expressionArgList.size() + ")");
+        return;
+      }
+      for (int i = 0; i < expressionArgList.size(); i++) {
+        HaxeExpression expression = expressionArgList.get(i);
+        ResultHolder expressionType = findExpressionType(expression);
+
+        // var args accept all types so no need to do any more validation
+        //TODO add type check for haxe.extern.Rest arguments
+        if (i >= parameters.size()  || isVarArg(parameters.get(i))) return;
+        //TODO fix method generics (fun<T>(value:T):T)
+        if (method.getModel().getGenericParams().size()> 0) return;
+
+        HaxeParameterModel parameterModel = parameters.get(i);
+        HaxeGenericResolver resolver = findGenericResolverFromVariable(expr);
+
+        if(resolver == null && specialization != null) {
+          resolver = specialization.toGenericResolver(parameterModel.getParameterPsi());
+        }
+
+        ResultHolder parameterType = parameterModel.getType(resolver);
+        // TODO handle Enum assign check (skipping it for now)
+        if (isEnumAssignment(expressionType, parameterType)) return;
+
+
+        if (!canAssignToFrom(parameterType, expressionType)) {
+          holder.createErrorAnnotation(expression.getTextRange(), "argument type does not match(expected " +
+                                                                  parameterType.toPresentationString() +
+                                                                  " but got " +
+                                                                  expressionType.toPresentationString() +
+                                                                  ")");
+        }
+      }
+    }
+  }
+
+  // TODO Temp method to check if we are attempting to assign enums (used to skip this case, should be removed when fixed)
+  private static boolean isEnumAssignment(ResultHolder expressionType, ResultHolder parameterType) {
+    SpecificTypeReference parameterTypeReference = parameterType.getType();
+    if(parameterTypeReference instanceof SpecificHaxeClassReference) {
+      SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)parameterTypeReference;
+      if(classReference.isEnumType() && expressionType.isEnumValueType()) return true;
+      if(classReference.isEnumValueClass() && expressionType.isEnumValueType()) return true;
+    }
+    return false;
+  }
+
+  private static HaxeGenericResolver findGenericResolverFromVariable(HaxeCallExpression expr) {
+    PsiElement[] children = expr.getExpression().getChildren();
+    Optional<HaxeReference> first = Stream.of(children)
+      .filter(c -> c instanceof  HaxeReference)
+      .map(c -> (HaxeReference)c)
+      .findFirst();
+
+    if(first.isPresent()) {
+      HaxeReference expression = first.get();
+      HaxeClassResolveResult resolveResult = expression.resolveHaxeClass();
+      SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
+      SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
+      return finalReference.getGenericResolver();
+    }
+    return null;
+  }
+
+
+  @NotNull
+  private static ResultHolder findExpressionType(HaxeExpression expression) {
+    return HaxeExpressionEvaluator
+      .evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
+                HaxeGenericResolverUtil.generateResolverFromScopeParents(expression)).result;
+  }
+
+  private static long countRequiredArguments(List<HaxeParameterModel> parametersList) {
+    return parametersList.stream()
+      .filter(p -> !p.isOptional() && !p.hasInit() && !isVarArg(p))
+      .count();
+  }
+
+  private static boolean hasVarArgs(List<HaxeParameterModel> parametersList) {
+    return parametersList.stream().anyMatch(CallExpressionChecker::isVarArg);
+  }
+
+  private static boolean isVarArg(HaxeParameterModel model) {
+    // TODO : this is a bit of a hack to avoid having to resolve Array Expr and Rest, should probably resolve and compare these properly
+    // haxe.extern.Rest<Float>
+    // Array<haxe.macro.Expr>
+
+    if (model.getType().getType() instanceof  SpecificHaxeClassReference) {
+      SpecificHaxeClassReference classType = (SpecificHaxeClassReference)model.getType().getType();
+      if(classType != null && classType.getHaxeClass() != null) {
+      String typeName = classType.getHaxeClass().getQualifiedName();
+      ResultHolder[] specifics = classType.getSpecifics();
+      if (specifics.length == 1) {
+        SpecificHaxeClassReference specificType = (SpecificHaxeClassReference)specifics[0].getType();
+        if (specificType != null && specificType.getHaxeClass() != null) {
+          if (typeName.equals("Array") && specificType.getHaxeClass().getQualifiedName().equals("haxe.macro.Expr")) {
+            return true;
+          }
+          if (typeName.equals("haxe.extern.Rest")) {
+            return true;
+          }
+        }
+      }
+      }
+    }
+    return false;
   }
 }
 

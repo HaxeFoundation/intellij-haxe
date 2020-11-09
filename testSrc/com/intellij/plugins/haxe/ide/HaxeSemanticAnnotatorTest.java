@@ -640,4 +640,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestSkippingAnnotators(new HashSet<>());
   }
 
+  public void testCallExpression() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+
 }

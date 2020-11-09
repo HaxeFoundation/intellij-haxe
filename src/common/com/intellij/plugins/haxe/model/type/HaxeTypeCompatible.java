@@ -143,7 +143,7 @@ public class HaxeTypeCompatible {
 
 
 
-  static private SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
+  static public SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
     if (ref.isAbstract() && "Null".equals(ref.getClassName())) {
       SpecificHaxeClassReference underlying = ref.getHaxeClassModel().getUnderlyingClassReference(ref.getGenericResolver());
       if (null != underlying) {
