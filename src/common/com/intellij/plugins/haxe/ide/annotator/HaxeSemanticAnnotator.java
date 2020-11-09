@@ -140,21 +140,9 @@ class CallExpressionChecker {
         return;
       }
 
-      SpecificHaxeClassReference callerType = findMethodCallerType(expr);
-      HaxeGenericResolver resolver = callerType == null ? null : callerType.getGenericResolver();
+      HaxeGenericResolver resolver = findGenericResolverFromVariable(expr);
       if(resolver == null && specialization != null) {
         resolver = specialization.toGenericResolver(expr);
-      }
-      if(isStaticExtension) {
-        if(parameters.size() == 0) {
-          holder.createErrorAnnotation(expr.getTextRange(), "Method can not be used as static extension");
-        } else {
-          HaxeParameterModel parameterModel = parameters.get(0);
-          ResultHolder parameterType = parameterModel.getType(resolver);
-          if (!canAssignToFrom(callerType, parameterType)) {
-            holder.createErrorAnnotation(expr.getTextRange(), "Extension method can not be used with " + callerType.toPresentationString());
-          }
-        }
       }
 
       for (int i = 0; i < expressionArgList.size(); i++) {
@@ -190,7 +178,7 @@ class CallExpressionChecker {
   }
 
 
-  private static SpecificHaxeClassReference findMethodCallerType(HaxeCallExpression expr) {
+  private static HaxeGenericResolver findGenericResolverFromVariable(HaxeCallExpression expr) {
     PsiElement[] children = expr.getExpression().getChildren();
     Optional<HaxeReference> first = Stream.of(children)
       .filter(c -> c instanceof  HaxeReference)
@@ -201,8 +189,8 @@ class CallExpressionChecker {
       HaxeReference expression = first.get();
       HaxeClassResolveResult resolveResult = expression.resolveHaxeClass();
       SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
-      return  getUnderlyingClassIfAbstractNull(reference);
-      
+      SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
+      return finalReference.getGenericResolver();
     }
     return null;
   }
