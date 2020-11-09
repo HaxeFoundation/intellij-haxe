@@ -32,12 +32,12 @@ import java.util.List;
  *  NOTE: It does NOT check it the types can actually be unified and is not intended to be used
  *  for anything else other than generics with multiple constraints
  */
-public class TypeParameterMultiType extends AnonymousHaxeTypeImpl {
+public class HaxeTypeParameterMultiType extends AnonymousHaxeTypeImpl {
 
   private final List<HaxeType> typeList;
   private final HaxeAnonymousTypeBodyImpl body;
 
-  public TypeParameterMultiType(@NotNull ASTNode node, @NotNull List<HaxeType> typeList) {
+  public HaxeTypeParameterMultiType(@NotNull ASTNode node, @NotNull List<HaxeType> typeList) {
     super(node);
     this.body = new HaxeAnonymousTypeBodyImpl(node);
     this.typeList = typeList;

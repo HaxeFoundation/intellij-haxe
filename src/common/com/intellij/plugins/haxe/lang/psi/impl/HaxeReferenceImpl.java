@@ -602,7 +602,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
-                TypeParameterMultiType constraint = new TypeParameterMultiType(listPart.getContext().getNode(), classReferences);
+                HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
                 return HaxeClassResolveResult.create(constraint);
               }
             }
