@@ -1,4 +1,5 @@
 package ;
+using StringTools;
 
 typedef MyStruct = {a:String, b:Int}
 class A {}
@@ -20,6 +21,10 @@ class CallExpressionTest {
 
 
     public function new() {
+
+        " Test static extension ".contains("test");// CORRECT
+        " Test static extension ".contains(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>); // WRONG expected arg is string
+
         noArgs(); // CORRECT
         noArgs(<error descr="Too many arguments (expected 0 but got 1)\"">"String"</error>); // WRONG (no arg expected got one)
 

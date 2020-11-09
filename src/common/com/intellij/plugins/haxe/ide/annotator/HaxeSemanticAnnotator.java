@@ -114,8 +114,6 @@ class CallExpressionChecker {
     if (target instanceof HaxeMethod) {
       HaxeMethod method = (HaxeMethod)target;
       boolean isStaticExtension = expr.resolveIsStaticExtension();
-      if(method.isStatic()) return; // isStaticExtension seems broken, always false
-      if(isStaticExtension) return; // TODO solve static
 
       HaxeGenericSpecialization specialization = expr.getSpecialization();
       List<HaxeParameterModel> parameters = method.getModel().getParameters();
@@ -129,36 +127,50 @@ class CallExpressionChecker {
         expressionArgList.addAll(referenceParameterList.getExpressionList());
       }
 
-      if (expressionArgList.size() < minArgCount) {
+      if (expressionArgList.size() < minArgCount - (isStaticExtension ? 1 : 0) ) {
         TextRange range = ((HaxeReferenceExpression)reference).getIdentifier().getTextRange();
         String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", minArgCount, expressionArgList.size());
         holder.createErrorAnnotation(range, message);
         return;
       }
 
-      if (expressionArgList.size() > maxArgCount) {
+      if (expressionArgList.size() > maxArgCount - (isStaticExtension ? 1 : 0)) {
         String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgCount, expressionArgList.size());
         holder.createErrorAnnotation(referenceParameterList.getTextRange(), message);
         return;
+      }
+
+      SpecificHaxeClassReference callerType = findMethodCallerType(expr);
+      HaxeGenericResolver resolver = callerType == null ? null : callerType.getGenericResolver();
+      if(resolver == null && specialization != null) {
+        resolver = specialization.toGenericResolver(expr);
+      }
+      if(isStaticExtension) {
+        if(parameters.size() == 0) {
+          holder.createErrorAnnotation(expr.getTextRange(), "Method can not be used as static extension");
+        } else {
+          HaxeParameterModel parameterModel = parameters.get(0);
+          ResultHolder parameterType = parameterModel.getType(resolver);
+          if (!canAssignToFrom(callerType, parameterType)) {
+            holder.createErrorAnnotation(expr.getTextRange(), "Extension method can not be used with " + callerType.toPresentationString());
+          }
+        }
       }
 
       for (int i = 0; i < expressionArgList.size(); i++) {
         HaxeExpression expression = expressionArgList.get(i);
         ResultHolder expressionType = findExpressionType(expression);
 
-        // var args accept all types so no need to do any more validation
         //TODO add type check for haxe.extern.Rest arguments
-        if (i >= parameters.size()  || isVarArg(parameters.get(i))) return;
+
+        int parameterIndex = i + (isStaticExtension ? 1 : 0);// skip one if static extension (first arg is caller
+        // var args accept all types so no need to do any more validation
+        if (parameterIndex >= parameters.size()  || isVarArg(parameters.get(parameterIndex))) return;
+
         //TODO fix method generics (fun<T>(value:T):T)
         if (method.getModel().getGenericParams().size()> 0) return;
 
-        HaxeParameterModel parameterModel = parameters.get(i);
-        HaxeGenericResolver resolver = findGenericResolverFromVariable(expr);
-
-        if(resolver == null && specialization != null) {
-          resolver = specialization.toGenericResolver(parameterModel.getParameterPsi());
-        }
-
+        HaxeParameterModel parameterModel = parameters.get(parameterIndex);
         ResultHolder parameterType = parameterModel.getType(resolver);
 
         // if expression is enumValue we need to resolve the underlying enumType type to test assignment
@@ -171,7 +183,6 @@ class CallExpressionChecker {
           String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
                                               parameterType.toPresentationString(),
                                               expressionType.toPresentationString());
-
           holder.createErrorAnnotation(expression.getTextRange(), message);
         }
       }
@@ -179,7 +190,7 @@ class CallExpressionChecker {
   }
 
 
-  private static HaxeGenericResolver findGenericResolverFromVariable(HaxeCallExpression expr) {
+  private static SpecificHaxeClassReference findMethodCallerType(HaxeCallExpression expr) {
     PsiElement[] children = expr.getExpression().getChildren();
     Optional<HaxeReference> first = Stream.of(children)
       .filter(c -> c instanceof  HaxeReference)
@@ -190,8 +201,8 @@ class CallExpressionChecker {
       HaxeReference expression = first.get();
       HaxeClassResolveResult resolveResult = expression.resolveHaxeClass();
       SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
-      SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
-      return finalReference.getGenericResolver();
+      return  getUnderlyingClassIfAbstractNull(reference);
+      
     }
     return null;
   }

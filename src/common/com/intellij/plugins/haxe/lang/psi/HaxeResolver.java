@@ -49,6 +49,7 @@ import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
  */
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
+  public static final Key<Boolean> isExtensionKey = new Key<>("isExtensionKey");
   private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
   //static {  // Remove when finished debugging.
@@ -152,8 +153,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode) {
-
-    isExtension.set(false);
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
@@ -400,7 +399,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       for (int i = usingModels.size() - 1; i >= 0; --i) {
         foundMethod = usingModels.get(i).findExtensionMethod(identifier, leftExpression.getSpecificClassReference(reference, leftExpression.getGenericResolver()));
         if (null != foundMethod) {
-          isExtension.set(true);
+          //isExtension.set(true);
+          reference.putUserData(isExtensionKey, true);
           if (LOG.isTraceEnabled()) LOG.trace("Found method in 'using' import: " + foundMethod.getName());
           return asList(foundMethod.getBasePsi());
         }

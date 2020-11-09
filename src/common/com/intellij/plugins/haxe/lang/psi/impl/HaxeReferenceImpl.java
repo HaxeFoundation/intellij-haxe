@@ -170,9 +170,33 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   public boolean resolveIsStaticExtension() {
     // @TODO: DIRTY HACK! to avoid rewriting all the code!
-    HaxeResolver.INSTANCE.resolve(this, true);
-    return null != HaxeResolver.isExtension ? HaxeResolver.isExtension.get() : false;
+    Boolean result;
+    if(this instanceof  HaxeCallExpression) {
+      PsiReference child = this.getFirstChild().getReference();
+      if(!(child instanceof HaxeReferenceExpression)) return false;
+      HaxeReferenceExpression reference = (HaxeReferenceExpression)child;
+      result = reference.getUserData(HaxeResolver.isExtensionKey);
+      if(result == null) {
+        HaxeResolver.INSTANCE.resolve(reference, true);
+        result = reference.getUserData(HaxeResolver.isExtensionKey);
+      }
+    }else {
+      HaxeResolver.INSTANCE.resolve(this, true);
+      result = this.getUserData(HaxeResolver.isExtensionKey);
+    }
+    return result == null ? false :result;
   }
+
+
+  //public boolean resolveIsStaticExtension() {
+  //  // @TODO: DIRTY HACK! to avoid rewriting all the code!
+  //  List<? extends PsiElement> resolve = HaxeResolver.INSTANCE.resolve(this, true);
+  //  if(resolve.size() > 0) {
+  //    Boolean data = resolve.get(0).getUserData(HaxeResolver.isExtensionKey);
+  //    return data == null ? false : data;
+  //  }
+  //  return  false;
+  //}
 
   @NotNull
   @Override
