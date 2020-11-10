@@ -585,7 +585,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       String typeName = tag != null ? tag.getTypeOrAnonymous().getText() : null;
       PsiElement parameterList = resolve.getParent();
 
-      if(parameterList != null) {
+      if(parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration ) {
         HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
         if(method != null) {
           HaxeGenericParam genericParam = method.getGenericParam();
@@ -598,7 +598,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               if(list != null) {
                 list.getTypeListPartList();
                 List<HaxeType> classReferences = list.getTypeListPartList().stream()
-                  .map(part -> part.getTypeOrAnonymous().getType())
+                  .map(part -> part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType())
                   .filter(Objects::nonNull)
                   .collect(Collectors.toList());
 
