@@ -536,8 +536,12 @@ switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{' (switchCase | defaultCase)* '}'
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= 'case' switchCaseExpr (',' switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
-switchCaseExpr ::= (switchCaseExtractor | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
-switchCaseExtractor ::= expression '=>' switchCaseExpr {pin=2 extends="expression"}
+switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
+
+private switchCaseExtractorPure ::= expression '=>' switchCaseExpr {pin=2 extends="expression"}
+switchCaseExtractor ::= '('switchCaseExtractorPure')' | switchCaseExtractorPure  {extends="expression"}
+switchExtractorExpression ::= switchCaseExtractor (bitOperation switchCaseExtractor)* {extends="expression"}
+
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
 switchCaseCaptureVar ::= mutabilityModifier? componentName varInit? {extends="localVarDeclaration"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)

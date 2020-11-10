@@ -8,6 +8,9 @@ class FatArrowExpression {
     {
       // This should parse as a fatArrowExpression.
       case b => _: trace(b);
+      case (b => _): trace(b);
+      case (b => _)| (b => _): trace(b);
+      case b => _| b => _: trace(b);
     }
   }
 }
