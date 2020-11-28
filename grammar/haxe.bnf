@@ -346,7 +346,7 @@ private enumConstructorParameters ::= parenthesizedParameterList
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier '?' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=3 extends=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName typeTag? varInit?
@@ -753,7 +753,7 @@ private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
 private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
 private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (sep anonymousInterfaceBodyList)?
-private anonymousInterfaceBodyList ::= (interfaceBodyPart | optionalFieldDeclaration)+  {recoverWhile="interface_body_part_recover"}
+private anonymousInterfaceBodyList ::= (optionalFieldDeclaration | interfaceBodyPart )+  {recoverWhile="interface_body_part_recover"}
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?
 typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 
