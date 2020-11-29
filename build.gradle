@@ -186,7 +186,23 @@ runIde {
     jbrVersion '8u152b1343.26'
 
     /* Propagate VM options from gradle command line through to the plugin. */
-    systemProperties = System.getProperties()
+    String[] prefixesToInclude = [ "idea.", "jb." ]
+    Properties props = System.getProperties()
+    for (String pname : props.propertyNames()) {
+        for (String prefix : prefixesToInclude) {
+            if (pname.startsWith(prefix)) {
+                String pval = props.get(pname)
+                if (pval.contains(" ") && !pval.startsWith("'")) {
+                    // Strings containing spaces require quoting.
+                    // Double-quotes seem to be removed with JvmExec, but single-quotes work.
+                    // Some internal Java settings (e.g. os.name) have quotes stripped anyway.
+                    pval = "'" + pval + "'"
+                }
+                systemProperties.put(pname, pval)
+                break
+            }
+        }
+    }
 }
 
 compileJava {
