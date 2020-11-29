@@ -19,9 +19,9 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
-import com.intellij.plugins.haxe.model.StripSpaces;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
@@ -32,17 +32,27 @@ public class HaxeSurroundFixer extends HaxeFixer {
   final PsiElement element;
   final HaxeElementType left;
   final HaxeElementType right;
+  final HaxeElementType oldLeft;
+  final HaxeElementType oldRight;
 
   public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull HaxeElementType left, @NotNull HaxeElementType right) {
     this(text, el, el.getTextRange(), left, right);
   }
 
   public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull TextRange range, @NotNull HaxeElementType left, @NotNull HaxeElementType right) {
+    this(text, el, range, left, right, null, null);
+  }
+
+  public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull TextRange range,
+                           @NotNull HaxeElementType left, @NotNull HaxeElementType right,
+                           @Nullable HaxeElementType oldLeft, @Nullable HaxeElementType oldRight) {
     super(text);
     this.element = el;
     this.range= range;
     this.left = left;
     this.right = right;
+    this.oldLeft = oldLeft;
+    this.oldRight = oldRight;
   }
 
   @Override
@@ -50,7 +60,9 @@ public class HaxeSurroundFixer extends HaxeFixer {
     if (!element.isValid()) return;
 
     HaxeDocumentModel doc = HaxeDocumentModel.fromElement(element);
-    doc.wrapTextRange(range, left.asCode(), right.asCode(), StripSpaces.NONE);
+    doc.rewrapElement(element, range, left.asCode(), right.asCode(),
+                      null != oldLeft ? oldLeft.asCode() : null,
+                      null != oldRight ? oldRight.asCode() : null);
   }
 
   public static HaxeSurroundFixer withParens(PsiElement el) {
@@ -75,5 +87,21 @@ public class HaxeSurroundFixer extends HaxeFixer {
 
   public static HaxeSurroundFixer withSingleQuotes(PsiElement el) {
     return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks"), el, (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE);
+  }
+
+  public static HaxeSurroundFixer replaceQuotesWithSingleQuotes(PsiElement el) {
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks"), el, el.getTextRange(),
+                                 (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE,
+                                 (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE);
+  }
+
+  public static HaxeSurroundFixer exchangeQuoteType(PsiElement el) {
+    String text = el.getText();
+    if (null != text && text.startsWith("'")) {
+      return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.double.quotation.marks"), el, el.getTextRange(),
+                                   (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE,
+                                   (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE);
+    }
+    return replaceQuotesWithSingleQuotes(el);
   }
 }

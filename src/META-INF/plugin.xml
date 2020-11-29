@@ -99,6 +99,7 @@
         <li>Updated which classes are auto-imported.</li>
         <li>Follow usings as if they were imports when resolving identifiers.</li>
         <li>Fixed resolving static extensions in usings. (Issue #992)</li>
+        <li>Better support for quote handling when typing.</li>
         <li>Allow assigning to Dynamic, now that Dynamic allows a type parameter.</li>
         <li>Adjust "Darcula" colors for readability.</li>
         <li>Fixed some problems parsing switch cases with multiple extractor (fat arrow) expressions.</li>

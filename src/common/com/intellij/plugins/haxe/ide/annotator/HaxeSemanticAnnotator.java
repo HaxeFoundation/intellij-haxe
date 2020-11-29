@@ -1347,7 +1347,10 @@ class StringChecker {
     if (!STRING_INTERPOLATION_QUOTE_CHECK.isEnabled(psi)) return;
 
     if (isSingleQuotesRequired(psi)) {
-      holder.createWarningAnnotation(psi, "Expressions that contains string interpolation should be wrapped with single quotes");
+      holder.createWarningAnnotation(psi, HaxeBundle
+        .message("haxe.semantic.inspection.message.expression.that.contains.string.interpolation.should.be.wrapped.with.single.quotes"))
+        .registerFix(HaxeSurroundFixer.replaceQuotesWithSingleQuotes(psi));
+
     }
   }
 
