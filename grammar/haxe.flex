@@ -423,13 +423,17 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 <QUO_STRING> {REGULAR_QUO_STRING_PART}     { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {SHORT_TEMPLATE_ENTRY}        {
-                                                                  pushState(SHORT_TEMPLATE_ENTRY);
-                                                                  yypushback(yylength() - 1);
-                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
+                                              return emitToken( REGULAR_STRING_PART);
+//                                                                  pushState(SHORT_TEMPLATE_ENTRY);
+//                                                                  yypushback(yylength() - 1);
+//                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
                                                              }
 
+<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   {
+                                              // pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START);
+                                              return emitToken( REGULAR_STRING_PART);
+                                              }
 <QUO_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
-<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START); }
 
 // Support single quote strings: "'"
 

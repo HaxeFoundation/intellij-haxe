@@ -103,7 +103,9 @@
         <li>Allow assigning to Dynamic, now that Dynamic allows a type parameter.</li>
         <li>Adjust "Darcula" colors for readability.</li>
         <li>Fixed some problems parsing switch cases with multiple extractor (fat arrow) expressions.</li>
-        <li>Haxe4: Support new syntax for optional variables and type constraints (including auto-completions).</li>
+        <li>Haxe4: Support new syntax for optional variables and type constraints (including auto-completions). (Issue #950)</li>
+        <li>Removed parsing of templates in regular (double-quoted) strings. (Issues #289, #718) </li>
+        <li>Treat successive expressions and statements without semi-colons as errors.</li>
       </ul>
       <p>1.3.1 (HaxeFoundation release)</p>
       <ul>
