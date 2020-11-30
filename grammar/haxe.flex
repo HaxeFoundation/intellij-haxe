@@ -213,6 +213,7 @@ REGULAR_QUO_STRING_PART=[^\\\"\$]+
 REGULAR_APOS_STRING_PART=[^\\\'\$]+
 SHORT_TEMPLATE_ENTRY=\${IDENTIFIER_NO_DOLLAR}
 LONELY_DOLLAR=\$
+DOUBLE_DOLLAR=\$\$
 LONG_TEMPLATE_ENTRY_START=\$\{
 
 IDENTIFIER_START_NO_DOLLAR={mLETTER}|"_"
@@ -421,18 +422,11 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 <QUO_STRING> \"                 { popState(); return emitToken( CLOSING_QUOTE); }
 <QUO_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
 
+<QUO_STRING> {DOUBLE_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {REGULAR_QUO_STRING_PART}     { return emitToken( REGULAR_STRING_PART); }
-<QUO_STRING> {SHORT_TEMPLATE_ENTRY}        {
-                                              return emitToken( REGULAR_STRING_PART);
-//                                                                  pushState(SHORT_TEMPLATE_ENTRY);
-//                                                                  yypushback(yylength() - 1);
-//                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
-                                                             }
+<QUO_STRING> {SHORT_TEMPLATE_ENTRY}        { return emitToken( REGULAR_STRING_PART); }
 
-<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   {
-                                              // pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START);
-                                              return emitToken( REGULAR_STRING_PART);
-                                              }
+<QUO_STRING> {LONG_TEMPLATE_ENTRY_START}   { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 
 // Support single quote strings: "'"
@@ -440,6 +434,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
 <APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
 <APOS_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
+<APOS_STRING> {DOUBLE_DOLLAR}              { return emitToken( REGULAR_STRING_PART); }
 
 <APOS_STRING> {REGULAR_APOS_STRING_PART}    { return emitToken( REGULAR_STRING_PART); }
 <APOS_STRING> {SHORT_TEMPLATE_ENTRY}        {

@@ -45,6 +45,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
@@ -1343,6 +1345,10 @@ class MethodBodyChecker {
 }
 
 class StringChecker {
+  // These patterns are designed to find likely string templates; they are not intended to be exhaustive.
+  private static Pattern shortTemplate = Pattern.compile("(\\$+)\\w+");
+  private static Pattern longTemplate = Pattern.compile("(\\$+)\\{.*}");
+
   public static void check(HaxeStringLiteralExpression psi, HaxeAnnotationHolder holder) {
     if (!STRING_INTERPOLATION_QUOTE_CHECK.isEnabled(psi)) return;
 
@@ -1355,8 +1361,19 @@ class StringChecker {
   }
 
   private static boolean isSingleQuotesRequired(HaxeStringLiteralExpression psi) {
-    return (psi.getLongTemplateEntryList().size() > 0 || psi.getShortTemplateEntryList().size() > 0) &&
-           psi.getFirstChild().textContains('"');
+    String text = psi.getText();
+    return text.startsWith("\"") && (templateMatches(text, shortTemplate)|| templateMatches(text, longTemplate));
+  }
+
+  private static boolean templateMatches(String text, Pattern p) {
+    // We need an odd number of dollar signs to avoid detecting escaped dollar signs as templates.
+    Matcher m = p.matcher(text);
+    while (m.find()) {
+      if (m.groupCount() == 1 && (m.end(1) - m.start(1)) % 2 != 0) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 
