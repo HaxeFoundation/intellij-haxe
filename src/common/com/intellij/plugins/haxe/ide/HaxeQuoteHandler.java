@@ -2,6 +2,7 @@
  * Copyright 2000-2013 JetBrains s.r.o.
  * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
+ * Copyright 2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +19,8 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.editorActions.SimpleTokenSetQuoteHandler;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.editor.highlighter.HighlighterIterator;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 
 /**
@@ -25,6 +28,33 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
  */
 public class HaxeQuoteHandler extends SimpleTokenSetQuoteHandler {
   public HaxeQuoteHandler() {
-    super(HaxeTokenTypes.OPEN_QUOTE);
+    super(HaxeTokenTypes.OPEN_QUOTE, HaxeTokenTypes.CLOSING_QUOTE);
+  }
+
+  @Override
+  public boolean isClosingQuote(HighlighterIterator iterator, int offset) {
+    return HaxeTokenTypes.CLOSING_QUOTE == iterator.getTokenType()
+        && offset == iterator.getEnd() - 1;
+  }
+
+  @Override
+  public boolean isOpeningQuote(HighlighterIterator iterator, int offset) {
+    return HaxeTokenTypes.OPEN_QUOTE == iterator.getTokenType()
+        && offset == iterator.getStart();
+  }
+
+  @Override
+  public boolean hasNonClosedLiteral(Editor editor, HighlighterIterator iterator, int offset) {
+    return super.hasNonClosedLiteral(editor, iterator, offset);
+  }
+
+  @Override
+  protected boolean isNonClosedLiteral(HighlighterIterator iterator, CharSequence chars) {
+    return super.isNonClosedLiteral(iterator, chars);
+  }
+
+  @Override
+  public boolean isInsideLiteral(HighlighterIterator iterator) {
+    return super.isInsideLiteral(iterator);
   }
 }
