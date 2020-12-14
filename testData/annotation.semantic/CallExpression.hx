@@ -31,15 +31,15 @@ class CallExpressionTest {
         oneArgs("String"); // CORRECT
         oneArgs(null); //CORRECT (String can be null)
         oneArgs(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>); // WRONG (incorrect argument type)
-        <error descr="Too many arguments (expected 1 but got 0)\"">oneArgs</error>(); // WRONG (Missing argument)
+        oneArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; // WRONG (Missing argument)
 
         optionalArgs("String"); // CORRECT (optional is not required)
         optionalArgs("String", 1); // CORRECT (optional can be set)
-        <error descr="Too many arguments (expected 1 but got 0)\"">optionalArgs</error>(); // WRONG (Missing first argument)
+        optionalArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; // WRONG (Missing first argument)
 
         defaultArgs("String"); // CORRECT (default is used)
         defaultArgs("String", "String2"); // CORRECT (default can be overriden)
-        <error descr="Too many arguments (expected 1 but got 0)\"">defaultArgs</error>(); // WRONG (Missing first argument)
+        defaultArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; // WRONG (Missing first argument)
 
         functionArgs("FunctionA", (myInt)->{return "String";}); // CORRECT
         functionArgs("FunctionA", (a:Int)->{return "String";}); // CORRECT
@@ -49,11 +49,11 @@ class CallExpressionTest {
 
         varArgs("Stirng1", "String2", "String3", "String4 "); //CORRECT
         varArgs("Stirng1"); //CORRECT ( when using varArg, arguments are optional)
-        <error descr="Too many arguments (expected 1 but got 0)\"">varArgs</error>(); //WRONG  normal arguments are still required
+        varArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; //WRONG  normal arguments are still required
 
         restArgs("Stirng1", "String2", "String3", "String4"); //CORRECT
         restArgs("Stirng1"); //CORRECT ( when using Rest, arguments are optional)
-        <error descr="Too many arguments (expected 1 but got 0)\"">restArgs</error>(); //WRONG  normal arguments are still required
+        restArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; //WRONG  normal arguments are still required
 
         classInheritArgs(new A()); // CORRECT
         classInheritArgs(new B() ); // CORRECT B extends A
