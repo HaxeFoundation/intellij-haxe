@@ -107,6 +107,26 @@ public class HaxeDocumentModel {
     replaceElementText(range, before + textToWrap + after, strip);
   }
 
+  public void rewrapElement(final PsiElement element, TextRange range,
+                            String newPrefix, String newSuffix,
+                            String stripPrefix, String stripSuffix) {
+    if (element == null) return;
+    if (null == newPrefix) newPrefix = "";
+    if (null == newSuffix) newSuffix = "";
+    if (null == stripPrefix) stripPrefix = "";
+    if (null == stripSuffix) stripSuffix = "";
+    if (null == range) range = element.getTextRange();
+
+    String text = range.subSequence(document.getCharsSequence()).toString();
+    if (!stripPrefix.isEmpty() && text.startsWith(stripPrefix)) {
+      text = text.substring(stripPrefix.length());
+    }
+    if (!stripSuffix.isEmpty() && text.endsWith(stripSuffix)) {
+      text = text.substring(0, text.length() - stripSuffix.length());
+    }
+    replaceElementText(range, newPrefix + text + newSuffix, StripSpaces.NONE);
+  }
+
   public void addTextBeforeElement(final PsiElement element, final String text) {
     if (element == null) return;
     TextRange range = element.getTextRange();

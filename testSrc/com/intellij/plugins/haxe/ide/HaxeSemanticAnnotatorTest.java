@@ -143,6 +143,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testOptionalFieldSyntax() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testOptionalWithInitWarning() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -636,11 +640,20 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testIsKeywordFor4_1() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
+
   public void testEnumHasEnumValueMembers() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
 
   public void testCallExpression() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+
+  public void testTypeParameterConstraints() throws Throwable {
+    doTestSkippingAnnotators(new HashSet<>());
+  }
+
+  public void testStringInterpolation() throws Throwable {
     doTestNoFixWithWarnings();
   }
 

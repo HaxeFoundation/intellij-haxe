@@ -97,7 +97,7 @@ class IsOperator extends Base {
         var incorrectUse6 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Unsupported type for ''is'' operator.">{var x:Int; var y:Int;}</error>  // 'Unsupported type for `is` operator.'
         var incorrectUse7 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Unsupported type for ''is'' operator.">{function iterator(){}}</error>  // 'Unsupported type for `is` operator.'
 
-        if (true) {"Some" + "thing";} else {"Nothing";} is String; // 4.2: characters 60-66 : Missing ;
+        if (true) {"Some" + "thing";} else {"Nothing";} is <error descr="'!', '%', '&&', '(', '->', '.', '...', ';', <<, <operation>, <operator>, '?', '[', is or '||' expected, got 'String'">String</error>; // 4.2: characters 60-66 : Missing ;
         try { var s; s = "else"; } catch (e) {} is String; // 4.2: characters 52-58 : Missing ;
         switch (ary[0]) { case _ => c: c; } is String; // 4.2:  characters 48-54 : Missing ;
 

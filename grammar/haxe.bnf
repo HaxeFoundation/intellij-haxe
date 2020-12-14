@@ -346,7 +346,7 @@ private enumConstructorParameters ::= parenthesizedParameterList
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier '?' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=3 extends=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName typeTag? varInit?
@@ -458,13 +458,16 @@ oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymou
 typeTag ::= ':' typeWrapper
 typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
 typeList ::= typeListPart (',' typeListPart)*
+haxe4typeList ::= typeListPart ('&' typeListPart)+
+{extends=typeList}
+
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= regularGenericListPart | constGenericListPart
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-private regularGenericListPart ::= componentName (':' ('(' typeList ')' | typeListPart))? {pin=2}
+private regularGenericListPart ::= componentName (':' ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart ))? {pin=2}
 // constGenericListPart is only available when the macroMember is '@:const' (constMeta).  It's only useful in macros.
 // We can't use constMeta here until the lexer returns a string for macros instead of META_ID.
-private constGenericListPart ::= constantExpression (':' ('(' typeList ')' | typeListPart))? {pin=2}
+private constGenericListPart ::= constantExpression (':' ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart ))? {pin=2}
 
 typeListPart ::= typeWrapper | literalExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
@@ -474,7 +477,7 @@ typeOrAnonymous ::= type | anonymousType
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
 blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
-private statementList ::= (statement ';'?)+ {recoverWhile="statement_recovery"}
+private statementList ::= (statement (<<semicolonUnlessPrecededByStatement>> statement)* ';'?) {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
 private statement ::= blockStatement | notBlockStatement
@@ -536,8 +539,12 @@ switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{' (switchCase | defaultCase)* '}'
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= 'case' switchCaseExpr (',' switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
-switchCaseExpr ::= (switchCaseExtractor | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
-switchCaseExtractor ::= expression '=>' switchCaseExpr {pin=2 extends="expression"}
+switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
+
+private switchCaseExtractorPure ::= expression '=>' switchCaseExpr {pin=2 extends="expression"}
+switchCaseExtractor ::= '('switchCaseExtractorPure')' | switchCaseExtractorPure  {extends="expression"}
+switchExtractorExpression ::= switchCaseExtractor (bitOperation switchCaseExtractor)* {extends="expression"}
+
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
 switchCaseCaptureVar ::= mutabilityModifier? componentName varInit? {extends="localVarDeclaration"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)
@@ -746,7 +753,7 @@ private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
 private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
 private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
 private extendedAnonymousTypeBody ::= typeExtendsList (',' anonymousTypeFieldList)? (sep anonymousInterfaceBodyList)?
-private anonymousInterfaceBodyList ::= (interfaceBodyPart | optionalFieldDeclaration)+  {recoverWhile="interface_body_part_recover"}
+private anonymousInterfaceBodyList ::= (optionalFieldDeclaration | interfaceBodyPart )+  {recoverWhile="interface_body_part_recover"}
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?
 typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 

@@ -132,4 +132,8 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testIsKeyword() throws Throwable {
     doTest(true);
   }
+
+  public void testStrings() throws Throwable {
+    doTest(true);
+  }
 }
