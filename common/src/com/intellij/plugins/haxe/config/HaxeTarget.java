@@ -33,6 +33,7 @@ public enum HaxeTarget {
   // Target     clFlag    Extension,  OutputDir,  OutputType              Description
 
   NEKO(         "neko",   ".n",       "neko",     OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.neko")),
+  HASHLINK(     "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl")),
   JAVA_SCRIPT(  "js",     ".js",      "js",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.js")),
   FLASH(        "swf",    ".swf",     "flash",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.swf")),
   CPP(          "cpp",    ".exe",     "cpp",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.cpp")),
