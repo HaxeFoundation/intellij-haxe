@@ -23,8 +23,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -47,6 +50,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -317,6 +321,10 @@ public class HaxeResolveUtil {
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
       List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
+      if (haxeClass.isEnum() && !haxeClass.isAbstract() && haxeClass.getContext() != null) {
+        //Enums should provide the same methods as EnumValue
+        baseClasses.add(HaxeEnumValueUtil.getEnumValueClass(haxeClass.getContext()).getHaxeClass());
+      }
       for (HaxeClass baseClass : baseClasses) {
         if (processed.add(baseClass)) {
           classes.add(baseClass);
@@ -350,6 +358,23 @@ public class HaxeResolveUtil {
       }
     });
     return result;
+  }
+
+  public static List<HaxeNamedComponent> getAllNamedSubComponentsFromClassType(HaxeClass haxeClass, HaxeComponentType... fromTypes) {
+    List<HaxeNamedComponent> components = getNamedSubComponents(haxeClass);
+    List<HaxeComponentType> types = Arrays.asList(fromTypes);
+
+    components.addAll(Stream.of(haxeClass.getSupers())
+                        .filter(superComponent -> types.contains(HaxeComponentType.typeOf(superComponent)))
+                        .map(superComponent -> getAllNamedSubComponentsFromClassType((HaxeClass)superComponent, fromTypes))
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()));
+
+    if (types.contains(HaxeComponentType.typeOf(haxeClass))) {
+      components.addAll(getNamedSubComponents(haxeClass));
+    }
+
+    return components;
   }
 
   /**
@@ -945,7 +970,15 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiElement searchInImports(HaxeFileModel file, String name) {
-    HaxeImportModel importModel = StreamUtil.reverse(file.getImportModels().stream())
+    PsiElement found = searchInSpecifiedImports(file, name);
+    if (null == found) found = searchInDirectoryImports(file, name);
+    return found;
+  }
+
+  @Nullable
+  public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
+
+    HaxeImportableModel importModel = StreamUtil.reverse(file.getOrderedImportAndUsingModels().stream())
       .filter(model -> {
         PsiElement exposedItem = model.exposeByName(name);
         return exposedItem != null;
@@ -956,6 +989,56 @@ public class HaxeResolveUtil {
       return importModel.exposeByName(name);
     }
     return null;
+  }
+
+  /**
+   * Searches for import.hx files between the file's directory and the source root,
+   * examining each for matches.
+   *
+   * @param file The file that has import statements to match.
+   * @param name The name of the Type that we are searching for.
+   * @return The PSI element for the Type, if found; null, otherwise.
+   */
+  @Nullable
+  private static PsiElement searchInDirectoryImports(HaxeFileModel file, String name) {
+
+    final PsiElement[] found = new PsiElement[1];
+    walkDirectoryImports(file, (importModel) -> {
+      found[0] = searchInSpecifiedImports(importModel, name);
+      return (null == found[0]);
+    });
+    return found[0];
+  }
+
+  /**
+   * Calls a function on all import.hx files from the current directory toward the source root.
+   * @param file the starting file
+   * @param processor the function to call; it returns false to stop early, true to keep going.
+   * @return the last value returned from processor; true if processor was never called.
+   */
+  public static boolean walkDirectoryImports(HaxeFileModel file, @NotNull java.util.function.Function<HaxeFileModel, Boolean> processor) {
+    if (null == file) return true;
+
+    final VirtualFile vfile = file.getFile().getVirtualFile();
+    if (null == vfile) return true; // In memory files
+
+    final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
+    final VirtualFile sourceRoot = fileIndex.getSourceRootForFile(vfile);
+    if (null == sourceRoot) return true;
+
+    boolean keepRunning = true;
+    HaxeFile haxeFile = file.getFile();
+    PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
+    final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
+    while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
+      PsiFile importFile = parentDirectory.findFile("import.hx");
+      if (importFile instanceof HaxeFile) {
+        HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
+        keepRunning = processor.apply(importModel);
+      }
+      parentDirectory = parentDirectory.getParentDirectory();
+    }
+    return keepRunning;
   }
 
   @Nullable

@@ -19,8 +19,46 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 public class HaxeStdPackageModel extends HaxePackageModel {
   private static final String STD_TYPES = "StdTypes";
+
+  final protected static HashMap<String, FullyQualifiedInfo[]> implicitSubpackageTypes = new HashMap<>();
+
+  static {
+    // This list comes from the Haxe compiler sources: typer.create (Typer.ml, 1902-ish).
+    // haxe.EnumWithType.valueTools isn't in any of Haxe 2.0.0, 2.10, 3.1.3, 3.4.7, or any 4.0 releases.
+    // implicitSubTypes.put("valueTools", new FullyQualifiedInfo[]{new FullyQualifiedInfo("haxe.EnumWithType.valueTools")});
+
+    implicitSubpackageTypes.put("EnumTools", new FullyQualifiedInfo[]{new FullyQualifiedInfo("haxe.EnumTools")});
+
+    // In some versions, these can be in separate files.
+    implicitSubpackageTypes.put("EnumValueTools",
+                                new FullyQualifiedInfo[]{
+                                  new FullyQualifiedInfo("haxe.EnumTools.EnumValueTools"),
+                                  new FullyQualifiedInfo("haxe.EnumValueTools")
+                                });
+
+    // Exception is loaded in the compiler. It warms the cache so that loading Exception doesn't run into other
+    // problems, but it's not put into the global usings.
+    // implicitSubTypes.put("Exception", new FullyQualifiedInfo[]{ new FullyQualifiedInfo("haxe.Exception")});
+  }
+
+  final protected static HashMap<String, FullyQualifiedInfo[]> globalUsings = new HashMap<>();
+
+  static {
+    globalUsings.put("EnumTools", new FullyQualifiedInfo[]{new FullyQualifiedInfo("haxe.EnumTools")});
+    globalUsings.put("EnumValueTools",
+                     new FullyQualifiedInfo[]{
+                       new FullyQualifiedInfo("haxe.EnumTools.EnumValueTools"),
+                       new FullyQualifiedInfo("haxe.EnumValueTools")
+                     });
+  }
+
+  private List<HaxeGlobalUsingModel> globalUsingModels = null;
 
   HaxeStdPackageModel(@NotNull HaxeSourceRootModel root) {
     super(root, "", null);
@@ -53,10 +91,52 @@ public class HaxeStdPackageModel extends HaxePackageModel {
     HaxeModel result = super.resolve(info);
 
     HaxeFileModel stdTypesModel = getStdFileModel();
-    if (result == null && stdTypesModel != null && info.packagePath.isEmpty() && this.path.isEmpty()) {
+    if (result == null && stdTypesModel != null && (info.packagePath == null || info.packagePath.isEmpty()) && this.path.isEmpty()) {
       result = stdTypesModel.resolve(new FullyQualifiedInfo("", null, info.fileName, info.memberName));
+    }
+    if (result == null) {
+      resolveGlobalSubpackage(info, implicitSubpackageTypes);
     }
 
     return result;
+  }
+
+  @Nullable
+  private HaxeModel resolveGlobalSubpackage(FullyQualifiedInfo info, HashMap<String, FullyQualifiedInfo[]> types) {
+    HaxeModel result = null;
+      FullyQualifiedInfo[] subpackages = types.get(info.memberName);
+    if (null != subpackages) {
+      for (FullyQualifiedInfo subpkg : subpackages) {
+        result = super.resolve(subpkg);
+        if (null != result) {
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  @Nullable
+  public HaxeGlobalUsingModel resolveGlobalUsings(FullyQualifiedInfo info) {
+    HaxeModel found = resolveGlobalSubpackage(info, globalUsings);
+    return null == found ? null : new HaxeGlobalUsingModel(found.getBasePsi());
+  }
+
+
+  @NotNull
+  public List<HaxeGlobalUsingModel> getGlobalUsings() {
+    if (null == globalUsingModels) {
+      List<HaxeGlobalUsingModel> modelList = new ArrayList<>();
+      for (FullyQualifiedInfo[] infoAry : globalUsings.values()) {
+        for (FullyQualifiedInfo info : infoAry) {
+          HaxeModel result = super.resolve(info);
+          if (null != result) {
+            modelList.add(new HaxeGlobalUsingModel(result.getBasePsi()));
+          }
+        }
+      }
+      globalUsingModels = modelList;
+    }
+    return globalUsingModels;
   }
 }

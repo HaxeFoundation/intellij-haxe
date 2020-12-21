@@ -1,6 +1,6 @@
 /*
  * Copyright 2018 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,11 +49,11 @@ public class HaxeExpressionUtil {
   }
 
   public static boolean isIncrementDecrementOperation(@Nullable PsiElement element) {
-    if (element instanceof HaxePrefixExpression) {
-      final IElementType operationType = HaxeExpressionUtil.getOperationType((HaxePrefixExpression)element);
+    if (element instanceof HaxePrefixExpression || element instanceof HaxePostfixExpression) {
+      final IElementType operationType = HaxeExpressionUtil.getOperationType((HaxeExpression)element);
       return HaxeTokenTypeSets.UNARY_READ_WRITE_OPERATORS.contains(operationType);
     }
-    else return element instanceof HaxeSuffixExpression;
+    return false;
   }
 
   public static boolean isOnAssignmentLeftHand(@NotNull HaxeExpression expr) {

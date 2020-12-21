@@ -95,6 +95,7 @@ public class HaxeClassReference {
     return clazz;
   }
 
+  @Nullable
   public String getName() {
     return this.name;
   }

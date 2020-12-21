@@ -32,21 +32,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HaxeUsingModel implements HaxeModel {
-  private final HaxeUsingStatement basePsi;
+public class HaxeUsingModel extends HaxeImportableModel {
 
   public HaxeUsingModel(@NotNull HaxeUsingStatement usingStatement) {
-    this.basePsi = usingStatement;
+    super(usingStatement);
+  }
+
+  protected HaxeUsingModel(@NotNull PsiElement basePsi) {
+    super(basePsi);
   }
 
   @Override
   public String getName() {
     return null;
-  }
-
-  @Override
-  public PsiElement getBasePsi() {
-    return basePsi;
   }
 
   @Nullable
@@ -55,13 +53,29 @@ public class HaxeUsingModel implements HaxeModel {
     return null;
   }
 
-  public FullyQualifiedInfo getQualifiedInfo() {
-    HaxeReferenceExpression referenceExpression = getReferenceExpression();
-    return referenceExpression == null ? null : new FullyQualifiedInfo(referenceExpression);
+  @Nullable
+  @Override
+  public HaxeReferenceExpression getReferenceExpression() {
+    PsiElement basePsi = getBasePsi();
+    if (basePsi instanceof HaxeUsingStatement) {
+      return ((HaxeUsingStatement)basePsi).getReferenceExpression();
+    }
+    return null;
   }
 
-  public HaxeReferenceExpression getReferenceExpression() {
-    return basePsi.getReferenceExpression();
+  @Nullable
+  @Override
+  public PsiElement exposeByName(String name) {
+    if (name == null || name.isEmpty()) return null;
+
+    if (getReferenceExpression() != null) {
+      HaxeModel member = getExposedMember(name);
+      if (member != null) {
+        return member.getBasePsi();
+      }
+    }
+
+    return null;
   }
 
   @Nullable

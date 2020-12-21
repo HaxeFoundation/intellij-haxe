@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2017 Ilya Malanin
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 public class FullyQualifiedInfo {
   public static final char PATH_SEPARATOR = '.';
@@ -50,7 +47,7 @@ public class FullyQualifiedInfo {
     this(referenceExpression != null ? referenceExpression.getText() : null);
   }
 
-  private FullyQualifiedInfo(ArrayList<String> parts) {
+  public FullyQualifiedInfo(List<String> parts) {
     StringBuilder packagePathBuilder = new StringBuilder();
 
     int i = 0;

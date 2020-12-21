@@ -125,7 +125,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('words')
                           HaxePsiToken:[('[')
-                          MULTIPLICATIVE_EXPRESSION
+                          MODULO_EXPRESSION
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('i')

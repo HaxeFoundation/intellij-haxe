@@ -103,6 +103,10 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     return compName != null ? PsiTreeUtil.getChildOfType(compName, HaxeIdentifier.class) : null;
   }
 
+  public boolean isOptional() {
+    return this instanceof  HaxeOptionalFieldDeclaration;
+  }
+
   @Nullable
   @Override
   public PsiDocComment getDocComment() {

@@ -55,25 +55,26 @@ Haxe File
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('0')
             HaxePsiToken:)(')')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('trace')
-                HaxePsiToken:(('(')
-                EXPRESSION_LIST
+            DO_WHILE_BODY
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                CALL_EXPRESSION
+                  REFERENCE_EXPRESSION
+                    IDENTIFIER
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
+                  EXPRESSION_LIST
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('i')
+                  HaxePsiToken:)(')')
+                HaxePsiToken:;(';')
+                PREFIX_EXPRESSION
+                  HaxePsiToken:--('--')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('i')
-                HaxePsiToken:)(')')
-              HaxePsiToken:;(';')
-              PREFIX_EXPRESSION
-                HaxePsiToken:--('--')
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('i')
-              HaxePsiToken:;(';')
-              HaxePsiToken:}('}')
+                HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')

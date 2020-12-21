@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -32,9 +33,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
+  private static final Key<String> CACHE_NAME_KEY = new Key<>("HAXE_CACHE_NAME_KEY");
   private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_KEY = new Key<>("HAXE_COMPATIBLE_TYPES");
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
@@ -172,6 +177,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
+        if(specific == null)  specific = getUnknown(context).createHolder();// null safety
         resolver.add(paramModel.getName(), specific);
       }
     }
@@ -213,6 +219,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeClassModel model = getHaxeClassModel();
 
     boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    validateCache(model, context);
+
     if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
       // This breaks for generic types.  The first check of the generic sets up
@@ -259,6 +267,21 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
   }
 
+  //TODO : in some strange cases the cache does not seem to be invalidated when a type changes for a field
+  // causing interface comparability to fail, this is a cheap workaround for thins problem that invalidates
+  // the cache if the type name changes.
+  private void validateCache(HaxeClassModel model, PsiElement context) {
+    if (model == null) return;
+    String name = model.getName();
+    String cacheName = this.context.getUserData(CACHE_NAME_KEY);
+    if(true || !name.equals(cacheName)) {
+      context.putUserData(COMPATIBLE_TYPES_KEY, null);
+      context.putUserData(INFER_TYPES_KEY, null);
+      context.putUserData(CACHE_NAME_KEY, name);
+    }
+  }
+
+
   private Set<SpecificHaxeClassReference> getCompatibleTypesInternal(Compatibility direction) {
     final Stack<HaxeClass> stack = processedElements.get();
     final HaxeClassModel model = getHaxeClassModel();
@@ -269,9 +292,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
-    list.addAll(getCompatibleMapTypes(model, genericResolver, direction));
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
-    list.addAll(getCompatibleEnumTypes(model, genericResolver));
     list.addAll(emptyCollectionAssignment(direction));
 
     if (!model.isAbstract()) {
@@ -289,13 +310,16 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           list.addAll(type.getCompatibleTypesInternal(direction));
         }
       }
-
-      final List<HaxeClassReferenceModel> interfaces = model.getImplementingInterfaces();
-      for (HaxeClassReferenceModel interfaceReference : interfaces) {
-        SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
-        if (type != null) {
-          list.add(type);
-          list.addAll(type.getCompatibleTypesInternal(direction));
+      // var myVar:MyClass can not be assigned any object with the same interface,
+      // but an interface can be assigned any object that implements it
+      if(direction == Compatibility.ASSIGNABLE_TO) {
+        final List<HaxeClassReferenceModel> interfaces = model.getImplementingInterfaces();
+        for (HaxeClassReferenceModel interfaceReference : interfaces) {
+          SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
+          if (type != null) {
+            list.add(type);
+            list.addAll(type.getCompatibleTypesInternal(direction));
+          }
         }
       }
     } else {
@@ -315,8 +339,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   private List<SpecificHaxeClassReference> emptyCollectionAssignment(Compatibility direction) {
     if (direction == Compatibility.ASSIGNABLE_TO && context instanceof HaxeArrayLiteral && null == ((HaxeArrayLiteral)context).getExpressionList()) {
-      ResultHolder unknownHolder = SpecificTypeReference.getUnknown(context).createHolder();
-      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolder, unknownHolder);
+      ResultHolder unknownHolderKey = SpecificTypeReference.getUnknown(context).createHolder();
+      ResultHolder unknownHolderValue = SpecificTypeReference.getDynamic(context).createHolder();
+      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue);
       return Collections.singletonList(holder);
     }
     return Collections.emptyList();
@@ -349,6 +374,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       return resolve instanceof HaxeClass;
     }
     return false;
+  }
+
+  public boolean isTypeDef() {
+    return clazz instanceof HaxeTypedefDeclaration;
+  }
+
+  public SpecificHaxeClassReference resolveTypeDef() {
+    if(isTypeDef()) {
+      SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getTargetClass(getGenericResolver());
+      if (type != null) return type;
+    }
+    return this;
   }
 
   public boolean isCoreType() {
@@ -535,12 +572,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @NotNull
-  HaxeClassReference getHaxeClassReference() {
+  public HaxeClassReference getHaxeClassReference() {
     return classReference;
   }
 
   @NotNull
-  ResultHolder[] getSpecifics() {
+  public ResultHolder[] getSpecifics() {
     return specifics;
   }
 

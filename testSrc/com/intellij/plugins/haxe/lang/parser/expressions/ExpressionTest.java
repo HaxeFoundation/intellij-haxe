@@ -128,4 +128,12 @@ public class ExpressionTest extends HaxeParsingTestBase {
     // github.com/HaxeFoundation/intellij-haxe/issues/81
     doTest(true);
   }
+
+  public void testIsKeyword() throws Throwable {
+    doTest(true);
+  }
+
+  public void testStrings() throws Throwable {
+    doTest(true);
+  }
 }

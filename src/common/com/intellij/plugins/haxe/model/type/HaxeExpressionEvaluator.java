@@ -78,8 +78,8 @@ public class HaxeExpressionEvaluator {
     catch (Throwable t) {
       // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
       LOG.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
+    return SpecificHaxeClassReference.getUnknown(element != null ? element : context.root).createHolder();
   }
 
   @NotNull
@@ -220,7 +220,8 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeWhileStatement) {
-      List<HaxeExpression> list = ((HaxeWhileStatement)element).getExpressionList();
+      HaxeDoWhileBody whileBody = ((HaxeWhileStatement)element).getBody();
+      List<HaxeExpression> list = null != whileBody ? whileBody.getExpressionList() : Collections.emptyList();
       SpecificTypeReference type = null;
       HaxeExpression lastExpression = null;
       for (HaxeExpression expression : list) {
@@ -399,7 +400,7 @@ public class HaxeExpressionEvaluator {
           if (reference != null) {
             PsiElement subelement = reference.resolve();
             if (subelement instanceof HaxeMethod) {
-              functionType = ((HaxeMethod)subelement).getModel().getFunctionType();
+              functionType = ((HaxeMethod)subelement).getModel().getFunctionType(resolver);
             }
           }
         }
@@ -604,7 +605,7 @@ public class HaxeExpressionEvaluator {
       final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeBaseMemberModel.fromPsi(element), HaxeMethodModel.class);
       final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod(resolver) : null;
       if (parentMethod != null) {
-        return parentMethod.getFunctionType().createHolder();
+        return parentMethod.getFunctionType(resolver).createHolder();
       }
       context.addError(element, "Calling super without parent constructor");
       return SpecificHaxeClassReference.getUnknown(element).createHolder();

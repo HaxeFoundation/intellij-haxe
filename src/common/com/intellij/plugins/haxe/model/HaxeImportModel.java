@@ -1,6 +1,6 @@
 /*
  * Copyright 2017-2018 Ilya Malanin
- * Copyright 2018-2019 Eric Bishton
+ * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,39 +28,35 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class HaxeImportModel implements HaxeExposableModel {
-  private final HaxeImportStatement basePsi;
-  private final CachedValuesManager cacheManager;
+public class HaxeImportModel extends HaxeImportableModel {
 
   public HaxeImportModel(@NotNull HaxeImportStatement importStatement) {
-    this.basePsi = importStatement;
-    this.cacheManager = CachedValuesManager.getManager(importStatement.getProject());
+    super(importStatement);
   }
 
   @NotNull
   @Override
-  public FullyQualifiedInfo getQualifiedInfo() {
-    HaxeReferenceExpression referenceExpression = getReferenceExpression();
-    return new FullyQualifiedInfo(referenceExpression);
+  public HaxeImportStatement getBasePsi() {
+    return (HaxeImportStatement)basePsi;
   }
 
   public boolean hasAlias() {
-    return basePsi.getAlias() != null;
+    return getBasePsi().getAlias() != null;
   }
 
   public boolean hasWildcard() {
-    return basePsi.getWildcard() != null;
+    return getBasePsi().getWildcard() != null;
   }
 
   @Nullable
   public String getAliasName() {
-    HaxeIdentifier alias = basePsi.getAlias();
+    HaxeIdentifier alias = getBasePsi().getAlias();
     if (alias == null) return null;
     return alias.getText();
   }
 
   public HaxeReferenceExpression getReferenceExpression() {
-    return basePsi.getReferenceExpression();
+    return getBasePsi().getReferenceExpression();
   }
 
   @NotNull
@@ -86,33 +80,10 @@ public class HaxeImportModel implements HaxeExposableModel {
       if (hasAlias() && qualifiedInfo.fileName != null && qualifiedInfo.className == null) {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
       }
-      result = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
-      if (result != null && !result.isEmpty()) {
-        HaxeModel firstItem = result.get(0);
-        if (firstItem instanceof HaxeFileModel || firstItem instanceof HaxePackageModel) {
-          result = ((HaxeExposableModel)firstItem).getExposedMembers();
-        }
-      }
+      result = super.getExposedMembersInternal();
     }
 
     return result != null ? exposeEnumValues(result) : Collections.emptyList();
-  }
-
-  @NotNull
-  @Override
-  public List<HaxeModel> getExposedMembers() {
-    List<HaxeModel> exposed = cacheManager.getCachedValue(getBasePsi(), () -> {
-      List<HaxeModel> exposedMembers = getExposedMembersInternal();
-      PsiElement [] dependencies = new PsiElement[exposedMembers.size() + 1];
-      int i = 0;
-      dependencies[i++] = getBasePsi();
-      for (HaxeModel xMember : exposedMembers) {
-        dependencies[i++] = xMember.getBasePsi();
-      }
-      return new CachedValueProvider.Result<>(exposedMembers, (Object[])dependencies);
-    });
-
-    return exposed;
   }
 
 
@@ -128,6 +99,7 @@ public class HaxeImportModel implements HaxeExposableModel {
     return result;
   }
 
+  @Override
   @Nullable
   public PsiElement exposeByName(String name) {
     if (name == null) return null;
@@ -154,7 +126,8 @@ public class HaxeImportModel implements HaxeExposableModel {
     return hasAlias() && Objects.equals(getAliasName(), name);
   }
 
-  private HaxeModel getExposedMember(String name) {
+  @Override
+  protected HaxeModel getExposedMember(String name) {
     List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
     if (hasAlias()) {
@@ -164,22 +137,6 @@ public class HaxeImportModel implements HaxeExposableModel {
       .filter(model -> name.equals(model.getName()))
       .findFirst()
       .orElse(null);
-  }
-
-  @Override
-  public String getName() {
-    return null;
-  }
-
-  @Override
-  public PsiElement getBasePsi() {
-    return this.basePsi;
-  }
-
-  @Nullable
-  @Override
-  public HaxeExposableModel getExhibitor() {
-    return null;
   }
 
   @Override

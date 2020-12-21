@@ -164,16 +164,17 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('$cond')
               HaxePsiToken:)(')')
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('trace')
-                HaxePsiToken:(('(')
-                EXPRESSION_LIST
+              DO_WHILE_BODY
+                CALL_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      HaxePsiToken:ID('$e')
-                HaxePsiToken:)(')')
+                      HaxePsiToken:ID('trace')
+                  HaxePsiToken:(('(')
+                  EXPRESSION_LIST
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('$e')
+                  HaxePsiToken:)(')')
               HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       PsiElement(EMBEDDED_META)
@@ -248,7 +249,7 @@ Haxe File
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('10')
               HaxePsiToken:,(',')
-              SUFFIX_EXPRESSION
+              POSTFIX_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('x')
@@ -432,7 +433,7 @@ Haxe File
                   HaxePsiToken:ID('name')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     PARENTHESIZED_EXPRESSION
@@ -557,7 +558,7 @@ Haxe File
                   HaxePsiToken:ID('value')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     PARENTHESIZED_EXPRESSION
@@ -680,7 +681,7 @@ Haxe File
                   HaxePsiToken:ID('match')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     PARENTHESIZED_EXPRESSION
@@ -804,7 +805,7 @@ Haxe File
                   HaxePsiToken:ID('match')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     PARENTHESIZED_EXPRESSION
@@ -902,7 +903,7 @@ Haxe File
                   HaxePsiToken:ID('s')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     PARENTHESIZED_EXPRESSION
@@ -1023,7 +1024,7 @@ Haxe File
                   HaxePsiToken:ID('s')
               VAR_INIT
                 HaxePsiToken:=('=')
-                PREFIX_EXPRESSION
+                VALUE_EXPRESSION
                   SWITCH_STATEMENT
                     HaxePsiToken:switch('switch')
                     ARRAY_LITERAL

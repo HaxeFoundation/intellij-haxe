@@ -59,4 +59,7 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  public void testEnumExtensions() {
+    doTest();
+  }
 }

@@ -135,13 +135,13 @@ Haxe File
                               HaxePsiToken:ID('j')
                         HaxePsiToken:=>('=>')
                         MULTIPLICATIVE_EXPRESSION
-                          SUFFIX_EXPRESSION
+                          POSTFIX_EXPRESSION
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('i')
                             HaxePsiToken:++('++')
                           HaxePsiToken:*('*')
-                          SUFFIX_EXPRESSION
+                          POSTFIX_EXPRESSION
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('j')

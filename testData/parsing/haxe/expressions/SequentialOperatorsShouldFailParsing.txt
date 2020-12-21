@@ -28,15 +28,16 @@ Haxe File
                   HaxePsiToken:ID('a')
               VAR_INIT
                 HaxePsiToken:=('=')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('1')
-              PsiErrorElement:'||' unexpected
-                HaxePsiToken:||('||')
-              HaxePsiToken:&&('&&')
-            PsiErrorElement:Missing semicolon.
-              <empty list>
-          LITERAL_EXPRESSION
-            HaxePsiToken:LITINT('2')
-          HaxePsiToken:;(';')
+                LOGIC_AND_EXPRESSION
+                  LOGIC_OR_EXPRESSION
+                    LITERAL_EXPRESSION
+                      HaxePsiToken:LITINT('1')
+                    HaxePsiToken:||('||')
+                    PsiErrorElement:<expression> expected, got '&&'
+                      <empty list>
+                  HaxePsiToken:&&('&&')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('2')
+            HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')

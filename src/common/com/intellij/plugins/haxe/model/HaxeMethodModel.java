@@ -130,7 +130,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return out;
   }
 
+  @Deprecated // Delete ASAP
   public SpecificFunctionReference getFunctionType() {
+    // WARNING: If your calling function is failing dealing with type parameters, then you need to call the version that takes a resolver.
     return getFunctionType(null);
   }
 

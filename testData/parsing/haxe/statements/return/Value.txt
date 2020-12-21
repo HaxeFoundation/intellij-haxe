@@ -41,7 +41,7 @@ Haxe File
               HaxePsiToken:if('if')
               HaxePsiToken:(('(')
               COMPARE_EXPRESSION
-                MULTIPLICATIVE_EXPRESSION
+                MODULO_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('x')

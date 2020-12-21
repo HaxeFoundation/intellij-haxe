@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.  (for portions copied from AnnotationHolderImpl.java)
- * Copyright 2019 Eric Bishton
+ * Copyright 2019-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class HaxeAnnotationHolder implements AnnotationHolder {
   private static final Key<HashMap<Integer, Annotation>> HAXE_ANNOTATION_KEY = new Key<>("HaxeAnnotationsKey");
   private final AnnotationHolderImpl myInternalHolder;
 
-  public HaxeAnnotationHolder(AnnotationHolder underlyingHolder) {
+  public HaxeAnnotationHolder(@NotNull AnnotationHolder underlyingHolder) {
     assert(underlyingHolder instanceof AnnotationHolderImpl || underlyingHolder instanceof HaxeAnnotationHolder);
     myInternalHolder = underlyingHolder instanceof HaxeAnnotationHolder
                         ? ((HaxeAnnotationHolder)underlyingHolder).myInternalHolder

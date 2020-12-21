@@ -81,7 +81,7 @@ public class CreateGetterSetterQuickfix extends BaseIntentionAction {
                 HaxeElementGenerator.createNamedSubComponentsFromText(project, builder.toString());
 
               PsiElement body = classModel.getBodyPsi();
-              PsiElement anchor = body.getLastChild();
+              PsiElement anchor = body.getLastChild().getPrevSibling();
 
               for (PsiElement element : elements) {
                 PsiElement newLine = createNewLine();

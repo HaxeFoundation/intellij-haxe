@@ -18,6 +18,7 @@ runIde.enabled = false
 patchPluginXml.enabled = false
 verifyPlugin.enabled = false
 prepareSandbox.enabled = false
+buildSearchableOptions.enabled = false
 
 sourceSets.main.java.srcDir "src"
 

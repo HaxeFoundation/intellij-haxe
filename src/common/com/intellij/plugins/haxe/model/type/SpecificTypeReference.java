@@ -19,10 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -219,23 +216,23 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isUnknown() {
-    return this.toStringWithoutConstant().equals(UNKNOWN);
+    return this.isNamedType(UNKNOWN);
   }
 
   final public boolean isDynamic() {
-    return this.toStringWithoutConstant().equals(DYNAMIC);
+    return this.isNamedType(DYNAMIC);
   }
 
   final public boolean isInvalid() {
-    return this.toStringWithoutConstant().equals(INVALID);
+    return this.isNamedType(INVALID);
   }
 
   final public boolean isVoid() {
-    return this.toStringWithoutConstant().equals(VOID);
+    return this.isNamedType(VOID);
   }
 
   final public boolean isInt() {
-    return this.toStringWithoutConstant().equals(INT);
+    return this.isNamedType(INT);
   }
 
   final public boolean isNumeric() {
@@ -243,15 +240,15 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isBool() {
-    return this.toStringWithoutConstant().equals(BOOL);
+    return this.isNamedType(BOOL);
   }
 
   final public boolean isFloat() {
-    return this.toStringWithoutConstant().equals(FLOAT);
+    return this.isNamedType(FLOAT);
   }
 
   final public boolean isString() {
-    return this.toStringWithoutConstant().equals(STRING);
+    return this.isNamedType(STRING);
   }
 
   final public boolean isArray() {
@@ -283,6 +280,16 @@ public abstract class SpecificTypeReference {
   final public boolean isEnumClass() {
     return isNamedType(ENUM);
   }
+  final public boolean isClass() {
+    return isNamedType(CLASS);
+  }
+  final public boolean isAbstract() {
+    if (this instanceof SpecificHaxeClassReference) {
+      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+      return reference.getHaxeClass() instanceof  HaxeAbstractClassDeclaration;
+    }
+    return false;
+  }
 
   final public boolean isEnumValue() {
     return (this instanceof SpecificEnumValueReference)
@@ -297,7 +304,8 @@ public abstract class SpecificTypeReference {
   private boolean isNamedType(String typeName) {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      return reference.getHaxeClassReference().getName().equals(typeName);
+      final String name = reference.getHaxeClassReference().getName();
+      return null != name && name.equals(typeName);
     }
     return false;
   }
@@ -394,7 +402,7 @@ public abstract class SpecificTypeReference {
   }
 
   @Nullable
-  private static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
+  public static HaxeClassModel getStdTypeModel(String name, PsiElement context) {
     return HaxeProjectModel.fromElement(context).getStdPackage().getClassModel(name);
   }
 

@@ -1,6 +1,6 @@
 package;
 
-class <info descr="null">AssignEnumValue</info> {
+class AssignEnumValue {
  	public function new() {
 
  		var ok1:EnumValue = MyEnum.FIRST;
@@ -11,7 +11,7 @@ class <info descr="null">AssignEnumValue</info> {
                 var ok4:EnumValue = getEnum();
 
  		var <error descr="Incompatible type: MyEnum should be EnumValue">wrong1:EnumValue = MyEnum</error>;
- 		var <error descr="Incompatible type: Bool should be EnumValue">wrong2:EnumValue = Enum<MyEnum<error descr="'>' unexpected">></error></error>;
+ 		var <error descr="Incompatible type: Bool should be EnumValue">wrong2:EnumValue = Enum<MyEnum></error><error descr="<expression> expected, got ';'">;</error>
  	}
 
  	public function getEnum():MyEnum {
