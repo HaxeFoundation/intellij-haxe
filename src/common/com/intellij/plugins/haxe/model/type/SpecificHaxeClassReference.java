@@ -395,6 +395,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     return this;
   }
+  public SpecificFunctionReference resolveTypeDefFunction() {
+    if(isTypeDef()) {
+      HaxeFunctionType type = ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getFunctionType();
+      HaxeSpecificFunction function = new HaxeSpecificFunction(type, getGenericResolver().getSpecialization(this.getElementContext()));
+      SpecificFunctionReference reference = SpecificFunctionReference.create(function);
+      if (reference != null) return reference;
+    }
+    return null;
+  }
 
   public boolean isCoreType() {
     HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());

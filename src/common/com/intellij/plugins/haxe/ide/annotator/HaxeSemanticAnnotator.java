@@ -222,7 +222,7 @@ class CallExpressionChecker {
 
       for (int i = 0; i < expressionArgList.size(); i++) {
         HaxeExpression expression = expressionArgList.get(i);
-        ResultHolder expressionType = findExpressionType(expression);
+
 
         //TODO add type check for haxe.extern.Rest arguments
 
@@ -235,6 +235,35 @@ class CallExpressionChecker {
 
         HaxeParameterModel parameterModel = parameters.get(parameterIndex);
         ResultHolder parameterType = parameterModel.getType(resolver);
+
+        ResultHolder expressionType = null;
+
+        if(expression instanceof  HaxeReferenceExpression) {
+            HaxeClassResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
+            if (resolveHaxeClass.getHaxeClass() instanceof HaxeSpecificFunction) {
+              SpecificHaxeClassReference parameterClassType = parameterType.getClassType();
+              if(parameterClassType != null) {
+                if (parameterClassType.isFunction()) {
+                  // parameter type `Function` accepts all functions
+                  continue;
+                } else {
+                  HaxeMethodDeclaration resolve = (HaxeMethodDeclaration)((HaxeReferenceExpression)expression).resolve();
+                  SpecificFunctionReference type = resolve.getModel().getFunctionType(null);
+                  expressionType = type.createHolder();
+
+                  // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
+                  if (parameterClassType.getHaxeClass().getModel().isTypedef()) {
+                    SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
+                    if (functionReference != null) {
+                      parameterType = functionReference.createHolder();
+                    }
+                  }
+                }
+              }
+          }
+        }
+
+        expressionType = expressionType != null ? expressionType :  findExpressionType(expression);
 
         // if expression is enumValue we need to resolve the underlying enumType type to test assignment
         if(expressionType.getType() instanceof SpecificEnumValueReference) {
