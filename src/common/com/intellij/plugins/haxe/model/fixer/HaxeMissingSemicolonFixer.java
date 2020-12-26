@@ -17,20 +17,45 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
+import com.intellij.codeInspection.util.IntentionName;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.quickfix.HaxeFixAndIntentionAction;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class HaxeMissingSemicolonFixer extends HaxeFixer {
-  private PsiElement element;
+public class HaxeMissingSemicolonFixer extends HaxeFixAndIntentionAction {
 
-  public HaxeMissingSemicolonFixer(PsiElement element) {
-    super(HaxeBundle.message("haxe.quickfix.missing.semi.colon"));
-    this.element = element;
+
+  public HaxeMissingSemicolonFixer(@Nullable PsiElement element) {
+    super(element);
+  }
+
+  @Nls
+  @NotNull
+  @Override
+  public String getFamilyName() {
+    return HaxeBundle.message("haxe.quickfix.missing.semi.colon");
   }
 
   @Override
-  public void run() {
-    HaxeDocumentModel.fromElement(element).addTextAfterElement(element, ";");
+  public void invoke(@NotNull Project project,
+                     @NotNull PsiFile file,
+                     @Nullable Editor editor,
+                     @NotNull PsiElement startElement,
+                     @NotNull PsiElement endElement) {
+
+    HaxeDocumentModel.fromElement(startElement).addTextAfterElement(startElement, ";");
+  }
+
+  @NotNull
+  @Override
+  public @IntentionName String getText() {
+    return HaxeBundle.message("haxe.quickfix.missing.semi.colon");
   }
 }
