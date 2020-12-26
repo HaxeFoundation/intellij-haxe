@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
-import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -55,7 +54,7 @@ public class HaxeMissingSemicolonFixer extends HaxeFixAndIntentionAction {
 
   @NotNull
   @Override
-  public @IntentionName String getText() {
+  public String getText() {
     return HaxeBundle.message("haxe.quickfix.missing.semi.colon");
   }
 }
