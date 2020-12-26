@@ -537,7 +537,7 @@ throwStatement ::= 'throw' expression ';'?
 
 // TODO: Allow multiple, comma delimited, expressions on switch statement.
 switchStatement ::= 'switch' expression switchBlock
-switchBlock ::= '{' (switchCase | defaultCase)* '}'
+switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= 'case' switchCaseExpr (',' switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
