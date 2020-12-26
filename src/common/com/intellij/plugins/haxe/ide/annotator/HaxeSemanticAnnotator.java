@@ -128,8 +128,10 @@ class CallExpressionChecker {
           expressionArgList.addAll(referenceParameterList.getExpressionList());
         }
 
-        int argCount = argumentList.size();
-        if (expressionArgList.size() < argCount) {
+        long minArgs = argumentList.stream().filter(argument -> argument.getOptionalMark() == null).count();
+        long maxArgs = argumentList.size();
+
+        if (expressionArgList.size() < minArgs) {
           TextRange range;
           if(expressionArgList.size()  == 0 ) {
             PsiElement first = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(expr.getExpression());
@@ -139,19 +141,19 @@ class CallExpressionChecker {
           }else {
             range = referenceParameterList.getTextRange();
           }
-          String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", argCount, expressionArgList.size());
+          String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", minArgs, expressionArgList.size());
           holder.createErrorAnnotation(range, message);
           return;
         }
 
-        if (expressionArgList.size() > argCount) {
-          String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", argCount, expressionArgList.size());
+        if (expressionArgList.size() > maxArgs) {
+          String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgs, expressionArgList.size());
           holder.createErrorAnnotation(referenceParameterList.getTextRange(), message);
           return;
         }
 
 
-
+        //TODO handle required after optionals
         for (int i = 0; i < expressionArgList.size(); i++) {
           HaxeExpression expression = expressionArgList.get(i);
           ResultHolder expressionType = findExpressionType(expression);
@@ -220,6 +222,7 @@ class CallExpressionChecker {
         resolver = specialization.toGenericResolver(expr);
       }
 
+      //TODO handle required after optionals
       for (int i = 0; i < expressionArgList.size(); i++) {
         HaxeExpression expression = expressionArgList.get(i);
 
