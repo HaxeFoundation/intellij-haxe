@@ -133,7 +133,7 @@ public class HaxeTypeCompatible {
         return false;
       }
       for (int n = 0; n < toArgSize; n++) {
-        if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
+        if (!to.arguments.get(n).canAssignToFrom(from.arguments.get(n))) return false;
       }
     }
     // Void return on the to just means that the value isn't used/cared about. See
