@@ -29,6 +29,8 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+
 public abstract class SpecificTypeReference {
   public static final String VOID = "Void";
   public static final String BOOL = "Bool";
@@ -62,20 +64,18 @@ public abstract class SpecificTypeReference {
     this.context = context;
   }
 
-  public static SpecificTypeReference createArray(@NotNull ResultHolder elementType) {
-    final PsiElement context = elementType.getElementContext();
+  public static SpecificTypeReference createArray(@NotNull ResultHolder elementType, PsiElement context) {
     final HaxeClassReference classReference = getStdClassReference(ARRAY, context);
     return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{elementType}, null);
   }
 
-  public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType) {
+  public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType, final PsiElement context) {
     // The code for this function *should* be 'return getExpectedMapType(keyType, valueType);'.  It is not; because the compiler
     // doesn't *really* map to the other types, though it is documented as such.  A 'trace' of an inferred type *will* output
     // the expected target map type (StringMap, IntMap, etc.).  However, with any map of an inferred target type,
     // the compiler still allows array access; it doesn't when the map type is specified.  So, to remain compatible,
     // we have to leave them as Map objects internally and just allow assignment.
 
-    final PsiElement context = keyType.getElementContext();
     final ResultHolder[] generics = new ResultHolder[]{keyType, valueType};
     return getStdClass(MAP, context, generics);
   }
@@ -409,5 +409,12 @@ public abstract class SpecificTypeReference {
   @NotNull
   private static HaxeClassReference getUnknownClassReference(@NotNull PsiElement context) {
     return new HaxeClassReference(HaxeClass.createUnknownClass(context.getNode()).getModel(), context);
+  }
+
+  public boolean isLiteralArray() {
+    return (isArray() && context instanceof HaxeArrayLiteral);
+  }
+  public boolean isLiteralMap() {
+    return ( isMap() &&  context instanceof  HaxeMapLiteral);
   }
 }

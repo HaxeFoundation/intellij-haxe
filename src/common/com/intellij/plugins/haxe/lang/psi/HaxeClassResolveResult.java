@@ -365,6 +365,12 @@ public class HaxeClassResolveResult implements Cloneable {
       final PsiElement specializedType = typeList.get(i);
 
       if (genericParamName == null) continue;
+
+      // HACK to avoid resolving Dynamic<Dynamic> when expected value is just Dynamic
+      //quote from docs: "Dynamic is a special type because it allows explicit declaration with and without a type parameter."
+      // current implementation would see that Dynamic<T> has a type parameter
+      if(specializedType!= null && "Dynamic".equals(specializedType.getText())) continue;
+
       final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       specialization.put(haxeClass, genericParamName, specializedTypeResult);
     }

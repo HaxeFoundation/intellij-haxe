@@ -652,4 +652,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testStringInterpolation() throws Throwable {
     doTestNoFixWithWarnings();
   }
+
+  public void testLiteralCollectionArguments() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 }

@@ -509,7 +509,7 @@ public class HaxeExpressionEvaluator {
       ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, element).withoutConstantValue().createHolder();
       ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, element).withoutConstantValue().createHolder();
 
-      SpecificTypeReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder);
+      SpecificTypeReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, element);
       ResultHolder holder = result.createHolder();
       return holder;
     } // end HaxeMapLiteral
@@ -523,7 +523,7 @@ public class HaxeExpressionEvaluator {
         if (list1.isEmpty()) {
           final PsiElement child = list.getFirstChild();
           if ((child instanceof HaxeForStatement) || (child instanceof HaxeWhileStatement)) {
-            return SpecificTypeReference.createArray(handle(child, context, resolver)).createHolder();
+            return SpecificTypeReference.createArray(handle(child, context, resolver), element).createHolder();
           }
         }
       }
@@ -547,7 +547,7 @@ public class HaxeExpressionEvaluator {
                                        ? SpecificTypeReference.getUnknown(element).createHolder()
                                        : HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
 
-      SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder);
+      SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder, element);
       if (allConstants) result = result.withConstantValue(constants);
       ResultHolder holder = result.createHolder();
       return holder;

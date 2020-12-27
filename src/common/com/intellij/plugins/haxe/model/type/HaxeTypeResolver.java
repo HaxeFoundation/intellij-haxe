@@ -34,10 +34,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HaxeTypeResolver {
   @NotNull
@@ -408,10 +405,33 @@ public class HaxeTypeResolver {
         references.add(partResult);
       }
     } else if (null != resolvedHaxeClass) {
-      // A bare type declaration uses the default types.
-      // TODO: Add types with constraints, if known, or "unknown" for all declared paratmers here.
+
+      PsiElement resolved = expression.resolve();
+      if(resolved instanceof  HaxeGenericListPart) {
+        HaxeTypeListPart genericListPart = ((HaxeGenericListPart)resolved).getTypeListPart();
+        if (genericListPart != null) {
+          HaxeTypeOrAnonymous currentType = genericListPart.getTypeOrAnonymous();
+          if (currentType != null) {
+            // currentHaxeType should be the same as class/type as resolvedHaxeClass
+            HaxeType currentHaxeType = genericListPart.getTypeOrAnonymous().getType();
+            if(currentHaxeType != null) {
+              HaxeTypeParam typeParams = currentHaxeType.getTypeParam();
+              HaxeTypeList typeList = typeParams.getTypeList();
+              for( HaxeTypeListPart genericParameter : typeList.getTypeListPartList()) {
+                HaxeTypeOrAnonymous genericType = genericParameter.getTypeOrAnonymous();
+                HaxeFunctionType genericFunctionType = genericParameter.getFunctionType();
+                if(genericType != null) {
+                  ResultHolder anonymous = getTypeFromTypeOrAnonymous(genericType);
+                  references.add(anonymous);
+                }else if(genericFunctionType != null) {
+                  // TODO handle function types if necessary (not sure if this block will ever be reached)
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    //type.getTypeParam();
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
   }
 
