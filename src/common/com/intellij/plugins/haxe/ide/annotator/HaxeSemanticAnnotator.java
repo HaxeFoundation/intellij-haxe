@@ -842,22 +842,16 @@ class TypeChecker {
     }
   }
 
-  static private int countTypeParameters(HaxeType type) {
-    HaxeTypeParam param = type.getTypeParam();
-    if(param == null) return 0;
-    return param.getTypeList().getTypeListPartList().size();
-  }
   static private int countTypeParameters(SpecificHaxeClassReference reference) {
     return (int)Stream.of(reference.getSpecifics()).filter(holder -> !holder.isUnknown()).count();
-    //HaxeGenericParam param = haxeClass.getGenericParam();
-    //if(param == null) return 0;
-    //return param.getGenericListPartList().size();
   }
+
   static private int countTypeParameters(HaxeClass haxeClass) {
     HaxeGenericParam param = haxeClass.getGenericParam();
     if(param == null) return 0;
     return param.getGenericListPartList().size();
   }
+
   private static String getTypeName(PsiIdentifier identifier) {
     return identifier.getText();
   }
