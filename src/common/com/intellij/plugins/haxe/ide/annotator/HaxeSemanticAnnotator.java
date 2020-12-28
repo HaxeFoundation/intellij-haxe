@@ -250,15 +250,18 @@ class CallExpressionChecker {
                   // parameter type `Function` accepts all functions
                   continue;
                 } else {
-                  HaxeMethodDeclaration resolve = (HaxeMethodDeclaration)((HaxeReferenceExpression)expression).resolve();
-                  SpecificFunctionReference type = resolve.getModel().getFunctionType(null);
-                  expressionType = type.createHolder();
+                  PsiElement resolvedExpression = ((HaxeReferenceExpression)expression).resolve();
+                  if (resolvedExpression instanceof HaxeMethodDeclaration) {
+                    HaxeMethodDeclaration resolve = (HaxeMethodDeclaration)resolvedExpression;
+                    SpecificFunctionReference type = resolve.getModel().getFunctionType(null);
+                    expressionType = type.createHolder();
 
-                  // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
-                  if (parameterClassType.getHaxeClass().getModel().isTypedef()) {
-                    SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
-                    if (functionReference != null) {
-                      parameterType = functionReference.createHolder();
+                    // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
+                    if (parameterClassType.getHaxeClass().getModel().isTypedef()) {
+                      SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
+                      if (functionReference != null) {
+                        parameterType = functionReference.createHolder();
+                      }
                     }
                   }
                 }
