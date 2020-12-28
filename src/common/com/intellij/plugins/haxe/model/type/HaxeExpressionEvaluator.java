@@ -846,7 +846,7 @@ public class HaxeExpressionEvaluator {
 
 
     LOG.debug("Unhandled " + element.getClass());
-    return SpecificHaxeClassReference.getDynamic(element).createHolder();
+    return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
   static private void checkParameters(

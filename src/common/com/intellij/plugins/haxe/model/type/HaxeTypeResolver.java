@@ -406,31 +406,9 @@ public class HaxeTypeResolver {
       }
     } else if (null != resolvedHaxeClass) {
 
-      PsiElement resolved = expression.resolve();
-      if(resolved instanceof  HaxeGenericListPart) {
-        HaxeTypeListPart genericListPart = ((HaxeGenericListPart)resolved).getTypeListPart();
-        if (genericListPart != null) {
-          HaxeTypeOrAnonymous currentType = genericListPart.getTypeOrAnonymous();
-          if (currentType != null) {
-            // currentHaxeType should be the same as class/type as resolvedHaxeClass
-            HaxeType currentHaxeType = genericListPart.getTypeOrAnonymous().getType();
-            if(currentHaxeType != null) {
-              HaxeTypeParam typeParams = currentHaxeType.getTypeParam();
-              HaxeTypeList typeList = typeParams.getTypeList();
-              for( HaxeTypeListPart genericParameter : typeList.getTypeListPartList()) {
-                HaxeTypeOrAnonymous genericType = genericParameter.getTypeOrAnonymous();
-                HaxeFunctionType genericFunctionType = genericParameter.getFunctionType();
-                if(genericType != null) {
-                  ResultHolder anonymous = getTypeFromTypeOrAnonymous(genericType);
-                  references.add(anonymous);
-                }else if(genericFunctionType != null) {
-                  // TODO handle function types if necessary (not sure if this block will ever be reached)
-                }
-              }
-            }
-          }
-        }
-      }
+        ResultHolder[] specifics = expression.resolveHaxeClass().getGenericResolver().getSpecificsFor(resolvedHaxeClass);
+        Collections.addAll(references, specifics);
+
     }
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
   }

@@ -143,7 +143,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
       out.append(">");
     }
-    return out.toString();
+    String result = out.toString();
+    if(result.equals("Dynamic<Dynamic>")) return "Dynamic";
+    if(result.equals("Dynamic<unknown>")) return "Dynamic";
+    return result;
   }
 
   public String toStringWithoutConstant() {
