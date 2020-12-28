@@ -63,6 +63,10 @@ public class ResultHolder {
     return (type instanceof SpecificHaxeClassReference);
   }
 
+  public boolean isEnumValueType() {
+    return (type instanceof SpecificEnumValueReference);
+  }
+
   public boolean isUnknown() {
     return type.isUnknown();
   }

@@ -331,7 +331,7 @@ public class HaxeTypeResolver {
     return argumentName;
   }
 
-  private static ResultHolder getTypeFromFunctionArgument(HaxeFunctionArgument argument) {
+  public static ResultHolder getTypeFromFunctionArgument(HaxeFunctionArgument argument) {
     if (argument.getFunctionType() != null) {
       return getTypeFromFunctionType(argument.getFunctionType());
     } else if (argument.getTypeOrAnonymous() != null) {
