@@ -53,7 +53,14 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
-    return ref instanceof SpecificFunctionReference || ref.isFunction();
+    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref);
+  }
+  static private boolean isTypeDefFunction(SpecificTypeReference ref ) {
+    if (ref instanceof  SpecificHaxeClassReference) {
+      SpecificHaxeClassReference classReference = (SpecificHaxeClassReference) ref;
+      return classReference.isTypeDefOfFunction();
+    }
+    return false;
   }
 
   static private SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
@@ -68,6 +75,10 @@ public class HaxeTypeCompatible {
       }
       // The Function class unifies with (can be assigned to by) any function.
       return new SpecificFunctionReference.StdFunctionReference(ref.getElementContext());
+    }
+    if (isTypeDefFunction(ref)) {
+        SpecificHaxeClassReference classReference = (SpecificHaxeClassReference) ref;
+        if(classReference.isTypeDefOfFunction())  return classReference.resolveTypeDefFunction();
     }
     return null;  // XXX: Should throw exception instead??
   }
@@ -133,7 +144,7 @@ public class HaxeTypeCompatible {
         return false;
       }
       for (int n = 0; n < toArgSize; n++) {
-        if (!to.arguments.get(n).canAssign(from.arguments.get(n))) return false;
+        if (!to.arguments.get(n).canAssignToFrom(from.arguments.get(n))) return false;
       }
     }
     // Void return on the to just means that the value isn't used/cared about. See
@@ -143,7 +154,7 @@ public class HaxeTypeCompatible {
 
 
 
-  static private SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
+  static public SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
     if (ref.isAbstract() && "Null".equals(ref.getClassName())) {
       SpecificHaxeClassReference underlying = ref.getHaxeClassModel().getUnderlyingClassReference(ref.getGenericResolver());
       if (null != underlying) {
@@ -174,8 +185,9 @@ public class HaxeTypeCompatible {
 
     // getting underlying type  makes it easier to determine behaviors like
     // Implicit cast for Abstracts etc.
-    to = getUnderlyingClassIfTypeDef(to);
-    from = getUnderlyingClassIfTypeDef(from);
+
+    if(to.isTypeDefOfClass())to = to.resolveTypeDefClass();
+    if(from.isTypeDefOfClass())from = from.resolveTypeDefClass();
 
     // check if type is one of the core types that needs custom logic
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
@@ -211,11 +223,6 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
-  }
-
-  @NotNull
-  private static SpecificHaxeClassReference getUnderlyingClassIfTypeDef(@NotNull SpecificHaxeClassReference reference) {
-    return reference.isTypeDef() ? reference.resolveTypeDef() : reference;
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {

@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,11 +68,32 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this(arguments, returnValue, method, context, null);
   }
 
+  private static SpecificFunctionReference createFromMethodModel(HaxeMethodModel model) {
+    LinkedList<Argument> args = new LinkedList<>();
+    List<HaxeParameterModel> parameters = model.getParameters();
+    if (parameters.size() == 0) {
+      SpecificTypeReference voidArg = SpecificTypeReference.getVoid((model.getMethodPsi()));
+      args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+    } else {
+      for (int i = 0; i < parameters.size(); i++) {
+        HaxeParameterModel parameterModel = parameters.get(i);
+        args.add(new Argument(i, parameterModel.isOptional(), parameterModel.getResultType(), parameterModel.getName()));
+      }
+    }
+    return new SpecificFunctionReference(args, model.getReturnType(null), null, model.getMethodPsi());
+  }
+
   // This is an adapter to deal with the function-type mismatch between the old resolver
   // and the models.
   // TODO: Technical debt: Need to unify the resolver and the models.
   public static SpecificFunctionReference create(HaxeSpecificFunction func) {
     if (null == func) return null;
+
+    // this is a workaround for missing optional support (fn(arg = null))
+    // this problem might go away when the todo on this method is solved?
+    if (func.getMethod() != null && func.getMethod() instanceof  HaxeMethodDeclaration) {
+      return createFromMethodModel(func.getMethod().getModel());
+    }
 
     HaxeGenericSpecialization specialization = func.getSpecialization();
     HaxeGenericResolver resolver = specialization.toGenericResolver(func);
@@ -251,8 +273,10 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       return type.getType().isInvalid();
     }
 
-    public boolean canAssign(Argument argument) {
-      return this.isOptional() == argument.isOptional() && type.canAssign(argument.type);
+    public boolean canAssignToFrom(Argument argument) {
+      // TO can accept optional but not the other way around.
+      // if TO has optional argument and  FROM does not then the assignment should fail.
+      return (argument.isOptional() || this.isOptional() == argument.isOptional()) && type.canAssign(argument.type);
     }
   }
 }

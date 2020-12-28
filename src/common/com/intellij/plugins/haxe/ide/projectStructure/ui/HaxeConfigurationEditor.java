@@ -489,7 +489,9 @@ public class HaxeConfigurationEditor {
     final String url = myExtension.getCompilerOutputUrl();
     final String urlCandidate = VfsUtil.pathToUrl(myFolderTextField.getText());
 
-    if (!urlCandidate.equals(url)) {
+    // IMPORTANT!: do not save if only "file://"
+    // The virtual file system can resolve this (usually to workDir) and can cause a lot of damage when  a clean task is executed.
+    if (!urlCandidate.equals(url) && !urlCandidate.equalsIgnoreCase("file://")) {
       myExtension.setCompilerOutputPath(urlCandidate);
       myExtension.commit();
     }
