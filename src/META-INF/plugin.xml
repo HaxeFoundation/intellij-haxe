@@ -85,6 +85,7 @@
   <![CDATA[
       <p>Unreleased changes</p>
       <ul>
+        <li>improved block-statement parsing and added quickfix for missing semicolon</li>
         <li>Add support for import.hx</li>
         <li>Recognize and use static extensions having unifiable (assignable) types. (Issue #964)</li>
         <li>Add support for 'is' keyword.</li>
@@ -1114,6 +1115,8 @@
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
     <targetElementEvaluator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeTargetElementEvaluator"/>
+
+    <errorQuickFixProvider implementation="com.intellij.plugins.haxe.ide.annotator.MissingSemicolonQuickFixProvider"/>
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>

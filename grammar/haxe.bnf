@@ -477,7 +477,8 @@ typeOrAnonymous ::= type | anonymousType
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
 blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
-private statementList ::= (statement (<<semicolonUnlessPrecededByStatement>> statement)* ';'?) {recoverWhile="statement_recovery"}
+private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededByStatement>> statementWithOptionalSemicolon? {pin=1}
+private statementList ::= (statementWithOptionalSemicolon ';'?) {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
 private statement ::= blockStatement | notBlockStatement
@@ -536,7 +537,7 @@ throwStatement ::= 'throw' expression ';'?
 
 // TODO: Allow multiple, comma delimited, expressions on switch statement.
 switchStatement ::= 'switch' expression switchBlock
-switchBlock ::= '{' (switchCase | defaultCase)* '}'
+switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
 switchCase ::= 'case' switchCaseExpr (',' switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
