@@ -275,10 +275,14 @@ public class HaxeTypeCompatible {
             SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
 
             if(toSpecific != null && !toSpecific.isCoreType()) {
-                toSpecific = wrapType(toHolder, to.context, toSpecific.isEnumType());
+              SpecificHaxeClassReference specific = wrapType(toHolder, to.context, toSpecific.isEnumType());
+              // recursive protection
+              if(referencesAreDifferent(to, specific)) toSpecific = specific;
             }
             if(fromSpecific != null && !fromSpecific.isCoreType()) {
-                fromSpecific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
+              SpecificHaxeClassReference specific = wrapType(fromHolder, from.context, fromSpecific.isEnumType());
+              // recursive protection
+              if(referencesAreDifferent(from, specific)) fromSpecific = specific;
             }
 
             if (!canAssignToFrom(toSpecific, fromSpecific)) {
@@ -301,6 +305,11 @@ public class HaxeTypeCompatible {
       }
     }
     return false;
+  }
+
+  //used to help prevent stack overflows in canAssignToFromSpecificType
+  private static boolean referencesAreDifferent(@NotNull SpecificHaxeClassReference first, @NotNull SpecificHaxeClassReference second) {
+    return !first.toPresentationString().equalsIgnoreCase(second.toPresentationString());
   }
 
   @NotNull
