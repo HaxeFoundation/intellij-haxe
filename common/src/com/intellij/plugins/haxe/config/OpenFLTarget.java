@@ -46,7 +46,7 @@ public enum OpenFLTarget {
   FLASH("Flash", HaxeTarget.FLASH, "flash"),
   HTML5("HTML5", HaxeTarget.JAVA_SCRIPT, "html5"),
   NEKO("Neko", HaxeTarget.NEKO, "neko"),
-  HASHLINK("HashLink", HaxeTarget.HASHLINK, "hl"),
+  HL("HashLink", HaxeTarget.HL, "hl"),
   TIZEN("Tizen", HaxeTarget.CPP, "tizen"),
   EMSCRIPTEN("Emscripten", HaxeTarget.CPP, "emscripten"),
   AIR("Adobe AIR", HaxeTarget.FLASH, "air");

@@ -85,7 +85,7 @@
   <![CDATA[
       <p>Unreleased changes</p>
       <ul>
-        <li>Add HashLink target.hx</li>
+        <li>Add HashLink target</li>
         <li>Add support for import.hx</li>
         <li>Recognize and use static extensions having unifiable (assignable) types. (Issue #964)</li>
         <li>Add support for 'is' keyword.</li>
