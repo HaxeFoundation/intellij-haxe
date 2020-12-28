@@ -215,16 +215,20 @@ public class HaxeTypeCompatible {
     return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    ResultHolder[] specificsTo = to.getSpecifics();
+    ResultHolder[] specificsFrom = from.getSpecifics();
+
     if(to.getHaxeClass().equals(from.getHaxeClass())) {
       //Class type can only have 1 Spesific (Class<T>) so we only check the first one
-      HaxeClassReference toReference = to.getSpecifics().length > 0  ? to.getSpecifics()[0].getClassType().getHaxeClassReference() : null;
-      HaxeClassReference fromReference = from.getSpecifics().length > 0  ? from.getSpecifics()[0].getClassType().getHaxeClassReference() : null;
+      HaxeClassReference toReference = specificsTo.length > 0 ? specificsTo[0].getClassType().getHaxeClassReference() : null;
+      HaxeClassReference fromReference = specificsFrom.length > 0 ? specificsFrom[0].getClassType().getHaxeClassReference() : null;
       if(toReference != null && fromReference != null)
       if (toReference.refersToSameClass(fromReference)) return true;
     }
 
     if(!from.isContextAType() || from.isContextAnEnumType()) return false;
-    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
+    if(specificsTo.length == 0) return false;
+    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(specificsTo[0].getClassType());
     // The compiler does not accept types to be assigned to Class<Any> without being casted
     // This is probably due to the abstract implicit cast methods only accepting and returning instances.
     if(typeParameter.isAny() && !from.isAny()) return false;
