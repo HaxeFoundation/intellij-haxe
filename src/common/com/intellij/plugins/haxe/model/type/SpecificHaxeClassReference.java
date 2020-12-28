@@ -50,7 +50,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @Nullable private SpecificFunctionReference typeDefFunction;
   @Nullable private SpecificHaxeClassReference typeDefClass;
 
-  private HaxeClass clazz;
+  @Nullable private HaxeClass clazz;
 
   public SpecificHaxeClassReference(
     @NotNull HaxeClassReference classReference,
@@ -82,6 +82,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new SpecificHaxeClassReference(clazz, specifics, constantValue, null, clazz.elementContext);
   }
 
+  @Nullable
   public HaxeClass getHaxeClass() {
     if(clazz == null || !clazz.isValid()) {
       clazz = this.getHaxeClassReference().getHaxeClass();

@@ -47,6 +47,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
@@ -78,6 +79,10 @@ public class HaxeSemanticAnnotator implements Annotator, HighlightRangeExtension
   }
 
   private static void analyzeSingle(final PsiElement element, HaxeAnnotationHolder holder) {
+    // skip a lot of if else on tokens that are not haxe related (whitespace etc)
+    if (!(element instanceof HaxePsiCompositeElement))
+      return;
+
     if (element instanceof HaxePackageStatement) {
       PackageChecker.check((HaxePackageStatement)element, holder);
     } else if (element instanceof HaxeMethod) {
@@ -793,14 +798,15 @@ class FieldChecker {
 
 class TypeChecker {
   static public void check(final HaxeType type, final HaxeAnnotationHolder holder) {
-    check(type.getReferenceExpression().getIdentifier(), holder);
+    checkValidClassName(type.getReferenceExpression().getIdentifier(), holder);
+    checkValidTypeParameters(type, holder);
   }
 
-  static public void check(final PsiIdentifier identifier, final HaxeAnnotationHolder holder) {
+  static public void checkValidClassName(final PsiIdentifier identifier, final HaxeAnnotationHolder holder) {
     if (identifier == null) return;
     if (!INVALID_TYPE_NAME.isEnabled(identifier)) return;
 
-    final String typeName = identifier.getText();
+    final String typeName = getTypeName(identifier);
     if (!HaxeClassModel.isValidClassName(typeName)) {
       Annotation annotation = holder.createErrorAnnotation(identifier, "Type name must start by upper case");
       annotation.registerFix(new HaxeFixer("Change name") {
@@ -814,6 +820,48 @@ class TypeChecker {
       });
     }
   }
+  static public void checkValidTypeParameters(final HaxeType type, final HaxeAnnotationHolder holder) {
+    if(type.getContext() != null && type.getContext().getParent() instanceof HaxeTypeTag) {
+      SpecificHaxeClassReference haxeClassReference = HaxeTypeResolver.getTypeFromType(type).getClassType();
+
+      if (haxeClassReference != null ) {
+        HaxeClass haxeClass = haxeClassReference.getHaxeClass();
+        if(haxeClass != null) {
+          // Dynamic is special and does not require Type parameter to de specified
+          if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
+
+          int typeParameterCount = countTypeParameters(haxeClassReference);
+          int classParameterCount = countTypeParameters(haxeClass);
+
+          if (typeParameterCount != classParameterCount) {
+            String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
+            holder.createErrorAnnotation(type, "Invalid number of type parameters for " + typeName);
+          }
+        }
+      }
+    }
+  }
+
+  static private int countTypeParameters(HaxeType type) {
+    HaxeTypeParam param = type.getTypeParam();
+    if(param == null) return 0;
+    return param.getTypeList().getTypeListPartList().size();
+  }
+  static private int countTypeParameters(SpecificHaxeClassReference reference) {
+    return (int)Stream.of(reference.getSpecifics()).filter(holder -> !holder.isUnknown()).count();
+    //HaxeGenericParam param = haxeClass.getGenericParam();
+    //if(param == null) return 0;
+    //return param.getGenericListPartList().size();
+  }
+  static private int countTypeParameters(HaxeClass haxeClass) {
+    HaxeGenericParam param = haxeClass.getGenericParam();
+    if(param == null) return 0;
+    return param.getGenericListPartList().size();
+  }
+  private static String getTypeName(PsiIdentifier identifier) {
+    return identifier.getText();
+  }
+
 }
 
 class ClassChecker {
@@ -898,7 +946,7 @@ class ClassChecker {
   }
 
   static private void checkClassName(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
-    TypeChecker.check(clazz.getNamePsi(), holder);
+    TypeChecker.checkValidClassName(clazz.getNamePsi(), holder);
   }
 
   private static void checkExtends(final HaxeClassModel clazz, final HaxeAnnotationHolder holder) {
