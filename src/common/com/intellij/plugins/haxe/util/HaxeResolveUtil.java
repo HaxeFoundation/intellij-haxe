@@ -676,7 +676,8 @@ public class HaxeResolveUtil {
       if (expression instanceof HaxeReference) {
 
         final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
-        return  searchForIterableTypeRecursively(resolveResult);
+        List<String> circularReferenceProtection = new LinkedList<>();
+        return  searchForIterableTypeRecursively(resolveResult,circularReferenceProtection);
 
       }
       return HaxeClassResolveResult.EMPTY;
@@ -710,7 +711,8 @@ public class HaxeResolveUtil {
     return getHaxeClassResolveResult(initExpression, specialization);
   }
 
-  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult) {
+  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult,
+                                                                         List<String> circularReferenceProtection) {
     final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
     final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
     final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
@@ -734,7 +736,12 @@ public class HaxeResolveUtil {
       // check underlying types
       SpecificHaxeClassReference underlyingClassReference = resolveResultHaxeClass.getModel().getUnderlyingClassReference(resolver);
       if(underlyingClassReference != null) {
-        result = searchForIterableTypeRecursively(underlyingClassReference.asResolveResult());
+        String className = underlyingClassReference.getClassName();
+        //check if we have visited class before
+        if (!circularReferenceProtection.contains(className)) {
+          circularReferenceProtection.add(className);
+          result = searchForIterableTypeRecursively(underlyingClassReference.asResolveResult(), circularReferenceProtection);
+        }
       }
     }
     return result;
