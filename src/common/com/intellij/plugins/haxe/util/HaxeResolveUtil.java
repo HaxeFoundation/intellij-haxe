@@ -674,25 +674,10 @@ public class HaxeResolveUtil {
       }
       final HaxeExpression expression = iterable.getExpression();
       if (expression instanceof HaxeReference) {
+
         final HaxeClassResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
-        final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
-        final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
-        final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
-        // try next
-        HaxeClassResolveResult result = getResolveMethodReturnType(resolver, resolveResultHaxeClass, "next", resultSpecialization);
-        if (result.getHaxeClass() != null) {
-          return result;
-        }
-        // try iterator
-        HaxeClassResolveResult iteratorResult =
-          getResolveMethodReturnType(resolver, resolveResultHaxeClass, "iterator",
-                                     resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
+        return  searchForIterableTypeRecursively(resolveResult);
 
-        HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
-        // Now, look for iterator's next
-        result =  getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
-
-        return result;
       }
       return HaxeClassResolveResult.EMPTY;
     }
@@ -723,6 +708,36 @@ public class HaxeResolveUtil {
       return result;
     }
     return getHaxeClassResolveResult(initExpression, specialization);
+  }
+
+  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult) {
+    final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+    final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
+    final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
+
+    // try next
+    HaxeClassResolveResult result = getResolveMethodReturnType(resolver, resolveResultHaxeClass, "next", resultSpecialization);
+    if (result.getHaxeClass() != null) {
+      return result;
+    }
+    // try iterator
+    HaxeClassResolveResult iteratorResult =
+      getResolveMethodReturnType(resolver, resolveResultHaxeClass, "iterator",
+                                 resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
+
+    HaxeClass iteratorResultHaxeClass = iteratorResult.getHaxeClass();
+    // Now, look for iterator's next
+    result = getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
+
+
+    if (result.getHaxeClass() == null) {
+      // check underlying types
+      SpecificHaxeClassReference underlyingClassReference = resolveResultHaxeClass.getModel().getUnderlyingClassReference(resolver);
+      if(underlyingClassReference != null) {
+        result = searchForIterableTypeRecursively(underlyingClassReference.asResolveResult());
+      }
+    }
+    return result;
   }
 
   @NotNull
