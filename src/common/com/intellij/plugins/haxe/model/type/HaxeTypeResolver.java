@@ -34,10 +34,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HaxeTypeResolver {
   @NotNull
@@ -408,10 +405,11 @@ public class HaxeTypeResolver {
         references.add(partResult);
       }
     } else if (null != resolvedHaxeClass) {
-      // A bare type declaration uses the default types.
-      // TODO: Add types with constraints, if known, or "unknown" for all declared paratmers here.
+
+        ResultHolder[] specifics = expression.resolveHaxeClass().getGenericResolver().getSpecificsFor(resolvedHaxeClass);
+        Collections.addAll(references, specifics);
+
     }
-    //type.getTypeParam();
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
   }
 

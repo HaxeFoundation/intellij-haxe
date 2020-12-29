@@ -143,7 +143,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
       out.append(">");
     }
-    return out.toString();
+    String result = out.toString();
+    if(result.equals("Dynamic<Dynamic>")) return "Dynamic";
+    if(result.equals("Dynamic<unknown>")) return "Dynamic";
+    return result;
   }
 
   public String toStringWithoutConstant() {
@@ -302,7 +305,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     stack.push(model.haxeClass);
 
     // TODO: list.addAll(getCompatibleFunctionTypes(model, genericResolver));
-    list.addAll(emptyCollectionAssignment(direction));
+    literalCollectionAssignment(direction, list);
+    emptyCollectionAssignment(direction, list);
 
     if (!model.isAbstract()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
@@ -346,14 +350,36 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return list;
   }
 
-  private List<SpecificHaxeClassReference> emptyCollectionAssignment(Compatibility direction) {
+  private void emptyCollectionAssignment(Compatibility direction, Set<SpecificHaxeClassReference> list) {
     if (direction == Compatibility.ASSIGNABLE_TO && context instanceof HaxeArrayLiteral && null == ((HaxeArrayLiteral)context).getExpressionList()) {
       ResultHolder unknownHolderKey = SpecificTypeReference.getUnknown(context).createHolder();
       ResultHolder unknownHolderValue = SpecificTypeReference.getDynamic(context).createHolder();
-      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue);
-      return Collections.singletonList(holder);
+      SpecificHaxeClassReference holder = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue, context);
+      list.add(holder);
     }
-    return Collections.emptyList();
+  }
+  private void literalCollectionAssignment(Compatibility direction, Set<SpecificHaxeClassReference> list) {
+    // adds "Any" collections to compatibility list if collection is literal
+    if (direction == Compatibility.ASSIGNABLE_TO) {
+      if (isLiteralArray()) {
+        ResultHolder unknownHolder = SpecificTypeReference.getAny(context).createHolder();;
+        SpecificHaxeClassReference array = (SpecificHaxeClassReference)SpecificHaxeClassReference.createArray(unknownHolder, context);
+        list.add(array);
+      }
+      if (isLiteralMap()) {
+        ResultHolder[] specifics = this.getSpecifics();
+
+        ResultHolder unknownHolderKey = SpecificTypeReference.getAny(context).createHolder();
+        ResultHolder unknownHolderValue = SpecificTypeReference.getAny(context).createHolder();
+
+        SpecificHaxeClassReference anyAnyMap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue, context);
+        SpecificHaxeClassReference xAnymap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(specifics[0], unknownHolderValue, context);
+        SpecificHaxeClassReference anyXmap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, specifics[1], context);
+        list.add(anyAnyMap);
+        list.add(xAnymap);
+        list.add(anyXmap);
+      }
+    }
   }
 
 

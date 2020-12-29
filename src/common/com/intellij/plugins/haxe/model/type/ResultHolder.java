@@ -79,14 +79,6 @@ public class ResultHolder {
     return type.isDynamic();
   }
 
-
-  public boolean isInitExpression() {
-    return initExpression;
-  }
-  public void setInitExpression() {
-    initExpression = true;
-  }
-
   public boolean canBeTypeVariable() {
     return type.canBeTypeVariable();
   }

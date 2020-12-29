@@ -661,4 +661,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testLiteralCollectionArguments() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 }

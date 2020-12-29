@@ -365,6 +365,7 @@ public class HaxeClassResolveResult implements Cloneable {
       final PsiElement specializedType = typeList.get(i);
 
       if (genericParamName == null) continue;
+
       final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       specialization.put(haxeClass, genericParamName, specializedTypeResult);
     }
