@@ -416,4 +416,9 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testInnerEnum() throws Throwable {
     doTest();
   }
+
+  public void testParenthesizedExpression() throws Throwable {
+    doTestInclude("std/StdTypes.hx", "std/String.hx");
+  }
+
 }

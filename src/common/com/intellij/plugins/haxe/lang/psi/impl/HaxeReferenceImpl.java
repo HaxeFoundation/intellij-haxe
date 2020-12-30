@@ -815,21 +815,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
       if (haxeClass != null) {
         boolean isSuper = leftReference instanceof HaxeSuperExpression;
-        PsiElement resolvedValue = leftReference.resolve();
-        if (!isSuper && (resolvedValue instanceof HaxeClassDeclaration ||
-                         resolvedValue instanceof HaxeAbstractClassDeclaration ||
-                         resolvedValue instanceof HaxeInterfaceDeclaration ||
-                         resolvedValue instanceof HaxeExternClassDeclaration)) {
-          List<HaxeModel> models = HaxeProjectModel.fromElement(this).resolve(new FullyQualifiedInfo("", "Class", null, null));
-          if (models != null && !models.isEmpty() && models.get(0) instanceof HaxeClassModel) {
-            haxeClass = ((HaxeClassModel)models.get(0)).haxeClass;
-          } else {
-            haxeClass = null;
-          }
-        }
-
-        addClassNonStaticMembersVariants(suggestedVariants, haxeClass, resolver,
-                                         !(isThis || isSuper));
+        addClassNonStaticMembersVariants(suggestedVariants, haxeClass, resolver, !(isThis || isSuper));
         addUsingVariants(suggestedVariants, suggestedVariantsExtensions, haxeClass, this);
       }
     } else {
