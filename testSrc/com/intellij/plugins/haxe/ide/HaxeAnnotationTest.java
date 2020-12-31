@@ -146,4 +146,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   public void testMethodAccessThroughAbstractAndNull() throws Exception {
     doUnresolvedSymbolTest();
   }
+  public void testForLoopVariableType() throws Exception {
+    doUnresolvedSymbolTest();
+  }
 }
