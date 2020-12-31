@@ -15,15 +15,12 @@
  */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.psi.JavaResolveResult;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,7 +46,7 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
 
   @Override
   protected List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    HaxeClassResolveResult resolved = getResolvedType(reference, incompleteCode);
+    HaxeClassResolveResult resolved = getResolvedType();
     if (null != resolved.getHaxeClass()) {
       return Collections.singletonList(resolved.getHaxeClass());
     }
@@ -57,7 +54,7 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
   }
 
   @NotNull
-  public HaxeClassResolveResult getResolvedType(@NotNull HaxeReference reference, boolean incompleteCode) {
+  public HaxeClassResolveResult getResolvedType() {
     HaxeExpressionEvaluatorContext context =
       HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
                                        HaxeGenericResolverUtil.generateResolverFromScopeParents(expression));
