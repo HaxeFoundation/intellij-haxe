@@ -483,8 +483,26 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeExpression expression = ((HaxeCallExpression)this).getExpression();
       final HaxeClassResolveResult leftResult = tryGetLeftResolveResult(expression);
       if (expression instanceof HaxeReference) {
-        final HaxeClassResolveResult result =
-          HaxeResolveUtil.getHaxeClassResolveResult(((HaxeReference)expression).resolve(), leftResult.getSpecialization());
+        // creating a resolver that combines parent(leftExpression) current(expression) and children (parameterExpressions)
+        HaxeGenericResolver resolver = new HaxeGenericResolver();
+        resolver.addAll(leftResult.getGenericResolver());
+        PsiElement resolvedExpression = ((HaxeReference)expression).resolve();
+
+        if (resolvedExpression instanceof HaxeMethod) {
+          HaxeMethod method = (HaxeMethod)resolvedExpression;
+          HaxeGenericResolver modelResolver = method.getModel().getGenericResolver(leftResult.getGenericResolver());
+
+          HaxeExpressionList list = ((HaxeCallExpression)this).getExpressionList();
+          if(list != null) {
+            List<HaxeExpression> parameterExpressions = list.getExpressionList();
+            for(HaxeExpression exp:  parameterExpressions) {
+              HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
+              modelResolver.addAll(parameterResult.getGenericResolver());
+            }
+            resolver.addAll(modelResolver);
+          }
+        }
+        final HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
         result.specialize(this);
         return result;
       }

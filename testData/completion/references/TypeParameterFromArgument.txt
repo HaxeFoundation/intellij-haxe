@@ -1,0 +1,4 @@
+:INCLUDE
+toLowerCase
+toUpperCase
+charCodeAt

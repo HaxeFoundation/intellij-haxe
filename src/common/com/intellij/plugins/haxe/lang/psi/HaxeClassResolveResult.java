@@ -367,7 +367,9 @@ public class HaxeClassResolveResult implements Cloneable {
       if (genericParamName == null) continue;
 
       final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
-      specialization.put(haxeClass, genericParamName, specializedTypeResult);
+      if(specializedTypeResult.getHaxeClass() != null) {
+        specialization.put(haxeClass, genericParamName, specializedTypeResult);
+      }
     }
     if (LOG.isDebugEnabled()) {
       LOG.debug(specialization.debugDump());
