@@ -420,5 +420,8 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   public void testParenthesizedExpression() throws Throwable {
     doTestInclude("std/StdTypes.hx", "std/String.hx");
   }
+  public void testTypeParameterFromArgument() throws Throwable {
+    doTestInclude("std/StdTypes.hx", "std/Array.hx", "std/Vector.hx", "std/String.hx");
+  }
 
 }
