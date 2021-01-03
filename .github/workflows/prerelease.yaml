@@ -16,20 +16,26 @@ jobs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       id: ${{ steps.create_release.outputs.id }}
     steps:
-    - name: Get short SHA
-      id: short_sha
-      run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+      - name: Get Time
+        id: timestep
+        uses: nanzm/get-time-action@v1.1
+        with:
+          format: 'YYYYMMDDHHmm'
 
-    - name: Create Pre-release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: pre-release/${{ steps.short_sha.outputs.sha8 }}
-        release_name: Beta build (${{ steps.short_sha.outputs.sha8 }})
-        draft: true
-        prerelease: true
+      - name: Get short SHA
+        id: short_sha
+        run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+
+      - name: Create Pre-release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: pre-release/${{steps.timestep.outputs.time }}
+          release_name: Beta build (${{ steps.short_sha.outputs.sha8 }})
+          draft: true
+          prerelease: true
 
   build:
     name: Build and upload artifacts
@@ -105,10 +111,10 @@ jobs:
     needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
-    - name: Publish release
-      uses: StuYarrow/publish-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        id: ${{ needs.prepare.outputs.id }}
+      - name: Publish release
+        uses: StuYarrow/publish-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          id: ${{ needs.prepare.outputs.id }}
 
