@@ -49,14 +49,15 @@ The grammar file for Haxe is [haxe.bnf](https://github.com/HaxeFoundation/intell
 The grammar file for HXML is [hxml.bnf](https://github.com/HaxeFoundation/intellij-haxe/blob/develop/grammar/hxml.bnf).
 
 #### Enable the PSI Viewer
-In versions 13 and later, the PsiViewer is pre-installed, and it is not 
-displayed in the plugins list.  Two menu items under the Tools menu 
+In versions 2020 and later, the PsiViewer is not pre-installed.
+It can be downloaded from the [marketplace](https://plugins.jetbrains.com/plugin/227-psiviewer).
+Two menu items under the Tools menu 
 (View PSI; View PSI of Current File) will appear if the current project 
 uses a plugin SDK.  However, that is not useful when you're ''testing'' 
 a plugin using another project.  To always have the menu items available, 
 add the following lines to the end of the 
 `${IDEA_INSTALLATION_DIRECTORY}/bin/idea.properties` file 
-(as directed here: [http://www.jetbrains.com/idea/webhelp/viewing-psi-structure.html](http://www.jetbrains.com/idea/webhelp/viewing-psi-structure.html)).
+(as directed here: [https://jetbrains.org/intellij/sdk/docs/reference_guide/internal_actions/enabling_internal.html](https://jetbrains.org/intellij/sdk/docs/reference_guide/internal_actions/enabling_internal.html)).
 
 
     #-----------------------------------------------------------------------
