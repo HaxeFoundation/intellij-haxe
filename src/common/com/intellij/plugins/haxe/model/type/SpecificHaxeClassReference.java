@@ -33,7 +33,10 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Stack;
 
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -170,6 +173,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       //    out += CONSTANT_VALUE_DELIMITER + getConstant();
       //    break;
       //}
+    }
+
+    if(classReference.classModel != null) {
+      if(classReference.classModel.haxeClass instanceof HaxeSpecificFunction) {
+        HaxeSpecificFunction  specificFunction   = (HaxeSpecificFunction)classReference.classModel.haxeClass;
+        String functionRepresentation = SpecificFunctionReference.createFromMethodModel(specificFunction.getMethod().getModel()).toString();
+        if(specificFunction.getMethod() != null)out += "<" + functionRepresentation +">";
+      }
     }
     if (getRangeConstraint() != null) {
       out += " [" + getRangeConstraint() + "]";
@@ -360,25 +371,20 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
   }
   private void literalCollectionAssignment(Compatibility direction, Set<SpecificHaxeClassReference> list) {
-    // adds "Any" collections to compatibility list if collection is literal
+    // adds "Any" collections to compatibility list if collection is empty literal
     if (direction == Compatibility.ASSIGNABLE_TO) {
-      if (isLiteralArray()) {
-        ResultHolder unknownHolder = SpecificTypeReference.getAny(context).createHolder();;
-        SpecificHaxeClassReference array = (SpecificHaxeClassReference)SpecificHaxeClassReference.createArray(unknownHolder, context);
-        list.add(array);
-      }
-      if (isLiteralMap()) {
-        ResultHolder[] specifics = this.getSpecifics();
-
-        ResultHolder unknownHolderKey = SpecificTypeReference.getAny(context).createHolder();
-        ResultHolder unknownHolderValue = SpecificTypeReference.getAny(context).createHolder();
-
-        SpecificHaxeClassReference anyAnyMap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue, context);
-        SpecificHaxeClassReference xAnymap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(specifics[0], unknownHolderValue, context);
-        SpecificHaxeClassReference anyXmap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, specifics[1], context);
-        list.add(anyAnyMap);
-        list.add(xAnymap);
-        list.add(anyXmap);
+      if(isEmptyCollection()) {
+        if (isLiteralArray()) {
+            ResultHolder unknownHolder = SpecificTypeReference.getAny(context).createHolder();
+            SpecificHaxeClassReference array = (SpecificHaxeClassReference)SpecificHaxeClassReference.createArray(unknownHolder, context);
+            list.add(array);
+          }
+        if (isLiteralMap()) {
+          ResultHolder unknownHolderKey = SpecificTypeReference.getAny(context).createHolder();
+          ResultHolder unknownHolderValue = SpecificTypeReference.getAny(context).createHolder();
+          SpecificHaxeClassReference anyAnyMap = (SpecificHaxeClassReference)SpecificHaxeClassReference.createMap(unknownHolderKey, unknownHolderValue, context);
+          list.add(anyAnyMap);
+        }
       }
     }
   }

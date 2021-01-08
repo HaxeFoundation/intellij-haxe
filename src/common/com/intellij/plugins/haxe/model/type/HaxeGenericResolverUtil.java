@@ -34,16 +34,24 @@ public class HaxeGenericResolverUtil {
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 
-    HaxeMethod method = element instanceof HaxeMethod
+    boolean isCallExpression = element instanceof HaxeMethod;
+    boolean isCastExpression = element instanceof HaxeCastExpression;
+
+    HaxeMethod method = isCallExpression
                         ? (HaxeMethod)element
                         : UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
     boolean isStatic = null != method && method.isStatic();
     if (!isStatic) {
       appendClassGenericResolver(element, resolver);
     }
+    if (isCastExpression) {
+      HaxeGenericResolver resolver1 = generateResolverFromScopeParents(((HaxeCastExpression)element).getExpression());
+      resolver.addAll(resolver1);
+    }
     appendMethodGenericResolver(element, resolver);
     appendStatementGenericResolver(HaxeResolveUtil.getLeftReference(element), resolver);
     appendCallExpressionGenericResolver(element, resolver);
+    appendArrayAccessGenericResolver(element, resolver);
     return resolver;
   }
 
@@ -98,6 +106,30 @@ public class HaxeGenericResolverUtil {
     if (element instanceof HaxeReference) {
       HaxeClassResolveResult result = ((HaxeReference)element).resolveHaxeClass();
       resolver.addAll(result.getGenericResolver());
+    }
+    return resolver;
+  }
+
+  @Nullable static HaxeGenericResolver appendArrayAccessGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
+    if (null == element) return resolver;
+    if (element instanceof HaxeArrayAccessExpression) {
+      final List<HaxeExpression> list = ((HaxeArrayAccessExpression)element).getExpressionList();
+      if (list.size() >= 2 && list.get(0) instanceof HaxeReferenceExpression) {
+        HaxeClassResolveResult result = ((HaxeReferenceExpression)list.get(0)).resolveHaxeClass();
+
+        if (result.getHaxeClass()!= null) {
+          SpecificHaxeClassReference classReference = result.getSpecificClassReference(list.get(0), result.getGenericResolver());
+          List<HaxeMethodModel> methods = classReference.getHaxeClassModel().getMethods(resolver);
+          for (HaxeMethodModel method : methods) {
+            if (method.isArrayAccessor()) {
+              // TODO check if we must make resolver method specific (parameter could in potentionally be a Type parameter, so child(1) might also be relevant)
+              resolver.addAll(result.getGenericResolver());
+             break;
+            }
+          }
+
+        }
+      }
     }
     return resolver;
   }
@@ -163,6 +195,14 @@ public class HaxeGenericResolverUtil {
                     resolverType = methodResolver.resolve(paramSpecificName);
                     if (null != resolverType && resolverType.isUnknown()) {
                       methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                    }
+                  }
+                  // handle Class<T> and Enum<T> resolve
+                  if(paramType.getType().isClass() || paramType.getType().isEnumClass()) {
+                    ResultHolder result = evaluatorContext.result;
+                    if (result != null && result.getClassType() != null && expression.getText().equals(result.getClassType().getClassName())) {
+                      String paramSpecificName = paramSpecifics[0].getType().toStringWithoutConstant();
+                      methodResolver.add(paramSpecificName, result);
                     }
                   }
                 }

@@ -72,7 +72,7 @@ class IsOperator extends Base {
         new String("new") is String; // 4.1: characters 27-29 : Missing ;
         "No" + "thing" is String; // 4.1: characters 26-28 : Missing ;
         if (i == 2) throw new ValueException("Some exception!") is String; // 4.1: characters 56-58 : Missing ;
-        final fin : Bool = "A String" is String; // 4.1: characters 39-41 : Missing ;
+        final fin : Bool <warning descr="Unable to determine type, assignment might be incorrect">= "A String" is String</warning>; // 4.1: characters 39-41 : Missing ;
         i is String; // 4.1: characters 11-13 : Missing ;
         this is String; // 4.1: characters 14-16 : Missing ;
 

@@ -109,7 +109,13 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isArrayAccessor() {
-    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS);
+    if(HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS)) return true;
+    HaxeMeta metadata = HaxeMetadataUtils.getMetadata(getBasePsi(),null, HaxeMeta.OP);
+    if(metadata!= null && metadata.getContent() != null) {
+      //TODO might want make a class with Consts for OP content values
+      if ("[]".equalsIgnoreCase(metadata.getContent().getText())) return true;
+    }
+    return false;
   }
 
   @Override

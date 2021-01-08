@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,16 +44,16 @@ public class HaxeTypeCompatible {
 
   static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
     if (null == to || null == from) return false;
-    if (to.isUnknown()) {
+    if (to.isUnknown() || to.isObjectType()) {
       to.setType(from.getType().withoutConstantValue());
     }
-    else if (from.isUnknown()) {
+    else if (from.isUnknown() || from.isObjectType()) {
       from.setType(to.getType().withoutConstantValue());
     }
     return canAssignToFrom(to.getType(), from.getType(), true);
   }
 
-  static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
+  static public boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
     return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref);
   }
   static private boolean isTypeDefFunction(SpecificTypeReference ref ) {
@@ -63,7 +64,7 @@ public class HaxeTypeCompatible {
     return false;
   }
 
-  static private SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
+  static public SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
     if (ref instanceof SpecificFunctionReference)
       return (SpecificFunctionReference)ref;
 
@@ -96,6 +97,7 @@ public class HaxeTypeCompatible {
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
+    if (to.isAny() || from.isAny()) return true;
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
       SpecificFunctionReference toRef = asFunctionReference(to);
@@ -218,8 +220,13 @@ public class HaxeTypeCompatible {
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) return true;
-    if(from.isEnumClass()) return false;
-    return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
+    if(from.isEnumClass()) return false;// we dont want Enum<T>
+    if(!from.isEnumType())  return false; // ignore if type is not an enum
+    if (from.getConstant() != null) return true; // accept enum value declarations
+    if(!(from.getElementContext() instanceof HaxeType)) {
+      if (from.getElementContext().getText().equals(from.getHaxeClass().getName())) return false; // deny if just  Enum Type
+    }
+    return true;// allow anything else
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     ResultHolder[] specificsTo = to.getSpecifics();
@@ -270,7 +277,7 @@ public class HaxeTypeCompatible {
           ResultHolder fromHolder = from.getSpecifics()[n];
           if(toHolder.equals(fromHolder)) continue;
 
-          if (typeCanBeWrapped(toHolder) && typeCanBeWrapped(fromHolder)) {
+          if (typeCanBeWrapped(toHolder) && typeCanBeWrapped(fromHolder) && !(from.isLiteralArray() || from.isLiteralMap()) ) {
             SpecificHaxeClassReference toSpecific = toHolder.getClassType();
             SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();
 
@@ -288,8 +295,8 @@ public class HaxeTypeCompatible {
             if (!canAssignToFrom(toSpecific, fromSpecific)) {
                 //HACK make sure we can assign collection literals / init expressions to types with with EnumValue specific
                   if(toSpecific != null  && fromSpecific!= null && (from.isLiteralMap() || from.isLiteralArray())) {
-                  if (toSpecific.isEnumValueClass() && fromSpecific.isEnumClass()) return true;
-                  if (fromSpecific.isEnumValueClass() && toSpecific.isEnumClass()) return true;
+                  if (toSpecific.isEnumValueClass() && fromSpecific.isEnumClass()) continue;
+                  if (fromSpecific.isEnumValueClass() && toSpecific.isEnumClass()) continue;
                 }
               return false;
             }
@@ -313,17 +320,22 @@ public class HaxeTypeCompatible {
   }
 
   @NotNull
+  public static SpecificHaxeClassReference wrapType(@NotNull ResultHolder type, @NotNull PsiElement context) {
+    return getStdClass(type.isEnumType() ? "Enum" : "Class", context, new ResultHolder[]{type});
+  }
+  @NotNull
   public static SpecificHaxeClassReference wrapType(@NotNull ResultHolder type, @NotNull PsiElement context, boolean useEnum) {
     return getStdClass(useEnum ? "Enum" : "Class", context, new ResultHolder[]{type});
   }
 
   // We only want to wrap "real" types in Class<T>, ex Class<String>
   // Other combinations makes little to no sense ( Class<Null> or Class<int->int> etc. )
-  private static boolean typeCanBeWrapped(ResultHolder holder) {
+  public static boolean typeCanBeWrapped(@NotNull ResultHolder holder) {
     return holder.isClassType()
            && !holder.isFunctionType()
            && !holder.isUnknown()
            && !holder.isVoid()
+           && !holder.isAny()
            && !holder.isDynamic();
   }
 }

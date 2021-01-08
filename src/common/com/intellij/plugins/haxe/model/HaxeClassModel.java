@@ -217,7 +217,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
     return  methodsWithMetadata.stream()
       .filter(methodModel -> castMethodAcceptsSource(sourceType, methodModel))
-      .map(m -> SetSpecificsConstraints(m, getReturnType(m)))
+      .map(m -> setSpecificsConstraints(m, getReturnType(m)))
       .collect(toList());
   }
 
@@ -226,7 +226,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     //implicit cast methods seems to accept both parameter-less methods and single parameter methods
     if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
-    SpecificHaxeClassReference parameterWithRealRealSpecifics = SetSpecificsConstraints(methodModel, parameter);
+    SpecificHaxeClassReference parameterWithRealRealSpecifics = setSpecificsConstraints(methodModel, parameter);
 
     if(reference.isAbstract()) {
       SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
@@ -242,7 +242,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
     return methodsWithMetadata.stream()
       // if return types can not be assign to target then skip this castMethod
-      .filter(m-> canAssignToFrom(targetType, SetSpecificsConstraints(m, getReturnType(m)), false))
+      .filter(m-> canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m)), false))
       .map(this::getImplicitCastFromType)// TODO consider applying generics from targetType to be more strict about what methods are supported ?
       .filter(Objects::nonNull)
       .collect(toList());
@@ -252,11 +252,11 @@ public class HaxeClassModel implements HaxeExposableModel {
   private SpecificHaxeClassReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
-    return SetSpecificsConstraints(methodModel, parameter);
+    return setSpecificsConstraints(methodModel, parameter);
   }
 
   @NotNull
-  private SpecificHaxeClassReference SetSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
+  private SpecificHaxeClassReference setSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
     ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
     ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
 

@@ -65,12 +65,14 @@ public class HaxeResolveUtil {
   }  // We want warnings to get out to the log.
 
   @Nullable
-  public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
+  public static HaxeReference getLeftReference(@Nullable PsiElement node) {
     if (node == null) return null;
+
+    if(node instanceof HaxeMethod) node = node.getChildren()[0]; // trims of array access part: [i]
+    if(node instanceof HaxeArrayAccessExpression) node = node.getChildren()[0];// trims of  parameter part: (argument1,argument2...)
 
     PsiElement leftExpression = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(node);
     PsiElement dot = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
-    //PsiElement identifier = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(dot);
 
     if (null == dot || dot.getNode().getElementType() != HaxeTokenTypes.ODOT) {
       return null;
@@ -711,8 +713,12 @@ public class HaxeResolveUtil {
     return getHaxeClassResolveResult(initExpression, specialization);
   }
 
-  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult,
-                                                                         List<String> circularReferenceProtection) {
+  public static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult) {
+    return searchForIterableTypeRecursively(resolveResult, new LinkedList<>());
+  }
+
+
+  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult, List<String> circularReferenceProtection) {
     final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
     final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
     final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
@@ -732,7 +738,7 @@ public class HaxeResolveUtil {
     result = getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
 
 
-    if (result.getHaxeClass() == null) {
+    if (result.getHaxeClass() == null &&  resolveResultHaxeClass!= null) {
       // check underlying types
       SpecificHaxeClassReference underlyingClassReference = resolveResultHaxeClass.getModel().getUnderlyingClassReference(resolver);
       if(underlyingClassReference != null) {

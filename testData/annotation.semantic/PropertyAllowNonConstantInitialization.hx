@@ -1,4 +1,6 @@
 class Test {
+  public function new(){}
+
   static public var instance = new Test();
   static public var instance2:Test = new Test();
   static public var v:Int = 1;

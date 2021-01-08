@@ -51,6 +51,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.typeCanBeWrapped;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.wrapType;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
@@ -390,21 +393,30 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       HaxeArrayLiteral haxeArrayLiteral = (HaxeArrayLiteral)this;
       HaxeExpressionList expressionList = haxeArrayLiteral.getExpressionList();
       boolean isString = false;
+      boolean isNumber = false;
       boolean sameClass = false;
       boolean implementOrExtendSameClass = false;
+      boolean SameFunctionDefinition = false;
       HaxeClass haxeClass = null;
+      HaxeClass functionClass = null;
       List<HaxeType> commonTypeList = new ArrayList<>();
+      List<SpecificFunctionReference> commonFunctionList = new ArrayList<>();
+      SpecificFunctionReference functionType = null;
       List<HaxeExpression> haxeExpressionList = expressionList != null ? expressionList.getExpressionList() : new ArrayList<>();
       if (!haxeExpressionList.isEmpty()) {
         isString = true;
+        isNumber = true;
         sameClass = true;
 
         for (HaxeExpression expression : haxeExpressionList) {
           if (!(expression instanceof HaxeStringLiteralExpression)) {
             isString = false;
           }
+          if (!(expression instanceof HaxeLiteralExpressionImpl)) {// using impl as HaxeLiteralExpression includes  regex
+            isNumber = false;
+          }
 
-          if (sameClass || implementOrExtendSameClass) {
+          if (sameClass || implementOrExtendSameClass || SameFunctionDefinition) {
             HaxeReferenceExpression haxeReference = null;
             if (expression instanceof HaxeNewExpression || expression instanceof HaxeCallExpression) {
               haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
@@ -420,19 +432,44 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               if (haxeClassResolveResultHaxeClass != null) {
                 if (haxeClass == null) {
                   haxeClass = haxeClassResolveResultHaxeClass;
-                  commonTypeList.addAll(haxeClass.getHaxeImplementsList());
-                  commonTypeList.addAll(haxeClass.getHaxeExtendsList());
+                  if(haxeClass instanceof HaxeSpecificFunction) {
+                    HaxeSpecificFunction func = (HaxeSpecificFunction)haxeClass;
+                    functionType = SpecificFunctionReference.create(func);
+                    functionClass = func;
+                    commonFunctionList.add(functionType);
+                  }else {
+                    commonTypeList.addAll(haxeClass.getHaxeImplementsList());
+                    commonTypeList.addAll(haxeClass.getHaxeExtendsList());
+                  }
                 }
               }
             }
 
             if (haxeClass != null && !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
-              List<HaxeType> haxeTypeList = new ArrayList<>();
-              haxeTypeList.addAll(haxeClass.getHaxeImplementsList());
-              haxeTypeList.addAll(haxeClass.getHaxeExtendsList());
+              if(haxeClassResolveResultHaxeClass instanceof HaxeSpecificFunction) {
+                if(functionType != null) {
+                  HaxeSpecificFunction func = (HaxeSpecificFunction)haxeClassResolveResultHaxeClass;
+                  SpecificFunctionReference functionReference = SpecificFunctionReference.create(func);
+                  if(functionType.canAssign(functionReference)) {
+                    SameFunctionDefinition = true;
+                  }else if(functionReference.canAssign(functionType)) {
+                    SameFunctionDefinition = true;
+                    functionType = functionReference;
+                    functionClass = func;
+                  }else {
+                    SameFunctionDefinition = false;
+                  }
+                }else {
+                  SameFunctionDefinition = false;
+                }
+              }else {
+                List<HaxeType> haxeTypeList = new ArrayList<>();
+                haxeTypeList.addAll(haxeClass.getHaxeImplementsList());
+                haxeTypeList.addAll(haxeClass.getHaxeExtendsList());
 
-              commonTypeList.retainAll(haxeTypeList);
-              implementOrExtendSameClass = !commonTypeList.isEmpty();
+                commonTypeList.retainAll(haxeTypeList);
+                implementOrExtendSameClass = !commonTypeList.isEmpty();
+              }
             }
 
             if (haxeClass == null || !haxeClass.equals(haxeClassResolveResultHaxeClass)) {
@@ -445,15 +482,40 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
 
       HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
+      String genericName = "T";
+      if(resolveResultHaxeClass != null) {
+        genericName = resolveResultHaxeClass.getModel().getGenericParams().get(0).getName();
+      }
 
       HaxeGenericSpecialization specialization = resolveResult.getSpecialization();
       if (resolveResultHaxeClass != null &&
-          specialization.get(resolveResultHaxeClass, "T") == null) {  // TODO: 'T' should not be hard-coded.
+          specialization.get(resolveResultHaxeClass, genericName) == null) {
         if (isString) {
-          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
+          specialization.put(resolveResultHaxeClass, genericName, HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
+        } else if (isNumber) {
+          if(haxeExpressionList.size() > 0) {
+            HaxeExpressionEvaluatorContext evaluate = HaxeExpressionEvaluator
+              .evaluate(haxeExpressionList.get(0), new HaxeExpressionEvaluatorContext(resolveResultHaxeClass, null), null);
+            SpecificHaxeClassReference type = evaluate.result.getClassType();
+            if(type != null)specialization.put(resolveResultHaxeClass, genericName, type.asResolveResult());
+          }
         } else if (sameClass) {
-          specialization.put(resolveResultHaxeClass, "T",
-                             HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+          if(haxeClass instanceof HaxeSpecificFunction) {
+            specialization.put(resolveResultHaxeClass, genericName, HaxeClassResolveResult.create(haxeClass));
+          } else if (haxeClass instanceof HaxeClassDeclaration) {
+
+            SpecificHaxeClassReference primitive = primitive(CLASS, haxeClass.getContext());
+            HaxeClassResolveResult result = HaxeClassResolveResult.create(primitive.getHaxeClass());
+            String classGenericName = primitive.getHaxeClassModel().getGenericParams().get(0).getName();
+            result.getSpecialization().put(primitive.getElementContext(), classGenericName, HaxeClassResolveResult.create(haxeClass));
+
+            specialization.put(resolveResultHaxeClass, genericName, result);
+          }else {
+            specialization.put(resolveResultHaxeClass, genericName,
+                               HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+          }
+        } else if (SameFunctionDefinition) {
+          specialization.put(resolveResultHaxeClass, genericName, HaxeClassResolveResult.create(functionClass));
         } else if (implementOrExtendSameClass) {
           HaxeReferenceExpression haxeReferenceExpression = commonTypeList.get(commonTypeList.size() - 1).getReferenceExpression();
           HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
@@ -462,7 +524,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
 
             if (resolveHaxeClassHaxeClass != null) {
-              specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
+              specialization.put(resolveResultHaxeClass, genericName, HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
                 resolveHaxeClassHaxeClass.getQualifiedName(), this)));
             }
           }
@@ -496,8 +558,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           if(list != null) {
             List<HaxeExpression> parameterExpressions = list.getExpressionList();
             for(HaxeExpression exp:  parameterExpressions) {
-              HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
-              modelResolver.addAll(parameterResult.getGenericResolver());
+              if(exp instanceof HaxeReference) {
+                HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
+                modelResolver.addAll(parameterResult.getGenericResolver());
+              }
             }
             resolver.addAll(modelResolver);
           }
@@ -542,7 +606,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (isType(resolve, HaxeAnonymousTypeField.class)) {
       HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
       HaxeTypeTag typeTag = field.getTypeTag();
-      if (null != typeTag && typeTag.getTypeOrAnonymous() != null) {
+      if (typeTag.getTypeOrAnonymous() != null) {
         HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
           if (typeOrAnonymous.getAnonymousType() != null) {

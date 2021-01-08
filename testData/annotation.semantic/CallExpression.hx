@@ -2,9 +2,9 @@ package ;
 using StringTools;
 
 typedef MyStruct = {a:String, b:Int}
-class A {}
-class B extends A {}
-class C implements I {}
+class A { public function new (){}}
+class B extends A { public function new (){super();}}
+class C implements I { public function new (){}}
 interface I {}
 
 class CallExpressionTest {
@@ -62,7 +62,7 @@ class CallExpressionTest {
         interfaceInheritArgs(new C()); // CORRECT  C implements I
         interfaceInheritArgs(<error descr="Type mismatch (Expected: 'C' got: 'B')">new B()</error>); // WRONG B does not implement I
 
-        typeDefArg(new MyStruct());
+        typeDefArg({a:"str", b:1});
 
         var myMap:Map<String, Int> = new Map();
         myMap.set("", 1); //CORRECT :  argument types matches Type parameters

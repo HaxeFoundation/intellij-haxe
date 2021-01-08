@@ -4,7 +4,7 @@ class AssignEnumValue {
  	public function new() {
 
  		var ok1:EnumValue = MyEnum.FIRST;
- 		var ok2:EnumValue = enuVal;
+ 		var ok2:EnumValue <warning descr="Unable to determine type, assignment might be incorrect">= enuVal</warning>;
 
                 var tmp:MyEnum = MyEnum.SECOND;
                 var ok3:EnumValue = tmp;
