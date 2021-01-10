@@ -203,8 +203,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+        if (sibling instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
+          types.add(typeOrAnonymous.getType());
         }
       }
     }
@@ -302,8 +303,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+        if (sibling instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
+          types.add(typeOrAnonymous.getType());
         }
       }
     }

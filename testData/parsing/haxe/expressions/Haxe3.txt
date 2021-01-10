@@ -1143,10 +1143,11 @@ Haxe File
         HaxePsiToken:ID('Kilometer')
     IDENTIFIER
       HaxePsiToken:ID('from')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Int')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       METHOD_DECLARATION
@@ -1242,10 +1243,11 @@ Haxe File
         HaxePsiToken:ID('Int')
     IDENTIFIER
       HaxePsiToken:ID('to')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Float')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Float')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
@@ -1258,16 +1260,18 @@ Haxe File
         HaxePsiToken:ID('UInt')
     IDENTIFIER
       HaxePsiToken:ID('to')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Int')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Int')
     IDENTIFIER
       HaxePsiToken:ID('from')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Int')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
@@ -1480,16 +1484,18 @@ Haxe File
       HaxePsiToken:)(')')
     IDENTIFIER
       HaxePsiToken:ID('from')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Int')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Int')
     IDENTIFIER
       HaxePsiToken:ID('to')
-    TYPE
-      REFERENCE_EXPRESSION
-        IDENTIFIER
-          HaxePsiToken:ID('Int')
+    TYPE_OR_ANONYMOUS
+      TYPE
+        REFERENCE_EXPRESSION
+          IDENTIFIER
+            HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')
