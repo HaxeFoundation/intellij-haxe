@@ -38,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
+
 /**
  * Extensions for resolving and analyzing @:forward abstract meta
  */
@@ -56,7 +58,9 @@ public class HaxeAbstractForwardUtil {
       final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass(resolver);
       if (underlyingClass != null) {
         if (forwardingFieldsNames.isEmpty()) {
-          return HaxeResolveUtil.findNamedSubComponents(resolver, underlyingClass);
+          HaxeGenericResolver forwardResolver = resolver != null ? resolver : new HaxeGenericResolver();
+          forwardResolver = getResolverSkipAbstractNullScope(abstractClassModel, forwardResolver);
+          return HaxeResolveUtil.findNamedSubComponents(forwardResolver, underlyingClass);
         }
         List<HaxeNamedComponent> haxeNamedComponentList = new ArrayList<>();
         for (String fieldName : forwardingFieldsNames) {

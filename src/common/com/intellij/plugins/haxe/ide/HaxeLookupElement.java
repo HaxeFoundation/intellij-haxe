@@ -33,11 +33,14 @@ import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
 
 /**
  * @author: Fedor.Korotkov
@@ -81,6 +84,10 @@ public class HaxeLookupElement extends LookupElement {
     if (myComponentNamePresentation == null) {
       presentation.setItemText(getLookupString());
       return;
+    }
+    HaxeGenericResolver resolver =  null;
+    if(leftReference != null && leftReference.getHaxeClass() != null) {
+      resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), leftReference.getGenericResolver());
     }
 
     String presentableText = myComponentNamePresentation.getPresentableText();

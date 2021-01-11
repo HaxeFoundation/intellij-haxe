@@ -51,6 +51,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
@@ -485,7 +486,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (expression instanceof HaxeReference) {
         // creating a resolver that combines parent(leftExpression) current(expression) and children (parameterExpressions)
         HaxeGenericResolver resolver = new HaxeGenericResolver();
-        resolver.addAll(leftResult.getGenericResolver());
+
+        if(leftResult.getHaxeClass() != null) {
+          resolver.addAll(HaxeGenericResolverUtil
+                            .getResolverSkipAbstractNullScope(leftResult.getHaxeClass().getModel(), leftResult.getGenericResolver()));
+        }else {
+          resolver.addAll(leftResult.getGenericResolver());
+        }
         PsiElement resolvedExpression = ((HaxeReference)expression).resolve();
 
         if (resolvedExpression instanceof HaxeMethod) {
@@ -614,29 +621,27 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if(isType(resolve, HaxeParameter.class)) {
       // check if  type parameters has multiple constraints and try to unify
       HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
-      String typeName = tag != null ? tag.getTypeOrAnonymous().getText() : null;
+      String typeName = tag != null  && tag.getTypeOrAnonymous() != null ? tag.getTypeOrAnonymous().getText() : null;
       PsiElement parameterList = resolve.getParent();
 
       if(parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration ) {
         HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
-        if(method != null) {
-          HaxeGenericParam genericParam = method.getGenericParam();
-          List<HaxeGenericListPart> partList =genericParam != null ? genericParam.getGenericListPartList() : null;
-          if(partList!= null) {
-            Optional<HaxeGenericListPart> match = partList.stream().filter(part -> Objects.equals(typeName, part.getName())).findFirst();
-            if(match.isPresent()) {
-              HaxeGenericListPart listPart = match.get();
-              HaxeTypeList list = listPart.getTypeList();
-              if(list != null) {
-                list.getTypeListPartList();
-                List<HaxeType> classReferences = list.getTypeListPartList().stream()
-                  .map(part -> part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType())
-                  .filter(Objects::nonNull)
-                  .collect(Collectors.toList());
+        HaxeGenericParam genericParam = method.getGenericParam();
+        List<HaxeGenericListPart> partList =genericParam != null ? genericParam.getGenericListPartList() : null;
+        if(partList!= null) {
+          Optional<HaxeGenericListPart> match = partList.stream().filter(part -> Objects.equals(typeName, part.getName())).findFirst();
+          if(match.isPresent()) {
+            HaxeGenericListPart listPart = match.get();
+            HaxeTypeList list = listPart.getTypeList();
+            if(list != null) {
+              list.getTypeListPartList();
+              List<HaxeType> classReferences = list.getTypeListPartList().stream()
+                .map(part -> part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType())
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
-                HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
-                return HaxeClassResolveResult.create(constraint);
-              }
+              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
+              return HaxeClassResolveResult.create(constraint);
             }
           }
         }
