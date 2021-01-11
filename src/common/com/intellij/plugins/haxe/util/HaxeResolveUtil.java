@@ -999,16 +999,12 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
-
-    HaxeImportableModel importModel = StreamUtil.reverse(file.getOrderedImportAndUsingModels().stream())
-      .filter(model -> {
-        PsiElement exposedItem = model.exposeByName(name);
-        return exposedItem != null;
-      })
-      .findFirst().orElse(null);
-
-    if (importModel != null) {
-      return importModel.exposeByName(name);
+    List<HaxeImportableModel> models = file.getOrderedImportAndUsingModels();
+    for(HaxeImportableModel model : models) {
+      PsiElement element = model.exposeByName(name);
+      if(element != null) {
+        return element;
+      }
     }
     return null;
   }
@@ -1066,23 +1062,25 @@ public class HaxeResolveUtil {
   @Nullable
   public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name) {
     final HaxePackageModel packageModel = file.getPackageModel();
-    HaxeModel result = null;
-
     if (packageModel != null) {
-      result = packageModel.getExposedMembers().stream()
-        .filter(model -> name.equals(model.getName()))
-        .findFirst()
-        .orElse(null);
+      for (HaxeModel model : packageModel.getExposedMembers()) {
+        if (name.equals(model.getName())) {
+          return model.getBasePsi();
+        }
+      }
     }
-
-    return result != null ? result.getBasePsi() : null;
+    return null;
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
-    final HaxeClass classForType = (HaxeClass)Arrays.stream(fileChildren)
-      .filter(child -> child instanceof HaxeClass && result.equals(((HaxeClass)child).getName()))
-      .findFirst()
-      .orElse(null);
+
+    HaxeClass classForType = null;
+    for(PsiElement child: fileChildren) {
+      if( child instanceof HaxeClass && result.equals(((HaxeClass)child).getName())){
+        classForType = (HaxeClass)child;
+        break;
+      }
+    }
 
     if (classForType != null) {
       return classForType.getQualifiedName();

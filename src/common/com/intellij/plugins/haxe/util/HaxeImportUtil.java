@@ -41,15 +41,27 @@ public class HaxeImportUtil {
 
     List<HaxeImportStatement> allImportStatements = ((HaxeFile)file).getImportStatements();
 
-    final boolean hasWildcards = allImportStatements.stream().anyMatch(statement -> statement.getModel().hasWildcard());
+    boolean hasWildcards = false;
+    for (HaxeImportStatement allImportStatement : allImportStatements) {
+      if (allImportStatement.getModel().hasWildcard()) {
+        hasWildcards = true;
+        break;
+      }
+    }
 
-    List<HaxeImportStatement> usefulStatements = allImportStatements
-      .stream()
-      .filter(statement -> externalReferences
-        .stream()
-        .anyMatch(referencedElement -> isStatementExposesReference(statement, referencedElement)))
-      .distinct()
-      .collect(Collectors.toList());
+    List<HaxeImportStatement> usefulStatements = new ArrayList<>();
+    Set<HaxeImportStatement> uniqueValues = new HashSet<>();
+
+    for (HaxeImportStatement statement : allImportStatements) {
+      for (PsiElement referencedElement : externalReferences) {
+        if (isStatementExposesReference(statement, referencedElement)) {
+            if (uniqueValues.add(statement)) {
+              usefulStatements.add(statement);
+            }
+          break;
+        }
+      }
+    }
 
     if (hasWildcards) {
       removeUnusedWildcards(externalReferences, usefulStatements);
