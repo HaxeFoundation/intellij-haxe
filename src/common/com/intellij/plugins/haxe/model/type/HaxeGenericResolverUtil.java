@@ -190,8 +190,8 @@ public class HaxeGenericResolverUtil {
                   methodResolver.add(paramName, evaluatorContext.result);
                 }
                 // If the type contains generic arguments, then evaluate those and see if they are in the resolver.
-                if (paramSpecifics.length > 0) {
-                  ResultHolder[] resolvedSpecifics = evaluatorContext.result.getClassType().getSpecifics();
+                if (paramSpecifics.length > 0 && evaluatorContext.result.isClassType()) {
+                  ResultHolder[] resolvedSpecifics =  evaluatorContext.result.getClassType().getSpecifics();
 
                   int numSpecifics = Math.min(paramSpecifics.length, resolvedSpecifics.length);
                   for (int i = 0; i < numSpecifics; ++i) {
