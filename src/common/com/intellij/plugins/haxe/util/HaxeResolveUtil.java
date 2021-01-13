@@ -1000,7 +1000,8 @@ public class HaxeResolveUtil {
   @Nullable
   public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
     List<HaxeImportableModel> models = file.getOrderedImportAndUsingModels();
-    for(HaxeImportableModel model : models) {
+    for (int i = models.size() - 1; i >= 0; i--) {
+      HaxeImportableModel model = models.get(i);
       PsiElement element = model.exposeByName(name);
       if(element != null) {
         return element;
