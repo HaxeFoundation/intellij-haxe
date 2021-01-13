@@ -399,6 +399,9 @@ public class HaxeExpressionEvaluator {
                typeHolder =  SpecificFunctionReference.createFromMethodModel(method.getModel()).createHolder();
              }
            }
+            if (subelement instanceof HaxeParameter) {
+              typeHolder = ((HaxeReferenceExpression)element).resolveHaxeClass().getSpecificClassReference(element,resolver).createHolder();
+            }
             if (subelement instanceof HaxeForStatement) {
               HaxeForStatement  forStatement = (HaxeForStatement) subelement;
               final HaxeKeyValueIterator keyValueIterator = forStatement.getKeyValueIterator();
