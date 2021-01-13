@@ -39,7 +39,6 @@ import static com.intellij.plugins.haxe.HaxeComponentType.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
 import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
 import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
-import static java.util.stream.Collectors.toList;
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
@@ -203,8 +202,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("to")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+        if (sibling instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
+          types.add(typeOrAnonymous.getType());
         }
       }
     }
@@ -215,10 +215,14 @@ public class HaxeClassModel implements HaxeExposableModel {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
 
-    return  methodsWithMetadata.stream()
-      .filter(methodModel -> castMethodAcceptsSource(sourceType, methodModel))
-      .map(m -> SetSpecificsConstraints(m, getReturnType(m)))
-      .collect(toList());
+    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    for (HaxeMethodModel methodModel : methodsWithMetadata) {
+      if (castMethodAcceptsSource(sourceType, methodModel)) {
+        SpecificHaxeClassReference reference = setSpecificsConstraints(methodModel, getReturnType(methodModel));
+        list.add(reference);
+      }
+    }
+    return list;
   }
 
 
@@ -226,7 +230,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     //implicit cast methods seems to accept both parameter-less methods and single parameter methods
     if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
-    SpecificHaxeClassReference parameterWithRealRealSpecifics = SetSpecificsConstraints(methodModel, parameter);
+    SpecificHaxeClassReference parameterWithRealRealSpecifics = setSpecificsConstraints(methodModel, parameter);
 
     if(reference.isAbstract()) {
       SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
@@ -240,23 +244,29 @@ public class HaxeClassModel implements HaxeExposableModel {
     if (!isAbstract()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
 
-    return methodsWithMetadata.stream()
-      // if return types can not be assign to target then skip this castMethod
-      .filter(m-> canAssignToFrom(targetType, SetSpecificsConstraints(m, getReturnType(m)), false))
-      .map(this::getImplicitCastFromType)// TODO consider applying generics from targetType to be more strict about what methods are supported ?
-      .filter(Objects::nonNull)
-      .collect(toList());
+    // if return types can not be assign to target then skip this castMethod
+    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    for (HaxeMethodModel m : methodsWithMetadata) {
+      // TODO consider applying generics from targetType to be more strict about what methods are supported ?
+      if (canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m)), false)) {
+        SpecificHaxeClassReference type = getImplicitCastFromType(m);
+        if (type != null) {
+          list.add(type);
+        }
+      }
+    }
+    return list;
   }
 
   @Nullable
   private SpecificHaxeClassReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
-    return SetSpecificsConstraints(methodModel, parameter);
+    return setSpecificsConstraints(methodModel, parameter);
   }
 
   @NotNull
-  private SpecificHaxeClassReference SetSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
+  private SpecificHaxeClassReference setSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference) {
     ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
     ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
 
@@ -302,8 +312,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
       if (id.getText().equals("from")) {
         PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeType) {
-          types.add((HaxeType)sibling);
+        if (sibling instanceof HaxeTypeOrAnonymous) {
+          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
+          types.add(typeOrAnonymous.getType());
         }
       }
     }
@@ -478,10 +489,13 @@ public class HaxeClassModel implements HaxeExposableModel {
     HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(haxeClass, isEnum() ? HaxeEnumBody.class : HaxeClassBody.class, HaxeInterfaceBody.class);
 
     if (body != null) {
-      return PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class)
-        .stream()
-        .map(HaxeFieldModel::new)
-        .collect(toList());
+      List<HaxeFieldModel> list = new ArrayList<>();
+      List<HaxePsiField> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class);
+      for (HaxePsiField field : children) {
+        HaxeFieldModel model = new HaxeFieldModel(field);
+        list.add(model);
+      }
+      return list;
     } else {
       return Collections.emptyList();
     }

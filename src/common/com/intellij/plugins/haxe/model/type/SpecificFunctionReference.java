@@ -68,7 +68,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this(arguments, returnValue, method, context, null);
   }
 
-  private static SpecificFunctionReference createFromMethodModel(HaxeMethodModel model) {
+  public static SpecificFunctionReference createFromMethodModel(HaxeMethodModel model) {
     LinkedList<Argument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
     if (parameters.size() == 0) {

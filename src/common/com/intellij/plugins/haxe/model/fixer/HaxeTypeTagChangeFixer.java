@@ -36,7 +36,7 @@ public class HaxeTypeTagChangeFixer extends HaxeFixer {
     this.result = result;
   }
 
-  public HaxeTypeTagChangeFixer(HaxeTypeTag typeTag, SpecificTypeReference result) {
+  public HaxeTypeTagChangeFixer(@NotNull HaxeTypeTag typeTag, @NotNull SpecificTypeReference result) {
     this(null, typeTag, result);
   }
 

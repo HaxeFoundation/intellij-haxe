@@ -26,10 +26,7 @@ import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HaxePackageModel implements HaxeExposableModel {
@@ -154,20 +151,23 @@ public class HaxePackageModel implements HaxeExposableModel {
     return null;
   }
 
+  @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
     PsiDirectory directory = root.access(path);
     if (directory != null) {
       PsiFile[] files = directory.getFiles();
 
-      return Arrays.stream(files)
-        .filter(file -> file instanceof HaxeFile)
-        .flatMap(file -> {
+      List<HaxeModel>  result = new ArrayList<>();
+      for(PsiFile file : files) {
+        if( file instanceof HaxeFile) {
           HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
-          return fileModel != null ? fileModel.getExposedMembers().stream() : null;
-        })
-        .filter(Objects::nonNull)
-        .collect(Collectors.toList());
+          if(fileModel != null)result.addAll(fileModel.getExposedMembers());
+        }
+      }
+
+
+      return result;
     }
 
     return Collections.emptyList();

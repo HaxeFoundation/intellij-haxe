@@ -33,11 +33,16 @@ import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
 
 /**
  * @author: Fedor.Korotkov
@@ -82,6 +87,10 @@ public class HaxeLookupElement extends LookupElement {
       presentation.setItemText(getLookupString());
       return;
     }
+    HaxeGenericResolver resolver =  null;
+    if(leftReference != null && leftReference.getHaxeClass() != null) {
+      resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), leftReference.getGenericResolver());
+    }
 
     String presentableText = myComponentNamePresentation.getPresentableText();
 
@@ -89,8 +98,7 @@ public class HaxeLookupElement extends LookupElement {
     HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(myComponentName);
 
     if (model != null) {
-      // TODO: Specialization support required
-      presentableText = model.getPresentableText(context);
+      presentableText = model.getPresentableText(context, resolver);
 
       // Check deprecated modifiers
       if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {

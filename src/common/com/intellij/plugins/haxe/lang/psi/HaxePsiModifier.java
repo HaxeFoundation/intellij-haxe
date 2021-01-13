@@ -38,7 +38,9 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String FINAL = "final";
   @NonNls String VAR = "var";
   @NonNls String OVERRIDE = "override";
+  @NonNls String MACRO = "macro";
 
+  @NonNls String MACRO_META = "@:macro";
   @NonNls String FINAL_META = "@:final";
   @NonNls String INLINE_META = "@:inline"; // HaxeMeta.INLINE
   @NonNls String IS_VAR = "@:isVar";
@@ -47,7 +49,6 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String BIND = "@:bind";
   @NonNls String HACK = "@:hack";
 
-  @NonNls String MACRO = "@:macro";
   @NonNls String UNREFLECTIVE = "@:unreflective";
 
   @NonNls String NATIVE = "@:native";
@@ -66,7 +67,7 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
 
   @MagicConstant(stringValues = {
     PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, DYNAMIC, ABSTRACT, OVERRIDE, FINAL_META, KEEP, IS_VAR, COREAPI, BIND, MACRO, HACK,
-    REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
+    REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, MACRO_META, BUILD,
     AUTOBUILD, UNREFLECTIVE, DEPRECATED
   })
   @interface ModifierConstant {

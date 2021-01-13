@@ -31,7 +31,6 @@ public class ResultHolder {
 
   @NotNull
   private SpecificTypeReference type;
-  private boolean initExpression = false;
   private boolean canMutate = true;
   private int mutationCount = 0;
 
@@ -62,6 +61,14 @@ public class ResultHolder {
   public boolean isClassType() {
     return (type instanceof SpecificHaxeClassReference);
   }
+  @Nullable
+  public boolean isEnumType() {
+    return (type instanceof SpecificEnumValueReference);
+  }
+
+  public boolean isObjectType() {
+    return (type instanceof SpecificObjectReference);
+  }
 
   public boolean isEnumValueType() {
     return (type instanceof SpecificEnumValueReference);
@@ -77,6 +84,9 @@ public class ResultHolder {
 
   public boolean isDynamic() {
     return type.isDynamic();
+  }
+  public boolean isAny() {
+    return type.isAny();
   }
 
   public boolean canBeTypeVariable() {

@@ -127,16 +127,21 @@ public class HaxeImportModel extends HaxeImportableModel {
   }
 
   @Override
+  @Nullable
   protected HaxeModel getExposedMember(String name) {
     List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
     if (hasAlias()) {
       return (Objects.equals(getAliasName(), name)) ? members.get(0) : null;
     }
-    return members.stream()
-      .filter(model -> name.equals(model.getName()))
-      .findFirst()
-      .orElse(null);
+
+    for(HaxeModel member : members) {
+      if(name.equals(member.getName())){
+        return member;
+      }
+    }
+    return null;
+
   }
 
   @Override

@@ -110,11 +110,11 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return model;
   }
 
-  public String getPresentableText() {
+  public String getPresentableText(@Nullable HaxeGenericResolver resolver) {
     String out = hasOptionalPsi() ? "?" : "";
     out += getName();
     out += ":";
-    out += getType().toStringWithoutConstant();
+    out += getType(resolver).toStringWithoutConstant();
     return out;
   }
 
@@ -143,7 +143,11 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
 
   @Override
   public String getPresentableText(HaxeMethodContext context) {
-    final ResultHolder type = getResultType();
+    return getPresentableText(context, null);
+  }
+  @Override
+  public String getPresentableText(HaxeMethodContext context, HaxeGenericResolver resolver) {
+    final ResultHolder type = getResultType(resolver);
     return type == null ? this.getName() : this.getName() + ":" + type;
   }
 

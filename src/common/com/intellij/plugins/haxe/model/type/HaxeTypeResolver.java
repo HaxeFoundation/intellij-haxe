@@ -121,7 +121,16 @@ public class HaxeTypeResolver {
 
       HaxeTypeTag typeTag = decl.getTypeTag();
       if (typeTag != null) {
-        final ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
+        ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
+        if(resolver != null) {
+          if(typeFromTag.getClassType() != null) {
+            HaxeClassResolveResult result1 = resolver.getSpecialization(null).get(decl, typeFromTag.getClassType().getClassName());
+            if (result1 != null && result1.getHaxeClass() != null) {
+              typeFromTag = result1.getSpecificClassReference(typeTag, resolver).createHolder();
+            }
+          }
+
+        }
         final Object initConstant = result != null ? result.getType().getConstant() : null;
         result = typeFromTag.withConstantValue(initConstant);
       }
@@ -443,6 +452,10 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getPsiElementType(@NotNull PsiElement element, @Nullable PsiElement resolveContext, HaxeGenericResolver resolver) {
+    return getPsiElementType(element, resolveContext,resolver, null);
+  }
+  @NotNull
+  static public ResultHolder getPsiElementType(@NotNull PsiElement element, @Nullable PsiElement resolveContext, HaxeGenericResolver resolver, @Nullable AnnotationHolder holder ) {
     if (element == resolveContext) return SpecificTypeReference.getInvalid(element).createHolder();
     if (element instanceof HaxeReferenceExpression) {
       // First, try to resolve it to a class -- this deals with field-level specializations.
@@ -480,7 +493,7 @@ public class HaxeTypeResolver {
         return resultHolder;
       }
     }
-    return getPsiElementType(element, (AnnotationHolder)null, resolver).result;
+    return getPsiElementType(element, holder, resolver).result;
   }
 
   @NotNull

@@ -71,6 +71,7 @@ public class HaxeSourceRootModel {
     return current;
   }
 
+  @Nullable
   public HaxeModel resolve(FullyQualifiedInfo info) {
     if (rootPackage == null) {
       return null;

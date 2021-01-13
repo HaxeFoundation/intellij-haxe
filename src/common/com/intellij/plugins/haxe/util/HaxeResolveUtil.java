@@ -65,12 +65,14 @@ public class HaxeResolveUtil {
   }  // We want warnings to get out to the log.
 
   @Nullable
-  public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
+  public static HaxeReference getLeftReference(@Nullable PsiElement node) {
     if (node == null) return null;
+
+    if(node instanceof HaxeCallExpression) node = node.getChildren()[0];  // trims of parameter part: (argument1,argument2...) before finding dot
+    if(node instanceof HaxeArrayAccessExpression) node = node.getChildren()[0]; // trims of array access part: [i] before finding dot
 
     PsiElement leftExpression = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(node);
     PsiElement dot = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
-    //PsiElement identifier = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(dot);
 
     if (null == dot || dot.getNode().getElementType() != HaxeTokenTypes.ODOT) {
       return null;
@@ -711,8 +713,12 @@ public class HaxeResolveUtil {
     return getHaxeClassResolveResult(initExpression, specialization);
   }
 
-  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult,
-                                                                         List<String> circularReferenceProtection) {
+  public static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult) {
+    return searchForIterableTypeRecursively(resolveResult, new LinkedList<>());
+  }
+
+
+  private static HaxeClassResolveResult searchForIterableTypeRecursively(HaxeClassResolveResult resolveResult, List<String> circularReferenceProtection) {
     final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
     final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
     final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
@@ -732,7 +738,7 @@ public class HaxeResolveUtil {
     result = getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
 
 
-    if (result.getHaxeClass() == null) {
+    if (result.getHaxeClass() == null &&  resolveResultHaxeClass!= null) {
       // check underlying types
       SpecificHaxeClassReference underlyingClassReference = resolveResultHaxeClass.getModel().getUnderlyingClassReference(resolver);
       if(underlyingClassReference != null) {
@@ -999,16 +1005,13 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
-
-    HaxeImportableModel importModel = StreamUtil.reverse(file.getOrderedImportAndUsingModels().stream())
-      .filter(model -> {
-        PsiElement exposedItem = model.exposeByName(name);
-        return exposedItem != null;
-      })
-      .findFirst().orElse(null);
-
-    if (importModel != null) {
-      return importModel.exposeByName(name);
+    List<HaxeImportableModel> models = file.getOrderedImportAndUsingModels();
+    for (int i = models.size() - 1; i >= 0; i--) {
+      HaxeImportableModel model = models.get(i);
+      PsiElement element = model.exposeByName(name);
+      if(element != null) {
+        return element;
+      }
     }
     return null;
   }
@@ -1066,23 +1069,25 @@ public class HaxeResolveUtil {
   @Nullable
   public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name) {
     final HaxePackageModel packageModel = file.getPackageModel();
-    HaxeModel result = null;
-
     if (packageModel != null) {
-      result = packageModel.getExposedMembers().stream()
-        .filter(model -> name.equals(model.getName()))
-        .findFirst()
-        .orElse(null);
+      for (HaxeModel model : packageModel.getExposedMembers()) {
+        if (name.equals(model.getName())) {
+          return model.getBasePsi();
+        }
+      }
     }
-
-    return result != null ? result.getBasePsi() : null;
+    return null;
   }
 
   public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
-    final HaxeClass classForType = (HaxeClass)Arrays.stream(fileChildren)
-      .filter(child -> child instanceof HaxeClass && result.equals(((HaxeClass)child).getName()))
-      .findFirst()
-      .orElse(null);
+
+    HaxeClass classForType = null;
+    for(PsiElement child: fileChildren) {
+      if( child instanceof HaxeClass && result.equals(((HaxeClass)child).getName())){
+        classForType = (HaxeClass)child;
+        break;
+      }
+    }
 
     if (classForType != null) {
       return classForType.getQualifiedName();

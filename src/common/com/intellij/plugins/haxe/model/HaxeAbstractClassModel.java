@@ -93,11 +93,19 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return getAbstractClass().getAbstractBody();
   }
 
+  /*
+   * Checks if member(name) is forwarded
+   * METADATA RULES:
+   * [no forward tag]   // No members are forwarded
+   * @:forward          // All  members are forwarded
+   * @:forward(fnA,fnB) // Only fnA and FnB are forwarded
+   */
   public boolean isForwarded(String name) {
     if (null == name) return false;
-
-    boolean allEmpty = true;
+    HaxeMeta metadata = HaxeMetadataUtils.getMetadata(getBasePsi(), HaxeMeta.COMPILE_TIME, HaxeMeta.FORWARD);
+    if (metadata == null) return false;
     HaxeMetadataList forwardMetaList = HaxeMetadataUtils.getMetadataList(getBasePsi(), HaxeMeta.COMPILE_TIME, HaxeMeta.FORWARD);
+    boolean allEmpty = true;
     for (HaxeMeta forward : forwardMetaList) {
       HaxeMetadataContent content = forward.getContent();
       if (null != content) {

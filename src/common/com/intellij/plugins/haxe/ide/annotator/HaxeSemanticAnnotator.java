@@ -53,8 +53,7 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspe
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromFunctionArgument;
 import static java.util.stream.Collectors.toList;
 
@@ -124,7 +123,7 @@ class CallExpressionChecker {
 
       HaxeTypeTag tag = ((HaxePsiField)target).getTypeTag();
 
-      if(tag.getFunctionType() != null) {
+      if (tag != null && tag.getFunctionType() != null) {
         List<HaxeFunctionArgument> argumentList = tag.getFunctionType().getFunctionArgumentList();
 
         List<HaxeExpression> expressionArgList = new LinkedList<>();
@@ -133,7 +132,7 @@ class CallExpressionChecker {
           expressionArgList.addAll(referenceParameterList.getExpressionList());
         }
 
-        long minArgs = argumentList.stream().filter(argument -> argument.getOptionalMark() == null).count();
+        long minArgs = findMinArgsCounts(argumentList);
         long maxArgs = argumentList.size();
 
         if (expressionArgList.size() < minArgs) {
@@ -161,7 +160,7 @@ class CallExpressionChecker {
         //TODO handle required after optionals
         for (int i = 0; i < expressionArgList.size(); i++) {
           HaxeExpression expression = expressionArgList.get(i);
-          ResultHolder expressionType = findExpressionType(expression);
+          ResultHolder expressionType = findExpressionType(expression, holder);
 
           HaxeFunctionArgument functionArgument = argumentList.get(i);
           ResultHolder parameterType = getTypeFromFunctionArgument(functionArgument);
@@ -191,6 +190,7 @@ class CallExpressionChecker {
 
       HaxeGenericSpecialization specialization = expr.getSpecialization();
       List<HaxeParameterModel> parameters = method.getModel().getParameters();
+      List<HaxeGenericParamModel> genericParams = method.getModel().getGenericParams();
 
       long minArgCount = countRequiredArguments(parameters);
       long maxArgCount = hasVarArgs(parameters) ? Long.MAX_VALUE : parameters.size();
@@ -274,14 +274,32 @@ class CallExpressionChecker {
           }
         }
 
-        expressionType = expressionType != null ? expressionType :  findExpressionType(expression);
+        expressionType = expressionType != null ? expressionType :  findExpressionType(expression, holder);
 
         // if expression is enumValue we need to resolve the underlying enumType type to test assignment
         if(expressionType.getType() instanceof SpecificEnumValueReference) {
           SpecificHaxeClassReference enumType = ((SpecificEnumValueReference)expressionType.getType()).getEnumClass();
           expressionType = enumType.createHolder();
         }
+        // wrap Class definitions
+        if(expressionType.getClassType() != null && expressionType.getClassType().getHaxeClass()instanceof HaxeClassDeclaration) {
+          // hackish way to check if the expression is  pointing at the class or is some kind of variable or method call
+          if (expression.getText().equals(expressionType.getClassType().getClassName())) {
+            expressionType = wrapType(expressionType, expressionType.getClassType().getElementContext(), false).createHolder();
+          }
+        }
 
+        //TODO fix method generics (fun<T>(value:T):T) need to check constraints  and accept Type parameter type from argument
+        // this just changes all type params to Dynamic
+        if(parameterType.getClassType() != null) {
+          SpecificHaxeClassReference type = parameterType.getClassType();
+          HaxeClassResolveResult result = type.asResolveResult();
+          for(HaxeGenericParamModel genericParam : genericParams) {
+            SpecificHaxeClassReference any = SpecificHaxeClassReference.getDynamic(type.getElementContext());
+            result.getSpecialization().put(null, genericParam.getName(), HaxeClassResolveResult.create(any.getHaxeClass()));
+          }
+          parameterType = result.getSpecificClassReference(parameterType.getElementContext(), result.getGenericResolver()).createHolder();
+        }
         if (!canAssignToFrom(parameterType, expressionType)) {
           String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
                                               parameterType.toPresentationString(),
@@ -290,6 +308,20 @@ class CallExpressionChecker {
         }
       }
     }
+  }
+
+  private static int findMinArgsCounts(List<HaxeFunctionArgument> argumentList) {
+    int count = 0;
+    for (HaxeFunctionArgument argument : argumentList) {
+      if (argument.getOptionalMark() == null) {
+        if (!isVoidArgument(argument)) count++;
+      }
+    }
+    return count;
+  }
+
+  private static boolean isVoidArgument(HaxeFunctionArgument argument) {
+    return !(argument.getTypeOrAnonymous() == null  ||argument.getTypeOrAnonymous().getType() == null  || !argument.getTypeOrAnonymous().getType().getText().equals("Void"));
   }
 
 
@@ -308,9 +340,9 @@ class CallExpressionChecker {
 
 
   @NotNull
-  private static ResultHolder findExpressionType(HaxeExpression expression) {
+  private static ResultHolder findExpressionType(PsiElement expression, HaxeAnnotationHolder holder) {
     return HaxeExpressionEvaluator
-      .evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
+      .evaluate(expression, new HaxeExpressionEvaluatorContext(expression, holder),
                 HaxeGenericResolverUtil.generateResolverFromScopeParents(expression)).result;
   }
 
@@ -580,12 +612,28 @@ class TypeTagChecker {
     final HaxeAnnotationHolder holder
   ) {
     final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-    final ResultHolder initType = getTypeFromVarInit(initExpression);
+    final ResultHolder initType = getTypeFromVarInit(initExpression, holder);
+
+    if(initType.isUnknown()) {
+       holder.createWarningAnnotation( initExpression.getTextRange(), "Unable to determine type, assignment might be incorrect");
+    }
+    if(varType.isUnknown()) {
+      holder.createWarningAnnotation( tag.getTextRange(), "Unable to determine type, assignment assignment might be incorrect");
+    }
 
     if (!varType.canAssign(initType)) {
 
-      HaxeAnnotation annotation = typeMismatch(erroredElement, initType.toStringWithoutConstant(),
-                                               varType.toStringWithoutConstant());
+
+      String varTypeString = isFunctionTypeOrReference(varType.getType())
+                 ? asFunctionReference(varType.getType()).toStringWithoutConstant()
+                 : varType.toStringWithoutConstant();
+      String initTypeString = isFunctionTypeOrReference(initType.getType())
+                 ? asFunctionReference(initType.getType()).toStringWithoutConstant()
+                 : initType.toStringWithoutConstant();
+
+
+      HaxeAnnotation annotation = typeMismatch(erroredElement, initTypeString, varTypeString);
+
       if (null != initType.getClassType()) {
         annotation.withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()));
       }
@@ -601,7 +649,8 @@ class TypeTagChecker {
   }
 
   @NotNull
-  private static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init) {
+  private static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init,
+                                                 HaxeAnnotationHolder holder) {
     HaxeExpression initExpression = init.getExpression();
     HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
 
@@ -611,7 +660,7 @@ class TypeTagChecker {
     }
 
     // fallback to simple init expression
-    return null != initExpression ? HaxeTypeResolver.getPsiElementType(initExpression, init, resolver)
+    return null != initExpression ? HaxeTypeResolver.getPsiElementType(initExpression, init, resolver, holder)
                                   : SpecificTypeReference.getInvalid(init).createHolder();
   }
 }
@@ -1463,7 +1512,7 @@ class MethodChecker {
                                         : "haxe.semantic.overwritten.method.parameter.optional";
         }
 
-        errorMessage = HaxeBundle.message(errorMessage, parentParam.getPresentableText(),
+        errorMessage = HaxeBundle.message(errorMessage, parentParam.getPresentableText(scopeResolver),
                                           parentMethod.getDeclaringClass().getName() + "." + parentMethod.getName());
 
         final Annotation annotation = holder.createErrorAnnotation(currentParam.getBasePsi(), errorMessage);

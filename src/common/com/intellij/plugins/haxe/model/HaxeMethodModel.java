@@ -109,23 +109,33 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isArrayAccessor() {
-    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS);
+    if(HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS)) return true;
+    HaxeMeta metadata = HaxeMetadataUtils.getMetadata(getBasePsi(),null, HaxeMeta.OP);
+    if(metadata!= null && metadata.getContent() != null) {
+      //TODO might want make a class with Consts for OP content values
+      if ("[]".equalsIgnoreCase(metadata.getContent().getText())) return true;
+    }
+    return false;
   }
 
   @Override
   public String getPresentableText(HaxeMethodContext context) {
+    return getPresentableText(context, null);
+  }
+  @Override
+  public String getPresentableText(HaxeMethodContext context, @Nullable HaxeGenericResolver resolver) {
     String out = "";
     out += this.getName();
     out += "(";
     int index = 0;
     for (HaxeParameterModel param : this.getParametersWithContext(context)) {
       if (index > 0) out += ", ";
-      out += param.getPresentableText();
+      out += param.getPresentableText(resolver);
       index++;
     }
     out += ")";
     if (!isConstructor()) {
-      out += ":" + getResultType();
+      out += ":" + getResultType(resolver);
     }
     return out;
   }

@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,6 +55,7 @@ public abstract class SpecificTypeReference {
   public static final String OBJECT_MAP = "haxe.ds.ObjectMap";
   public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
+  public static final String OBJECT = "OBJECT_LITERAL";
 
   /**
    * The context is a parent to be used in a treeWalkUp -- see {@link PsiElement#getContext()}.
@@ -114,9 +116,9 @@ public abstract class SpecificTypeReference {
       mapClass = ENUM_VALUE_MAP;
     }
     // TODO: Implement anonymous structures (HaxeObjectLiterals) in HaxeExpressionEvaluator.
-    //else if (keyTypeReference.isAnonymous()) {
-    //  mapClass = OBJECT_MAP;
-    //}
+    else if (keyTypeReference.isAnonymous()) {
+      mapClass = OBJECT_MAP;
+    }
     else {
       SpecificHaxeClassReference keyClassReference = keyType.getClassType();
       if (null != keyClassReference) {
@@ -283,6 +285,9 @@ public abstract class SpecificTypeReference {
   final public boolean isClass() {
     return isNamedType(CLASS);
   }
+  final public boolean isAnonymous() {
+    return isNamedType(OBJECT);
+  }
   final public boolean isAbstract() {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
@@ -322,8 +327,16 @@ public abstract class SpecificTypeReference {
     if (isArray()) {
       return getArrayElementType();
     }
-    // @TODO: Must implement it (it is not int always)
-    return getInt(iterable.getElementContext()).createHolder();
+
+    if(iterable instanceof  SpecificHaxeClassReference) {
+      SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)iterable;
+      HaxeClassResolveResult result = HaxeResolveUtil.searchForIterableTypeRecursively(classReference.asResolveResult());
+      SpecificHaxeClassReference reference = result.getSpecificClassReference(iterable.getElementContext(), result.getGenericResolver());
+      return reference.createHolder();
+
+    }else {
+      return getInt(iterable.getElementContext()).createHolder();
+    }
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
@@ -417,4 +430,18 @@ public abstract class SpecificTypeReference {
   public boolean isLiteralMap() {
     return ( isMap() &&  context instanceof  HaxeMapLiteral);
   }
+
+
+  public boolean isEmptyCollection() {
+    if(isLiteralArray()) return ((HaxeArrayLiteral)this.context).getExpressionList() == null;
+    if(isLiteralMap()) {
+      HaxeMapLiteral context = (HaxeMapLiteral)this.context;
+      if(context.getMapInitializerExpressionList() != null) return false;
+      if(context.getMapInitializerForStatement() != null) return false;
+      if(context.getMapInitializerWhileStatement() != null) return false;
+      return true;
+    }
+    return false;
+  }
+
 }

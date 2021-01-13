@@ -72,7 +72,7 @@ class IsOperator extends Base {
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">new String("new") is String</error>; // 4.1: characters 27-29 : Missing ;
         "No" + <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">"thing" is String</error>; // 4.1: characters 26-28 : Missing ;
         if (i == 2) throw <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">new ValueException("Some exception!") is String</error>; // 4.1: characters 56-58 : Missing ;
-        final fin : Bool <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= "A String"</error> is String; // 4.1: characters 39-41 : Missing ;
+        final fin : Bool <warning descr="Unable to determine type, assignment might be incorrect"><error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= "A String"</error> is String</warning>; // 4.1: characters 39-41 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">i is String</error>; // 4.1: characters 11-13 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">this is String</error>; // 4.1: characters 14-16 : Missing ;
 

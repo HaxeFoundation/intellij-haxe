@@ -74,18 +74,19 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
-    List<HaxeModel> exposed = CachedValuesManager.getCachedValue(getBasePsi(), exposedMembersCollector(this));
-    return exposed;
+    return CachedValuesManager.getCachedValue(getBasePsi(), exposedMembersCollector(this));
   }
 
   @Nullable
   protected HaxeModel getExposedMember(String name) {
     List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
-    return members.stream()
-      .filter(model -> name.equals(model.getName()))
-      .findFirst()
-      .orElse(null);
+    for (HaxeModel model : members) {
+      if (name.equals(model.getName())) {
+        return model;
+      }
+    }
+    return null;
   }
 
   @Nullable
