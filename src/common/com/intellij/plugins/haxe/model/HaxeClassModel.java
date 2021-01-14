@@ -579,14 +579,25 @@ public class HaxeClassModel implements HaxeExposableModel {
    */
   @NotNull
   public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
+    HaxeGenericResolver resolver;
     if (getPsi().getGenericParam() != null) {
       HaxeClassResolveResult result = HaxeClassResolveResult.create(getPsi(),
                                       parentResolver == null ? HaxeGenericSpecialization.EMPTY
                                                              : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
-      HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());
-      return resolver;
+      resolver = result.getSpecialization().toGenericResolver(getPsi());
+
+    } else {
+      resolver =  new HaxeGenericResolver();
     }
-    return new HaxeGenericResolver();
+
+    for(HaxeType parentType : haxeClass.getHaxeExtendsList()) {
+      HaxeClassResolveResult result = parentType.getReferenceExpression().resolveHaxeClass();
+      resolver.addAll(result.getGenericResolver());
+    }
+
+
+
+    return resolver;
   }
 
   public void addField(String name, SpecificTypeReference type) {
