@@ -717,12 +717,15 @@ public class HaxeExpressionEvaluator {
           List<HaxeMethodModel> methods = classReference.getHaxeClassModel().getMethods(resolver);
           for(HaxeMethodModel method : methods) {
             if(method.isArrayAccessor()) {
+              HaxeGenericResolver arrayAccessorResolver = new HaxeGenericResolver();
+              arrayAccessorResolver.addAll(classReference.getGenericResolver());
+              arrayAccessorResolver.addAll(resolver);
               HaxeParameterModel parameter = method.getParameters().get(0);
-              ResultHolder type = parameter.getType(resolver);
+              ResultHolder type = parameter.getType(arrayAccessorResolver);
               if(!right.canAssign(type)) {
                 context.addError(list.get(1), "Expected " + type.toPresentationString() + "  got " + right.toPresentationString());
               }
-              return method.getReturnType(resolver);
+              return method.getReturnType(arrayAccessorResolver);
             }
           }
         }
