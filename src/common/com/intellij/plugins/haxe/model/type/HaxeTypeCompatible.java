@@ -19,7 +19,9 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
 import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -97,6 +99,14 @@ public class HaxeTypeCompatible {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
 
+    // if abstract of function is being compared to a function we map the abstract to its underlying function
+    if (hasAbstractFunctionTypeCast(to, false) && isFunctionTypeOrReference(from)) {
+      to = asAbstractFunctionType(to, false);
+    }
+    if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, true)) {
+      from = asAbstractFunctionType(from, true);
+    }
+
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
       SpecificFunctionReference toRef = asFunctionReference(to);
       SpecificFunctionReference fromRef = asFunctionReference(from);
@@ -142,6 +152,39 @@ public class HaxeTypeCompatible {
     // Void return on the to just means that the value isn't used/cared about. See
     // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
     return to.returnValue != null && (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
+  }
+
+  private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean isFrom) {
+    if (reference instanceof SpecificHaxeClassReference) {
+      HaxeClass haxeClass = ((SpecificHaxeClassReference)reference).getHaxeClass();
+      if (haxeClass instanceof HaxeAbstractClassDeclaration) {
+        HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
+        if (!abstractClass.getFunctionTypeList().isEmpty()) {
+          for (int i = 0; i < abstractClass.getFunctionTypeList().size(); i++) {
+            if (abstractClass.getIdentifierList().get(i).getText().equals(isFrom ? "to" : "from")) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private static SpecificFunctionReference asAbstractFunctionType(SpecificTypeReference reference, boolean isFrom) {
+    SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)reference;
+    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
+    if (!abstractClass.getFunctionTypeList().isEmpty()) {
+      for (int i = 0; i < abstractClass.getFunctionTypeList().size(); i++) {
+        if (abstractClass.getIdentifierList().get(i).getText().equals(isFrom ? "to" : "from")) {
+          HaxeFunctionType type = abstractClass.getFunctionTypeList().get(0);
+          HaxeSpecificFunction specificFunction =
+            new HaxeSpecificFunction(type, classReference.getGenericResolver().getSpecialization(null));
+          return SpecificFunctionReference.create(specificFunction);
+        }
+      }
+    }
+    return null;
   }
 
 
