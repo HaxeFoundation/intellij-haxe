@@ -436,7 +436,7 @@ private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonym
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
 private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
 
-private oldFunctionType ::= oldFunctionTypeArgumentsList (functionReturnType |'(' functionReturnType ')') {pin=2}
+private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
 oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymous) {elementType="functionArgument" pin(".*")=3}
 
