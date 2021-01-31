@@ -101,11 +101,15 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
   }
 
-  public ResultHolder getResultType(HaxeGenericResolver resolver) {
+  public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
     return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi, resolver);
   }
 
   public String getPresentableText(HaxeMethodContext context) {
+      return getPresentableText(context, null);
+  }
+
+  public String getPresentableText(HaxeMethodContext context, @Nullable HaxeGenericResolver resolver) {
     PsiElement basePsi = getBasePsi();
     if (basePsi instanceof HaxeNamedComponent) {
       AbstractHaxeNamedComponent nc = (AbstractHaxeNamedComponent)basePsi;
