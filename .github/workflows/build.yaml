@@ -10,7 +10,7 @@ on:
 jobs:
   Build:
     strategy:
-      fail-fast: false # set this to true if oyu want to cancel all builds if one fails.
+      fail-fast: false # set this to true if you want to cancel all builds if one fails.
       matrix:
         IDEA_VERSION: [2020.2, 2020.1.4,2019.3.5,2018.3.6]
         OS: [macOS-latest, ubuntu-latest, windows-latest]
