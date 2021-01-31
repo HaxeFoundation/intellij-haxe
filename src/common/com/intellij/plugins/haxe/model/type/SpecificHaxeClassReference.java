@@ -75,11 +75,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public static SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics) {
-    return new SpecificHaxeClassReference(clazz, specifics, null, null, clazz.elementContext);
+      return new SpecificHaxeClassReference(clazz, specifics != null ?  specifics : ResultHolder.EMPTY, null, null, clazz.elementContext);
   }
 
   public static SpecificHaxeClassReference withGenerics(@NotNull HaxeClassReference clazz, ResultHolder[] specifics, Object constantValue) {
-    return new SpecificHaxeClassReference(clazz, specifics, constantValue, null, clazz.elementContext);
+    return new SpecificHaxeClassReference(clazz,  specifics != null ?  specifics : ResultHolder.EMPTY, constantValue, null, clazz.elementContext);
   }
 
   @Nullable
