@@ -31,8 +31,16 @@ private line_recovery ::= !(eol_)
 private option_ ::= (lib | define | classpath | main | property | COMMENT)
 
 property ::= option value? {pin=1}
-define ::= '-D' value {pin=1}
-lib ::= '-lib' value (':' value)? {pin=1}
-classpath ::= '-cp' value {pin=1}
-main ::= '-main' qualifiedName {pin=1}
+define ::= ('-D'|'--define') value {pin=1}
 
+lib ::= (libHx3|libHx4) value (':' value)? {pin=1}
+private libHx3 ::= '-lib'
+private libHx4 ::= '-L'|'--library'
+
+classpath ::= (classpathHx3|classpathHx4) value {pin=1}
+private classpathHx3 ::= '-cp'
+private classpathHx4 ::= '-p'
+
+main ::= (mainHx3| mainHx4) qualifiedName {pin=1}
+private mainHx3 ::= '-main'
+private mainHx4 ::= '-m'| '--main'

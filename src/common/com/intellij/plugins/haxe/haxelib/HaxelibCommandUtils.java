@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Utilities to run the haxelib command and capture its output.
@@ -180,32 +181,24 @@ public class HaxelibCommandUtils {
       Process process = builder.start();
       InputStreamReader reader = new InputStreamReader(process.getInputStream());
       Scanner scanner = new Scanner(reader);
+      process.waitFor(100, TimeUnit.MILLISECONDS);
 
-      while (scanner.hasNextLine()) {
-        String nextLine = scanner.nextLine();
-        strings.add(nextLine);
-      }
-      process.waitFor();
-
-      /*
-      try {
-        Thread.sleep(250);
-        try {
-          process.exitValue();
+      if(reader.ready()) {
+        while (scanner.hasNextLine()) {
+          String nextLine = scanner.nextLine();
+          strings.add(nextLine);
         }
-        catch (IllegalThreadStateException e) {
+      }
+
+      if(process.isAlive()) {
+        if(!process.waitFor(10, TimeUnit.MILLISECONDS)) {
           process.destroy();
         }
       }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      */
+
+
     }
-    catch (IOException e) {
-      e.printStackTrace();
-    }
-    catch (InterruptedException e) {
+    catch (IOException | InterruptedException e) {
       e.printStackTrace();
     }
 
@@ -224,34 +217,23 @@ public class HaxelibCommandUtils {
       InputStreamReader reader = new InputStreamReader(process.getErrorStream());
       Scanner scanner = new Scanner(reader);
 
-      while (scanner.hasNextLine()) {
-        String nextLine = scanner.nextLine();
-        strings.add(nextLine);
+
+      if(reader.ready()) {
+        while (scanner.hasNextLine()) {
+          String nextLine = scanner.nextLine();
+          strings.add(nextLine);
+        }
       }
 
-      //log.error(StringUtil.join(strings, "\n"));
-      process.waitFor();
-
-      /*
-      try {
-        Thread.sleep(250);
-        try {
-          process.exitValue();
-        }
-        catch (IllegalThreadStateException e) {
+      if(process.isAlive()) {
+        if(!process.waitFor(10, TimeUnit.MILLISECONDS)) {
           process.destroy();
         }
       }
-      catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-      */
+
+
     }
-    catch (IOException e) {
-      e.printStackTrace();
-      //log.error(StringUtil.getMessage(e));
-    }
-    catch (InterruptedException e) {
+    catch (IOException | InterruptedException e) {
       e.printStackTrace();
       //log.error(StringUtil.getMessage(e));
     }

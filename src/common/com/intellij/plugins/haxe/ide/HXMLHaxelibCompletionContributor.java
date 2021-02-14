@@ -20,10 +20,13 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
+import com.intellij.plugins.haxe.hxml.psi.HXMLTokenType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,7 +49,7 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
     availableHaxelibs = haxelibCache.getAvailableHaxelibs();
     localHaxelibs = haxelibCache.getLocalHaxelibs();
 
-    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
