@@ -49,22 +49,29 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
     availableHaxelibs = haxelibCache.getAvailableHaxelibs();
     localHaxelibs = haxelibCache.getLocalHaxelibs();
 
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               for (int i = 0; i < availableHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
-                                     .withTailText(" available at haxelib", true));
-               }
+    // intelliJ 2018 and older
+    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),  getProvider());
+    // intelliJ 2019 and newer
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE), getProvider());
+  }
 
-               for (int i = 0; i < localHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
-                                     .withTailText(" installed", true));
-               }
-             }
-           });
+  @NotNull
+  private CompletionProvider<CompletionParameters> getProvider() {
+    return new CompletionProvider<CompletionParameters>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        for (int i = 0; i < availableHaxelibs.size(); i++) {
+          result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
+                              .withTailText(" available at haxelib", true));
+        }
+
+        for (int i = 0; i < localHaxelibs.size(); i++) {
+          result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
+                              .withTailText(" installed", true));
+        }
+      }
+    };
   }
 }
