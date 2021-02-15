@@ -210,6 +210,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  public void testAbstractAssignmentFromToFunctions() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   public void testNullFunction() throws Exception {
     doTestNoFixWithWarnings();
   }

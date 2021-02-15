@@ -1,5 +1,5 @@
 Haxe File
   IMPORT_STATEMENT
     HaxePsiToken:import('import')
-    PsiErrorElement:ID expected
+    PsiErrorElement:<expression> expected
       <empty list>
