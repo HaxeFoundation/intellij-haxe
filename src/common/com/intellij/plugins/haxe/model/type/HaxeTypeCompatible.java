@@ -171,7 +171,9 @@ public class HaxeTypeCompatible {
     return false;
   }
 
+  @NotNull
   private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificHaxeClassReference classReference, boolean getCastFrom) {
+    if (!(classReference.getHaxeClass() instanceof HaxeAbstractClassDeclaration))  return Collections.emptyList();
     HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
     List<SpecificFunctionReference> list = new ArrayList<>();
     if (abstractClass != null) {
