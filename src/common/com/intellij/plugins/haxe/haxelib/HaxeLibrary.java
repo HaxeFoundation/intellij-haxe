@@ -196,6 +196,8 @@ public class HaxeLibrary {
       return new HaxeLibrary(libName, libraryRoot, owner);
     } catch (InvalidParameterException e) {
       ; // libName must not have been an url
+    } catch (Exception e) {
+      LOG.error("Unable to read Haxelib '" + libName +"' reason:" + e.getMessage(), e);
     }
     return null;
   }
