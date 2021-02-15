@@ -114,18 +114,22 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   @Override
   public String getPresentableText(HaxeMethodContext context) {
+    return getPresentableText(context, null);
+  }
+  @Override
+  public String getPresentableText(HaxeMethodContext context, @Nullable HaxeGenericResolver resolver) {
     String out = "";
     out += this.getName();
     out += "(";
     int index = 0;
     for (HaxeParameterModel param : this.getParametersWithContext(context)) {
       if (index > 0) out += ", ";
-      out += param.getPresentableText();
+      out += param.getPresentableText(resolver);
       index++;
     }
     out += ")";
     if (!isConstructor()) {
-      out += ":" + getResultType();
+      out += ":" + getResultType(resolver);
     }
     return out;
   }

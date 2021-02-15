@@ -112,10 +112,11 @@ public final class HaxelibLibraryCache {
 
         // It's not in the cache, so go get it and cache the results.
         HaxeLibrary newlib = HaxeLibrary.load(this, libraryName, mySdk);
-        myCache.add(newlib);
-
-        timeLog.stamp("Finished loading library: " + libraryName);
-        return newlib.getClasspathEntries();
+        if(null != newlib) {
+          myCache.add(newlib);
+          timeLog.stamp("Finished loading library: " + libraryName);
+          return newlib.getClasspathEntries();
+        }
       }
 
       timeLog.stamp("Unknown library !!!  " + libraryName + " !!! ");
