@@ -51,7 +51,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
@@ -487,10 +486,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         // creating a resolver that combines parent(leftExpression) current(expression) and children (parameterExpressions)
         HaxeGenericResolver resolver = new HaxeGenericResolver();
 
-        if(leftResult.getHaxeClass() != null) {
+        if (leftResult.getHaxeClass() != null) {
           resolver.addAll(HaxeGenericResolverUtil
                             .getResolverSkipAbstractNullScope(leftResult.getHaxeClass().getModel(), leftResult.getGenericResolver()));
-        }else {
+        } else {
           resolver.addAll(leftResult.getGenericResolver());
         }
         PsiElement resolvedExpression = ((HaxeReference)expression).resolve();
@@ -629,9 +628,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeGenericParam genericParam = method.getGenericParam();
         List<HaxeGenericListPart> partList =genericParam != null ? genericParam.getGenericListPartList() : null;
         if(partList!= null) {
-          Optional<HaxeGenericListPart> match = partList.stream().filter(part -> Objects.equals(typeName, part.getName())).findFirst();
-          if(match.isPresent()) {
-            HaxeGenericListPart listPart = match.get();
+          HaxeGenericListPart listPart = null;
+          for (HaxeGenericListPart genericListPart : partList) {
+            if (Objects.equals(typeName, genericListPart.getName())) {
+              listPart = genericListPart;
+              break;
+            }
+          }
+          if(listPart!= null) {
             HaxeTypeList list = listPart.getTypeList();
             if(list != null) {
               list.getTypeListPartList();

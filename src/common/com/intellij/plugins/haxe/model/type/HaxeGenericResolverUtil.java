@@ -188,9 +188,12 @@ public class HaxeGenericResolverUtil {
     if (model instanceof HaxeAbstractClassModel) {
       HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)model;
       if ("Null".equals(abstractClassModel.getName()) && abstractClassModel.isCoreType()) {
-        HaxeGenericListPart generic = abstractClassModel.getAbstractClass().getGenericParam().getGenericListPartList().get(0);
-        ResultHolder resolve = resolver.resolve(generic.getName());
-        return  resolve == null  || resolve.getClassType() == null ? resolver : resolve.getClassType().getGenericResolver();
+        HaxeGenericParam param = abstractClassModel.getAbstractClass().getGenericParam();
+        if (param != null) {
+          HaxeGenericListPart generic = param.getGenericListPartList().get(0);
+          ResultHolder resolve = resolver.resolve(generic.getName());
+          return resolve == null || resolve.getClassType() == null ? resolver : resolve.getClassType().getGenericResolver();
+        }
       }
     }
     return resolver;
