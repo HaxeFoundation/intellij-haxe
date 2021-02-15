@@ -229,6 +229,15 @@ private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
 private questionOperator ::= '?'              { extends=operator }
 private suffixOperator ::= '!'                { extends=operator }
 
+// KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code
+identifier ::= ID | KFROM | KTO
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
+
+thisExpression ::= 'this'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+superExpression ::= 'super'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
@@ -305,11 +314,13 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-//'from' | 'to'
-underlyingType ::= '(' typeWrapper ')'
-abstractClassDeclaration ::= privateKeyWord? abstractClassType componentName genericParam? underlyingType? ((identifier) type)* abstractBody
+
+abstractClassDeclaration ::= privateKeyWord? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractClassType ::= 'enum'? 'abstract'
+underlyingType ::= '(' typeWrapper ')'
+abstractToType ::= 'to' ('(' typeWrapper ')' | typeWrapper){pin=1}
+abstractFromType ::= 'from' ('(' typeWrapper ')' | typeWrapper){pin=1}
 abstractBody ::= '{' abstractBodyPart* '}' {extends="classBody"}
 private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
 
@@ -436,7 +447,7 @@ private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonym
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
 private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
 
-private oldFunctionType ::= oldFunctionTypeArgumentsList functionReturnType {pin=2}
+private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
 oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymous) {elementType="functionArgument" pin(".*")=3}
 
@@ -713,14 +724,6 @@ private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedRefe
 
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
-identifier ::= ID
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
-
-thisExpression ::= 'this'
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-
-superExpression ::= 'super'
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 // XXX - This could be callExpression, and it makes sense that newExpression would extend/implement callExpression,
 //       but that affects a lot of code and is best not attempted just before a release...
