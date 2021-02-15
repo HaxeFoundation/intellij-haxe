@@ -98,14 +98,14 @@ public class HaxeTypeCompatible {
 
     // if abstract of function is being compared to a function we map the abstract to its underlying function
     if (hasAbstractFunctionTypeCast(to, true) && isFunctionTypeOrReference(from)) {
-      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes(to, true);
+      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)to, true);
       SpecificFunctionReference fromFunctionType = asFunctionReference(from);
       for(SpecificFunctionReference functionType  : functionTypes) {
         if(canAssignToFromFunction(functionType, fromFunctionType)) return true;
       }
     }
     if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, false)) {
-      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes(from, false);
+      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
       SpecificFunctionReference toFunctionType = asFunctionReference(to);
       for(SpecificFunctionReference functionType  : functionTypes) {
         if(canAssignToFromFunction(toFunctionType, functionType)) return true;
@@ -171,8 +171,7 @@ public class HaxeTypeCompatible {
     return false;
   }
 
-  private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificTypeReference reference, boolean getCastFrom) {
-    SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)reference;
+  private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificHaxeClassReference classReference, boolean getCastFrom) {
     HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
     List<SpecificFunctionReference> list = new ArrayList<>();
     if (abstractClass != null) {
