@@ -85,6 +85,8 @@
   <![CDATA[
       <p>Unreleased changes</p>
       <ul>
+        <li>Add HXML completion for Haxe 4</li>
+        <li>Fixed issue where IDE would freeze when writing HXML files</li>
         <li>Add HashLink target</li>
         <li>improved block-statement parsing and added quickfix for missing semicolon</li>
         <li>Add support for import.hx</li>

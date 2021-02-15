@@ -205,43 +205,6 @@ public class HaxelibCommandUtils {
     return strings;
   }
 
-
-  //private static Logger log = Logger.getInstance(HaxelibCommandUtils.class);
-
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, File dir, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
-    List<String> strings = new ArrayList<String>();
-
-    try {
-      ProcessBuilder builder = HaxeSdkUtilBase.createProcessBuilder(commandLineArguments, dir, haxeSdkData);
-      Process process = builder.start();
-      InputStreamReader reader = new InputStreamReader(process.getErrorStream());
-      Scanner scanner = new Scanner(reader);
-
-
-      if(reader.ready()) {
-        while (scanner.hasNextLine()) {
-          String nextLine = scanner.nextLine();
-          strings.add(nextLine);
-        }
-      }
-
-      if(process.isAlive()) {
-        if(!process.waitFor(10, TimeUnit.MILLISECONDS)) {
-          process.destroy();
-        }
-      }
-
-
-    }
-    catch (IOException | InterruptedException e) {
-      e.printStackTrace();
-      //log.error(StringUtil.getMessage(e));
-    }
-
-    return strings;
-  }
-
-
   /**
    * Run a shell command in the (IDEA's) current directory, capturing its standard output.
    *
@@ -251,10 +214,6 @@ public class HaxelibCommandUtils {
   @NotNull
   public static List<String> getProcessStdout(@NotNull ArrayList<String> commandLineArguments, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
     return getProcessStdout(commandLineArguments, null, haxeSdkData);
-  }
-
-  public static List<String> getProcessStderr(ArrayList<String> commandLineArguments, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
-    return getProcessStderr(commandLineArguments, null, haxeSdkData);
   }
 
 }
