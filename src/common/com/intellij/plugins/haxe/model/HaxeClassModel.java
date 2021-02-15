@@ -202,9 +202,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     List<HaxeType> types = new LinkedList<HaxeType>();
     HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
     List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
-    for(HaxeAbstractToType fromType : list) {
-      if(fromType.getTypeOrAnonymous() != null ) {
-        types.add(fromType.getTypeOrAnonymous().getType());
+    for(HaxeAbstractToType toType : list) {
+      if(toType.getTypeOrAnonymous() != null ) {
+        types.add(toType.getTypeOrAnonymous().getType());
       }
     }
     return types;
