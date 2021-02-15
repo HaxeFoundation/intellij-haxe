@@ -1141,13 +1141,13 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Kilometer')
-    IDENTIFIER
-      HaxePsiToken:ID('from')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
+    ABSTRACT_FROM_TYPE
+      HaxePsiToken:KFROM('from')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       METHOD_DECLARATION
@@ -1241,13 +1241,13 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('Int')
-    IDENTIFIER
-      HaxePsiToken:ID('to')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Float')
+    ABSTRACT_TO_TYPE
+      HaxePsiToken:KTO('to')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Float')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
@@ -1258,20 +1258,20 @@ Haxe File
     COMPONENT_NAME
       IDENTIFIER
         HaxePsiToken:ID('UInt')
-    IDENTIFIER
-      HaxePsiToken:ID('to')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
-    IDENTIFIER
-      HaxePsiToken:ID('from')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
+    ABSTRACT_TO_TYPE
+      HaxePsiToken:KTO('to')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
+    ABSTRACT_FROM_TYPE
+      HaxePsiToken:KFROM('from')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
@@ -1482,20 +1482,20 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('Int')
       HaxePsiToken:)(')')
-    IDENTIFIER
-      HaxePsiToken:ID('from')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
-    IDENTIFIER
-      HaxePsiToken:ID('to')
-    TYPE_OR_ANONYMOUS
-      TYPE
-        REFERENCE_EXPRESSION
-          IDENTIFIER
-            HaxePsiToken:ID('Int')
+    ABSTRACT_FROM_TYPE
+      HaxePsiToken:KFROM('from')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
+    ABSTRACT_TO_TYPE
+      HaxePsiToken:KTO('to')
+      TYPE_OR_ANONYMOUS
+        TYPE
+          REFERENCE_EXPRESSION
+            IDENTIFIER
+              HaxePsiToken:ID('Int')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
       PsiComment(MSL_COMMENT)('// MyInt + MyInt can be used as is, and returns a MyInt')

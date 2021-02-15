@@ -297,8 +297,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "cast"                                    { return emitToken( KCAST);  }
 
 "abstract"                                {  return emitToken( KABSTRACT);  }
-//"from"                                    {  return emitToken( KFROM);  }
-//"to"                                      {  return emitToken( KTO );  }
+"from"                                    {  return emitToken( KFROM);  }
+"to"                                      {  return emitToken( KTO );  }
 
 "class"                                   {  return emitToken( KCLASS);  }
 "enum"                                    {  return emitToken( KENUM);  }

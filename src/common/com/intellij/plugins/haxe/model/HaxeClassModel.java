@@ -196,17 +196,15 @@ public class HaxeClassModel implements HaxeExposableModel {
     return null;
   }
 
-  // @TODO: this should be properly parsed in haxe.bnf so searching for to is not required
   public List<HaxeType> getAbstractToList() {
-    if (!isAbstract()) return Collections.emptyList();
+    if (!isAbstract() ) return Collections.emptyList();
+
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
-      if (id.getText().equals("to")) {
-        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeTypeOrAnonymous) {
-          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
-          types.add(typeOrAnonymous.getType());
-        }
+    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
+    List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
+    for(HaxeAbstractToType fromType : list) {
+      if(fromType.getTypeOrAnonymous() != null ) {
+        types.add(fromType.getTypeOrAnonymous().getType());
       }
     }
     return types;
@@ -296,17 +294,14 @@ public class HaxeClassModel implements HaxeExposableModel {
 
 
 
-  // @TODO: this should be properly parsed in haxe.bnf so searching for from is not required
   public List<HaxeType> getAbstractFromList() {
-    if (!isAbstract()) return Collections.emptyList();
+    if (!isAbstract() ) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    for (HaxeIdentifier id : UsefulPsiTreeUtil.getChildren(haxeClass, HaxeIdentifier.class)) {
-      if (id.getText().equals("from")) {
-        PsiElement sibling = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(id);
-        if (sibling instanceof HaxeTypeOrAnonymous) {
-          HaxeTypeOrAnonymous typeOrAnonymous = (HaxeTypeOrAnonymous) sibling;
-          types.add(typeOrAnonymous.getType());
-        }
+    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
+    List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
+    for(HaxeAbstractFromType fromType : list) {
+      if(fromType.getTypeOrAnonymous() != null ) {
+        types.add(fromType.getTypeOrAnonymous().getType());
       }
     }
     return types;

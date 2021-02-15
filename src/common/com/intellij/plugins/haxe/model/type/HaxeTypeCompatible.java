@@ -19,16 +19,12 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
-import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
@@ -65,6 +61,7 @@ public class HaxeTypeCompatible {
     return false;
   }
 
+  @NotNull
   static private SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
     if (ref instanceof SpecificFunctionReference)
       return (SpecificFunctionReference)ref;
@@ -100,11 +97,19 @@ public class HaxeTypeCompatible {
     if (to.isDynamic() || from.isDynamic()) return true;
 
     // if abstract of function is being compared to a function we map the abstract to its underlying function
-    if (hasAbstractFunctionTypeCast(to, false) && isFunctionTypeOrReference(from)) {
-      to = asAbstractFunctionType(to, false);
+    if (hasAbstractFunctionTypeCast(to, true) && isFunctionTypeOrReference(from)) {
+      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes(to, true);
+      SpecificFunctionReference fromFunctionType = asFunctionReference(from);
+      for(SpecificFunctionReference functionType  : functionTypes) {
+        if(canAssignToFromFunction(functionType, fromFunctionType)) return true;
+      }
     }
-    if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, true)) {
-      from = asAbstractFunctionType(from, true);
+    if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, false)) {
+      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes(from, false);
+      SpecificFunctionReference toFunctionType = asFunctionReference(to);
+      for(SpecificFunctionReference functionType  : functionTypes) {
+        if(canAssignToFromFunction(toFunctionType, functionType)) return true;
+      }
     }
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
@@ -154,37 +159,43 @@ public class HaxeTypeCompatible {
     return to.returnValue != null && (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
   }
 
-  private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean isFrom) {
+  private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean castFrom) {
     if (reference instanceof SpecificHaxeClassReference) {
       HaxeClass haxeClass = ((SpecificHaxeClassReference)reference).getHaxeClass();
       if (haxeClass instanceof HaxeAbstractClassDeclaration) {
         HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
-        if (!abstractClass.getFunctionTypeList().isEmpty()) {
-          for (int i = 0; i < abstractClass.getFunctionTypeList().size(); i++) {
-            if (abstractClass.getIdentifierList().get(i).getText().equals(isFrom ? "to" : "from")) {
-              return true;
-            }
-          }
-        }
+        if (castFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) return true;
+        if (!castFrom && !abstractClass.getAbstractToTypeList().isEmpty()) return true;
       }
     }
     return false;
   }
 
-  private static SpecificFunctionReference asAbstractFunctionType(SpecificTypeReference reference, boolean isFrom) {
+  private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificTypeReference reference, boolean getCastFrom) {
     SpecificHaxeClassReference classReference = (SpecificHaxeClassReference)reference;
     HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
-    if (!abstractClass.getFunctionTypeList().isEmpty()) {
-      for (int i = 0; i < abstractClass.getFunctionTypeList().size(); i++) {
-        if (abstractClass.getIdentifierList().get(i).getText().equals(isFrom ? "to" : "from")) {
-          HaxeFunctionType type = abstractClass.getFunctionTypeList().get(0);
-          HaxeSpecificFunction specificFunction =
-            new HaxeSpecificFunction(type, classReference.getGenericResolver().getSpecialization(null));
-          return SpecificFunctionReference.create(specificFunction);
+    List<SpecificFunctionReference> list = new ArrayList<>();
+    if (abstractClass != null) {
+      if (getCastFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) {
+        for(HaxeAbstractFromType type : abstractClass.getAbstractFromTypeList()) {
+          if(type.getFunctionType() != null) {
+            HaxeSpecificFunction specificFunction =
+              new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+            list.add(SpecificFunctionReference.create(specificFunction));
+          }
+        }
+      }
+      if (!getCastFrom && !abstractClass.getAbstractToTypeList().isEmpty()){
+        for(HaxeAbstractToType type : abstractClass.getAbstractToTypeList()) {
+          if (type.getFunctionType() != null) {
+            HaxeSpecificFunction specificFunction =
+              new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+            list.add(SpecificFunctionReference.create(specificFunction));
+          }
         }
       }
     }
-    return null;
+    return list;
   }
 
 
