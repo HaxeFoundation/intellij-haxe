@@ -27,10 +27,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -86,9 +83,12 @@ public class HaxeFileModel implements HaxeExposableModel {
   @Nullable
   @Override
   public List<HaxeModel> getExposedMembers() {
-    return getClassModels().stream()
-      .filter(HaxeClassModel::isPublic)
-      .collect(Collectors.toList());
+    List<HaxeClassModel> models = getClassModels();
+    List<HaxeModel> publicModels = new ArrayList<>();
+    for(HaxeClassModel model : models) {
+      if(model.isPublic()) publicModels.add(model);
+    }
+    return  publicModels;
   }
 
   @Nullable
@@ -190,21 +190,32 @@ public class HaxeFileModel implements HaxeExposableModel {
       .map(element -> ((HaxeUsingStatement)element).getModel())
       .collect(Collectors.toList());
   }
-
+  @NotNull
   public List<HaxeImportableModel> getOrderedImportAndUsingModels() {
-    return Arrays.stream(file.getChildren())
-      .filter(element -> element instanceof HaxeUsingStatement || element instanceof HaxeImportStatement)
-      .map(element -> element instanceof HaxeUsingStatement
-                      ? ((HaxeUsingStatement)element).getModel()
-                      : ((HaxeImportStatement)element).getModel())
-      .collect(Collectors.toList());
+    PsiElement[] children = file.getChildren();
+    List<HaxeImportableModel>  result = new ArrayList<>();
+    for(PsiElement child : children) {
+
+      if(child instanceof HaxeUsingStatement) {
+        result.add(((HaxeUsingStatement)child).getModel());
+      }
+      if(child instanceof HaxeImportStatement) {
+        result.add(((HaxeImportStatement)child).getModel());
+      }
+
+    }
+    return result ;
   }
 
   public HaxePackageModel getPackageModel() {
     HaxeProjectModel project = HaxeProjectModel.fromElement(file);
-    HaxeSourceRootModel result = project.getRoots().stream()
-      .filter(model -> model.contains(file))
-      .findFirst().orElse(null);
+    HaxeSourceRootModel result = null;
+    for (HaxeSourceRootModel rootModel : project.getRoots()) {
+      if (rootModel.contains(file)) {
+        result = rootModel;
+        break;
+      }
+    }
 
     if (result == null && project.getSdkRoot().contains(file)) {
       result = project.getSdkRoot();
@@ -212,7 +223,7 @@ public class HaxeFileModel implements HaxeExposableModel {
 
     if (result != null) {
       HaxeModel model = result.resolve(getFullyQualifiedInfo().toPackageQualifiedName());
-      if (model != null && model instanceof HaxePackageModel) {
+      if (model instanceof HaxePackageModel) {
         return (HaxePackageModel)model;
       }
     }

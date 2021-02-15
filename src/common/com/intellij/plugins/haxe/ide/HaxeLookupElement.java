@@ -85,10 +85,12 @@ public class HaxeLookupElement extends LookupElement {
       presentation.setItemText(getLookupString());
       return;
     }
+
     HaxeGenericResolver resolver =  null;
     if(leftReference != null && leftReference.getHaxeClass() != null) {
       resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), leftReference.getGenericResolver());
     }
+
 
     String presentableText = myComponentNamePresentation.getPresentableText();
 
@@ -96,8 +98,7 @@ public class HaxeLookupElement extends LookupElement {
     HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(myComponentName);
 
     if (model != null) {
-      // TODO: Specialization support required
-      presentableText = model.getPresentableText(context);
+      presentableText = model.getPresentableText(context, resolver);
 
       // Check deprecated modifiers
       if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {

@@ -61,6 +61,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass");
 
+  private Boolean _isPrivate = null;
+
   static {
     LOG.info("Loaded AbstractHaxePsiClass");
     LOG.setLevel(Level.DEBUG);
@@ -500,21 +502,24 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   private boolean isPrivate() {
-    HaxePrivateKeyWord privateKeyWord = null;
-    if (this instanceof HaxeClassDeclaration) { // concrete class
-      privateKeyWord = getPrivateKeyWord(((HaxeClassDeclaration)this).getClassModifierList());
-    } else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
-      privateKeyWord = ((HaxeAbstractClassDeclaration)this).getPrivateKeyWord();
-    } else if (this instanceof HaxeExternClassDeclaration) { // extern class
-      privateKeyWord = getPrivateKeyWord(((HaxeExternClassDeclaration)this).getExternClassModifierList());
-    } else if (this instanceof HaxeTypedefDeclaration) { // typedef
-      privateKeyWord = ((HaxeTypedefDeclaration)this).getPrivateKeyWord();
-    } else if (this instanceof HaxeInterfaceDeclaration) { // interface
-      privateKeyWord = ((HaxeInterfaceDeclaration)this).getPrivateKeyWord();
-    } else if (this instanceof HaxeEnumDeclaration) { // enum
-      privateKeyWord = ((HaxeEnumDeclaration)this).getPrivateKeyWord();
+    if(_isPrivate == null) {
+      HaxePrivateKeyWord privateKeyWord = null;
+      if (this instanceof HaxeClassDeclaration) { // concrete class
+        privateKeyWord = getPrivateKeyWord(((HaxeClassDeclaration)this).getClassModifierList());
+      } else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
+        privateKeyWord = ((HaxeAbstractClassDeclaration)this).getPrivateKeyWord();
+      } else if (this instanceof HaxeExternClassDeclaration) { // extern class
+        privateKeyWord = getPrivateKeyWord(((HaxeExternClassDeclaration)this).getExternClassModifierList());
+      } else if (this instanceof HaxeTypedefDeclaration) { // typedef
+        privateKeyWord = ((HaxeTypedefDeclaration)this).getPrivateKeyWord();
+      } else if (this instanceof HaxeInterfaceDeclaration) { // interface
+        privateKeyWord = ((HaxeInterfaceDeclaration)this).getPrivateKeyWord();
+      } else if (this instanceof HaxeEnumDeclaration) { // enum
+        privateKeyWord = ((HaxeEnumDeclaration)this).getPrivateKeyWord();
+      }
+      _isPrivate =  (privateKeyWord != null);
     }
-    return (privateKeyWord != null);
+    return _isPrivate;
   }
 
   private HaxePrivateKeyWord getPrivateKeyWord(HaxeClassModifierList list) {
