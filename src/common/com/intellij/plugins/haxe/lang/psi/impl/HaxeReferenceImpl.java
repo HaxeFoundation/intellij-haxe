@@ -639,10 +639,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             HaxeTypeList list = listPart.getTypeList();
             if(list != null) {
               list.getTypeListPartList();
-              List<HaxeType> classReferences = list.getTypeListPartList().stream()
-                .map(part -> part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+              List<HaxeType> classReferences = new ArrayList<>();
+              for (HaxeTypeListPart part : list.getTypeListPartList()) {
+                HaxeType type = part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType();
+                if (type != null) {
+                  classReferences.add(type);
+                }
+              }
 
               HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
               return HaxeClassResolveResult.create(constraint);
