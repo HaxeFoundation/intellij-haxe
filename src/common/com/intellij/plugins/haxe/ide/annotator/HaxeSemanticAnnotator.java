@@ -303,7 +303,10 @@ class CallExpressionChecker {
   }
 
   private static boolean isVoidArgument(HaxeFunctionArgument argument) {
-    return !(argument.getTypeOrAnonymous() == null  ||argument.getTypeOrAnonymous().getType() == null  || !argument.getTypeOrAnonymous().getType().getText().equals("Void"));
+    HaxeTypeOrAnonymous toa = argument.getTypeOrAnonymous();
+    HaxeType t = null != toa ? toa.getType() : null;
+    String name = t != null ? t.getText() : null;
+    return SpecificHaxeClassReference.VOID.equals(name);
   }
 
 
