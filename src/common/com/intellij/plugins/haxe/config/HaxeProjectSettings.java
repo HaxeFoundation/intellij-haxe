@@ -37,7 +37,7 @@ import java.util.Set;
 @State(
   name = "HaxeProjectSettings",
   storages = {
-    @Storage("/haxe.xml")
+    @Storage("haxe.xml")
   }
 )
 public class HaxeProjectSettings implements PersistentStateComponent<Element>, HaxeTrackedModifiable {
