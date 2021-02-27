@@ -290,10 +290,13 @@ public class HaxeClassResolveResult implements Cloneable {
     HaxeClassReference classReference = null != clazz ? new HaxeClassReference(clazz, context)
                                         : new HaxeClassReference(SpecificHaxeClassReference.UNKNOWN, context);
     HaxeClass clazzPsi = null != clazz ? clazz.getPsi() : null;
-
     softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
-    HaxeGenericResolver newResolver = getGenericResolver();
-    return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
+    if(classReference.getHaxeClass().isGeneric()) {
+      HaxeGenericResolver newResolver = getGenericResolver();
+      return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
+    }else {
+      return SpecificHaxeClassReference.withoutGenerics(classReference);
+    }
   }
 
   public void specialize(@Nullable PsiElement element) {
