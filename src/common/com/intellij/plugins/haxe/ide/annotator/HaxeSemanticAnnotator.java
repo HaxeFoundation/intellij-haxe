@@ -124,7 +124,7 @@ class CallExpressionChecker {
 
       HaxeTypeTag tag = ((HaxePsiField)target).getTypeTag();
 
-      if(tag.getFunctionType() != null) {
+      if (tag != null && tag.getFunctionType() != null) {
         List<HaxeFunctionArgument> argumentList = tag.getFunctionType().getFunctionArgumentList();
 
         List<HaxeExpression> expressionArgList = new LinkedList<>();
@@ -133,7 +133,7 @@ class CallExpressionChecker {
           expressionArgList.addAll(referenceParameterList.getExpressionList());
         }
 
-        long minArgs = argumentList.stream().filter(argument -> argument.getOptionalMark() == null).count();
+        long minArgs = findMinArgsCounts(argumentList);
         long maxArgs = argumentList.size();
 
         if (expressionArgList.size() < minArgs) {
@@ -290,6 +290,23 @@ class CallExpressionChecker {
         }
       }
     }
+  }
+
+  private static int findMinArgsCounts(List<HaxeFunctionArgument> argumentList) {
+    int count = 0;
+    for (HaxeFunctionArgument argument : argumentList) {
+      if (argument.getOptionalMark() == null) {
+        if (!isVoidArgument(argument)) count++;
+      }
+    }
+    return count;
+  }
+
+  private static boolean isVoidArgument(HaxeFunctionArgument argument) {
+    HaxeTypeOrAnonymous toa = argument.getTypeOrAnonymous();
+    HaxeType t = null != toa ? toa.getType() : null;
+    String name = t != null ? t.getText() : null;
+    return SpecificHaxeClassReference.VOID.equals(name);
   }
 
 
