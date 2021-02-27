@@ -20,10 +20,13 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
+import com.intellij.plugins.haxe.hxml.psi.HXMLTokenType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,22 +49,29 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
     availableHaxelibs = haxelibCache.getAvailableHaxelibs();
     localHaxelibs = haxelibCache.getLocalHaxelibs();
 
-    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               for (int i = 0; i < availableHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
-                                     .withTailText(" available at haxelib", true));
-               }
+    // intelliJ 2018 and older
+    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),  getProvider());
+    // intelliJ 2019 and newer
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE), getProvider());
+  }
 
-               for (int i = 0; i < localHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
-                                     .withTailText(" installed", true));
-               }
-             }
-           });
+  @NotNull
+  private CompletionProvider<CompletionParameters> getProvider() {
+    return new CompletionProvider<CompletionParameters>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        for (int i = 0; i < availableHaxelibs.size(); i++) {
+          result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
+                              .withTailText(" available at haxelib", true));
+        }
+
+        for (int i = 0; i < localHaxelibs.size(); i++) {
+          result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
+                              .withTailText(" installed", true));
+        }
+      }
+    };
   }
 }

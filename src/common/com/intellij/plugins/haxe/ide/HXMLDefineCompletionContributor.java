@@ -22,11 +22,14 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.hxml.psi.HXMLDefine;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.plugins.haxe.util.HaxeHelpCache;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+
+import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 /**
  * Created by as3boyan on 19.11.14.
@@ -34,17 +37,25 @@ import java.util.List;
 public class HXMLDefineCompletionContributor extends CompletionContributor {
   public HXMLDefineCompletionContributor() {
     final List<HXMLCompletionItem> defines = HaxeHelpCache.getInstance().getDefines();
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               for (int i = 0; i < defines.size(); i++) {
-                 HXMLCompletionItem completionItem = defines.get(i);
-                 result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
-               }
-             }
-           });
+
+    // intelliJ 2018 and older
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class), getProvider(defines));
+    // intelliJ 2019 and newer
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLDefine.class), getProvider(defines));
+  }
+
+  @NotNull
+  private CompletionProvider<CompletionParameters> getProvider(List<HXMLCompletionItem> defines) {
+    return new CompletionProvider<CompletionParameters>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        for (int i = 0; i < defines.size(); i++) {
+          HXMLCompletionItem completionItem = defines.get(i);
+          result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
+        }
+      }
+    };
   }
 }
