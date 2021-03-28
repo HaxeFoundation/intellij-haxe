@@ -304,7 +304,7 @@ public class HaxeExpressionEvaluator {
 
       ResultHolder result = typeTag != null ? typeTagResult : initResult;
 
-      if (init != null) {
+      if (init != null && typeTag != null) {
         if (!typeTagResult.canAssign(initResult)) {
           context.addError(
             element,
@@ -315,9 +315,7 @@ public class HaxeExpressionEvaluator {
         }
       }
 
-      if (name != null) {
-        context.setLocal(name.getText(), result);
-      }
+      context.setLocal(name.getText(), result);
 
       return result;
     }
