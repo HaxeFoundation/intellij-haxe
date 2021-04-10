@@ -98,7 +98,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
     //registerComponentInstance(((MockApplicationEx)ApplicationManager.getApplication()).getPicoContainer(), FileTypeManager.class,
     //                          new MockFileTypeManager(new MockLanguageFileType(HaxeMetadataLanguage.INSTANCE, HaxeFileType.DEFAULT_EXTENSION)));
-    MutablePicoContainer picoContainer = ((MockApplicationEx)ApplicationManager.getApplication()).getPicoContainer();
+    MutablePicoContainer picoContainer = ((MockApplication)ApplicationManager.getApplication()).getPicoContainer();
     MockFileTypeManager typeManager =
       new MockFileTypeManager(new MockLanguageFileType(HaxeMetadataLanguage.INSTANCE, HaxeFileType.DEFAULT_EXTENSION));
 

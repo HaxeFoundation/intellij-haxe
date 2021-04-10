@@ -23,6 +23,7 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
+import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiFile;
@@ -139,7 +140,7 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
 
 
   public void doOverrideTest(String testFile, TestDialog answer) throws Throwable {
-    Messages.setTestDialog(answer);
+    TestDialogManager.setTestDialog(answer);
     myFixture.configureByFiles(testFile, "com/bar/TestSearchOverrides.hx");
     myFixture.copyFileToProject(getResultsPath());
     compareExpectedUsages(findUsages());
