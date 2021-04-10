@@ -56,6 +56,7 @@ allprojects {
 
         // generated sources
         generatedSrcDir = "${haxePluginDir}/gen/"
+        generatedTestSrcDir = "${haxePluginDir}/genTest/"
 
         // dependencies
         dependenciesDir = "${rootDir}/dependencies"
@@ -134,15 +135,17 @@ if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 sourceSets {
     templates {
     }
+    testTemplates {
+    }
 }
 sourceSets.templates.resources.srcDir 'src/common'
 
 sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
 sourceSets.main.resources.srcDir 'resources'
 
-sourceSets.test.java.srcDir 'testSrc'
+sourceSets.test.java.srcDirs = [ 'testSrc', "genTest"]
 sourceSets.test.resources.srcDir 'testData'
-
+sourceSets.testTemplates.resources.srcDir 'testSrc'
 
 idea.module { generatedSourceDirs += file('gen') }
 
@@ -286,6 +289,7 @@ task copyJar() {
 }
 
 test {
+    dependsOn('generateVersionSpecificTestSources')
     useJUnit()
     allJvmArgs = [
       "-Didea.home.path=${ideaTargetDir}",

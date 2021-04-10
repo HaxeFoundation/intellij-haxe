@@ -47,7 +47,7 @@ task generateVersionSpecificSources(group: 'generate') {
         }
         else {
           if (null != relatedTemplates) {
-            doGenerateFromTemplate(relatedTemplates)
+            doGenerateFromTemplate(relatedTemplates, false)
           }
           currentTemplateName = nextTemplateName
           relatedTemplates = new ArrayList<String>()
@@ -58,12 +58,51 @@ task generateVersionSpecificSources(group: 'generate') {
       }
     }
     if (null != relatedTemplates) {
-      doGenerateFromTemplate(relatedTemplates)
+      doGenerateFromTemplate(relatedTemplates, false)
+    }
+  }
+}
+task generateVersionSpecificTestSources(group: 'generate') {
+  doFirst {
+    Pattern templatePattern = Pattern.compile("(.*\\.java)\\.\\d\\d\\d\$")
+
+    //println "Template source files: " + sourceSets.templates.allSource.size()
+    FileCollection templateFiles = sourceSets.testTemplates.allSource.filter { File f ->
+      f.name.matches(templatePattern)
+    }
+    println " Test Templates found: " + templateFiles.size()
+    templateFiles.each { File f ->
+      println f.name
+    }
+    String currentTemplateName = null
+    ArrayList<String> relatedTemplates = null
+    templateFiles.sort().each { f ->
+      String fileName = normalizePath(f.path)
+      Matcher parsed = templatePattern.matcher(fileName)
+      if (parsed.matches()) {
+        String nextTemplateName = parsed.group(1)
+        if (nextTemplateName != null && currentTemplateName.equals(nextTemplateName)) {
+          relatedTemplates.add(fileName)
+        }
+        else {
+          if (null != relatedTemplates) {
+            doGenerateFromTemplate(relatedTemplates, true)
+          }
+          currentTemplateName = nextTemplateName
+          relatedTemplates = new ArrayList<String>()
+          relatedTemplates.add(fileName)
+        }
+      } else {
+        println "File '" + f.path + "' didn't match the pattern."
+      }
+    }
+    if (null != relatedTemplates) {
+      doGenerateFromTemplate(relatedTemplates, true)
     }
   }
 }
 
-void doGenerateFromTemplate(ArrayList<String> templateFiles) {
+void doGenerateFromTemplate(ArrayList<String> templateFiles,  boolean testCode) {
   String templateFile = selectProperTemplate(templateFiles)
   if (null == templateFile) {
     throw new GradleException("Error trying to generate from templates -- no appropriate template found for" + templateFiles.first() + ".")
@@ -73,7 +112,8 @@ void doGenerateFromTemplate(ArrayList<String> templateFiles) {
 
   String pathSep = getSeparator()
   String templateFileName = names.get("templateName")
-  String outputDir = String.join(pathSep, normalizePath("${generatedSrcDir}"), names.get("packagePath"))
+
+  String outputDir = String.join(pathSep, normalizePath("${testCode ? generatedTestSrcDir :generatedSrcDir}"), names.get("packagePath"))
   String outputFileName = names.get("javaFileName")
   Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
   copy {
