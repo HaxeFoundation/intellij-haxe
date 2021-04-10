@@ -42,7 +42,7 @@ jobs:
     strategy:
       fail-fast: true # cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2021.1, 2020.3.3, 2020.2.4, 2020.1.4, 2019.3.5, 2018.3.6]
+        IDEA_VERSION: [2021.1, 2020.2.4, 2020.1.4, 2019.3.5, 2018.3.6]
     needs: prepare
     runs-on: ubuntu-latest
     steps:

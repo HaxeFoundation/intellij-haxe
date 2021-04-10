@@ -44,6 +44,7 @@ String[] versionInfo = "${ideaVersion}".split("\\.")
 boolean requiresJavaPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))
 boolean requiresFlexPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2020 || (versionInfo[0].toInteger() == 2020 && versionInfo[1].toInteger() >=2 ))
 int intelliJMajorVersion = versionInfo[0].toInteger();
+int intelliJMinorVersion = versionInfo[1].toInteger();
 
 
 allprojects {
@@ -216,7 +217,11 @@ runIde {
 }
 
 compileJava {
-    sourceCompatibility  = intelliJMajorVersion > 2020 ? 11 : 8
+    if ( intelliJMinorVersion > 2020 ||  intelliJMajorVersion  == 2020  && intelliJMinorVersion >=3) {
+        sourceCompatibility  = 11
+    }else {
+        sourceCompatibility  = 8
+    }
     dependsOn 'generateSources'
 }
 
@@ -424,7 +429,7 @@ Properties findSdkValuesAndProperties(File buildFile) {
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
         case 211: propertiesFile = "idea_v21.properties"; break
-        case 203: propertiesFile = "idea_v20.properties"; break
+        case 203: propertiesFile = "idea_v20.3.properties"; break
         case 202: propertiesFile = "idea_v20.properties"; break
         case 201: propertiesFile = "idea_v20.properties"; break
         case 193: propertiesFile = "idea_v19.properties"; break
