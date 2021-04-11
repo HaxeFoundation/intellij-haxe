@@ -312,7 +312,9 @@ test {
 clean.dependsOn('cleanGenerated')
 task cleanGenerated(type: Delete, group: 'generate') {
     outputs.upToDateWhen { !file("$generatedSrcDir").exists() }
+    outputs.upToDateWhen { !file("$generatedTestSrcDir").exists() }
     delete "$generatedSrcDir"
+    delete "$generatedTestSrcDir"
 }
 
 task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
