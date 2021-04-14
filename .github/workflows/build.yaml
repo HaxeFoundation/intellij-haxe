@@ -59,7 +59,7 @@ jobs:
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
       - name: Build with Gradle
-        if: ${{ matrix.os == "windows-latest"}}
+        if: ${{ matrix.os == 'windows-latest'}}
         run: gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
-        if: ${{ matrix.os != "windows-latest"}}
+        if: ${{ matrix.os != 'windows-latest'}}
         run: ./gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
