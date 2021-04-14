@@ -476,7 +476,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     final Project project = operation.getProject();
 
     new WriteCommandAction<PsiElement>(project, expression.getContainingFile()) {
-      protected void run(final Result<PsiElement> result) throws Throwable {
+      protected void run(final @NotNull Result<? super PsiElement> result) throws Throwable {
         final PsiElement createdDeclaration = addDeclaration(operation, declaration);
         result.setResult(createdDeclaration);
         if (createdDeclaration != null) {

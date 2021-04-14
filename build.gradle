@@ -20,7 +20,7 @@
 plugins {
     id 'de.undercouch.download' version '3.3.0'
     id 'org.jetbrains.intellij' version '0.4.9'
-    id "org.jetbrains.grammarkit" version "2020.2.1"
+    id "org.jetbrains.grammarkit" version "2020.3.2"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
 }
 
@@ -43,6 +43,9 @@ println "Target set to IDEA ${ideaVersion}"
 String[] versionInfo = "${ideaVersion}".split("\\.")
 boolean requiresJavaPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))
 boolean requiresFlexPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2020 || (versionInfo[0].toInteger() == 2020 && versionInfo[1].toInteger() >=2 ))
+int intelliJMajorVersion = versionInfo[0].toInteger();
+int intelliJMinorVersion = versionInfo[1].toInteger();
+
 
 allprojects {
     repositories { mavenCentral() }
@@ -54,6 +57,7 @@ allprojects {
 
         // generated sources
         generatedSrcDir = "${haxePluginDir}/gen/"
+        generatedTestSrcDir = "${haxePluginDir}/genTest/"
 
         // dependencies
         dependenciesDir = "${rootDir}/dependencies"
@@ -107,7 +111,13 @@ allprojects {
         // Flex support was unbundled for version 2020.2.
         if (requiresFlexPlugin) {
             System.println("Including Flex plugin for version >= 2020.2")
-            plugins += 'com.intellij.flex:202.6397.59'
+            String versionWithMajor = ideaVersion.substring(0, 6);
+            switch (versionWithMajor) {
+                case "2020.2" : plugins += 'com.intellij.flex:202.6397.59'; break
+                case "2020.3" : plugins += 'com.intellij.flex:203.5981.155'; break
+                case "2021.1" : plugins += 'com.intellij.flex:211.6693.111'; break
+            }
+
         }
     }
 }
@@ -126,15 +136,17 @@ if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 sourceSets {
     templates {
     }
+    testTemplates {
+    }
 }
 sourceSets.templates.resources.srcDir 'src/common'
 
 sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
 sourceSets.main.resources.srcDir 'resources'
 
-sourceSets.test.java.srcDir 'testSrc'
+sourceSets.test.java.srcDirs = [ 'testSrc', "genTest"]
 sourceSets.test.resources.srcDir 'testData'
-
+sourceSets.testTemplates.resources.srcDir 'testSrc'
 
 idea.module { generatedSourceDirs += file('gen') }
 
@@ -183,7 +195,6 @@ afterEvaluate {
 }
 
 runIde {
-    jbrVersion '8u152b1343.26'
 
     /* Propagate VM options from gradle command line through to the plugin. */
     String[] prefixesToInclude = [ "idea.", "jb." ]
@@ -206,6 +217,11 @@ runIde {
 }
 
 compileJava {
+    if ( intelliJMinorVersion > 2020 ||  intelliJMajorVersion  == 2020  && intelliJMinorVersion >=3) {
+        sourceCompatibility  = 11
+    }else {
+        sourceCompatibility  = 8
+    }
     dependsOn 'generateSources'
 }
 
@@ -278,6 +294,7 @@ task copyJar() {
 }
 
 test {
+    dependsOn('generateVersionSpecificTestSources')
     useJUnit()
     allJvmArgs = [
       "-Didea.home.path=${ideaTargetDir}",
@@ -295,7 +312,9 @@ test {
 clean.dependsOn('cleanGenerated')
 task cleanGenerated(type: Delete, group: 'generate') {
     outputs.upToDateWhen { !file("$generatedSrcDir").exists() }
+    outputs.upToDateWhen { !file("$generatedTestSrcDir").exists() }
     delete "$generatedSrcDir"
+    delete "$generatedTestSrcDir"
 }
 
 task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
@@ -411,6 +430,8 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 211: propertiesFile = "idea_v21.properties"; break
+        case 203: propertiesFile = "idea_v20.3.properties"; break
         case 202: propertiesFile = "idea_v20.properties"; break
         case 201: propertiesFile = "idea_v20.properties"; break
         case 193: propertiesFile = "idea_v19.properties"; break

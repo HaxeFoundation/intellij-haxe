@@ -25,17 +25,18 @@ import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.testFramework.LightCodeInsightTestCase;
+import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
+
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeParameterInfoTest extends LightCodeInsightTestCase {
+public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
 
   private HaxeDebugLogger.HierarchyManipulator oldLogSettings;
 

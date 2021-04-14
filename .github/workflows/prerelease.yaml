@@ -11,7 +11,7 @@ on:
 jobs:
   prepare:
     name: Create Pre-release draft
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     outputs:
       upload_url: ${{ steps.create_release.outputs.upload_url }}
       id: ${{ steps.create_release.outputs.id }}
@@ -42,9 +42,9 @@ jobs:
     strategy:
       fail-fast: true # cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2020.2, 2020.1.4,2019.3.5,2018.3.6]
+        IDEA_VERSION: [2021.1, 2020.2.4, 2020.1.4, 2019.3.5, 2018.3.6]
     needs: prepare
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 1.8
@@ -109,7 +109,7 @@ jobs:
   finish:
     name: publish Pre-release
     needs: [prepare, build]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-16.04
     steps:
       - name: Publish release
         uses: StuYarrow/publish-release@v1
