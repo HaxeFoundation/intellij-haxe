@@ -59,4 +59,4 @@ jobs:
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
       - name: Build with Gradle
-        run: gradle clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
+        run: gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
