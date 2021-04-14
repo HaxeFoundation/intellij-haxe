@@ -60,7 +60,7 @@ jobs:
 
       - name: Build with Gradle (windows)
         if: ${{ matrix.os == 'windows-latest'}}
-        run: gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
+        run: gradlew.bat clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
       - name: Build with Gradle (linux/mac)
         if: ${{ matrix.os != 'windows-latest'}}
         run: ./gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
