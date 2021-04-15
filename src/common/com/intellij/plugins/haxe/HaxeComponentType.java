@@ -61,12 +61,12 @@ public enum HaxeComponentType {
   }, FUNCTION(3) {
     @Override
     public Icon getIcon() {
-      return HaxeIcons.Method;
+      return AllIcons.Nodes.Function;
     }
   }, METHOD(4) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Function;
+      return AllIcons.Nodes.Method;
     }
   }, VARIABLE(5) {
     @Override
