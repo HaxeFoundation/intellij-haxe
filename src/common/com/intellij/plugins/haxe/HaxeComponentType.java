@@ -66,7 +66,7 @@ public enum HaxeComponentType {
   }, METHOD(4) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Method;
+      return HaxeIcons.Method;
     }
   }, VARIABLE(5) {
     @Override
