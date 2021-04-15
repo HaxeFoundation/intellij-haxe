@@ -48,14 +48,10 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
     return HaxeBundle.message("haxe.module.type.description");
   }
 
-  // @Override - Missing from 2017.2
-  public Icon getBigIcon() {
-    return icons.HaxeIcons.Haxe_24;
-  }
 
   @Override
   public Icon getNodeIcon(boolean isOpened) {
-    return icons.HaxeIcons.Haxe_16;
+    return icons.HaxeIcons.HAXE_LOGO;
   }
 
   @Override

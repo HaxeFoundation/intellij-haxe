@@ -74,7 +74,7 @@ public class HaxeCompilerCompletionItem {
         .append("):")
         .append(this.retType);
 
-    Icon icon = "var".equals(this.memberType) ? HaxeIcons.Field_Haxe : HaxeIcons.Method_Haxe;
+    Icon icon = "var".equals(this.memberType) ? HaxeIcons.Field : HaxeIcons.Method;
 
     LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create(this, this.name)
         .withIcon(icon)

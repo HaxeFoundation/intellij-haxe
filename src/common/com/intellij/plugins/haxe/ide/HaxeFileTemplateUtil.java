@@ -75,15 +75,15 @@ public class HaxeFileTemplateUtil {
   public static Icon getTemplateIcon(String name) {
     name = getTemplateShortName(name);
     if ("Class".equals(name)) {
-      return icons.HaxeIcons.C_Haxe;
+      return icons.HaxeIcons.Class;
     }
     else if ("Interface".equals(name)) {
-      return icons.HaxeIcons.I_Haxe;
+      return icons.HaxeIcons.Interface;
     }
     else if ("Enum".equals(name)) {
-      return icons.HaxeIcons.E_Haxe;
+      return icons.HaxeIcons.Enum;
     }
-    return icons.HaxeIcons.Haxe_16;
+    return icons.HaxeIcons.HAXE_LOGO;
   }
 
   public static PsiElement createClass(String className, String packageName, PsiDirectory directory, String templateName, @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader)
