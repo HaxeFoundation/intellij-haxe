@@ -82,7 +82,7 @@ public class HaxeLibraryType extends LibraryType<DummyLibraryProperties> {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.Haxe_16;
+    return icons.HaxeIcons.HAXE_LOGO;
   }
 
   public static HaxeLibraryType getInstance() {

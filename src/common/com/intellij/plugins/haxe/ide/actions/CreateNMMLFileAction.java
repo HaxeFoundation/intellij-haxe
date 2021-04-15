@@ -37,7 +37,7 @@ import com.intellij.psi.PsiDirectory;
 public class CreateNMMLFileAction extends CreateFileFromTemplateAction implements DumbAware {
   public CreateNMMLFileAction() {
     super(HaxeBundle.message("create.nmml.file.action"), HaxeBundle.message("create.nmml.file.action.description"),
-          icons.HaxeIcons.Nmml_16);
+          icons.HaxeIcons.NMML_LOGO);
   }
 
   @Override
@@ -52,7 +52,7 @@ public class CreateNMMLFileAction extends CreateFileFromTemplateAction implement
     for (FileTemplate fileTemplate : HaxeFileTemplateUtil.getNMMLTemplates()) {
       final String templateName = fileTemplate.getName();
       final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);
-      builder.addKind(shortName, icons.HaxeIcons.Nmml_16, templateName);
+      builder.addKind(shortName, icons.HaxeIcons.NMML_LOGO, templateName);
     }
   }
 

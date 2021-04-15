@@ -55,6 +55,6 @@ public class NMMLFileType extends XmlLikeFileType {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.Nmml_16;
+    return icons.HaxeIcons.NMML_LOGO;
   }
 }

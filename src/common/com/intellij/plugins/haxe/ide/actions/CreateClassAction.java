@@ -52,7 +52,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
   }
 
   public CreateClassAction() {
-    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.Haxe_16, SOURCES);
+    super(HaxeBundle.message("action.create.new.class"), HaxeBundle.message("action.create.new.class"), icons.HaxeIcons.HAXE_LOGO, SOURCES);
   }
 
   @Override

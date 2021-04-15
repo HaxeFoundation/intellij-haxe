@@ -41,7 +41,7 @@ public class HXMLColorSettingsPage implements ColorSettingsPage {
   @Nullable
   @Override
   public Icon getIcon() {
-    return HaxeIcons.Haxe_16;
+    return HaxeIcons.HAXE_LOGO;
   }
 
   @NotNull

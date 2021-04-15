@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe;
 import com.intellij.icons.AllIcons;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -33,7 +34,7 @@ public enum HaxeComponentType {
   CLASS(0) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.C_Haxe;
+      return icons.HaxeIcons.Class;
     }
     @Override
     public Icon getCompletionIcon() {
@@ -42,7 +43,7 @@ public enum HaxeComponentType {
   }, ENUM(1) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.E_Haxe;
+      return icons.HaxeIcons.Enum;
     }
     @Override
     public Icon getCompletionIcon() {
@@ -51,7 +52,7 @@ public enum HaxeComponentType {
   }, INTERFACE(2) {
     @Override
     public Icon getIcon() {
-      return icons.HaxeIcons.I_Haxe;
+      return icons.HaxeIcons.Interface;
     }
     @Override
     public Icon getCompletionIcon() {
@@ -65,7 +66,7 @@ public enum HaxeComponentType {
   }, METHOD(4) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Method;
+      return HaxeIcons.Method;
     }
   }, VARIABLE(5) {
     @Override
@@ -75,7 +76,7 @@ public enum HaxeComponentType {
   }, FIELD(6) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Field;
+      return HaxeIcons.Field;
     }
   }, PARAMETER(7) {
     @Override
@@ -90,7 +91,7 @@ public enum HaxeComponentType {
   }, CLASSVARIABLE(9) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Field;
+      return  HaxeIcons.Field;
     }
   };
 

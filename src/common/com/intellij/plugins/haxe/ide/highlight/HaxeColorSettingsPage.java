@@ -98,7 +98,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.Haxe_16;
+    return icons.HaxeIcons.HAXE_LOGO;
   }
 
   @NotNull
