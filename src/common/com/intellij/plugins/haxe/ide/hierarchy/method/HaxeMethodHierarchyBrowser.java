@@ -20,8 +20,8 @@ package com.intellij.plugins.haxe.ide.hierarchy.method;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeMethodHierarchyBrowser extends MethodHierarchyBrowser {
 
-  Logger LOG = Logger.getInstance("#" + HaxeMethodHierarchyBrowser.class.getName());
+  HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + HaxeMethodHierarchyBrowser.class.getName());
 
   public HaxeMethodHierarchyBrowser(final Project project, final PsiMethod method) {
     super(project, method);

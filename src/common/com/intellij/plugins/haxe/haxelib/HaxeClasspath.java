@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -30,7 +30,7 @@ import java.util.*;
  */
 public class HaxeClasspath {
 
-  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeClasspath");
+  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeClasspath");
 
   /**
    * An immutable empty classpath that can be re-used.

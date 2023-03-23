@@ -16,11 +16,11 @@
 package com.intellij.plugins.haxe.metadata.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.*;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import java.util.Objects;
 
 public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMeta {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetaImpl");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetaImpl");
 
   private static String CT_PREFIX = HaxeMetadataTokenTypes.CT_META_PREFIX.toString();
   private static String RT_PREFIX = HaxeMetadataTokenTypes.RT_META_PREFIX.toString();

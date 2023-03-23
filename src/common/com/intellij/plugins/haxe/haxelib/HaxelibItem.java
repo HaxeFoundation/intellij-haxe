@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public class HaxelibItem extends HaxeClasspathEntry {
 
-  Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibItem");
+  HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibItem");
 
   public static final List<HaxelibItem> EMPTY_LIST = new ArrayList<HaxelibItem>(0);
 

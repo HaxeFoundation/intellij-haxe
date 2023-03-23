@@ -16,7 +16,6 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.codeInsight.generation.OverrideImplementExploreUtil;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
@@ -30,6 +29,7 @@ import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -57,7 +57,7 @@ import java.util.Set;
  * @author dsl
  */
 public class ExtractSuperClassUtil {
-  private static final Logger LOG = Logger.getInstance("com.intellij.refactoring.extractSuperclass.ExtractSuperClassUtil");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("com.intellij.refactoring.extractSuperclass.ExtractSuperClassUtil");
   public static final String REFACTORING_EXTRACT_SUPER_ID = "refactoring.extractSuper";
 
   private ExtractSuperClassUtil() {}
@@ -76,7 +76,7 @@ public class ExtractSuperClassUtil {
     //final PsiClass superclass = JavaDirectoryService.getInstance().createClass(targetDirectory, superclassName);
 
     /*for (FileTemplate template : FileTemplateManager.getInstance().getInternalTemplates()) {
-      Logger.getInstance(ExtractSuperClassUtil.class).error(template.getName());
+      HaxeDebugLogger.getInstance(ExtractSuperClassUtil.class).error(template.getName());
     }*/
 
     Module[] modules = ModuleHelper.getModules(project);
@@ -162,7 +162,7 @@ public class ExtractSuperClassUtil {
       @NonNls StringBuilder superCallText = new StringBuilder();
       superCallText.append("super(");
       final PsiClass baseClass = baseConstructor.getContainingClass();
-      LOG.assertTrue(baseClass != null);
+      LOG.assertLog(baseClass != null, "Assertion failed");
       final PsiSubstitutor classSubstitutor = TypeConversionUtil.getSuperClassSubstitutor(baseClass, superclass, PsiSubstitutor.EMPTY);
       for (int i = 0; i < baseParams.length; i++) {
         final PsiParameter baseParam = baseParams[i];

@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.ide.module;
 import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
@@ -30,6 +29,7 @@ import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeModificationTracker;
 import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.xmlb.XmlSerializerUtil;
@@ -50,7 +50,7 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase, HaxeTrackedModifiable {
 
-  private static Logger LOG = Logger.getInstance("#" + HaxeModuleSettings.class.getName());
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + HaxeModuleSettings.class.getName());
 
   private String flexSdkName = "";
   private HaxeModificationTracker tracker = new HaxeModificationTracker(this.getClass().getName());

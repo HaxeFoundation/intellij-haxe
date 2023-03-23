@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.hxml.HXMLLanguage;
@@ -27,6 +26,7 @@ import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTokenType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +42,7 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
   protected static List<String> availableHaxelibs = null;
   protected static List<String> localHaxelibs = null;
 
-  public static final Logger LOGGER = Logger.getInstance("com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionProvider");
+  public static final HaxeDebugLogger LOGGER = HaxeDebugLogger.getInstance("com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionProvider");
 
   public HXMLHaxelibCompletionContributor() {
     HaxelibCache haxelibCache = HaxelibCache.getInstance();

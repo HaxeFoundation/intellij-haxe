@@ -18,8 +18,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
  */
 public final class HaxelibLibraryCache {
 
-  static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
+  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
   {
     LOG.setLevel(Level.DEBUG);
   }

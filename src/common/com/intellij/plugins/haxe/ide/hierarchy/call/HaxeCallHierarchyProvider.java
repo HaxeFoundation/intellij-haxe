@@ -22,9 +22,9 @@ import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.apache.log4j.Level;
@@ -35,7 +35,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 9/3/14.
  */
 public class HaxeCallHierarchyProvider implements HierarchyProvider {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyProvider");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyProvider");
 
   static {
     LOG.info("Loaded HaxeCallHierarchyProvider");

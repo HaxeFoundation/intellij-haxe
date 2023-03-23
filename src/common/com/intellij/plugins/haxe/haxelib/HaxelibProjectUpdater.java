@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -46,10 +45,7 @@ import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
-import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.plugins.haxe.util.HaxeDebugUtil;
-import com.intellij.plugins.haxe.util.HaxeFileUtil;
-import com.intellij.plugins.haxe.util.Lambda;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -82,7 +78,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class HaxelibProjectUpdater {
 
-  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
+  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
 
   {
     LOG.setLevel(Level.DEBUG);
@@ -425,7 +421,7 @@ public class HaxelibProjectUpdater {
       list.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertTrue(entry.isManaged(), msg);
+          LOG.assertLog(entry.isManaged(), msg);
           return true;
         }
       });
@@ -943,7 +939,7 @@ public class HaxelibProjectUpdater {
       toRemove.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertTrue(entry.isManaged(), "Attempting to automatically remove a library that was not marked as managed.");
+          LOG.assertLog(entry.isManaged(), "Attempting to automatically remove a library that was not marked as managed.");
           return true;
         }
       });
@@ -952,7 +948,7 @@ public class HaxelibProjectUpdater {
       toAdd.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertTrue(entry.isManaged(), "Attempting to automatically add a library that is not marked as managed.");
+          LOG.assertLog(entry.isManaged(), "Attempting to automatically add a library that is not marked as managed.");
           return true;
         }
       });
@@ -975,7 +971,7 @@ public class HaxelibProjectUpdater {
             public boolean processEntry(HaxeLibraryReference entry) {
               Library library = projectModifiableModel.getLibraryByName(
                 entry.getName());
-              LOG.assertTrue(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
+              LOG.assertLog(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
               if (null != library) {
                 projectModifiableModel.removeLibrary(library);
                 timeLog.stamp("Removed library " + entry.getName());
@@ -1298,7 +1294,7 @@ public class HaxelibProjectUpdater {
         refs = --myReferenceCount;
       }
       // XXX: Maybe we don't need an assertion for this.
-      LOG.assertTrue(refs >= 0);
+      LOG.assertLog(refs >= 0, "Assertion failed");
 
       return refs;
     }
@@ -1495,15 +1491,15 @@ public class HaxelibProjectUpdater {
      */
     private void queueNextProject() {
       synchronized (updateSyncToken) {
-        LOG.assertTrue(null == updatingProject);
+        LOG.assertLog(null == updatingProject, "Assertion failed");
 
         // Get the next project from the queue. We're done if there's
         // nothing left.
         updatingProject = queue.poll();  // null if empty.
         if (updatingProject == null) return;
 
-        LOG.assertTrue(updatingProject.isDirty());
-        LOG.assertTrue(!updatingProject.isUpdating());
+        LOG.assertLog(updatingProject.isDirty(), "Assertion failed");
+        LOG.assertLog(!updatingProject.isUpdating(), "Assertion failed");
 
         updatingProject.setUpdating(true);
       }
@@ -1578,8 +1574,8 @@ public class HaxelibProjectUpdater {
      */
     private void finishUpdate(ProjectTracker up) {
       synchronized (updateSyncToken) {
-        LOG.assertTrue(null != updatingProject);
-        LOG.assertTrue(up.equals(updatingProject));
+        LOG.assertLog(null != updatingProject, "Assertion failed");
+        LOG.assertLog(up.equals(updatingProject), "Assertion failed");
 
         updatingProject.setUpdating(false);
         updatingProject.setDirty(false);

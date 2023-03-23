@@ -21,12 +21,12 @@ import com.intellij.lang.findUsages.DescriptiveNameUtil;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperClassUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -44,7 +44,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class ExtractInterfaceHandler implements RefactoringActionHandler, ElementsHandler {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.refactoring.extractInterface.ExtractInterfaceHandler");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractInterface.ExtractInterfaceHandler");
 
   public static final String REFACTORING_NAME = RefactoringBundle.message("extract.interface.title");
 

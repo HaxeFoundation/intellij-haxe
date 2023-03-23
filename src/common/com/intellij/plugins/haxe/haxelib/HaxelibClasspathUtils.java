@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.google.common.base.Joiner;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -40,6 +39,7 @@ import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -61,7 +61,7 @@ import java.util.*;
  */
 public class HaxelibClasspathUtils {
 
-  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils");
+  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils");
   static {
     LOG.setLevel(Level.DEBUG);
   }

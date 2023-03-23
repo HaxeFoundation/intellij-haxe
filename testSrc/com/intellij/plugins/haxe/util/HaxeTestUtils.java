@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.PathManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
@@ -43,7 +42,7 @@ import java.util.function.Consumer;
  * Created by fedorkorotkov.
  */
 public class HaxeTestUtils {
-  public static final Logger LOG = Logger.getInstance("#HaxeTestUtils");
+  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeTestUtils");
 
   public static final String HAXE_TOOLKIT_BASE_DIR = "haxe";
   public static final String HAXE_STDLIB_DIR = "std";

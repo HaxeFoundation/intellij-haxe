@@ -22,11 +22,11 @@ import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.xml.util.XmlStringUtil;
@@ -42,7 +42,7 @@ import java.util.*;
  *
  */
 public class HaxeAnnotationHolder implements AnnotationHolder {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.annotator.HaxeAnnotationHolder");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.annotator.HaxeAnnotationHolder");
   private static final Key<HashMap<Integer, Annotation>> HAXE_ANNOTATION_KEY = new Key<>("HaxeAnnotationsKey");
   private final AnnotationHolderImpl myInternalHolder;
 
@@ -228,7 +228,7 @@ public class HaxeAnnotationHolder implements AnnotationHolder {
     if (node == null) return;
     PsiFile myFile = getCurrentAnnotationSession().getFile();
     PsiFile containingFile = node.getContainingFile();
-    LOG.assertTrue(containingFile != null, node);
+    LOG.assertLog(containingFile != null, node.getText());
     VirtualFile containingVFile = containingFile.getVirtualFile();
     VirtualFile myVFile = myFile.getVirtualFile();
     if (!Comparing.equal(containingVFile, myVFile)) {

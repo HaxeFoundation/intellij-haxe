@@ -18,11 +18,11 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.HaxeExtendsDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeImplementsDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
@@ -39,7 +39,7 @@ import java.util.List;
  */
 public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeInheritPsiMixin {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl");
 
   //static {
   //  // Turn on all local messages.
@@ -97,7 +97,7 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
     } else if (this instanceof HaxeImplementsDeclaration) {
       return Role.IMPLEMENTS_LIST;
     }
-    LOG.assertTrue(false, "Unrecognized/unexpected subclass type.");
+    LOG.assertLog(false, "Unrecognized/unexpected subclass type.");
     return null;
   }
 

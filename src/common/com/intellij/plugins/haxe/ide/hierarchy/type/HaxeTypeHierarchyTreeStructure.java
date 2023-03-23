@@ -17,8 +17,8 @@
  */
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiClass;
 
 /**
@@ -26,7 +26,7 @@ import com.intellij.psi.PsiClass;
  */
 public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStructure {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyTreeStructure");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyTreeStructure");
 
   public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass) {
     super(project, buildHierarchyElement(project, aClass));

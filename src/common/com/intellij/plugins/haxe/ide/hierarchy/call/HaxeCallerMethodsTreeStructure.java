@@ -23,10 +23,10 @@ import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.call.CallReferenceProcessor;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.MethodReferencesSearch;
@@ -45,7 +45,7 @@ import java.util.*;
 public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
 
   private static final boolean DEBUG = false;
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.HaxeCallerMethodsTreeStructure");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.HaxeCallerMethodsTreeStructure");
   static {
     if (DEBUG) {
       LOG.setLevel(Level.DEBUG);

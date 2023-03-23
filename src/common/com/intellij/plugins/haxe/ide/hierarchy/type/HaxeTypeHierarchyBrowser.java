@@ -20,8 +20,8 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.type.TypeHierarchyBrowser;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  * Created by srikanthg on 10/23/14.
  */
 public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyBrowser");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyBrowser");
 
   public HaxeTypeHierarchyBrowser(final Project project, final PsiClass psiClass) {
     super(project, psiClass);
