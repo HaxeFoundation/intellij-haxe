@@ -6,6 +6,20 @@
       <module name="common_test" target="1.8" />
       <module name="hxcpp-debugger-protocol_main" target="1.8" />
       <module name="hxcpp-debugger-protocol_test" target="1.8" />
+      <module name="intellij-haxe" target="17" />
+      <module name="intellij-haxe.common" target="17" />
+      <module name="intellij-haxe.common.main" target="17" />
+      <module name="intellij-haxe.common.test" target="17" />
+      <module name="intellij-haxe.hxcpp-debugger-protocol" target="17" />
+      <module name="intellij-haxe.hxcpp-debugger-protocol.main" target="17" />
+      <module name="intellij-haxe.hxcpp-debugger-protocol.test" target="17" />
+      <module name="intellij-haxe.jps-plugin" target="17" />
+      <module name="intellij-haxe.jps-plugin.main" target="17" />
+      <module name="intellij-haxe.jps-plugin.test" target="17" />
+      <module name="intellij-haxe.main" target="17" />
+      <module name="intellij-haxe.templates" target="17" />
+      <module name="intellij-haxe.test" target="17" />
+      <module name="intellij-haxe.testTemplates" target="17" />
       <module name="intellij-haxe_main" target="1.8" />
       <module name="intellij-haxe_test" target="1.8" />
       <module name="jps-plugin_main" target="1.8" />

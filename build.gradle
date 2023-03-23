@@ -117,6 +117,7 @@ allprojects {
                 case "2020.2" : plugins.add('com.intellij.flex:202.6397.59'); break
                 case "2020.3" : plugins.add('com.intellij.flex:203.5981.155'); break
                 case "2021.1" : plugins.add('com.intellij.flex:211.6693.111'); break
+                case "2022.3" : plugins.add('com.intellij.flex:223.7571.4'); break
                 case "2022.3.3" : plugins.add('com.intellij.flex:223.8617.9'); break
             }
 
