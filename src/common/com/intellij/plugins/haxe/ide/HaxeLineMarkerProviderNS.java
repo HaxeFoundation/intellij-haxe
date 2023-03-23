@@ -50,6 +50,7 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Worker/implementation class for {@link HaxeLineMarkerProvider}.
@@ -128,6 +129,7 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
                               HaxeResolveUtil.getDeclarationTypes(methodDeclaration.getMethodModifierList()).
                                 contains(HaxeTokenTypes.KOVERRIDE);
     final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
+    Supplier<String> accessibleNameProvider = () -> overrides ? "Overriding Method" : "Implementing Method";
     if (null == element) {
       return null;
     }
@@ -135,7 +137,6 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       element,
       element.getTextRange(),
       icon,
-      Pass.UPDATE_ALL,
       new Function<PsiElement, String>() {
         @Override
         public String fun(PsiElement element) {
@@ -158,7 +159,8 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
             new DefaultPsiElementCellRenderer());
         }
       },
-      GutterIconRenderer.Alignment.LEFT
+      GutterIconRenderer.Alignment.LEFT,
+      accessibleNameProvider
     );
   }
 
@@ -177,11 +179,11 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       return null;
     }
     final PsiElement element = componentName.getIdentifier().getFirstChild();
+    Supplier<String> accessibleNameProvider = () -> isInterface ? "Implemented Method" : "Overriden Method";
     return new LineMarkerInfo<>(
       element,
       element.getTextRange(),
       isInterface ? AllIcons.Gutter.ImplementedMethod : AllIcons.Gutter.OverridenMethod,
-      Pass.UPDATE_ALL,
       new Function<PsiElement, String>() {
         @Override
         public String fun(PsiElement element) {
@@ -204,7 +206,8 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
           );
         }
       },
-      GutterIconRenderer.Alignment.RIGHT
+      GutterIconRenderer.Alignment.RIGHT,
+      accessibleNameProvider
     );
   }
 
@@ -216,13 +219,13 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       return null;
     }
     final PsiElement element = componentName.getIdentifier().getFirstChild();
+    Supplier<String> accessibleNameProvider = () -> componentWithDeclarationList instanceof HaxeInterfaceDeclaration ? "Implemented Method" : "Overriden Method";
     return new LineMarkerInfo<>(
       element,
       element.getTextRange(),
       componentWithDeclarationList instanceof HaxeInterfaceDeclaration
       ? AllIcons.Gutter.ImplementedMethod
       : AllIcons.Gutter.OverridenMethod,
-      Pass.UPDATE_ALL,
       item -> DaemonBundle.message("method.is.implemented.too.many"),
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
@@ -235,7 +238,8 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
           );
         }
       },
-      GutterIconRenderer.Alignment.RIGHT
+      GutterIconRenderer.Alignment.RIGHT,
+      accessibleNameProvider
     );
   }
 }
