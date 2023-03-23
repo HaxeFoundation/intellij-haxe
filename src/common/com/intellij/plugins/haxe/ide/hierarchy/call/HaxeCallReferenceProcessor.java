@@ -50,7 +50,7 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
                                  PsiMethod method,
                                  Set<PsiMethod> methodsToFind,
                                  NodeDescriptor nodeDescriptor,
-                                 Map<PsiMember, NodeDescriptor> resultMap,
+                                 Map<PsiMember, NodeDescriptor<?>> resultMap,
                                  Project project,
                                  HaxeHierarchyTimeoutHandler timeoutHandler) {
       super(originalClass, methodToFind, originalType, method, methodsToFind, nodeDescriptor, resultMap, project);
@@ -74,10 +74,10 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
 
     PsiClass originalClass = data.getOriginalClass();
     PsiMethod method = data.getMethod();
-    Set<PsiMethod> methodsToFind = data.getMethodsToFind();
+    Set<? extends PsiMethod> methodsToFind = data.getMethodsToFind();
     PsiMethod methodToFind = data.getMethodToFind();
     PsiClassType originalType = data.getOriginalType();
-    Map<PsiMember, NodeDescriptor> methodToDescriptorMap = data.getResultMap();
+    Map<PsiMember, NodeDescriptor<?>> methodToDescriptorMap = data.getResultMap();
     Project myProject = data.getProject();
     HaxeHierarchyTimeoutHandler timeoutHandler = data.getTimeoutHandler();
 

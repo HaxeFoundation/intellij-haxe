@@ -141,7 +141,7 @@ public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
       ContainerUtil.addAll(methodsToFind, method.findDeepestSuperMethods());
       // timeLog.stampAndEcho("beginning to walk " + methodsToFind.size() + " methods");
 
-      final Map<PsiMember, NodeDescriptor> methodToDescriptorMap = new HashMap<PsiMember, NodeDescriptor>();
+      final Map<PsiMember, NodeDescriptor<?>> methodToDescriptorMap = new HashMap<PsiMember, NodeDescriptor<?>>();
       for (final PsiMethod methodToFind : methodsToFind) {
         final HaxeCallReferenceProcessor.CallData data =
           new HaxeCallReferenceProcessor.CallData(originalClass, methodToFind, originalType, method, methodsToFind,
