@@ -20,8 +20,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.ModuleRootManagerImpl;
-import com.intellij.openapi.roots.impl.RootModelBase;
 import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
@@ -214,11 +212,8 @@ public class HaxelibUtil {
     if (null == rootManager) return new HaxeLibraryList(module);
 
     final HaxeLibraryList moduleLibs = new HaxeLibraryList(module);
-    if (rootManager instanceof ModuleRootManagerImpl) {
-      ModuleRootManagerImpl rootManagerImpl = (ModuleRootManagerImpl)rootManager;
-
-      RootModelBase modelBase = rootManagerImpl.getRootModel(); // Can't fail.
-      OrderEnumerator entries = modelBase.orderEntries();       // Can't fail.
+    if (rootManager instanceof ModuleRootModel) {
+      OrderEnumerator entries = rootManager.orderEntries();       // Can't fail.
 
       entries.forEachLibrary(new Processor<Library>() {
         @Override
