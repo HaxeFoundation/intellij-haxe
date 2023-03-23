@@ -205,7 +205,7 @@ runIde {
     Properties props = System.getProperties()
     for (String pname : props.propertyNames()) {
         for (String prefix : prefixesToInclude) {
-            if (pname.startsWith(prefix)) {
+            if (pname.startsWith(prefix) && pname != 'idea.home.path') {
                 String pval = props.get(pname)
                 if (pval.contains(" ") && !pval.startsWith("'")) {
                     // Strings containing spaces require quoting.
