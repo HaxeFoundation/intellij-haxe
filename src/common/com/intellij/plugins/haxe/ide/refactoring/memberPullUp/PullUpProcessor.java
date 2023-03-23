@@ -178,7 +178,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
           }
         });
       }
-    }, MethodDuplicatesHandler.REFACTORING_NAME, true, myProject);
+    }, MethodDuplicatesHandler.getRefactoringName(), true, myProject);
   }
 
   @Override

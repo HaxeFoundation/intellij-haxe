@@ -67,7 +67,7 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "browserActivated " + browser );
     }
-    ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.METHOD_TYPE);
+    ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.getMethodType());
   }
 
 }

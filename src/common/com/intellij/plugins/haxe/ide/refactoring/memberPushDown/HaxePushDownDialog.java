@@ -49,7 +49,7 @@ public class HaxePushDownDialog extends RefactoringDialog {
     myMemberInfos = Arrays.asList(memberInfos);
     myClass = aClass;
 
-    setTitle(JavaPushDownHandler.REFACTORING_NAME);
+    setTitle(JavaPushDownHandler.getRefactoringName());
 
     init();
   }

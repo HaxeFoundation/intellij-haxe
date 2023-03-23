@@ -39,7 +39,7 @@ public class HaxeMethodHierarchyBrowser extends MethodHierarchyBrowser {
 
   @Override
   protected HierarchyTreeStructure createHierarchyTreeStructure(@NotNull String typeName, @NotNull PsiElement psiElement) {
-    if (!METHOD_TYPE.equals(typeName)) {
+    if (!getMethodType().equals(typeName)) {
       LOG.error("unexpected type: " + typeName);
       return null;
     }

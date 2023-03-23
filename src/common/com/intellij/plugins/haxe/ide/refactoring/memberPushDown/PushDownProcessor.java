@@ -79,7 +79,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected String getCommandName() {
-    return JavaPushDownHandler.REFACTORING_NAME;
+    return JavaPushDownHandler.getRefactoringName();
   }
 
   @Override
@@ -174,7 +174,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       if (myClass.isEnum() || myClass.hasModifierProperty(PsiModifier.FINAL)) {
         if (Messages.showOkCancelDialog((myClass.isEnum() ? "Enum " + myClass.getQualifiedName() + " doesn't have constants to inline to. " : "Final class " + myClass.getQualifiedName() + "does not have inheritors. ") +
                                         "Pushing members down will result in them being deleted. " +
-                                        "Would you like to proceed?", JavaPushDownHandler.REFACTORING_NAME, Messages.getWarningIcon()) != Messages.OK) {
+                                        "Would you like to proceed?", JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon()) != Messages.OK) {
           return false;
         }
       } else {
@@ -182,7 +182,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
                               RefactoringBundle.message("interface.0.does.not.have.inheritors", myClass.getQualifiedName()) :
                               RefactoringBundle.message("class.0.does.not.have.inheritors", myClass.getQualifiedName());
         final String message = noInheritors + "\n" + RefactoringBundle.message("push.down.will.delete.members");
-        final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.REFACTORING_NAME, Messages.getWarningIcon());
+        final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
         if (answer == Messages.YES) {
           myCreateClassDlg = CreateSubclassAction.chooseSubclassToCreate(myClass);
           if (myCreateClassDlg != null) {
