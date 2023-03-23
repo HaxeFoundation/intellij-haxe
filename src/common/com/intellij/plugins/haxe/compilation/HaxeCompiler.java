@@ -187,7 +187,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
   }
 
   public static HaxeCommonCompilerUtil.CompilationContext createDummyCompilationContext(final Module module) {
-    DummyCompileContext context = new DummyCompileContext() {
+    DummyCompileContext context = new DummyCompileContext(module.getProject()) {
       @Override
       public Project getProject() {
         return module.getProject();

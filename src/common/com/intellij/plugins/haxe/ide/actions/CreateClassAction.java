@@ -48,7 +48,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   private static Set<JavaSourceRootType> SOURCES;
   static {
-    SOURCES = ContainerUtilRt.newHashSet(JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE);
+    SOURCES = ContainerUtilRt.newLinkedHashSet(JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE);
   }
 
   public CreateClassAction() {

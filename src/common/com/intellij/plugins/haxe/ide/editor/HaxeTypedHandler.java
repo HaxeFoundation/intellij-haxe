@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.ide.editor;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.editorActions.JavaTypedHandler;
+import com.intellij.codeInsight.editorActions.TypedHandlerUtil;
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
@@ -58,7 +58,7 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
     }
     if (c == '>') {
       if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET &&
-          JavaTypedHandler.handleJavaGT(editor, HaxeTokenTypes.OLESS, HaxeTokenTypes.OGREATER, INVALID_INSIDE_REFERENCE)) {
+          TypedHandlerUtil.handleGenericGT(editor, HaxeTokenTypes.OLESS, HaxeTokenTypes.OGREATER, INVALID_INSIDE_REFERENCE)) {
         return Result.STOP;
       }
     }
