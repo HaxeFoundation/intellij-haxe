@@ -20,8 +20,8 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.Nullable;
@@ -31,7 +31,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypePsiMixin {
 
-  private static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixin");
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixin");
   {
     LOG.setLevel(Level.DEBUG);
   }

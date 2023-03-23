@@ -19,9 +19,9 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleComponent {
 
-  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
+  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
   static {
     LOG.setLevel(Level.DEBUG);
   }

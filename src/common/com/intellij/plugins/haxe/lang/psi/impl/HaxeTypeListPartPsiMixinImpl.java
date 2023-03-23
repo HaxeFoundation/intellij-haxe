@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -60,7 +59,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   // This type doesn't really support a class, just gives a function pointer.  So, now
   // we've got a mostly empty stub class as well...
 
-  static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl");
+  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl");
   static { LOG.setLevel(Level.DEBUG); }
 
 
@@ -99,7 +98,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
             myChildClass = (HaxeAnonymousType) target;
           } else {
             LOG.debug("Target: " + target.toString());
-            LOG.assertTrue(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
+            LOG.assertLog(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
             myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }
         } else if (HaxeTokenTypes.FUNCTION_TYPE.equals(type)) {
@@ -116,7 +115,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
         }
       } else {
         // No child node?  How can this be?
-        LOG.assertTrue(false, "No child node found for TYPE_LIST_PART");
+        LOG.assertLog(false, "No child node found for TYPE_LIST_PART");
         myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
       }
     }
