@@ -88,6 +88,7 @@ task psiSetup(group: TOOLS_GROUP, dependsOn: 'psiDownload') {
 
 
 task flexDownload(group: TOOLS_GROUP) {
+  dependsOn('init')
   outputs.upToDateWhen { file("$downloadsDir/$flexDownloadFile").exists() }
   doLast {
     def url = getFlexUrl(file("${ideaTargetDir}/build.txt"))
