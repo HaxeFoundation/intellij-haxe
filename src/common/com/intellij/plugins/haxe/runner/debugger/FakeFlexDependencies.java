@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.runner.debugger;
 import com.intellij.lang.javascript.flex.projectStructure.model.Dependencies;
 import com.intellij.lang.javascript.flex.projectStructure.model.DependencyEntry;
 import com.intellij.lang.javascript.flex.projectStructure.model.SdkEntry;
-import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class FakeFlexDependencies implements Dependencies {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
   private static final DependencyEntry[] NO_DEPENDENCIES = {};
 
   @Nullable

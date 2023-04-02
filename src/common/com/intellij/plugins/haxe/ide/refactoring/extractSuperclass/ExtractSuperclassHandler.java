@@ -27,12 +27,12 @@ import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpConflictsUtil;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -51,7 +51,7 @@ import javax.swing.*;
 import java.util.List;
 
 public class ExtractSuperclassHandler implements RefactoringActionHandler, ExtractSuperclassDialog.Callback, ElementsHandler {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperclassHandler");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperclassHandler");
 
   public static final String REFACTORING_NAME = RefactoringBundle.message("extract.superclass.title");
 

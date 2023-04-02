@@ -21,12 +21,12 @@ import com.intellij.codeInsight.PsiEquivalenceUtil;
 import com.intellij.codeInsight.intention.AddAnnotationFix;
 import com.intellij.lang.Language;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -58,7 +58,7 @@ import java.util.*;
  * Created by Max Medvedev on 10/3/13
  */
 public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
-  private static final Logger LOG = Logger.getInstance(HaxePullUpHelper.class);
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance(HaxePullUpHelper.class);
 
   private static final Key<Boolean> PRESERVE_QUALIFIER = Key.create("PRESERVE_QUALIFIER");
 
@@ -174,7 +174,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     PsiClass aClass = (PsiClass)info.getMember();
     if (Boolean.FALSE.equals(info.getOverrides())) {
       final PsiReferenceList sourceReferenceList = info.getSourceReferenceList();
-      LOG.assertTrue(sourceReferenceList != null);
+      LOG.assertLog(sourceReferenceList != null, "Assertion failed");
       PsiJavaCodeReferenceElement ref = mySourceClass.equals(sourceReferenceList.getParent()) ?
                                         RefactoringUtil.removeFromReferenceList(sourceReferenceList, aClass) :
                                         RefactoringUtil.findReferenceToClass(sourceReferenceList, aClass);

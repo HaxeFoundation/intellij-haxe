@@ -21,12 +21,12 @@ import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.call.CallReferenceProcessor;
 import com.intellij.ide.hierarchy.call.JavaCallHierarchyData;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNewExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeSuperExpression;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
@@ -39,7 +39,7 @@ import java.util.Set;
  * Created by ebishton on 1/9/15.  Lifted from JavaCallReferenceProcessor.
  */
 public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor");
 
   public static class CallData extends JavaCallHierarchyData {
     HaxeHierarchyTimeoutHandler myTimeoutHandler;
@@ -50,7 +50,7 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
                                  PsiMethod method,
                                  Set<PsiMethod> methodsToFind,
                                  NodeDescriptor nodeDescriptor,
-                                 Map<PsiMember, NodeDescriptor> resultMap,
+                                 Map<PsiMember, NodeDescriptor<?>> resultMap,
                                  Project project,
                                  HaxeHierarchyTimeoutHandler timeoutHandler) {
       super(originalClass, methodToFind, originalType, method, methodsToFind, nodeDescriptor, resultMap, project);
@@ -74,10 +74,10 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
 
     PsiClass originalClass = data.getOriginalClass();
     PsiMethod method = data.getMethod();
-    Set<PsiMethod> methodsToFind = data.getMethodsToFind();
+    Set<? extends PsiMethod> methodsToFind = data.getMethodsToFind();
     PsiMethod methodToFind = data.getMethodToFind();
     PsiClassType originalType = data.getOriginalType();
-    Map<PsiMember, NodeDescriptor> methodToDescriptorMap = data.getResultMap();
+    Map<PsiMember, NodeDescriptor<?>> methodToDescriptorMap = data.getResultMap();
     Project myProject = data.getProject();
     HaxeHierarchyTimeoutHandler timeoutHandler = data.getTimeoutHandler();
 

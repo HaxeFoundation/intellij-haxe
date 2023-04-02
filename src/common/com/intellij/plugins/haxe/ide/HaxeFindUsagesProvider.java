@@ -20,11 +20,10 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -32,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeFindUsagesProvider implements FindUsagesProvider {
 
-  final static Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider");
+  final static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider");
 
   @Override
   public WordsScanner getWordsScanner() {

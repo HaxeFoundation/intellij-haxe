@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.lang.parser;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.LighterLazyParseableNode;
 import com.intellij.lang.ParserDefinition;
+import com.intellij.lang.impl.PsiBuilderFactoryImpl;
 import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.application.ApplicationManager;
@@ -68,7 +69,8 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
                         @NotNull Lexer lexer,
                         @NotNull LighterLazyParseableNode chameleon,
                         @NotNull CharSequence text) {
-    super(project, parserDefinition, lexer, chameleon, text);
+    // FIXME: https://github.com/JetBrains/intellij-community/commit/bf92a4bfea21ac1269017a52a347ab32c1a87323#r105729752
+    super(project, parserDefinition, lexer, (ASTNode)chameleon, text);
     psiFile = chameleon.getContainingFile();
     setupDebugTraces();
   }

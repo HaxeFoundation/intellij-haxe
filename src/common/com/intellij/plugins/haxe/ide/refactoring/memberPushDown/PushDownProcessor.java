@@ -20,7 +20,6 @@ import com.intellij.codeInsight.ChangeContextUtil;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.codeInsight.intention.impl.CreateSubclassAction;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
@@ -29,6 +28,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -60,7 +60,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PushDownProcessor extends BaseRefactoringProcessor {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.refactoring.memberPushDown.PushDownProcessor");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.memberPushDown.PushDownProcessor");
 
   private final MemberInfo[] myMemberInfos;
   private PsiClass myClass;
@@ -79,7 +79,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
   @Override
   protected String getCommandName() {
-    return JavaPushDownHandler.REFACTORING_NAME;
+    return JavaPushDownHandler.getRefactoringName();
   }
 
   @Override
@@ -174,7 +174,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       if (myClass.isEnum() || myClass.hasModifierProperty(PsiModifier.FINAL)) {
         if (Messages.showOkCancelDialog((myClass.isEnum() ? "Enum " + myClass.getQualifiedName() + " doesn't have constants to inline to. " : "Final class " + myClass.getQualifiedName() + "does not have inheritors. ") +
                                         "Pushing members down will result in them being deleted. " +
-                                        "Would you like to proceed?", JavaPushDownHandler.REFACTORING_NAME, Messages.getWarningIcon()) != Messages.OK) {
+                                        "Would you like to proceed?", JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon()) != Messages.OK) {
           return false;
         }
       } else {
@@ -182,7 +182,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
                               RefactoringBundle.message("interface.0.does.not.have.inheritors", myClass.getQualifiedName()) :
                               RefactoringBundle.message("class.0.does.not.have.inheritors", myClass.getQualifiedName());
         final String message = noInheritors + "\n" + RefactoringBundle.message("push.down.will.delete.members");
-        final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.REFACTORING_NAME, Messages.getWarningIcon());
+        final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
         if (answer == Messages.YES) {
           myCreateClassDlg = CreateSubclassAction.chooseSubclassToCreate(myClass);
           if (myCreateClassDlg != null) {
@@ -234,7 +234,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       myClass = (PsiClass) elements[0];
     }
     else {
-      LOG.assertTrue(false);
+      LOG.assertLog(false, "Assertion failed");
     }
   }
 
@@ -384,7 +384,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               psiClass = targetClass;
             } else if (psiClass.getContainingClass() == myClass) {
               psiClass = targetClass.findInnerClassByName(psiClass.getName(), false);
-              LOG.assertTrue(psiClass != null);
+              LOG.assertLog(psiClass != null, "Assertion failed");
             }
 
             if (!(qualifier instanceof PsiThisExpression) && ref instanceof PsiReferenceExpression) {
@@ -444,7 +444,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       PsiMember member = memberInfo.getMember();
       final List<PsiReference> refsToRebind = new ArrayList<PsiReference>();
       final PsiModifierList list = member.getModifierList();
-      LOG.assertTrue(list != null);
+      LOG.assertLog(list != null, "Assertion failed");
       if (list.hasModifierProperty(PsiModifier.STATIC)) {
         for (final PsiReference reference : ReferencesSearch.search(member)) {
           final PsiElement element = reference.getElement();

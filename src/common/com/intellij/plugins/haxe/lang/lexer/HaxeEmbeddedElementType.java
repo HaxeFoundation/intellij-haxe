@@ -46,12 +46,6 @@ public class HaxeEmbeddedElementType extends HaxeLazyParseableElementType {
     return false;
   }
 
-  @Override
-  public PsiBuilder parseLight(ASTNode chameleon) {
-    // TODO: Implement.
-    return super.parseLight(chameleon);
-  }
-
   @Nullable
   @Override
   public ASTNode createNode(CharSequence text) {

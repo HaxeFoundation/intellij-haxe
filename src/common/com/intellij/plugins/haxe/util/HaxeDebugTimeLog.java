@@ -33,10 +33,10 @@ import java.util.LinkedList;
 public final class HaxeDebugTimeLog {
 
   // For logging issues with this class.
-  final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.util.HaxeDebugTimeLog");
+  final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.util.HaxeDebugTimeLog");
 
   // For logging time stamps that go on another logger.
-  Logger myLog;
+  HaxeDebugLogger myLog;
   LinkedList<TimeStamp> myTimeStamps;
   Since mySince;
 
@@ -59,11 +59,11 @@ public final class HaxeDebugTimeLog {
   }
 
   public HaxeDebugTimeLog(@Nullable String messagePrefix, Since since) {
-    this(Logger.getInstance(messagePrefix), since);
+    this(HaxeDebugLogger.getInstance(messagePrefix), since);
     myLog.setLevel(Level.DEBUG);
   }
 
-  public HaxeDebugTimeLog(@NotNull Logger log, Since since) {
+  public HaxeDebugTimeLog(@NotNull HaxeDebugLogger log, Since since) {
     myLog = log;
     myTimeStamps = new LinkedList<TimeStamp>();
     mySince = since;
@@ -102,7 +102,7 @@ public final class HaxeDebugTimeLog {
    * @param logger where to write the time stamp.
    * @param message text to identify the message.
    */
-  public static void logStamp(@NotNull Logger logger, @Nullable String message) {
+  public static void logStamp(@NotNull HaxeDebugLogger logger, @Nullable String message) {
     if (null == message) message = "";
     logger.debug(message + ":" + formatTime(System.currentTimeMillis()));
   }
@@ -216,7 +216,7 @@ public final class HaxeDebugTimeLog {
     myTimeStamps.add(ts);
     switch (since) {
       default:
-        LOG.assertTrue(false, "Unknown 'Since' type encountered.");
+        LOG.assertLog(false, "Unknown 'Since' type encountered.");
       case None:
         ts.log();
         break;
@@ -287,11 +287,11 @@ public final class HaxeDebugTimeLog {
       log(myLog);
     }
 
-    public void log(@NotNull Logger logger) {
+    public void log(@NotNull HaxeDebugLogger logger) {
       logger.debug(buildLogMsg(false, null, null));
     }
 
-    public void log(@NotNull Logger logger, boolean showTimeStamp, @Nullable TimeStamp first, @Nullable TimeStamp previous) {
+    public void log(@NotNull HaxeDebugLogger logger, boolean showTimeStamp, @Nullable TimeStamp first, @Nullable TimeStamp previous) {
       logger.debug(buildLogMsg(showTimeStamp, first, previous));
     }
 

@@ -25,7 +25,7 @@ buildSearchableOptions.enabled = false
 sourceSets.main.java.srcDir "src"
 
 dependencies {
-  compile project(':common')
+  implementation project(':common')
 }
 
 processResources {

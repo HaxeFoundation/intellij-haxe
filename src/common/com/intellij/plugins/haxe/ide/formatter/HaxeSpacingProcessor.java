@@ -22,12 +22,12 @@ package com.intellij.plugins.haxe.ide.formatter;
 import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.build.FieldWrapper;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
@@ -43,7 +43,7 @@ import static java.lang.Integer.max;
  * @author: Fedor.Korotkov
  */
 public class HaxeSpacingProcessor {
-  private final static Logger LOG = Logger.getInstance("#HaxeSpacingProcessor");
+  private final static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeSpacingProcessor");
   private final ASTNode myNode;
   private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;

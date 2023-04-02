@@ -302,11 +302,13 @@ public class HaxeResolveUtil {
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
-    final LinkedList<HaxeClass> classes = new LinkedList<>();
     final HashSet<HaxeClass> processed = new HashSet<>();
-    classes.addAll(Arrays.asList(rootHaxeClasses));
+    final List<HaxeClass> temp = Arrays.asList(rootHaxeClasses.clone());
+    final LinkedList<HaxeClass> classes = new LinkedList<>(temp);
     while (!classes.isEmpty()) {
       final HaxeClass haxeClass = classes.pollFirst();
+
+      if (haxeClass == null) continue;
 
       addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
       if (haxeClass.isAbstract()) {
@@ -732,7 +734,7 @@ public class HaxeResolveUtil {
     result = getResolveMethodReturnType(resolver, iteratorResultHaxeClass, "next", iteratorResult.getSpecialization());
 
 
-    if (result.getHaxeClass() == null) {
+    if (result.getHaxeClass() == null && resolveResultHaxeClass != null) {
       // check underlying types
       SpecificHaxeClassReference underlyingClassReference = resolveResultHaxeClass.getModel().getUnderlyingClassReference(resolver);
       if(underlyingClassReference != null) {

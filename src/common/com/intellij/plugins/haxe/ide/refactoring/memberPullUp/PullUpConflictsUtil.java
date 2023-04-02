@@ -154,8 +154,8 @@ public class PullUpConflictsUtil {
       ContainerUtil.addIfNotNull(checkModuleConflictsList, method.getReturnTypeElement());
       ContainerUtil.addIfNotNull(checkModuleConflictsList, method.getTypeParameterList());
     }
-    RefactoringConflictsUtil.analyzeModuleConflicts(subclass.getProject(), checkModuleConflictsList,
-                                           new UsageInfo[0], targetRepresentativeElement, conflicts);
+    RefactoringConflictsUtil.getInstance().analyzeModuleConflicts(subclass.getProject(), checkModuleConflictsList,
+                                           new UsageInfo[0], targetRepresentativeElement.getContainingFile().getVirtualFile(), conflicts);
     final String fqName = subclass.getQualifiedName();
     final String packageName;
     if (fqName != null) {

@@ -23,9 +23,9 @@ import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.MethodHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.apache.log4j.Level;
@@ -36,7 +36,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 9/3/14.
  */
 public class HaxeMethodHierarchyProvider implements HierarchyProvider {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.type.HaxeMethodHierarchyProvider");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeMethodHierarchyProvider");
 
   {
     LOG.info("Loaded HaxeMethodHierarchyProvider");
@@ -67,7 +67,7 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
     if ( LOG.isDebugEnabled() ) {
       LOG.debug( "browserActivated " + browser );
     }
-    ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.METHOD_TYPE);
+    ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.getMethodType());
   }
 
 }

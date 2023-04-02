@@ -15,9 +15,9 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -43,7 +43,7 @@ import java.util.Collection;
  * @author dsl
  */
 public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessorBase {
-  private static final Logger LOG = Logger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperClassProcessor");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperClassProcessor");
   protected PsiDirectory myTargetDirectory;
   protected final String myNewClassName;
   protected final MemberInfo[] myMemberInfos;

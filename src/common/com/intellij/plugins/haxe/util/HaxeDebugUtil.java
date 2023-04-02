@@ -15,7 +15,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
@@ -34,7 +33,7 @@ import java.io.StringWriter;
  */
 public class HaxeDebugUtil {
 
-  public static final Logger cacheDebugLog = Logger.getInstance("#DisableCacheForDebugging");
+  public static final HaxeDebugLogger cacheDebugLog = HaxeDebugLogger.getInstance("#DisableCacheForDebugging");
   private static boolean disabledManually = false;
 
   /**

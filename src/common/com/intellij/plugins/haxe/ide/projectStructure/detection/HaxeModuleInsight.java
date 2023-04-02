@@ -67,11 +67,11 @@ public class HaxeModuleInsight extends ModuleInsight {
   }
 
   @Override
-  protected void scanSourceFileForImportedPackages(CharSequence chars, Consumer<String> result) {
+  protected void scanSourceFileForImportedPackages(CharSequence chars, Consumer<? super String> result) {
   }
 
   @Override
-  protected void scanLibraryForDeclaredPackages(File file, Consumer<String> result) throws IOException {
+  protected void scanLibraryForDeclaredPackages(File file, Consumer<? super String> result) throws IOException {
   }
 
   @Override

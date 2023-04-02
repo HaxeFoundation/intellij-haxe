@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -26,6 +25,7 @@ import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -35,7 +35,7 @@ public class HaxelibSdkUtils {
 
   // TODO: Move these routines into HaxeSdkUtil and kill this class.
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugin.haxe.haxelib.HaxelibSdkUtils");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugin.haxe.haxelib.HaxelibSdkUtils");
 
   /**
    * An SDK that can be used/returned when project lookup fails.

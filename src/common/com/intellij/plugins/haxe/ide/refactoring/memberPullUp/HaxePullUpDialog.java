@@ -72,7 +72,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
   }
 
   public HaxePullUpDialog(Project project, PsiClass aClass, List<PsiClass> superClasses, MemberInfoStorage memberInfoStorage, Callback callback) {
-    super(project, aClass, superClasses, memberInfoStorage, JavaPullUpHandler.REFACTORING_NAME);
+    super(project, aClass, superClasses, memberInfoStorage, JavaPullUpHandler.getRefactoringName());
     myCallback = callback;
 
     init();

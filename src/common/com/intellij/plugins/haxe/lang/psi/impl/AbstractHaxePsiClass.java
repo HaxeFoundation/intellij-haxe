@@ -21,7 +21,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
@@ -32,6 +31,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -59,7 +59,7 @@ import java.util.List;
  */
 public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass");
 
   private Boolean _isPrivate = null;
 
@@ -563,7 +563,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     // XXX: Users of HaxeModifierList generally check for the existence of the property, not it's value.
     //      So, don't set it.
     //list.setModifierProperty(HaxePsiModifier.STATIC, false); // Haxe does not have static classes, yet!
-    LOG.assertTrue(!list.hasModifierProperty(HaxePsiModifier.STATIC), "Haxe classes cannot be static.");
+    LOG.assertLog(!list.hasModifierProperty(HaxePsiModifier.STATIC), "Haxe classes cannot be static.");
 
     return list;
   }

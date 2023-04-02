@@ -19,8 +19,8 @@ package com.intellij.plugins.haxe.ide.hierarchy.call;
 
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
 
-  private static final Logger LOG = Logger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyBrowser");
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyBrowser");
 
   HaxeCallHierarchyBrowser(Project project, PsiMethod method) { super(project, method); }
 

@@ -17,8 +17,8 @@ package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
@@ -26,7 +26,7 @@ import com.intellij.psi.tree.IElementType;
 
 public class HaxeParserWrapper extends HaxeParser {
 
-  private static Logger LOG = Logger.getInstance("#HaxeParserWrapper");
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeParserWrapper");
 
   /** Turns on debugging when running the parser.  On when the logger is in debug mode. */
   private static boolean debugging = LOG.isDebugEnabled();

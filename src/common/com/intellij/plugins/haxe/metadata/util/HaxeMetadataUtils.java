@@ -15,7 +15,6 @@
  */
 package com.intellij.plugins.haxe.metadata.util;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetaArg;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
@@ -23,6 +22,7 @@ import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -40,7 +40,7 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.EMBEDDED_META;
 
 public class HaxeMetadataUtils {
 
-  private static Logger LOG = Logger.getInstance("#HaxeMetadataUtils");
+  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeMetadataUtils");
 
   private HaxeMetadataUtils() {}
 

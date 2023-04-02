@@ -49,7 +49,7 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
       if (element == null || element instanceof PsiFile) {
         String message = RefactoringBundle.getCannotRefactorMessage(
           RefactoringBundle.message("the.caret.should.be.positioned.inside.a.class.to.push.members.from"));
-        CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.MEMBERS_PUSH_DOWN);
+        CommonRefactoringUtil.showErrorHint(project, editor, message, getRefactoringName(), HelpID.MEMBERS_PUSH_DOWN);
         return;
       }
 

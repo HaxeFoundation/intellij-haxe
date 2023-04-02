@@ -49,7 +49,7 @@ public class HaxePushDownDialog extends RefactoringDialog {
     myMemberInfos = Arrays.asList(memberInfos);
     myClass = aClass;
 
-    setTitle(JavaPushDownHandler.REFACTORING_NAME);
+    setTitle(JavaPushDownHandler.getRefactoringName());
 
     init();
   }
@@ -115,8 +115,6 @@ public class HaxePushDownDialog extends RefactoringDialog {
 
   protected void doAction() {
     if(!isOKActionEnabled()) return;
-
-    JavaRefactoringSettings.getInstance().PUSH_DOWN_PREVIEW_USAGES = isPreviewUsages();
 
     invokeRefactoring (new PushDownProcessor(
       getProject(), getSelectedMemberInfos(), myClass,

@@ -29,10 +29,10 @@ import com.intellij.lang.Language;
 import com.intellij.lang.findUsages.DescriptiveNameUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -62,7 +62,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpData {
-  private static final Logger LOG = Logger.getInstance(PullUpProcessor.class);
+  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance(PullUpProcessor.class);
 
   private final PsiClass mySourceClass;
   private final PsiClass myTargetSuperClass;
@@ -178,7 +178,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
           }
         });
       }
-    }, MethodDuplicatesHandler.REFACTORING_NAME, true, myProject);
+    }, MethodDuplicatesHandler.getRefactoringName(), true, myProject);
   }
 
   @Override
@@ -257,7 +257,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
   }
 
   public void moveFieldInitializations() throws IncorrectOperationException {
-    LOG.assertTrue(myMembersAfterMove != null);
+    LOG.assertLog(myMembersAfterMove != null, "Assertion failed");
 
     final LinkedHashSet<PsiField> movedFields = new LinkedHashSet<PsiField>();
     for (PsiMember member : myMembersAfterMove) {

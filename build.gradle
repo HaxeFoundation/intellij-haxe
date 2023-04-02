@@ -19,11 +19,12 @@
 
 plugins {
     id 'de.undercouch.download' version '3.3.0'
-    id 'org.jetbrains.intellij' version '0.4.9'
-    id "org.jetbrains.grammarkit" version "2020.3.2"
+    id 'org.jetbrains.intellij' version '1.10.1'
+    id "org.jetbrains.grammarkit" version "2022.3"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
 }
 
+import org.jetbrains.intellij.DependenciesUtils
 import org.jetbrains.grammarkit.tasks.*
 
 if (!project.hasProperty('targetVersion')) {
@@ -97,25 +98,27 @@ allprojects {
         type = 'IU'
         version = "IU-${ideaVersion}"
         pluginName = "intellij-haxe-${ideaVersion}"
-        ideaDependencyCachePath "${ideaBaseDir}"
+        ideaDependencyCachePath = "${ideaBaseDir}"
         // Specify the sandbox so that Gradle doesn't try to make it relative to each sub-project.
-        sandboxDirectory "${project.rootDir}/build/idea-sandbox"
+        sandboxDir = "${project.rootDir}/build/idea-sandbox"
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
-        updateSinceUntilBuild false
+        updateSinceUntilBuild = false
 
         // Include the "java" built-in plugin for 2019.2 and later builds.
         if (requiresJavaPlugin) {
             System.println("Including java plugin for version >= 2019.2")
-            plugins += 'java'  // 2019.2 + only.  Causes build errors on earlier versions.
+            plugins.add('java') // 2019.2 + only.  Causes build errors on earlier versions.
         }
         // Flex support was unbundled for version 2020.2.
         if (requiresFlexPlugin) {
             System.println("Including Flex plugin for version >= 2020.2")
             String versionWithMajor = ideaVersion.substring(0, 6);
             switch (versionWithMajor) {
-                case "2020.2" : plugins += 'com.intellij.flex:202.6397.59'; break
-                case "2020.3" : plugins += 'com.intellij.flex:203.5981.155'; break
-                case "2021.1" : plugins += 'com.intellij.flex:211.6693.111'; break
+                case "2020.2" : plugins.add('com.intellij.flex:202.6397.59'); break
+                case "2020.3" : plugins.add('com.intellij.flex:203.5981.155'); break
+                case "2021.1" : plugins.add('com.intellij.flex:211.6693.111'); break
+                case "2022.3" : plugins.add('com.intellij.flex:223.7571.4'); break
+                case "2022.3.3" : plugins.add('com.intellij.flex:223.8617.9'); break
             }
 
         }
@@ -152,14 +155,15 @@ idea.module { generatedSourceDirs += file('gen') }
 
 
 dependencies {
+    implementation 'ch.qos.reload4j:reload4j:1.2.25'
 
-    compile files('gen') {
+    implementation files('gen') {
         builtBy 'generateSources'
     }
 
-    compile project(':common')
-    compile project(':jps-plugin')
-    compile project(':hxcpp-debugger-protocol')
+    implementation project(':common')
+    implementation project(':jps-plugin')
+    implementation project(':hxcpp-debugger-protocol')
 
     String flexPluginDir = "${ideaTargetDir}"
     if (requiresFlexPlugin) {
@@ -181,7 +185,7 @@ dependencies {
 
     testCompileOnly files(flexShared)
     testCompileOnly files(flexSupport)
-    testCompileOnly files("${ideaTargetDir}/lib/ openapi.jar")
+    testCompileOnly files("${ideaTargetDir}/lib/openapi.jar")
     testCompileOnly files("${ideaTargetDir}/lib/util.jar")
 
 }
@@ -189,7 +193,7 @@ dependencies {
 afterEvaluate {
     dependencies {
         if (requiresJavaPlugin) {
-            compile intellijPlugin('java') { include("${ideaTargetDir}/plugins/java/lib/jps-builders.jar") }
+            implementation DependenciesUtils.intellijPlugin(project, 'java') { include("${ideaTargetDir}/plugins/java/lib/jps-builders.jar") }
         }
     }
 }
@@ -201,7 +205,7 @@ runIde {
     Properties props = System.getProperties()
     for (String pname : props.propertyNames()) {
         for (String prefix : prefixesToInclude) {
-            if (pname.startsWith(prefix)) {
+            if (pname.startsWith(prefix) && pname != 'idea.home.path') {
                 String pval = props.get(pname)
                 if (pval.contains(" ") && !pval.startsWith("'")) {
                     // Strings containing spaces require quoting.
@@ -241,10 +245,14 @@ processResources {
 }
 
 patchPluginXml {
+    def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+    sinceBuild = props.getProperty("plugin.installable.since")
+    untilBuild = props.getProperty("plugin.installable.until")
+
     pluginXmlFiles = [
-            'src/META-INF/plugin.xml',
-            'src/META-INF/debugger-support.xml',
-            'src/META-INF/flex-debugger-support.xml'
+            file('src/META-INF/plugin.xml'),
+            file('src/META-INF/debugger-support.xml'),
+            file('src/META-INF/flex-debugger-support.xml')
     ]
 }
 
@@ -320,13 +328,13 @@ task cleanGenerated(type: Delete, group: 'generate') {
 task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
     workingDir = "${toolDir}"
     main '-jar'
-    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHaxe}"]
+    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarHaxe}"]
 
     inputs.file "${grammarHaxe}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
 }
 
-task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: GenerateLexer) {
+task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: GenerateLexerTask) {
     source = "${haxeFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer"
     targetClass = "com.intellij.plugins.haxe.lang.lexer._HaxeLexer"
@@ -335,7 +343,7 @@ task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: 
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer/_HaxeLexer.java").exists() }
 
 }
-task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: GenerateLexer) {
+task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: GenerateLexerTask) {
     source = "${hxmlFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer"
     targetClass = "com.intellij.plugins.haxe.hxml.lexer.HXMLLexer"
@@ -344,7 +352,7 @@ task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: 
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer/HXMLLexer.java").exists() }
 
 }
-task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser', type: GenerateLexer) {
+task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser', type: GenerateLexerTask) {
     source = "${metadataFlex}"
     targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer"
     targetClass = "com.intellij.plugins.haxe.metadata.lexer.MetadataLexer"
@@ -359,7 +367,7 @@ task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser'
 task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
     workingDir = "${toolDir}"
     main '-jar'
-    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarHxml}"]
+    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarHxml}"]
 
     inputs.file "${grammarHxml}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml").exists() }
@@ -368,7 +376,7 @@ task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'genera
 task generateMetadataParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
     workingDir = "${toolDir}"
     main '-jar'
-    args = ['grammar-kit.jar', "${generatedSrcDir}", "${grammarMetadata}"]
+    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarMetadata}"]
 
     inputs.file "${grammarMetadata}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/metadata").exists() }
@@ -430,6 +438,7 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 223: propertiesFile = "idea_v22.properties"; break
         case 211: propertiesFile = "idea_v21.properties"; break
         case 203: propertiesFile = "idea_v20.3.properties"; break
         case 202: propertiesFile = "idea_v20.properties"; break

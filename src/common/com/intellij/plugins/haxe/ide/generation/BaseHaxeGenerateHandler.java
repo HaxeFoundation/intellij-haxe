@@ -22,7 +22,6 @@ import com.intellij.ide.util.MemberChooser;
 import com.intellij.lang.LanguageCodeInsightActionHandler;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.CommandProcessor;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.HaxeNamedElementNode;
@@ -30,6 +29,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -102,7 +102,7 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
               createMethodsFix.invoke(project, editor, file);
             }
             catch (IncorrectOperationException ex) {
-              Logger.getInstance(getClass().getName()).error(ex);
+              HaxeDebugLogger.getInstance(getClass().getName()).error(ex);
             }
           }
         });
