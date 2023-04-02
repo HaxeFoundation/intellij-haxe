@@ -17,16 +17,16 @@ jobs:
     strategy:
       fail-fast: false # set this to true if you want to cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2021.1, 2020.2.4, 2020.1.4, 2019.3.5, 2018.3.6]
-        OS: [macOS-latest, ubuntu-16.04, windows-latest]
+        IDEA_VERSION: [2023.1, 2022.3.3, 2021.3.3, 2020.3.4]
+        OS: [macOS-latest, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.OS }}
     steps:
       - uses: actions/checkout@v2
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v1
         with:
-          java-version: 11
+          java-version: 17
           architecture: x64
 
       - name: Set up Haxe
