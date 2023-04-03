@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright 2000-2013 JetBrains s.r.o.
-  ~ Copyright 2014-2014 Hays Clark
-  ~ Copyright 2014-2014 AS3Boyan
+  ~ Copyright 2014-2023 AS3Boyan
   ~ Copyright 2014-2014 Elias Ku
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +19,7 @@
 <templateSet group="Haxe">
 
   <template name="iter" value="for ($VAR$ in $ARRAY$) {&#10;  $END$&#10;}"
-            resource-bundle="com.intellij.plugins.haxe.HaxeBundle" key="livetemplate.description.iter" toReformat="true"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.iter" toReformat="true"
             toShortenFQNames="true">
     <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array &quot;" alwaysStopAt="true"/>
     <variable name="VAR" expression="haxeSuggestVariableName()" defaultValue="&quot;o&quot;" alwaysStopAt="true"/>
@@ -30,7 +29,7 @@
   </template>
 
   <template name="itar" value="for ($INDEX$ in 0...$ARRAY$.length) {&#10;  var $VAR$ = $ARRAY$[$INDEX$];&#10;  $END$&#10;}"
-            resource-bundle="com.intellij.plugins.haxe.HaxeBundle" key="livetemplate.description.itar" toReformat="true"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.itar" toReformat="true"
             toShortenFQNames="true">
     <variable name="INDEX" expression="haxeSuggestIndexName()" defaultValue="&quot;i&quot;" alwaysStopAt="true"/>
     <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array&quot;" alwaysStopAt="true"/>
@@ -41,7 +40,7 @@
   </template>
 
   <template name="ritar" value="for ($INDEX$ in $ARRAY$.length...0) {&#10;  var $VAR$ = $ARRAY$[$INDEX$];&#10;  $END$&#10;}"
-            resource-bundle="com.intellij.plugins.haxe.HaxeBundle" key="livetemplate.description.ritar" toReformat="true"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.ritar" toReformat="true"
             toShortenFQNames="true">
     <variable name="INDEX" expression="haxeSuggestIndexName()" defaultValue="&quot;i&quot;" alwaysStopAt="true"/>
     <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array&quot;" alwaysStopAt="true"/>

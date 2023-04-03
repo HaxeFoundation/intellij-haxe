@@ -37,7 +37,6 @@ import org.jetbrains.annotations.*;
 public class HaxeAnnotatorInspection extends LocalInspectionTool implements UnfairLocalInspectionTool {
 
   @NonNls
-  public static final String HAXE_BUNDLE = "com.intellij.plugins.haxe.HaxeBundle";
 
   protected final HighlightDisplayKey inspectionToolKey;
   protected final String shortName;
@@ -50,18 +49,18 @@ public class HaxeAnnotatorInspection extends LocalInspectionTool implements Unfa
   protected final String description;
   protected final boolean enabledByDefault;
 
-  HaxeAnnotatorInspection(@NotNull @PropertyKey(resourceBundle = HAXE_BUNDLE) String displayNameKey) {
+  HaxeAnnotatorInspection(@NotNull @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String displayNameKey) {
     this(null, displayNameKey, null, true);
   }
 
-  HaxeAnnotatorInspection(@NotNull @PropertyKey(resourceBundle = HAXE_BUNDLE) String displayNameKey,
-                          @Nullable @PropertyKey(resourceBundle = HAXE_BUNDLE) String descriptionKey) {
+  HaxeAnnotatorInspection(@NotNull @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String displayNameKey,
+                          @Nullable @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String descriptionKey) {
     this(null, displayNameKey, descriptionKey, true);
   }
 
   /** This constructor expects {@code resources/inspectionDescriptions/<shortname>.html} to exist. */
   HaxeAnnotatorInspection(@NonNls @Nullable String shortName,
-                          @NotNull @PropertyKey(resourceBundle = HAXE_BUNDLE) String displayNameKey,
+                          @NotNull @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String displayNameKey,
                           boolean enabledByDefault) {
     this(shortName, displayNameKey, null, enabledByDefault);
   }
@@ -79,8 +78,8 @@ public class HaxeAnnotatorInspection extends LocalInspectionTool implements Unfa
    * @param enabledByDefault - Whether the inspection is enabled by default.
    */
   HaxeAnnotatorInspection(@NonNls @Nullable String shortName,
-                          @NotNull @PropertyKey(resourceBundle = HAXE_BUNDLE) String displayNameKey,
-                          @Nullable @PropertyKey(resourceBundle = HAXE_BUNDLE) String descriptionKey,
+                          @NotNull @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String displayNameKey,
+                          @Nullable @PropertyKey(resourceBundle = HaxeBundle.BUNDLE) String descriptionKey,
                           boolean enabledByDefault) {
     super();
     this.enabledByDefault = enabledByDefault;

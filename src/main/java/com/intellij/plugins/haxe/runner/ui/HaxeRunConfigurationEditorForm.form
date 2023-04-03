@@ -22,7 +22,7 @@
             </constraints>
             <properties>
               <labelFor value="70531"/>
-              <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.module"/>
+              <text resource-bundle="messages/HaxeBundle" key="haxe.run.module"/>
             </properties>
           </component>
           <component id="70531" class="javax.swing.JComboBox" binding="myComboModules">
@@ -53,7 +53,7 @@
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.file.to.run"/>
+              <text resource-bundle="messages/HaxeBundle" key="haxe.run.file.to.run"/>
             </properties>
           </component>
           <component id="ba8bd" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myPathToFileTextField">

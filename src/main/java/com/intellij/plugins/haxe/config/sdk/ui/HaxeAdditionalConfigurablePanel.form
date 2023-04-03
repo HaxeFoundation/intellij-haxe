@@ -22,7 +22,7 @@
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="neko.executable"/>
+          <text resource-bundle="messages/HaxeBundle" key="neko.executable"/>
         </properties>
       </component>
       <component id="eb8c0" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myHaxelibTextField">
@@ -36,7 +36,7 @@
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
-          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxelib.executable"/>
+          <text resource-bundle="messages/HaxeBundle" key="haxelib.executable"/>
         </properties>
       </component>
       <component id="32491" class="javax.swing.JLabel" binding="myCompletionLabel">

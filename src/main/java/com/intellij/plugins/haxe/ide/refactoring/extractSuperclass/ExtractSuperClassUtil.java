@@ -46,7 +46,6 @@ import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.MultiMap;
-import com.intellij.webcore.ModuleHelper;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -82,8 +81,7 @@ public class ExtractSuperClassUtil {
       HaxeDebugLogger.getInstance(ExtractSuperClassUtil.class).error(template.getName());
     }*/
 
-    Module[] modules = ModuleHelper.getModules(project);
-    //PsiClass superclass = CreateClassUtil.createClassFromCustomTemplate(targetDirectory, modules[0], superclassName, "HaxeClass.hx.ft");
+
     String packageName = DirectoryIndex.getInstance(targetDirectory.getProject()).getPackageName(targetDirectory.getVirtualFile());
     PsiClass superclass = null;
     try {
