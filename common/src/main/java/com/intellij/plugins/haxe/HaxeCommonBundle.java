@@ -34,7 +34,7 @@ public class HaxeCommonBundle extends DynamicBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   @NonNls
-  public static final String BUNDLE = "com.intellij.plugins.haxe.HaxeCommonBundle";
+  public static final String BUNDLE = "messages.HaxeCommonBundle";
 
   public HaxeCommonBundle() {
     super(BUNDLE);
