@@ -532,13 +532,13 @@ doWhileBody ::= statement
 whileStatement ::= 'while' '(' expression ')' doWhileBody ';'?
   { methods=[guard="expression" body="doWhileBody"]}
 doWhileStatement ::= 'do' doWhileBody 'while' '(' expression ')' ';'
-  { methods=[guard="expression" body="doWhileBody"] extends="whileStatement" }
+  { methods=[guard="expression" body="doWhileBody"] implements="whileStatement" }
 
 private returnValue ::= objectLiteral
                       | ("macro"? statement)
                       | expression
                       | localVarDeclarationList   // Void value, so allowable, but not useful
-lamdaReturnStatement ::= 'return' (returnValue)? {extends="returnStatement"}
+lamdaReturnStatement ::= 'return' (returnValue)? {implements="returnStatement"}
 returnStatement ::= 'return' (returnValue)? <<semicolonUnlessPrecededByStatement>>
 
 breakStatement ::= 'break' ';'
