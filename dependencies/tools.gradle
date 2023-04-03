@@ -36,7 +36,6 @@ task removeIdeaCache(group: TOOLS_GROUP) {
   doLast {
     delete "$ideaBaseDir"
   }
-}
 
 task grammarKitDownload(group: TOOLS_GROUP) {
   outputs.upToDateWhen { file("$downloadsDir/$grammarKitDownloadFile").exists() }

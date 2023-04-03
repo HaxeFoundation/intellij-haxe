@@ -22,14 +22,7 @@ verifyPlugin.enabled = false
 prepareSandbox.enabled = false
 buildSearchableOptions.enabled = false
 
-sourceSets.main.java.srcDir "src"
 
 dependencies {
   implementation project(':common')
-}
-
-processResources {
-  from('src') {
-    include 'META-INF/services/*'
-  }
 }

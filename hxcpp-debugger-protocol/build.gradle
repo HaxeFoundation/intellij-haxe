@@ -26,12 +26,11 @@ buildSearchableOptions.enabled = false
 
 shouldGenerateSources()
 
-ext.hxcppSrcFolder = "src"
-sourceSets.main.java.srcDirs = ["$hxcppGeneratedFolder" ]
+ext.hxcppSrcFolder = "src/main/hx"
+sourceSets.main.java.srcDirs = ["$hxcppGeneratedFolder/src" ]
 
 // helping intellij detecting source directories
-idea.module { generatedSourceDirs += file('gen/src') }
-idea.module { sourceDirs += file('src/JavaProtocol/src') }
+idea.module { generatedSourceDirs += file('src/main/gen') }
 
 task installHxJava(group: "hxcpp") {
     doLast {
@@ -55,10 +54,10 @@ task generateDebuggerJavaSource(type: Exec, group: "hxcpp") {
     dependsOn('installHxcppDebugger')
 
     inputs.file "${hxcppSrcFolder}/JavaProtocol.hx"
-    outputs.upToDateWhen { file('gen/src').exists() }
+    outputs.upToDateWhen { file('src/main/gen').exists() }
 
-    workingDir 'src/main/haxe/'
-    commandLine 'haxe', '-cp', '..', '-java', '../../../gen/', '-main', 'JavaProtocol',
+    workingDir 'src/main/hx/'
+    commandLine 'haxe', '-cp', '..', '-java', '../gen/', '-main', 'JavaProtocol',
             '-lib', "hxcpp-debugger:git:$hxcppDebuggerGit#$hxcppDebuggerBranch",
             '-lib', "hxjava:$hxjavaVersion"
 }
@@ -116,10 +115,10 @@ private String getHaxeVersion() {
 
 private void configureGenerated() {
     ext.generateHxcppDebugger = true
-    ext.hxcppGeneratedFolder = 'gen/src'
+    ext.hxcppGeneratedFolder = 'src/main/gen'
 }
 
 private void configureFallback() {
     ext.generateHxcppDebugger = false
-    ext.hxcppGeneratedFolder = "src/JavaProtocol/src"
+    ext.hxcppGeneratedFolder = "src/main/hx"
 }

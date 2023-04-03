@@ -1,6 +1,7 @@
 out/
 .DS_Store
 .idea/
+.idea/*
 .iml
 .project
 .gradle/
@@ -15,4 +16,5 @@ local-build-overrides.xml
 intellij-haxe*.jar
 /gen/
 /genTest/
+src/main/gen/
 
