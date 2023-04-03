@@ -91,7 +91,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
     final List<HaxeComponent> result = new ArrayList<HaxeComponent>();
     for (VirtualFile vFile : files) {
       PsiFile file = PsiManager.getInstance(project).findFile(vFile);
-      if (file == null || file.getFileType() != HaxeFileType.HAXE_FILE_TYPE) {
+      if (file == null || file.getFileType() != HaxeFileType.INSTANCE) {
         continue;
       }
       final HaxeComponent component = HaxeResolveUtil.findComponentDeclaration(file, name);

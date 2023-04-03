@@ -46,7 +46,7 @@ public class HaxeUtil {
         if (baseDir != null) {
           FileBasedIndex.getInstance().iterateIndexableFiles(new ContentIterator() {
             public boolean processFile(VirtualFile file) {
-              if (HaxeFileType.HAXE_FILE_TYPE == file.getFileType()) {
+              if (HaxeFileType.INSTANCE == file.getFileType()) {
                 haxeFiles.add(file);
               }
               return true;

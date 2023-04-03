@@ -136,15 +136,15 @@ public class HaxeElementGenerator {
 
   public static PsiFile createDummyFile(Project myProject, String text) {
     final PsiFileFactory factory = PsiFileFactory.getInstance(myProject);
-    final String name = "dummy." + HaxeFileType.HAXE_FILE_TYPE.getDefaultExtension();
-    final LightVirtualFile virtualFile = new LightVirtualFile(name, HaxeFileType.HAXE_FILE_TYPE, text);
+    final String name = "dummy." + HaxeFileType.INSTANCE.getDefaultExtension();
+    final LightVirtualFile virtualFile = new LightVirtualFile(name, HaxeFileType.INSTANCE, text);
     final PsiFile psiFile = ((PsiFileFactoryImpl)factory).trySetupPsiForFile(virtualFile, HaxeLanguage.INSTANCE, false, true);
     assert psiFile != null;
     return psiFile;
   }
 
   public static PsiFile createExpressionCodeFragment(Project myProject, String text, PsiElement context, boolean resolveScope) {
-    final String name = "dummy." + HaxeFileType.HAXE_FILE_TYPE.getDefaultExtension();
+    final String name = "dummy." + HaxeFileType.INSTANCE.getDefaultExtension();
     HaxeExpressionCodeFragmentImpl codeFragment = new HaxeExpressionCodeFragmentImpl(myProject, name, text, true);
     codeFragment.setContext(context);
     return codeFragment;

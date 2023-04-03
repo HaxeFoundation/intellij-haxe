@@ -95,7 +95,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     final Set<HaxeComponentName> result = new THashSet<>();
     for (VirtualFile vFile : files) {
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
-      if (psiFile == null || psiFile.getFileType() != HaxeFileType.HAXE_FILE_TYPE) {
+      if (psiFile == null || psiFile.getFileType() != HaxeFileType.INSTANCE) {
         continue;
       }
       processComponents(psiFile, subComponent -> {

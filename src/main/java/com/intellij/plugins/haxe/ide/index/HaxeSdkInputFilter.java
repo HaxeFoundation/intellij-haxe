@@ -30,7 +30,7 @@ public class HaxeSdkInputFilter implements FileBasedIndex.InputFilter {
   @Override
   public boolean acceptInput(VirtualFile file) {
     // ignore std stubs for different platforms
-    return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE && !"_std".equals(file.getParent().getName());
+    return file.getFileType() == HaxeFileType.INSTANCE && !"_std".equals(file.getParent().getName());
   }
 }
 

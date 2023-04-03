@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.projectStructure;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleConfigurationEditor;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ui.configuration.ClasspathEditor;
 import com.intellij.openapi.roots.ui.configuration.CommonContentEntriesEditor;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProvider;
@@ -31,8 +32,11 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
  * @author: Fedor.Korotkov
  */
 public class HaxeModuleConfigurationEditorProvider implements ModuleConfigurationEditorProvider {
+  @Override
   public ModuleConfigurationEditor[] createEditors(final ModuleConfigurationState state) {
-    final Module module = state.getRootModel().getModule();
+    ModifiableRootModel modifiableRootModel = state.getModifiableRootModel();
+    Module module = modifiableRootModel.getModule();
+
     if (ModuleType.get(module) != HaxeModuleType.getInstance()) {
       return ModuleConfigurationEditor.EMPTY;
     }

@@ -49,6 +49,7 @@ sourceSets["main"].java.srcDirs("src/main/gen")
 
 dependencies{
     implementation(project(":common"))
+    implementation(project(":jps-plugin"))
     implementation(project(":hxcpp-debugger-protocol"))
 }
 

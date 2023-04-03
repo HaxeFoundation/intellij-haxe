@@ -72,8 +72,11 @@
     </description>
   <vendor>Haxe Community (Original sources provided by JetBrains.)</vendor>
   <idea-version since-build="@plugin.installable.since@" until-build="@plugin.installable.until@"/>
+
+  <depends>com.intellij.modules.platform</depends>
   <depends>com.intellij.modules.lang</depends>
   <depends>com.intellij.modules.java</depends>
+
   <depends optional="true" config-file="META-INF/flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="META-INF/debugger-support.xml">com.intellij.modules.ultimate</depends>
 
@@ -947,10 +950,12 @@
   <application-components>
     <!-- Add your application components here -->
   </application-components>
+
   <extensionPoints>
     <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
     <extensionPoint name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
   </extensionPoints>
+
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
@@ -961,20 +966,41 @@
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
-    <moduleConfigurationEditorProvider
-        implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
+    <moduleBuilder id="HAXE_MODULE_BUILDER" builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
+    <moduleConfigurationEditorProvider implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
+
     <projectStructureDetector implementation="com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
 
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
-    <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
 
-    <fileTypeFactory implementation="com.intellij.plugins.haxe.nmml.NMMLFileTypeFactory"/>
+    <fileType
+        name="Haxe"
+        implementationClass="com.intellij.plugins.haxe.HaxeFileType"
+        fieldName="INSTANCE"
+        language="Haxe"
+        extensions="hx"/>
+
+    <fileType
+        name="NMML"
+        implementationClass="com.intellij.plugins.haxe.nmml.NMMLFileType"
+        fieldName="INSTANCE"
+        language="XML"
+        extensions="nmml"/>
+
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.nmml.NMMLSchemaProvider"/>
 
     <!-- HXML BEGIN -->
-    <fileTypeFactory implementation="com.intellij.plugins.haxe.hxml.HXMLFileTypeFactory"/>
+    <fileType
+        name="HXML"
+        implementationClass="com.intellij.plugins.haxe.hxml.HXMLFileType"
+        fieldName="INSTANCE"
+        language="HXML"
+        extensions="hxml"/>
+
+
+
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.hxml.HXMLParserDefinition"/>
     <lang.syntaxHighlighterFactory language="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
@@ -1048,8 +1074,7 @@
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
     <codeFoldingOptionsProvider instance="com.intellij.plugins.haxe.ide.folding.HaxeFoldingOptionsProvider"/>
-    <applicationService serviceInterface="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"
-                        serviceImplementation="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"/>
+    <applicationService serviceImplementation="com.intellij.plugins.haxe.ide.folding.HaxeFoldingSettings"/>
 
     <additionalTextAttributes scheme="Default" file="colorSchemes/HaxeDefault.xml"/>
     <additionalTextAttributes scheme="Darcula" file="colorSchemes/HaxeDarcula.xml"/>
@@ -1079,8 +1104,7 @@
 
     <configurationType implementation="com.intellij.plugins.haxe.runner.HaxeRunConfigurationType"/>
 
-    <moduleService serviceInterface="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"
-                   serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
+    <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
     <internalFileTemplate name="HaxeClass"/>
     <internalFileTemplate name="HaxeInterface"/>
@@ -1104,10 +1128,8 @@
 
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor"/>
 
-    <projectService serviceInterface="com.intellij.plugins.haxe.config.HaxeProjectSettings"
-                    serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
-    <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
-                    serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          parentId="build"
                          id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"

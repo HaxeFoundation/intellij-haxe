@@ -52,7 +52,7 @@ public class HaxeBreakpointType extends XLineBreakpointType<XBreakpointPropertie
   }
 
   public boolean canPutAt(@NotNull final VirtualFile file, final int line, @NotNull Project project) {
-    return file.getFileType() == HaxeFileType.HAXE_FILE_TYPE;
+    return file.getFileType() == HaxeFileType.INSTANCE;
   }
 
   public XBreakpointProperties createBreakpointProperties(@NotNull final VirtualFile file, final int line) {

@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 
 public class HaxeFileType extends LanguageFileType {
-  public static final HaxeFileType HAXE_FILE_TYPE = new HaxeFileType();
+  public static final HaxeFileType INSTANCE = new HaxeFileType();
 
   @NonNls
   public static final String DEFAULT_EXTENSION = "hx";

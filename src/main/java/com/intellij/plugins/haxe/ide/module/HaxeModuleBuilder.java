@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.module;
 import com.intellij.execution.RunManager;
 import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
+import com.intellij.ide.NewProjectWizardLegacy;
 import com.intellij.ide.util.projectWizard.JavaModuleBuilder;
 import com.intellij.ide.util.projectWizard.ModuleBuilderListener;
 import com.intellij.ide.util.projectWizard.SourcePathsBuilder;
@@ -48,6 +49,11 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
     addListener(this);
     super.setupRootModel(modifiableRootModel);
+  }
+
+  @Override
+  public boolean isAvailable() {
+    return true; // TODO check what is the best way to evaluate this
   }
 
   @Override

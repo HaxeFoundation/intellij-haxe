@@ -52,7 +52,7 @@ public class HaxeFile extends PsiFileBase
   @NotNull
   @Override
   public FileType getFileType() {
-    return HaxeFileType.HAXE_FILE_TYPE;
+    return HaxeFileType.INSTANCE;
   }
 
   @Override

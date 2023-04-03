@@ -34,7 +34,7 @@ public class HaxeImportFilteringRule extends ImportFilteringRule {
       final PsiElement psiElement = ((PsiElementUsage)usage).getElement();
       final PsiFile containingFile = psiElement.getContainingFile();
 
-      if (containingFile != null && containingFile.getFileType() == HaxeFileType.HAXE_FILE_TYPE) {
+      if (containingFile != null && containingFile.getFileType() == HaxeFileType.INSTANCE) {
         return PsiTreeUtil.getParentOfType(psiElement, HaxeImportStatement.class) == null;
       }
     }
