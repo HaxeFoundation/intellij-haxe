@@ -18,7 +18,6 @@ package com.intellij.plugins.haxe.lang.parser;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
-
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
@@ -50,25 +49,21 @@ public class HaxeParserWrapper extends HaxeParser {
 
       return node;
     }
-    return super.parse(t,b);
+    return super.parse(t, b);
   }
 
-  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
-    return parse_root_(type, builder, 0);
-  }
-
-
-  //TODO mlo: solve static
-  /*
   @Override
-  protected boolean parse_root_(IElementType type, PsiBuilder builder, int l) {
-    if (type == HaxeMetadataTokenTypes.CT_META_ARGS) {
-      return compileTimeMetaArgList(builder, l + 1);
-    } else if (type == HaxeMetadataTokenTypes.RT_META_ARGS) {
-      return runTimeMetaArgList(builder, l + 1);
-    }
-    return haxeFile(builder, l + 1);
+  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+    return parse_root(type, builder, 0);
   }
 
-   */
+  private boolean parse_root(IElementType type, PsiBuilder builder, int level) {
+    if (type == HaxeMetadataTokenTypes.CT_META_ARGS) {
+      return compileTimeMetaArgList(builder, level + 1);
+    }
+    else if (type == HaxeMetadataTokenTypes.RT_META_ARGS) {
+      return runTimeMetaArgList(builder, level + 1);
+    }
+    return haxeFile(builder, level + 1);
+  }
 }
