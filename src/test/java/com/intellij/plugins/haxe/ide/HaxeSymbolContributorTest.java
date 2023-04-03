@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,12 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.index.HaxeSymbolIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -30,7 +34,8 @@ public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
     return "/indexers/symbols/";
   }
 
-  public HaxeSymbolContributorTest() {}
+  public HaxeSymbolContributorTest() {
+  }
 
   protected void doTest(String... extraFiles) throws Throwable {
     final List<String> files = new ArrayList<String>();
@@ -43,7 +48,7 @@ public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
     List<String> includeLines = new ArrayList<String>();
     for (String line : text.split("\n")) {
       line = line.trim();
-      if(line.length() > 0) {
+      if (line.length() > 0) {
         includeLines.add(line);
       }
     }
@@ -62,6 +67,7 @@ public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
     }
   }
 
+  @Test
   public void testBasicSymbols() throws Throwable {
     doTest();
   }

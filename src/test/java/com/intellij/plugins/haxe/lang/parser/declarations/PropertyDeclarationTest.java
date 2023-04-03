@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 /**
  * Created by as3boyan on 09.08.14.
  */
@@ -25,26 +27,32 @@ public class PropertyDeclarationTest extends DeclarationTestBase {
     super("property");
   }
 
+  @Test
   public void testProperty() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testStaticInitializer() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testStaticInitializerWithoutSemicolonBare() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testStaticInitializerWithoutSemicolon() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMissingSemicolon() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFinalMetaOnProperty() throws Throwable {
     doTest(true);
   }

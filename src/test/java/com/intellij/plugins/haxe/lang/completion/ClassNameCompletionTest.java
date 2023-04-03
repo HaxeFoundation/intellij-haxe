@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.Test;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -31,22 +33,27 @@ public class ClassNameCompletionTest extends HaxeCompletionTestBase {
     doTestVariantsInner(getTestName(false) + ".txt");
   }
 
+  @Test
   public void testExtends() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testImplements() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testMethod() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testTypeParameter() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testClassHelper() throws Throwable {
     doTest();
   }

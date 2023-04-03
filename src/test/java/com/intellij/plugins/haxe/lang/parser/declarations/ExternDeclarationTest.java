@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,30 +20,35 @@ package com.intellij.plugins.haxe.lang.parser.declarations;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.PsiClass;
+import org.junit.Test;
 
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
     super("extern");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
     HaxeFile file = (HaxeFile)myFile;
     assertNotNull(file);
     PsiClass[] psiClasses = file.getClasses();
-    assertTrue(psiClasses.length == 1);
+    assertEquals(1, psiClasses.length);
     AbstractHaxePsiClass psiClass = (AbstractHaxePsiClass)psiClasses[0];
     assertTrue(psiClass.isExtern());
   }
 
+  @Test
   public void testInterface() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFinal() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testExternInline() throws Throwable {
     doTest(true);
   }

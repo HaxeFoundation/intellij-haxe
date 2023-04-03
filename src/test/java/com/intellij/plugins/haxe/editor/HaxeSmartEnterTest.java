@@ -25,6 +25,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -53,27 +54,33 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.checkResultByFile(getTestName(false) + "_after.hx", true);
   }
 
+  @Test
   public void testMissingClassBody() {
     doTest();
   }
 
+  @Test
   public void testPartialClassBody1() {
     doTest();
   }
 
+  @Test
   public void testPartialClassBody2() {
     doTest();
   }
 
+  @Test
   public void testIfFixer() {
-      doTest();
+    doTest();
   }
 
+  @Test
   public void testSemicolonFixerFixReturn() {
     doTest();
   }
+
+  @Test
   public void testSemicolonFixerFixAfterLastValidElement() {
     doTest();
   }
-
 }

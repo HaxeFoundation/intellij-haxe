@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.Test;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -25,38 +27,47 @@ public class KeywordCompletionTest extends HaxeCompletionTestBase {
     super("completion", "keywords");
   }
 
+  @Test
   public void testElse() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testEmpty() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testFunction1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testFunction2() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testStatement1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testStatement2() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testReference() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testInherit1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testInherit2() throws Throwable {
     doTest();
   }

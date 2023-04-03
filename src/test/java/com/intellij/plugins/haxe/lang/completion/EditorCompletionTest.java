@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,35 +17,44 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.Test;
+
 public class EditorCompletionTest extends HaxeCompletionTestBase {
   public EditorCompletionTest() {
     super("completion", "editor");
   }
 
+  @Test
   public void testGenericBrace1() {
     doTest('<');
   }
 
+  @Test
   public void testGenericBrace2() {
     doTest('<');
   }
 
+  @Test
   public void testGenericBrace3() {
     doTest('<');
   }
 
+  @Test
   public void testLess() {
     doTest('<');
   }
 
+  @Test
   public void testString1() {
     doTest('{');
   }
 
+  @Test
   public void testString2() {
     doTest('{');
   }
 
+  @Test
   public void testString3() {
     doTest('{');
   }

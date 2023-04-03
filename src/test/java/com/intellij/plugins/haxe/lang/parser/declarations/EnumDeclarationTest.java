@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -25,22 +27,27 @@ public class EnumDeclarationTest extends DeclarationTestBase {
     super("enum");
   }
 
+  @Test
   public void testAxis() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testCell() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testColor3() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testHttpCode() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testHttpCodeHx4() throws Throwable {
     doTest(true);
   }

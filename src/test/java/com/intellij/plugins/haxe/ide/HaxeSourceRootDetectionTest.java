@@ -25,7 +25,7 @@ import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStruc
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
 import gnu.trove.THashSet;
-import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
@@ -50,7 +50,7 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     final HaxeProjectStructureDetector haxeProjectStructureDetector = new HaxeProjectStructureDetector();
     final ProjectStructureDetector[] detector = new ProjectStructureDetector[]{haxeProjectStructureDetector};
     final RootDetectionProcessor detectionProcessor = new RootDetectionProcessor(
-      dir,detector
+      dir, detector
     );
     // TODO:
     final List<DetectedProjectRoot> detected;//= detectionProcessor.findRoots().get(haxeProjectStructureDetector);
@@ -66,10 +66,12 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     assertSameElements(actual, expected);
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest("src");
   }
 
+  @Test
   public void testModules() throws Throwable {
     doTest("src", "module1/src", "module2/src");
   }

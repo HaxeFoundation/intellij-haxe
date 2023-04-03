@@ -36,6 +36,7 @@ import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import org.junit.Test;
 
 import java.lang.reflect.Constructor;
 import java.util.*;
@@ -56,8 +57,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
                       @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
                       String... additionalFiles)
-    throws Exception
-  {
+    throws Exception {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
@@ -83,7 +83,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
         profile.addTool(project, wrapper, dependencies);
         profile.enableTool(wrapper.getShortName(), project);
       }
-    } catch (Exception ex) {
+    }
+    catch (Exception ex) {
       assertNotNull(ex.toString());
     }
   }
@@ -108,7 +109,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
       if (Arrays.asList(filters).contains(action.getText())) {
         System.out.println("Applying intent " + action.getText());
         myFixture.launchAction(action);
-      } else {
+      }
+      else {
         System.out.println("Ignoring intent " + action.getText() + ", not matching " + StringUtils.join(filters, ","));
       }
     }
@@ -116,303 +118,377 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.checkResultByFile(getTestName(false) + "_expected.hx");
   }
 
+  @Test
   public void testFixPackage() throws Exception {
     doTestActions("Fix package");
   }
 
+  @Test
   public void testRemoveOverride() throws Exception {
     doTestActions("Remove override");
   }
 
+  @Test
   public void testRemoveFinal() throws Exception {
     doTestActions("Remove final from Base.test");  // @:final, but the @: is no longer in the fix message.
   }
 
+  @Test
   public void testChangeArgumentType() throws Exception {
     doTestActions(HaxeBundle.message("haxe.quickfix.change.variable.type"));
   }
 
+  @Test
   public void testRemoveArgumentInit() throws Exception {
     doTestActions(HaxeBundle.message("haxe.quickfix.remove.initializer"));
   }
 
+  @Test
   public void testInterfaceMethodsShouldHaveTypeTags() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOptionalFieldSyntax() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOptionalMethodSyntax() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOptionalWithInitWarning() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNonOptionalArgumentsAfterOptionalOnes() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNonConstantArgument() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNonConstantArgumentAbstractEnum() throws Exception {
     doTestNoFixWithWarnings("test/SampleAbstractEnum.hx");
   }
 
+  @Test
   public void testConstructorMustNotBeStatic() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInitMagicMethodShouldBeStatic() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testRepeatedArgumentName() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractFromTo() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
   public void testAbstractFromToMetadata() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo3() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo4() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo5() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromTo6() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAbstractAssignmentFromToFunctions() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNullFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOverrideVisibility() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testUcFirstClassName() throws Exception {
     doTestActions("Change name");
   }
 
+  @Test
   public void testUcFirstClassName2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testRepeatedFields() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testPropertiesSimpleCheck() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testPropertyAllowNonConstantInitialization() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOverrideSignature() throws Exception {
     doTestActions("Remove argument");
   }
 
+  @Test
   public void testOverrideSignature2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testOverrideSignature3() throws Exception {
     doTestActions("Remove argument");
   }
 
+  @Test
   public void testOverrideSignature4() throws Exception {
     doTestActions("Remove argument");
   }
 
+  @Test
   public void testOverrideSignature5() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testImplementSignature() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
   public void testImplementMethods() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testImplementExternInterface() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testSimpleAssignUnknownGeneric() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testExtendsAnonymousType() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testExtendsSelf() throws Exception {
     doTestNoFixWithWarnings("test/Bar.hx", "test/IBar.hx", "test/TBar.hx");
   }
 
+  @Test
   public void testFieldInitializerCheck() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testVariableRedefinition() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testFinalKeyword() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testFinalKeywordInInterface() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testStaticsInExtended() throws Exception {
     doTestNoFixWithoutWarnings();
   }
 
+  @Test
   public void testArrayAssignmentFromEmpty() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testArrayAssignmentBadFunctionType() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testArrayAssignmentWrongType() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testArrayAssignmentBadArrowFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testArrayAssignmentWithAbstract() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testArrayAssignmentWithArrowFunctions() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNullTAssignment1() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNullTAssignment2() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = 10/2;
+  @Test
   public void testInitializeIntWithFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignFloatToInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = "3.1416";
+  @Test
   public void testInitializeFloatWithString() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignStringToFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignStringToDynamic() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   // var a:Int = (10.0 : Float);
+  @Test
   public void testInitializeIntWithTypeCheckFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignTypeCheckFloatToInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:Int = (10 : Float);
+  @Test
   public void testInitializeIntWithIntTypeCheckedToFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignIntWithIntTypeCheckedToFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:String = 3.1416;
+  @Test
   public void testInitializeStringWithFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignFloatToString() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:String = 10;
+  @Test
   public void testInitializeStringWithInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignIntToString() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var a:Float = 100;
+  @Test
   public void testInitializeFloatWithInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignIntToFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
 
   // var f:Float = 100; i:Int = (f);
+  @Test
   public void testInitializeIntWithParenthesizedFloat() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignParenthesizedFloatToInt() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -430,19 +506,23 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
 
   // typedef Pt = {x:Int; y:Int;}; var c:Int = new Pt();
+  @Test
   public void testInitializeIntWithTypedef() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignTypedefToInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   // class Point {...}; var c:Int = new Point(1,2);
+  @Test
   public void testInitializeIntWithClass() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignClassToInt() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -454,213 +534,267 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   //}
 
   // class Test{ var somevar:Int; function new() { somevar = 3; }
+  @Test
   public void testAssignFloatToTypedClassVarDeclaration() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   // class Test{ var somevar = 10; function new() {somevar = 3.1;} }
+  @Test
   public void testAssignFloatToInferredClassVarInt() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testMultipleClassModifiers() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnMultipleNullT() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoIncompatibleTypeErrorOnMap() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoIncompatibleTypeErrorOnChainedMaps() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testEitherTypeTest() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorWhenTypeParameterIsSelfClass() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorAccessingParameterizedArray() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorAccessingFieldsThroughParamaterizedMethods() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorAssigningFromParameterizedFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorAssigningToParameterizedArrayElement() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorAssigningParameterizedTypeDuringVarInit() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOverrideDefinition() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnConstrainedGenericOverrides() throws Exception {
-      doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testMissingInterfaceMethodsOnConstrainedGenericOverrides() throws Exception {
-      doTestNoFixWithWarnings();
+    doTestNoFixWithWarnings();
   }
 
   //public void testAssignmentOfParameterizedType() throws Exception {
   //  doTestNoFixWithWarnings();
   //}
 
+  @Test
   public void testNoErrorOnOptionalParameterWithIntFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOptionalParameterWithSimpleStringFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOptionalParameterWithParenthesizedStringFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testTypeErrorOnOptionalParameterWithParenthesizedNumericFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testErrorOnOptionalParameterWithNonConstMethod() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOptionalParameterWithDoublyReferencedVar() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnEnumConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnOptionalNullFloatConstant() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnConstantFunctionType() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnInlineFunctionAssignment() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnFunctionAssignment() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testNoErrorOnFunctionUnification() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInferredFunctionTypeAssignment() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testParameterizedFunctions() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testImmediateStringArrayIndexing() throws Exception {
     doTestNoFixWithWarnings();
   }
 
   //Issue #981
+  @Test
   public void testAssignReflectionTypeToDynamic() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInitializeStringMapWithMapLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInitializeIntMapWithMapLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInitializeEnumMapWithMapLiteral() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testCrashWhileAnnotating() throws Exception {
     // A stack overflow was occurring while annotating, and there's no better place to
     // put this test at the moment, soo....
     doTestNoFixWithoutWarnings();
   }
 
+  @Test
   public void testAssignTypeToClass() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
   public void testAssignTypeToEnum() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
   public void testAssignEnumValue() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testAssignEmptyCollection() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testImplicitCast() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testInitializeObjectWithGenericFunction() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testIsKeywordFor4_2() throws Throwable {
     HashSet skipAnnotators = new HashSet();
     skipAnnotators.add(HaxeSemanticAnnotatorInspections.IsTypeExpressionInspection4dot1Compatible.class);
     doTestSkippingAnnotators(skipAnnotators);
   }
 
+  @Test
   public void testIsKeywordFor4_1() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
 
+  @Test
   public void testEnumHasEnumValueMembers() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
 
+  @Test
   public void testCallExpression() throws Throwable {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testTypeParameterConstraints() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
 
+  @Test
   public void testStringInterpolation() throws Throwable {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testLiteralCollectionArguments() throws Throwable {
     doTestNoFixWithWarnings();
   }
+
+  @Test
   public void testTypeParameterCount() throws Throwable {
     doTestNoFixWithWarnings();
   }

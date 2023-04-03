@@ -27,6 +27,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
+import org.junit.Test;
 
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -104,18 +105,22 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     }
   }
 
+  @Test
   public void testDefault() throws Exception {
     doTest();
   }
 
+  @Test
   public void testStatements() throws Exception {
     doTest();
   }
 
+  @Test
   public void testArrayUtils() throws Exception {
     doTest();
   }
 
+  @Test
   public void testSpaceBeforeParentheses() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES = true;
@@ -128,6 +133,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testSpaceAroundOperators() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_AROUND_ASSIGNMENT_OPERATORS = false;
@@ -139,6 +145,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testSpaceLeftBraces() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_METHOD_LBRACE = false;
@@ -153,6 +160,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testSpaceWithin() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES = true;
@@ -165,6 +173,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testSpaceOthers() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.SPACE_BEFORE_WHILE_KEYWORD = false;
@@ -181,6 +190,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testWrappingMeth() throws Exception {
     myTestStyleSettings.METHOD_ANNOTATION_WRAP = CommonCodeStyleSettings.WRAP_AS_NEEDED;
     myTestStyleSettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE = true;
@@ -207,6 +217,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testAlignment() throws Exception {
     myTestStyleSettings.ALIGN_MULTILINE_PARAMETERS = true;
     myTestStyleSettings.ALIGN_MULTILINE_BINARY_OPERATION = true;
@@ -215,6 +226,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testBracePlacement1() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.NEXT_LINE_SHIFTED2;
@@ -222,6 +234,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testBracePlacement2() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = false;
     myTestStyleSettings.BRACE_STYLE = CommonCodeStyleSettings.END_OF_LINE;
@@ -229,18 +242,21 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     doTest();
   }
 
+  @Test
   public void testCommentAlignmentNormal() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = true;
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = false;
     doTest();
   }
 
+  @Test
   public void testCommentAlignmentKeepLeft() throws Exception {
     myTestStyleSettings.KEEP_LINE_BREAKS = true;
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
     doTest();
   }
 
+  @Test
   public void testLineFeedsWithComments() throws Exception {
     doTest();
   }

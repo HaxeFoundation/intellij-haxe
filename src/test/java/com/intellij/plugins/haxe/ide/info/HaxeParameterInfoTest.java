@@ -22,7 +22,6 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
-
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
@@ -30,8 +29,8 @@ import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 
 /**
@@ -66,7 +65,7 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
     assertNotNull(elt);
     parameterInfoHandler.showParameterInfo(elt, createContext);
     Object[] items = createContext.getItemsToShow();
-    assertTrue(items != null);
+    assertNotNull(items);
     assertTrue(items.length > 0);
     MockParameterInfoUIContext context = new MockParameterInfoUIContext<PsiElement>(elt);
     parameterInfoHandler.updateUI((HaxeFunctionDescription)items[0], context);
@@ -88,43 +87,53 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
   }
 
 
+  @Test
   public void testParamInfo1() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 0);
   }
 
+  @Test
   public void testParamInfo2() throws Throwable {
     doTest("p1:Int, p2:Null<Unknown>, p3:Node", 2);
   }
 
+  @Test
   public void testParamInfo3() throws Throwable {
     doTest("x:Int, y:Int", 0);
   }
 
+  @Test
   public void testParamInfo4() throws Throwable {
     doTest("x:Int, y:Int", 1);
   }
 
+  @Test
   public void testParamInfo5() throws Throwable {
     doTest("x:Int, y:Int", 1);
   }
 
+  @Test
   public void testParamInfo6() throws Throwable {
     doTest("x:Int, y:Int = 239", 1);
   }
 
+  @Test
   public void testParamInfo7() throws Throwable {
     configureLoggerForDebugging();
     doTest("t:Node", 0);
   }
 
+  @Test
   public void testParamInfo8() throws Throwable {
     doTest("t:Node", 0);
   }
 
+  @Test
   public void testParamInfo9() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Null<Unknown> = null", 2);
   }
 
+  @Test
   public void testParamInfo10() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Node = null", 3);
   }

@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.actions;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.FileTypes;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -35,8 +34,11 @@ import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
 import com.intellij.util.LocalTimeCounter;
 import org.jetbrains.annotations.NonNls;
+import org.junit.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 
 import static com.intellij.plugins.haxe.ide.HaxeFindUsagesHandlerFactory.TestInterface.*;
 
@@ -72,51 +74,61 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     return myFixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
   }
 
+  @Test
   public void testProperties1() throws Throwable {
     myFixture.configureByFiles("Properties1.hx");
     doTest(1);
   }
 
+  @Test
   public void testProperties2() throws Throwable {
     myFixture.configureByFiles("Properties2.hx");
     doTest(1);
   }
 
+  @Test
   public void testVarDeclaration() throws Throwable {
     myFixture.configureByFiles("VarDeclaration.hx", "com/bar/Foo.hx");
     doTest(0);
   }
 
+  @Test
   public void testLocalFunctionParameter() throws Throwable {
     myFixture.configureByFiles("LocalFunctionParameter.hx", "com/bar/Foo.hx");
     doTest(3);
   }
 
+  @Test
   public void testForDeclaration() throws Throwable {
     myFixture.configureByFiles("ForDeclaration.hx", "com/bar/IBar.hx");
     doTest(3);
   }
 
+  @Test
   public void testLocalVarDeclaration1() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration1.hx");
     doTest(1);
   }
 
+  @Test
   public void testLocalVarDeclaration2() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration2.hx");
     doTest(1);
   }
 
+  @Test
   public void testFunctionParameter() throws Throwable {
     myFixture.configureByFiles("FunctionParameter.hx");
     doTest(2);
   }
 
+  @Test
   public void testClassDeclaration() throws Throwable {
     myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
     doTest(7);
   }
 
+  @Test
   public void testClassConstructor() throws Throwable {
     myFixture.configureByFiles("ClassConstructor.hx");
     doTest(3);
@@ -129,13 +141,19 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
 
   // Shortcut answers to the popup dialog when a superclass contains the same method.
   public static final TestDialog GET_BASE_CLASS = new TestDialog() {
-    public int show(String message) { return getOptionIndex(getBaseClassOption()); }
+    public int show(String message) {
+      return getOptionIndex(getBaseClassOption());
+    }
   };
   public static final TestDialog GET_CURRENT_CLASS = new TestDialog() {
-    public int show(String message) { return getOptionIndex(getCurrentClassOption()); }
+    public int show(String message) {
+      return getOptionIndex(getCurrentClassOption());
+    }
   };
   public static final TestDialog GET_ANCESTOR_CLASSES = new TestDialog() {
-    public int show(String message) { return getOptionIndex(getAncestorClassesOption()); }
+    public int show(String message) {
+      return getOptionIndex(getAncestorClassesOption());
+    }
   };
 
 
@@ -202,17 +220,18 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
 
+  @Test
   public void testFindCurrentClass() throws Throwable {
-    doOverrideTest( "OverrideTop.hx", GET_CURRENT_CLASS);
+    doOverrideTest("OverrideTop.hx", GET_CURRENT_CLASS);
   }
 
+  @Test
   public void testFindBaseClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_BASE_CLASS);
   }
 
+  @Test
   public void testFindAncestorClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_ANCESTOR_CLASSES);
   }
-
-
 }

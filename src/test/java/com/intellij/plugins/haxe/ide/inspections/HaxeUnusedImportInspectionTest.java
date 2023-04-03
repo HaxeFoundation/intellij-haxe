@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import org.junit.Test;
 
 /**
  * Test for the HaxeUnusedImportInspection.
@@ -25,34 +26,42 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
  * Created by Usievaład Kimajeŭ on 27.05.2016.
  */
 public class HaxeUnusedImportInspectionTest extends HaxeCodeInsightFixtureTestCase {
+  @Test
   public void testUnusedAliasTypedef() {
     doTest("UnusedAliasTypedef.hx");
   }
 
+  @Test
   public void testUnusedClass() {
     doTest("UnusedClass.hx");
   }
 
+  @Test
   public void testUnusedInterface() {
     doTest("UnusedInterface.hx");
   }
 
+  @Test
   public void testUnusedTypedef() {
     doTest("UnusedTypedef.hx");
   }
 
+  @Test
   public void testUsedAliasTypedef() {
     doTest("UsedAliasTypedef.hx");
   }
 
+  @Test
   public void testUsedClass() {
     doTest("UsedClass.hx");
   }
 
+  @Test
   public void testUsedInterface() {
     doTest("UsedInterface.hx");
   }
 
+  @Test
   public void testUsedTypedef() {
     doTest("UsedTypedef.hx");
   }

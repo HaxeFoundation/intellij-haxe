@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,8 +27,6 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.UsefulTestCase;
-import com.intellij.util.LineSeparator;
-import org.apache.sanselan.util.IOUtils;
 
 import java.util.*;
 
@@ -88,14 +86,18 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
       line = line.trim();
       if (line.equals(":INCLUDE")) {
         include = true;
-      } else if (line.equals(":EXCLUDE")) {
+      }
+      else if (line.equals(":EXCLUDE")) {
         include = false;
-      } else if (line.length() == 0) {
+      }
+      else if (line.length() == 0) {
 
-      } else {
+      }
+      else {
         if (include) {
           includeLines.add(line);
-        } else {
+        }
+        else {
           excludeLines.add(line);
         }
       }

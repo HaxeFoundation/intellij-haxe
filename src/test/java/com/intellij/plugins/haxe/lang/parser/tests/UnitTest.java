@@ -15,15 +15,19 @@
  */
 package com.intellij.plugins.haxe.lang.parser.tests;
 
+import org.junit.Test;
+
 public class UnitTest extends TestsTestBase {
   public UnitTest() {
     super("unit/src/unit");
   }
 
+  @Test
   public void testTest() {
     doTest(true);
   }
 
+  @Test
   public void testTestOps() {
     doTest(true);
   }

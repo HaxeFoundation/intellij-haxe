@@ -24,7 +24,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
-
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -39,12 +38,15 @@ import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 import java.util.List;
 
 /**
  * Created by fedorkorotkov.
  */
+@RunWith(JUnit4.class)
 abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   protected CodeInsightTestFixture myFixture;
   private ModuleFixtureBuilder moduleFixtureBuilder;
@@ -67,7 +69,8 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
 
     if (toAddSourceRoot()) {
       moduleFixtureBuilder.addSourceContentRoot(myFixture.getTempDirPath());
-    } else {
+    }
+    else {
       moduleFixtureBuilder.addContentRoot(myFixture.getTempDirPath());
     }
 
@@ -106,12 +109,12 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   }
 
 
-    /**
-     * Return relative path to the test data. Path is relative to the
-     * {@link PathManager#getHomePath()}
-     *
-     * @return relative path to the test data.
-     */
+  /**
+   * Return relative path to the test data. Path is relative to the
+   * {@link PathManager#getHomePath()}
+   *
+   * @return relative path to the test data.
+   */
   @NonNls
   abstract protected String getBasePath();
 
@@ -129,7 +132,8 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   }
 
   @SuppressWarnings("rawtypes")
-  protected void tuneFixture(final ModuleFixtureBuilder moduleBuilder) throws Exception {}
+  protected void tuneFixture(final ModuleFixtureBuilder moduleBuilder) throws Exception {
+  }
 
   protected Project getProject() {
     return myFixture.getProject();
@@ -150,7 +154,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   /**
    * Use reflection to load an annotator inspection class.
    * Specific to annotation tests, but placed here just to avoid adding yet another single-function base class.
-   *
+   * <p>
    * When we don't support versions of the plugin prior to v2016.1, we can revert the code to importing
    * the classes directly and get rid of this function.
    *
@@ -186,7 +190,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
 
   public void useHaxeToolkit(String version) {
     String relativeParent = HaxeTestUtils.getAbsoluteToolkitPath(version);
-    assert(null != relativeParent);
+    assert (null != relativeParent);
     myHaxeToolkit = relativeParent;
   }
 

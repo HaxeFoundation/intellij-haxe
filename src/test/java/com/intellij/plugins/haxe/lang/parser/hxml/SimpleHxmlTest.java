@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.parser.hxml;
 
 import com.intellij.plugins.haxe.lang.parser.HxmlParsingTestBase;
+import org.junit.Test;
 
 public class SimpleHxmlTest extends HxmlParsingTestBase {
 
@@ -25,6 +26,7 @@ public class SimpleHxmlTest extends HxmlParsingTestBase {
     super("parsing", "hxml");
   }
 
+  @Test
   public void testSimpleBuild() throws Throwable {
     doTest(true);
   }

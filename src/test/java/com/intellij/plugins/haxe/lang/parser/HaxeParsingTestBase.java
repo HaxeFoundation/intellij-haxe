@@ -22,7 +22,10 @@ import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
-import com.intellij.mock.*;
+import com.intellij.mock.MockApplication;
+import com.intellij.mock.MockDumbService;
+import com.intellij.mock.MockFileTypeManager;
+import com.intellij.mock.MockLanguageFileType;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.AreaInstance;
 import com.intellij.openapi.extensions.ExtensionPointName;
@@ -63,7 +66,8 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
     // was registered, null was passed to a @NotNull function.  This affected testSimple().
     registerExtensionPoint(getExtensionArea(myProject), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
-    registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME, RegexLanguageInjector.class); // Might as well use the real one.
+    registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME,
+                           RegexLanguageInjector.class); // Might as well use the real one.
     registerInjectedLanguageManager();
     // End workaround.
   }
@@ -98,7 +102,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
   private static ExtensionsAreaImpl getExtensionArea(@Nullable("null means root") AreaInstance areaInstance) {
     ExtensionsArea area = Extensions.getArea(areaInstance);
-    assert area instanceof ExtensionsAreaImpl: "Unexpected return type from Extensions.getArea()";
+    assert area instanceof ExtensionsAreaImpl : "Unexpected return type from Extensions.getArea()";
     return (ExtensionsAreaImpl)area;
   }
 
@@ -125,7 +129,8 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
   public static class MockMultiHostInjector implements MultiHostInjector {
     // Be careful with this.  It is the same extension point name as (and thus will conflict with) MultiHostInjector uses.
-    public static final ExtensionPointName<MockMultiHostInjector> MULTIHOST_INJECTOR_EP_NAME = ExtensionPointName.create("com.intellij.multiHostInjector");
+    public static final ExtensionPointName<MockMultiHostInjector> MULTIHOST_INJECTOR_EP_NAME =
+      ExtensionPointName.create("com.intellij.multiHostInjector");
 
     @Override
     public void getLanguagesToInject(@NotNull MultiHostRegistrar registrar, @NotNull PsiElement context) {

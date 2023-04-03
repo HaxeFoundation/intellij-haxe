@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +18,6 @@
 package com.intellij.plugins.haxe.resolve;
 
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
@@ -27,6 +26,7 @@ import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.refactoring.MultiFileTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * Created by Boch on 20.04.2015.
@@ -92,6 +92,7 @@ public class HaxeResolveTest extends MultiFileTestCase {
 
   //For example accessing flash.display.StageAlign.TOP_LEFT in some class;
   //https://github.com/TiVo/intellij-haxe/issues/39
+  @Test
   public void testResolveExternEnumByFullPath() throws Exception {
     doTest();
   }

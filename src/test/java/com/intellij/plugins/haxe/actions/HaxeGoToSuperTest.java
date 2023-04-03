@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +21,7 @@ import com.intellij.codeInsight.CodeInsightActionHandler;
 import com.intellij.lang.CodeInsightActions;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -38,10 +39,12 @@ public class HaxeGoToSuperTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
+  @Test
   public void testGts1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testGts2() throws Throwable {
     doTest();
   }

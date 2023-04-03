@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -25,14 +27,17 @@ public class TypedefDeclarationTest extends DeclarationTestBase {
     super("typedef");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testPoints() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMacroTypeDeclaration() throws Throwable {
     doTest(true);
   }

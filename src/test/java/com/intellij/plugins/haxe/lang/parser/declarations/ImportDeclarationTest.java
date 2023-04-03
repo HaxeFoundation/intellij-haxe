@@ -17,32 +17,40 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 public class ImportDeclarationTest extends DeclarationTestBase {
   public ImportDeclarationTest() {
     super("import");
   }
 
+  @Test
   public void testEmpty() throws Throwable {
-      doTest(true);
+    doTest(true);
     assertEmpty("");
   }
 
+  @Test
   public void testEmpty182() throws Throwable {
-      doTest(true);
+    doTest(true);
   }
 
+  @Test
   public void testMulti() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testIn() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testWildcard() throws Throwable {
     doTest(true);
   }

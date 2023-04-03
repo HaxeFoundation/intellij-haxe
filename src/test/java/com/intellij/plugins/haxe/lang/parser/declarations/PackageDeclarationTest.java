@@ -18,23 +18,29 @@
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
 
+import org.junit.Test;
+
 public class PackageDeclarationTest extends DeclarationTestBase {
   public PackageDeclarationTest() {
     super("package");
   }
 
+  @Test
   public void testEmpty() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testError() throws Throwable {
-      doTest(true);
+    doTest(true);
   }
 
+  @Test
   public void testError182() throws Throwable {
-      doTest(true);
+    doTest(true);
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }

@@ -33,7 +33,7 @@ import com.intellij.refactoring.PackageWrapper;
 import com.intellij.refactoring.move.moveClassesOrPackages.MoveClassesOrPackagesProcessor;
 import com.intellij.refactoring.move.moveClassesOrPackages.SingleSourceRootMoveDestination;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFilesOrDirectoriesProcessor;
-import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,18 +107,22 @@ public class HaxeMoveTest extends MultiFileTestCase {
     });
   }
 
+  @Test
   public void testMoveFile1() throws Exception {
     doTest("util/ArrayUtils.hx", "bar");
   }
 
+  @Test
   public void testMoveFile2() throws Exception {
     doTest("util/ArrayUtils.hx", "");
   }
 
+  @Test
   public void testMovePackage() throws Exception {
     doTest("util", "foo");
   }
 
+  @Test
   public void testMoveClass() throws Exception {
     final String testHx = "pack1/Moved.hx";
     final String targetDirName = "pack2";

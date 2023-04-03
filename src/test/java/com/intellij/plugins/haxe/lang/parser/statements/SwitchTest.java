@@ -1,8 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2018 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -26,14 +27,17 @@ public class SwitchTest extends StatementTestBase {
     super("switch");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testCaseWithEmptyBrackets() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFatArrowExpression() throws Throwable {
     doTest(true);
   }

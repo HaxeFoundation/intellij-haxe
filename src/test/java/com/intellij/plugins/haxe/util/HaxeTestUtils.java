@@ -55,7 +55,7 @@ public class HaxeTestUtils {
    * the standard library is at '.../testData/haxe/4.0.5/std'.
    *
    * @param testDataPath - Path to test data home (e.g. {@link HaxeCodeInsightFixtureTestCase#getTestDataPath()})
-   * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
+   * @param version      - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
    * @return The toolkit's standard library path relative to the current test's testData.
    */
   public static String getTestRelativeHaxeStandardLibraryPath(String testDataPath, String version) {
@@ -73,6 +73,7 @@ public class HaxeTestUtils {
 
   /**
    * Gets the absolute directory name for the toolkit path in the testdata
+   *
    * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
    * @return platform-specific directory name of the test toolkit location (under the testData directory).
    */
@@ -88,8 +89,8 @@ public class HaxeTestUtils {
    * Converts a list of (std lib) file names to their equivalent paths in the common toolkit directory,
    *
    * @param testCase - The Test case to use the toolkit with.
-   * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
-   * @param files - Files to use from the toolkit.
+   * @param version  - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
+   * @param files    - Files to use from the toolkit.
    * @return a list of toolkit file names in the common toolkit directory.
    */
   public static List<String> useToolkitFiles(HaxeCodeInsightFixtureTestCase testCase, String version, String... files) {
@@ -104,7 +105,7 @@ public class HaxeTestUtils {
       toolkitFiles.add(toolkitFile);
 
       String fullName = HaxeFileUtil.joinPath(testPath, toolkitFile);
-      assert null != fullName && new File(fullName).exists():
+      assert null != fullName && new File(fullName).exists() :
         "Toolkit file " + file + " is not found, does it need to be added to the " +
         getAbsoluteToolkitPath(version) + " directory?";
     }
@@ -118,7 +119,7 @@ public class HaxeTestUtils {
    * @return The file system path to test data.
    */
   private static String findTestDataPath() {
-    File f = new File("testData");
+    File f = new File("./src/test/resources/testData");
     if (f.exists()) {
       return f.getAbsolutePath();
     }
@@ -127,8 +128,9 @@ public class HaxeTestUtils {
 
   /**
    * Finds unterminated UI timers (that probably have nothing to do with your tests) and shuts them down.
-   *
+   * <p>
    * Call this in your test's tearDown() method before calling super.tearDown().
+   *
    * @param exceptionHandler
    */
   public static void cleanupUnexpiredAppleUITimers(Consumer<Throwable> exceptionHandler) {
@@ -142,12 +144,11 @@ public class HaxeTestUtils {
       DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
 
       // Iterator for DelayQueue is a snapshot, so manipulating delayQueue has no effect on the iterator.
-      for (Object queuedObject: delayQueue) {
-        if (queuedObject instanceof Delayed) {
-          Delayed timer = (Delayed)queuedObject;
+      for (Object queuedObject : delayQueue) {
+        if (queuedObject instanceof Delayed timer) {
 
           Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
-          Timer swingTimer = (Timer) getTimer.invoke(timer);
+          Timer swingTimer = (Timer)getTimer.invoke(timer);
           log.warn("Timer still open:" + swingTimer.toString());
           for (ActionListener listener : swingTimer.getActionListeners()) {
             log.warn(" -> open listener:" + listener.toString());
@@ -155,16 +156,15 @@ public class HaxeTestUtils {
               swingTimer.stop();
             }
           }
-
         }
       }
-    } catch ( ClassNotFoundException
-            | NoSuchMethodException
-            | IllegalAccessException
-            | InvocationTargetException e) {
+    }
+    catch (ClassNotFoundException
+           | NoSuchMethodException
+           | IllegalAccessException
+           | InvocationTargetException e) {
       log.warn("Error trying to clean up timers: ", e);
       exceptionHandler.accept(e);
     }
   }
-
 }
