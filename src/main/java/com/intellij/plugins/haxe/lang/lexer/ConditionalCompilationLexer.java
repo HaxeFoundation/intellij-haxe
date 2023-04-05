@@ -30,7 +30,6 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.CC_PASSIVE;
 @Slf4j
 public abstract class ConditionalCompilationLexer extends StackableStateLexer {
 
-  //CC logic borrowed from  intellij haxe plugin
 
   HaxeConditionalCompilationLexerSupport ccsupport;
 

@@ -34,8 +34,6 @@ import java.util.Objects;
 @CustomLog
 public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMeta {
 
-  private static String CT_PREFIX = HaxeTokenTypes.COMPILE_META_PREFIX.toString();
-  private static String RT_PREFIX = HaxeTokenTypes.RUNTIME_META_PREFIX.toString();
 
   public HaxeMetaImpl(@NotNull ASTNode node) {
     super(node);

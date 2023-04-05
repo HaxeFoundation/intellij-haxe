@@ -196,7 +196,8 @@ public class HaxeMetadataUtils {
   public static List<HaxeExpression> getCompileTimeExpressions(@Nullable HaxeMetadataContent content) {
     List<HaxeExpression> expressions = new ArrayList<>();
     if (null != content) {
-      PsiElement metaArgs = UsefulPsiTreeUtil.getChild(content, HaxeTokenTypes.METADATA_PARENTHESIS_LEFT);
+      //TODO mlo: verify
+      PsiElement metaArgs = UsefulPsiTreeUtil.getChild(content, HaxeTokenTypes.METADATA_CONTENT);
       if (null != metaArgs) {
         for (PsiElement arg : metaArgs.getChildren()) {
           //TODO mlo : verify

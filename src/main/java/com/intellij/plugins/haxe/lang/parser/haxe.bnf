@@ -295,11 +295,11 @@ metadataType ::= META_TYPE
 metadataContent ::= (metadataCompiletimeContent | metadataRuntimeContent)
 //private metadataCompiletimeContent ::='(' compileTimeMetaArgList ')'
 //private metadataRuntimeContent ::='('runTimeMetaArgList ')'
-private metadataCompiletimeContent ::=METADATA_PARENTHESIS_LEFT compileTimeMetaArgList METADATA_PARENTHESIS_RIGHT
-private metadataRuntimeContent ::=METADATA_PARENTHESIS_LEFT runTimeMetaArgList METADATA_PARENTHESIS_RIGHT
+private metadataCompiletimeContent ::='(' compileTimeMetaArgList ')'
+private metadataRuntimeContent ::='(' runTimeMetaArgList ')'
 
-compileTimeMetadata  ::= COMPILE_META_PREFIX META_TYPE metadataCompiletimeContent? {pin=1}
-runTimeMetadata ::= RUNTIME_META_PREFIX META_TYPE metadataRuntimeContent? {pin=1}
+compileTimeMetadata  ::= COMPILE_META_PREFIX metadataType metadataCompiletimeContent? {pin=1}
+runTimeMetadata ::= RUNTIME_META_PREFIX metadataType metadataRuntimeContent? {pin=1}
 
 private compileTimeMetaArg ::= expression
 private compileTimeMetaArgList ::= compileTimeMetaArg (',' compileTimeMetaArg)*

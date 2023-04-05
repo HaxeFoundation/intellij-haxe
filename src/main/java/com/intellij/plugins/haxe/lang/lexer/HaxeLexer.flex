@@ -41,7 +41,6 @@ Options and declarations
 %xstate SHORT_STRING_INTERPOLATION_ENTRY
 %xstate LONG_STRING_INTERPOLATION_ENTRY
 %xstate METADATA
-%xstate METADATA_ARGUMENTS
 
 //TODO
 //%xstate CONDITIONAL_COMPILATION
@@ -139,7 +138,7 @@ Lexical rules
 */
 %%
 
-<YYINITIAL, METADATA_ARGUMENTS, CONDITIONAL_COMPILATION_BLOCK, CONDITIONAL_COMPILATION_PASSIVE, LONG_STRING_INTERPOLATION_ENTRY>
+<YYINITIAL,  CONDITIONAL_COMPILATION_BLOCK, CONDITIONAL_COMPILATION_PASSIVE, LONG_STRING_INTERPOLATION_ENTRY>
 {
     {WHITE_SPACE}                   { return emitToken(WHITE_SPACE); }
 
@@ -299,7 +298,7 @@ Lexical rules
 
 }
 
-<YYINITIAL, METADATA_ARGUMENTS, CONDITIONAL_COMPILATION_BLOCK,  LONG_STRING_INTERPOLATION_ENTRY>
+<YYINITIAL, CONDITIONAL_COMPILATION_BLOCK,  LONG_STRING_INTERPOLATION_ENTRY>
 {
     \"                              { pushState(QUOTATION_STRING); return emitToken(OPEN_QUOTE);}
     \'                              { pushState(APOSTROPHE_STRING); return emitToken(OPEN_APOSTROPHE);}
@@ -320,19 +319,8 @@ Lexical rules
 }
 
 
-<METADATA_ARGUMENTS> {
-    "["                             { return emitToken(ENCLOSURE_BRACKET_LEFT); }
-    "]"                             { return emitToken(ENCLOSURE_BRACKET_RIGHT); }
 
-    "("                             { leftParenCount++; return ENCLOSURE_PARENTHESIS_LEFT; }
-    ")"                             {
-                                          if (--leftParenCount == 0) popState();
-                                          return emitToken(ENCLOSURE_PARENTHESIS_RIGHT);
-                                    }
- . {  popState();  }// if nothing is matched  pop state so lexer wont break
-}
-
-<YYINITIAL, METADATA_ARGUMENTS, CONDITIONAL_COMPILATION_BLOCK, CONDITIONAL_COMPILATION_PASSIVE> {
+<YYINITIAL, CONDITIONAL_COMPILATION_BLOCK, CONDITIONAL_COMPILATION_PASSIVE> {
     "{"                             { return emitToken(ENCLOSURE_CURLY_BRACKET_LEFT); }
     "}"                             { return emitToken(ENCLOSURE_CURLY_BRACKET_RIGHT); }
 }
@@ -383,19 +371,8 @@ Lexical rules
 }
 
 <METADATA> {
-    {META_TYPE}                  {return emitToken(META_TYPE);}
-      "("                        {
-                                  leftParenCount++;
-                                  pushState(METADATA_ARGUMENTS);
-                                  return emitToken(METADATA_PARENTHESIS_LEFT);
-                                 }
-      ")"                        {
-                                  leftParenCount--;
-                                  if(leftParenCount == 0) popState();
-                                  return emitToken(METADATA_PARENTHESIS_RIGHT);
-                                 }
-    .                            { popState(); }
-   [^]                           { popState(); }
+    {META_TYPE}                  { popState(); return emitToken(META_TYPE);}
+
 }
 
 
