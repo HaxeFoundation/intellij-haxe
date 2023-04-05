@@ -177,7 +177,7 @@
     generate=[names="long" ]
 }
 
-haxeFile ::= packageStatement* topLevelList
+haxeFile ::= packageStatement? topLevelList
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
@@ -243,7 +243,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatement | usingStatement | topLevelDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
+private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | 'final')
 
 // These are top-level parsing entry points for metadata.
@@ -311,6 +311,13 @@ private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' |
 externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
+moduleDeclaration ::= moduleBody{pin=1}
+
+moduleBody ::= moduleBodyPart+  {pin=1}
+private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractClassDeclaration))
+private moduleBodyPart ::= localVarDeclarationList | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
+
+
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
@@ -323,6 +330,8 @@ abstractToType ::= 'to' ('(' typeWrapper ')' | typeWrapper){pin=1}
 abstractFromType ::= 'from' ('(' typeWrapper ')' | typeWrapper){pin=1}
 abstractBody ::= '{' abstractBodyPart* '}' {extends="classBody"}
 private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
+
+
 
 classBody ::= '{' classBodyPart* '}' {pin=1}
 private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
@@ -391,6 +400,7 @@ private lambdaBody ::= blockStatement
                        | expression
 
 private localFunctionDeclarationAttribute ::= 'inline';
+moduleMethodDeclaration ::=  methodHeader 'untyped'? functionCommonBody {pin=1}
 
 methodDeclaration ::= methodModifier* methodHeader 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
