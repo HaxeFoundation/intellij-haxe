@@ -15,17 +15,22 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 public class FunctionTypeSyntaxTest extends DeclarationTestBase {
   public FunctionTypeSyntaxTest() {
     super("function/functionTypes");
   }
 
 
+  @Test
   public void testOldFunctionTypeSyntax() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testNewFunctionTypeSyntax() throws Throwable {
     doTest(true);
   }
+
 }

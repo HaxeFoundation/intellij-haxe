@@ -14,6 +14,8 @@ class NewFunctionTypeSyntax {
     var nestedFunctionTypeWithArguments3:(arg0:Int, arg2:(arg0:String, ?Bool) -> Void) -> Void;
     var optionalNestedFunctionType:(arg0:Int, ?(() -> Void)) -> Void;
 
+    var nestedFunctionTypeWithOldFunctionTypeArgument:(arg0:Int->Void)->Void;
+
     var nestedFunctionTypeWithOptionalArgument:(arg0:Int, (?arg0:String, ?Bool) -> Void) -> Void;
     var optionalNestedFunctionTypeWithOptionalArgument:(arg0:Int, ?((?arg0:String, ?Int) -> Void)) -> Void;
   }
