@@ -20,9 +20,9 @@ package com.intellij.plugins.haxe.ide.inspections;
 import com.intellij.codeInspection.*;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.FileASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import com.intellij.psi.impl.source.tree.TreeUtil;
@@ -91,12 +91,12 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
     while (leaf != null) {
       IElementType leafElementType = leaf.getElementType();
 
-      if (leafElementType.equals(HaxeTokenTypes.PPIF)) {
+      if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_COMPILATION_IF)) {
         nodes = new ArrayList<ASTNode>();
         levels.push(nodes);
         nodes.add(leaf);
       }
-      else if (leafElementType.equals(HaxeTokenTypes.PPEND)) {
+      else if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_COMPILATION_END)) {
         nodes.add(leaf);
         // Leave the base level in place, even if there are extra ends.
         if (levels.size() > 1) {
@@ -105,10 +105,10 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
           nodes = levels.peek();
         }
       }
-      else if (leafElementType.equals(HaxeTokenTypes.PPELSEIF)) {
+      else if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSEIF)) {
         nodes.add(leaf);
       }
-      else if (leafElementType.equals(HaxeTokenTypes.PPELSE)) {
+      else if (leafElementType.equals(HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSE)) {
         nodes.add(leaf);
       }
       leaf = TreeUtil.nextLeaf(leaf);
@@ -130,11 +130,11 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
 
     // #if better be first.  #end better be last.
     ASTNode node = nodes.get(0);
-    if (node.getElementType() != HaxeTokenTypes.PPIF) {
+    if (node.getElementType() != HaxeTokenTypes.CONDITIONAL_COMPILATION_IF) {
       markAllNodes(nodes, "Missing #\bif for this conditional compiler directive.", reporter);
     }
     node = nodes.get(nodes.size()-1);
-    if (node.getElementType() != HaxeTokenTypes.PPEND) {
+    if (node.getElementType() != HaxeTokenTypes.CONDITIONAL_COMPILATION_END) {
       markAllNodes(nodes, "Missing #\bend for this conditional compiler directive.", reporter);
     }
 
@@ -142,17 +142,19 @@ public class HaxePreprocessorInspection extends LocalInspectionTool {
     boolean sawElse = false;
     boolean sawEnd = false;
     for (ASTNode current : nodes) {
-      if (current.getElementType() == HaxeTokenTypes.PPELSEIF) {
+      if (current.getElementType() == HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSEIF) {
         if (sawElse) {
           reporter.reportProblem(current, "#\belseif follows #\belse.  This conditional section cannot be reached.");
         }
         // Could also detect multiple elseif blocks with the same or similar conditions.
-      } else if (current.getElementType() == HaxeTokenTypes.PPELSE) {
+      }
+      else if (current.getElementType() == HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSE) {
         if (sawElse) {
           reporter.reportProblem(current, "Multiple #\belse sections for this compiler conditional.  This section cannot be reached.");
         }
         sawElse = true;
-      } else if (current.getElementType() == HaxeTokenTypes.PPEND) {
+      }
+      else if (current.getElementType() == HaxeTokenTypes.CONDITIONAL_COMPILATION_END) {
         if (sawEnd) {
           reporter.reportProblem(current, "Duplicate #\bend. Missing #\bif for this conditional compiler directive?");
         }

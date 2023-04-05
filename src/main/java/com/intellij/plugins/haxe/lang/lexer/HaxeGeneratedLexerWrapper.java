@@ -23,16 +23,16 @@ import com.intellij.openapi.project.Project;
  * This class exists solely to add hooks to the generated _HaxeLexer.  A better
  * solution could be to use a JFlex skeleton that allows for hooks.  Since we
  * use the skeleton provided with grammar-kit, this is easier to maintain.
- *
+ * <p>
  * Created by ebishton on 4/14/17.
  */
-public class HaxeGeneratedLexerWrapper extends _HaxeLexer {
+public class HaxeGeneratedLexerWrapper extends HaxeLexer {
   public HaxeGeneratedLexerWrapper(Project project) {
     super(project);
   }
 
   public void reset(CharSequence buffer, int start, int end, int initialState) {
     super.reset(buffer, start, end, initialState);
-    super.ccsupport.reset(super.context);
+    super.ccsupport.reset(super.ccsupport.projectContext);
   }
 }

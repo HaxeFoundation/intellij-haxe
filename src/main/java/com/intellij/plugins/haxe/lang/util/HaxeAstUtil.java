@@ -17,7 +17,6 @@ package com.intellij.plugins.haxe.lang.util;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,32 +39,32 @@ public class HaxeAstUtil {
    * @return true, if the operator is allowed in conditional compilation expressions; false, otherwise.
    */
   public static boolean isCCOperator(@Nullable ASTNode t) {
-    return isOfType(t, OCOND_OR,
-                       OCOND_AND,
-                       OEQ,
-                       OLESS,
-                       OLESS_OR_EQUAL,
-                       OGREATER,
-                       OGREATER_OR_EQUAL,
-                       ONOT_EQ,
-                       ONOT
+    return isOfType(t, OPERATOR_COND_OR,
+                    OPERATOR_COND_AND,
+                    OPERATOR_EQ,
+                    OPERATOR_LESS,
+                    OPERATOR_LESS_OR_EQUAL,
+                    OPERATOR_GREATER,
+                    OPERATOR_GREATER_OR_EQUAL,
+                    OPERATOR_NOT_EQ,
+                    OPERATOR_NOT
     );
   }
 
   public static boolean isNegation(@Nullable ASTNode t) {
-    return t != null && t.getElementType().equals(ONOT);
+    return t != null && t.getElementType().equals(OPERATOR_NOT);
   }
 
   public static boolean isLeftParen(@Nullable ASTNode t) {
-    return t != null && t.getElementType().equals(PLPAREN);
+    return t != null && t.getElementType().equals(ENCLOSURE_PARENTHESIS_LEFT);
   }
 
   public static boolean isRightParen(@Nullable ASTNode t) {
-    return t != null && t.getElementType().equals(PRPAREN);
+    return t != null && t.getElementType().equals(ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   public static boolean isParen(@Nullable ASTNode t) {
-    return isOfType(t, PRPAREN, PLPAREN);
+    return isOfType(t, ENCLOSURE_PARENTHESIS_RIGHT, ENCLOSURE_PARENTHESIS_LEFT);
   }
 
   public static boolean isStringOpenQuote(@Nullable ASTNode t) {
@@ -140,11 +139,11 @@ public class HaxeAstUtil {
   }
 
   public static boolean isTrueKeyword(@Nullable ASTNode t) {
-    return null != t && t.getElementType().equals(KTRUE);
+    return null != t && t.getElementType().equals(KEYWORD_TRUE);
   }
 
   public static boolean isFalseKeyword(@Nullable ASTNode t) {
-    return null != t && t.getElementType().equals(KFALSE);
+    return null != t && t.getElementType().equals(KEYWORD_FALSE);
   }
 
   public static boolean isIdentifier(@Nullable ASTNode t) {
@@ -153,7 +152,7 @@ public class HaxeAstUtil {
 
   public static boolean isConstant(@Nullable ASTNode t) {
     // return isTrueKeyword(t) || isFalseKeyword(t) || isString(t) || isNumber(t);
-    return isOfType(t, KTRUE, KFALSE, REGULAR_STRING_PART) || isNumber(t);
+    return isOfType(t, KEYWORD_TRUE, KEYWORD_FALSE, REGULAR_STRING_PART) || isNumber(t);
   }
 
   public static boolean isLiteral(@Nullable ASTNode t) {

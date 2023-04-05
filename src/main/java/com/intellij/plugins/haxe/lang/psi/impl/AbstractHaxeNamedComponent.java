@@ -22,6 +22,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Pair;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
@@ -31,9 +34,6 @@ import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
@@ -219,10 +219,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
     // do not change the order of these if-statements
-    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE) != null) {
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KEYWORD_PRIVATE) != null) {
       return false; // private
     }
-    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
+    if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KEYWORD_PUBLIC) != null) {
       return true; // public
     }
 
@@ -230,10 +230,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (declarationAttributeList != null) {
       final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
       // do not change the order of these if-statements
-      if (declarationTypes.contains(HaxeTokenTypes.KPRIVATE)) {
+      if (declarationTypes.contains(HaxeTokenTypes.KEYWORD_PRIVATE)) {
         return false; // private
       }
-      if (declarationTypes.contains(HaxeTokenTypes.KPUBLIC)) {
+      if (declarationTypes.contains(HaxeTokenTypes.KEYWORD_PUBLIC)) {
         return true; // public
       }
     }
@@ -246,19 +246,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     AbstractHaxeNamedComponent element = this;
 
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KEYWORD_STATIC);
   }
 
   @Override
   public boolean isOverride() {
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KEYWORD_OVERRIDE);
   }
 
   @Override
   public boolean isInline() {
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KEYWORD_INLINE);
   }
 
   @Nullable
@@ -282,9 +282,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   public int getChildRole(ASTNode child) {
-    if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
+    if (child.getElementType() == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT) {
       return ChildRole.LBRACE;
-    } else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+    }
+    else if (child.getElementType() == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT) {
       return ChildRole.RBRACE;
     }
 

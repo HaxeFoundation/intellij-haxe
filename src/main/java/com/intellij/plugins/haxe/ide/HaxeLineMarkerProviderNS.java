@@ -25,12 +25,12 @@ import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -121,7 +121,7 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
                                               (HaxeMethodDeclaration)namedComponent : null;
     final boolean overrides = methodDeclaration != null &&
                               HaxeResolveUtil.getDeclarationTypes(methodDeclaration.getMethodModifierList()).
-                                contains(HaxeTokenTypes.KOVERRIDE);
+                                contains(HaxeTokenTypes.KEYWORD_OVERRIDE);
     final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
     Supplier<String> accessibleNameProvider = () -> overrides ? "Overriding Method" : "Implementing Method";
     if (null == element) {

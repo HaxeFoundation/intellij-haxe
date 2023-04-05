@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.parser;
+package com.intellij.plugins.haxe.lang.parser.utils;
 
 import com.intellij.lang.ASTFactory;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -66,6 +66,6 @@ public class HaxeAstFactory extends ASTFactory {
   }
 
   private boolean typeIsMeta(IElementType type) {
-    return type == HaxeTokenTypes.EMBEDDED_META;
+    return type == HaxeTokenTypes.METADATA_DECLARATION;
   }
 }

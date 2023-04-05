@@ -16,7 +16,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractBody;
-import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements HaxeEnumModel {
-  public HaxeAbstractEnumModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
+public class HaxeAbstractEnumTypeModel extends HaxeAbstractTypeModel implements HaxeEnumModel {
+  public HaxeAbstractEnumTypeModel(@NotNull HaxeAbstractDeclaration haxeClass) {
     super(haxeClass);
   }
 
@@ -53,7 +53,7 @@ public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements Hax
   }
 
   private Stream<HaxeFieldDeclaration> getValueDeclarationsStream() {
-    final HaxeAbstractBody body = getAbstractClassBody();
+    final HaxeAbstractBody body = getAbstractTypeBody();
 
     return body != null ? body.getFieldDeclarationList().stream() : Stream.empty();
   }

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.parser;
+package com.intellij.plugins.haxe.lang.parser.utils;
 
 import com.intellij.lang.*;
 import com.intellij.lexer.Lexer;
@@ -26,13 +26,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Handle PSI building when parsing languages.  Beware!  Using this will override *every* language;
  * HaxePsiBuilder will be used as the only PSIBuilder when this is installed.
- *
+ * <p>
  * Install this class by adding the following stanza to your src/META-INF/plugin.xml file.  (It is
  * currently in place, but commented out.)
- *
+ * <p>
  * <applicationService overrides="true" serviceInterface="com.intellij.lang.PsiBuilderFactory"
- *                     serviceImplementation="com.intellij.plugins.haxe.lang.parser.HaxePsiBuilderFactoryImpl"/>
- *
+ * serviceImplementation="com.intellij.plugins.haxe.lang.parser.utils.HaxePsiBuilderFactoryImpl"/>
  */
 public class HaxePsiBuilderFactoryImpl extends PsiBuilderFactory {
 

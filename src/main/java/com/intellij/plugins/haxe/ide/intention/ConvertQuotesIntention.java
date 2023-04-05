@@ -20,10 +20,10 @@ import com.intellij.codeInsight.intention.impl.BaseIntentionAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
+import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -76,7 +76,8 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
   }
 
   private boolean canSwitchQuotes(HaxeStringLiteralExpression expression) {
-    boolean hasInterpolation = expression.getLongTemplateEntryList().size() != 0 || expression.getShortTemplateEntryList().size() != 0;
+    boolean hasInterpolation =
+      expression.getLongStringInterpolationEntryList().size() != 0 || expression.getShortStringInterpolationEntryList().size() != 0;
     return !hasInterpolation || isWrappedWithDoubleQuotes(expression);
   }
 

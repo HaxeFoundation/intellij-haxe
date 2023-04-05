@@ -158,10 +158,10 @@ public class HaxeTypeCompatible {
   private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean castFrom) {
     if (reference instanceof SpecificHaxeClassReference) {
       HaxeClass haxeClass = ((SpecificHaxeClassReference)reference).getHaxeClass();
-      if (haxeClass instanceof HaxeAbstractClassDeclaration) {
-        HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
-        if (castFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) return true;
-        if (!castFrom && !abstractClass.getAbstractToTypeList().isEmpty()) return true;
+      if (haxeClass instanceof HaxeAbstractDeclaration) {
+        HaxeAbstractDeclaration abstractType = (HaxeAbstractDeclaration)haxeClass;
+        if (castFrom && !abstractType.getAbstractFromTypeList().isEmpty()) return true;
+        if (!castFrom && !abstractType.getAbstractToTypeList().isEmpty()) return true;
       }
     }
     return false;
@@ -169,21 +169,21 @@ public class HaxeTypeCompatible {
 
   @NotNull
   private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificHaxeClassReference classReference, boolean getCastFrom) {
-    if (!(classReference.getHaxeClass() instanceof HaxeAbstractClassDeclaration))  return Collections.emptyList();
-    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
+    if (!(classReference.getHaxeClass() instanceof HaxeAbstractDeclaration)) return Collections.emptyList();
+    HaxeAbstractDeclaration abstractType = (HaxeAbstractDeclaration)classReference.getHaxeClass();
     List<SpecificFunctionReference> list = new ArrayList<>();
-    if (abstractClass != null) {
-      if (getCastFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) {
-        for(HaxeAbstractFromType type : abstractClass.getAbstractFromTypeList()) {
-          if(type.getFunctionType() != null) {
+    if (abstractType != null) {
+      if (getCastFrom && !abstractType.getAbstractFromTypeList().isEmpty()) {
+        for (HaxeAbstractFromType type : abstractType.getAbstractFromTypeList()) {
+          if (type.getFunctionType() != null) {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
           }
         }
       }
-      if (!getCastFrom && !abstractClass.getAbstractToTypeList().isEmpty()){
-        for(HaxeAbstractToType type : abstractClass.getAbstractToTypeList()) {
+      if (!getCastFrom && !abstractType.getAbstractToTypeList().isEmpty()) {
+        for (HaxeAbstractToType type : abstractType.getAbstractToTypeList()) {
           if (type.getFunctionType() != null) {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));

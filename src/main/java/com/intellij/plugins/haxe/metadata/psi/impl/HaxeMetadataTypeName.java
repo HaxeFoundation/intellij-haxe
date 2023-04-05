@@ -15,9 +15,8 @@
  */
 package com.intellij.plugins.haxe.metadata.psi.impl;
 
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeMetadataType;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Hashtable;
@@ -64,14 +63,6 @@ public class HaxeMetadataTypeName {
     if (null == typeLeft || null == typeRight) return false;  // Both null do NOT match.
     if (typeLeft.isEmpty()) return false; // Empty also doesn't match.
     return typeLeft.equals(typeRight);
-  }
-
-  public String asCompileTimeText() {
-    return HaxeMetadataTokenTypes.CT_META_PREFIX.toString() + toString();
-  }
-
-  public String asRunTimeTest() {
-    return HaxeMetadataTokenTypes.RT_META_PREFIX.toString() + toString();
   }
 
   public String toString() {

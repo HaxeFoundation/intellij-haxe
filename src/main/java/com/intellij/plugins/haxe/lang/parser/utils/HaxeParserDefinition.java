@@ -1,5 +1,7 @@
 /*
- * Copyright 2020 Eric Bishton
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2023 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.metadata.parser;
+package com.intellij.plugins.haxe.lang.parser.utils;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.ParserDefinition;
 import com.intellij.lang.PsiParser;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.lexer.HaxeLexerAdapter;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataLexer;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -31,59 +33,46 @@ import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import org.jetbrains.annotations.NotNull;
 
-public class HaxeMetadataParserDefinition implements ParserDefinition {
-  public HaxeMetadataParserDefinition() {
-  }
+public class HaxeParserDefinition implements ParserDefinition {
 
   @NotNull
-  @Override
   public Lexer createLexer(Project project) {
-    return new HaxeMetadataLexer();
+    return new HaxeLexerAdapter(project);
   }
 
-  @Override
   public PsiParser createParser(Project project) {
-    return new HaxeMetadataParser();
+    return new HaxeParserWrapper();
   }
 
-  @Override
   public IFileElementType getFileNodeType() {
     return HaxeTokenTypeSets.HAXE_FILE;
   }
 
   @NotNull
-  @Override
+  public TokenSet getWhitespaceTokens() {
+    return HaxeTokenTypeSets.WHITESPACES;
+  }
+
+  @NotNull
   public TokenSet getCommentTokens() {
-    return TokenSet.EMPTY;
+    return HaxeTokenTypeSets.COMMENTS;
   }
 
   @NotNull
-  @Override
   public TokenSet getStringLiteralElements() {
-    return TokenSet.EMPTY;
+    return HaxeTokenTypeSets.STRINGS;
   }
 
   @NotNull
-  @Override
   public PsiElement createElement(ASTNode node) {
-    return HaxeMetadataTokenTypes.Factory.createElement(node);
+    return HaxeTokenTypes.Factory.createElement(node);
   }
 
-  @Override
   public PsiFile createFile(FileViewProvider viewProvider) {
     return new HaxeFile(viewProvider);
   }
 
-  // Required to build for versions before 182.
-  @Override
   public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
     return SpaceRequirements.MAY;
-  }
-
-  // Required to build for 16x versions.
-  @Override
-  @NotNull
-  public TokenSet getWhitespaceTokens() {
-    return HaxeTokenTypeSets.WHITESPACES;
   }
 }

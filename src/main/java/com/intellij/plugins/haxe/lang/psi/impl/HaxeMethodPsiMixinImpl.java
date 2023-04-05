@@ -22,7 +22,6 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -34,7 +33,6 @@ import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -68,7 +66,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     if (name == null) {
       PsiElement child = this.getFirstChild();
       while (child != null) {
-        if (child instanceof HaxePsiToken && child.getText().equals(HaxeTokenTypes.ONEW.toString())) {
+        if (child instanceof HaxePsiToken && child.getText().equals(HaxeTokenTypes.KEYWORD_NEW.toString())) {
           return child.getText();
         }
         child = child.getNextSibling();
@@ -160,7 +158,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Override
   public boolean isConstructor() {
     String name = getName();
-    return name != null && name.equals(HaxeTokenTypes.ONEW.toString());
+    return name != null && name.equals(HaxeTokenTypes.KEYWORD_NEW.toString());
   }
 
   @Nullable

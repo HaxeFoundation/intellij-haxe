@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.metadata.psi;
 
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -43,15 +43,18 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   PsiElement getContainer();
 
   boolean isRunTimeMeta();
+
   boolean isCompileTimeMeta();
 
   boolean isType(HaxeMetadataTypeName type);
+
   boolean isType(HaxeMeta meta);
+
   boolean isType(String name);
 
   // Metadata classes.
-  Class COMPILE_TIME = HaxeMetadataCompileTimeMeta.class;
-  Class RUN_TIME = HaxeMetadataRunTimeMeta.class;
+  Class COMPILE_TIME = HaxeCompileTimeMetadata.class;
+  Class RUN_TIME = HaxeRunTimeMetadata.class;
 
   // Metadata types.
 

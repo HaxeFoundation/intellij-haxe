@@ -15,6 +15,8 @@
  */
 package com.intellij.plugins.haxe.metadata.psi;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetadata;
+import com.intellij.plugins.haxe.lang.psi.HaxeRunTimeMetadata;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +35,11 @@ public interface HaxeMetadataListOwner {
 
   boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType);
 
-  default boolean hasRuntimeMetadata(HaxeMetadataTypeName name) { return hasMetadata(name, HaxeMetadataRunTimeMeta.class); }
-  default boolean hasCompileTimeMetadata(HaxeMetadataTypeName name) { return hasMetadata(name, HaxeMetadataCompileTimeMeta.class); }
+  default boolean hasRuntimeMetadata(HaxeMetadataTypeName name) {
+    return hasMetadata(name, HaxeRunTimeMetadata.class);
+  }
+
+  default boolean hasCompileTimeMetadata(HaxeMetadataTypeName name) {
+    return hasMetadata(name, HaxeCompileTimeMetadata.class);
+  }
 }

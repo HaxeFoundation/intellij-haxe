@@ -21,10 +21,9 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-
-import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
@@ -131,7 +130,8 @@ public class HaxeSpacingProcessor {
 
     // TODO: Do this for comments, too??
     // If type2 is metadata, then camouflage it as the type that follows it.
-    if(type2 == EMBEDDED_META) {
+
+    if (type2 == METADATA_DECLARATION) {
       PsiElement element = HaxeMetadataUtils.getAssociatedElement(node2.getPsi());
       if (null != element) {
         type2 = element.getNode().getElementType();
@@ -160,21 +160,24 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == PLCURLY && isClassBodyType(elementType) && isFirstChild(child1)) {
+    if (type1 == ENCLOSURE_CURLY_BRACKET_LEFT && isClassBodyType(elementType) && isFirstChild(child1)) {
       int lineFeeds = max(1, (isFieldDeclaration(type2) ? mySettings.BLANK_LINES_AROUND_FIELD : mySettings.BLANK_LINES_AROUND_METHOD));
       return Spacing.createSpacing(0, 0, lineFeeds, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type2 == PRCURLY && isClassBodyType(elementType) && isLastChild(child2)) {
-      return Spacing.createSpacing(0, 0, max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    if (type2 == ENCLOSURE_CURLY_BRACKET_RIGHT && isClassBodyType(elementType) && isLastChild(child2)) {
+      return Spacing.createSpacing(0, 0, max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END), mySettings.KEEP_LINE_BREAKS,
+                                   mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (isMethodDeclaration(type1) && isMethodDeclaration(type2)) {
-      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS,
+                                   mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (isMethodDeclaration(type1) && isFieldDeclaration(type2)) {
-      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+      return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS,
+                                   mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (isFieldDeclaration(type1) && isFieldDeclaration(type2)) {
@@ -193,7 +196,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, 1, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type2 == PLPAREN) {
+    if (type2 == ENCLOSURE_PARENTHESIS_LEFT) {
       if (elementType == GUARD) { // IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_IF_PARENTHESES);
       }
@@ -220,7 +223,7 @@ public class HaxeSpacingProcessor {
       }
     }
 
-    if (type1 == OGREATER && type2 == OASSIGN) {
+    if (type1 == OPERATOR_GREATER && type2 == OPERATOR_ASSIGN) {
       return addSingleSpaceIf(false);
     }
 
@@ -265,7 +268,7 @@ public class HaxeSpacingProcessor {
       }
     }
 
-    if (type1 == PLPAREN || type2 == PRPAREN) {
+    if (type1 == ENCLOSURE_PARENTHESIS_LEFT || type2 == ENCLOSURE_PARENTHESIS_RIGHT) {
       if (elementType == GUARD) { // if (elementType == IF_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_IF_PARENTHESES);
       }
@@ -285,19 +288,19 @@ public class HaxeSpacingProcessor {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_CATCH_PARENTHESES);
       }
       else if (HaxeTokenTypeSets.FUNCTION_DEFINITION.contains(elementType)) {
-        final boolean newLineNeeded = type1 == PLPAREN ?
+        final boolean newLineNeeded = type1 == ENCLOSURE_PARENTHESIS_LEFT ?
                                       mySettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE :
                                       mySettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE;
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_PARENTHESES, newLineNeeded);
       }
       else if (elementType == CALL_EXPRESSION) {
-        final boolean newLineNeeded = type1 == PLPAREN ?
+        final boolean newLineNeeded = type1 == ENCLOSURE_PARENTHESIS_LEFT ?
                                       mySettings.CALL_PARAMETERS_LPAREN_ON_NEXT_LINE :
                                       mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE;
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_METHOD_CALL_PARENTHESES, newLineNeeded);
       }
       else if (mySettings.BINARY_OPERATION_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP && elementType == PARENTHESIZED_EXPRESSION) {
-        final boolean newLineNeeded = type1 == PLPAREN ?
+        final boolean newLineNeeded = type1 == ENCLOSURE_PARENTHESIS_LEFT ?
                                       mySettings.PARENTHESES_EXPRESSION_LPAREN_WRAP :
                                       mySettings.PARENTHESES_EXPRESSION_RPAREN_WRAP;
         return addSingleSpaceIf(false, newLineNeeded);
@@ -305,16 +308,16 @@ public class HaxeSpacingProcessor {
     }
 
     if (elementType == TERNARY_EXPRESSION) {
-      if (type2 == OQUEST) {
+      if (type2 == OPERATOR_TERNARY) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_QUEST);
       }
-      else if (type2 == OCOLON) {
+      else if (type2 == OPERATOR_COLON) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_COLON);
       }
-      else if (type1 == OQUEST) {
+      else if (type1 == OPERATOR_TERNARY) {
         return addSingleSpaceIf(mySettings.SPACE_AFTER_QUEST);
       }
-      else if (type1 == OCOLON) {
+      else if (type1 == OPERATOR_COLON) {
         return addSingleSpaceIf(mySettings.SPACE_AFTER_COLON);
       }
     }
@@ -387,7 +390,7 @@ public class HaxeSpacingProcessor {
     if (type2 == ELSE_STATEMENT) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_ELSE_KEYWORD, mySettings.ELSE_ON_NEW_LINE);
     }
-    if (type2 == KWHILE) {
+    if (type2 == KEYWORD_WHILE) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_WHILE_KEYWORD, mySettings.WHILE_ON_NEW_LINE);
     }
     if (type2 == CATCH_STATEMENT) {
@@ -398,26 +401,26 @@ public class HaxeSpacingProcessor {
     //Other
     //
 
-    if (type1 == KELSE && type2 == IF_STATEMENT) {  // Inside of ELSE_STATEMENT
+    if (type1 == KEYWORD_ELSE && type2 == IF_STATEMENT) {  // Inside of ELSE_STATEMENT
       return Spacing.createSpacing(1, 1, mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == OCOMMA && (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) &&
+    if (type1 == OPERATOR_COMMA && (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) &&
         (parentType == CALL_EXPRESSION ||
          parentType == NEW_EXPRESSION ||
          HaxeTokenTypeSets.FUNCTION_DEFINITION.contains(parentType))) {
       return addSingleSpaceIf(mySettings.SPACE_AFTER_COMMA_IN_TYPE_ARGUMENTS);
     }
 
-    if (type1 == OCOMMA) {
+    if (type1 == OPERATOR_COMMA) {
       return addSingleSpaceIf(mySettings.SPACE_AFTER_COMMA);
     }
 
-    if (type2 == OCOMMA) {
+    if (type2 == OPERATOR_COMMA) {
       return addSingleSpaceIf(mySettings.SPACE_BEFORE_COMMA);
     }
 
-    if (type1 == OCOLON && elementType == TYPE_TAG) {
+    if (type1 == OPERATOR_COLON && elementType == TYPE_TAG) {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AFTER_TYPE_REFERENCE_COLON);
     }
 
@@ -425,7 +428,7 @@ public class HaxeSpacingProcessor {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_BEFORE_TYPE_REFERENCE_COLON);
     }
 
-    if (type1 == OARROW || type2 == OARROW) {
+    if (type1 == OPERATOR_ARROW || type2 == OPERATOR_ARROW) {
       return addSingleSpaceIf(myHaxeCodeStyleSettings.SPACE_AROUND_ARROW);
     }
 

@@ -20,8 +20,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
-import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
-
+import com.intellij.plugins.haxe.lang.parser.utils.HaxeAstFactory;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 import gnu.trove.THashSet;
@@ -124,7 +123,7 @@ public class HaxeConditionalExpression {
   }
 
   private boolean areParensBalanced() {
-    return areTokensBalanced(PLPAREN, PRPAREN);
+    return areTokensBalanced(ENCLOSURE_PARENTHESIS_LEFT, ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   private boolean areStringQuotesBalanced() {
@@ -354,27 +353,42 @@ public class HaxeConditionalExpression {
 
   @NotNull
   private Object constantValue(ASTNode node) throws CalculationException {
-    if (isTrueKeyword(node))        { return new Boolean(true); }
-    if (isFalseKeyword(node))       { return new Boolean(false); }
-    if (isString(node))             { return new String(node.getText()); }
-    if (isNumber(node))             { return new Float(node.getText()); }
+    if (isTrueKeyword(node)) {
+      return Boolean.TRUE;
+    }
+    if (isFalseKeyword(node)) {
+      return Boolean.FALSE;
+    }
+    if (isString(node)) {
+      return node.getText();
+    }
+    if (isNumber(node)) {
+      return Float.valueOf(node.getText());
+    }
 
     throw new CalculationException("Unrecognized value token: " + node.toString());
   }
 
   @NotNull
   private Object identifierValue(String s) throws CalculationException {
-    if (KTRUE.toString().equals(s))   { return new Boolean(true); }
-    if (KFALSE.toString().equals(s))  { return new Boolean(false); }
+    if (KEYWORD_TRUE.toString().equals(s)) {
+      return Boolean.TRUE;
+    }
+    if (KEYWORD_FALSE.toString().equals(s)) {
+      return Boolean.FALSE;
+    }
 
     FloatResult result = new FloatResult();
-    if (isFloat(s,result))            { return result.result; }
+    if (isFloat(s, result)) {
+      return result.result;
+    }
 
     // De-quote strings and recurse...
     if ((s.startsWith("\"") && s.endsWith("\"")) || (s.startsWith("'") && s.endsWith("'"))) {
       if (s.length() <= 2) {
         return new String();
-      } else {
+      }
+      else {
         return identifierValue(s.substring(1, s.length() - 1));
       }
     }
@@ -385,7 +399,7 @@ public class HaxeConditionalExpression {
   @NotNull
   private Object lookupIdentifier(ASTNode identifier) throws CalculationException {
     if (identifier == null) {
-      return new Boolean(false);
+      return Boolean.FALSE;
     }
     if (context == null) {
       return SDK_DEFINES.contains(identifier);
@@ -412,14 +426,14 @@ public class HaxeConditionalExpression {
 
         if (possible.equals(name)) {
           if (null == value) {
-            return new Boolean(true);
+            return Boolean.TRUE;
           } else {
             return identifierValue(value);
           }
         }
       }
     }
-    return new Boolean(false);
+    return Boolean.FALSE;
   }
 
 
@@ -462,7 +476,9 @@ public class HaxeConditionalExpression {
   @NotNull
   private Object applyUnary(ASTNode op, Object value) throws CalculationException {
     IElementType optype = op.getElementType();
-    if (optype.equals(ONOT))  { return !objectIsTrue(value); }
+    if (optype.equals(OPERATOR_NOT)) {
+      return !objectIsTrue(value);
+    }
     throw new CalculationException("Unexpected unary operator encountered: " + op.toString());
   }
 
@@ -472,19 +488,35 @@ public class HaxeConditionalExpression {
   private Object applyBinary(ASTNode op, Object lhs, Object rhs) throws CalculationException {
     IElementType optype = op.getElementType();
     try {
-      if (optype.equals(OCOND_AND))            { return objectIsTrue(lhs) && objectIsTrue(rhs); }
-      if (optype.equals(OCOND_OR))             { return objectIsTrue(lhs) || objectIsTrue(rhs); }
-      if (optype.equals(OEQ))                  { return objectCompare(lhs, rhs) == 0; }
-      if (optype.equals(ONOT_EQ))              { return objectCompare(lhs, rhs) != 0; }
-      if (optype.equals(OGREATER))             { return objectCompare(lhs, rhs) >  0; }
-      if (optype.equals(OGREATER_OR_EQUAL))    { return objectCompare(lhs, rhs) >= 0; }
-      if (optype.equals(OLESS_OR_EQUAL))       { return objectCompare(lhs, rhs) <= 0; }
-      if (optype.equals(OLESS))                { return objectCompare(lhs, rhs) <  0; }
+      if (optype.equals(OPERATOR_COND_AND)) {
+        return objectIsTrue(lhs) && objectIsTrue(rhs);
+      }
+      if (optype.equals(OPERATOR_COND_OR)) {
+        return objectIsTrue(lhs) || objectIsTrue(rhs);
+      }
+      if (optype.equals(OPERATOR_EQ)) {
+        return objectCompare(lhs, rhs) == 0;
+      }
+      if (optype.equals(OPERATOR_NOT_EQ)) {
+        return objectCompare(lhs, rhs) != 0;
+      }
+      if (optype.equals(OPERATOR_GREATER)) {
+        return objectCompare(lhs, rhs) > 0;
+      }
+      if (optype.equals(OPERATOR_GREATER_OR_EQUAL)) {
+        return objectCompare(lhs, rhs) >= 0;
+      }
+      if (optype.equals(OPERATOR_LESS_OR_EQUAL)) {
+        return objectCompare(lhs, rhs) <= 0;
+      }
+      if (optype.equals(OPERATOR_LESS)) {
+        return objectCompare(lhs, rhs) < 0;
+      }
       throw new CalculationException("Unexpected operator when comparing '"
                                      + lhs.toString() + " " + optype.toString() + " " + rhs.toString() + "'.");
     } catch (CompareException e) {
       // parser eval#1625 maps any calculation failures to false.
-      return new Boolean(false);
+      return Boolean.FALSE;
     }
   }
 

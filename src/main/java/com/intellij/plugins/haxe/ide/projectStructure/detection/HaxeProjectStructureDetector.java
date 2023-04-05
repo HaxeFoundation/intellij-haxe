@@ -32,11 +32,11 @@ import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lexer.Lexer;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.util.NullableFunction;
 import com.intellij.util.StringBuilderSpinAllocator;
@@ -106,7 +106,7 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
   @Nullable
   public static String readPackageName(final CharSequence charSequence, final Lexer lexer) {
     skipWhiteSpaceAndComments(lexer);
-    if (!HaxeTokenTypes.KPACKAGE.equals(lexer.getTokenType())) {
+    if (!HaxeTokenTypes.KEYWORD_PACKAGE.equals(lexer.getTokenType())) {
       return "";
     }
     lexer.advance();
@@ -120,11 +120,11 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
     final StringBuilder buffer = StringBuilderSpinAllocator.alloc();
     try {
       while (true) {
-        if (lexer.getTokenType() != HaxeTokenTypes.ID && !(allowStar && lexer.getTokenType() != HaxeTokenTypes.OMUL)) break;
+        if (lexer.getTokenType() != HaxeTokenTypes.ID && !(allowStar && lexer.getTokenType() != HaxeTokenTypes.OPERATOR_MUL)) break;
         buffer.append(charSequence, lexer.getTokenStart(), lexer.getTokenEnd());
-        if (lexer.getTokenType() == HaxeTokenTypes.OMUL) break;
+        if (lexer.getTokenType() == HaxeTokenTypes.OPERATOR_MUL) break;
         lexer.advance();
-        if (lexer.getTokenType() != HaxeTokenTypes.ODOT) break;
+        if (lexer.getTokenType() != HaxeTokenTypes.CC_OPERATOR_DOT) break;
         buffer.append('.');
         lexer.advance();
       }

@@ -20,10 +20,11 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.LiteralTextEscaper;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiLanguageInjectionHost;
 import org.intellij.lang.regexp.DefaultRegExpPropertiesProvider;
 import org.intellij.lang.regexp.psi.RegExpChar;
@@ -151,4 +152,24 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
   //  return HaxeStatementUtils.getBlockStatement(this);
   //}
 
+
+  @Override
+  public @Nullable PsiElement getLiteralFloat() {
+    return null;
+  }
+
+  @Override
+  public @Nullable PsiElement getLiteralHexadecimal() {
+    return null;
+  }
+
+  @Override
+  public @Nullable PsiElement getLiteralInteger() {
+    return null;
+  }
+
+  @Override
+  public @Nullable PsiElement getLiteralOctal() {
+    return null;
+  }
 }

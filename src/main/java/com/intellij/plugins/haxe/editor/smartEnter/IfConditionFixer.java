@@ -48,12 +48,12 @@ public class IfConditionFixer implements Fixer {
       return;
     }
     boolean changed = false;
-    if (psiElement.getNode().getElementType() == HaxeTokenTypes.KIF) {
+    if (psiElement.getNode().getElementType() == HaxeTokenTypes.KEYWORD_IF) {
       changed = fixIfStatement(editor, psiElement);
     }
     if (isExpression(psiElement)) {
       PsiElement prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(psiElement, true);
-      if (null != prev && prev.getNode().getElementType() == HaxeTokenTypes.KIF) {
+      if (null != prev && prev.getNode().getElementType() == HaxeTokenTypes.KEYWORD_IF) {
         changed |= wrapExpressionInParens(editor, psiElement);
         changed |= fixIfStatement(editor, prev);
       }
@@ -66,7 +66,8 @@ public class IfConditionFixer implements Fixer {
   }
 
   private boolean wrapExpressionInParens(Editor editor, PsiElement expression) {
-    return HaxeCodeGenerateUtil.addMissingDelimiters(editor, expression, HaxeTokenTypes.PLPAREN, HaxeTokenTypes.PRPAREN);
+    return HaxeCodeGenerateUtil.addMissingDelimiters(editor, expression, HaxeTokenTypes.ENCLOSURE_PARENTHESIS_LEFT,
+                                                     HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   private boolean fixIfStatement(Editor editor, PsiElement ifKeyword) {

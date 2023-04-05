@@ -17,10 +17,12 @@ package com.intellij.plugins.haxe.metadata.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetadata;
+import com.intellij.plugins.haxe.lang.psi.HaxeMetadataContent;
+import com.intellij.plugins.haxe.lang.psi.HaxeMetadataType;
+import com.intellij.plugins.haxe.lang.psi.HaxeRunTimeMetadata;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
-import com.intellij.plugins.haxe.metadata.psi.*;
-
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -32,8 +34,8 @@ import java.util.Objects;
 @CustomLog
 public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMeta {
 
-  private static String CT_PREFIX = HaxeMetadataTokenTypes.CT_META_PREFIX.toString();
-  private static String RT_PREFIX = HaxeMetadataTokenTypes.RT_META_PREFIX.toString();
+  private static String CT_PREFIX = HaxeTokenTypes.COMPILE_META_PREFIX.toString();
+  private static String RT_PREFIX = HaxeTokenTypes.RUNTIME_META_PREFIX.toString();
 
   public HaxeMetaImpl(@NotNull ASTNode node) {
     super(node);
@@ -41,18 +43,18 @@ public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMet
 
   @Override
   public HaxeMetadataType getType() {
-    return findNotNullChildByType(HaxeMetadataTokenTypes.TYPE);
+    return findNotNullChildByType(HaxeTokenTypes.METADATA_TYPE);
   }
 
   @Override
   public HaxeMetadataContent getContent() {
-    return findChildByType(HaxeMetadataTokenTypes.CONTENT);
+    return findChildByType(HaxeTokenTypes.METADATA_CONTENT);
   }
 
   @Override
   @NotNull
   public PsiElement getContainer() {
-    PsiElement container = UsefulPsiTreeUtil.getParent(this, HaxeTokenTypes.EMBEDDED_META);
+    PsiElement container = UsefulPsiTreeUtil.getParent(this, HaxeTokenTypes.METADATA_DECLARATION);
     if (null == container) {
       log.error("Could not find EMBEDDED_META parent for " + getDebugName());
     }
@@ -97,12 +99,12 @@ public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMet
 
   @Override
   public boolean isRunTimeMeta() {
-    return this instanceof HaxeMetadataRunTimeMeta;
+    return this instanceof HaxeRunTimeMetadata;
   }
 
   @Override
   public boolean isCompileTimeMeta() {
-    return this instanceof HaxeMetadataCompileTimeMeta;
+    return this instanceof HaxeCompileTimeMetadata;
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

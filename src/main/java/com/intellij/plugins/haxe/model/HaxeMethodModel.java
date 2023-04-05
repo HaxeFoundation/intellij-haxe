@@ -99,7 +99,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isConstructor() {
-    return this.getName().equals(HaxeTokenTypes.ONEW.toString());
+    return this.getName().equals(HaxeTokenTypes.KEYWORD_NEW.toString());
   }
 
   public boolean isStaticInit() {

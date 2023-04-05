@@ -25,15 +25,15 @@ import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.ide.intention.HaxeDefineIntention;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
 import com.intellij.psi.tree.IElementType;
@@ -49,6 +49,7 @@ import java.util.Set;
 public class HaxeColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
+
     if (isNewOperator(node) || isIsOperator(node)) {
       colorizeKeyword(holder, node);
       return;
@@ -124,7 +125,7 @@ public class HaxeColorAnnotator implements Annotator {
   }
 
   private static boolean isNewOperator(PsiElement element) {
-    return HaxeTokenTypes.ONEW.toString().equals(element.getText()) &&
+    return HaxeTokenTypes.KEYWORD_NEW.toString().equals(element.getText()) &&
            element.getParent() instanceof HaxeNewExpression;
   }
 
@@ -149,7 +150,7 @@ public class HaxeColorAnnotator implements Annotator {
       }
     }
     else if (element instanceof HaxeIdentifier) {
-      if (parent instanceof HaxeAbstractClassDeclaration) {
+      if (parent instanceof HaxeAbstractDeclaration) {
         String elementText = element.getText();
         isKeyword = "from".equals(elementText) || "to".equals(elementText);
       }

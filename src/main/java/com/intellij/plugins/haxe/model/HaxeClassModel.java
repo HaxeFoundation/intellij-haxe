@@ -35,7 +35,8 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.HaxeComponentType.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
-import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
+import static com.intellij.plugins.haxe.util.HaxeGenericUtil.applyConstraintsToSpecifics;
+import static com.intellij.plugins.haxe.util.HaxeGenericUtil.replaceTypeIfGenericParameterName;
 import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
 
 public class HaxeClassModel implements HaxeExposableModel {
@@ -113,7 +114,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isAbstract() {
-    return haxeClass instanceof HaxeAbstractClassDeclaration;
+    return haxeClass instanceof HaxeAbstractDeclaration;
   }
 
   public boolean isCoreType() {
@@ -143,7 +144,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   @Nullable
   public HaxeTypeOrAnonymous getUnderlyingType() {
     if (isAbstract()) {
-      HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)haxeClass;
+      HaxeAbstractDeclaration abstractDeclaration = (HaxeAbstractDeclaration)haxeClass;
       HaxeUnderlyingType underlyingType = abstractDeclaration.getUnderlyingType();
       if (underlyingType != null) {
         return underlyingType.getTypeOrAnonymous();
@@ -194,13 +195,13 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeType> getAbstractToList() {
-    if (!isAbstract() ) return Collections.emptyList();
+    if (!isAbstract()) return Collections.emptyList();
 
     List<HaxeType> types = new LinkedList<HaxeType>();
-    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
-    List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
-    for(HaxeAbstractToType toType : list) {
-      if(toType.getTypeOrAnonymous() != null ) {
+    HaxeAbstractDeclaration abstractType = (HaxeAbstractDeclaration)haxeClass;
+    List<HaxeAbstractToType> list = abstractType.getAbstractToTypeList();
+    for (HaxeAbstractToType toType : list) {
+      if (toType.getTypeOrAnonymous() != null) {
         types.add(toType.getTypeOrAnonymous().getType());
       }
     }
@@ -302,12 +303,12 @@ public class HaxeClassModel implements HaxeExposableModel {
 
 
   public List<HaxeType> getAbstractFromList() {
-    if (!isAbstract() ) return Collections.emptyList();
+    if (!isAbstract()) return Collections.emptyList();
     List<HaxeType> types = new LinkedList<HaxeType>();
-    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
-    List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
-    for(HaxeAbstractFromType fromType : list) {
-      if(fromType.getTypeOrAnonymous() != null ) {
+    HaxeAbstractDeclaration abstractType = (HaxeAbstractDeclaration)haxeClass;
+    List<HaxeAbstractFromType> list = abstractType.getAbstractFromTypeList();
+    for (HaxeAbstractFromType fromType : list) {
+      if (fromType.getTypeOrAnonymous() != null) {
         types.add(fromType.getTypeOrAnonymous().getType());
       }
     }

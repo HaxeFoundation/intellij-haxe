@@ -17,17 +17,13 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.HaxeAbstractTypeModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -50,8 +46,8 @@ public class HaxeAbstractForwardUtil {
   @Nullable
   public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable HaxeClass clazz, @Nullable HaxeGenericResolver resolver) {
     final List<String> forwardingFieldsNames = getAbstractForwardingFieldsNames(clazz);
-    if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractClassDeclaration) {
-      final HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)clazz.getModel();
+    if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractDeclaration) {
+      final HaxeAbstractTypeModel abstractClassModel = (HaxeAbstractTypeModel)clazz.getModel();
       final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass(resolver);
       if (underlyingClass != null) {
         if (forwardingFieldsNames.isEmpty()) {

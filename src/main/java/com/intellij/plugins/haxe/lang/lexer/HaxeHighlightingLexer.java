@@ -17,19 +17,11 @@ package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.lexer.LayeredLexer;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataLexer;
-import com.intellij.psi.tree.IElementType;
 
 public class HaxeHighlightingLexer extends LayeredLexer {
 
   public HaxeHighlightingLexer(Project project) {
-    super(new HaxeLexer(project));
-
-    // This hands off lexing for the highlight to the given lexer.  It will
-    // return the token types that the sub-lexer returns back to the main highlighter.
-    registerSelfStoppingLayer(new HaxeMetadataLexer(),
-                              new IElementType[]{HaxeTokenTypes.EMBEDDED_META},
-                              IElementType.EMPTY_ARRAY);
+    super(new HaxeLexerAdapter(project));
   }
 
 }

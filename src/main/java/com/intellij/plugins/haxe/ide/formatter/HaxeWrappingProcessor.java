@@ -44,7 +44,7 @@ public class HaxeWrappingProcessor {
   Wrap createChildWrap(ASTNode child, Wrap defaultWrap, Wrap childWrap) {
     final IElementType childType = child.getElementType();
     final IElementType elementType = myNode.getElementType();
-    if (childType == OCOMMA || childType == OSEMI) return defaultWrap;
+    if (childType == OPERATOR_COMMA || childType == OPERATOR_SEMICOLON) return defaultWrap;
 
     //
     // Function definition/call
@@ -70,7 +70,7 @@ public class HaxeWrappingProcessor {
         if (myNode.getFirstChildNode() == child) {
           return createWrap(mySettings.METHOD_PARAMETERS_LPAREN_ON_NEXT_LINE);
         }
-        if (childType == PRPAREN) {
+        if (childType == ENCLOSURE_PARENTHESIS_RIGHT) {
           return createWrap(mySettings.METHOD_PARAMETERS_RPAREN_ON_NEXT_LINE);
         }
         return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.METHOD_PARAMETERS_WRAP), true);
@@ -79,7 +79,7 @@ public class HaxeWrappingProcessor {
 
     if (elementType == CALL_EXPRESSION) {
       if (mySettings.CALL_PARAMETERS_WRAP != CommonCodeStyleSettings.DO_NOT_WRAP) {
-        if (childType == PRPAREN) {
+        if (childType == ENCLOSURE_PARENTHESIS_RIGHT) {
           return createWrap(mySettings.CALL_PARAMETERS_RPAREN_ON_NEXT_LINE);
         }
       }
@@ -88,7 +88,7 @@ public class HaxeWrappingProcessor {
     //
     // If
     //
-    if (elementType == IF_STATEMENT && childType == KELSE) {
+    if (elementType == IF_STATEMENT && childType == KEYWORD_ELSE) {
       return createWrap(mySettings.ELSE_ON_NEW_LINE);
     }
 
@@ -124,12 +124,12 @@ public class HaxeWrappingProcessor {
     if (elementType == TERNARY_EXPRESSION) {
       if (myNode.getFirstChildNode() != child) {
         if (mySettings.TERNARY_OPERATION_SIGNS_ON_NEXT_LINE) {
-          if (!FormatterUtil.isPrecededBy(child, OQUEST) &&
-              !FormatterUtil.isPrecededBy(child, OCOLON)) {
+          if (!FormatterUtil.isPrecededBy(child, OPERATOR_TERNARY) &&
+              !FormatterUtil.isPrecededBy(child, OPERATOR_COLON)) {
             return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP), true);
           }
         }
-        else if (childType != OQUEST && childType != OCOLON) {
+        else if (childType != OPERATOR_TERNARY && childType != OPERATOR_COLON) {
           return Wrap.createWrap(WrappingUtil.getWrapType(mySettings.TERNARY_OPERATION_WRAP), true);
         }
       }
@@ -148,8 +148,8 @@ public class HaxeWrappingProcessor {
 
   private static Wrap createChildWrap(ASTNode child, int parentWrap, boolean newLineAfterLBrace, boolean newLineBeforeRBrace) {
     IElementType childType = child.getElementType();
-    if (childType != PLPAREN && childType != PRPAREN) {
-      if (FormatterUtil.isPrecededBy(child, PLBRACK)) {
+    if (childType != ENCLOSURE_PARENTHESIS_LEFT && childType != ENCLOSURE_PARENTHESIS_RIGHT) {
+      if (FormatterUtil.isPrecededBy(child, ENCLOSURE_BRACKET_LEFT)) {
         if (newLineAfterLBrace) {
           return Wrap.createChildWrap(Wrap.createWrap(parentWrap, true), WrapType.ALWAYS, true);
         }
@@ -159,7 +159,7 @@ public class HaxeWrappingProcessor {
       }
       return Wrap.createWrap(WrappingUtil.getWrapType(parentWrap), true);
     }
-    if (childType == PRBRACK && newLineBeforeRBrace) {
+    if (childType == ENCLOSURE_BRACKET_RIGHT && newLineBeforeRBrace) {
       return Wrap.createWrap(WrapType.ALWAYS, true);
     }
     return Wrap.createWrap(WrapType.NONE, true);

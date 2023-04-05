@@ -44,7 +44,7 @@ public class MissingClassBodyFixer implements Fixer {
       if (psiElement instanceof HaxeClass) {
         fixMissingBody(editor, (HaxeClass)psiElement);
       }
-      else if (psiElement.getNode().getElementType() == HaxeTokenTypes.PLCURLY) {
+      else if (psiElement.getNode().getElementType() == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT) {
         fixPartialBody(editor, psiElement);
       }
     }
@@ -104,7 +104,8 @@ public class MissingClassBodyFixer implements Fixer {
 
   private void fixPartialBody(@NotNull Editor editor, @NotNull HaxeClassBody body) {
     if (!HaxeCodeGenerateUtil.addStringAtErrorElement(editor, body, CLASS_BODY_END)) {
-      HaxeCodeGenerateUtil.addMissingDelimiters(editor, body, HaxeTokenTypes.PLCURLY, HaxeTokenTypes.PRCURLY);
+      HaxeCodeGenerateUtil.addMissingDelimiters(editor, body, HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT,
+                                                HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT);
     }
   }
 }

@@ -280,9 +280,8 @@ public abstract class SpecificTypeReference {
     return isNamedType(CLASS);
   }
   final public boolean isAbstract() {
-    if (this instanceof SpecificHaxeClassReference) {
-      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      return reference.getHaxeClass() instanceof  HaxeAbstractClassDeclaration;
+    if (this instanceof SpecificHaxeClassReference reference) {
+      return reference.getHaxeClass() instanceof HaxeAbstractDeclaration;
     }
     return false;
   }

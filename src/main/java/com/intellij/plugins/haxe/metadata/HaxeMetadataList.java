@@ -15,9 +15,9 @@
  */
 package com.intellij.plugins.haxe.metadata;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetadata;
+import com.intellij.plugins.haxe.lang.psi.HaxeRunTimeMetadata;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataRunTimeMeta;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,13 +49,13 @@ public class HaxeMetadataList extends ArrayList<HaxeMeta> {
   }
 
   @NotNull
-  public List<HaxeMetadataCompileTimeMeta> getCompileTimeMeta() {
-    return collect(HaxeMetadataCompileTimeMeta.class);
+  public List<HaxeCompileTimeMetadata> getCompileTimeMeta() {
+    return collect(HaxeCompileTimeMetadata.class);
   }
 
   @NotNull
-  public List<HaxeMetadataRunTimeMeta> getRunTimeMeta() {
-    return collect(HaxeMetadataRunTimeMeta.class);
+  public List<HaxeRunTimeMetadata> getRunTimeMeta() {
+    return collect(HaxeRunTimeMetadata.class);
   }
 
 

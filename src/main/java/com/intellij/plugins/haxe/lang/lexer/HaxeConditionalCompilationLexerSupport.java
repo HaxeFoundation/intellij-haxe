@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.lang.lexer;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
-
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import lombok.CustomLog;
@@ -28,8 +27,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PPBODY;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 
 /**
  * Support Conditional Compilation for the Haxe language.
@@ -59,10 +58,18 @@ public class HaxeConditionalCompilationLexerSupport {
       if (null == el || el == TokenType.DUMMY_HOLDER) {
         return Type.ROOT;
       }
-      if (el == PPIF)          { return Type.IF; }
-      else if (el == PPELSEIF) { return Type.ELSEIF; }
-      else if (el == PPELSE)   { return Type.ELSE; }
-      else if (el == PPEND)    { return Type.END; }
+      if (el == CONDITIONAL_COMPILATION_IF) {
+        return Type.IF;
+      }
+      else if (el == CONDITIONAL_COMPILATION_ELSEIF) {
+        return Type.ELSEIF;
+      }
+      else if (el == CONDITIONAL_COMPILATION_ELSE) {
+        return Type.ELSE;
+      }
+      else if (el == CONDITIONAL_COMPILATION_END) {
+        return Type.END;
+      }
       else {
         log.debug("Unrecognized compiler conditional is being used.");
       }
@@ -225,7 +232,7 @@ public class HaxeConditionalCompilationLexerSupport {
 
     @Override
     public Block startBlock(IElementType type) {
-      if (type == PPIF) {
+      if (type == CONDITIONAL_COMPILATION_IF) {
         log.debug("Root Section requested to start an invalid block type:" + type.toString());
       }
       return super.startBlock(null);
@@ -236,7 +243,7 @@ public class HaxeConditionalCompilationLexerSupport {
 
   private RootSection rootSection;
   private Section currentContext;
-  private Project projectContext;
+  public Project projectContext;
 
   public HaxeConditionalCompilationLexerSupport(Project context) {
     reset(context);
@@ -283,15 +290,18 @@ public class HaxeConditionalCompilationLexerSupport {
    * @param type Detected token type.
    */
   public void processConditional(CharSequence chars, IElementType type) {
-    if (PPIF.equals(type)) {
+    if (CONDITIONAL_COMPILATION_IF.equals(type)) {
       // Start a new section...
       Section newSection = new Section(currentContext, type);
       currentContext = newSection;
-    } else if (PPELSE.equals(type)) {
+    }
+    else if (CONDITIONAL_COMPILATION_ELSE.equals(type)) {
       currentContext.startBlock(type);
-    } else if (PPELSEIF.equals(type)) {
+    }
+    else if (CONDITIONAL_COMPILATION_ELSEIF.equals(type)) {
       currentContext.startBlock(type);
-    } else if (PPEND.equals(type)) {
+    }
+    else if (CONDITIONAL_COMPILATION_END.equals(type)) {
       currentContext.endBlock(getCurrentBlock());
       Section parent = currentContext.getParent();
       if (null != parent) {

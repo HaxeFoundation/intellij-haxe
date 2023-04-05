@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 import org.jetbrains.changelog.Changelog
-import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 
@@ -152,13 +151,13 @@ tasks {
 
     generateParser{
       dependsOn("generateHaxeParser")
-      dependsOn("generateMetadataParser")
+//      dependsOn("generateMetadataParser")
       dependsOn("generateHxmlParser")
         enabled = false
     }
     generateLexer{
         dependsOn("generateHaxeLexer")
-        dependsOn("generateMetadataLexer")
+//        dependsOn("generateMetadataLexer")
         dependsOn("generateHxmlLexer")
         enabled = false
     }
@@ -190,21 +189,21 @@ tasks.create<GenerateLexerTask>("generateHaxeLexer") {
     targetClass.set("HaxeLexer")
 }
 
-tasks.create<GenerateParserTask>("generateMetadataParser") {
-    group = "parsers"
-    targetRoot.set("src/main/gen")
-    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/parser/metadata.bnf"))
-    pathToParser.set("com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java")
-    pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
+//tasks.create<GenerateParserTask>("generateMetadataParser") {
+//    group = "parsers"
+//    targetRoot.set("src/main/gen")
+//    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/parser/metadata.bnf"))
+//    pathToParser.set("com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java")
+//    pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
+//
+//}
 
-}
-
-tasks.create<GenerateLexerTask>("generateMetadataLexer") {
-    group = "lexers"
-    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
-    targetDir.set("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/")
-    targetClass.set("MetadataLexer")
-}
+//tasks.create<GenerateLexerTask>("generateMetadataLexer") {
+//    group = "lexers"
+//    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
+//    targetDir.set("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/")
+//    targetClass.set("MetadataLexer")
+//}
 
 
 tasks.create<GenerateParserTask>("generateHxmlParser") {

@@ -61,12 +61,12 @@ public class HaxeCommenter implements CodeDocumentationAwareCommenter {
 
   @Override
   public IElementType getLineCommentTokenType() {
-    return HaxeTokenTypeSets.MSL_COMMENT;
+    return HaxeTokenTypeSets.LINE_COMMENT;
   }
 
   @Override
   public IElementType getBlockCommentTokenType() {
-    return HaxeTokenTypeSets.MML_COMMENT;
+    return HaxeTokenTypeSets.BLOCK_COMMENT;
   }
 
   @Override

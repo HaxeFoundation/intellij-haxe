@@ -20,13 +20,13 @@ package com.intellij.plugins.haxe.ide.info;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.parameterInfo.*;
 import com.intellij.openapi.util.Condition;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
@@ -161,7 +161,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     else {
       final String tokenText = place.getText();
 
-      if (tokenText.equals(HaxeTokenTypes.PRPAREN.toString())) {
+      if (tokenText.equals(HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT.toString())) {
         return getExpressionIndexBeforeRightParen(expressionList);
       }
       else {
@@ -206,7 +206,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     final PsiElement commaExpression = (UsefulPsiTreeUtil.getNextSiblingSkippingCondition(list.get(listSize - 1), new Condition<PsiElement>() {
       @Override
       public boolean value(PsiElement element) {
-        return !(element instanceof HaxePsiToken && element.getText().equals(HaxeTokenTypes.OCOMMA.toString()));
+        return !(element instanceof HaxePsiToken && element.getText().equals(HaxeTokenTypes.OPERATOR_COMMA.toString()));
       }
     }, false));
 

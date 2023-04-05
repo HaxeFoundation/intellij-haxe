@@ -23,12 +23,14 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.HaxeCommenter;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
+
 
 /**
  * Created by ebishton on 6/6/17.
@@ -68,22 +70,21 @@ public class HaxeCommentSelectioner extends ExtendWordSelectionHandlerBase {
     assert(commenter instanceof HaxeCommenter);
     final IElementType tokenType = e.getNode().getElementType();
 
-    if (tokenType == HaxeTokenTypeSets.DOC_COMMENT) {
+    if (tokenType == DOC_COMMENT) {
 
       // XXX: Should we be checking that the token is at the beginning or end of the element?
       //      Or, that the line prefix is actually the first thing on the line?
-      return  ((HaxeCommenter)commenter).getDocumentationCommentLinePrefix().contentEquals(token)
-              || ((HaxeCommenter)commenter).getDocumentationCommentPrefix().contentEquals(token)
-              || ((HaxeCommenter)commenter).getDocumentationCommentSuffix().contentEquals(token)
-              // A lot of folks don't use the proper doc comment terminator "**/", and the compiler
-              // accepts a normal block comment terminator "*/".
-              || commenter.getBlockCommentSuffix().contentEquals(token);
+      return ((HaxeCommenter)commenter).getDocumentationCommentLinePrefix().contentEquals(token)
+             || ((HaxeCommenter)commenter).getDocumentationCommentPrefix().contentEquals(token)
+             || ((HaxeCommenter)commenter).getDocumentationCommentSuffix().contentEquals(token)
+             // A lot of folks don't use the proper doc comment terminator "**/", and the compiler
+             // accepts a normal block comment terminator "*/".
+             || commenter.getBlockCommentSuffix().contentEquals(token);
+    }
+    else if (tokenType == HaxeTokenTypeSets.BLOCK_COMMENT) {
 
-    } else if (tokenType == HaxeTokenTypeSets.MML_COMMENT) {
-
-      return  commenter.getBlockCommentPrefix().contentEquals(token)
-              || commenter.getBlockCommentSuffix().contentEquals(token);
-
+      return commenter.getBlockCommentPrefix().contentEquals(token)
+             || commenter.getBlockCommentSuffix().contentEquals(token);
     }
     return commenter.getLineCommentPrefix().contentEquals(token);
   }

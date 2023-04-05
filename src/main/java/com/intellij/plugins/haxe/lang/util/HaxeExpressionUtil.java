@@ -18,11 +18,10 @@ package com.intellij.plugins.haxe.lang.util;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
@@ -72,7 +71,7 @@ public class HaxeExpressionUtil {
     final PsiElement parent = PsiTreeUtil.skipParentsOfType(expr, HaxeParenthesizedExpression.class);
     return !(parent instanceof HaxeAssignExpression) ||
            !PsiTreeUtil.isAncestor(((HaxeAssignExpression)parent).getExpressionList().get(0), expr, false) ||
-           getAssignOperationElementType((HaxeAssignExpression)parent) != HaxeTokenTypes.OASSIGN;
+           getAssignOperationElementType((HaxeAssignExpression)parent) != HaxeTokenTypes.OPERATOR_ASSIGN;
   }
 
   @Nullable
@@ -164,17 +163,17 @@ public class HaxeExpressionUtil {
       if (null == type) {  // Optimize failure case.
         return ConstantClass.NOT_CONSTANT;
       }
-      if (type == HaxeTokenTypes.KTRUE
-          ||  type == HaxeTokenTypes.KFALSE) {
+      if (type == HaxeTokenTypes.KEYWORD_TRUE
+          || type == HaxeTokenTypes.KEYWORD_FALSE) {
         return ConstantClass.BOOLEAN;
       }
-      if (type == HaxeTokenTypes.KNULL) {
+      if (type == HaxeTokenTypes.KEYWORD_NULL) {
         return ConstantClass.NULL;
       }
-      if (type == HaxeTokenTypes.LITFLOAT
-          ||  type == HaxeTokenTypes.LITINT
-          ||  type == HaxeTokenTypes.LITHEX
-          ||  type == HaxeTokenTypes.LITOCT) {
+      if (type == HaxeTokenTypes.LITERAL_FLOAT
+          || type == HaxeTokenTypes.LITERAL_INTEGER
+          || type == HaxeTokenTypes.LITERAL_HEXADECIMAL
+          || type == HaxeTokenTypes.LITERAL_OCTAL) {
         return ConstantClass.NUMERIC;
       }
       if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
@@ -193,8 +192,8 @@ public class HaxeExpressionUtil {
     if (is_type(expr, HaxeStringLiteralExpression.class)) {
       // If there are $vars in string, then they are not constants.
       // It doesn't matter whether $var points to a constant, the string is still not constant.
-      return ((HaxeStringLiteralExpression)expr).getLongTemplateEntryList().isEmpty() &&
-             ((HaxeStringLiteralExpression)expr).getShortTemplateEntryList().isEmpty()
+      return ((HaxeStringLiteralExpression)expr).getLongStringInterpolationEntryList().isEmpty() &&
+             ((HaxeStringLiteralExpression)expr).getShortStringInterpolationEntryList().isEmpty()
              ? ConstantClass.STRING
              : ConstantClass.NOT_CONSTANT;
     }
@@ -208,9 +207,9 @@ public class HaxeExpressionUtil {
       // Only, negation ('-'), not ('!'), and bitwise complement ('~') are allowed.
       PsiElement child = expr.getFirstChild();
       IElementType type = null != child ? child.getNode().getElementType() : null;
-      if (HaxeTokenTypes.OMINUS.equals(type) ||
-          HaxeTokenTypes.ONOT.equals(type) ||
-          HaxeTokenTypes.OCOMPLEMENT.equals(type)) {
+      if (HaxeTokenTypes.OPERATOR_MINUS.equals(type) ||
+          HaxeTokenTypes.OPERATOR_NOT.equals(type) ||
+          HaxeTokenTypes.OPERATOR_COMPLEMENT.equals(type)) {
         return classifyConstantExpression(((HaxePrefixExpression)expr).getExpression());
       }
       return ConstantClass.NOT_CONSTANT;

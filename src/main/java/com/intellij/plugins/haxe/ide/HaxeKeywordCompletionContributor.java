@@ -24,12 +24,12 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
@@ -138,20 +138,20 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
     result.addAll(state.items);
 
     // always
-    result.add(HaxeTokenTypes.PPIF.toString());
-    result.add(HaxeTokenTypes.PPELSE.toString());
-    result.add(HaxeTokenTypes.PPELSEIF.toString());
-    result.add(HaxeTokenTypes.PPERROR.toString());
+    result.add(HaxeTokenTypes.CONDITIONAL_COMPILATION_IF.toString());
+    result.add(HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSE.toString());
+    result.add(HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSEIF.toString());
+    result.add(HaxeTokenTypes.CONDITIONAL_COMPILATION_ERROR.toString());
     return result;
   }
 
   @NotNull
   private static Collection<? extends String> suggestBySibling(@Nullable PsiElement sibling) {
     if (HaxeIfStatement.class.isInstance(sibling)) {
-      return Collections.singletonList(HaxeTokenTypes.KELSE.toString());
+      return Collections.singletonList(HaxeTokenTypes.KEYWORD_ELSE.toString());
     }
     else if (HaxeTryStatement.class.isInstance(sibling) || HaxeCatchStatement.class.isInstance(sibling)) {
-      return Collections.singletonList(HaxeTokenTypes.KCATCH.toString());
+      return Collections.singletonList(HaxeTokenTypes.KEYWORD_CATCH.toString());
     }
 
     return Collections.emptyList();

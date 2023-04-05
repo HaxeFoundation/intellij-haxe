@@ -20,7 +20,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -30,17 +29,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class HaxeAbstractClassModel extends HaxeClassModel {
+public class HaxeAbstractTypeModel extends HaxeClassModel {
   private static final Logger LOG = Logger.getLogger("#HaxeAbstractClassModel");
 
-  public HaxeAbstractClassModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
+  public HaxeAbstractTypeModel(@NotNull HaxeAbstractDeclaration haxeClass) {
     super(haxeClass);
   }
 
   @Nullable
   @Override
   public HaxePsiCompositeElement getBodyPsi() {
-    return getAbstractClassBody();
+    return getAbstractTypeBody();
   }
 
   public boolean hasForwards() {
@@ -48,7 +47,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public HaxeClass getUnderlyingClass(@Nullable final HaxeGenericResolver resolver) {
-    HaxeUnderlyingType underlyingTypePsi = getAbstractClass().getUnderlyingType();
+    HaxeUnderlyingType underlyingTypePsi = getAbstractType().getUnderlyingType();
     if (underlyingTypePsi == null) {
       // Null is a special type with no declared underlying class, but the generic
       // declares the underlying type.  (e.g. Underlying class for "Null<String>" is "String").
@@ -85,12 +84,12 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return underlyingClass;
   }
 
-  public HaxeAbstractClassDeclaration getAbstractClass() {
-    return (HaxeAbstractClassDeclaration)getBasePsi();
+  public HaxeAbstractDeclaration getAbstractType() {
+    return (HaxeAbstractDeclaration)getBasePsi();
   }
 
-  protected HaxeAbstractBody getAbstractClassBody() {
-    return getAbstractClass().getAbstractBody();
+  protected HaxeAbstractBody getAbstractTypeBody() {
+    return getAbstractType().getAbstractBody();
   }
 
   public boolean isForwarded(String name) {

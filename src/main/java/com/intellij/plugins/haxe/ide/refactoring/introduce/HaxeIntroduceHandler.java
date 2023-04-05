@@ -1,8 +1,7 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
+ * Copyright 2014-2023 AS3Boyan
  * Copyright 2014-2014 Elias Ku
- * Copyright 2018-2020 Eric Bishton
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -180,7 +179,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   private boolean elementIsSemicolon(PsiElement element) {
     ASTNode node = null == element ? null : element.getNode();
     IElementType type = null == node ? null : node.getElementType();
-    return HaxeTokenTypes.OSEMI.equals(type);
+    return HaxeTokenTypes.OPERATOR_SEMICOLON.equals(type);
   }
 
   protected boolean checkIntroduceContext(PsiFile file, Editor editor, PsiElement element) {

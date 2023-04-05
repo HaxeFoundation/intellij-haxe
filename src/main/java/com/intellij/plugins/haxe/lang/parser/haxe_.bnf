@@ -1,3 +1,20 @@
+/*
+ * Copyright 2000-2013 JetBrains s.r.o.
+ * Copyright 2014-2023 AS3Boyan
+ * Copyright 2014-2014 Elias Ku
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 {
     parserClass="com.intellij.plugins.haxe.lang.parser.HaxeParser"
     parserUtilClass="com.intellij.plugins.haxe.lang.parser.utils.HaxeGeneratedParserUtilBase"
@@ -213,6 +230,8 @@ private cc ::= CC_BAD_CHARACTER | CC_LITERAL_INTEGER | CC_LITERAL_HEXADECIMAL | 
 private cc_ex ::=  CONDITIONAL_ID |CONDITIONAL_COMPILATION_EXPRESSION_START | CONDITIONAL_COMPILATION_EXPRESSION_END | CC_ENCLOSURE_PARENTHESIS_LEFT | CC_ENCLOSURE_PARENTHESIS_RIGHT |CC_OPERATOR_DOT | CC_OPERATOR_COMMA
 private cc_STR ::=  CC_OPEN_QUOTE |CC_OPEN_APOSTROPHE | CC_REGULAR_STRING_PART| CC_CLOSING_QUOTE| CC_CLOSING_APOSTROPHE|CC_STRING_ESCAPE
 
+// included just for the sake of generating ElementTypes
+//private comment ::= (DOC_COMMENT | BLOCK_COMMENT | LINE_COMMENT)
 
 //private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
 ppConditionalStatement ::= (cc | cc_ex)* { recoverWhile=ppConditionalStatement_recover}
@@ -290,13 +309,11 @@ private topLevel ::= importStatement | usingStatement |  (metadataDeclaration* t
 private top_level_recover ::= !(ppToken | metadataDeclaration | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | 'final' | 'function' |  'var' )
 
 
-metadataDeclaration ::= (compileTimeMetadata | runTimeMetadata)
+private metadataDeclaration ::= (compileTimeMetadata | runTimeMetadata)
 metadataType ::= META_TYPE
 metadataContent ::= (metadataCompiletimeContent | metadataRuntimeContent)
-//private metadataCompiletimeContent ::='(' compileTimeMetaArgList ')'
-//private metadataRuntimeContent ::='('runTimeMetaArgList ')'
-private metadataCompiletimeContent ::=METADATA_PARENTHESIS_LEFT compileTimeMetaArgList METADATA_PARENTHESIS_RIGHT
-private metadataRuntimeContent ::=METADATA_PARENTHESIS_LEFT runTimeMetaArgList METADATA_PARENTHESIS_RIGHT
+private metadataCompiletimeContent ::='('compileTimeMetaArgList ')'
+private metadataRuntimeContent ::='('runTimeMetaArgList ')'
 
 compileTimeMetadata  ::= COMPILE_META_PREFIX META_TYPE metadataCompiletimeContent? {pin=1}
 runTimeMetadata ::= RUNTIME_META_PREFIX META_TYPE metadataRuntimeContent? {pin=1}
@@ -390,6 +407,8 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 moduleDeclaration ::= moduleBody
 {
     pin=1
+    mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+    implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
 }
 
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
@@ -702,7 +721,7 @@ macroShorthandExpReification::= DOLLAR "{" expression "}" // shorthand for $e / 
 //private dummy::= MACRO_EXP; //TODO mlo do we need this
 private macroStatementWrapper ::= "{" expression "}"
 
-macroExpressionReification::=  (metadataDeclaration)* (macroShorthandExpReification | macroArrayReification | macroBlockReification | macroIdentifierReification | macroFieldReification  | macroDynamicReification | macroExpReification  ) {pin=2} //todo add  this ? |  macroExpressionReification
+macroExpressionReification::=  (metadataDeclaration)* (macroShorthandExpReification | macroArrayReification | macroBlockReification | macroIdentifierReification | macroFieldReification  | macroDynamicReification | macroExpReification |  macroExpressionReification ) {pin=2}
 
 //Class Reification
 macroClassReification ::= 'macro' topLevelDeclaration
@@ -804,7 +823,7 @@ continueStatement ::= 'continue' ';'
 
 throwStatement ::= 'throw' expression ';'?
 
-switchStatement ::= 'switch' expression switchBlock {pin=2}
+switchStatement ::= 'switch' expression switchBlock
 switchBlock ::= '{' (switchCase | defaultCase)* '}'
 
 switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) | statementList
@@ -815,9 +834,9 @@ switchCaseExtractor ::= switchCaseObjectExtractor | switchCaseVariableCapture
 switchCaseObjectExtractor ::= identifier  '(' expression '=>' expression ')' {pin=4 extends="expression"}
 switchCaseVariableCapture ::= callOrArrayAccess '=>' expression  {pin=2 extends="expression"}
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
-switchCaseCaptureVar ::= mutabilityModifier+ componentName varInit? {pin=2 extends="localVarDeclaration"}
+switchCaseCaptureVar ::= mutabilityModifier+ componentName varInit? {extends="localVarDeclaration"}
 private switch_case_recover ::= !('case' | 'default' | '}' | ID)
-defaultCase ::= 'default' ':' switchCaseBlock? {pin=2 extends="switchCase"}
+defaultCase ::= 'default' ':' switchCaseBlock? {pin=1 extends="switchCase"}
 
 guard ::= 'if' '(' expression ')'
 private guard_recovery ::= !('(' | ')' | '{')
@@ -859,9 +878,8 @@ private expression_list_recover ::= !(')' | ']' | '}')
 
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | shiftRightOperator | unsignedShiftRightOperator | '>=' | shiftRightAssignOperator | unsignedShiftRightAssignOperator | '?' | metaKeyWord | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITERAL_FLOAT | LITERAL_HEXADECIMAL | LITERAL_INTEGER | LITERAL_OCTAL | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_INTERPOLATION_ENTRY_END | '=>' | OPERATOR_FAT_ARROW)
 
-//(metadataDeclaration)*
-expression ::=
-             (
+expression ::=(metadataDeclaration)*
+             ( isTypeExpression
              | assignExpression
              | iteratorExpression
              | ternaryExpression
@@ -873,20 +891,17 @@ expression ::=
              | additiveExpression
              | multiplicativeExpression
              | moduloExpression
-             | isTypeExpression         // With Haxe 4.2, won't compile with prefix; lower than postfix or value.
              | prefixExpression
              | postfixExpression
              | valueExpression !suffixOperator !assignableOperator
              )
              { extraRoot=true recoverWhile=expression_recover}
 
-assignExpression ::= expression assignOperation expression                    {pin=2 rightAssociative=true extends=binaryExpression}
-isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  {pin=2  methods=[ leftExpression="/expression[0]" operator="isOperator"] }
-iteratorExpression ::= expression iteratorOperator expression                 {pin=2  extends=binaryExpression }
+assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
+isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="/expression[0]" operator="isOperator"] }
+iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
 ternaryExpression ::= expression questionOperator expression colonOperator expression
-  {
-    pin=2
-    rightAssociative=true
+  { rightAssociative=true
     methods=[ guardExpression="/expression[0]"
               guardedExpression="/expression[1]"
               elseExpression="/expression[2]"]

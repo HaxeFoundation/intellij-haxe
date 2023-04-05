@@ -21,9 +21,8 @@ import com.intellij.lexer.Lexer;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.lexer.HaxeHighlightingLexer;
+import com.intellij.plugins.haxe.lang.lexer.HaxeLexerAdapter;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,49 +46,49 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     fillMap(ATTRIBUTES, HaxeTokenTypeSets.KEYWORDS, HaxeSyntaxHighlighterColors.KEYWORD);
     fillMap(ATTRIBUTES, HaxeTokenTypeSets.OPERATORS, HaxeSyntaxHighlighterColors.OPERATION_SIGN);
 
-    ATTRIBUTES.put(LITINT, HaxeSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(LITHEX, HaxeSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(LITOCT, HaxeSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(KFALSE, HaxeSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(KTRUE, HaxeSyntaxHighlighterColors.NUMBER);
-    ATTRIBUTES.put(LITFLOAT, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(LITERAL_INTEGER, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(LITERAL_HEXADECIMAL, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(LITERAL_OCTAL, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(KEYWORD_FALSE, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(KEYWORD_TRUE, HaxeSyntaxHighlighterColors.NUMBER);
+    ATTRIBUTES.put(LITERAL_FLOAT, HaxeSyntaxHighlighterColors.NUMBER);
 
     ATTRIBUTES.put(OPEN_QUOTE, HaxeSyntaxHighlighterColors.STRING);
     ATTRIBUTES.put(CLOSING_QUOTE, HaxeSyntaxHighlighterColors.STRING);
     ATTRIBUTES.put(REGULAR_STRING_PART, HaxeSyntaxHighlighterColors.STRING);
 
-    ATTRIBUTES.put(PLPAREN, HaxeSyntaxHighlighterColors.PARENTHS);
-    ATTRIBUTES.put(PRPAREN, HaxeSyntaxHighlighterColors.PARENTHS);
+    ATTRIBUTES.put(ENCLOSURE_PARENTHESIS_LEFT, HaxeSyntaxHighlighterColors.PARENTHS);
+    ATTRIBUTES.put(ENCLOSURE_PARENTHESIS_RIGHT, HaxeSyntaxHighlighterColors.PARENTHS);
 
-    ATTRIBUTES.put(PLCURLY, HaxeSyntaxHighlighterColors.BRACES);
-    ATTRIBUTES.put(PRCURLY, HaxeSyntaxHighlighterColors.BRACES);
+    ATTRIBUTES.put(ENCLOSURE_CURLY_BRACKET_LEFT, HaxeSyntaxHighlighterColors.BRACES);
+    ATTRIBUTES.put(ENCLOSURE_CURLY_BRACKET_RIGHT, HaxeSyntaxHighlighterColors.BRACES);
 
-    ATTRIBUTES.put(PLBRACK, HaxeSyntaxHighlighterColors.BRACKETS);
-    ATTRIBUTES.put(PRBRACK, HaxeSyntaxHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(ENCLOSURE_BRACKET_LEFT, HaxeSyntaxHighlighterColors.BRACKETS);
+    ATTRIBUTES.put(ENCLOSURE_BRACKET_RIGHT, HaxeSyntaxHighlighterColors.BRACKETS);
 
-    ATTRIBUTES.put(OCOMMA, HaxeSyntaxHighlighterColors.COMMA);
-    ATTRIBUTES.put(ODOT, HaxeSyntaxHighlighterColors.DOT);
-    ATTRIBUTES.put(OSEMI, HaxeSyntaxHighlighterColors.SEMICOLON);
+    ATTRIBUTES.put(OPERATOR_COMMA, HaxeSyntaxHighlighterColors.COMMA);
+    ATTRIBUTES.put(CC_OPERATOR_DOT, HaxeSyntaxHighlighterColors.DOT);
+    ATTRIBUTES.put(OPERATOR_SEMICOLON, HaxeSyntaxHighlighterColors.SEMICOLON);
 
-    ATTRIBUTES.put(HaxeTokenTypeSets.MML_COMMENT, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
-    ATTRIBUTES.put(HaxeTokenTypeSets.MSL_COMMENT, HaxeSyntaxHighlighterColors.LINE_COMMENT);
+    ATTRIBUTES.put(HaxeTokenTypeSets.BLOCK_COMMENT, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
+    ATTRIBUTES.put(HaxeTokenTypeSets.LINE_COMMENT, HaxeSyntaxHighlighterColors.LINE_COMMENT);
     ATTRIBUTES.put(HaxeTokenTypeSets.DOC_COMMENT, HaxeSyntaxHighlighterColors.DOC_COMMENT);
 
     fillMap(ATTRIBUTES, HaxeTokenTypeSets.BAD_TOKENS, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
     fillMap(ATTRIBUTES, HaxeTokenTypeSets.CONDITIONALLY_NOT_COMPILED, HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
 
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.CT_META_PREFIX,  HaxeSyntaxHighlighterColors.METADATA);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.RT_META_PREFIX, HaxeSyntaxHighlighterColors.METADATA);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.META_TYPE, HaxeSyntaxHighlighterColors.METADATA);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.PLPAREN, HaxeSyntaxHighlighterColors.METADATA);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.PRPAREN,  HaxeSyntaxHighlighterColors.METADATA);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.INVALID_META_CHARACTER, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
-    ATTRIBUTES.put(HaxeMetadataTokenTypes.EXTRA_DATA, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.CT_META_PREFIX,  HaxeSyntaxHighlighterColors.METADATA);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.RT_META_PREFIX, HaxeSyntaxHighlighterColors.METADATA);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.META_TYPE, HaxeSyntaxHighlighterColors.METADATA);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.PLPAREN, HaxeSyntaxHighlighterColors.METADATA);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.PRPAREN,  HaxeSyntaxHighlighterColors.METADATA);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.INVALID_META_CHARACTER, HaxeSyntaxHighlighterColors.BAD_CHARACTER);
+    //ATTRIBUTES.put(HaxeMetadataTokenTypes.EXTRA_DATA, HaxeSyntaxHighlighterColors.BLOCK_COMMENT);
   }
 
   @NotNull
   public Lexer getHighlightingLexer() {
-    return new HaxeHighlightingLexer(myProject);
+    return new HaxeLexerAdapter(myProject);
   }
 
   @NotNull

@@ -18,6 +18,8 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
@@ -25,9 +27,6 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +68,9 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   @NotNull
   List<HaxeType> getHaxeImplementsList();
 
-  boolean isAbstract();
+  boolean isAbstractType();
+
+  boolean isAbstractClass();
 
   boolean isExtern();
 
@@ -123,10 +124,10 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   }
 
   default boolean hasCompileTimeMeta(HaxeMetadataTypeName meta) {
-    return HaxeMetadataUtils.hasMeta(this, HaxeMetadataCompileTimeMeta.class, meta);
+    return HaxeMetadataUtils.hasMeta(this, HaxeCompileTimeMetadata.class, meta);
   }
 
   default HaxeMetadataList getCompileTimeMeta(HaxeMetadataTypeName meta) {
-    return HaxeMetadataUtils.getMetadataList(this, HaxeMetadataCompileTimeMeta.class, meta);
+    return HaxeMetadataUtils.getMetadataList(this, HaxeCompileTimeMetadata.class, meta);
   }
 }

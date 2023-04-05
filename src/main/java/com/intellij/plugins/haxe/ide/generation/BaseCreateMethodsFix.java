@@ -21,10 +21,10 @@ import com.intellij.codeInsight.FileModificationService;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.ide.HaxeNamedElementNode;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiParserFacade;
@@ -34,7 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.PRCURLY;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT;
+
 
 /**
  * @author: Fedor.Korotkov
@@ -72,7 +73,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
       // just before the closing bracket, or after the last detected position if there
       // is no closing bracket.
       ASTNode lastChild = bodyPsi.getNode().getLastChildNode();
-      if (null != lastChild && lastChild.getElementType() == PRCURLY) {
+      if (null != lastChild && lastChild.getElementType() == ENCLOSURE_CURLY_BRACKET_RIGHT) {
         ASTNode prev = lastChild.getTreePrev();
         if (null != prev) {
           lastChild = prev;
@@ -128,9 +129,9 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   }
 
   protected PsiElement addNewlineIfAnchorIsAtOpenCurly(PsiElement anchor) {
-    if (anchor.getNode().getElementType() == HaxeTokenTypes.PLCURLY) {
+    if (anchor.getNode().getElementType() == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT) {
       final PsiElement endingNewLineNode =
-              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+        PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
       anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;
@@ -138,9 +139,9 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   protected PsiElement addNewlineIfNoneBeforeEndCurly(PsiElement anchor) {
     ASTNode next = anchor.getNode().getTreeNext();
-    if (next.getElementType() == PRCURLY) {
+    if (next.getElementType() == ENCLOSURE_CURLY_BRACKET_RIGHT) {
       final PsiElement endingNewLineNode =
-              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+        PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
       anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;

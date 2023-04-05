@@ -18,15 +18,10 @@
 package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.LanguageASTFactory;
-import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
-import com.intellij.mock.MockApplication;
 import com.intellij.mock.MockDumbService;
-import com.intellij.mock.MockFileTypeManager;
-import com.intellij.mock.MockLanguageFileType;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.AreaInstance;
 import com.intellij.openapi.extensions.ExtensionPointName;
 import com.intellij.openapi.extensions.Extensions;
@@ -36,22 +31,22 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
+import com.intellij.plugins.haxe.lang.parser.utils.HaxeAstFactory;
+import com.intellij.plugins.haxe.lang.parser.utils.HaxeParserDefinition;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
-import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.impl.source.tree.injected.InjectedLanguageManagerImpl;
 import com.intellij.testFramework.ParsingTestCase;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.picocontainer.MutablePicoContainer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 abstract public class HaxeParsingTestBase extends ParsingTestCase {
   public HaxeParsingTestBase(String... path) {
-    super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition(), new HaxeMetadataParserDefinition());
+    super(getPath(path), HaxeFileType.DEFAULT_EXTENSION, new HaxeParserDefinition());
   }
 
   @Override
@@ -61,7 +56,6 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeLanguage.INSTANCE, astFactory);
     addExplicitExtension(LanguageASTFactory.INSTANCE, HaxeMetadataLanguage.INSTANCE, astFactory);
 
-    registerMetadataParser();
 
     // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
     // was registered, null was passed to a @NotNull function.  This affected testSimple().
@@ -76,28 +70,6 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     InjectedLanguageManagerImpl manager = new InjectedLanguageManagerImpl(myProject);
     myProject.registerService(DumbService.class, MockDumbService.class);
     myProject.registerService(InjectedLanguageManager.class, manager);
-  }
-
-  private <T> void registerMetadataParser() {
-    // Get the metadata parser added because only the first language definition is added by the super.setUp call.
-    // This is basically what configureFromParserDefinition does, but without overriding the globals.
-    HaxeMetadataParserDefinition metaParser = new HaxeMetadataParserDefinition();
-    addExplicitExtension(LanguageParserDefinitions.INSTANCE, HaxeMetadataLanguage.INSTANCE, metaParser);
-
-    //registerComponentInstance(((MockApplicationEx)ApplicationManager.getApplication()).getPicoContainer(), FileTypeManager.class,
-    //                          new MockFileTypeManager(new MockLanguageFileType(HaxeMetadataLanguage.INSTANCE, HaxeFileType.DEFAULT_EXTENSION)));
-    MutablePicoContainer picoContainer = ((MockApplication)ApplicationManager.getApplication()).getPicoContainer();
-    MockFileTypeManager typeManager =
-      new MockFileTypeManager(new MockLanguageFileType(HaxeMetadataLanguage.INSTANCE, HaxeFileType.DEFAULT_EXTENSION));
-
-    //TODO figureout if registerComponentInstance was removed
-    //try {
-    //  MethodWrapper<Object> rci = new MethodWrapper<>(HaxeParsingTestBase.class, true, "registerComponentInstance",
-    //                                        MutablePicoContainer.class, Class.class, Object.class);
-    //  rci.invoke(this, picoContainer, FileTypeManager.class, typeManager);
-    //} catch (UnsupportedMethodException ex) {
-    //  assertEmpty(ex.getLocalizedMessage());
-    //}
   }
 
   private static ExtensionsAreaImpl getExtensionArea(@Nullable("null means root") AreaInstance areaInstance) {

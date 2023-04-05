@@ -15,14 +15,13 @@
  */
 package com.intellij.plugins.haxe.metadata.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetaArg;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeCompileTimeMetadata;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
-
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -37,13 +36,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.EMBEDDED_META;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.METADATA_DECLARATION;
+
 
 @CustomLog
 public class HaxeMetadataUtils {
 
 
-  private HaxeMetadataUtils() {}
+  private HaxeMetadataUtils() {
+  }
 
   /**
    * Retrieve metadata from the element, if any.  Runtime metadata can be accessed at run-time via reflection or DynamicAccess.
@@ -130,7 +131,7 @@ public class HaxeMetadataUtils {
   private static void findPrevMeta(PsiElement self, Consumer<HaxeMeta> lambda) {
     if (null == self || null == lambda) return;
     PsiElement prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(self, true);
-    if (null != prev && EMBEDDED_META == prev.getNode().getElementType()) {
+    if (null != prev && METADATA_DECLARATION == prev.getNode().getElementType()) {
       findPrevMeta(prev, lambda);
       PsiElement metaElement = prev.getFirstChild();
       if (metaElement instanceof HaxeMeta) {
@@ -148,7 +149,7 @@ public class HaxeMetadataUtils {
    */
   public static boolean hasMeta(PsiElement element) {
     PsiElement prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(element, true);
-    return prev != null && EMBEDDED_META == prev.getNode().getElementType();
+    return prev != null && METADATA_DECLARATION == prev.getNode().getElementType();
   }
 
   /**
@@ -193,18 +194,14 @@ public class HaxeMetadataUtils {
 
   @NotNull
   public static List<HaxeExpression> getCompileTimeExpressions(@Nullable HaxeMetadataContent content) {
-    List<HaxeExpression> expressions = null;
+    List<HaxeExpression> expressions = new ArrayList<>();
     if (null != content) {
-      PsiElement metaArgs = UsefulPsiTreeUtil.getChild(content, HaxeMetadataTokenTypes.CT_META_ARGS);
+      PsiElement metaArgs = UsefulPsiTreeUtil.getChild(content, HaxeTokenTypes.METADATA_PARENTHESIS_LEFT);
       if (null != metaArgs) {
         for (PsiElement arg : metaArgs.getChildren()) {
-          if (arg instanceof HaxeCompileTimeMetaArg) {
-            HaxeCompileTimeMetaArg metaArg = (HaxeCompileTimeMetaArg)arg;
-            HaxeExpression expression = metaArg.getExpression();
-            if (null == expressions) {
-              expressions = new ArrayList<>();
-            }
-            expressions.add(expression);
+          //TODO mlo : verify
+          if (arg instanceof HaxeCompileTimeMetadata meta) {
+            expressions.addAll(meta.getExpressionList());
           }
         }
       }
@@ -215,15 +212,15 @@ public class HaxeMetadataUtils {
   @Nullable
   public static PsiElement getAssociatedElement(HaxeMeta meta) {
     if (null == meta) return null;
-    PsiElement holder = UsefulPsiTreeUtil.getParent(meta, EMBEDDED_META);
+    PsiElement holder = UsefulPsiTreeUtil.getParent(meta, METADATA_DECLARATION);
     return findAssociatedElement(holder);
   }
 
   @Nullable
   public static PsiElement getAssociatedElement(PsiElement element) {
     if (null == element) return null;
-    if (element.getNode().getElementType() != EMBEDDED_META) {
-      element = UsefulPsiTreeUtil.getParent(element, EMBEDDED_META);
+    if (element.getNode().getElementType() != METADATA_DECLARATION) {
+      element = UsefulPsiTreeUtil.getParent(element, METADATA_DECLARATION);
       if (null == element) return null;
     }
     return findAssociatedElement(element);
@@ -232,11 +229,11 @@ public class HaxeMetadataUtils {
   @Nullable
   private static PsiElement findAssociatedElement(PsiElement element) {
     if (null == element) return null;
-    if (element.getNode().getElementType() != EMBEDDED_META) {
+    if (element.getNode().getElementType() != METADATA_DECLARATION) {
       log.error("Internal error: Not an embedded meta.");
     }
     PsiElement next = element;
-    while (null != next && next.getNode().getElementType() == EMBEDDED_META) {
+    while (null != next && next.getNode().getElementType() == METADATA_DECLARATION) {
       next = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(next);
       if (next instanceof PsiFile) {
         next = null;

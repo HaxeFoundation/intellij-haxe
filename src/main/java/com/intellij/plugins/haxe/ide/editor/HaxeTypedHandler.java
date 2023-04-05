@@ -20,17 +20,17 @@ package com.intellij.plugins.haxe.ide.editor;
 import com.intellij.codeInsight.AutoPopupController;
 import com.intellij.codeInsight.CodeInsightSettings;
 import com.intellij.codeInsight.completion.CompletionType;
-import com.intellij.codeInsight.editorActions.TypedHandlerUtil;
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate;
+import com.intellij.codeInsight.editorActions.TypedHandlerUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.tree.TokenSet;
@@ -39,7 +39,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class HaxeTypedHandler extends TypedHandlerDelegate {
   private static final TokenSet INVALID_INSIDE_REFERENCE =
-    TokenSet.create(HaxeTokenTypes.OSEMI, HaxeTokenTypes.PLCURLY, HaxeTokenTypes.PRCURLY);
+    TokenSet.create(HaxeTokenTypes.OPERATOR_SEMICOLON, HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT,
+                    HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT);
 
   private boolean myAfterTypeOrComponentName = false;
   private boolean myAfterDollar = false;
@@ -58,7 +59,8 @@ public class HaxeTypedHandler extends TypedHandlerDelegate {
     }
     if (c == '>') {
       if (CodeInsightSettings.getInstance().AUTOINSERT_PAIR_BRACKET &&
-          TypedHandlerUtil.handleGenericGT(editor, HaxeTokenTypes.OLESS, HaxeTokenTypes.OGREATER, INVALID_INSIDE_REFERENCE)) {
+          TypedHandlerUtil.handleGenericGT(editor, HaxeTokenTypes.OPERATOR_LESS, HaxeTokenTypes.OPERATOR_GREATER,
+                                           INVALID_INSIDE_REFERENCE)) {
         return Result.STOP;
       }
     }

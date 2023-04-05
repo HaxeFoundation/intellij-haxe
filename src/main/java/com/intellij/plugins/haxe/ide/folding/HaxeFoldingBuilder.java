@@ -24,12 +24,12 @@ import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.plugins.haxe.ide.HaxeCommenter;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
@@ -243,23 +243,26 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     for (RegionMarker marker : regionMarkers) {
       IElementType type = marker.node.getElementType();
 
-      if (PPEND == type) {
+      if (CONDITIONAL_COMPILATION_END == type) {
         if (null != inProcess) {
           buildCCRegion(descriptors, inProcess, marker, document);
         }
         if (!interruptedStack.isEmpty()) {
           inProcess = interruptedStack.pop();
         }
-      } else {
+      }
+      else {
         // No matter where we start (e.g. #else instead of #if), we just go to the next marker...
         if (null == inProcess) {
           inProcess = marker;
-        } else {
+        }
+        else {
           // #if introduces a new level.  Other kinds do not.
-          if (PPIF == type) {
+          if (CONDITIONAL_COMPILATION_IF == type) {
             interruptedStack.push(inProcess);
             inProcess = marker;
-          } else {
+          }
+          else {
             buildCCRegion(descriptors, inProcess, marker, document);
             inProcess = marker;
           }
@@ -285,10 +288,10 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static String stripComment(IElementType elementType, String text) {
-    if (elementType == HaxeTokenTypeSets.MSL_COMMENT) {
+    if (elementType == HaxeTokenTypeSets.LINE_COMMENT) {
       return strip(text, HaxeCommenter.SINGLE_LINE_PREFIX, null);
     }
-    if (elementType == HaxeTokenTypeSets.MML_COMMENT) {
+    if (elementType == HaxeTokenTypeSets.BLOCK_COMMENT) {
       text = HaxeStringUtil.terminateAt(text, '\n');
       return strip(text.trim(), HaxeCommenter.BLOCK_COMMENT_PREFIX, HaxeCommenter.BLOCK_COMMENT_SUFFIX);
     }
@@ -372,9 +375,14 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace) {
     TextRange textRange;
-    if (openBrace != null && closeBrace != null && openBrace.getElementType() == PLCURLY && closeBrace.getElementType() == PRCURLY) {
+    if (openBrace != null &&
+        closeBrace != null &&
+        openBrace.getElementType() == ENCLOSURE_CURLY_BRACKET_LEFT &&
+        closeBrace.getElementType() ==
+        ENCLOSURE_CURLY_BRACKET_RIGHT) {
       textRange = new TextRange(openBrace.getTextRange().getEndOffset(), closeBrace.getStartOffset());
-    } else {
+    }
+    else {
       textRange = node.getTextRange();
     }
 

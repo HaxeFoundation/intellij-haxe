@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.parser;
+package com.intellij.plugins.haxe.lang.parser.utils;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespaceSkippedCallback;
@@ -54,23 +54,24 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
   }
 
   public static boolean shiftRight(PsiBuilder builder_, int level_) {
-    return parseOperator(builder_, OSHIFT_RIGHT, OGREATER, OGREATER);
+    return parseOperator(builder_, OPERATOR_SHIFT_RIGHT, OPERATOR_GREATER, OPERATOR_GREATER);
   }
 
   public static boolean shiftRightAssign(PsiBuilder builder_, int level_) {
-    return parseOperator(builder_, OSHIFT_RIGHT_ASSIGN, OGREATER, OGREATER, OASSIGN);
+    return parseOperator(builder_, OPERATOR_SHIFT_RIGHT_ASSIGN, OPERATOR_GREATER, OPERATOR_GREATER, OPERATOR_ASSIGN);
   }
 
   public static boolean unsignedShiftRight(PsiBuilder builder_, int level_) {
-    return parseOperator(builder_, OUNSIGNED_SHIFT_RIGHT, OGREATER, OGREATER, OGREATER);
+    return parseOperator(builder_, OPERATOR_UNSIGNED_SHIFT_RIGHT, OPERATOR_GREATER, OPERATOR_GREATER, OPERATOR_GREATER);
   }
 
   public static boolean unsignedShiftRightAssign(PsiBuilder builder_, int level_) {
-    return parseOperator(builder_, OUNSIGNED_SHIFT_RIGHT_ASSIGN, OGREATER, OGREATER, OGREATER, OASSIGN);
+    return parseOperator(builder_, OPERATOR_UNSIGNED_SHIFT_RIGHT_ASSIGN, OPERATOR_GREATER, OPERATOR_GREATER, OPERATOR_GREATER,
+                         OPERATOR_ASSIGN);
   }
 
   public static boolean gtEq(PsiBuilder builder_, int level_) {
-    return parseOperator(builder_, OGREATER_OR_EQUAL, OGREATER, OASSIGN);
+    return parseOperator(builder_, OPERATOR_GREATER_OR_EQUAL, OPERATOR_GREATER, OPERATOR_ASSIGN);
   }
 
 
@@ -79,7 +80,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
    *
    */
   public static boolean semicolonUnlessPrecededByStatement(PsiBuilder builder_, int level) {
-    if (consumeTokenFast(builder_, OSEMI)) {
+    if (consumeTokenFast(builder_, OPERATOR_SEMICOLON)) {
       return true;
     }
     int i = -1;
@@ -87,7 +88,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     while (null != previousType && isWhitespaceOrComment(builder_, previousType)) {
       previousType = builder_.rawLookup(--i);
     }
-    if (previousType == HaxeTokenTypes.PRCURLY || previousType == HaxeTokenTypes.OSEMI) {
+    if (previousType == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT || previousType == HaxeTokenTypes.OPERATOR_SEMICOLON) {
       return true;
     }
     builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));

@@ -16,15 +16,16 @@
 package com.intellij.plugins.haxe.model.fixer;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
+import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOUBLE_QUOTE;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.SINGLE_QUOTE;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 
 public class HaxeSurroundFixer extends HaxeFixer {
 
@@ -66,19 +67,23 @@ public class HaxeSurroundFixer extends HaxeFixer {
   }
 
   public static HaxeSurroundFixer withParens(PsiElement el) {
-    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.parenthesis"), el, (HaxeElementType)PLPAREN, (HaxeElementType)PRPAREN);
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.parenthesis"), el,
+                                 (HaxeElementType)ENCLOSURE_PARENTHESIS_LEFT, (HaxeElementType)ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   public static HaxeSurroundFixer withParens(String fixTitle, PsiElement el, TextRange range) {
-    return new HaxeSurroundFixer(fixTitle, el, range, (HaxeElementType)PLPAREN, (HaxeElementType)PRPAREN);
+    return new HaxeSurroundFixer(fixTitle, el, range, (HaxeElementType)ENCLOSURE_PARENTHESIS_LEFT,
+                                 (HaxeElementType)ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   public static HaxeSurroundFixer withBrackets(PsiElement el) {
-    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.brackets"), el, (HaxeElementType)PLBRACK, (HaxeElementType)PRBRACK);
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.brackets"), el, (HaxeElementType)ENCLOSURE_BRACKET_LEFT,
+                                 (HaxeElementType)ENCLOSURE_BRACKET_RIGHT);
   }
 
   public static HaxeSurroundFixer withBraces(PsiElement el) {
-    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.curly.braces"), el, (HaxeElementType)PLCURLY, (HaxeElementType)PRCURLY);
+    return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.curly.braces"), el,
+                                 (HaxeElementType)ENCLOSURE_CURLY_BRACKET_LEFT, (HaxeElementType)ENCLOSURE_CURLY_BRACKET_RIGHT);
   }
 
   public static HaxeSurroundFixer withQuotes(PsiElement el) {

@@ -22,6 +22,10 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.lang.psi.HaxeVarInit;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -29,9 +33,6 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
-
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.*;
 
 /**
  * Created by as3boyan on 13.11.14.
@@ -78,9 +79,9 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     HaxeFieldDeclaration varDeclaration = HaxeElementGenerator.createVarDeclaration(project, text);
     text = name + varInit.getText();
 
-    varDeclaration.getNode().addLeaf(HaxeTokenTypes.OSEMI, "\n", null);
+    varDeclaration.getNode().addLeaf(HaxeTokenTypes.OPERATOR_SEMICOLON, "\n", null);
     PsiElement statementFromText = HaxeElementGenerator.createStatementFromText(project, text);
-    statementFromText.getNode().addLeaf(HaxeTokenTypes.OSEMI, ";", null);
+    statementFromText.getNode().addLeaf(HaxeTokenTypes.OPERATOR_SEMICOLON, ";", null);
 
     localVarDeclaration.getParent().addBefore(varDeclaration, localVarDeclaration);
     PsiElement replace = localVarDeclaration.replace(statementFromText);

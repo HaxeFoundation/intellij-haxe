@@ -832,7 +832,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (leftReference != null && name != null &&
         HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
 
-      if (!isInUsingStatement() && !(isInImportStatement() && (haxeClass.isEnum() || haxeClass instanceof HaxeAbstractClassDeclaration))) {
+      if (!isInUsingStatement() && !(isInImportStatement() && (haxeClass.isEnum() || haxeClass instanceof HaxeAbstractDeclaration))) {
         addClassStaticMembersVariants(suggestedVariants, haxeClass, !(isThis));
       }
 
@@ -919,11 +919,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return "String";
     } else if (type == HaxeTokenTypes.ARRAY_LITERAL) {
       return "Array";
-    } else if (type == HaxeTokenTypes.LITFLOAT) {
+    }
+    else if (type == HaxeTokenTypes.LITERAL_FLOAT) {
       return "Float";
-    } else if (type == HaxeTokenTypes.REG_EXP) {
+    }
+    else if (type == HaxeTokenTypes.REG_EXP) {
       return "EReg";
-    } else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
+    }
+    else if (type == HaxeTokenTypes.LITERAL_HEXADECIMAL || type == HaxeTokenTypes.LITERAL_INTEGER || type == HaxeTokenTypes.LITERAL_OCTAL) {
       return "Int";
     }
     return null;
@@ -969,9 +972,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants,
                                                          @Nullable HaxeClass haxeClass, @Nullable HaxeGenericResolver resolver) {
-    if (haxeClass == null || !haxeClass.isAbstract()) return;
+    if (haxeClass == null || !haxeClass.isAbstractType()) return;
 
-    final HaxeAbstractClassModel model = (HaxeAbstractClassModel)haxeClass.getModel();
+    final HaxeAbstractTypeModel model = (HaxeAbstractTypeModel)haxeClass.getModel();
     final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
     if (underlyingClass != null) {
       addClassVariants(suggestedVariants, underlyingClass, true, resolver);
@@ -1004,8 +1007,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeClassModel classModel = haxeClass.getModel();
 
     boolean extern = haxeClass.isExtern();
-    boolean isAbstractEnum = haxeClass.isAbstract() && haxeClass.isEnum();
-    boolean isAbstractForward = haxeClass.isAbstract() && ((HaxeAbstractClassModel)classModel).hasForwards();
+    boolean isAbstractEnum = haxeClass.isAbstractType() && haxeClass.isEnum();
+    boolean isAbstractForward = haxeClass.isAbstractType() && ((HaxeAbstractTypeModel)classModel).hasForwards();
 
     if (isAbstractForward) {
       final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
@@ -1052,7 +1055,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiElement next = element.getNextSibling();
     ASTNode node = ((null != next) ? next.getNode() : null);
     IElementType type = ((null != node) ? node.getElementType() : null);
-    boolean ret = (null != type && type.equals(HaxeTokenTypes.ODOT));
+    boolean ret = (null != type && type.equals(HaxeTokenTypes.CC_OPERATOR_DOT));
     return ret;
   }
 

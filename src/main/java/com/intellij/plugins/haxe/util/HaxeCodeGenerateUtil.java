@@ -23,7 +23,6 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassBody;
 import com.intellij.plugins.haxe.lang.util.HaxeAstUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
@@ -145,17 +144,18 @@ public class HaxeCodeGenerateUtil {
 
   @NotNull
   public static Pair<PsiElement, PsiElement> getParens(Position position, PsiElement element) {
-    return getWrappingDelimiters(position, element, HaxeTokenTypes.PLPAREN, HaxeTokenTypes.PRPAREN);
+    return getWrappingDelimiters(position, element, HaxeTokenTypes.ENCLOSURE_PARENTHESIS_LEFT, HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT);
   }
 
   @NotNull
   public static Pair<PsiElement, PsiElement> getCurlyBrackets(Position position, PsiElement element) {
-    return getWrappingDelimiters(position, element, HaxeTokenTypes.PLCURLY, HaxeTokenTypes.PRCURLY);
+    return getWrappingDelimiters(position, element, HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT,
+                                 HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT);
   }
 
   @NotNull
   public static Pair<PsiElement, PsiElement> getSquareBrackets(Position position, PsiElement element) {
-    return getWrappingDelimiters(position, element, HaxeTokenTypes.PLBRACK, HaxeTokenTypes.PRBRACK);
+    return getWrappingDelimiters(position, element, HaxeTokenTypes.ENCLOSURE_BRACKET_LEFT, HaxeTokenTypes.ENCLOSURE_BRACKET_RIGHT);
   }
 
   /**

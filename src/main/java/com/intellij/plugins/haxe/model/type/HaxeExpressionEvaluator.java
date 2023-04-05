@@ -31,14 +31,16 @@ import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
-import com.intellij.plugins.haxe.util.*;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -555,21 +557,25 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxePsiToken) {
       IElementType type = ((HaxePsiToken)element).getTokenType();
 
-      if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
+      if (type == HaxeTokenTypes.LITERAL_INTEGER || type == HaxeTokenTypes.LITERAL_HEXADECIMAL || type == HaxeTokenTypes.LITERAL_OCTAL) {
         return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
-      } else if (type == HaxeTokenTypes.LITFLOAT) {
-        Float value = new Float(element.getText());
+      }
+      else if (type == HaxeTokenTypes.LITERAL_FLOAT) {
+        Float value = Float.valueOf(element.getText());
         return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText()))
           .withConstantValue(value)
           .createHolder();
-      } else if (type == HaxeTokenTypes.KFALSE || type == HaxeTokenTypes.KTRUE) {
-        Boolean value = type == HaxeTokenTypes.KTRUE;
-        return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KTRUE)
+      }
+      else if (type == HaxeTokenTypes.KEYWORD_FALSE || type == HaxeTokenTypes.KEYWORD_TRUE) {
+        Boolean value = type == HaxeTokenTypes.KEYWORD_TRUE;
+        return SpecificHaxeClassReference.primitive("Bool", element, type == HaxeTokenTypes.KEYWORD_TRUE)
           .withConstantValue(value)
           .createHolder();
-      } else if (type == HaxeTokenTypes.KNULL) {
+      }
+      else if (type == HaxeTokenTypes.KEYWORD_NULL) {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
-      } else {
+      }
+      else {
         log.debug("Unhandled token type: " + type);
         return SpecificHaxeClassReference.getDynamic(element).createHolder();
       }

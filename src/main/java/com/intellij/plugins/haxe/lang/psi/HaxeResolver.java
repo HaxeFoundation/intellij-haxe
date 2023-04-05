@@ -22,10 +22,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
-import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameHelper;
@@ -214,12 +213,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private List<? extends PsiElement> checkIsForwardedName(HaxeReference reference) {
     List<? extends PsiElement> result = null;
 
-    HaxeMetadataCompileTimeMeta meta = UsefulPsiTreeUtil.getParentOfType(reference, HaxeMetadataCompileTimeMeta.class);
+    HaxeCompileTimeMetadata meta = UsefulPsiTreeUtil.getParentOfType(reference, HaxeCompileTimeMetadata.class);
     if (null != meta && HaxeMeta.FORWARD.matches(meta.getType())) {
       PsiElement associatedElement = HaxeMetadataUtils.getAssociatedElement(meta);
       if (null != associatedElement) {
-        if (associatedElement instanceof HaxeAbstractClassDeclaration) {
-          HaxeAbstractClassModel model = new HaxeAbstractClassModel((HaxeAbstractClassDeclaration)associatedElement);
+        if (associatedElement instanceof HaxeAbstractDeclaration) {
+          HaxeAbstractTypeModel model = new HaxeAbstractTypeModel((HaxeAbstractDeclaration)associatedElement);
           HaxeGenericResolver resolver = model.getGenericResolver(null);
           HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
           result = resolveByClassAndSymbol(underlyingClass, resolver, reference);
@@ -308,7 +307,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
         final HaxeClass superClass = ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass();
         final HaxeNamedComponent constructor =
-          ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString(), null)); // Self only.
+          ((superClass == null) ? null : superClass.findHaxeMethodByName(HaxeTokenTypes.KEYWORD_NEW.toString(), null)); // Self only.
         LogResolution(reference, "because it's a super expression.");
         return asList(((constructor != null) ? constructor : superClass));
       }
@@ -478,7 +477,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeMemberModel member = model.getMember(helperName, resolveResult.getGenericResolver());
         if (member != null) return member.getNamePsi();
 
-        if (model.isAbstract() && ((HaxeAbstractClassModel)model).hasForwards()) {
+        if (model.isAbstract() && ((HaxeAbstractTypeModel)model).hasForwards()) {
           HaxeGenericResolver resolver = resolveResult.getSpecialization().toGenericResolver(leftResultClass);
           final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
             HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass, resolver);
@@ -556,13 +555,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return EMPTY_LIST;
     }
 
-    if (leftClass instanceof HaxeAbstractClassDeclaration) {
+    if (leftClass instanceof HaxeAbstractDeclaration) {
 
       HaxeClassModel classModel = leftClass.getModel();
-      HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)classModel;
+      HaxeAbstractTypeModel abstractClassModel = (HaxeAbstractTypeModel)classModel;
       return resolveByClassAndSymbol(abstractClassModel.getUnderlyingClass(resolver), resolver, reference);
-
-    } else {
+    }
+    else {
 
       Set<HaxeType> superclasses = new ArrayListSet<>();
       superclasses.addAll(leftClass.getHaxeExtendsList());
@@ -608,8 +607,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (member != null) return asList(member.getNamePsi());
 
       // if class is abstract try find in forwards
-      if (leftClass.isAbstract()) {
-        HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
+      if (leftClass.isAbstractType()) {
+        HaxeAbstractTypeModel model = (HaxeAbstractTypeModel)leftClass.getModel();
         if (model.isForwarded(reference.getReferenceName())) {
           final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
           if (underlyingClass != null) {

@@ -106,7 +106,7 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
 
   @Nullable
   protected Alignment createChildAlignment(ASTNode child) {
-    if (child.getElementType() != HaxeTokenTypes.PLPAREN && child.getElementType() != HaxeTokenTypes.BLOCK_STATEMENT) {
+    if (child.getElementType() != HaxeTokenTypes.ENCLOSURE_PARENTHESIS_LEFT && child.getElementType() != HaxeTokenTypes.BLOCK_STATEMENT) {
       return myAlignmentProcessor.createChildAlignment();
     }
     return null;
@@ -124,14 +124,14 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
       prev = (ASTBlock)getSubBlocks().get(index - 1);
       index--;
     }
-    while (prev.getNode().getElementType() == HaxeTokenTypes.OSEMI || prev.getNode() instanceof PsiWhiteSpace);
+    while (prev.getNode().getElementType() == HaxeTokenTypes.OPERATOR_SEMICOLON || prev.getNode() instanceof PsiWhiteSpace);
 
     final IElementType elementType = myNode.getElementType();
     final IElementType prevType = prev == null ? null : prev.getNode().getElementType();
-    if (prevType == HaxeTokenTypes.PLPAREN) {
+    if (prevType == HaxeTokenTypes.ENCLOSURE_PARENTHESIS_LEFT) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
-    if (prevType == HaxeTokenTypes.PLCURLY) {
+    if (prevType == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
     if (isTypeBody(prevType)) {
@@ -143,10 +143,15 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
     if (index == 0) {
       return new ChildAttributes(Indent.getNoneIndent(), null);
     }
-    if (prevType == HaxeTokenTypes.CONDITIONAL_STATEMENT_ID || prevType == HaxeTokenTypes.PPELSE || prevType == HaxeTokenTypes.PPEND || prevType == HaxeTokenTypes.PPELSEIF) {
+    if (prevType == HaxeTokenTypes.CONDITIONAL_ID ||
+        prevType == HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSE ||
+        prevType == HaxeTokenTypes.CONDITIONAL_COMPILATION_END ||
+        prevType == HaxeTokenTypes.CONDITIONAL_COMPILATION_ELSEIF) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
-    if (prevType.toString().equals("MSL_COMMENT") || prevType.toString().equals("MML_COMMENT") || prevType.toString().equals("DOC_COMMENT")) {
+    if (prevType.toString().equals("MSL_COMMENT") ||
+        prevType.toString().equals("MML_COMMENT") ||
+        prevType.toString().equals("DOC_COMMENT")) {
       return new ChildAttributes(Indent.getNormalIndent(), null);
     }
     return new ChildAttributes(prev.getIndent(), prev.getAlignment());
@@ -168,7 +173,7 @@ public class HaxeBlock extends AbstractBlock implements BlockWithParent {
   }
 
   private static boolean isEndsWithRPAREN(IElementType elementType, IElementType prevType) {
-    return prevType == HaxeTokenTypes.PRPAREN &&
+    return prevType == HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT &&
            (elementType == HaxeTokenTypes.IF_STATEMENT ||
             elementType == HaxeTokenTypes.FOR_STATEMENT ||
             elementType == HaxeTokenTypes.WHILE_STATEMENT);

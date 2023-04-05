@@ -44,7 +44,6 @@ import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,7 +71,7 @@ public class HaxeResolveUtil {
     PsiElement dot = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
     //PsiElement identifier = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(dot);
 
-    if (null == dot || dot.getNode().getElementType() != HaxeTokenTypes.ODOT) {
+    if (null == dot || dot.getNode().getElementType() != HaxeTokenTypes.CC_OPERATOR_DOT) {
       return null;
     }
 
@@ -85,7 +84,7 @@ public class HaxeResolveUtil {
 
       PsiElement leftParen = leftExpression.getFirstChild();
       PsiElement child = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftParen);
-      if (null != child && !HaxeTokenTypes.PRPAREN.equals(child.getNode().getElementType())) {
+      if (null != child && !HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT.equals(child.getNode().getElementType())) {
         return new HaxeParenthesizedExpressionReferenceImpl(child);
       }
     }
@@ -311,7 +310,7 @@ public class HaxeResolveUtil {
       if (haxeClass == null) continue;
 
       addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
-      if (haxeClass.isAbstract()) {
+      if (haxeClass.isAbstractType()) {
         if (null == resolver) {
           resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
         }
@@ -323,7 +322,7 @@ public class HaxeResolveUtil {
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
       List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
-      if (haxeClass.isEnum() && !haxeClass.isAbstract() && haxeClass.getContext() != null) {
+      if (haxeClass.isEnum() && !haxeClass.isAbstractType() && haxeClass.getContext() != null) {
         //Enums should provide the same methods as EnumValue
         baseClasses.add(HaxeEnumValueUtil.getEnumValueClass(haxeClass.getContext()).getHaxeClass());
       }
@@ -809,8 +808,8 @@ public class HaxeResolveUtil {
     if (typeTag != null) {
       final HaxeFunctionType fnType = typeTag.getFunctionType();
       final HaxeClass psiClass = HaxeResolveUtil.findClassByQName("haxe.Constraints.Function", element);
-      if (null != fnType && psiClass instanceof HaxeAbstractClassDeclaration) {
-        final HaxeClass fn = new HaxeSpecificFunction((HaxeAbstractClassDeclaration)psiClass,
+      if (null != fnType && psiClass instanceof HaxeAbstractDeclaration) {
+        final HaxeClass fn = new HaxeSpecificFunction((HaxeAbstractDeclaration)psiClass,
                                                       fnType, specialization);
         return HaxeClassResolveResult.create(fn, specialization);
       }

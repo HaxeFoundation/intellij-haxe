@@ -16,7 +16,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.HaxeAbstractTypeModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
@@ -185,10 +185,10 @@ public class HaxeGenericResolverUtil {
   // Since null<T> references in some places are handled as if they where type T
   // we also have to support resolving Type Parameters as if Null<T> was just T
   public  static  HaxeGenericResolver getResolverSkipAbstractNullScope(@Nullable HaxeClassModel model, @NotNull HaxeGenericResolver resolver) {
-    if (model instanceof HaxeAbstractClassModel) {
-      HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)model;
+    if (model instanceof HaxeAbstractTypeModel) {
+      HaxeAbstractTypeModel abstractClassModel = (HaxeAbstractTypeModel)model;
       if ("Null".equals(abstractClassModel.getName()) && abstractClassModel.isCoreType()) {
-        HaxeGenericParam param = abstractClassModel.getAbstractClass().getGenericParam();
+        HaxeGenericParam param = abstractClassModel.getAbstractType().getGenericParam();
         if (param != null) {
           HaxeGenericListPart generic = param.getGenericListPartList().get(0);
           ResultHolder resolve = resolver.resolve(generic.getName());

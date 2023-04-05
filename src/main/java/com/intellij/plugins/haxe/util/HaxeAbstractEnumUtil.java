@@ -35,7 +35,7 @@ public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
-    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstract() && clazz.isEnum();
+    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstractType() && clazz.isEnum();
   }
 
   /**
@@ -107,12 +107,12 @@ public class HaxeAbstractEnumUtil {
     final HaxeFieldDeclaration varDecl = (element instanceof HaxeFieldDeclaration) ?
                                        (HaxeFieldDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
-      final HaxeAbstractClassDeclaration abstractEnumClass =
-        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
+      final HaxeAbstractDeclaration abstractEnum =
+        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractDeclaration.class);
       SpecificHaxeClassReference specificRef;
-      if (isAbstractEnum(abstractEnumClass)) {
+      if (isAbstractEnum(abstractEnum)) {
         if (varDecl.getTypeTag() == null) {
-          HaxeClassReference enumReference = new HaxeClassReference(abstractEnumClass.getModel(), element);
+          HaxeClassReference enumReference = new HaxeClassReference(abstractEnum.getModel(), element);
           ResultHolder[] specifics = resolver != null ? resolver.getSpecificsFor(enumReference) : ResultHolder.EMPTY;
           specificRef = SpecificHaxeClassReference.withGenerics(enumReference, specifics);
           return SpecificHaxeClassReference.propagateGenericsToType(specificRef, resolver);

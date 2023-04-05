@@ -111,13 +111,13 @@ public class HaxeOperatorPrecedenceTable {
     // ========================================================================================
     // Parens (function calls), [] brackets, . member selection, -> member selection via pointer (not Haxe),
     // ++/--postfix increment and decrement.
-    addOperator(Arity.VARIADIC, PRPAREN,           100, Associativity.LEFT);
-    addOperator(Arity.VARIADIC, PLPAREN,           100, Associativity.LEFT);
+    addOperator(Arity.VARIADIC, ENCLOSURE_PARENTHESIS_RIGHT, 100, Associativity.LEFT);
+    addOperator(Arity.VARIADIC, ENCLOSURE_PARENTHESIS_LEFT, 100, Associativity.LEFT);
 
     // ========================================================================================
     // ++/-- Prefix increment and decrement, + - unary plus/minus, ! logical negation, ~bitwise complement,
     // (cast) type cast , * dereference via pointer (not Haxe), & addressOf (not Haxe), sizeof (not Haxe)
-    addOperator(Arity.UNARY,    ONOT,               95, Associativity.RIGHT);
+    addOperator(Arity.UNARY, OPERATOR_NOT, 95, Associativity.RIGHT);
 
     // ========================================================================================
     // * / % Multiplication/Division/Modulus
@@ -131,15 +131,15 @@ public class HaxeOperatorPrecedenceTable {
     // ========================================================================================
     // < <= Relational less than/less than or equal to
     // > >= Relational greater than/greater than or equal to
-    addOperator(Arity.BINARY,   OGREATER,           75, Associativity.LEFT);
-    addOperator(Arity.BINARY,   OGREATER_OR_EQUAL,  75, Associativity.LEFT);
-    addOperator(Arity.BINARY,   OLESS,              75, Associativity.LEFT);
-    addOperator(Arity.BINARY,   OLESS_OR_EQUAL,     75, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_GREATER, 75, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_GREATER_OR_EQUAL, 75, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_LESS, 75, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_LESS_OR_EQUAL, 75, Associativity.LEFT);
 
     // ========================================================================================
     // == != Relational equal/not equal to
-    addOperator(Arity.BINARY,   OEQ,                70, Associativity.LEFT);
-    addOperator(Arity.BINARY,   ONOT_EQ,            70, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_EQ, 70, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_NOT_EQ, 70, Associativity.LEFT);
 
     // ========================================================================================
     // & Bitwise AND
@@ -152,11 +152,11 @@ public class HaxeOperatorPrecedenceTable {
 
     // ========================================================================================
     // && Logical AND
-    addOperator(Arity.BINARY,   OCOND_AND,          50, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_COND_AND, 50, Associativity.LEFT);
 
     // ========================================================================================
     // || Logical OR
-    addOperator(Arity.BINARY,   OCOND_OR,           45, Associativity.LEFT);
+    addOperator(Arity.BINARY, OPERATOR_COND_OR, 45, Associativity.LEFT);
 
     // ========================================================================================
     // ? : Ternary conditional  Right-to-left association

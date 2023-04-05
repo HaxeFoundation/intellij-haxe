@@ -20,8 +20,10 @@ package com.intellij.plugins.haxe.lang.lexer;
 import com.intellij.lexer.FlexAdapter;
 import com.intellij.openapi.project.Project;
 
-public class HaxeFlexLexer extends FlexAdapter {
-  public HaxeFlexLexer(Project context) {
-    super(new HaxeGeneratedLexerWrapper(context));
+public class HaxeLexerAdapter extends FlexAdapter {
+
+  public HaxeLexerAdapter(Project project) {
+    super(new HaxeGeneratedLexerWrapper(project));
+    ;
   }
 }

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.parser;
+package com.intellij.plugins.haxe.lang.parser.utils;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
-import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
+import com.intellij.plugins.haxe.lang.parser.HaxeParser;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
@@ -52,18 +52,21 @@ public class HaxeParserWrapper extends HaxeParser {
     return super.parse(t, b);
   }
 
-  @Override
-  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
-    return parse_root(type, builder, 0);
-  }
+  //TODO mlo:
 
-  private boolean parse_root(IElementType type, PsiBuilder builder, int level) {
-    if (type == HaxeMetadataTokenTypes.CT_META_ARGS) {
-      return compileTimeMetaArgList(builder, level + 1);
-    }
-    else if (type == HaxeMetadataTokenTypes.RT_META_ARGS) {
-      return runTimeMetaArgList(builder, level + 1);
-    }
-    return haxeFile(builder, level + 1);
-  }
+  //@Override
+  //protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+  //  return parse_root(type, builder, 0);
+  //}
+  //
+  //
+  //private boolean parse_root(IElementType type, PsiBuilder builder, int level) {
+  //  if (type == HaxeTokenTypes.METADATA_PARENTHESIS_LEFT) {
+  //    return compileTimeMetaArgList(builder, level + 1);
+  //  }
+  //  else if (type == HaxeTokenTypes.METADATA_PARENTHESIS_RIGHT) {
+  //    return runTimeMetaArgList(builder, level + 1);
+  //  }
+  //  return haxeFile(builder, level + 1);
+  //}
 }

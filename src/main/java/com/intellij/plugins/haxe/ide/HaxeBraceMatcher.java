@@ -33,9 +33,9 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeBraceMatcher implements PairedBraceMatcher {
 
   private static final BracePair[] PAIRS = new BracePair[]{
-    new BracePair(HaxeTokenTypes.PLCURLY, HaxeTokenTypes.PRCURLY, false),
-    new BracePair(HaxeTokenTypes.PLBRACK, HaxeTokenTypes.PRBRACK, false),
-    new BracePair(HaxeTokenTypes.PLPAREN, HaxeTokenTypes.PRPAREN, false)
+    new BracePair(HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT, HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT, false),
+    new BracePair(HaxeTokenTypes.ENCLOSURE_BRACKET_LEFT, HaxeTokenTypes.ENCLOSURE_BRACKET_RIGHT, false),
+    new BracePair(HaxeTokenTypes.ENCLOSURE_PARENTHESIS_LEFT, HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT, false)
   };
 
   @Override
@@ -52,13 +52,13 @@ public class HaxeBraceMatcher implements PairedBraceMatcher {
   private static boolean isPairedBracesAllowedBeforeTypeInHaxe(final IElementType tokenType) {
     return HaxeTokenTypeSets.COMMENTS.contains(tokenType)
            || HaxeTokenTypeSets.WHITESPACES.contains(tokenType)
-           || tokenType == HaxeTokenTypes.OSEMI
-           || tokenType == HaxeTokenTypes.OCOMMA
-           || tokenType == HaxeTokenTypes.PRPAREN
-           || tokenType == HaxeTokenTypes.PRBRACK
-           || tokenType == HaxeTokenTypes.PRCURLY
-           || tokenType == HaxeTokenTypes.PLCURLY
-           || tokenType == HaxeTokenTypes.ODOT;
+           || tokenType == HaxeTokenTypes.OPERATOR_SEMICOLON
+           || tokenType == HaxeTokenTypes.OPERATOR_COMMA
+           || tokenType == HaxeTokenTypes.ENCLOSURE_PARENTHESIS_RIGHT
+           || tokenType == HaxeTokenTypes.ENCLOSURE_BRACKET_RIGHT
+           || tokenType == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_RIGHT
+           || tokenType == HaxeTokenTypes.ENCLOSURE_CURLY_BRACKET_LEFT
+           || tokenType == HaxeTokenTypes.CC_OPERATOR_DOT;
   }
 
   @Override
