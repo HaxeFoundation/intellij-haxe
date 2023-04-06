@@ -19,7 +19,7 @@
 
 plugins {
     id 'de.undercouch.download' version '3.3.0'
-    id 'org.jetbrains.intellij' version '1.10.1'
+    id 'org.jetbrains.intellij' version '1.13.3'
     id "org.jetbrains.grammarkit" version "2022.3"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
 }
