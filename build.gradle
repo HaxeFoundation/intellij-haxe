@@ -540,18 +540,18 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Run Tests 2021', 'test', "-PtargetVersion=$latest2021Version", '')
     createGradleRunConfiguration('Run Tests 2020', 'test', "-PtargetVersion=$latest2020Version", '')
 
-    createGradleRunConfiguration('Run IDE 2018',
+    createGradleRunConfiguration('Run IDE 2022',
                                  'runIde',
-                                 "-PtargetVersion=$latest2018Version",
+                                 "-PtargetVersion=$latest2022Version",
                                  ' -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2017',
+    createGradleRunConfiguration('Run IDE 2021',
                                  'runIde',
-                                 "-PtargetVersion=$latest2017Version",
+                                 "-PtargetVersion=$latest2021Version",
                                  '-DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2016',
+    createGradleRunConfiguration('Run IDE 2020',
                                  'runIde',
-                                 "-PtargetVersion=$latest2016Version",
-                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
+                                 "-PtargetVersion=$latest2020Version",
+                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -Didea.is.internal=true')
 
 
 
