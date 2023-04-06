@@ -112,7 +112,7 @@ allprojects {
         // Flex support was unbundled for version 2020.2.
         if (requiresFlexPlugin) {
             System.println("Including Flex plugin for version >= 2020.2")
-            String versionWithMajor = ideaVersion.substring(0, 8);
+            String versionWithMajor = ideaVersion.substring(0, ideaVersion.length() > 6 ? 8 : 6);
             switch (versionWithMajor) {
                 case "2020.2" : plugins.add('com.intellij.flex:202.6397.59'); break
                 case "2020.3" : plugins.add('com.intellij.flex:203.5981.155'); break
