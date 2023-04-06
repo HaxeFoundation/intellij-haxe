@@ -245,14 +245,15 @@ processResources {
 }
 
 patchPluginXml {
-//TODO  find a way to get version info before  patchPluginXml is configured
-//    def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
-//    sinceBuild = props.getProperty("plugin.installable.since")
-//    untilBuild = props.getProperty("plugin.installable.until")
-
-    sinceBuild = "200"
-    untilBuild = "224.*"
-
+    //TODO  find a way to get version info before  patchPluginXml is configured (first build fails as build.txt file is missing)
+    try {
+        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        sinceBuild = props.getProperty("plugin.installable.since")
+        untilBuild = props.getProperty("plugin.installable.until")
+    }catch(Exception e){
+        sinceBuild = "200"
+        untilBuild = "224.*"
+    }
     pluginXmlFiles = [
             file('src/META-INF/plugin.xml'),
             file('src/META-INF/debugger-support.xml'),
@@ -442,24 +443,12 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 231: propertiesFile = "idea_v23.properties"; break
         case 223: propertiesFile = "idea_v22.properties"; break
         case 211: propertiesFile = "idea_v21.properties"; break
         case 203: propertiesFile = "idea_v20.3.properties"; break
         case 202: propertiesFile = "idea_v20.properties"; break
         case 201: propertiesFile = "idea_v20.properties"; break
-        case 193: propertiesFile = "idea_v19.properties"; break
-        case 192: propertiesFile = "idea_v19.properties"; break
-        case 191: propertiesFile = "idea_v19.properties"; break
-        case 183: propertiesFile = "idea_v18.properties"; break
-        case 182: propertiesFile = "idea_v18.properties"; break
-        case 181: propertiesFile = "idea_v18.properties"; break
-        case 173: propertiesFile = "idea_v17.3.properties"; break
-        case 172: propertiesFile = "idea_v17.properties"; break
-        case 171: propertiesFile = "idea_v17.properties"; break
-        case 163: propertiesFile = "idea_v16.properties"; break
-        case 162: propertiesFile = "idea_v16.properties"; break
-        case 161: propertiesFile = "idea_v16.properties"; break
-        case 145: propertiesFile = "idea_v16.properties"; break
         default:
             throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
     }
