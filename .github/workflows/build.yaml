@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false # set this to true if you want to cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2023.1, 2022.3.3, 2021.3.3, 2020.3.4]
+        IDEA_VERSION: [2023.1, 2022.3.3]
         OS: [macOS-latest, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.OS }}
@@ -59,9 +59,19 @@ jobs:
           key: ${{ matrix.IDEA_VERSION }}-idea-${{ hashFiles('ideaIU-${{ matrix.IDEA_VERSION }}/**') }}
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
+      - name: Prepare (windows)
+        if: ${{ matrix.os == 'windows-latest'}}
+        run: .\gradlew.bat  setupDependencies -PtargetVersion="${{ matrix.IDEA_VERSION }}" -X -stacktrace
+
       - name: Build with Gradle (windows)
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
+        run: .\gradlew.bat clean setupDependencies build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}" -X -stacktrace
+
+      - name: Prepare (linux/mac)
+        if: ${{ matrix.os != 'windows-latest'}}
+        run: ./gradlew setupDependencies -PtargetVersion="${{ matrix.IDEA_VERSION }}" -X -stacktrace
+
       - name: Build with Gradle (linux/mac)
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}"
+        run: ./gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}" -X -stacktrace
+
