@@ -17,35 +17,44 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.Test;
+
 public class EditorCompletionTest extends HaxeCompletionTestBase {
   public EditorCompletionTest() {
     super("completion", "editor");
   }
 
+  @Test
   public void testGenericBrace1() {
     doTest('<');
   }
 
+  @Test
   public void testGenericBrace2() {
     doTest('<');
   }
 
+  @Test
   public void testGenericBrace3() {
     doTest('<');
   }
 
+  @Test
   public void testLess() {
     doTest('<');
   }
 
+  @Test
   public void testString1() {
     doTest('{');
   }
 
+  @Test
   public void testString2() {
     doTest('{');
   }
 
+  @Test
   public void testString3() {
     doTest('{');
   }

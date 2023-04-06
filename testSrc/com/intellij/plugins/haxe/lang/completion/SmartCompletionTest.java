@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.completion;
 
+import org.junit.Test;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -25,6 +27,7 @@ public class SmartCompletionTest extends HaxeCompletionTestBase {
     super("completion", "smart");
   }
 
+  @Test
   public void testEnum1() throws Throwable {
     doTest();
   }

@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.fixtures.CodeInsightTestUtil;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -44,7 +45,8 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
       MethodWrapper<GotoTargetHandler.GotoData> gti =
         new MethodWrapper(CodeInsightTestUtil.class, "gotoImplementation", Editor.class, PsiFile.class);
       data = gti.invoke(null, myFixture.getEditor(), myFixture.getFile());
-    } else {
+    }
+    else {
       GotoImplementationHandler gtiHandler = new GotoImplementationHandler();
       data = gtiHandler.getSourceAndTargetElements(myFixture.getEditor(), myFixture.getFile());
     }
@@ -55,18 +57,22 @@ public class HaxeGoToImplementationTest extends HaxeCodeInsightFixtureTestCase {
     assertEquals(expectedLength, data.targets.length);
   }
 
+  @Test
   public void testGti1() throws Throwable {
     doTest(2);
   }
 
+  @Test
   public void testGti2() throws Throwable {
     doTest(1);
   }
 
+  @Test
   public void testGti3() throws Throwable {
     doTest(2);
   }
 
+  @Test
   public void testGti4() throws Throwable {
     doTest(2);
   }

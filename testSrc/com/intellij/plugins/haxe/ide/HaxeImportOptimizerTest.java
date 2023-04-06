@@ -22,6 +22,7 @@ import com.intellij.ide.DataManager;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
+import org.junit.Test;
 
 /**
  * Created by fedorkorotkov.
@@ -32,54 +33,67 @@ public class HaxeImportOptimizerTest extends HaxeCodeInsightFixtureTestCase {
     return "/imports/optimize/";
   }
 
+  @Test
   public void testHelper1() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testSimple1() throws Throwable {
     runOptimizeAction("com/foo/Foo.hx");
   }
 
+  @Test
   public void testSimple2() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testIn() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testWildcard() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testDuplicate() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testKeepusedimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testRemoveunusedin() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testRemoveduplicatein() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testKeepwildcardimports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx");
   }
 
+  @Test
   public void testReorderImports() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx", "com/foo/IFoo.hx", "com/foo/Unused.hx");
   }
 
+  @Test
   public void testReorderImportsWithComments() throws Throwable {
     runOptimizeAction("com/foo/Bar.hx", "com/foo/Foo.hx", "com/foo/IFoo.hx", "com/foo/Unused.hx");
   }
 
+  @Test
   public void testReorderImportsIssue493() throws Throwable {
     runOptimizeAction("js/Browser.hx", "js/Cookie.hx", "js/Lib.hx");
   }

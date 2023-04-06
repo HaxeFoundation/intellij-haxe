@@ -17,23 +17,29 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 public class IfTest extends StatementTestBase {
   public IfTest() {
     super("if");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testIfElse() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMultipleIfElse() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testCondition() throws Throwable {
     doTest(true);
   }

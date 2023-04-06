@@ -17,12 +17,11 @@
  */
 package com.intellij.plugins.haxe.resolve;
 
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -40,6 +39,7 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   //https://github.com/TiVo/intellij-haxe/issues/234
+  @Test
   public void testVariable() throws Exception {
     PsiFile[] files = myFixture.configureByFiles("Test.hx", "List.hx");
 
@@ -60,5 +60,4 @@ public class HaxeResolveVariableTest extends HaxeCodeInsightFixtureTestCase {
     PsiElement resolve = referenceExpression.resolve();
     assertTrue("list variable should be local var declaration part ", resolve instanceof HaxeFieldDeclaration);
   }
-
 }

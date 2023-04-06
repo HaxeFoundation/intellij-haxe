@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -25,14 +27,17 @@ public class TypedefDeclarationTest extends DeclarationTestBase {
     super("typedef");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testPoints() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMacroTypeDeclaration() throws Throwable {
     doTest(true);
   }
