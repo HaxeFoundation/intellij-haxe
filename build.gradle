@@ -536,9 +536,9 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
 
 
-    createGradleRunConfiguration('Run Tests 2018', 'test', "-PtargetVersion=$latest2018Version", '')
-    createGradleRunConfiguration('Run Tests 2017', 'test', "-PtargetVersion=$latest2017Version", '')
-    createGradleRunConfiguration('Run Tests 2016', 'test', "-PtargetVersion=$latest2016Version", '')
+    createGradleRunConfiguration('Run Tests 2022', 'test', "-PtargetVersion=$latest2022Version", '')
+    createGradleRunConfiguration('Run Tests 2021', 'test', "-PtargetVersion=$latest2021Version", '')
+    createGradleRunConfiguration('Run Tests 2020', 'test', "-PtargetVersion=$latest2020Version", '')
 
     createGradleRunConfiguration('Run IDE 2018',
                                  'runIde',
