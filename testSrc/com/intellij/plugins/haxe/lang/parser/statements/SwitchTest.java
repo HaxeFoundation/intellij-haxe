@@ -18,6 +18,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -26,14 +28,17 @@ public class SwitchTest extends StatementTestBase {
     super("switch");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testCaseWithEmptyBrackets() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFatArrowExpression() throws Throwable {
     doTest(true);
   }

@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide.inspections;
 
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import org.junit.Test;
 
 /**
  * Test for the HaxeDeprecatedInspection.
@@ -25,50 +26,62 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
  * Created by Usievaład Kimajeŭ on 7.06.2016.
  */
 public class HaxeDeprecatedInspectionTest extends HaxeCodeInsightFixtureTestCase {
+  @Test
   public void testMethod() {
     doTest("Method.hx");
   }
 
+  @Test
   public void testMethodStatic() {
     doTest("MethodStatic.hx");
   }
 
+  @Test
   public void testMethodStaticText() {
     doTest("MethodStaticText.hx");
   }
 
+  @Test
   public void testMethodText() {
     doTest("MethodText.hx");
   }
 
+  @Test
   public void testProperty() {
     doTest("Property.hx");
   }
 
+  @Test
   public void testPropertyStatic() {
     doTest("PropertyStatic.hx");
   }
 
+  @Test
   public void testPropertyStaticText() {
     doTest("PropertyStaticText.hx");
   }
 
+  @Test
   public void testPropertyText() {
     doTest("PropertyText.hx");
   }
 
+  @Test
   public void testVariable() {
     doTest("Variable.hx");
   }
 
+  @Test
   public void testVariableStatic() {
     doTest("VariableStatic.hx");
   }
 
+  @Test
   public void testVariableStaticText() {
     doTest("VariableStaticText.hx");
   }
 
+  @Test
   public void testVariableText() {
     doTest("VariableText.hx");
   }

@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.ide.generation.*;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -74,54 +75,66 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
     checkResultByFile(getTestName(false) + ".txt");
   }
 
+  @Test
   public void testImplement1() throws Throwable {
     configureByFile("Implement1.hx");
     doImplementTest();
   }
 
+  @Test
   public void testImplement2() throws Throwable {
     configureByFile("Implement2.hx");
     doImplementTest();
   }
 
+  @Test
   public void testOverride1() throws Throwable {
     configureByFile("Override1.hx");
     doOverrideTest();
   }
 
+  @Test
   public void testOverride2() throws Throwable {
     configureByFile("Override2.hx");
     doOverrideTest();
   }
 
+  @Test
   public void testGetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
+  @Test
   public void testGetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTER);
   }
 
+  @Test
   public void testSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
+  @Test
   public void testSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.SETTER);
   }
 
+  @Test
   public void testGetterSetter1() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
 
+  @Test
   public void testGetterSetter2() throws Throwable {
     doGetterSetterTest(CreateGetterSetterFix.Strategy.GETTERSETTER);
   }
 
+  @Test
   public void testConstructor() throws Throwable {
     doConstructorTest();
   }
 
+  @Test
   public void testConstructor2() throws Throwable {
     doConstructorTest();
   }

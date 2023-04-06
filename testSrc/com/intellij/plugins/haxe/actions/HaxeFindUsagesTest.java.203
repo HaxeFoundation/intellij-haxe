@@ -35,6 +35,7 @@ import com.intellij.usages.UsageTarget;
 import com.intellij.usages.UsageTargetUtil;
 import com.intellij.util.LocalTimeCounter;
 import org.jetbrains.annotations.NonNls;
+import org.junit.Test;
 
 import java.util.*;
 
@@ -72,52 +73,52 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     return myFixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
   }
 
-  public void testProperties1() throws Throwable {
+  @Test public void testProperties1() throws Throwable {
     myFixture.configureByFiles("Properties1.hx");
     doTest(1);
   }
 
-  public void testProperties2() throws Throwable {
+  @Test public void testProperties2() throws Throwable {
     myFixture.configureByFiles("Properties2.hx");
     doTest(1);
   }
 
-  public void testVarDeclaration() throws Throwable {
+  @Test public void testVarDeclaration() throws Throwable {
     myFixture.configureByFiles("VarDeclaration.hx", "com/bar/Foo.hx");
     doTest(0);
   }
 
-  public void testLocalFunctionParameter() throws Throwable {
+  @Test public void testLocalFunctionParameter() throws Throwable {
     myFixture.configureByFiles("LocalFunctionParameter.hx", "com/bar/Foo.hx");
     doTest(3);
   }
 
-  public void testForDeclaration() throws Throwable {
+  @Test public void testForDeclaration() throws Throwable {
     myFixture.configureByFiles("ForDeclaration.hx", "com/bar/IBar.hx");
     doTest(3);
   }
 
-  public void testLocalVarDeclaration1() throws Throwable {
+  @Test public void testLocalVarDeclaration1() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration1.hx");
     doTest(1);
   }
 
-  public void testLocalVarDeclaration2() throws Throwable {
+  @Test public void testLocalVarDeclaration2() throws Throwable {
     myFixture.configureByFiles("LocalVarDeclaration2.hx");
     doTest(1);
   }
 
-  public void testFunctionParameter() throws Throwable {
+  @Test public void testFunctionParameter() throws Throwable {
     myFixture.configureByFiles("FunctionParameter.hx");
     doTest(2);
   }
 
-  public void testClassDeclaration() throws Throwable {
+  @Test public void testClassDeclaration() throws Throwable {
     myFixture.configureByFiles("com/bar/ClassToFind.hx", "ClassDeclaration.hx");
     doTest(7);
   }
 
-  public void testClassConstructor() throws Throwable {
+  @Test public void testClassConstructor() throws Throwable {
     myFixture.configureByFiles("ClassConstructor.hx");
     doTest(3);
   }
@@ -202,15 +203,15 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
   }
 
 
-  public void testFindCurrentClass() throws Throwable {
+  @Test public void testFindCurrentClass() throws Throwable {
     doOverrideTest( "OverrideTop.hx", GET_CURRENT_CLASS);
   }
 
-  public void testFindBaseClass() throws Throwable {
+  @Test public void testFindBaseClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_BASE_CLASS);
   }
 
-  public void testFindAncestorClass() throws Throwable {
+  @Test public void testFindAncestorClass() throws Throwable {
     doOverrideTest("OverrideTop.hx", GET_ANCESTOR_CLASSES);
   }
 

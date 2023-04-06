@@ -17,19 +17,24 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 public class WhileTest extends StatementTestBase {
   public WhileTest() {
     super("while");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testCondition() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testDo() throws Throwable {
     doTest(true);
   }

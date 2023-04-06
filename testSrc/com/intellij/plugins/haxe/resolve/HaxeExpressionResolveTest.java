@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
+import org.junit.Test;
 
 public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
 
@@ -43,22 +44,27 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, true, true);
   }
 
+  @Test
   public void testStringArrayExpressions() {
     doTest();
   }
 
+  @Test
   public void testNewWithImmediate() {
     doTest();
   }
 
+  @Test
   public void testArrayAccess() {
     doTest();
   }
 
+  @Test
   public void testDynamicExtension() {
     doTest();
   }
 
+  @Test
   public void testEnumExtensions() {
     doTest();
   }

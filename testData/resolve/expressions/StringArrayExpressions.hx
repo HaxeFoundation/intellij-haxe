@@ -1,14 +1,14 @@
 package;
-using <info descr="null">StringTools</info>;
+using <info descr="">StringTools</info>;
 
-class <info descr="null">Demo</info> {
-  function <info descr="null">demo</info>() {
-    var <info descr="null">lines</info> = "--+--+--".<info descr="null">split</info>("+");
-    for(<info descr="null">i</info> <info descr="null">in</info> 0...<info descr="null">lines</info>.<info descr="null">length</info>)
-        if((<info descr="null">lines</info>[<info descr="null">i</info>] = <info descr="null">lines</info>[<info descr="null">i</info>].<info descr="null">rtrim</info>()).<info descr="null">length</info> > 0) {  // <-- rtrim and length remain unresolved -- Fixed!!
-            trace(<info descr="null">lines</info>[<info descr="null">i</info>]);
-            <info descr="null">lines</info>[<info descr="null">i</info>].<info descr="null">rtrim</info>();
-            <info descr="null">StringTools</info>.<info descr="null">rtrim</info>(<info descr="null">lines</info>[<info descr="null">i</info>]);  // <--rtrim is unresolved  -- Fixed!!
+class <info descr="">Demo</info> {
+  function <info descr="">demo</info>() {
+    var <info descr="">lines</info> = <info descr="">"--+--+--".split</info>("+");
+    for(<info descr="">i</info> <info descr="">in</info> 0...<info descr=""><info descr="">lines</info>.length</info>)
+        if(<info descr="">(<info descr="">lines</info>[<info descr="">i</info>] = <info descr=""><info descr="">lines</info>[<info descr="">i</info>].rtrim</info>()).length</info> > 0) {  // <-- rtrim and length remain unresolved -- Fixed!!
+            trace(<info descr="">lines</info>[<info descr="">i</info>]);
+            <info descr=""><info descr="">lines</info>[<info descr="">i</info>].rtrim</info>();
+            <info descr=""><info descr="">StringTools</info>.rtrim</info>(<info descr="">lines</info>[<info descr="">i</info>]);  // <--rtrim is unresolved  -- Fixed!!
         }
   }
 }

@@ -27,6 +27,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -50,19 +51,21 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
 
+  @Test
   public void testHelper() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Bar.hx");
     doTest();
   }
-  
+
+  @Test
   public void testModule() throws Throwable {
     myFixture.configureByFiles(getTestName(false) + ".hx", "foo/Types.hx");
     doTest();
   }
-  
 }

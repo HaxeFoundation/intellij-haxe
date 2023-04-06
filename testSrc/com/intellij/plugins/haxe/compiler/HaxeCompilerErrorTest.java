@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.compiler;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import com.intellij.testFramework.UsefulTestCase;
+import org.junit.Test;
 
 /**
  * Created by ebishton on 10/29/16.
@@ -46,59 +47,70 @@ public class HaxeCompilerErrorTest extends UsefulTestCase {
   }
 
   // hxcpp 3.3 link message
+  @Test
   public void testLinkMessage() throws Throwable {
     doInfoTest(" -  - Link : ApplicationMain: xcrun");
   }
 
+  @Test
   public void testLinkMessage2() throws Throwable {
-    doInfoTest( " - Link : ApplicationMain: xcrun\n");
+    doInfoTest(" - Link : ApplicationMain: xcrun\n");
   }
 
   // hxcpp 3.3 compile message.
+  @Test
   public void testCompileMessage() throws Throwable {
     doInfoTest(" - Compile : src/ApplicationMain.hx");
   }
 
+  @Test
   public void testCompilingMessage() throws Throwable {
     doInfoTest(" - Compiling src/ApplicationMain.hx : <some_message>");
   }
 
+  @Test
   public void testGeneratingMessage() throws Throwable {
     doInfoTest("Generating out/ApplicationMain.cpp : <some_message>");
   }
 
+  @Test
   public void testLibraryNotInstalled() throws Throwable {
     String compilerOutput = "Error: Library Flixel is not installed. Please run haxelib...";
     doTest(compilerOutput, CompilerMessageCategory.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
   }
 
   // Hxcpp 3.3
+  @Test
   public void testLibraryNotInstalledHxcpp() throws Throwable {
     String compilerOutput = "Library hxcpp is not installed";
     doErrorTest(compilerOutput, compilerOutput);
   }
 
+  @Test
   public void testGenericError() throws Throwable {
     String compilerOutput = "Unknown Error : This is an error message.";
     String expected = " (Unknown Error) This is an error message.";
     doErrorTest(compilerOutput, expected);
   }
 
+  @Test
   public void testLinesError() throws Throwable {
     String compilerOutput = "Test.hx:4: lines 4-10 : Invalid -main : Test does not have static function main";
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Invalid -main : Test does not have static function main", "Missing file: /Test.hx", 4, -1);
+    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Invalid -main : Test does not have static function main",
+           "Missing file: /Test.hx", 4, -1);
   }
 
+  @Test
   public void testHxcppBuildFailure() throws Throwable {
     String compilerOutput = "Error: Build failed";
     String expected = "Build failed";
     doErrorTest(compilerOutput, expected);
   }
 
+  @Test
   public void testUnexpectedCharacter() throws Throwable {
     String compilerOutput = "Test.hx:4: characters 6-7 : Unexpected %";
     String expected = "Unexpected %";
     doTest(compilerOutput, CompilerMessageCategory.ERROR, expected, "Missing file: /Test.hx", 4, 6);
   }
-
 }

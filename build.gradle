@@ -19,7 +19,7 @@
 
 plugins {
     id 'de.undercouch.download' version '3.3.0'
-    id 'org.jetbrains.intellij' version '1.10.1'
+    id 'org.jetbrains.intellij' version '1.13.3'
     id "org.jetbrains.grammarkit" version "2022.3"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
 }
@@ -112,7 +112,7 @@ allprojects {
         // Flex support was unbundled for version 2020.2.
         if (requiresFlexPlugin) {
             System.println("Including Flex plugin for version >= 2020.2")
-            String versionWithMajor = ideaVersion.substring(0, 8);
+            String versionWithMajor = ideaVersion.substring(0, ideaVersion.length() > 6 ? 8 : 6);
             switch (versionWithMajor) {
                 case "2020.2" : plugins.add('com.intellij.flex:202.6397.59'); break
                 case "2020.3" : plugins.add('com.intellij.flex:203.5981.155'); break
@@ -245,14 +245,15 @@ processResources {
 }
 
 patchPluginXml {
-//TODO  find a way to get version info before  patchPluginXml is configured
-//    def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
-//    sinceBuild = props.getProperty("plugin.installable.since")
-//    untilBuild = props.getProperty("plugin.installable.until")
-
-    sinceBuild = "200"
-    untilBuild = "224.*"
-
+    //TODO  find a way to get version info before  patchPluginXml is configured (first build fails as build.txt file is missing)
+    try {
+        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        sinceBuild = props.getProperty("plugin.installable.since")
+        untilBuild = props.getProperty("plugin.installable.until")
+    }catch(Exception e){
+        sinceBuild = "200"
+        untilBuild = "224.*"
+    }
     pluginXmlFiles = [
             file('src/META-INF/plugin.xml'),
             file('src/META-INF/debugger-support.xml'),
@@ -442,24 +443,12 @@ Properties findSdkValuesAndProperties(File buildFile) {
     // Lookup table for properties files.  Add new versions here.
     def propertiesFile = ""
     switch (Integer.valueOf(codeLine, 10)) {
+        case 231: propertiesFile = "idea_v23.properties"; break
         case 223: propertiesFile = "idea_v22.properties"; break
         case 211: propertiesFile = "idea_v21.properties"; break
         case 203: propertiesFile = "idea_v20.3.properties"; break
         case 202: propertiesFile = "idea_v20.properties"; break
         case 201: propertiesFile = "idea_v20.properties"; break
-        case 193: propertiesFile = "idea_v19.properties"; break
-        case 192: propertiesFile = "idea_v19.properties"; break
-        case 191: propertiesFile = "idea_v19.properties"; break
-        case 183: propertiesFile = "idea_v18.properties"; break
-        case 182: propertiesFile = "idea_v18.properties"; break
-        case 181: propertiesFile = "idea_v18.properties"; break
-        case 173: propertiesFile = "idea_v17.3.properties"; break
-        case 172: propertiesFile = "idea_v17.properties"; break
-        case 171: propertiesFile = "idea_v17.properties"; break
-        case 163: propertiesFile = "idea_v16.properties"; break
-        case 162: propertiesFile = "idea_v16.properties"; break
-        case 161: propertiesFile = "idea_v16.properties"; break
-        case 145: propertiesFile = "idea_v16.properties"; break
         default:
             throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
     }
@@ -536,22 +525,22 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
 
 
-    createGradleRunConfiguration('Run Tests 2018', 'test', "-PtargetVersion=$latest2018Version", '')
-    createGradleRunConfiguration('Run Tests 2017', 'test', "-PtargetVersion=$latest2017Version", '')
-    createGradleRunConfiguration('Run Tests 2016', 'test', "-PtargetVersion=$latest2016Version", '')
+    createGradleRunConfiguration('Run Tests 2022', 'test', "-PtargetVersion=$latest2022Version", '')
+    createGradleRunConfiguration('Run Tests 2021', 'test', "-PtargetVersion=$latest2021Version", '')
+    createGradleRunConfiguration('Run Tests 2020', 'test', "-PtargetVersion=$latest2020Version", '')
 
-    createGradleRunConfiguration('Run IDE 2018',
+    createGradleRunConfiguration('Run IDE 2022',
                                  'runIde',
-                                 "-PtargetVersion=$latest2018Version",
+                                 "-PtargetVersion=$latest2022Version",
                                  ' -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2017',
+    createGradleRunConfiguration('Run IDE 2021',
                                  'runIde',
-                                 "-PtargetVersion=$latest2017Version",
+                                 "-PtargetVersion=$latest2021Version",
                                  '-DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2016',
+    createGradleRunConfiguration('Run IDE 2020',
                                  'runIde',
-                                 "-PtargetVersion=$latest2016Version",
-                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -ea -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
+                                 "-PtargetVersion=$latest2020Version",
+                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -Didea.is.internal=true')
 
 
 

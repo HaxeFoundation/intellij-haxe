@@ -1,10 +1,10 @@
 package ;
-using <info descr="null">Std</info>;
+using <info descr="">Std</info>;
 
-class <info descr="null">TestIssue964_StaticExtensionsUnresolved</info> {
-    var <info descr="null">m</info>:<info descr="null">Map</info><<info descr="null">String</info>,<info descr="null">String</info>> = <info descr="null">new</info> <info descr="null">Map</info>();
-    public function <info descr="null">new</info>() {
-        <info descr="null">m</info>.<info descr="null">get</info>("someString").<info descr="null">parseInt</info>();   // <<---- parseInt() marked as unresolved.
-        <info descr="null">m</info>.<info descr="null">is</info>(<info descr="null">Map</info>);
+class <info descr="">TestIssue964_StaticExtensionsUnresolved</info> {
+    var <info descr="">m</info>:<info descr="">Map</info><<info descr="">String</info>,<info descr="">String</info>> = <info descr="">new</info> <info descr="">Map</info>();
+    public function <info descr="">new</info>() {
+        <info descr=""><info descr=""><info descr="">m</info>.get</info>("someString").parseInt</info>();   // <<---- parseInt() marked as unresolved.
+        <info descr=""><info descr="">m</info>.is</info>(<info descr="">Map</info>);
     }
 }
