@@ -492,11 +492,43 @@ private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededBy
 private statementList ::= (statementWithOptionalSemicolon ';'?) {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
+//https://haxe.org/manual/macro-reification-expression.html
+// Expression Reification
+macroArrayReification::= "$a" macroStatementWrapper
+macroBlockReification::= "$b" macroStatementWrapper
+macroIdentifierReification::= "$i" macroStatementWrapper
+macroFieldReification::= "$p" macroStatementWrapper
+macroDynamicReification::= "$v" macroStatementWrapper
+
+macroExpReification::= "$e" macroStatementWrapper
+macroShorthandExpReification::= DOLLAR "{" expression "}" // shorthand for $e / expression ?
+
+private macroStatementWrapper ::= "{" expression "}"
+
+macroExpressionReification::=  (embeddedMeta)* (macroShorthandExpReification | macroArrayReification | macroBlockReification | macroIdentifierReification | macroFieldReification  | macroDynamicReification | macroExpReification ) {pin=2}
+
+//Class Reification
+macroClassReification ::= 'macro' topLevelDeclaration
+
+// type Reification
+private TPath ::=  ':' simpleQualifiedReferenceExpression
+private TFunction ::=  ':' arrowFunctionLiteral
+private TAnonymous ::=  ':'  anonymousTypeBody  // TODO mlo: make a better expression
+private TParent ::=  ':' type
+private TExtend ::=  ':' '{>' type ',' identifier ',' type '}' // TODO mlo: make a better expression
+private TOptional ::=  ':' '?' type
+
+//OBS make sure ordering is correct
+complexType ::= (TFunction | TAnonymous| TOptional | TParent | TExtend  | TPath)
+macroTypeReification ::= 'macro' complexType
+
+
 private statement ::= blockStatement | notBlockStatement
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 private notBlockStatement ::= ('untyped' statement ';'?)
                             | ('macro' statement ';'?)
+                            | macroClassReification
                             | localVarDeclarationList
                             | localFunctionDeclaration
                             | ifStatement
@@ -655,6 +687,8 @@ private value ::= ('untyped' expression)
                 | 'macro' expression
                 | callFunctionLiteral
                 | immediateArrayAccess
+                | macroTypeReification
+                | (macroExpressionReification qualifiedReferenceTail?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral
                 | callOrArrayAccess
@@ -699,7 +733,7 @@ regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
 private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
-parenthesizedExpression ::= '(' (typeCheckExpr | expression | statement) ')' {name="expression"}
+parenthesizedExpression ::= '(' (typeCheckExpr | macroTypeReification | expression | statement) ')' {name="expression"}
 
 private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
