@@ -17,51 +17,64 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import org.junit.Test;
+
 public class ClassDeclarationTest extends DeclarationTestBase {
   public ClassDeclarationTest() {
     super("class");
   }
 
+  @Test
   public void testExtends() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testExtendsImplements() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFinal() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testImplements() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMultiextends() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
-    public void testConstraint() throws Throwable {
+  @Test
+  public void testConstraint() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testNativeRandom() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testArrayUtils() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testFullOfMacro() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testNativeAnnotationIssue490() throws Throwable {
     doTest(true);
   }

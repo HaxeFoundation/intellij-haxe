@@ -28,6 +28,7 @@ public class SwitchTest extends StatementTestBase {
     super("switch");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }

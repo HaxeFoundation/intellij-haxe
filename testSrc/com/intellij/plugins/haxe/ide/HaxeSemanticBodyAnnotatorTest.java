@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import org.junit.Test;
 
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
@@ -48,14 +49,17 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
     doTestNoFix(false, false, false);
   }
 
+  @Test
   public void testAssignUnknownTwice() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testUpdateUnknownInGenerics() throws Exception {
     doTestNoFixWithWarnings();
   }
 
+  @Test
   public void testUpdateUnknownOnLambdas() throws Exception {
     doTestNoFixWithWarnings();
   }

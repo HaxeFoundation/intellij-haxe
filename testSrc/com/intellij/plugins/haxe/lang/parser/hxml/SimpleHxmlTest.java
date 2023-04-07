@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.lang.parser.hxml;
 
 import com.intellij.plugins.haxe.lang.parser.HxmlParsingTestBase;
+import org.junit.Test;
 
 public class SimpleHxmlTest extends HxmlParsingTestBase {
 
@@ -25,6 +26,7 @@ public class SimpleHxmlTest extends HxmlParsingTestBase {
     super("parsing", "hxml");
   }
 
+  @Test
   public void testSimpleBuild() throws Throwable {
     doTest(true);
   }

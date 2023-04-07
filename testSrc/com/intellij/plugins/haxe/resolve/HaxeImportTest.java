@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
+import org.junit.Test;
 
 public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
 
@@ -43,8 +44,8 @@ public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, true, true);
   }
 
+  @Test
   public void testImports() {
     doTest("import.hx", "somepkg/import.hx", "somepkg/Helper.hx");
   }
-
 }
