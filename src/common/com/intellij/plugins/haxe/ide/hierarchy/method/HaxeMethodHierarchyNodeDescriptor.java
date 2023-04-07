@@ -26,8 +26,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ui.util.CompositeAppearance;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Iconable;
-import com.intellij.plugins.haxe.build.FieldWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -155,15 +153,8 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDe
   }
 
   public static Icon getModifiedIcon() {
-    FieldWrapper<Icon> wrapper;
-    if (IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
-      wrapper = new FieldWrapper<>(AllIcons.General.class, "Modified");
-    } else {
-      wrapper = new FieldWrapper<>(AllIcons.Hierarchy.class, "Base");
-    }
-    return wrapper.get(null);
+    return AllIcons.General.Modified;
   }
-
 
   private Icon calculateState(final PsiClass psiClass) {
     final PsiMethod method = getMethod(psiClass, false);

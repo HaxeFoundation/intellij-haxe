@@ -23,8 +23,6 @@ import com.intellij.formatting.Block;
 import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.build.FieldWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
@@ -47,18 +45,6 @@ public class HaxeSpacingProcessor {
   private final ASTNode myNode;
   private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
-
-  // This is a compatability wrapper for mySettings.BLANK_LINES_BEFORE_CLASS_END, which can
-  // go away when we no longer support 2018 versions of IDEA.
-  private static final FieldWrapper<Integer> BLANK_LINES_BEFORE_CLASS_END_WRAPPER
-        = IdeaTarget.IS_VERSION_18_3_COMPATIBLE
-        ? new FieldWrapper<>(CommonCodeStyleSettings.class, "BLANK_LINES_BEFORE_CLASS_END")
-        : null;
-  int getBlankLinesBeforeClassEnd() {
-    return null != BLANK_LINES_BEFORE_CLASS_END_WRAPPER
-      ? BLANK_LINES_BEFORE_CLASS_END_WRAPPER.get(mySettings)
-      : 0;
-  }
 
   public HaxeSpacingProcessor(ASTNode node, CommonCodeStyleSettings settings, HaxeCodeStyleSettings haxeCodeStyleSettings) {
     myNode = node;
@@ -181,7 +167,7 @@ public class HaxeSpacingProcessor {
     }
 
     if (type2 == PRCURLY && isClassBodyType(elementType) && isLastChild(child2)) {
-      return Spacing.createSpacing(0, 0, max(1, getBlankLinesBeforeClassEnd()), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+      return Spacing.createSpacing(0, 0, max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (isMethodDeclaration(type1) && isMethodDeclaration(type2)) {

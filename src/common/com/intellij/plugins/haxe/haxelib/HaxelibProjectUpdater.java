@@ -36,8 +36,6 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.*;
-import com.intellij.plugins.haxe.build.IdeaTarget;
-import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
@@ -492,10 +490,7 @@ public class HaxelibProjectUpdater {
           if (null != moduleRootModel || null != libraryTableModel)
             timeLog.stamp("Failure to update module libraries");
           if (null != libraryTableModel)
-            if (IdeaTarget.IS_VERSION_15_COMPATIBLE) {
-              // libraryTableModel.dispose() in IDEA 15+; not a disposable in earlier versions.
-              new MethodWrapper<Void>(libraryTableModel.getClass(), "dispose").invoke(libraryTableModel);
-            }
+            libraryTableModel.dispose();
           if (null != moduleRootModel)
             moduleRootModel.dispose();
         }

@@ -46,8 +46,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.build.FieldWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.LimeUtil;
@@ -939,13 +937,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
       }
 
       private Icon getStackFrameIcon() {
-        FieldWrapper<Icon> wrapper;
-        if (IdeaTarget.IS_VERSION_20_1_COMPATIBLE) {
-          wrapper = new FieldWrapper<>(AllIcons.Debugger.class, "Frame");
-        } else {
-          wrapper = new FieldWrapper<>(AllIcons.Debugger.class, "StackFrame");
-        }
-        return wrapper.get(null);
+        return AllIcons.Debugger.Frame;
       }
 
       private void computeChildrenCurrentFrame

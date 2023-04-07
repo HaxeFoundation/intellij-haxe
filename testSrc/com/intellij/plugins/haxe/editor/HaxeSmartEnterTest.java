@@ -25,7 +25,6 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
@@ -73,10 +72,7 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
 
   @Test
   public void testIfFixer() {
-    // Pre 18.3 versions don't format the code in the same way.  The spacing differs.
-    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
       doTest();
-    }
   }
 
   @Test
