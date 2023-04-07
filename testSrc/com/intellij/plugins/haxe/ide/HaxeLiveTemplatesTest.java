@@ -23,13 +23,10 @@ import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -49,7 +46,6 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
   public static void expandTemplate(final Editor editor) {
     new ListTemplatesAction().actionPerformedImpl(editor.getProject(), editor);
     ((LookupImpl)LookupManager.getActiveLookup(editor)).finishLookup(Lookup.NORMAL_SELECT_CHAR);
-
   }
 
   private void doTest(String... files) throws Exception {
@@ -72,10 +68,12 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.checkResultByFile(getTestName(false) + "_after.hx");
   }
 
+  @Test
   public void testIter() throws Throwable {
     doTest("Iter.hx", "Array.hx");
   }
 
+  @Test
   public void testItar() throws Throwable {
     doTest("Itar.hx", "Array.hx");
   }

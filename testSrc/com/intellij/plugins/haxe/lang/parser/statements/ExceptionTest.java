@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -25,18 +27,22 @@ public class ExceptionTest extends StatementTestBase {
     super("exception");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testTryCatch() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testMultipleTryCatch() throws Throwable {
     doTest(true);
   }
 
+  @Test
   public void testThrowFromTernary() throws Throwable {
     doTest(true);
   }

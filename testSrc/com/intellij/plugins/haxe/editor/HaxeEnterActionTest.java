@@ -22,6 +22,7 @@ import com.intellij.codeInsight.AbstractEnterActionTestCase;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import org.jetbrains.annotations.NotNull;
+import org.junit.Test;
 
 /**
  * @author winmain
@@ -54,6 +55,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
     doTest("hx");
   }
 
+  @Test
   public void testEnterInAbstract() throws Throwable {
     doTextTest("hx",
                "abstract Test {\n" +
@@ -65,6 +67,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                "}");
   }
 
+  @Test
   public void testEnterInClass() throws Throwable {
     doTextTest("hx",
                "class Test {\n" +
@@ -76,6 +79,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                "}");
   }
 
+  @Test
   public void testEnterInEnum() throws Throwable {
     doTextTest("hx",
                "enum Test {\n" +
@@ -87,6 +91,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                "}");
   }
 
+  @Test
   public void testEnterInExternClass() throws Throwable {
     doTextTest("hx",
                "extern class Test {\n" +
@@ -98,6 +103,7 @@ public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
                "}");
   }
 
+  @Test
   public void testEnterInInterface() throws Throwable {
     doTextTest("hx",
                "interface Test {\n" +

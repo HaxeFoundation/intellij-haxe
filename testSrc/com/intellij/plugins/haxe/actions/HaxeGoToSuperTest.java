@@ -21,6 +21,7 @@ import com.intellij.codeInsight.CodeInsightActionHandler;
 import com.intellij.lang.CodeInsightActions;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -38,10 +39,12 @@ public class HaxeGoToSuperTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.checkResultByFile(getTestName(false) + ".txt");
   }
 
+  @Test
   public void testGts1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testGts2() throws Throwable {
     doTest();
   }
