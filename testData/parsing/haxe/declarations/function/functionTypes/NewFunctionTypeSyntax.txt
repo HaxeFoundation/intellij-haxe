@@ -465,6 +465,45 @@ Haxe File
             LOCAL_VAR_DECLARATION
               COMPONENT_NAME
                 IDENTIFIER
+                  HaxePsiToken:ID('nestedFunctionTypeWithOldFunctionTypeArgument')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                FUNCTION_TYPE
+                  HaxePsiToken:(('(')
+                  FUNCTION_ARGUMENT
+                    COMPONENT_NAME
+                      IDENTIFIER
+                        HaxePsiToken:ID('arg0')
+                    HaxePsiToken::(':')
+                    FUNCTION_TYPE
+                      FUNCTION_ARGUMENT
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Int')
+                      HaxePsiToken:->('->')
+                      FUNCTION_RETURN_TYPE
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Void')
+                  HaxePsiToken:)(')')
+                  HaxePsiToken:->('->')
+                  FUNCTION_RETURN_TYPE
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Void')
+            HaxePsiToken:;(';')
+          LOCAL_VAR_DECLARATION_LIST
+            MUTABILITY_MODIFIER
+              HaxePsiToken:var('var')
+            LOCAL_VAR_DECLARATION
+              COMPONENT_NAME
+                IDENTIFIER
                   HaxePsiToken:ID('nestedFunctionTypeWithOptionalArgument')
               TYPE_TAG
                 HaxePsiToken::(':')

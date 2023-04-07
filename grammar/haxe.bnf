@@ -229,8 +229,8 @@ private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
 private questionOperator ::= '?'              { extends=operator }
 private suffixOperator ::= '!'                { extends=operator }
 
-// KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code
-identifier ::= ID | KFROM | KTO
+// KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER is only used for getters/setters)
+identifier ::= ID | KFROM | KTO | KNEVER
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
 
 thisExpression ::= 'this'
@@ -452,7 +452,7 @@ private typeWrapper ::= functionType | typeOrAnonymous
 
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
-functionArgument ::= optionalFunctionTypeWithoutName | namedTypeOrAnonymous | namedFunctionType
+functionArgument ::= optionalFunctionTypeWithoutName | namedFunctionType | namedTypeOrAnonymous
 private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonymous
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
 private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}

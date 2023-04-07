@@ -32,4 +32,5 @@ public class FunctionTypeSyntaxTest extends DeclarationTestBase {
   public void testNewFunctionTypeSyntax() throws Throwable {
     doTest(true);
   }
+
 }

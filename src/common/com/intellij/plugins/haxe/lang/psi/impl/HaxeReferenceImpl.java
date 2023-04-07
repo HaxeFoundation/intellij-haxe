@@ -502,8 +502,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           if(list != null) {
             List<HaxeExpression> parameterExpressions = list.getExpressionList();
             for(HaxeExpression exp:  parameterExpressions) {
-              HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
-              modelResolver.addAll(parameterResult.getGenericResolver());
+              if (exp instanceof HaxeReference) {
+                HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
+                modelResolver.addAll(parameterResult.getGenericResolver());
+              }
             }
             resolver.addAll(modelResolver);
           }
