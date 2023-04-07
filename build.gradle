@@ -221,11 +221,7 @@ runIde {
 }
 
 compileJava {
-    if ( intelliJMinorVersion > 2020 ||  intelliJMajorVersion  == 2020  && intelliJMinorVersion >=3) {
-        sourceCompatibility  = 11
-    }else {
-        sourceCompatibility  = 8
-    }
+    sourceCompatibility = 17
     dependsOn 'generateSources'
 }
 
@@ -316,10 +312,6 @@ test {
       "-ea",
       "-Didea.launcher.bin.path=${ideaTargetDir}/bin"
     ]
-    if (ideaVersion.matches(~/2017\.(1|2).*/)) {
-        // Project leak detection is not right in 2017.1&2.x
-        allJvmArgs += ["-Didea.log.leaked.projects.in.tests=false"]
-    }
 }
 
 clean.dependsOn('cleanGenerated')
@@ -445,10 +437,6 @@ Properties findSdkValuesAndProperties(File buildFile) {
     switch (Integer.valueOf(codeLine, 10)) {
         case 231: propertiesFile = "idea_v23.properties"; break
         case 223: propertiesFile = "idea_v22.properties"; break
-        case 211: propertiesFile = "idea_v21.properties"; break
-        case 203: propertiesFile = "idea_v20.3.properties"; break
-        case 202: propertiesFile = "idea_v20.properties"; break
-        case 201: propertiesFile = "idea_v20.properties"; break
         default:
             throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
     }
