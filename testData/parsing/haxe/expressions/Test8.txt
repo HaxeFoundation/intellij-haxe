@@ -78,8 +78,8 @@ Haxe File
               TYPE_TAG
                 HaxePsiToken::(':')
                 FUNCTION_TYPE
+                  HaxePsiToken:(('(')
                   FUNCTION_ARGUMENT
-                    HaxePsiToken:(('(')
                     FUNCTION_TYPE
                       FUNCTION_ARGUMENT
                         TYPE_OR_ANONYMOUS
@@ -94,7 +94,7 @@ Haxe File
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('Void')
-                    HaxePsiToken:)(')')
+                  HaxePsiToken:)(')')
                   HaxePsiToken:->('->')
                   FUNCTION_RETURN_TYPE
                     TYPE_OR_ANONYMOUS

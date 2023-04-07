@@ -36,7 +36,7 @@ Haxe File
             HaxePsiToken:ID('get')
           HaxePsiToken:,(',')
           PROPERTY_ACCESSOR
-            HaxePsiToken:never('never')
+            HaxePsiToken:KNEVER('never')
           HaxePsiToken:)(')')
         TYPE_TAG
           HaxePsiToken::(':')
