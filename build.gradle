@@ -91,7 +91,6 @@ allprojects {
 
     apply plugin: 'idea'
     apply plugin: 'org.jetbrains.intellij'
-    apply from: "${haxePluginDir}/template.gradle"
     apply from: "${haxePluginDir}/testSettings.gradle"
 
     intellij {
@@ -303,7 +302,6 @@ task copyJar() {
 }
 
 test {
-    dependsOn('generateVersionSpecificTestSources')
     useJUnit()
     allJvmArgs = [
       "-Didea.home.path=${ideaTargetDir}",
@@ -409,8 +407,6 @@ task cleanGenDirIfSourcesChanged(group: 'other') {
 task generateSources(group: 'generate') {
     dependsOn 'cleanGenDirIfSourcesChanged'
     dependsOn 'generateIdeaSdkIdentifer'
-    // See template.gradle for generateVersionSpecificSources task.
-    dependsOn 'generateVersionSpecificSources'
     dependsOn 'generateHaxeLexer'
     dependsOn 'generateHxmlLexer'
     dependsOn 'generateMetadataLexer'
