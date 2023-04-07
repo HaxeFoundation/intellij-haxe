@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.actions;
 import com.intellij.openapi.editor.CaretState;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ArrayUtil;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +51,7 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
     assertTrue(carets.size() >= n);
 
     List<CaretState> useCaret = new ArrayList<CaretState>(1);
-    useCaret.add(carets.get(n-1));
+    useCaret.add(carets.get(n - 1));
     myFixture.getEditor().getCaretModel().setCaretsAndSelections(useCaret);
 
     myFixture.testRename(getTruncatedResultFileName(), newName);
@@ -90,58 +91,72 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
     return testName.substring(0, i + 1);
   }
 
+  @Test
   public void testLocalVariable1() throws Throwable {
     doTest("fooNew");
   }
 
+  @Test
   public void testLocalVariable2() throws Throwable {
     doTest("fooNew");
   }
 
+  @Test
   public void testFunctionParameter() throws Throwable {
     doTest("fooNew");
   }
 
+  @Test
   public void testMethod() throws Throwable {
     doTest("fooNew");
   }
 
+  @Test
   public void testMainClass() throws Throwable {
     doTest("MainClassAfter");
   }
 
+  @Test
   public void testStaticField() throws Throwable {
     doTest("fooNew", "additional/StaticFieldHelper.hx");
   }
 
+  @Test
   public void testStaticMethod() throws Throwable {
     doTest("fooNew", "additional/StaticMethodHelper.hx");
   }
 
+  @Test
   public void testCatchParameter() throws Throwable {
     doTest("error");
   }
 
+  @Test
   public void testForVar() throws Throwable {
     doTest("index");
   }
 
+  @Test
   public void testRenameGenericParam() throws Throwable {
     doTest("P");
   }
 
+  @Test
   public void testDoNotRenameConstructor1() throws Throwable {
-    doTestOnNthSelection(1,"After");
+    doTestOnNthSelection(1, "After");
   }
 
+  @Test
   public void testDoNotRenameConstructor2() throws Throwable {
-    doTestOnNthSelection(2,"After");
+    doTestOnNthSelection(2, "After");
   }
 
+  @Test
   public void testDoNotRenameConstructor3() throws Throwable {
-    doTestOnNthSelection(3,"After");
+    doTestOnNthSelection(3, "After");
   }
 
+  @Test
   public void testDoNotRenameConstructorName() throws Throwable {
     doTest("foo");
   }

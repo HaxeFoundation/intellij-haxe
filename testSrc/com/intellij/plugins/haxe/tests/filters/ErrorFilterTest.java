@@ -35,7 +35,8 @@ public class ErrorFilterTest {
     // This tests whether hyperlinks (Filter.Result) are created properly,
     // not whether error parsing or filters work.
 
-    String expression = "ERR: CoordinatesDetectionTest.hx:22(by.rovar.iso.model.CoordinatesDetectionTest.test2x2) - expected true but was false";
+    String expression =
+      "ERR: CoordinatesDetectionTest.hx:22(by.rovar.iso.model.CoordinatesDetectionTest.test2x2) - expected true but was false";
     ErrorFilter filter = createFilter();
     String fileName = "by/rovar/iso/model/CoordinatesDetectionTest.hx";
     Filter.Result result = filter.applyFilter(expression, expression.length());
@@ -44,12 +45,12 @@ public class ErrorFilterTest {
     Filter.ResultItem item = resultItems.get(0);
     assertEquals("ERR: ".length(), item.getHighlightStartOffset());
     assertEquals("ERR: CoordinatesDetectionTest.hx:22".length(), item.getHighlightEndOffset());
-    HLInfo info = (HLInfo) item.getHyperlinkInfo();
+    HLInfo info = (HLInfo)item.getHyperlinkInfo();
     info.checkInfo(fileName, 22);
   }
 
   private ErrorFilter createFilter() {
-    return new ErrorFilter(null){
+    return new ErrorFilter(null) {
       @Override
       protected HyperlinkInfo createOpenFileHyperlink(String filePath, int line) {
         return createOpenFile(filePath, line);

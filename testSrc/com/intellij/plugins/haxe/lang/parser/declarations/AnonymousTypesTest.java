@@ -16,11 +16,14 @@
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
 
+import org.junit.Test;
+
 public class AnonymousTypesTest extends DeclarationTestBase {
   public AnonymousTypesTest() {
     super("anonymous");
   }
 
+  @Test
   public void testAnonymousTypeEmptyBody() throws Throwable {
     doTest(true);
   }

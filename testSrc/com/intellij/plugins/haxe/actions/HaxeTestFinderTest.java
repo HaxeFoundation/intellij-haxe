@@ -21,6 +21,7 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.ide.HaxeTestFinder;
 import com.intellij.psi.PsiFile;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -55,14 +56,17 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
     assertEquals(size, myTestFinder.findClassesForTest(myFixture.getElementAtCaret()).size());
   }
 
+  @Test
   public void testFoo1() throws Throwable {
     doFindTestsTest(1);
   }
 
+  @Test
   public void testFoo2() throws Throwable {
     doFindTestsTest(1);
   }
 
+  @Test
   public void testFoo3() throws Throwable {
     doFindTestsTest(myFixture.configureByFiles(
       "Foo3.hx",
@@ -71,10 +75,12 @@ public class HaxeTestFinderTest extends HaxeCodeInsightFixtureTestCase {
     ), 2);
   }
 
+  @Test
   public void testFoo4Test() throws Throwable {
     doFindClassesTest(1);
   }
 
+  @Test
   public void testFoo5Test() throws Throwable {
     doFindClassesTest(1);
   }

@@ -17,6 +17,8 @@
  */
 package com.intellij.plugins.haxe.lang.parser.statements;
 
+import org.junit.Test;
+
 /**
  * @author fedor.korotkov
  */
@@ -25,6 +27,7 @@ public class BreakTest extends StatementTestBase {
     super("break");
   }
 
+  @Test
   public void testSimple() throws Throwable {
     doTest(true);
   }

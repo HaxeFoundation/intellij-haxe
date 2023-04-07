@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.google.gson.*;
 import com.intellij.testFramework.UsefulTestCase;
+import org.junit.Test;
 
 import java.util.List;
 
@@ -94,11 +95,13 @@ public class MetadataTest extends UsefulTestCase {
   }
 
 
+  @Test
   public void testParsing() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(createTestElement(), md.getTestInterface().getRoot());
   }
 
+  @Test
   public void testAccessors() throws Exception {
     HaxelibMetadata md = getTestMetadata();
     assertEquals(NAME_DATA, md.getName());
