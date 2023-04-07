@@ -42,4 +42,13 @@ public class SwitchTest extends StatementTestBase {
   public void testFatArrowExpression() throws Throwable {
     doTest(true);
   }
+
+  @Test
+  public void testExtractorExpression() throws Throwable {
+    doTest(true);
+  }
+  @Test
+  public void testChainedExtractorsExpression() throws Throwable {
+    doTest(true);
+  }
 }
