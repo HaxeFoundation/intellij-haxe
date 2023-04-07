@@ -61,7 +61,7 @@ public class HaxeTestUtils {
    * the standard library is at '.../testData/haxe/4.0.5/std'.
    *
    * @param testDataPath - Path to test data home (e.g. {@link HaxeCodeInsightFixtureTestCase#getTestDataPath()})
-   * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
+   * @param version      - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
    * @return The toolkit's standard library path relative to the current test's testData.
    */
   public static String getTestRelativeHaxeStandardLibraryPath(String testDataPath, String version) {
@@ -79,6 +79,7 @@ public class HaxeTestUtils {
 
   /**
    * Gets the absolute directory name for the toolkit path in the testdata
+   *
    * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
    * @return platform-specific directory name of the test toolkit location (under the testData directory).
    */
@@ -94,8 +95,8 @@ public class HaxeTestUtils {
    * Converts a list of (std lib) file names to their equivalent paths in the common toolkit directory,
    *
    * @param testCase - The Test case to use the toolkit with.
-   * @param version - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
-   * @param files - Files to use from the toolkit.
+   * @param version  - Version of the toolkit to use. (e.g. {@link HaxeTestUtils#VERSION_4_0_5})
+   * @param files    - Files to use from the toolkit.
    * @return a list of toolkit file names in the common toolkit directory.
    */
   public static List<String> useToolkitFiles(HaxeCodeInsightFixtureTestCase testCase, String version, String... files) {
@@ -110,7 +111,7 @@ public class HaxeTestUtils {
       toolkitFiles.add(toolkitFile);
 
       String fullName = HaxeFileUtil.joinPath(testPath, toolkitFile);
-      assert null != fullName && new File(fullName).exists():
+      assert null != fullName && new File(fullName).exists() :
         "Toolkit file " + file + " is not found, does it need to be added to the " +
         getAbsoluteToolkitPath(version) + " directory?";
     }
@@ -133,8 +134,9 @@ public class HaxeTestUtils {
 
   /**
    * Finds unterminated UI timers (that probably have nothing to do with your tests) and shuts them down.
-   *
+   * <p>
    * Call this in your test's tearDown() method before calling super.tearDown().
+   *
    * @param exceptionHandler
    */
   public static void cleanupUnexpiredAppleUITimers(Consumer<Throwable> exceptionHandler) {
@@ -148,12 +150,11 @@ public class HaxeTestUtils {
       DelayQueue<?> delayQueue = ReflectionUtil.getField(timerQueueClass, timerQueue, DelayQueue.class, "queue");
 
       // Iterator for DelayQueue is a snapshot, so manipulating delayQueue has no effect on the iterator.
-      for (Object queuedObject: delayQueue) {
-        if (queuedObject instanceof Delayed) {
-          Delayed timer = (Delayed)queuedObject;
+      for (Object queuedObject : delayQueue) {
+        if (queuedObject instanceof Delayed timer) {
 
           Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
-          Timer swingTimer = (Timer) getTimer.invoke(timer);
+          Timer swingTimer = (Timer)getTimer.invoke(timer);
           LOG.warn("Timer still open:" + swingTimer.toString());
           for (ActionListener listener : swingTimer.getActionListeners()) {
             LOG.warn(" -> open listener:" + listener.toString());
@@ -161,13 +162,13 @@ public class HaxeTestUtils {
               swingTimer.stop();
             }
           }
-
         }
       }
-    } catch ( ClassNotFoundException
-            | NoSuchMethodException
-            | IllegalAccessException
-            | InvocationTargetException e) {
+    }
+    catch (ClassNotFoundException
+           | NoSuchMethodException
+           | IllegalAccessException
+           | InvocationTargetException e) {
       LOG.warn("Error trying to clean up timers: ", e);
       exceptionHandler.accept(e);
     }
@@ -175,13 +176,13 @@ public class HaxeTestUtils {
 
   /**
    * Common implementation of addSuppressedException to be used in all of the Haxe test classes.
-   *
+   * <p>
    * It is expected that the test class will implement addSuppressedException by
    * calling this.  However, addSuppressedException is only overridden in our tests for compatibility's sake.
    * It (and this implementation) can be deleted when we no longer test with pre 18.3 versions of idea.
-   *
+   * <p>
    * NOTE: It would have been better to place this code in a common base class for all Haxe test
-   *       classes.  However, there is no such thing; our tests override many different test classes.
+   * classes.  However, there is no such thing; our tests override many different test classes.
    *
    * @param e
    * @param testCase

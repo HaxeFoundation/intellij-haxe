@@ -1,12 +1,12 @@
 package;
 
-using <info descr="null">Std</info>;
+using <info descr="">Std</info>;
 
-class <info descr="null">Test</info> {
-  function <info descr="null">demo4</info>() {
-    var <info descr="null">m</info>:<info descr="null">Array</info><<info descr="null">Array</info><<info descr="null">Int</info>>> = <info descr="null">new</info> <info descr="null">Array</info><<info descr="null">Array</info><<info descr="null">Int</info>>>();
-    (<info descr="null">m</info>).<info descr="null">length</info>;
-    var <info descr="null">i</info> = 0;
-    (<info descr="null">m</info>[<info descr="null">i</info>]).<info descr="null">length</info>;
+class <info descr="">Test</info> {
+  function <info descr="">demo4</info>() {
+    var <info descr="">m</info>:<info descr="">Array</info><<info descr="">Array</info><<info descr="">Int</info>>> = <info descr="">new</info> <info descr="">Array</info><<info descr="">Array</info><<info descr="">Int</info>>>();
+    <info descr="">(<info descr="">m</info>).length</info>;
+    var <info descr="">i</info> = 0;
+    <info descr="">(<info descr="">m</info>[<info descr="">i</info>]).length</info>;
   }
 }

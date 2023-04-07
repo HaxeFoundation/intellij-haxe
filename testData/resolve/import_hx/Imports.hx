@@ -2,24 +2,24 @@
 
 package;
 
-class <info descr="null">Imports</info> {
-  var <info descr="null">helper</info> : <info descr="null">Helper</info> = <info descr="null">new</info> <info descr="null">Helper</info>();  // Brought in by imports.hx
+class <info descr="">Imports</info> {
+  var <info descr="">helper</info> : <info descr="">Helper</info> = <info descr="">new</info> <info descr="">Helper</info>();  // Brought in by imports.hx
 
-  public function <info descr="null">new</info>() {}
+  public function <info descr="">new</info>() {}
 
-  public static function <info descr="null">main</info>() {
-    var <info descr="null">t</info> = <info descr="null">new</info> <info descr="null">Imports</info>();
-    for (<info descr="null">i</info> <info descr="null">in</info> 1 ... 3)
-      <info descr="null">t</info>.<info descr="null">helper</info>.<info descr="null">push</info>(<info descr="null">i</info>);
-    trace("length = " + <info descr="null">t</info>.<info descr="null">helper</info>.<info descr="null">length</info>());
-    while (0 < <info descr="null">t</info>.<info descr="null">helper</info>.<info descr="null">length</info>())
-      trace(<info descr="null">t</info>.<info descr="null">helper</info>.<info descr="null">pop</info>());
+  public static function <info descr="">main</info>() {
+    var <info descr="">t</info> = <info descr="">new</info> <info descr="">Imports</info>();
+    for (<info descr="">i</info> <info descr="">in</info> 1 ... 3)
+      <info descr=""><info descr=""><info descr="">t</info>.helper</info>.push</info>(<info descr="">i</info>);
+    trace("length = " + <info descr=""><info descr=""><info descr="">t</info>.helper</info>.length</info>());
+    while (0 < <info descr=""><info descr=""><info descr="">t</info>.helper</info>.length</info>())
+      trace(<info descr=""><info descr=""><info descr="">t</info>.helper</info>.pop</info>());
 
-    <info descr="null">t</info>.<info descr="null">helper</info>.<info descr="null">callme</info>(<info descr="null">t</info>);
+    <info descr=""><info descr=""><info descr="">t</info>.helper</info>.callme</info>(<info descr="">t</info>);
   }
 
-  public function <info descr="null">answer</info>() {  // Demonstrates two levels of import.hx work from Helper.hx.
+  public function <info descr="">answer</info>() {  // Demonstrates two levels of import.hx work from Helper.hx.
     trace("answer called.");
-    "Hello? Anybody there?".<info descr="null">show</info>();
+    <info descr="">"Hello? Anybody there?".show</info>();
   }
 }

@@ -21,6 +21,7 @@ import com.intellij.execution.Platform;
 import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
 import junit.framework.TestCase;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -41,6 +42,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     assertEquals(0, compilerError.getColumn());
   }
 
+  @Test
   public void testNMEErrorWin() {
     final String error = "src/Main.hx:5: characters 0-21 : Class not found : StringTools212";
     final String rootPath = "C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker";
@@ -54,6 +56,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     assertEquals(0, compilerError.getColumn());
   }
 
+  @Test
   public void testNMEErrorRelativeUnix() {
     final String error = "./HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
     final String rootPath = "/trees/test";
@@ -67,6 +70,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     assertEquals(1, compilerError.getColumn());
   }
 
+  @Test
   public void testNMEErrorAbsoluteUnix() {
     final String error = "/an/absolute/path/HelloWorld.hx:12: characters 1-16 : Unknown identifier : addEvetListener";
     final String rootPath = "/trees/test";
@@ -82,6 +86,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     assertEquals(1, compilerError.getColumn());
   }
 
+  @Test
   public void testNMEErrorNoColumnUnix() {
     final String error = "hello/HelloWorld.hx:18: lines 18-24 : Interfaces cannot implement another interface (use extends instead)";
     final String rootPath = "/trees/test";
@@ -95,6 +100,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     assertEquals(-1, compilerError.getColumn());
   }
 
+  @Test
   public void testWarnings() {
     final String error = "hello/HelloWorld.hx:18: lines 18-24 : Warning : Danger, Will Robinson!";
     final String rootPath = "/trees/test";

@@ -1,13 +1,13 @@
 package;
 
-enum <info descr="null">HelperType</info> {
-  <info descr="null">A</info>;
-  <info descr="null">B</info>;
+enum <info descr="">HelperType</info> {
+  <info descr="">A</info>;
+  <info descr="">B</info>;
 }
 
-class <info descr="null">TestHelper</info> {
-  public function <info descr="null">new</info>() {}
-  public function <info descr="null">enumvalueName</info>(<info descr="null">type</info>:<info descr="null">EnumValue</info>) { trace(<info descr="null">type</info>.<info descr="null">getName</info>()); }
-  public function <info descr="null">enumName</info>(<info descr="null">type</info>:<info descr="null">Enum</info><<info descr="null">Dynamic</info>>) { trace(<info descr="null">type</info>.<info descr="null">getName</info>()); }
-  public function <info descr="null">enumString</info> (<info descr="null">type</info>:<info descr="null">EnumValue</info>) { trace('This enum is named ${<info descr="null">type</info>.<info descr="null">getName</info>()}.'); }
+class <info descr="">TestHelper</info> {
+  public function <info descr="">new</info>() {}
+  public function <info descr="">enumvalueName</info>(<info descr="">type</info>:<info descr="">EnumValue</info>) { trace(<info descr=""><info descr="">type</info>.getName</info>()); }
+  public function <info descr="">enumName</info>(<info descr="">type</info>:<info descr="">Enum</info><<info descr="">Dynamic</info>>) { trace(<info descr=""><info descr="">type</info>.getName</info>()); }
+  public function <info descr="">enumString</info> (<info descr="">type</info>:<info descr="">EnumValue</info>) { trace('This enum is named ${<info descr=""><info descr="">type</info>.getName</info>()}.'); }
 }

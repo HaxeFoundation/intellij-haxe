@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduce;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
+import org.junit.Test;
 
 /**
  * @author: Fedor.Korotkov
@@ -34,102 +35,127 @@ public class HaxeIntroduceVariableTest extends HaxeIntroduceTestBase {
     return new HaxeIntroduceVariableHandler();
   }
 
+  @Test
   public void testAfterStatement() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testAlone() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testReplaceAll1() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testReplaceAll2() throws Throwable {
     doTest();
   }
 
+  @Test
   public void testReplaceAll3() throws Throwable {
     doTestInplace(null);
   }
 
+  @Test
   public void testReplaceOne1() throws Throwable {
     doTest(null, false);
   }
 
+  @Test
   public void testSuggestName1() throws Throwable {
     doTestSuggestions(HaxeCallExpression.class, "test");
   }
 
+  @Test
   public void testSuggestName2() throws Throwable {
     doTestSuggestions(HaxeCallExpression.class, "test1");
   }
 
+  @Test
   public void testReplaceConstant() throws Throwable {
     doTestInplace(null, false, null);
   }
 
+  @Test
   public void testReplaceConstantAll() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractRegex() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractThis() throws Throwable {
     doTestInplace(null, false, null);
   }
 
+  @Test
   public void testExtractString() throws Throwable {
     doTestInplace(null, false, null);
   }
 
+  @Test
   public void testExtractCall() throws Throwable {
     doTestInplace(null, true, "pi");
   }
 
+  @Test
   public void testExtractAnonymousFunction() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractNamedFunction() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractArrowFunctionWithCurlyBrackets() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractSimpleArrowFunction() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractFloat() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractAnonymousStructure() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractMapLiteral() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractMapLiteralWithFunction() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractArrayLiteral() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractArrayComprehension() throws Throwable {
     doTestInplace(null, true, null);
   }
 
+  @Test
   public void testExtractRegex2() throws Throwable {
     doTestInplace(null, true, null);
   }
