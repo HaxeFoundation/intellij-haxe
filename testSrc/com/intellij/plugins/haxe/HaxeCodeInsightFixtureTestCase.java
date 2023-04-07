@@ -23,13 +23,12 @@
  */
 package com.intellij.plugins.haxe;
 
+import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
-import com.intellij.plugins.haxe.build.ClassWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeDebugLogger;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
@@ -114,11 +113,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     }
   }
 
-  protected void addSuppressedException(@NotNull Throwable e) {
-    // This routine is overridden for compatibility's sake only.  It can be deleted when we no longer
-    // test with pre 18.3 versions of idea.
-    HaxeTestUtils.suppressException(e, this);
-  }
 
   /**
    * Return relative path to the test data. Path is relative to the
@@ -172,20 +166,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
    * @return - An annotator-based inspection class instance.
    */
   protected InspectionProfileEntry getAnnotatorBasedInspection() {
-    // Because we're loading an inner class, and Class.forName simply substitutes '.' for '/', it won't find
-    // the class unless we use the '$' as the final path separator.  (Which is what the Java compiler does
-    // when it  creates an inner class.)
-    //String defaultInspectorClassName = IdeaTarget.IS_VERSTION_16_COMPATIBLE
-    //                       ? "com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection$AnnotatorBasedInspection"
-    //                       : "com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection$AnnotatorBasedInspection";
-    String defaultInspectorClassName = IdeaTarget.IS_VERSTION_16_COMPATIBLE
-                                       ? "com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection"
-                                       : "com.intellij.codeInspection.DefaultHighlightVisitorBasedInspection";
-
-    ClassWrapper<InspectionProfileEntry> wrapper = new ClassWrapper<InspectionProfileEntry>(defaultInspectorClassName);
-    ClassWrapper<InspectionProfileEntry> annotator = new ClassWrapper<InspectionProfileEntry>(wrapper, "AnnotatorBasedInspection");
-
-    return annotator.newInstance();
+    return new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection();
   }
 
   public void setTestStyleSettings() {

@@ -33,11 +33,6 @@ public abstract class AbstractEnterActionTestCase extends LightPlatformCodeInsig
     super.tearDown();
   }
 
-  protected void addSuppressedException(Throwable e) {
-    // This is overridden for IDEA pre 18.3 version compatibilities' sake.  It can be removed
-    // when we no longer test with those products.
-    HaxeTestUtils.suppressException(e, this);
-  }
 
   protected void doGetIndentTest(final PsiFile file, final int lineNum, final String expected) {
     final int offset = PsiDocumentManager.getInstance(getProject()).getDocument(file).getLineEndOffset(lineNum);

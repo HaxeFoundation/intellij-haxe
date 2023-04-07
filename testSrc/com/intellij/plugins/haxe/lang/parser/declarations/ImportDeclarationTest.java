@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
-import com.intellij.plugins.haxe.build.IdeaSDKIdentifier;
 import org.junit.Test;
 
 public class ImportDeclarationTest extends DeclarationTestBase {
@@ -25,19 +24,10 @@ public class ImportDeclarationTest extends DeclarationTestBase {
     super("import");
   }
 
-  @Test
-  public void testEmpty() throws Throwable {
-    if (IdeaSDKIdentifier.BUILD_CODELINE < 182) {
-      doTest(true);
-    }
-    assertEmpty("");
-  }
 
   @Test
   public void testEmpty182() throws Throwable {
-    if (IdeaSDKIdentifier.BUILD_CODELINE >= 182) {
       doTest(true);
-    }
   }
 
   @Test

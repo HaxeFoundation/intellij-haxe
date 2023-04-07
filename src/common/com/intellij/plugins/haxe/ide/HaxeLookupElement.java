@@ -24,8 +24,6 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.build.FieldWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
@@ -137,15 +135,12 @@ public class HaxeLookupElement extends LookupElement {
 
     if (isMethod) {
       final LookupElement[] allItems = context.getElements();
-      final boolean overloadsMatter = allItems.length == 1 && getUserData(FORCE_SHOW_SIGNATURE_ATTR) == null;
+      final boolean overloadsMatter = allItems.length == 1 && getUserData(JavaCompletionUtil.FORCE_SHOW_SIGNATURE_ATTR) == null;
       JavaCompletionUtil.insertParentheses(context, this, overloadsMatter, hasParams);
     }
   }
 
-  private static final Key<Boolean> FORCE_SHOW_SIGNATURE_ATTR =
-    IdeaTarget.IS_VERSION_15_COMPATIBLE ? new FieldWrapper<Key<Boolean>>(JavaCompletionUtil.class,
-                                                                         "FORCE_SHOW_SIGNATURE_ATTR").get(null)
-                                        : Key.<Boolean>create("forceShowSignature");
+
 
   @NotNull
   @Override

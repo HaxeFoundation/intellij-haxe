@@ -382,19 +382,6 @@ import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-task generateIdeaSdkIdentifer(group: 'generate') {
-  doFirst {
-    copy {
-      file("${generatedSrcDir}/com/intellij/plugins/haxe/build/").mkdirs()
-      Properties properties = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
-      from("${haxePluginDir}/src/common/com/intellij/plugins/haxe/build/IdeaSDKIdentifier.java.template") {
-        filter(ReplaceTokens, tokens: properties)
-      }
-      into "${generatedSrcDir}/com/intellij/plugins/haxe/build/"
-      rename('IdeaSDKIdentifier.java.template', 'IdeaSDKIdentifier.java')
-    }
-  }
-}
 
 task cleanGenDirIfSourcesChanged(group: 'other') {
     inputs.dir "${grammerDir}"
@@ -406,7 +393,6 @@ task cleanGenDirIfSourcesChanged(group: 'other') {
 }
 task generateSources(group: 'generate') {
     dependsOn 'cleanGenDirIfSourcesChanged'
-    dependsOn 'generateIdeaSdkIdentifer'
     dependsOn 'generateHaxeLexer'
     dependsOn 'generateHxmlLexer'
     dependsOn 'generateMetadataLexer'

@@ -35,12 +35,6 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
     HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     super.tearDown();
   }
-
-  protected void addSuppressedException(@NotNull Throwable e) {
-    // Compatibility with IDEA pre v18.3.
-    HaxeTestUtils.suppressException(e, this);  // Calls super.addSuppressedException if available.
-  }
-
   @NotNull
   @Override
   protected String getTestDataPath() {

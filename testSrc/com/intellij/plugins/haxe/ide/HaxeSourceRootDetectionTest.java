@@ -44,10 +44,6 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     super.tearDown();
   }
 
-  protected void addSuppressedException(@NotNull Throwable e) {
-    // This override is only required until we no longer support pre 2018.3 IDEA builds.
-    HaxeTestUtils.suppressException(e, this);
-  }
 
   private void doTest(String... expected) {
     final String dirPath = FileUtil.toSystemDependentName(HaxeTestUtils.BASE_TEST_DATA_PATH + "/rootDetection/") + getTestName(true);

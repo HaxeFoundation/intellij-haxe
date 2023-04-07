@@ -24,7 +24,6 @@ import com.intellij.codeInsight.template.impl.actions.ListTemplatesAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.build.IdeaTarget;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import org.junit.Test;
 
@@ -50,22 +49,10 @@ public class HaxeLiveTemplatesTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTest(String... files) throws Exception {
     myFixture.configureByFiles(files);
-    if (IdeaTarget.IS_VERSION_17_COMPATIBLE) {
-      // The implementation of finishLookup in IDEA 2017 requires that it run OUTSIDE of a write command,
-      // while previous versions require that is run inside of one.
-      expandTemplate(myFixture.getEditor());
-    }
-    WriteCommandAction.runWriteCommandAction(getProject(), new Runnable() {
-      @Override
-      public void run() {
-        if (!IdeaTarget.IS_VERSION_17_COMPATIBLE) {
-          expandTemplate(myFixture.getEditor());
-        }
-        CodeStyleManager.getInstance(myFixture.getProject()).reformat(myFixture.getFile());
-      }
-    });
+    expandTemplate(myFixture.getEditor());
+
     myFixture.getEditor().getSelectionModel().removeSelection();
-    myFixture.checkResultByFile(getTestName(false) + "_after.hx");
+    myFixture.checkResultByFile(getTestName(false) + "_after.hx", true);
   }
 
   @Test

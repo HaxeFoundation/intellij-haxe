@@ -19,11 +19,7 @@ package com.intellij.plugins.haxe.ide.hierarchy;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.util.treeView.NodeDescriptor;
-import com.intellij.ide.util.treeView.SmartElementDescriptor;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.build.FieldWrapper;
-import com.intellij.plugins.haxe.build.IdeaTarget;
-import com.intellij.plugins.haxe.build.MethodWrapper;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -34,16 +30,6 @@ import org.jetbrains.annotations.Nullable;
  */
 public class HaxeHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
 
-  // Wrapper fields are for compatibility.  Can go away when v14 is dropped in the future.
-  private static FieldWrapper<PsiElement> myElementFieldWrapper =
-    IdeaTarget.IS_VERSION_15_0_COMPATIBLE
-    ? null
-    : new FieldWrapper<PsiElement>(SmartElementDescriptor.class, "myElement");  // One of our superclasses.
-  private static MethodWrapper<PsiElement> getPsiElementWrapper =
-    IdeaTarget.IS_VERSION_15_0_COMPATIBLE
-    ? new MethodWrapper<PsiElement>(HaxeHierarchyNodeDescriptor.class, "getPsiElement", (Class[])null)
-    : null;
-
   public HaxeHierarchyNodeDescriptor(@NotNull Project project,
                                      NodeDescriptor parentDescriptor,
                                      @NotNull PsiElement element, boolean isBase) {
@@ -52,11 +38,7 @@ public class HaxeHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
 
   @Nullable
   public PsiElement getMyPsiElement() {
-    if (IdeaTarget.IS_VERSION_15_COMPATIBLE) {
-      return getPsiElementWrapper.invoke(this, (Object[])null);
-    } else {
-      return myElementFieldWrapper.get(this);
-    }
+    return this.getPsiElement();
   }
 
   @Nullable

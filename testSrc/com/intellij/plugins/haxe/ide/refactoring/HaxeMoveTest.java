@@ -51,12 +51,6 @@ public class HaxeMoveTest extends MultiFileTestCase {
     super.tearDown();
   }
 
-  protected void addSuppressedException(@NotNull Throwable e) {
-    // This override is only required until we no longer support pre 2018.3 IDEA builds.
-    HaxeTestUtils.suppressException(e, this);
-  }
-
-
   @Override
   protected String getTestDataPath() {
     return HaxeTestUtils.BASE_TEST_DATA_PATH;

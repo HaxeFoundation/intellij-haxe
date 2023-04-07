@@ -20,12 +20,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.PathManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.build.IdeaTarget;
-import com.intellij.plugins.haxe.build.MethodWrapper;
-import com.intellij.plugins.haxe.build.UnsupportedMethodException;
-import com.intellij.testFramework.UsefulTestCase;
 import com.intellij.util.ReflectionUtil;
-import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -174,34 +169,4 @@ public class HaxeTestUtils {
     }
   }
 
-  /**
-   * Common implementation of addSuppressedException to be used in all of the Haxe test classes.
-   * <p>
-   * It is expected that the test class will implement addSuppressedException by
-   * calling this.  However, addSuppressedException is only overridden in our tests for compatibility's sake.
-   * It (and this implementation) can be deleted when we no longer test with pre 18.3 versions of idea.
-   * <p>
-   * NOTE: It would have been better to place this code in a common base class for all Haxe test
-   * classes.  However, there is no such thing; our tests override many different test classes.
-   *
-   * @param e
-   * @param testCase
-   */
-  public static void suppressException(@NotNull Throwable e, @NotNull UsefulTestCase testCase) {
-
-    if (IdeaTarget.IS_VERSION_18_3_COMPATIBLE) {
-      try {
-
-        MethodWrapper sase = new MethodWrapper(testCase.getClass().getSuperclass(), true, "addSuppressedException", Throwable.class);
-        sase.invoke(e);
-        return;
-      }
-      catch (UnsupportedMethodException ex) {
-        LOG.warn("Could not find or execute addSuppressedException() in any test super class. Was it removed?");
-      }
-    }
-
-    String stackInfo = HaxeDebugUtil.getExceptionStackAsString(e);
-    LOG.warn("Exception during teardown:" + e.getMessage() + "\n" + stackInfo);
-  }
 }
