@@ -447,15 +447,13 @@ Haxe File
                       SWITCH_CASE
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
-                          CALL_EXPRESSION
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('Leaf')
+                          SWITCH_CASE_OBJECT_EXTRACTOR
+                            IDENTIFIER
+                              HaxePsiToken:ID('Leaf')
                             HaxePsiToken:(('(')
-                            EXPRESSION_LIST
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('s')
+                            SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
+                              IDENTIFIER
+                                HaxePsiToken:ID('s')
                             HaxePsiToken:)(')')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
@@ -466,26 +464,22 @@ Haxe File
                       SWITCH_CASE
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
-                          CALL_EXPRESSION
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('Node')
+                          SWITCH_CASE_OBJECT_EXTRACTOR
+                            IDENTIFIER
+                              HaxePsiToken:ID('Node')
                             HaxePsiToken:(('(')
-                            EXPRESSION_LIST
-                              CALL_EXPRESSION
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('Leaf')
+                            SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
+                              SWITCH_CASE_OBJECT_EXTRACTOR
+                                IDENTIFIER
+                                  HaxePsiToken:ID('Leaf')
                                 HaxePsiToken:(('(')
-                                EXPRESSION_LIST
-                                  REFERENCE_EXPRESSION
-                                    IDENTIFIER
-                                      HaxePsiToken:ID('s')
+                                SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('s')
                                 HaxePsiToken:)(')')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              IDENTIFIER
+                                HaxePsiToken:ID('_')
                             HaxePsiToken:)(')')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
