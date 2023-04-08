@@ -61,17 +61,17 @@ jobs:
 
       - name: Prepare (windows)
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat  setupDependencies -PtargetVersion="${{ matrix.IDEA_VERSION }}"  -stacktrace
+        run: .\gradlew.bat  setupDependencies
 
       - name: Build with Gradle (windows)
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat clean setupDependencies build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}" -stacktrace
+        run: .\gradlew.bat clean setupDependencies build verifyPlugin
 
       - name: Prepare (linux/mac)
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew setupDependencies -PtargetVersion="${{ matrix.IDEA_VERSION }}"  -stacktrace
+        run: ./gradlew setupDependencies
 
       - name: Build with Gradle (linux/mac)
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew clean build verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}" -stacktrace
+        run: ./gradlew clean build verifyPlugin
 

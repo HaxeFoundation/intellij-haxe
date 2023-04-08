@@ -18,8 +18,6 @@
   ~ limitations under the License.
   -->
 
-<!-- @replace.with.plugin.autogen.warning@ -->
-
 
 <idea-plugin>
   <id>com.intellij.plugins.haxe</id>

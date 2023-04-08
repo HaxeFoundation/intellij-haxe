@@ -20,10 +20,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.runner.HaxeApplicationModuleBasedConfiguration;
 import org.jdom.Element;
 
-/*
-@replace.with.plugin.autogen.warning@
-*/
-
 /**
  * Wraps ModuleBasedConfiguration, which changed class signatures between IDEA 2018.2 and 2018.3.
  * This file supports 2018.3+.

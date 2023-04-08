@@ -20,12 +20,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 
-
-/*
-@replace.with.plugin.autogen.warning@
-*/
-
-
 /**
  * Wrapper class around HaxeInheritanceDefinitionsSearcher that conforms to the
  * abstract function interface for QueryExecutorBase, which changed between

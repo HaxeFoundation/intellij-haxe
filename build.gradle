@@ -22,31 +22,11 @@ plugins {
     id 'org.jetbrains.intellij' version '1.13.3'
     id "org.jetbrains.grammarkit" version "2022.3"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
+    id 'com.adarshr.test-logger' version '3.2.0'
 }
 
 import org.jetbrains.intellij.DependenciesUtils
 import org.jetbrains.grammarkit.tasks.*
-
-if (!project.hasProperty('targetVersion')) {
-    ext.ideaVersion = "${defaultIdeaVersion}"
-    println '-------------------------------------------------------'
-    println "No target version selected, using default ($ext.ideaVersion)"
-    println 'to specify build target use -PtargetVersion=<version>'
-    println 'Ex:'
-    println 'gradlew buildPlugin -PtargetVersion=2017.2.2'
-    println 'If you\'re running "gradle clean," just ignore this warning.'
-    println '-------------------------------------------------------'
-} else {
-    ext.ideaVersion = project.property('targetVersion')
-}
-println "Target set to IDEA ${ideaVersion}"
-
-String[] versionInfo = "${ideaVersion}".split("\\.")
-boolean requiresJavaPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2019 || (versionInfo[0].toInteger() == 2019 && versionInfo[1].toInteger() >= 2))
-boolean requiresFlexPlugin = versionInfo.size() >= 2 && (versionInfo[0].toInteger() > 2020 || (versionInfo[0].toInteger() == 2020 && versionInfo[1].toInteger() >=2 ))
-int intelliJMajorVersion = versionInfo[0].toInteger();
-int intelliJMinorVersion = versionInfo[1].toInteger();
-
 
 allprojects {
     repositories { mavenCentral() }
@@ -103,24 +83,9 @@ allprojects {
         // Don't let gradle fill in since/until, we fill them via patchCustomTags using the properties file.
         updateSinceUntilBuild = false
 
-        // Include the "java" built-in plugin for 2019.2 and later builds.
-        if (requiresJavaPlugin) {
-            System.println("Including java plugin for version >= 2019.2")
-            plugins.add('java') // 2019.2 + only.  Causes build errors on earlier versions.
-        }
-        // Flex support was unbundled for version 2020.2.
-        if (requiresFlexPlugin) {
-            System.println("Including Flex plugin for version >= 2020.2")
-            String versionWithMajor = ideaVersion.substring(0, ideaVersion.length() > 6 ? 8 : 6);
-            switch (versionWithMajor) {
-                case "2020.2" : plugins.add('com.intellij.flex:202.6397.59'); break
-                case "2020.3" : plugins.add('com.intellij.flex:203.5981.155'); break
-                case "2021.1" : plugins.add('com.intellij.flex:211.6693.111'); break
-                case "2022.3" : plugins.add('com.intellij.flex:223.7571.4'); break
-                case "2022.3.3" : plugins.add('com.intellij.flex:223.8617.9'); break
-            }
-
-        }
+        plugins.add('java')
+        // search marketplace for flex plugin to find the version matching your target
+        plugins.add('com.intellij.flex:223.8617.9');
     }
 }
 
@@ -164,12 +129,8 @@ dependencies {
     implementation project(':jps-plugin')
     implementation project(':hxcpp-debugger-protocol')
 
-    String flexPluginDir = "${ideaTargetDir}"
-    if (requiresFlexPlugin) {
-        flexPluginDir += "/config"
-    }
-    String flexShared = flexPluginDir + "/plugins/flex/lib/flex-shared.jar"
-    String flexSupport = flexPluginDir + "/plugins/flex/lib/FlexSupport.jar"
+    String flexShared = "${ideaTargetDir}/config/plugins/flex/lib/flex-shared.jar"
+    String flexSupport = "${ideaTargetDir}/config/plugins/flex/lib/FlexSupport.jar"
 
     compileOnly files(flexShared)
     compileOnly files(flexSupport)
@@ -191,8 +152,8 @@ dependencies {
 
 afterEvaluate {
     dependencies {
-        if (requiresJavaPlugin) {
-            implementation DependenciesUtils.intellijPlugin(project, 'java') { include("${ideaTargetDir}/plugins/java/lib/jps-builders.jar") }
+        implementation DependenciesUtils.intellijPlugin(project, 'java') {
+            include("${ideaTargetDir}/plugins/java/lib/jps-builders.jar")
         }
     }
 }
@@ -242,7 +203,7 @@ processResources {
 patchPluginXml {
     //TODO  find a way to get version info before  patchPluginXml is configured (first build fails as build.txt file is missing)
     try {
-        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        def props = findSdkValuesAndProperties()
         sinceBuild = props.getProperty("plugin.installable.since")
         untilBuild = props.getProperty("plugin.installable.until")
     }catch(Exception e){
@@ -264,7 +225,7 @@ task patchCustomTags() {
     }
     doLast {
         copy {
-            def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+            def props =findSdkValuesAndProperties()
             from(patchPluginXml.destinationDir.toString() + '/plugin.xml.partial')
             filter(ReplaceTokens, tokens: props)
             into patchPluginXml.destinationDir.toString()
@@ -291,7 +252,7 @@ jar.finalizedBy('copyJar')
 
 task copyJar() {
     doLast {
-        def props = findSdkValuesAndProperties(file("${ideaTargetDir}/build.txt"))
+        def props = findSdkValuesAndProperties();
         def jarName = "intellij-haxe-" + props.getProperty("idea.version") + ".jar"
         copy {
             from("${haxePluginDir}/build/libs/").include(jar.archiveName)
@@ -398,42 +359,12 @@ task generateSources(group: 'generate') {
     dependsOn 'generateMetadataLexer'
 }
 
-Properties findSdkValuesAndProperties(File buildFile) {
-    def buildId = buildFile.getText()
-    def typeSep = buildId.indexOf("-")
-    def clSep = buildId.indexOf(".", typeSep + 1)
-    def bldSep = buildId.indexOf(".", clSep + 1)
+Properties findSdkValuesAndProperties() {
 
-    String buildType = buildId.substring(0, typeSep)
-    String codeLine = buildId.substring(typeSep + 1, clSep)
-    String buildNumber = (bldSep >= 0 ? buildId.substring(clSep + 1, bldSep) : buildId.substring(clSep + 1))
-    String patchNumber = (bldSep >= 0 ? buildId.substring(bldSep + 1) : 0)
-
-    ext.ideaSdkType = buildType
-    ext.ideaSdkCodeline = codeLine
-    ext.ideaSdkBuildNumber = buildNumber
-    ext.ideaSdkPatchNumber = patchNumber
-
-    // Lookup table for properties files.  Add new versions here.
-    def propertiesFile = ""
-    switch (Integer.valueOf(codeLine, 10)) {
-        case 231: propertiesFile = "idea_v23.properties"; break
-        case 223: propertiesFile = "idea_v22.properties"; break
-        default:
-            throw new GradleException("Could not determine correct properties file for code line " + codeLine + ".")
-    }
     def properties = new Properties()
-    if (0 != propertiesFile.size()) {
-        file("${rootDir}/properties/" + propertiesFile).withInputStream { properties.load(it) }
-    } else {
-        println "WARNING!: No Properties file found"
-    }
+    file("${rootDir}/properties/idea.properties").withInputStream { properties.load(it) }
+
     properties.setProperty('idea.sdk.version', "$ideaVersion")
-    properties.setProperty('idea.sdk.type', buildType)
-    properties.setProperty('idea.sdk.codeline', codeLine)
-    properties.setProperty('idea.sdk.build.number', buildNumber)
-    properties.setProperty('idea.sdk.patch.number', patchNumber)
-    properties.setProperty('replace.with.plugin.autogen.warning', "${pluginAutogenWarning}")
     properties.setProperty('plugin.dev.version', project.hasProperty('devBuild') ? "${project.devBuild}" : '')
 
     return properties
@@ -493,26 +424,6 @@ private void generateRunConfigurations() {
     createGradleRunConfiguration('Run Single Test (default)', 'test', '', '--tests "{replace this with FQDN of test suite or single test}"')
 
     createGradleRunConfiguration('Generate Parsers', 'cleanGenerated generateHaxeParser generateHxmlParser', '', '')
-
-
-    createGradleRunConfiguration('Run Tests 2022', 'test', "-PtargetVersion=$latest2022Version", '')
-    createGradleRunConfiguration('Run Tests 2021', 'test', "-PtargetVersion=$latest2021Version", '')
-    createGradleRunConfiguration('Run Tests 2020', 'test', "-PtargetVersion=$latest2020Version", '')
-
-    createGradleRunConfiguration('Run IDE 2022',
-                                 'runIde',
-                                 "-PtargetVersion=$latest2022Version",
-                                 ' -DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2021',
-                                 'runIde',
-                                 "-PtargetVersion=$latest2021Version",
-                                 '-DHAXELIB_LIST_PATH_SUPPORTED=1 -Didea.is.internal=true')
-    createGradleRunConfiguration('Run IDE 2020',
-                                 'runIde',
-                                 "-PtargetVersion=$latest2020Version",
-                                 '-Xmx1024m -Xms512m -XX:MaxPermSize=256m -Didea.is.internal=true')
-
-
 
 }
 
