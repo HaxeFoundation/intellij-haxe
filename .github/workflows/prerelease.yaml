@@ -3,8 +3,8 @@ name: Pre-release, IntelliJ-Haxe-plugin
 
 on:
   push:
-    branches:
-      - 'master'
+    tags:
+      - "beta-[0-9]+.[0-9]+.[0-9]+**" # trigger on  tags that matches version numbers ex. 1.3.10
 
 jobs:
   prepare:
