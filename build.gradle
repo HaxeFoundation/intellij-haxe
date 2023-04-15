@@ -43,7 +43,7 @@ allprojects {
         // dependencies
         dependenciesDir = "${rootDir}/dependencies"
         downloadsDir = "${dependenciesDir}/downloads"
-        toolDir = "${dependenciesDir}/tools"
+
         ideaBaseDir = "${rootDir}/idea-IU"
         ideaTargetDir = "${ideaBaseDir}/ideaIU-${ideaVersion}"
 
@@ -58,15 +58,6 @@ allprojects {
         hxmlFlex = file("${grammerDir}/hxml.flex").absolutePath
         metadataFlex = file("${grammerDir}/metadata.flex").absolutePath
 
-
-        flexDownloadFile = "idea-flex-${ideaVersion}.skeleton"
-        flexTargetFile = "idea-flex.skeleton"
-
-        grammarKitDownloadFile = "GrammarKit-${grammarKitVersion}.zip"
-        grammarKitTargetFile = "grammar-kit.jar"
-
-        psiDownloadFile = "light-psi-all-${grammarKitVersion}.jar"
-        psiTargetFile = "light-psi-all.jar"
     }
 
     apply plugin: 'idea'
@@ -88,13 +79,6 @@ allprojects {
         plugins.add('com.intellij.flex:223.8617.9');
     }
 }
-
-//Download build tools
-apply from: 'dependencies/tools.gradle'
-
-build.dependsOn('setupTools')
-test.dependsOn('setupTools')
-
 
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 
