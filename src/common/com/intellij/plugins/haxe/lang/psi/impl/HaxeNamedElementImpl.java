@@ -24,13 +24,14 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,8 +41,8 @@ import javax.swing.*;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl implements HaxeComponentName {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl");
 
   public HaxeNamedElementImpl(@NotNull ASTNode node) {
     super(node);
@@ -75,8 +76,8 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
       return getIdentifier().getText();
     }
     catch(NullPointerException npe) {
-      LOG.debug(npe.getMessage());
-      LOG.debug("Coercing to empty string");
+      log.debug(npe.getMessage());
+      log.debug("Coercing to empty string");
     }
     return "";
   }

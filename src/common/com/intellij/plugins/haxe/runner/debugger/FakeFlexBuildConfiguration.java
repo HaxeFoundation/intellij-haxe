@@ -22,7 +22,8 @@ import com.intellij.flex.model.bc.OutputType;
 import com.intellij.flex.model.bc.TargetPlatform;
 import com.intellij.lang.javascript.flex.projectStructure.model.*;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -31,11 +32,11 @@ import java.util.Collection;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class FakeFlexBuildConfiguration implements FlexBuildConfiguration {
   private final Sdk sdk;
   private final String url;
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
 
   public FakeFlexBuildConfiguration(Sdk sdk, String url) {
     this.sdk = sdk;
@@ -130,7 +131,7 @@ public class FakeFlexBuildConfiguration implements FlexBuildConfiguration {
   @NotNull
   @Override
   public Dependencies getDependencies() {
-    LOG.info("FakeFlexBuildConfiguration::getDependencies");
+    log.info("FakeFlexBuildConfiguration::getDependencies");
     return new FakeFlexDependencies();
   }
 

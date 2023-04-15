@@ -18,15 +18,13 @@
 package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiClass;
 
 /**
  * Created by srikanthg on 10/23/14.
  */
 public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStructure {
-
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyTreeStructure");
 
   public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass) {
     super(project, buildHierarchyElement(project, aClass));

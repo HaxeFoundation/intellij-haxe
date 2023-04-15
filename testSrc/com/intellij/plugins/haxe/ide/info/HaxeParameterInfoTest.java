@@ -18,10 +18,13 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
+import com.intellij.openapi.diagnostic.LogLevel;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+import com.intellij.plugins.haxe.util.HaxeDebugLogUtil;
+
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
@@ -39,18 +42,13 @@ import org.junit.Test;
  */
 public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
 
-  private HaxeDebugLogger.HierarchyManipulator oldLogSettings;
 
   public void setUp() throws Exception {
-    oldLogSettings = HaxeDebugLogger.mutePrimaryConfiguration();
     super.setUp();
   }
 
   @Override
   public void tearDown() throws Exception {
-    // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
-    oldLogSettings.restore();
-    oldLogSettings = null;
     HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     super.tearDown();
   }
@@ -87,9 +85,9 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
   }
 
   private void configureLoggerForDebugging() {
-    HaxeDebugLogger.configure(HaxeResolveUtil.class, Level.DEBUG);
-    HaxeDebugLogger.configure(HaxeReferenceImpl.class, Level.DEBUG);
-    HaxeDebugLogger.configure(HaxeClassResolveResult.class, Level.TRACE);
+    HaxeDebugLogUtil.getLogger(HaxeResolveUtil.class).setLevel(LogLevel.DEBUG);
+    HaxeDebugLogUtil.getLogger(HaxeReferenceImpl.class).setLevel(LogLevel.DEBUG);
+    HaxeDebugLogUtil.getLogger(HaxeClassResolveResult.class).setLevel(LogLevel.DEBUG);
   }
 
 

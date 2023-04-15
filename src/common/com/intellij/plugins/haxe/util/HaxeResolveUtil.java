@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -44,6 +45,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import gnu.trove.THashSet;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -53,15 +55,17 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
+
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeResolveUtil {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
   static {
-    LOG.setLevel(Level.INFO);
-//    LOG.setLevel(Level.TRACE);
+    log.setLevel(LogLevel.INFO);
+//    log.setLevel(LogLevel.TRACE);
   }  // We want warnings to get out to the log.
 
   @Nullable
@@ -522,7 +526,7 @@ public class HaxeResolveUtil {
   };
 
   private static void traceMessage(String message, int depth) {
-    if (LOG.isTraceEnabled()) {
+    if (log.isTraceEnabled()) {
       StringBuilder out = new StringBuilder();
 
       out.append(Thread.currentThread().getId()); // Name());
@@ -532,7 +536,7 @@ public class HaxeResolveUtil {
         out.append("  ");
       }
       out.append(message);
-      LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), out.toString());
+      traceAs(log, HaxeDebugUtil.getCallerStackFrame(), out.toString());
     }
   }
 
@@ -568,7 +572,7 @@ public class HaxeResolveUtil {
       String msg = "Cannot resolve recursive/cyclic definition of " + element.getText()
                    + ", found at " + HaxeDebugUtil.elementLocation(element);
       traceMessage(msg, stack.size());
-      // LOG.warn(msg); // Too wordy.
+      // log.warn(msg); // Too wordy.
       return HaxeClassResolveResult.EMPTY;
     }
 
@@ -576,7 +580,7 @@ public class HaxeResolveUtil {
       stack.push(element);
 
       String elementString = null;
-      if (LOG.isTraceEnabled()) {
+      if (log.isTraceEnabled()) {
         elementString = element instanceof HaxePsiCompositeElementImpl
                         ? ((HaxePsiCompositeElementImpl)element).toDebugString()
                         : element.toString();
@@ -587,12 +591,12 @@ public class HaxeResolveUtil {
 
       HaxeClassResolveResult result = getHaxeClassResolveResultInternal(element, specialization);
 
-      if (LOG.isDebugEnabled()) {
+      if (log.isDebugEnabled()) {
         String msg = "Element " + elementString + " resolved as " + result.toString();
-        if (LOG.isTraceEnabled()) {
+        if (log.isTraceEnabled()) {
           traceMessage(msg, stack.size()-1);
-        } else if (LOG.isDebugEnabled()) {
-          LOG.debug(msg);
+        } else if (log.isDebugEnabled()) {
+          log.debug(msg);
         }
       }
       return result;
@@ -602,8 +606,8 @@ public class HaxeResolveUtil {
         stack.pop();
       }
       catch (EmptyStackException e) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("Unexpected excessive stack pop. " + e.toString());
+        if (log.isDebugEnabled()) {
+          log.debug("Unexpected excessive stack pop. " + e.toString());
         }
       }
     }
@@ -846,7 +850,7 @@ public class HaxeResolveUtil {
         } else {
           // It's a function return type.
           // TODO: Implement function return types.
-          LOG.warn("Function return types not implemented in the resolver yet.");
+          log.warn("Function return types not implemented in the resolver yet.");
         }
       }
     }

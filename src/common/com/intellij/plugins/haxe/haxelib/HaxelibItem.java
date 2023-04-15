@@ -18,7 +18,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -31,9 +32,8 @@ import java.util.List;
  * Possible extended functionality: Be able to create an item from a name,
  *      especially a managed library.
  */
+@CustomLog
 public class HaxelibItem extends HaxeClasspathEntry {
-
-  HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibItem");
 
   public static final List<HaxelibItem> EMPTY_LIST = new ArrayList<HaxelibItem>(0);
 

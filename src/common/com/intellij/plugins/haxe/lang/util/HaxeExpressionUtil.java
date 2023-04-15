@@ -21,12 +21,13 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,9 +35,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+@CustomLog
 public class HaxeExpressionUtil {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  //static {LOG.setLevel(Level.DEBUG);}  // Remove when done debugging.
+  //static {log.setLevel(LogLevel.DEBUG);}  // Remove when done debugging.
 
   private static final ThreadLocal<ArrayList<PsiElement>> constantsInProcess =
     new ThreadLocal<>().withInitial(()->new ArrayList<>());
@@ -282,7 +283,7 @@ public class HaxeExpressionUtil {
       return ConstantClass.FUNCTION;
     }
 
-    LOG.debug("Unexpected expression type being checked for constant-ness:" + expr);
+    log.debug("Unexpected expression type being checked for constant-ness:" + expr);
     return ConstantClass.NOT_CONSTANT;
   }
 
@@ -379,10 +380,10 @@ public class HaxeExpressionUtil {
 
   private static <T> boolean is_type(final PsiElement element, final Class<T> clazz) {
     if (clazz.isInstance(element)) {
-      LOG.debug(()->"Element " + element + " is a " + clazz);
+      if(log.isDebugEnabled())log.debug("Element " + element + " is a " + clazz);
       return true;
     }
-    LOG.debug(()->"Element " + element + "is not a " +clazz);
+    if(log.isDebugEnabled())log.debug("Element " + element + "is not a " +clazz);
     return false;
   }
 

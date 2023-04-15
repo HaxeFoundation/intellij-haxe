@@ -21,10 +21,11 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
 import gnu.trove.THashSet;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +43,7 @@ import static com.intellij.plugins.haxe.lang.util.HaxeAstUtil.*;
  *
  * Created by ebishton on 3/23/17.
  */
+@CustomLog
 public class HaxeConditionalExpression {
 
   // Here is a set of rules to parse conditions, if we ever want to run them
@@ -63,9 +65,8 @@ public class HaxeConditionalExpression {
   //    private ppStatementWithComment ::= "#line" | "#error"  {pin=1 recoverWhile="!\n"}
   //    ppStatement ::= ppStatementWithCondition | ppStatementWithoutCondition | ppStatementWithComment {extends="com.intellij.psi.PsiComment"}
 
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   //static {      // Take this out when finished debugging.
-  //  LOG.setLevel(org.apache.log4j.Level.DEBUG);
+  //  log.setLevel(LogLevel.DEBUG);
   //}
 
   private final ArrayList<ASTNode> tokens = new ArrayList<ASTNode>();
@@ -92,24 +93,24 @@ public class HaxeConditionalExpression {
     // The parser will break strings up based upon their content.  This is more of an aspect of dealing
     // with escape characters than
     if (OPEN_QUOTE == tokenType) {
-      LOG.assertLog(null == builder, "String builder is already allocated, but a string open quote token has been detected.");
+      log.assertTrue(null == builder, "String builder is already allocated, but a string open quote token has been detected.");
       builder = new StringBuilder();
     } else if (REGULAR_STRING_PART == tokenType) {
-      LOG.assertLog(null != builder, "String token is parsed, but no StringBuilder has been allocated.");
+      log.assertTrue(null != builder, "String token is parsed, but no StringBuilder has been allocated.");
       // XXX: Should we translate escape sequences to base tokens here?
       builder.append(chars);
     } else if (CLOSING_QUOTE == tokenType) {
-      LOG.assertLog(null != builder, "String close quote was parsed, but no StringBuilder has been allocated.");
+      log.assertTrue(null != builder, "String close quote was parsed, but no StringBuilder has been allocated.");
       createToken(builder, REGULAR_STRING_PART);
       builder = null;
     } else {
-      LOG.assertLog(null == builder, "String builder exists, but a non-string token was encountered.");
+      log.assertTrue(null == builder, "String builder exists, but a non-string token was encountered.");
       createToken(chars, tokenType);
     }
   }
 
   private boolean areTokensBalanced(IElementType leftToken, IElementType rightToken) {
-    LOG.assertLog(leftToken != rightToken, "Cannot balance tokens of the same type.");
+    log.assertTrue(leftToken != rightToken, "Cannot balance tokens of the same type.");
     int tokenCount = 0;
     for (ASTNode t : tokens) {
       IElementType type = t.getElementType();
@@ -213,10 +214,10 @@ public class HaxeConditionalExpression {
     if (isComplete()) {
       try {
         Stack<ASTNode> rpn = infixToRPN();
-        String rpnString = LOG.isDebugEnabled() ? tokensToString(rpn) : null;
+        String rpnString = log.isDebugEnabled() ? tokensToString(rpn) : null;
         ret = objectIsTrue(calculateRPN(rpn));
-        if (LOG.isDebugEnabled()) {  // Don't create the strings unless we are debugging them...
-          LOG.debug(toString() + " --> " + rpnString + " ==> " + (ret ? "true" : "false"));
+        if (log.isDebugEnabled()) {  // Don't create the strings unless we are debugging them...
+          log.debug(toString() + " --> " + rpnString + " ==> " + (ret ? "true" : "false"));
         }
         if (!rpn.isEmpty()) {
           throw new CalculationException("Invalid Expression: Tokens left after calculating: " + rpn.toString());
@@ -224,7 +225,7 @@ public class HaxeConditionalExpression {
       } catch (CalculationException e) {
         String msg = "Error calculating conditional compiler expression '" + toString() + "'";
         // Add stack info if in debug mode.
-        LOG.info( msg, LOG.isDebugEnabled() ? e : null );
+        log.info( msg, log.isDebugEnabled() ? e : null );
       }
     }
     return ret;
@@ -285,7 +286,7 @@ public class HaxeConditionalExpression {
         }
       }
     } catch (HaxeOperatorPrecedenceTable.OperatorNotFoundException e) {
-      LOG.warn("IntelliJ-Haxe plugin internal error: Unknown operator encountered while calculating compiler conditional exression:"
+      log.warn("IntelliJ-Haxe plugin internal error: Unknown operator encountered while calculating compiler conditional exression:"
                + toString(), e);
       throw new CalculationException(e.toString());
     }

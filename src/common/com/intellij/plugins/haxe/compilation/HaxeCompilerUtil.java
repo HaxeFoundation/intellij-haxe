@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -30,10 +31,11 @@ import com.intellij.openapi.wm.ToolWindowId;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.psi.PsiFile;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
@@ -43,11 +45,11 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeCompilerUtil
 {
-    static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-    //static {  // Remove when finished debugging.
-    //    LOG.setLevel(Level.DEBUG);
+    //static {      // Take this out when finished debugging.
+    //    log.setLevel(LogLevel.DEBUG);
     //}
 
     public static final String ERROR = "Error: ";
@@ -61,7 +63,7 @@ public class HaxeCompilerUtil
      */
     public static class ErrorNotifier {
         public void notifyError(String message) {
-            LOG.info(message);
+            log.info(message);
         }
     }
     private static ErrorNotifier defaultNotifier = new ErrorNotifier();

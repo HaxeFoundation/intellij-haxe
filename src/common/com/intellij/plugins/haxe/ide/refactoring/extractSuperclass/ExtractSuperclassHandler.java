@@ -32,7 +32,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpConflictsUtil;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -45,14 +45,14 @@ import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.util.List;
 
+@CustomLog
 public class ExtractSuperclassHandler implements RefactoringActionHandler, ExtractSuperclassDialog.Callback, ElementsHandler {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperclassHandler");
-
   public static final String REFACTORING_NAME = RefactoringBundle.message("extract.superclass.title");
 
   private PsiClass mySubclass;
@@ -191,7 +191,7 @@ public class ExtractSuperclassHandler implements RefactoringActionHandler, Extra
       }
     }
     catch (IncorrectOperationException e) {
-      LOG.error(e);
+      log.error(e);
     }
 
   }

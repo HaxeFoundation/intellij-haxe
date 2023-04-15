@@ -17,9 +17,11 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,11 +42,11 @@ import java.util.Hashtable;
  * fewer changes to that api, which was becoming less useful/manageable as I
  * started adding SDK and/or Module parameters everywhere.
  */
+@CustomLog
 public class HaxelibLibraryCacheManager {
 
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
   static {
-    LOG.setLevel(Level.DEBUG);
+    log.setLevel(LogLevel.DEBUG);
   }
 
 
@@ -159,7 +161,7 @@ public class HaxelibLibraryCacheManager {
         if (! myCache.containsKey(entry.getName())) {  // Don't replace a full cache with an empty one.
           SdkEntry oldEntry = myCache.put(entry.getName(), entry);
           if (null != oldEntry) {
-            LOG.warn("Duplicating cached data for entry " + entry.getName());
+            log.warn("Duplicating cached data for entry " + entry.getName());
           }
         }
       }

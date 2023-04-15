@@ -29,7 +29,7 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
@@ -43,8 +43,6 @@ import java.util.*;
  * Created by ebishton on 2/23/17.
  */
 public class HaxeControllingCompletionContributor extends CompletionContributor {
-
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeControllingCompletionContributor");
 
   public HaxeControllingCompletionContributor() {
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)

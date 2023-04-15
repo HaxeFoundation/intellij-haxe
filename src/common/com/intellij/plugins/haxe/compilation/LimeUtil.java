@@ -15,11 +15,13 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 
 import java.util.List;
@@ -29,10 +31,12 @@ import java.util.List;
  *
  * Created by ebishton on 9/8/2017.
  */
+@CustomLog
 public class LimeUtil {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.INFO); }
+  static {
+    log.setLevel(LogLevel.INFO);
+  }
 
   private static final StringBuffer EMPTY_STRINGBUFFER = new StringBuffer("\n");
 
@@ -40,7 +44,7 @@ public class LimeUtil {
 
     HaxeCompilerServices cs = new HaxeCompilerServices(new HaxeCompilerUtil.ErrorNotifier(){
       public void notifyError(String message) {
-        LOG.info(message);
+        log.info(message);
       }
     });
 

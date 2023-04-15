@@ -27,13 +27,14 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.MethodSignatureUtil;
+import lombok.CustomLog;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +48,8 @@ import java.util.List;
  *
  * A set of utility functions that support the HierarchyProviders.
  */
+@CustomLog
 public class HaxeHierarchyUtils {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyUtils");
 
   //static
   //{
@@ -88,8 +89,8 @@ public class HaxeHierarchyUtils {
       resolved = found.resolve();
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("findReferencedClassForID found " + resolved);
+    if (log.isDebugEnabled()) {
+      log.debug("findReferencedClassForID found " + resolved);
     }
 
     return ((resolved instanceof HaxeClass) ? ((HaxeClass) resolved) : null);
@@ -139,27 +140,27 @@ public class HaxeHierarchyUtils {
    */
   @Nullable
   public static AbstractHaxePsiClass getContainingClass(@NotNull DataContext context, boolean allowAnonymous) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("getContainingClass " + context);
+    if (log.isDebugEnabled()) {
+      log.debug("getContainingClass " + context);
     }
 
     final Project project = CommonDataKeys.PROJECT.getData(context);
     if (project == null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("No project");
+      if (log.isDebugEnabled()) {
+        log.debug("No project");
       }
       return null;
     }
 
     final Editor editor = CommonDataKeys.EDITOR.getData(context);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("editor " + editor);
+    if (log.isDebugEnabled()) {
+      log.debug("editor " + editor);
     }
     if (editor != null) {
       final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
       if (file == null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("No file found.");
+        if (log.isDebugEnabled()) {
+          log.debug("No file found.");
         }
         return null;
       }
@@ -167,8 +168,8 @@ public class HaxeHierarchyUtils {
       final PsiElement targetElement = TargetElementUtil.findTargetElement(editor, TargetElementUtil.ELEMENT_NAME_ACCEPTED |
                                                                                    TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
                                                                                    TargetElementUtil.LOOKUP_ITEM_ACCEPTED);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("target element " + targetElement);
+      if (log.isDebugEnabled()) {
+        log.debug("target element " + targetElement);
       }
       if (targetElement instanceof AbstractHaxePsiClass) {
         return (AbstractHaxePsiClass)targetElement;
@@ -178,8 +179,8 @@ public class HaxeHierarchyUtils {
       final int offset = editor.getCaretModel().getOffset();
       PsiElement element = file.findElementAt(offset);
       while (element != null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("context element " + element);
+        if (log.isDebugEnabled()) {
+          log.debug("context element " + element);
         }
         if (element instanceof HaxeFile) {
           // If we get to the file node, then we're outside of a class definition.
@@ -212,8 +213,8 @@ public class HaxeHierarchyUtils {
    */
   @Nullable
   public static HaxeFile getContainingFile(@NotNull DataContext context) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("getContainingFile " + context);
+    if (log.isDebugEnabled()) {
+      log.debug("getContainingFile " + context);
     }
 
     // XXX: EMB: Can we just ask for the node at offset 0??
@@ -238,29 +239,29 @@ public class HaxeHierarchyUtils {
    */
   @Nullable
   public static PsiElement getPsiElement(@NotNull DataContext context) {
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("getPsiElement " + context);
+    if (log.isDebugEnabled()) {
+      log.debug("getPsiElement " + context);
     }
 
     PsiElement element = null;
 
     final Project project = CommonDataKeys.PROJECT.getData(context);
     if (project == null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("No project");
+      if (log.isDebugEnabled()) {
+        log.debug("No project");
       }
       return null;
     }
 
     final Editor editor = CommonDataKeys.EDITOR.getData(context);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("editor " + editor);
+    if (log.isDebugEnabled()) {
+      log.debug("editor " + editor);
     }
     if (editor != null) {
       final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
       if (file == null) {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug("No file found.");
+        if (log.isDebugEnabled()) {
+          log.debug("No file found.");
         }
         return null;
       }
@@ -299,14 +300,14 @@ public class HaxeHierarchyUtils {
   @Nullable
   public static HaxeMethod getTargetMethod(@NotNull DataContext context) {
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("getTargetMethod " + context);
+    if (log.isDebugEnabled()) {
+      log.debug("getTargetMethod " + context);
     }
 
     final Project project = CommonDataKeys.PROJECT.getData(context);
     if (null == project) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("No project");
+      if (log.isDebugEnabled()) {
+        log.debug("No project");
       }
       return null;
     }
@@ -314,22 +315,22 @@ public class HaxeHierarchyUtils {
     final Editor editor = CommonDataKeys.EDITOR.getData(context);
 
     if (null == editor) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("No editor");
+      if (log.isDebugEnabled()) {
+        log.debug("No editor");
       }
 
       final PsiElement element = CommonDataKeys.PSI_ELEMENT.getData(context);
       return element instanceof HaxeMethod ? (HaxeMethod) element : null;
     }
 
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("editor " + editor);
+    if (log.isDebugEnabled()) {
+      log.debug("editor " + editor);
     }
 
     final PsiFile file = PsiDocumentManager.getInstance(project).getPsiFile(editor.getDocument());
     if (file == null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("No file found.");
+      if (log.isDebugEnabled()) {
+        log.debug("No file found.");
       }
       return null;
     }
@@ -338,12 +339,12 @@ public class HaxeHierarchyUtils {
                                                                              TargetElementUtil.ELEMENT_NAME_ACCEPTED |
                                                                              TargetElementUtil.REFERENCED_ELEMENT_ACCEPTED |
                                                                              TargetElementUtil.LOOKUP_ITEM_ACCEPTED);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("target element " + targetElement);
+    if (log.isDebugEnabled()) {
+      log.debug("target element " + targetElement);
     }
 
     if (targetElement instanceof HaxeMethod) {
-      LOG.debug("target element " + targetElement);
+      log.debug("target element " + targetElement);
       return ((HaxeMethod) targetElement);
     }
 
@@ -351,8 +352,8 @@ public class HaxeHierarchyUtils {
     final int offset = editor.getCaretModel().getOffset();
     PsiElement element = file.findElementAt(offset);
     while (element != null) {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("context element " + element);
+      if (log.isDebugEnabled()) {
+        log.debug("context element " + element);
       }
       if (element instanceof HaxeFile) {
         // If we get to the file node, then we're outside of a class definition.

@@ -16,12 +16,14 @@
  */
 package com.intellij.plugins.haxe.ide.completion;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.patterns.*;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugPsiUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -102,15 +104,16 @@ public class HaxeCommonCompletionPattern {
    * context, and match pattern to which it applies.
    * @param <T>
    */
+  @CustomLog
   private static class HaxeElementPattern<T extends PsiElement> extends PsiElementPattern.Capture<T> {
 
-    static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
     static {
       // Use when you want to see the match pattern and parents.
-      // LOG.setLevel(Level.DEBUG);
+      //   log.setLevel(LogLevel.DEBUG);
 
       // Use when you want the full local PSI tree (two parents up)
-      // LOG.setLevel(Level.TRACE);
+      //  log.setLevel(LogLevel.TRACE);
+
     }
 
     String myName;
@@ -123,18 +126,18 @@ public class HaxeCommonCompletionPattern {
     @Override
     public boolean accepts(@Nullable Object o, ProcessingContext context) {
       boolean matches = super.accepts(o, context);
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Pattern " + myName + " " + (matches ? "matched" : "failed")
+      if (log.isDebugEnabled() && o != null) {
+        log.debug("Pattern " + myName + " " + (matches ? "matched" : "failed")
                   + ": " + toString());
-        LOG.debug("For " + o.getClass() + "\n" +
+        log.debug("For " + o.getClass() + "\n" +
                   (o instanceof PsiElement
                    ? "with path\n" + HaxeDebugPsiUtil.formatElementPath((PsiElement)o, false)
                    : ""));
-        if (o instanceof PsiElement && LOG.isTraceEnabled()) {
+        if (o instanceof PsiElement && log.isTraceEnabled()) {
           PsiElement element = (PsiElement)o;
           int dumplevel = "IntellijIdeaRulezzz".equals(element.getText()) ? 5 : 2;
           PsiElement superParent = HaxeDebugPsiUtil.getParents((PsiElement)o, dumplevel, false);
-          LOG.trace(HaxeDebugPsiUtil.printElementTree(superParent));
+          log.trace(HaxeDebugPsiUtil.printElementTree(superParent));
         }
       }
       return matches;

@@ -23,11 +23,13 @@ import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.MethodHierarchyBrowserBase;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,19 +37,19 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by ebishton on 9/3/14.
  */
+@CustomLog
 public class HaxeMethodHierarchyProvider implements HierarchyProvider {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeMethodHierarchyProvider");
 
   {
-    LOG.info("Loaded HaxeMethodHierarchyProvider");
-    LOG.setLevel(Level.DEBUG);
+    log.info("Loaded HaxeMethodHierarchyProvider");
+    log.setLevel(LogLevel.DEBUG);
   }
 
   @Nullable
   @Override
   public PsiElement getTarget(@NotNull DataContext context) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "getTarget " + context );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "getTarget " + context );
     }
     HaxeMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
     return foundMethod;
@@ -56,16 +58,16 @@ public class HaxeMethodHierarchyProvider implements HierarchyProvider {
   @NotNull
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "createHierarchyBrowser " + element );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "createHierarchyBrowser " + element );
     }
     return new HaxeMethodHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
 
   @Override
   public void browserActivated(@NotNull HierarchyBrowser browser) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "browserActivated " + browser );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "browserActivated " + browser );
     }
     ((MethodHierarchyBrowser) browser).changeView(MethodHierarchyBrowserBase.getMethodType());
   }

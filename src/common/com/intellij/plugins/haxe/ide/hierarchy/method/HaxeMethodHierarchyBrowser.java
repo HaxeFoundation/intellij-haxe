@@ -21,17 +21,18 @@ import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.method.MethodHierarchyBrowser;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by ebishton on 11/1/14.
  */
+@CustomLog
 public class HaxeMethodHierarchyBrowser extends MethodHierarchyBrowser {
 
-  HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + HaxeMethodHierarchyBrowser.class.getName());
 
   public HaxeMethodHierarchyBrowser(final Project project, final PsiMethod method) {
     super(project, method);
@@ -40,7 +41,7 @@ public class HaxeMethodHierarchyBrowser extends MethodHierarchyBrowser {
   @Override
   protected HierarchyTreeStructure createHierarchyTreeStructure(@NotNull String typeName, @NotNull PsiElement psiElement) {
     if (!getMethodType().equals(typeName)) {
-      LOG.error("unexpected type: " + typeName);
+      log.error("unexpected type: " + typeName);
       return null;
     }
     return new HaxeMethodHierarchyTreeStructure(myProject, (PsiMethod)psiElement);

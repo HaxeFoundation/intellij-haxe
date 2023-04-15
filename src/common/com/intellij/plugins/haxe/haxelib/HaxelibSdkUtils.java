@@ -25,17 +25,17 @@ import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Static interface for SDK utility functions.
  */
+@CustomLog
 public class HaxelibSdkUtils {
 
   // TODO: Move these routines into HaxeSdkUtil and kill this class.
-
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugin.haxe.haxelib.HaxelibSdkUtils");
 
   /**
    * An SDK that can be used/returned when project lookup fails.
@@ -102,7 +102,7 @@ public class HaxelibSdkUtils {
       // We only log one error, as only one gets displayed to the user via
       // the UI anyway, and it floods the logs.
       if (!myDefaultSdkErrorHasBeenLogged) {
-        LOG.warn(errorMessage);
+        log.warn(errorMessage);
         myDefaultSdkErrorHasBeenLogged = true;
       }
     }

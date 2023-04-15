@@ -28,7 +28,7 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -54,13 +54,14 @@ import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashSet;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@CustomLog
 public class PushDownProcessor extends BaseRefactoringProcessor {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.memberPushDown.PushDownProcessor");
 
   private final MemberInfo[] myMemberInfos;
   private PsiClass myClass;
@@ -234,7 +235,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       myClass = (PsiClass) elements[0];
     }
     else {
-      LOG.assertLog(false, "Assertion failed");
+      log.assertTrue(false, "Assertion failed");
     }
   }
 
@@ -262,7 +263,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       removeFromTargetClass();
     }
     catch (IncorrectOperationException e) {
-      LOG.error(e);
+      log.error(e);
     }
   }
 
@@ -338,7 +339,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       ChangeContextUtil.decodeContextInfo(member, null, null);
     }
     catch (IncorrectOperationException e) {
-      LOG.error(e);
+      log.error(e);
     }
 
     final PsiElementFactory factory = JavaPsiFacade.getInstance(myProject).getElementFactory();
@@ -384,7 +385,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               psiClass = targetClass;
             } else if (psiClass.getContainingClass() == myClass) {
               psiClass = targetClass.findInnerClassByName(psiClass.getName(), false);
-              LOG.assertLog(psiClass != null, "Assertion failed");
+              log.assertTrue(psiClass != null, "Assertion failed");
             }
 
             if (!(qualifier instanceof PsiThisExpression) && ref instanceof PsiReferenceExpression) {
@@ -401,7 +402,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       }
     }
     catch (IncorrectOperationException e) {
-      LOG.error(e);
+      log.error(e);
     }
   }
 
@@ -444,7 +445,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       PsiMember member = memberInfo.getMember();
       final List<PsiReference> refsToRebind = new ArrayList<PsiReference>();
       final PsiModifierList list = member.getModifierList();
-      LOG.assertLog(list != null, "Assertion failed");
+      log.assertTrue(list != null, "Assertion failed");
       if (list.hasModifierProperty(PsiModifier.STATIC)) {
         for (final PsiReference reference : ReferencesSearch.search(member)) {
           final PsiElement element = reference.getElement();

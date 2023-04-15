@@ -6,15 +6,17 @@ import java.util.*;
 import java.lang.reflect.Field;
 import org.jetbrains.annotations.NotNull;
 import com.intellij.plugins.haxe.lang.lexer.HaxeConditionalCompilationLexerSupport;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.diagnostic.LogLevel;
 
 %%
 %{
-    static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-    static {      // Take this out when finished debugging.
-      LOG.setLevel(org.apache.log4j.Level.DEBUG);
-    }
+    static final Logger log = com.intellij.openapi.diagnostic.Logger.getInstance(_HaxeLexer.class);
+     static {      // Take this out when finished debugging.
+         log.setLevel(LogLevel.DEBUG);
+     }
 
     private static final class State {
         final int lBraceCount;
@@ -109,7 +111,7 @@ import com.intellij.openapi.project.Project;
         } else if (zzLexicalState != CC_BLOCK) {
             // Maybe the #if is missing, but if we're not at the end, we want to be sure that we're
             // in the conditional state.
-            LOG.debug("Unexpected lexical state. Missing starting #if?");
+            log.debug("Unexpected lexical state. Missing starting #if?");
             ccStart();
         }
 
@@ -490,7 +492,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 // Any other token is an error which needs to kill this state and be processed normally.
 .                                         {
-                                            LOG.debug("Bad termination of PP condition: \"" + yytext() + "\"");
+                                            log.debug("Bad termination of PP condition: \"" + yytext() + "\"");
                                             yypushback(1);
                                             conditionEnd();
                                             return PPBODY;

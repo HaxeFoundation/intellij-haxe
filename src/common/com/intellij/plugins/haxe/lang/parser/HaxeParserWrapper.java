@@ -18,20 +18,21 @@ package com.intellij.plugins.haxe.lang.parser;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import com.intellij.psi.tree.IElementType;
+import lombok.CustomLog;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.EXPRESSION;
 
+@CustomLog
 public class HaxeParserWrapper extends HaxeParser {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeParserWrapper");
 
   /** Turns on debugging when running the parser.  On when the logger is in debug mode. */
-  private static boolean debugging = LOG.isDebugEnabled();
+  private static boolean debugging = log.isDebugEnabled();
 
   @Override
   public ASTNode parse(IElementType t, PsiBuilder b) {

@@ -19,7 +19,7 @@
 package com.intellij.plugins.haxe.editor;
 
 import com.intellij.codeInsight.AbstractEnterActionTestCase;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
@@ -28,18 +28,18 @@ import org.junit.Test;
  * @author winmain
  */
 public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
-  private HaxeDebugLogger.HierarchyManipulator oldLogSettings;
+  //private HaxeDebugLogger.HierarchyManipulator oldLogSettings;
 
   public void setUp() throws Exception {
-    oldLogSettings = HaxeDebugLogger.mutePrimaryConfiguration();
+    //oldLogSettings = HaxeDebugLogger.mutePrimaryConfiguration();
     super.setUp();
   }
 
   @Override
   public void tearDown() throws Exception {
     // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
-    oldLogSettings.restore();
-    oldLogSettings = null;
+    //oldLogSettings.restore();
+    //oldLogSettings = null;
     HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
     super.tearDown();
   }

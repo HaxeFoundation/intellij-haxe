@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.google.common.base.Joiner;
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.module.Module;
@@ -41,6 +42,7 @@ import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.LineSeparator;
 import com.intellij.util.text.StringTokenizer;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,11 +63,11 @@ import static com.intellij.plugins.haxe.compilation.HaxeCompilerUtil.verifyProje
  * functions that are useful, such as type identification, find usages,
  * completion (see HaxeCompilerCompletionContributor), and others.
  */
+@CustomLog
 public class HaxeCompilerServices {
 
-    static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompilerServices");
     static {      // Take this out when finished debugging.
-        LOG.setLevel(org.apache.log4j.Level.DEBUG);
+        log.setLevel(LogLevel.DEBUG);
     }
 
     // Cache to keep the openFL display args (read from the project.xml).
@@ -495,11 +497,11 @@ public class HaxeCompilerServices {
     private List<HaxeCompilerCompletionItem> parseCompletionFromXml(Project project, List<String> stderr) {
         List<HaxeCompilerCompletionItem> completions = new ArrayList<HaxeCompilerCompletionItem>();
         try {
-            LOG.debug(stderr.toString());
+            log.debug(stderr.toString());
             String s = Joiner.on("").join(stderr);
 
             if (s.isEmpty()) {
-                LOG.warn("Empty compiler output from completion query.");
+                log.warn("Empty compiler output from completion query.");
                 return completions;
             }
 
@@ -510,7 +512,7 @@ public class HaxeCompilerServices {
             XmlTag rootTag = null != document ? document.getRootTag() : null;
 
             if (null == rootTag) {
-                LOG.warn("Failure to parse XML: " + s);
+                log.warn("Failure to parse XML: " + s);
                 return completions;
             }
 
@@ -545,13 +547,13 @@ public class HaxeCompilerServices {
             }
             // TODO: Add other completion types here. (e.g. Call argument completion "type").
             else {
-                LOG.warn("Failure to parse XML: " + s );
+                log.warn("Failure to parse XML: " + s );
                 return completions;
             }
         }
         catch (ProcessCanceledException e) {
             advertiseError("Haxe compiler completion canceled.");  // TODO: Externalize string.
-            LOG.debug("Haxe compiler completion canceled.", e);
+            log.debug("Haxe compiler completion canceled.", e);
             throw e;
         }
         return completions;

@@ -40,18 +40,18 @@ public class HaxeDebugPsiUtil {
     return parent;
   }
 
-  public static void dumpElementPath(PsiElement element) {
-    dumpElementPath(createLogger(HaxeDebugUtil.getCallerCanonicalName()), element);
-  }
+  //public static void dumpElementPath(PsiElement element) {
+  //  dumpElementPath(createLogger(HaxeDebugUtil.getCallerCanonicalName()), element);
+  //}
 
-  public static void dumpElementPath(HaxeDebugLogger log, PsiElement element) {
-    if (null == log) {
-      log = createLogger(HaxeDebugUtil.getCallerCanonicalName());
-    }
-    if (log.isDebugEnabled()) {
-      log.debug(formatElementPath(element, false));
-    }
-  }
+  //public static void dumpElementPath(HaxeDebugLogger log, PsiElement element) {
+  //  if (null == log) {
+  //    log = createLogger(HaxeDebugUtil.getCallerCanonicalName());
+  //  }
+  //  if (log.isDebugEnabled()) {
+  //    log.debug(formatElementPath(element, false));
+  //  }
+  //}
 
   public static String printElementTree(PsiElement root) {
     if (null == root) return "<NULL>";
@@ -83,9 +83,9 @@ public class HaxeDebugPsiUtil {
     return s.toString();
   }
 
-  private static HaxeDebugLogger createLogger(String loggerName) {
-    HaxeDebugLogger log = HaxeDebugLogger.getLogger(loggerName);
-    log.setLevel(Level.DEBUG);
-    return log;
-  }
+  //private static HaxeDebugLogger createLogger(String loggerName) {
+  //  HaxeDebugLogger log = HaxeDebugLogger.getLogger(loggerName);
+  //  log.setLevel(Level.DEBUG);
+  //  return log;
+  //}
 }

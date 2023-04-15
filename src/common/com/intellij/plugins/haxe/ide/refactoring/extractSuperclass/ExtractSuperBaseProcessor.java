@@ -17,7 +17,7 @@ package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -34,6 +34,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.usageView.UsageViewDescriptor;
 import com.intellij.usageView.UsageViewUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -42,8 +43,8 @@ import java.util.Collection;
 /**
  * @author dsl
  */
+@CustomLog
 public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessorBase {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractSuperclass.ExtractSuperClassProcessor");
   protected PsiDirectory myTargetDirectory;
   protected final String myNewClassName;
   protected final MemberInfo[] myMemberInfos;
@@ -154,7 +155,7 @@ public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessor
       }
     }
     catch (IncorrectOperationException e) {
-      LOG.error(e);
+      log.error(e);
     }
 
     performVariablesRenaming();

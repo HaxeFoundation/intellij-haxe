@@ -25,11 +25,12 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
+import lombok.CustomLog;
 
 import java.util.List;
 
@@ -40,8 +41,8 @@ import static java.lang.Integer.max;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeSpacingProcessor {
-  private final static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeSpacingProcessor");
   private final ASTNode myNode;
   private final CommonCodeStyleSettings mySettings;
   private final HaxeCodeStyleSettings myHaxeCodeStyleSettings;
@@ -101,12 +102,12 @@ public class HaxeSpacingProcessor {
   }
 
   public Spacing getSpacing(Block child1, Block child2) {
-    if (LOG.isTraceEnabled()) {
-      LOG.trace(composeSpacingBlockData(child1, child2));
+    if (log.isTraceEnabled()) {
+      log.trace(composeSpacingBlockData(child1, child2));
     }
     Spacing spacing = getSpacingInternal(child1, child2);
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(composeSpacingData(child1, child2, spacing));
+    if (log.isDebugEnabled()) {
+      log.debug(composeSpacingData(child1, child2, spacing));
     }
     return spacing;
   }

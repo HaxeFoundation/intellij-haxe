@@ -20,12 +20,13 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -33,6 +34,7 @@ import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -41,13 +43,13 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by srikanthg on 10/9/14.
  */
+@CustomLog
 public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implements HaxePsiField {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl");
 
   static {
-    LOG.info("Loaded HaxePsiFieldImpl");
-    LOG.setLevel(Level.DEBUG);
+    log.info("Loaded HaxePsiFieldImpl");
+    log.setLevel(LogLevel.DEBUG);
   }
 
   public HaxePsiFieldImpl(ASTNode node) {

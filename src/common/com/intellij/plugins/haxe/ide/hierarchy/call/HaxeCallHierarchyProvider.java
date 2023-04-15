@@ -22,11 +22,13 @@ import com.intellij.ide.hierarchy.HierarchyBrowser;
 import com.intellij.ide.hierarchy.HierarchyProvider;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
 import com.intellij.openapi.actionSystem.DataContext;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,12 +36,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by ebishton on 9/3/14.
  */
+@CustomLog
 public class HaxeCallHierarchyProvider implements HierarchyProvider {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyProvider");
 
   static {
-    LOG.info("Loaded HaxeCallHierarchyProvider");
-    LOG.setLevel(Level.DEBUG);
+    log.info("Loaded HaxeCallHierarchyProvider");
+    log.setLevel(LogLevel.DEBUG);
   }
 
   /**
@@ -51,8 +53,8 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
   @Nullable
   @Override
   public PsiElement getTarget(@NotNull DataContext context) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "getTarget " + context );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "getTarget " + context );
     }
 
     HaxeMethod foundMethod = HaxeHierarchyUtils.getTargetMethod(context);
@@ -68,8 +70,8 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
   @NotNull
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "createHierarchyBrowser " + element );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "createHierarchyBrowser " + element );
     }
     return new HaxeCallHierarchyBrowser(element.getProject(), (PsiMethod) element);
   }
@@ -81,8 +83,8 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
    */
   @Override
   public void browserActivated(@NotNull HierarchyBrowser hierarchyBrowser) {
-    if ( LOG.isDebugEnabled() ) {
-      LOG.debug( "browserActivated " + hierarchyBrowser );
+    if ( log.isDebugEnabled() ) {
+      log.debug( "browserActivated " + hierarchyBrowser );
     }
 
     ((CallHierarchyBrowser) hierarchyBrowser).changeView(CallHierarchyBrowserBase.CALLER_TYPE);

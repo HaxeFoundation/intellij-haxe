@@ -26,10 +26,11 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.xml.util.XmlStringUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,8 +42,8 @@ import java.util.*;
  * specific messages.
  *
  */
+@CustomLog
 public class HaxeAnnotationHolder implements AnnotationHolder {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.annotator.HaxeAnnotationHolder");
   private static final Key<HashMap<Integer, Annotation>> HAXE_ANNOTATION_KEY = new Key<>("HaxeAnnotationsKey");
   private final AnnotationHolderImpl myInternalHolder;
 
@@ -228,11 +229,11 @@ public class HaxeAnnotationHolder implements AnnotationHolder {
     if (node == null) return;
     PsiFile myFile = getCurrentAnnotationSession().getFile();
     PsiFile containingFile = node.getContainingFile();
-    LOG.assertLog(containingFile != null, node.getText());
+    log.assertTrue(containingFile != null, node.getText());
     VirtualFile containingVFile = containingFile.getVirtualFile();
     VirtualFile myVFile = myFile.getVirtualFile();
     if (!Comparing.equal(containingVFile, myVFile)) {
-      LOG.error(
+      log.error(
         "Annotation must be registered for an element inside '" + myFile + "' which is in '" + myVFile + "'.\n" +
         "Element passed: '" + node + "' is inside the '" + containingFile + "' which is in '" + containingVFile + "'");
     }

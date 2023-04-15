@@ -18,30 +18,28 @@
  */
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 
 /**
  * Created by fedorkorotkov.
  */
+@CustomLog
 public class HaxeIndexUtil {
   public static int BASE_INDEX_VERSION = 1;
 
-  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   static {
-    // Logs can be turned on externally (and before they're allocated!).  Make sure that
-    // our warnings still get out.
-    if (!LOG.isEnabledFor(Level.WARN)) {
-      LOG.setLevel(Level.WARN);
-    }
+      log.setLevel(LogLevel.WARNING);
   }
 
   public static boolean warnIfDumbMode(Project project) {
     if (DumbService.isDumb(project)) {
-      LOG.warn("Unexpected index activity while in dumb mode at " + HaxeDebugUtil.printCallers(1));
+      log.warn("Unexpected index activity while in dumb mode at " + HaxeDebugUtil.printCallers(1));
       return false;
     }
     return true;

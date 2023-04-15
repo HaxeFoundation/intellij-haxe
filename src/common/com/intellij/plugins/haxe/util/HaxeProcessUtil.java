@@ -17,12 +17,14 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.util.containers.ContainerUtil;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,9 +37,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+@CustomLog
 public class HaxeProcessUtil {
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.INFO); }  // Set to INFO when finished debugging.
+  static { log.setLevel(LogLevel.INFO); }  // Set to INFO when finished debugging.
 
   /** Records errors so that we only show them once. */
   private static final Set<String> REPORTED_EXECUTIONS = ContainerUtil.newConcurrentSet();
@@ -217,20 +219,20 @@ public class HaxeProcessUtil {
     int ret = 255;
     Process process = null;
     boolean weAllocatedTimeLog = false;
-    if (null == timeLog && LOG.isDebugEnabled()) {
+    if (null == timeLog && log.isDebugEnabled()) {
       timeLog = HaxeDebugTimeLog.startNew("runProcess", HaxeDebugTimeLog.Since.StartAndPrevious);
       weAllocatedTimeLog = true;
     }
 
     try {
-      LOG.info("Starting external process: " + command.toString());
+      log.info("Starting external process: " + command.toString());
 
       if (interruptible) {
         ProgressManager.checkCanceled();
       }
 
       File fdir = null != dir ? new File(dir.getPath()) : null;
-      LOG.debug("Working directory is " + (null == dir ? "<null>" : dir.getPath()));
+      log.debug("Working directory is " + (null == dir ? "<null>" : dir.getPath()));
       ProcessBuilder builder = createProcessBuilder(command, fdir, sdkData);
       if (mixedOutput)
         builder.redirectErrorStream(true);
@@ -239,7 +241,7 @@ public class HaxeProcessUtil {
         timeLog.stamp("Executing " + command.toString());
       }
       process = builder.start();
-      LOG.debug("External process has started.");
+      log.debug("External process has started.");
       InputStreamReader stdoutReader = new InputStreamReader(process.getInputStream());
       BufferedReader bufferedStdout = new BufferedReader(stdoutReader);
 
@@ -262,21 +264,21 @@ public class HaxeProcessUtil {
       GatherOutput(mixedOutput, stdout, stderr, bufferedStdout, bufferedStderr, interruptible);
 
       String message = "Process exited cleanly: Return value = " + Integer.toString(ret);
-      LOG.debug(message);
+      log.debug(message);
       if (null != timeLog) {
         timeLog.stamp(message);
       }
     }
     catch (IOException e) {
       String message = "I/O exception running command " + command.get(0);
-      LOG.info(message);
+      log.info(message);
       ret = 255;
       if (null != timeLog) {
         timeLog.stamp(message);
       }
     } catch (ProcessCanceledException e) {
       String message = "Process canceled.";
-      LOG.debug(message);
+      log.debug(message);
       ret = 255;
       if (null!= timeLog) {
         timeLog.stamp(message);
@@ -403,7 +405,7 @@ public class HaxeProcessUtil {
     }
     String callers = HaxeDebugUtil.printCallers(7);
     if (message != null && REPORTED_EXECUTIONS.add(callers)) {
-      LOG.error(message +'\n' + callers + "...while running process: " + processName);
+      log.error(message +'\n' + callers + "...while running process: " + processName);
     }
   }
 }

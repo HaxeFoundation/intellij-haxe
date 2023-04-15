@@ -22,10 +22,11 @@ import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,9 +39,9 @@ import java.util.function.Consumer;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.EMBEDDED_META;
 
+@CustomLog
 public class HaxeMetadataUtils {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeMetadataUtils");
 
   private HaxeMetadataUtils() {}
 
@@ -232,7 +233,7 @@ public class HaxeMetadataUtils {
   private static PsiElement findAssociatedElement(PsiElement element) {
     if (null == element) return null;
     if (element.getNode().getElementType() != EMBEDDED_META) {
-      LOG.error("Internal error: Not an embedded meta.");
+      log.error("Internal error: Not an embedded meta.");
     }
     PsiElement next = element;
     while (null != next && next.getNode().getElementType() == EMBEDDED_META) {

@@ -26,15 +26,16 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.MultiMap;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@CustomLog
 public class HaxeImportUtil {
-  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  //static {LOG.setLevel(Level.DEBUG);}
+  //static {log.setLevel(LogLevel.DEBUG);}
 
   public static List<HaxeImportStatement> findUnusedImports(PsiFile file) {
     final Collection<PsiElement> externalReferences = getExternalReferences(file);
@@ -154,8 +155,8 @@ public class HaxeImportUtil {
       }
     });
 
-    if (LOG.isDebugEnabled()) {
-      result.values().forEach(element -> LOG.debug(((HaxeReference)element).getReferenceNameElement().getText()));
+    if (log.isDebugEnabled()) {
+      result.values().forEach(element -> log.debug(((HaxeReference)element).getReferenceNameElement().getText()));
     }
     return result.values();
   }

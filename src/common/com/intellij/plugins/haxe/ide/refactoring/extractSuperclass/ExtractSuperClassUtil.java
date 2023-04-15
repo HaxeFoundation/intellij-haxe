@@ -29,7 +29,7 @@ import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -45,6 +45,7 @@ import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.MultiMap;
 import com.intellij.webcore.ModuleHelper;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,8 +57,8 @@ import java.util.Set;
 /**
  * @author dsl
  */
+@CustomLog
 public class ExtractSuperClassUtil {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("com.intellij.refactoring.extractSuperclass.ExtractSuperClassUtil");
   public static final String REFACTORING_EXTRACT_SUPER_ID = "refactoring.extractSuper";
 
   private ExtractSuperClassUtil() {}
@@ -162,7 +163,7 @@ public class ExtractSuperClassUtil {
       @NonNls StringBuilder superCallText = new StringBuilder();
       superCallText.append("super(");
       final PsiClass baseClass = baseConstructor.getContainingClass();
-      LOG.assertLog(baseClass != null, "Assertion failed");
+      log.assertTrue(baseClass != null, "Assertion failed");
       final PsiSubstitutor classSubstitutor = TypeConversionUtil.getSuperClassSubstitutor(baseClass, superclass, PsiSubstitutor.EMPTY);
       for (int i = 0; i < baseParams.length; i++) {
         final PsiParameter baseParam = baseParams[i];

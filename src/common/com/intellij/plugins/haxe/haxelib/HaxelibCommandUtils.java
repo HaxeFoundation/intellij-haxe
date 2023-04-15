@@ -26,9 +26,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,8 +45,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * Utilities to run the haxelib command and capture its output.
  */
+@CustomLog
 public class HaxelibCommandUtils {
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
 
   /**
@@ -109,7 +110,7 @@ public class HaxelibCommandUtils {
     HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtilBase.getSdkData(sdk);
     String haxelibPath = null != sdkData ? sdkData.getHaxelibPath() : HaxeSdkUtil.suggestHomePath();
     if (null == haxelibPath) {
-      LOG.warn("Could not find 'haxelib' executable to run using " + sdk.getName());
+      log.warn("Could not find 'haxelib' executable to run using " + sdk.getName());
       return Collections.EMPTY_LIST;
     }
 
@@ -122,7 +123,7 @@ public class HaxelibCommandUtils {
 
     if (0 != exitvalue) {
       // At least throw a warning into idea.log so we have some clue as to what is going on.
-      LOG.warn("Error " + Integer.toString(exitvalue) + " returned from " + commandLineArguments.toString());
+      log.warn("Error " + Integer.toString(exitvalue) + " returned from " + commandLineArguments.toString());
     }
 
     return stdout;

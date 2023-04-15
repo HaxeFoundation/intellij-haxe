@@ -20,17 +20,18 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+@CustomLog
 public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMeta {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetaImpl");
 
   private static String CT_PREFIX = HaxeMetadataTokenTypes.CT_META_PREFIX.toString();
   private static String RT_PREFIX = HaxeMetadataTokenTypes.RT_META_PREFIX.toString();
@@ -54,7 +55,7 @@ public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMet
   public PsiElement getContainer() {
     PsiElement container = UsefulPsiTreeUtil.getParent(this, HaxeTokenTypes.EMBEDDED_META);
     if (null == container) {
-      LOG.error("Could not find EMBEDDED_META parent for " + getDebugName());
+      log.error("Could not find EMBEDDED_META parent for " + getDebugName());
     }
     return container;
   }

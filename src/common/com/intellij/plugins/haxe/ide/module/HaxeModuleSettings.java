@@ -29,10 +29,11 @@ import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.module.impl.HaxeModuleSettingsBaseImpl;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeModificationTracker;
 import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -47,10 +48,9 @@ import org.jetbrains.annotations.Nullable;
     )
   }
 )
+@CustomLog
 public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
   implements PersistentStateComponent<HaxeModuleSettings>, HaxeModuleSettingsBase, HaxeTrackedModifiable {
-
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#" + HaxeModuleSettings.class.getName());
 
   private String flexSdkName = "";
   private HaxeModificationTracker tracker = new HaxeModificationTracker(this.getClass().getName());
@@ -218,7 +218,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
       case NMML:        return getNmmlPath();
       case CUSTOM:      return findProjectFileName(getArguments());
       default:
-        LOG.warn("Internal error: Unknown buildConfig (build type) in project settings.");
+        log.warn("Internal error: Unknown buildConfig (build type) in project settings.");
         return null;
     }
   }

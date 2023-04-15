@@ -18,12 +18,14 @@
 package com.intellij.plugins.haxe.ide.hierarchy;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,15 +42,15 @@ import java.util.TimerTask;
  * (Too long is currently hard coded to 15 seconds.)
  *
  */
+@CustomLog
 final public class HaxeHierarchyTimeoutHandler {
 
   private static final boolean DEBUG = false;
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.HaxeHierarchyTimeoutHandler");
 
   static
   {
     if (DEBUG) {
-      LOG.setLevel(Level.DEBUG);
+      log.setLevel(LogLevel.DEBUG);
     }
   }
 
@@ -75,13 +77,13 @@ final public class HaxeHierarchyTimeoutHandler {
     // We have to capture the progress indicator here because the timer fires on a different
     // thread, and won't be able to find it.  So we capture it and hold it in the closure.
     final ProgressIndicator progressIndicator = ProgressManager.getInstance().getProgressIndicator();
-    LOG.debug("Progress Indicator is" + progressIndicator.toString());
+    log.debug("Progress Indicator is" + progressIndicator.toString());
 
     myTimer = new Timer(getClass().getSimpleName());
     myTimer.schedule( new TimerTask() {
       @Override
       public void run() {
-        LOG.debug("Timer fired.");
+        log.debug("Timer fired.");
         myself.cancel(progressIndicator);
       }
     }, max_duration);
@@ -104,14 +106,14 @@ final public class HaxeHierarchyTimeoutHandler {
         progressIndicator = ProgressManager.getInstance().getProgressIndicator();
       }
       if (null != progressIndicator) {
-        LOG.debug("Canceling the Progress Indicator.");
+        log.debug("Canceling the Progress Indicator.");
         progressIndicator.cancel();
       } else {
-        LOG.debug("No Progress Indicator to cancel.");
+        log.debug("No Progress Indicator to cancel.");
       }
 
-      HaxeDebugTimeLog.logStamp(LOG, "Canceling hierarchy request. Took too long.");
-      LOG.debug("Timer canceled after " + (stopTime - startTime) + " milliseconds.");
+      HaxeDebugTimeLog.logStamp(log, "Canceling hierarchy request. Took too long.");
+      log.debug("Timer canceled after " + (stopTime - startTime) + " milliseconds.");
     }
     canceled = true;
   }
@@ -124,7 +126,7 @@ final public class HaxeHierarchyTimeoutHandler {
     stopped = true;
 
     stopTime = System.currentTimeMillis();
-    LOG.debug("Timer stopped after " + (stopTime - startTime) + " milliseconds.");
+    log.debug("Timer stopped after " + (stopTime - startTime) + " milliseconds.");
   }
 
   /**
@@ -179,7 +181,7 @@ final public class HaxeHierarchyTimeoutHandler {
    */
   public void postCanceledDialog(Project project) {
     if (!canceled) {
-      LOG.warn("Displaying cancel message dialog when the process was not canceled.");
+      log.warn("Displaying cancel message dialog when the process was not canceled.");
     }
 
     final Project messageProject = project;

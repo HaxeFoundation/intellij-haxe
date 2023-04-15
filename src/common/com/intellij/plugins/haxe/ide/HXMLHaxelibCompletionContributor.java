@@ -26,7 +26,7 @@ import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTokenType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +41,6 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
 
   protected static List<String> availableHaxelibs = null;
   protected static List<String> localHaxelibs = null;
-
-  public static final HaxeDebugLogger LOGGER = HaxeDebugLogger.getInstance("com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionProvider");
 
   public HXMLHaxelibCompletionContributor() {
     HaxelibCache haxelibCache = HaxelibCache.getInstance();

@@ -22,16 +22,16 @@ import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.intellij.lang.findUsages.FindUsagesProvider;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeFindUsagesProvider implements FindUsagesProvider {
-
-  final static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider");
 
   @Override
   public WordsScanner getWordsScanner() {
@@ -45,8 +45,8 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     if (null != parent) {
       ret = true;
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("canFindUsagesFor(" + debugId(psiElement) + ")->" + (ret ? "true" : "false"));
+    if (log.isDebugEnabled()) {
+      log.debug("canFindUsagesFor(" + debugId(psiElement) + ")->" + (ret ? "true" : "false"));
     }
     return ret;
   }
@@ -62,8 +62,8 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     if (null == result) {
       result = "reference";
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("getType(" + debugId(element) + ")->" + result);
+    if (log.isDebugEnabled()) {
+      log.debug("getType(" + debugId(element) + ")->" + result);
     }
     return result;
   }
