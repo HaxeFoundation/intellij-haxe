@@ -64,7 +64,7 @@ jobs:
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
         with:
-          haxe-version: 4.2.5
+          haxe-version: 4.3.0
 
       - name: Test haxe
         run: haxe -version
@@ -99,8 +99,8 @@ jobs:
         run: |
           ARTIFACT_PATHNAME=$(ls *.jar | head -n 1)
           ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
-          echo ::set-output name=artifact_name::${ARTIFACT_NAME}
-          echo ::set-output name=artifact_pathname::${ARTIFACT_PATHNAME}
+          echo name=artifact_name::${ARTIFACT_NAME} >> $GITHUB_OUTPUT
+          echo name=artifact_pathname::${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT
 
 
       - name: Upload Asset
