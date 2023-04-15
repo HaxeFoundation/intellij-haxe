@@ -38,12 +38,12 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
+//TODO mlo: change to inherit ModuleBuilder
 public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsBuilder, ModuleBuilderListener {
   @Override
   public void setupRootModel(ModifiableRootModel modifiableRootModel) throws ConfigurationException {
@@ -63,30 +63,34 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
 
   @Override
   public void moduleCreated(@NotNull Module module) {
-    final CompilerModuleExtension model = (CompilerModuleExtension)CompilerModuleExtension.getInstance(module).getModifiableModel(true);
-    model.setCompilerOutputPath(model.getCompilerOutputUrl());
-    model.inheritCompilerOutputPath(false);
-    createHelloWorldIfEligible(module);
-
-    model.commit();
+    ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
+    CompilerModuleExtension model = modifiableModel.getModuleExtension(CompilerModuleExtension.class);
+    try {
+      model.setCompilerOutputPath(model.getCompilerOutputUrl());
+      model.inheritCompilerOutputPath(false);
+      createHelloWorldIfEligible(module);
+    }
+    finally {
+      model.commit();
+    }
   }
 
   private void createHelloWorldIfEligible(Module module) {
     ModuleRootManager rootManager = ModuleRootManager.getInstance(module);
     VirtualFile[] srcDirs = rootManager.getSourceRoots();
     VirtualFile[] rootDirs = rootManager.getContentRoots();
-    if(rootDirs.length != 1 || srcDirs.length != 1) {
+    if (rootDirs.length != 1 || srcDirs.length != 1) {
       return;
     }
 
     VirtualFile root = rootDirs[0];
     VirtualFile src = srcDirs[0];
 
-    if(src.getChildren().length != 0) {
+    if (src.getChildren().length != 0) {
       return;
     }
-    for(VirtualFile item:root.getChildren()) {
-      if(item.getExtension() == "hxml") {
+    for (VirtualFile item : root.getChildren()) {
+      if (item.getExtension() == "hxml") {
         return;
       }
     }
@@ -98,25 +102,25 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
         try {
           VirtualFile mainHx = src.createChildData(this, "Main.hx");
           String mainHxSource = "class Main {\n"
-            + "    static public function main() {\n"
-            + "        trace(\"Hello, world!\");\n"
-            + "    }\n"
-            + "}\n";
+                                + "    static public function main() {\n"
+                                + "        trace(\"Hello, world!\");\n"
+                                + "    }\n"
+                                + "}\n";
           mainHx.setBinaryContent(mainHxSource.getBytes(StandardCharsets.UTF_8));
 
           VirtualFile buildHxml = root.createChildData(this, "build.hxml");
           String buildHxmlSource = "-cp src\n"
-            + "-D analyzer-optimize\n"
-            + "-main Main\n"
-            + "--interp";
+                                   + "-D analyzer-optimize\n"
+                                   + "-main Main\n"
+                                   + "--interp";
           buildHxml.setBinaryContent(buildHxmlSource.getBytes(StandardCharsets.UTF_8));
 
           createDefaultRunConfiguration(module, buildHxml.getPath());
 
           FileEditorManager editorManager = FileEditorManager.getInstance(module.getProject());
           editorManager.openFile(mainHx, true);
-
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
         }
       }
     });
@@ -129,7 +133,7 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
     settings.setHxmlPath(buildHxmlPath);
     RunManager manager = RunManager.getInstance(module.getProject());
     HaxeRunConfigurationType configType = HaxeRunConfigurationType.getInstance();
-    if(manager.getConfigurationsList(configType).isEmpty()) {
+    if (manager.getConfigurationsList(configType).isEmpty()) {
       ConfigurationFactory factory = configType.getConfigurationFactories()[0];
       HaxeApplicationConfiguration config = (HaxeApplicationConfiguration)factory.createTemplateConfiguration(module.getProject());
       config.setName("Execute");
@@ -138,5 +142,10 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
       manager.addConfiguration(runSettings, false);
       manager.setSelectedConfiguration(runSettings);
     }
+  }
+
+  @Override
+  public boolean isAvailable() {
+    return true;
   }
 }
