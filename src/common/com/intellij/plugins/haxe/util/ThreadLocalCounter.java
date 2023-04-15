@@ -15,12 +15,14 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import lombok.CustomLog;
+
 /**
  * A counter that is thread static.  Use it like this:
  * Created by ebishton on 7/16/17.
  */
+@CustomLog
 public class ThreadLocalCounter {
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   final String debugName;
 
   private final ThreadLocal<Integer> counter = new ThreadLocal<Integer>() {
@@ -48,7 +50,7 @@ public class ThreadLocalCounter {
     int newval = counter.get() - 1;
     counter.set(newval);
     if (newval < 0) {
-      LOG.debug(HaxeDebugUtil.traceThreadMessage(
+      log.debug(HaxeDebugUtil.traceThreadMessage(
         debugName + " decremented past zero by " + HaxeDebugUtil.getCallerCanonicalName()));
     }
     return newval;

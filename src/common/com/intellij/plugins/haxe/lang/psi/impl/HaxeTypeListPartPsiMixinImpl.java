@@ -18,10 +18,11 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -30,6 +31,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +44,7 @@ import java.util.List;
 /**
  * Created by ebishton on 10/22/14.
  */
+@CustomLog
 public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypeListPartPsiMixin {
 
   // XXX: TypeListPart might be better just being a private entry in the BNF.  I'm not sure.
@@ -59,8 +62,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
   // This type doesn't really support a class, just gives a function pointer.  So, now
   // we've got a mostly empty stub class as well...
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl");
-  static { LOG.setLevel(Level.DEBUG); }
+  static { log.setLevel(LogLevel.DEBUG); }
 
 
   // The child type that implements an interface for one of these three parameter types.
@@ -97,8 +99,8 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
           } else if (HaxeTokenTypes.ANONYMOUS_TYPE.equals(targetType)){
             myChildClass = (HaxeAnonymousType) target;
           } else {
-            LOG.debug("Target: " + target.toString());
-            LOG.assertLog(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
+            log.debug("Target: " + target.toString());
+            log.assertTrue(false, "Unexpected token type for child of TYPE_OR_ANONYMOUS");
             myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }
         } else if (HaxeTokenTypes.FUNCTION_TYPE.equals(type)) {
@@ -107,7 +109,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
             myChildClass = (HaxeAnonymousType) child;
           }
           catch(ClassCastException e) {
-            HaxeDebugLogger.getLogger().warn("Unexpected PSI state.  See issue #627");
+            log.warn("Unexpected PSI state.  See issue #627");
             myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
           }
         } else {
@@ -115,7 +117,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
         }
       } else {
         // No child node?  How can this be?
-        LOG.assertLog(false, "No child node found for TYPE_LIST_PART");
+        log.assertTrue(false, "No child node found for TYPE_LIST_PART");
         myChildClass = AbstractHaxePsiClass.createEmptyFacade(getProject());
       }
     }
@@ -467,41 +469,41 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
       // XXX: If it turns out that we need this method, we need to find the
       //      actual class implementation (getDelegate().resolveHaxeClass())
       //      and call that.
-      LOG.warn("Unexpected call to findMethodBySignature()");
+      log.warn("Unexpected call to findMethodBySignature()");
       return null;
     }
 
     @Override
     @NotNull
     public PsiMethod[] findMethodsBySignature(PsiMethod patternMethod, boolean checkBases) {
-      LOG.warn("Unexpected call to findMethodsBySignature()");
+      log.warn("Unexpected call to findMethodsBySignature()");
       return PsiMethod.EMPTY_ARRAY;
     }
 
     @Override
     public PsiField findFieldByName(String name, boolean checkBases) {
-      LOG.warn("Unexpected call to findFieldByName()");
+      log.warn("Unexpected call to findFieldByName()");
       return null;
     }
 
     @Override
     @NotNull
     public PsiMethod[] findMethodsByName(String name, boolean checkBases) {
-      LOG.warn("Unexpected call to findMethodsByName()");
+      log.warn("Unexpected call to findMethodsByName()");
       return PsiMethod.EMPTY_ARRAY;
     }
 
     @Override
     @NotNull
     public List<Pair<PsiMethod, PsiSubstitutor>> findMethodsAndTheirSubstitutorsByName(String name, boolean checkBases) {
-      LOG.warn("Unexpected call to findMethodsAndTheirSubstitutorsByName()");
+      log.warn("Unexpected call to findMethodsAndTheirSubstitutorsByName()");
       return new ArrayList<Pair<PsiMethod,PsiSubstitutor>>();
     }
 
     @Override
     @NotNull
     public List<Pair<PsiMethod, PsiSubstitutor>> getAllMethodsAndTheirSubstitutors() {
-      LOG.warn("Unexpected call to getAllMethodsAndTheirSubstitutors");
+      log.warn("Unexpected call to getAllMethodsAndTheirSubstitutors");
       return new ArrayList<Pair<PsiMethod,PsiSubstitutor>>();
     }
 

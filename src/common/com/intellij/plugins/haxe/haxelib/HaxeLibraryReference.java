@@ -15,10 +15,12 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,10 +35,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * points to the same library as another reference.  NOT that they are
  * the same reference or member-for-member identical.  Use matches() for that.
  */
+@CustomLog
 public class HaxeLibraryReference {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.DEBUG);} // Remove when finished debugging.
+  static {      // Take this out when finished debugging.
+    log.setLevel(LogLevel.DEBUG);
+  }
 
   protected final String name;
   protected final HaxelibLibraryCache owner;
@@ -86,7 +90,7 @@ public class HaxeLibraryReference {
     if (name.contains(":")) {
       String[] parts = name.split(":");
       if (parts.length > 2) {
-        LOG.warn("Unexpectedly encountered multiple colons in library description.");
+        log.warn("Unexpectedly encountered multiple colons in library description.");
       }
       return new HaxeLibraryReference(owner, parts[0], HaxelibSemVer.create(parts[1]));
     }

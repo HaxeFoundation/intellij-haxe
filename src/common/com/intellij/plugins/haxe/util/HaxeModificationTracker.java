@@ -16,6 +16,8 @@
 package com.intellij.plugins.haxe.util;
 
 
+import lombok.CustomLog;
+
 import javax.management.RuntimeErrorException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,11 +37,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * Created by ebishton on 9/7/2017.
  */
+@CustomLog
 public class HaxeModificationTracker {
 
   // XXX: Maybe add a "disposed" state and set it true with the underlying object is no longer valid/used?
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
   private AtomicInteger updateCounter = new AtomicInteger(0);
   private final String debugName;
@@ -68,7 +70,7 @@ public class HaxeModificationTracker {
 
     if (stamp.tracker != this) {
       String msg = "Stamps can only be compared to their allocating Tracker.";
-      LOG.error(msg);
+      log.error(msg);
     }
 
     return this != stamp.tracker || updateCounter.get() != stamp.value;

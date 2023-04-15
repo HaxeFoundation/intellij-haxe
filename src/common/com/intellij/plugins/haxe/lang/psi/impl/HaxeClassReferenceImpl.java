@@ -20,24 +20,29 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
 
-  public static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  //static { LOG.setLevel(Level.DEBUG); }  // Remove when finished debugging.
+  //static {      // Take this out when finished debugging.
+  //  log.setLevel(LogLevel.DEBUG);
+  //}
+
 
   public HaxeClassReferenceImpl(ASTNode node) {
     super(node);
@@ -99,7 +104,7 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
   @NotNull
   @Override
   public HaxeClassResolveResult resolveHaxeClass() {
-    LOG.trace("Resolving " + getText());
+    log.trace("Resolving " + getText());
     final HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(this, HaxeFunctionType.class);
     HaxeTypeOrAnonymous typeOrAnonymous = PsiTreeUtil.getChildOfType(this, HaxeTypeOrAnonymous.class);
     if (functionType != null) {

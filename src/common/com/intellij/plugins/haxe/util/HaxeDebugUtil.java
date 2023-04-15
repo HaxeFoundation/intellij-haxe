@@ -19,6 +19,7 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.TestOnly;
@@ -31,9 +32,9 @@ import java.io.StringWriter;
  *
  * Created by ebishton on 4/25/17.
  */
+@CustomLog
 public class HaxeDebugUtil {
 
-  public static final HaxeDebugLogger cacheDebugLog = HaxeDebugLogger.getInstance("#DisableCacheForDebugging");
   private static boolean disabledManually = false;
 
   /**
@@ -48,7 +49,7 @@ public class HaxeDebugUtil {
    * @return Whether the setting is set and caching should be disabled.
    */
   public static boolean isCachingDisabled() {
-    return disabledManually || cacheDebugLog.isDebugEnabled();
+    return disabledManually || log.isDebugEnabled();
   }
 
   /**

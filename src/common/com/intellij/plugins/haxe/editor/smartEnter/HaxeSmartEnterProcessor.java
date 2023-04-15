@@ -22,10 +22,11 @@ import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -35,7 +36,6 @@ import java.util.List;
  * Created by as3boyan on 06.10.14.
  */
 public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.editor.smartEnter.HaxeSmartEnterProcessor");
 
   private static final Fixer[] ourFixers;
 

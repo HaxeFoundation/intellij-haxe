@@ -40,6 +40,7 @@ import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
+import lombok.CustomLog;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -1240,6 +1241,7 @@ class ClassChecker {
   }
 }
 
+@CustomLog
 class MethodChecker {
   static public void check(final HaxeMethod methodPsi, final HaxeAnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
@@ -1533,7 +1535,7 @@ class MethodChecker {
                                                                                          scopeSpecialization);
     if (superclassResult == HaxeClassResolveResult.EMPTY) {
       // TODO: Create Unresolved annotation??
-      HaxeDebugLogger.getLogger().warn("Couldn't resolve a parameter type from a subclass for " + currentElement.getName());
+      log.warn("Couldn't resolve a parameter type from a subclass for " + currentElement.getName());
     }
 
     SpecificHaxeClassReference resolvedParent = null;

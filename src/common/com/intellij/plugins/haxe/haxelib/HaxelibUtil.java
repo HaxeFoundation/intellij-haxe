@@ -16,6 +16,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -27,7 +28,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeEventLogUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
@@ -35,6 +36,7 @@ import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.Processor;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,11 +48,13 @@ import java.util.*;
 /**
  * Various utilities to work with haxe libraries.
  */
+@CustomLog
 public class HaxelibUtil {
   static public final String LOCAL_REPO = ".haxelib";
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.DEBUG); } // Remove when finished debugging.
+  static {      // Take this out when finished debugging.
+    log.setLevel(LogLevel.DEBUG);
+  }
 
   static Key<VirtualFile> HaxelibRootKey = new Key<VirtualFile>("Haxelib.rootDirectory");
 
@@ -88,7 +92,7 @@ public class HaxelibUtil {
 
     VirtualFile haxelibRoot = getLibraryBasePath(sdk);
     if(haxelibRoot == null) {
-      LOG.debug("Haxe libraries base path was not found for current project sdk");
+      log.debug("Haxe libraries base path was not found for current project sdk");
       return null;
     }
     String rootName = haxelibRoot.getPath();
@@ -112,7 +116,7 @@ public class HaxelibUtil {
           }
         }
         catch (IOException e) {
-          LOG.debug("IOException reading .dev file for library " + libName, e);
+          log.debug("IOException reading .dev file for library " + libName, e);
         }
       }
       // Hidden ".current" file contains the semantic version (not the path!) of the
@@ -129,12 +133,12 @@ public class HaxelibUtil {
           }
         }
         catch (IOException e) {
-          LOG.debug("IOException reading .current file for library " + libName, e);
+          log.debug("IOException reading .current file for library " + libName, e);
         }
       }
     } else {
-      if (LOG.isDebugEnabled())
-        LOG.debug("Couldn't find directory " + libDirName + " for library " + libName);
+      if (log.isDebugEnabled())
+        log.debug("Couldn't find directory " + libDirName + " for library " + libName);
     }
 
     // If we got here, then see what haxelib can give us.  This takes >40ms on average.
@@ -152,15 +156,15 @@ public class HaxelibUtil {
         String libClasspath = FileUtil.getRelativePath(rootName, s, '/');
         String[] libParts = libClasspath.split("/");  // Instead of FileUtil.splitpath() because normalized names use '/'
         // First one is always for the current library.
-        if (LOG.isDebugEnabled()) {
+        if (log.isDebugEnabled()) {
           if (!libParts[0].equals(libName)) { // TODO: capitalization issue on windows??
-            LOG.debug("Library found directory name '" + libParts[0] + "' did not match library name '" +
+            log.debug("Library found directory name '" + libParts[0] + "' did not match library name '" +
                       libName + ".");
           }
           // Second is normally the version string.  But that's not *always* the case, if it's a dev path.
           if (!libParts[1].matches(HaxelibSemVer.VERSION_REGEX)
               && !(new File(HaxeStringUtil.join("/", rootName, libParts[0], ".dev"))).exists()) {
-            LOG.debug("Library version '" + libParts[1] + "' didn't match the regex.");
+            log.debug("Library version '" + libParts[1] + "' didn't match the regex.");
           }
         }
         String libRoot = FileUtil.join(rootName, libParts[0], libParts[1]);
@@ -227,7 +231,7 @@ public class HaxelibUtil {
         }
       });
     } else {
-      LOG.assertLog(false, "Expected a ModuleRootManagerImpl, but didn't get one.");
+      log.assertTrue(false, "Expected a ModuleRootManagerImpl, but didn't get one.");
     }
 
     return moduleLibs;
@@ -357,7 +361,7 @@ public class HaxelibUtil {
             if (lib != null) {
               haxelibNewItems.add(lib.createReference(semver));
             } else {
-              LOG.warn("Library specified in XML file is not known to haxelib: " + name);
+              log.warn("Library specified in XML file is not known to haxelib: " + name);
             }
           }
         }

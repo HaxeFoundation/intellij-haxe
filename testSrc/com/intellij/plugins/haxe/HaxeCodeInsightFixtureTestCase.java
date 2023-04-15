@@ -30,7 +30,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -59,7 +59,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
     super();
-    HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
+    //HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
   }
 
   @Override

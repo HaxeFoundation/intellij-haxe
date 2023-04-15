@@ -26,7 +26,7 @@ import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperClassUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -39,12 +39,13 @@ import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.MultiMap;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+@CustomLog
 public class ExtractInterfaceHandler implements RefactoringActionHandler, ElementsHandler {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.refactoring.extractInterface.ExtractInterfaceHandler");
 
   public static final String REFACTORING_NAME = RefactoringBundle.message("extract.interface.title");
 
@@ -103,7 +104,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
               doRefactoring();
             }
             catch (IncorrectOperationException e) {
-              LOG.error(e);
+              log.error(e);
             }
           }
         });

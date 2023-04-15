@@ -27,7 +27,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -49,7 +49,6 @@ import java.util.List;
  * Based on https://github.com/JetBrains/intellij-community/blob/master/java/java-impl/src/com/intellij/refactoring/memberPullUp/JavaPullUpHandler.java
  */
 public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDialog.Callback, ElementsHandler {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpHandler");
   public static final String REFACTORING_NAME = RefactoringBundle.message("pull.members.up.title");
   private PsiClass mySubclass;
   private Project myProject;

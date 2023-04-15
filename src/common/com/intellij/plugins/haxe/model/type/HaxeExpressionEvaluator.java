@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
@@ -38,6 +39,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,9 +50,9 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 
+@CustomLog
 public class HaxeExpressionEvaluator {
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static { LOG.setLevel(Level.INFO); }
+  static { log.setLevel(LogLevel.INFO); }
 
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context,
@@ -68,7 +70,7 @@ public class HaxeExpressionEvaluator {
     }
     catch (NullPointerException e) {
       // Make sure that these get into the log, because the GeneralHighlightingPass swallows them.
-      LOG.error("Error evaluating expression type for element " + element.toString(), e);
+      log.error("Error evaluating expression type for element " + element.toString(), e);
       throw e;
     }
     catch (ProcessCanceledException e) {
@@ -77,7 +79,7 @@ public class HaxeExpressionEvaluator {
     }
     catch (Throwable t) {
       // XXX: Watch this.  If it happens a lot, then maybe we shouldn't log it unless in debug mode.
-      LOG.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
+      log.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
     }
     return SpecificHaxeClassReference.getUnknown(element != null ? element : context.root).createHolder();
   }
@@ -91,7 +93,7 @@ public class HaxeExpressionEvaluator {
     }
     if (resolver == null) resolver = new HaxeGenericResolver();
 
-    LOG.debug("Handling element: " + element);
+    log.debug("Handling element: " + element);
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
       ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -406,7 +408,7 @@ public class HaxeExpressionEvaluator {
       }
 
       if (functionType.isUnknown()) {
-        LOG.debug("Couldn't resolve " + callLeft.getText());
+        log.debug("Couldn't resolve " + callLeft.getText());
       }
 
       List<HaxeExpression> parameterExpressions = null;
@@ -479,7 +481,7 @@ public class HaxeExpressionEvaluator {
         if (null != fatArrow) {
           initializers.add(fatArrow);
         } else {
-          LOG.error("Didn't find an initializer in a map comprehension: " + element.toString(),
+          log.error("Didn't find an initializer in a map comprehension: " + element.toString(),
                     new HaxeDebugUtil.InvalidValueException(element.toString() + '\n' + HaxeDebugUtil.elementLocation(element)));
         }
       } else {
@@ -570,17 +572,17 @@ public class HaxeExpressionEvaluator {
       } else if (type == HaxeTokenTypes.KNULL) {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
       } else {
-        LOG.debug("Unhandled token type: " + type);
+        log.debug("Unhandled token type: " + type);
         return SpecificHaxeClassReference.getDynamic(element).createHolder();
       }
     }
 
     if (element instanceof HaxeSuperExpression) {
       /*
-      LOG.debug("-------------------------");
+      log.debug("-------------------------");
       final HaxeExpressionList list = HaxePsiUtils.getChildWithText(element, HaxeExpressionList.class);
-      LOG.debug(element);
-      LOG.debug(list);
+      log.debug(element);
+      log.debug(list);
       final List<HaxeExpression> parameters = (list != null) ? list.getExpressionList() : Collections.<HaxeExpression>emptyList();
       final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
       if (method == null) {
@@ -591,12 +593,12 @@ public class HaxeExpressionEvaluator {
         if (parentMethod == null) {
           context.addError(element, "Calling super without parent constructor");
         } else {
-          LOG.debug(element);
-          LOG.debug(parentMethod.getFunctionType());
-          LOG.debug(parameters);
+          log.debug(element);
+          log.debug(parentMethod.getFunctionType());
+          log.debug(parameters);
           checkParameters(element, parentMethod.getFunctionType(), parameters, context);
-          //LOG.debug(method);
-          //LOG.debug(parentMethod);
+          //log.debug(method);
+          //log.debug(parentMethod);
         }
       }
       return SpecificHaxeClassReference.getVoid(element);
@@ -844,7 +846,7 @@ public class HaxeExpressionEvaluator {
     }
 
 
-    LOG.debug("Unhandled " + element.getClass());
+    log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
@@ -883,7 +885,7 @@ public class HaxeExpressionEvaluator {
       }
     }
 
-    //LOG.debug(ftype.getDebugString());
+    //log.debug(ftype.getDebugString());
     // More parameters than expected
     if (parameterExpressions.size() > parameterTypes.size()) {
       for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {

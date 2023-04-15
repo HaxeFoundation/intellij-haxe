@@ -19,9 +19,10 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
 import com.intellij.psi.JavaResolveResult;
@@ -30,6 +31,7 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.SmartList;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,12 +43,13 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeClassResolveResult implements Cloneable {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
-  // Remove when finished debugging.
-  //static { LOG.setLevel(Level.DEBUG); }
+  //static {      // Take this out when finished debugging.
+  //  log.setLevel(LogLevel.DEBUG);
+  //}
 
   private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
   private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
@@ -99,8 +102,8 @@ public class HaxeClassResolveResult implements Cloneable {
       resolvesInProcess.get().add(aClass);
 
       debugNestCountForCreate.increment();
-      if (LOG.isDebugEnabled()) {
-        LOG.debug(debugNestCountForCreate +
+      if (log.isDebugEnabled()) {
+        log.debug(debugNestCountForCreate +
                   "Resolving class " +
                   aClass.getName() +
                   " using specialization " +
@@ -129,8 +132,8 @@ public class HaxeClassResolveResult implements Cloneable {
           if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass,aClass)) {
             final HaxeClassResolveResult result = create(superclass, filteredSpecialization);
             result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
-            if (LOG.isDebugEnabled()) {
-              LOG.debug(debugNestCountForCreate +
+            if (log.isDebugEnabled()) {
+              log.debug(debugNestCountForCreate +
                         "  Adding superclass specialization for " +
                         aClass.getName() +
                         "<" +
@@ -143,7 +146,7 @@ public class HaxeClassResolveResult implements Cloneable {
         }
       }
       catch (StackOverflowError e) {
-        LOG.error("Stack Overflow trying to resolve " + aClass.getName());
+        log.error("Stack Overflow trying to resolve " + aClass.getName());
         throw e;
       }
 
@@ -188,8 +191,8 @@ public class HaxeClassResolveResult implements Cloneable {
           continue;
         }
         HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(debugNestCountForCreate.toString() +
+        if (log.isDebugEnabled()) {
+          log.debug(debugNestCountForCreate.toString() +
                     "  Adding constraint for " +
                     aClass.getName() +
                     "<" +
@@ -202,8 +205,8 @@ public class HaxeClassResolveResult implements Cloneable {
                                          specializedTypeResult);
       }
       else {
-        if (LOG.isDebugEnabled()) {
-          LOG.debug(debugNestCountForCreate +
+        if (log.isDebugEnabled()) {
+          log.debug(debugNestCountForCreate +
                     "  Not adding constraint for " +
                     aClass.getName() +
                     "<" +
@@ -374,8 +377,8 @@ public class HaxeClassResolveResult implements Cloneable {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }
     }
-    if (LOG.isDebugEnabled()) {
-      LOG.debug(specialization.debugDump());
+    if (log.isDebugEnabled()) {
+      log.debug(specialization.debugDump());
     }
   }
 

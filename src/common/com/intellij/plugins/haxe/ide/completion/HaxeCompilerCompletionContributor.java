@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.ide.completion;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -37,10 +38,11 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,13 +51,12 @@ import java.util.List;
 /**
  * Created by as3boyan on 25.11.14.
  */
+@CustomLog
 public class HaxeCompilerCompletionContributor extends CompletionContributor {
 
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeCompilerCompletionContributor");
 
-  // Take this out when finished debugging.
-  //static {
-  //  LOG.setLevel(org.apache.log4j.Level.DEBUG);
+  //static {      // Take this out when finished debugging.
+  //  log.setLevel(LogLevel.DEBUG);
   //}
 
   private String myErrorMessage = null;
@@ -87,7 +88,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
                // Shortcut if we aren't using compiler completions.  Do this here instead
                // of before the extend call. Otherwise, we'd have to restart if the state changes.
                if (!useCompilerCompletion(file)) {
-                 LOG.debug("Skipping compiler completion.");
+                 log.debug("Skipping compiler completion.");
                  return;
                }
 
@@ -152,7 +153,7 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
       StatusBarUtil.setStatusBarInfo(myProject, message);
     }
 
-    LOG.info(message);  // XXX - May happen to often.
+    log.info(message);  // XXX - May happen to often.
     // TODO: Mark the error in the source window.
   }
 
@@ -164,10 +165,10 @@ public class HaxeCompilerCompletionContributor extends CompletionContributor {
     if (FileDocumentManager.getInstance().isDocumentUnsaved(doc)) {
       final Application application = ApplicationManager.getApplication();
       if (application.isDispatchThread()) {
-        LOG.debug("Saving buffer to disk...");
+        log.debug("Saving buffer to disk...");
         FileDocumentManager.getInstance().saveDocumentAsIs(doc);
       } else {
-        LOG.debug("Not on dispatch thread and document is unsaved.");
+        log.debug("Not on dispatch thread and document is unsaved.");
       }
     }
   }

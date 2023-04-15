@@ -20,20 +20,22 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by ebishton on 10/9/14.
  */
+@CustomLog
 public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypePsiMixin {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixin");
   {
-    LOG.setLevel(Level.DEBUG);
+    log.setLevel(LogLevel.DEBUG);
   }
 
   public HaxeTypePsiMixinImpl(ASTNode node) {

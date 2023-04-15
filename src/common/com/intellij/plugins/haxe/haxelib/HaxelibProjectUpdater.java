@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.ide.highlighter.XmlFileType;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -47,6 +48,7 @@ import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -74,12 +76,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * come during initialization.
  *
  */
+
+@CustomLog
 public class HaxelibProjectUpdater {
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
-
-  {
-    LOG.setLevel(Level.DEBUG);
+  static {      // Take this out when finished debugging.
+    log.setLevel(LogLevel.DEBUG);
   }
 
   /**
@@ -228,7 +230,7 @@ public class HaxelibProjectUpdater {
     toRemove = new HaxeLibraryList(module);
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
     if (null == moduleSdk) {
-      LOG.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
+      log.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
       return; // Nothing to do if there is no SDK.
     }
     syncLibraryLists(moduleSdk,
@@ -305,7 +307,7 @@ public class HaxelibProjectUpdater {
           timeLog.stamp("Removed library " + library.getName());
         }
         else {
-          LOG.warn(
+          log.warn(
             "Internal inconsistency: library to remove was not found: " +
             entry.getName());
         }
@@ -339,12 +341,12 @@ public class HaxelibProjectUpdater {
         // If the lib is in the project list, then we just add a reference to it.
         if (projectLibraries.contains(entry)) {
           if (null != moduleLibrary) {
-            LOG.warn("Internal inconsistency: attempting to add library that is already in the module.");
+            log.warn("Internal inconsistency: attempting to add library that is already in the module.");
           } else {
             Library projectLibrary = lookupProjectLibrary(projectTable, entry);
             if (null == projectLibrary) {
               // EMB: Not writing recovery code because this really shouldn't happen.
-              LOG.warn("Internal inconsistency: Could not find project library when it should exist.");
+              log.warn("Internal inconsistency: Could not find project library when it should exist.");
             } else {
               LibraryOrderEntry libraryOrderEntry = moduleModel.addLibraryEntry(projectLibrary);
               libraryOrderEntry.setExported(false);
@@ -400,7 +402,7 @@ public class HaxelibProjectUpdater {
             }
           }
           else {
-            LOG.warn("Internal inconsistency: library to add was already in the module's library table.");
+            log.warn("Internal inconsistency: library to add was already in the module's library table.");
           }
         }
         return true;
@@ -419,7 +421,7 @@ public class HaxelibProjectUpdater {
       list.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertLog(entry.isManaged(), msg);
+          log.assertTrue(entry.isManaged(), msg);
           return true;
         }
       });
@@ -531,7 +533,7 @@ public class HaxelibProjectUpdater {
         }
         else {
           // TODO: Figure out how to communicate this to the user.
-          LOG.warn("Required library 'nme' is not known to haxelib.");
+          log.warn("Required library 'nme' is not known to haxelib.");
         }
 
         // TODO: Pull libs off of the command line, too.
@@ -563,7 +565,7 @@ public class HaxelibProjectUpdater {
         }
         else {
           // TODO: Figure out how to report this to the user.
-          LOG.warn("Required library 'openfl' is not known to haxelib.");
+          log.warn("Required library 'openfl' is not known to haxelib.");
         }
 
         // TODO: Pull libs off of the command line, too.
@@ -601,7 +603,7 @@ public class HaxelibProjectUpdater {
               }
               else {
                 // TODO: Figure out how to communicate this to the user.
-                LOG.warn("Library referenced by openFL configuration is not known to haxelib " + classpath);
+                log.warn("Library referenced by openFL configuration is not known to haxelib " + classpath);
               }
             }
           }
@@ -635,7 +637,7 @@ public class HaxelibProjectUpdater {
                     haxelibExternalItems.add(reference);
                   }
                   else {
-                    LOG.warn("Library referenced by HXML configuration is not known to haxelib.");
+                    log.warn("Library referenced by HXML configuration is not known to haxelib.");
                   }
                 }
               }
@@ -934,7 +936,7 @@ public class HaxelibProjectUpdater {
       toRemove.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertLog(entry.isManaged(), "Attempting to automatically remove a library that was not marked as managed.");
+          log.assertTrue(entry.isManaged(), "Attempting to automatically remove a library that was not marked as managed.");
           return true;
         }
       });
@@ -943,7 +945,7 @@ public class HaxelibProjectUpdater {
       toAdd.iterate(new HaxeLibraryList.Lambda() {
         @Override
         public boolean processEntry(HaxeLibraryReference entry) {
-          LOG.assertLog(entry.isManaged(), "Attempting to automatically add a library that is not marked as managed.");
+          log.assertTrue(entry.isManaged(), "Attempting to automatically add a library that is not marked as managed.");
           return true;
         }
       });
@@ -966,7 +968,7 @@ public class HaxelibProjectUpdater {
             public boolean processEntry(HaxeLibraryReference entry) {
               Library library = projectModifiableModel.getLibraryByName(
                 entry.getName());
-              LOG.assertLog(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
+              log.assertTrue(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
               if (null != library) {
                 projectModifiableModel.removeLibrary(library);
                 timeLog.stamp("Removed library " + entry.getName());
@@ -1289,7 +1291,7 @@ public class HaxelibProjectUpdater {
         refs = --myReferenceCount;
       }
       // XXX: Maybe we don't need an assertion for this.
-      LOG.assertLog(refs >= 0, "Assertion failed");
+      log.assertTrue(refs >= 0, "Assertion failed");
 
       return refs;
     }
@@ -1486,15 +1488,15 @@ public class HaxelibProjectUpdater {
      */
     private void queueNextProject() {
       synchronized (updateSyncToken) {
-        LOG.assertLog(null == updatingProject, "Assertion failed");
+        log.assertTrue(null == updatingProject, "Assertion failed");
 
         // Get the next project from the queue. We're done if there's
         // nothing left.
         updatingProject = queue.poll();  // null if empty.
         if (updatingProject == null) return;
 
-        LOG.assertLog(updatingProject.isDirty(), "Assertion failed");
-        LOG.assertLog(!updatingProject.isUpdating(), "Assertion failed");
+        log.assertTrue(updatingProject.isDirty(), "Assertion failed");
+        log.assertTrue(!updatingProject.isUpdating(), "Assertion failed");
 
         updatingProject.setUpdating(true);
       }
@@ -1503,7 +1505,7 @@ public class HaxelibProjectUpdater {
       // fully loaded and accessible.  Otherwise, we crash. ;)
       StartupManager.getInstance(updatingProject.getProject()).runWhenProjectIsInitialized(new Runnable() {
         public void run() {
-          LOG.debug("Starting haxelib library sync...");
+          log.debug("Starting haxelib library sync...");
           runUpdate();
         }
       });
@@ -1552,10 +1554,10 @@ public class HaxelibProjectUpdater {
      * The basic bit of work that an update does.
      */
     private void doUpdateWork() {
-      LOG.debug("Loading referenced libraries...");
+      log.debug("Loading referenced libraries...");
       ProjectTracker tracker = getUpdatingProject();
       if (null == tracker) {
-        LOG.warn("Attempt to load libraries, but no project queued for updating.");
+        log.warn("Attempt to load libraries, but no project queued for updating.");
         return;
       }
       synchronizeClasspaths(tracker);
@@ -1569,8 +1571,8 @@ public class HaxelibProjectUpdater {
      */
     private void finishUpdate(ProjectTracker up) {
       synchronized (updateSyncToken) {
-        LOG.assertLog(null != updatingProject, "Assertion failed");
-        LOG.assertLog(up.equals(updatingProject), "Assertion failed");
+        log.assertTrue(null != updatingProject, "Assertion failed");
+        log.assertTrue(up.equals(updatingProject), "Assertion failed");
 
         updatingProject.setUpdating(false);
         updatingProject.setDirty(false);

@@ -26,7 +26,7 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -50,6 +50,7 @@ import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.VisibilityUtil;
 import com.intellij.util.containers.HashMap;
+import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -57,8 +58,8 @@ import java.util.*;
 /**
  * Created by Max Medvedev on 10/3/13
  */
+@CustomLog
 public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance(HaxePullUpHelper.class);
 
   private static final Key<Boolean> PRESERVE_QUALIFIER = Key.create("PRESERVE_QUALIFIER");
 
@@ -174,7 +175,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     PsiClass aClass = (PsiClass)info.getMember();
     if (Boolean.FALSE.equals(info.getOverrides())) {
       final PsiReferenceList sourceReferenceList = info.getSourceReferenceList();
-      LOG.assertLog(sourceReferenceList != null, "Assertion failed");
+      log.assertTrue(sourceReferenceList != null, "Assertion failed");
       PsiJavaCodeReferenceElement ref = mySourceClass.equals(sourceReferenceList.getParent()) ?
                                         RefactoringUtil.removeFromReferenceList(sourceReferenceList, aClass) :
                                         RefactoringUtil.findReferenceToClass(sourceReferenceList, aClass);
@@ -508,7 +509,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         }
       }
       catch (IncorrectOperationException e) {
-        LOG.error(e);
+        log.error(e);
       }
     }
   }
@@ -791,7 +792,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
           qualifier.bindToElement(myTargetSuperClass);
         }
         catch (IncorrectOperationException e) {
-          LOG.error(e);
+          log.error(e);
         }
       }
     }
@@ -804,7 +805,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
           expression.replace(JavaPsiFacade.getElementFactory(myProject).createExpressionFromText(myTargetSuperClass.getName() + ".this", null));
         }
         catch (IncorrectOperationException e) {
-          LOG.error(e);
+          log.error(e);
         }
       }
     }

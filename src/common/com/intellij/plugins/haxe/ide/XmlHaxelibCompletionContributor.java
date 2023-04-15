@@ -23,7 +23,7 @@ import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.XmlPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,8 +36,6 @@ public class XmlHaxelibCompletionContributor extends CompletionContributor {
 
   protected static List<String> availableHaxelibs = null;
   protected static List<String> localHaxelibs = null;
-
-  public static final HaxeDebugLogger LOGGER = HaxeDebugLogger.getInstance("com.intellij.plugins.haxe.ide.XmlHaxelibCompletionProvider");
 
   public XmlHaxelibCompletionContributor() {
     HaxelibCache haxelibCache = HaxelibCache.getInstance();

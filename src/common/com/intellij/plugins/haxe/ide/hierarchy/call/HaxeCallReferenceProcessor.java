@@ -26,10 +26,11 @@ import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.plugins.haxe.lang.psi.HaxeNewExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeSuperExpression;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.TypeConversionUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -38,8 +39,8 @@ import java.util.Set;
 /**
  * Created by ebishton on 1/9/15.  Lifted from JavaCallReferenceProcessor.
  */
+@CustomLog
 public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.call.HaxeCallReferenceProcessor");
 
   public static class CallData extends JavaCallHierarchyData {
     HaxeHierarchyTimeoutHandler myTimeoutHandler;
@@ -67,7 +68,7 @@ public class HaxeCallReferenceProcessor implements CallReferenceProcessor {
   public boolean process(@NotNull PsiReference reference, @NotNull JavaCallHierarchyData jchdata) {
     if (!(jchdata instanceof CallData)) {
       String msg = "Internal error, unexpected call data type passed in.";
-      LOG.error(msg);
+      log.error(msg);
       throw new UnsupportedOperationException(msg);
     }
     CallData data = (CallData)jchdata;

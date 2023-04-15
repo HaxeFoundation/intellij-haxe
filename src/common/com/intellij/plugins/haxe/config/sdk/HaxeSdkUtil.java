@@ -24,10 +24,11 @@ import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +39,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@CustomLog
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil");
   private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
 
   @Nullable
@@ -61,7 +62,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
                                                                              null, null, false);
 
       if (exitCode != 0) {
-        LOG.error("Haxe compiler exited with invalid exit code: " + exitCode);
+        log.error("Haxe compiler exited with invalid exit code: " + exitCode);
         return null;
       }
 
@@ -79,7 +80,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       return haxeSdkData;
     }
     catch (Exception e) {
-      LOG.info("Exception while executing the process:", e);
+      log.info("Exception while executing the process:", e);
       return null;
     }
   }
@@ -133,7 +134,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
       result = locateExecutable(binName);
     }
 
-    LOG.debug("returning neko path: " + String.valueOf(result));
+    log.debug("returning neko path: " + String.valueOf(result));
     return result;
   }
 

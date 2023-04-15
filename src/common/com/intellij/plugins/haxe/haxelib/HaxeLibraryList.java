@@ -21,7 +21,8 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,9 +32,9 @@ import java.util.*;
  * Manage a list of Haxe libraries.  The same library will NOT appear twice in a single
  * list.
  */
+@CustomLog
 public class HaxeLibraryList {
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryList");
 
   /**
    * Minimum size to use for new lists.
@@ -373,9 +374,9 @@ public class HaxeLibraryList {
    */
   public void debugDump(String header) {
 
-    final StringBuilder log = new StringBuilder();
+    final StringBuilder logText = new StringBuilder();
     if (null != header && !header.isEmpty()) {
-      log.append(header);
+      logText.append(header);
     }
 
     iterate ( new Lambda() {
@@ -383,14 +384,14 @@ public class HaxeLibraryList {
       public boolean processEntry(HaxeLibraryReference entry) {
         HaxeLibrary lib = entry.getLibrary();
         String version = lib != null ? lib.getVersion().toString() : "invalid reference";
-        log.append("\n   ");
-        log.append(entry.getPresentableName());
-        log.append(": ");
-        log.append(version);
+        logText.append("\n   ");
+        logText.append(entry.getPresentableName());
+        logText.append(": ");
+        logText.append(version);
         return true;
       }
     });
-    LOG.debug(log.toString());
+    log.debug(logText.toString());
   }
 
 }

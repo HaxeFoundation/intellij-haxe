@@ -32,7 +32,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -56,14 +56,14 @@ import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.Query;
 import com.intellij.util.containers.ContainerUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@CustomLog
 public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpData {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance(PullUpProcessor.class);
-
   private final PsiClass mySourceClass;
   private final PsiClass myTargetSuperClass;
   private final MemberInfo[] myMembersToMove;
@@ -257,7 +257,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
   }
 
   public void moveFieldInitializations() throws IncorrectOperationException {
-    LOG.assertLog(myMembersAfterMove != null, "Assertion failed");
+    log.assertTrue(myMembersAfterMove != null, "Assertion failed");
 
     final LinkedHashSet<PsiField> movedFields = new LinkedHashSet<PsiField>();
     for (PsiMember member : myMembersAfterMove) {

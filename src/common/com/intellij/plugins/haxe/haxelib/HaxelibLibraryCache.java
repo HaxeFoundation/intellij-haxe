@@ -18,9 +18,11 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -36,11 +38,11 @@ import java.util.concurrent.ConcurrentSkipListSet;
  * source control using separate branches, are not necessarily using the
  * same haxe installation.)
  */
+@CustomLog
 public final class HaxelibLibraryCache {
 
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeLibraryManager");
-  {
-    LOG.setLevel(Level.DEBUG);
+  static {
+    log.setLevel(LogLevel.DEBUG);
   }
 
   private final InternalCache myCache;
@@ -245,7 +247,7 @@ public final class HaxelibLibraryCache {
     public void add(HaxeLibrary entry) {
       HaxeLibrary oldEntry = myCache.put(entry.getName(), entry);
       if (null != oldEntry) {
-        LOG.warn("Duplicating cached data for entry " + entry.getName());
+        log.warn("Duplicating cached data for entry " + entry.getName());
       }
     }
 

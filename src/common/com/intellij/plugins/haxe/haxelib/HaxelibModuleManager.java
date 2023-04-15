@@ -19,20 +19,22 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Manage the module lifecycle, primarily for class path info.
  */
+@CustomLog
 public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleComponent {
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibManager");
-  static {
-    LOG.setLevel(Level.DEBUG);
+  static {      // Take this out when finished debugging.
+    log.setLevel(LogLevel.DEBUG);
   }
 
   Module mMyModule = null;
@@ -45,7 +47,7 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
   public void projectOpened() {
     debugQueueCounter++;
     final Project project = mMyModule.getProject();
-    LOG.debug("Project opened event (" + debugQueueCounter + ") for " + project);
+    log.debug("Project opened event (" + debugQueueCounter + ") for " + project);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
@@ -54,7 +56,7 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
 
   @Override
   public void projectClosed() {
-    LOG.debug("Project closed event for module " + mMyModule.getName());
+    log.debug("Project closed event for module " + mMyModule.getName());
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       HaxelibProjectUpdater.getInstance().closeProject(mMyModule.getProject());
@@ -63,17 +65,17 @@ public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleC
 
   @Override
   public void moduleAdded() {
-    LOG.debug("Module added event for " + mMyModule.getName());
+    log.debug("Module added event for " + mMyModule.getName());
   }
 
   @Override
   public void initComponent() {
-    LOG.debug("initComponent() for module " + mMyModule.getName());
+    log.debug("initComponent() for module " + mMyModule.getName());
   }
 
   @Override
   public void disposeComponent() {
-    LOG.debug("disposeComponent() for module " + mMyModule.getName());
+    log.debug("disposeComponent() for module " + mMyModule.getName());
   }
 
   @NotNull

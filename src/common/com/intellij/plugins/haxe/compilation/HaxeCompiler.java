@@ -47,9 +47,10 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.util.PathUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.DataInput;
@@ -57,8 +58,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+@CustomLog
 public class HaxeCompiler implements FileProcessingCompiler {
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.compilation.HaxeCompiler");
 
   /*
   // flag to indicate whether a module needs to be built
@@ -278,7 +279,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
       @Override
       public void log(String message) {
-        LOG.debug(message);
+        log.debug(message);
       }
 
       @Override

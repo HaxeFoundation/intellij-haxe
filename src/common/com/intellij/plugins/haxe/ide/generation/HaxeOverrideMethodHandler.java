@@ -18,13 +18,15 @@
  */
 package com.intellij.plugins.haxe.ide.generation;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 
 import java.util.List;
@@ -32,12 +34,12 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.generation.HaxeOverrideMethodHandler");
   {
-    LOG.info("Loaded HaxeOverrideMethodHandler");
-    LOG.setLevel(Level.DEBUG);
+    log.info("Loaded HaxeOverrideMethodHandler");
+    log.setLevel(LogLevel.DEBUG);
   }
 
   @Override

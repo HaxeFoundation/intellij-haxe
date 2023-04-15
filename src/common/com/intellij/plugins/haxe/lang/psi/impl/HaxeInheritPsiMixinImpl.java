@@ -22,13 +22,14 @@ import com.intellij.plugins.haxe.lang.psi.HaxeExtendsDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeImplementsDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -37,13 +38,13 @@ import java.util.List;
  * HaxeInherit is analogous to PsiJavaCodeReferenceElement
  * Created by ebishton on 10/8/14.
  */
+@CustomLog
 public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeInheritPsiMixin {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl");
 
   //static {
   //  // Turn on all local messages.
-  //  LOG.setLevel(Level.DEBUG);
+  //  log.setLevel(LogLevel.DEBUG);
   //}
 
   /**
@@ -67,7 +68,7 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
   @NotNull
   @Override
   public PsiClassType[] getReferencedTypes() {
-    LOG.debug("getReferencedTypes");
+    log.debug("getReferencedTypes");
     PsiJavaCodeReferenceElement[] refs = getReferenceElements();
     PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
     PsiClassType[] types = new PsiClassType[refs.length];
@@ -81,7 +82,7 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
   @NotNull
   @Override
   public PsiJavaCodeReferenceElement[] getReferenceElements() {
-    LOG.debug("getReferenceElements");
+    log.debug("getReferenceElements");
     List<HaxeType> typeList = getTypeList();
     PsiJavaCodeReferenceElement[] refList = new PsiJavaCodeReferenceElement[typeList.size()];
     for (int i = 0; i < typeList.size(); ++i) {
@@ -97,7 +98,7 @@ public class HaxeInheritPsiMixinImpl extends HaxePsiCompositeElementImpl impleme
     } else if (this instanceof HaxeImplementsDeclaration) {
       return Role.IMPLEMENTS_LIST;
     }
-    LOG.assertLog(false, "Unrecognized/unexpected subclass type.");
+    log.assertTrue(false, "Unrecognized/unexpected subclass type.");
     return null;
   }
 

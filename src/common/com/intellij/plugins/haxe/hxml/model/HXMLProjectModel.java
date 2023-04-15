@@ -15,15 +15,17 @@
  */
 package com.intellij.plugins.haxe.hxml.model;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
 import com.intellij.plugins.haxe.hxml.psi.HXMLProperty;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,11 +36,12 @@ import java.util.List;
 /**
  * Created by ebishton on 9/8/2017.
  */
+@CustomLog
 public class HXMLProjectModel {
 
-  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static {LOG.setLevel(Level.INFO);}
-
+  static {
+    log.setLevel(LogLevel.INFO);
+  }
   public static final String SWF_NAME = "-swf";
   public static final String SWF_VERSION = "-swf-version";
   public static final String SWF_HEADER = "-swf-header";
@@ -62,7 +65,7 @@ public class HXMLProjectModel {
 
   public static HXMLProjectModel create(Project project, VirtualFile hxmlFile) {
     if (null == project || null == hxmlFile) {
-      LOG.debug("Null project or hxmlFile");
+      log.debug("Null project or hxmlFile");
       return null;
     }
 
@@ -92,7 +95,7 @@ public class HXMLProjectModel {
       if (found.size() == 1) {
         return found.get(0);
       } else if (found.size() > 1) {
-        if (LOG.isInfoEnabled()) {
+        if (log.isDebugEnabled()) {
           StringBuilder msg = new StringBuilder(256);
           msg.append("Unexpectedly found more than one setting for ");
           msg.append(propertyName);
@@ -102,7 +105,7 @@ public class HXMLProjectModel {
             msg.append(s);
             msg.append('\n');
           }
-          LOG.info(msg);
+          log.info(msg.toString());
         }
         return found.get(0);
       }

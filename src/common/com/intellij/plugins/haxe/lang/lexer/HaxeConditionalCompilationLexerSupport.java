@@ -17,11 +17,13 @@
  */
 package com.intellij.plugins.haxe.lang.lexer;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.util.HaxeConditionalExpression;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
+import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -34,11 +36,10 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
  *
  * Created by ebishton on 3/23/17.
  */
+@CustomLog
 public class HaxeConditionalCompilationLexerSupport {
-  static final String CLASS_NAME = new Object(){}.getClass().getEnclosingClass().getName();
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger('#' + CLASS_NAME);
   static {      // Take this out when finished debugging.
-    LOG.setLevel(org.apache.log4j.Level.DEBUG);
+    log.setLevel(LogLevel.DEBUG);
   }
 
   /**
@@ -62,7 +63,7 @@ public class HaxeConditionalCompilationLexerSupport {
       else if (el == PPELSE)   { return Type.ELSE; }
       else if (el == PPEND)    { return Type.END; }
       else {
-        LOG.debug("Unrecognized compiler conditional is being used.");
+        log.debug("Unrecognized compiler conditional is being used.");
       }
       return Type.UNKNOWN;
     }
@@ -224,7 +225,7 @@ public class HaxeConditionalCompilationLexerSupport {
     @Override
     public Block startBlock(IElementType type) {
       if (type == PPIF) {
-        LOG.debug("Root Section requested to start an invalid block type:" + type.toString());
+        log.debug("Root Section requested to start an invalid block type:" + type.toString());
       }
       return super.startBlock(null);
     }
@@ -311,7 +312,7 @@ public class HaxeConditionalCompilationLexerSupport {
   public void conditionEnd() {
     HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null != condition && !condition.isComplete()) {
-       LOG.debug("Ending condition before it is complete: '" + condition.toString() + "'");
+       log.debug("Ending condition before it is complete: '" + condition.toString() + "'");
     }
   }
 
@@ -326,11 +327,11 @@ public class HaxeConditionalCompilationLexerSupport {
   public void conditionAppend(CharSequence chars, IElementType type) {
     HaxeConditionalExpression condition = getCurrentBlock().getCondition();
     if (null == condition) {
-      LOG.warn("Lexer is adding tokens to a conditional compilation block that has no condition.");
+      log.warn("Lexer is adding tokens to a conditional compilation block that has no condition.");
       return;
     }
     if (condition.isComplete()) {
-      LOG.warn("Lexer is adding tokens to a conditional compilation block with an already completed condition.");
+      log.warn("Lexer is adding tokens to a conditional compilation block with an already completed condition.");
       return;
     }
     condition.extend(chars, type);

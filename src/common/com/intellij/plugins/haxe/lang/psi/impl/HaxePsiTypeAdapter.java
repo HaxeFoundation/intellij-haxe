@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
@@ -31,7 +32,7 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -39,6 +40,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.ArrayFactory;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -55,11 +57,11 @@ import javax.swing.*;
  *
  * Created by ebishton on 10/18/14.
  */
+@CustomLog
 public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
-  static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxePsiTypeAdapter");
   static {
-    LOG.setLevel(Level.DEBUG);
+    log.setLevel(LogLevel.DEBUG);
   }
 
   public static final PsiPrimitiveType DYNAMIC = new PsiPrimitiveType("Dynamic", PsiAnnotation.EMPTY_ARRAY);
@@ -159,7 +161,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   public PsiArrayType createArrayType() {
     // Wrong answer, but until we need it, we can punt.
     // TODO: Implement HaxePsiAdapter.createArrayType
-    LOG.debug("Implement HaxePsiAdapter.createArrayType");
+    log.debug("Implement HaxePsiAdapter.createArrayType");
     return new PsiArrayType(this);
   }
 
@@ -168,7 +170,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   public PsiArrayType createArrayType(@NotNull PsiAnnotation... annotations) {
     // Wrong answer, but until we need it, we can punt.
     // TODO: Implement HaxePsiAdapter.createArrayType
-    LOG.debug("Implement HaxePsiAdapter.createArrayType");
+    log.debug("Implement HaxePsiAdapter.createArrayType");
     return new PsiArrayType(this);
   }
 
@@ -205,7 +207,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   public boolean isAssignableFrom(@NotNull PsiType type) {
     // Java uses the TypeConversionUtil.canAssignToFrom, which will most likely fail.
     // TODO: Implement HaxePsiAdapter.isAssignableFrom
-    LOG.debug("Implement HaxePsiAdapter.isAssignableFrom()");
+    log.debug("Implement HaxePsiAdapter.isAssignableFrom()");
     return super.isAssignableFrom(type);
   }
 
@@ -213,7 +215,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   public boolean isConvertibleFrom(@NotNull PsiType type) {
     // Java uses the TypeConversionUtil.isConvertable, which will most likely fail.
     // TODO: Implement HaxePsiAdapter.isConvertibleFrom
-    LOG.debug("Implement HaxePsiAdapter.isConvertibleFrom()");
+    log.debug("Implement HaxePsiAdapter.isConvertibleFrom()");
     return super.isConvertibleFrom(type);
   }
 
@@ -276,7 +278,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   @Override
   public <A> A accept(@NotNull PsiTypeVisitor<A> visitor) {
     // TODO: Figure out what accept is supposed to do for HaxePsiTypeAdapter.
-    LOG.debug("Unimplemented HaxePsiTypeAdapter.accept(PsiTypeVisitor<A>) was called.");
+    log.debug("Unimplemented HaxePsiTypeAdapter.accept(PsiTypeVisitor<A>) was called.");
     return null; // visitor.visitPsiType(this); // Hmm, ain't no such thing.
   }
 

@@ -15,13 +15,15 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import lombok.CustomLog;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
@@ -30,10 +32,12 @@ import org.jetbrains.annotations.Nullable;
 import java.security.InvalidParameterException;
 import java.util.*;
 
+@CustomLog
 public class HaxeLibrary {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
-  static {LOG.setLevel(Level.DEBUG);}  // Remove when finished debugging.
+  static {      // Take this out when finished debugging.
+    log.setLevel(LogLevel.DEBUG);
+  }
 
   private static String CURRENT_DIR = ".";
 
@@ -126,7 +130,7 @@ public class HaxeLibrary {
         } // TODO: Else mark dependency unfulfilled somehow??
       } else {
         HaxeLibraryDependency contained = collection.get(dependency.getKey());
-        LOG.assertLog(contained != null, "Couldn't get a contained object.");
+        log.assertTrue(contained != null, "Couldn't get a contained object.");
         if (contained != null) {
           contained.addReliant(dependency);
         }
@@ -197,7 +201,7 @@ public class HaxeLibrary {
     } catch (InvalidParameterException e) {
       ; // libName must not have been an url
     } catch (Exception e) {
-      LOG.error("Unable to read Haxelib '" + libName +"' reason:" + e.getMessage(), e);
+      log.error("Unable to read Haxelib '" + libName +"' reason:" + e.getMessage(), e);
     }
     return null;
   }

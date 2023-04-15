@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.google.common.base.Joiner;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -39,7 +40,7 @@ import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
 import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
@@ -47,6 +48,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.xml.XmlDocument;
 import com.intellij.psi.xml.XmlFile;
 import com.intellij.psi.xml.XmlTag;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,11 +61,11 @@ import java.util.*;
 /**
  * Static interface to haxelib class path functionality.
  */
+@CustomLog
 public class HaxelibClasspathUtils {
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils");
   static {
-    LOG.setLevel(Level.DEBUG);
+    log.setLevel(LogLevel.DEBUG);
   }
 
   /** Old environment variable name for the Haxe standard library location. */

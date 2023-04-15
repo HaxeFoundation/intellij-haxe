@@ -19,8 +19,9 @@ import com.google.gson.*;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,9 +35,10 @@ import java.util.Map;
 /**
  * Class describing the haxelib JSON metadata.
  */
+
+@CustomLog
 public class HaxelibMetadata {
 
-  private static HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
 
   public static class Dependency {
     private String name;
@@ -123,14 +125,14 @@ public class HaxelibMetadata {
 
   private JsonObject parse(String jsonData) {
     if (null == jsonData || jsonData.isEmpty()) {
-      LOG.debug("Empty json metadata.");
+      log.debug("Empty json metadata.");
       return null;
     }
 
     JsonParser parser = new JsonParser();
     JsonElement root = parser.parse(jsonData);
     if (!root.isJsonObject()) {
-      LOG.debug("Unexpected JSON type (expected JsonObject).");
+      log.debug("Unexpected JSON type (expected JsonObject).");
       return null;
     }
     return root.getAsJsonObject();

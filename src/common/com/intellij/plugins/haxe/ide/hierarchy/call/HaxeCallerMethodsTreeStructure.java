@@ -23,10 +23,11 @@ import com.intellij.ide.hierarchy.call.CallHierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.call.CallReferenceProcessor;
 import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.*;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.MethodReferencesSearch;
@@ -34,6 +35,7 @@ import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,13 +44,13 @@ import java.util.*;
 /**
  * Created by ebishton on 11/5/14.
  */
+@CustomLog
 public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
 
   private static final boolean DEBUG = false;
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.ide.hierarchy.HaxeCallerMethodsTreeStructure");
   static {
     if (DEBUG) {
-      LOG.setLevel(Level.DEBUG);
+      log.setLevel(LogLevel.DEBUG);
     }
   }
 

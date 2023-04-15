@@ -20,17 +20,18 @@ package com.intellij.plugins.haxe.ide.hierarchy.call;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.call.CallHierarchyBrowser;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by ebishton on 1/6/15.
  */
+@CustomLog
 public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.ide.hierarchy.type.HaxeCallHierarchyBrowser");
 
   HaxeCallHierarchyBrowser(Project project, PsiMethod method) { super(project, method); }
 
@@ -43,7 +44,7 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
       return new HaxeCalleeMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
     }
     else {
-      LOG.error("unexpected type: " + typeName);
+      log.error("unexpected type: " + typeName);
       return null;
     }
   }

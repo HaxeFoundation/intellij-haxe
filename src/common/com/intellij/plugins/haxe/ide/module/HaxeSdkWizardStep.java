@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.ide.module;
 import com.intellij.ide.util.projectWizard.ProjectJdkForModuleStep;
 import com.intellij.ide.util.projectWizard.WizardContext;
 import com.intellij.openapi.projectRoots.SdkType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 
 public class HaxeSdkWizardStep extends ProjectJdkForModuleStep {
   private HaxeModuleBuilder myModuleBuilder;

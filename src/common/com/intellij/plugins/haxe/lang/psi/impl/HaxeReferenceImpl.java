@@ -43,6 +43,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.IncorrectOperationException;
+import lombok.CustomLog;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,15 +52,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
+@CustomLog
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
-  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getLogger();
   public static final String DOT = ".";
   private static final Key<HaxeGenericSpecialization> SPECIALIZATION_KEY = new Key<>("HAXE_SPECIALIZATION_KEY");
 
   //static {
-  //  LOG.setLevel(Level.TRACE);
+  //  log.setLevel(LogLevel.TRACE);
   //}  // Pull this out after debugging.
 
   public HaxeReferenceImpl(ASTNode node) {
@@ -139,7 +141,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("namelist: " + nameList.toString()));
+    if (log.isTraceEnabled()) log.trace(traceMsg("namelist: " + nameList.toString()));
     if (nameList == null || nameList.isEmpty()) {
       return Collections.emptyList();
     }
@@ -282,22 +284,22 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    */
   @Nullable
   public PsiElement resolve(boolean incompleteCode) {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg(null));
+    if (log.isTraceEnabled()) log.trace(traceMsg(null));
     final ResolveResult[] resolveResults = multiResolve(incompleteCode);
 
     PsiElement resolved = resolveResults.length == 0 ||
                           resolveResults.length > 1 ||
                           !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Resolved to " + (resolved != null ? resolved.toString() : "<null>")));
+    if (log.isTraceEnabled()) log.trace(traceMsg("Resolved to " + (resolved != null ? resolved.toString() : "<null>")));
     return resolved;
   }
 
   @NotNull
   @Override
   public HaxeClassResolveResult resolveHaxeClass() {
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Begin resolving Haxe class:" + this.getText()));
+    if (log.isTraceEnabled()) log.trace(traceMsg("Begin resolving Haxe class:" + this.getText()));
     HaxeClassResolveResult result = resolveHaxeClassInternal();
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Finished resolving Haxe class " + this.getText() + " as " + result.debugDump()));
+    if (log.isTraceEnabled()) log.trace(traceMsg("Finished resolving Haxe class " + this.getText() + " as " + result.debugDump()));
     return result;
   }
 
@@ -305,10 +307,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Contract("null->false")
   private boolean isType(Class clazz) {
     if (clazz.isInstance(this)) {
-      if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), "Resolving " + this.getDebugName() + " as class type " + clazz.getName());
+      if (log.isTraceEnabled()) traceAs(log, HaxeDebugUtil.getCallerStackFrame(), "Resolving " + this.getDebugName() + " as class type " + clazz.getName());
       return true;
     }
-    if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), this.getDebugName() + " is not a " + clazz.getName());
+    if (log.isTraceEnabled()) traceAs(log, HaxeDebugUtil.getCallerStackFrame(), this.getDebugName() + " is not a " + clazz.getName());
     return false;
   }
 
@@ -316,10 +318,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Contract("null,_->false")
   private boolean isType(Object o, Class clazz) {
     if (clazz.isInstance(o)) {
-      if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), "Resolving " + o + " as class type " + clazz.getName());
+      if (log.isTraceEnabled()) traceAs(log, HaxeDebugUtil.getCallerStackFrame(), "Resolving " + o + " as class type " + clazz.getName());
       return true;
     }
-    if (LOG.isTraceEnabled()) LOG.traceAs(HaxeDebugUtil.getCallerStackFrame(), o + " is not a " + clazz.getName());
+    if (log.isTraceEnabled()) traceAs(log,HaxeDebugUtil.getCallerStackFrame(), o + " is not a " + clazz.getName());
     return false;
   }
 
@@ -541,7 +543,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
 
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Calling resolve()"));
+    if (log.isTraceEnabled()) log.trace(traceMsg("Calling resolve()"));
     PsiElement resolve = resolve();
     if (isType(resolve, PsiPackage.class)) {
       // Packages don't ever resolve to classes. (And they don't have children!)
@@ -660,7 +662,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
     }
 
-    if (LOG.isTraceEnabled()) LOG.trace(traceMsg("Trying class resolve by fully qualified name."));
+    if (log.isTraceEnabled()) log.trace(traceMsg("Trying class resolve by fully qualified name."));
 
     return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
   }
@@ -715,7 +717,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       HaxeElementGenerator.createImportStatementFromPath(getProject(), element.getQualifiedName());
     HaxeReferenceExpression referenceExpression = importStatement != null ? importStatement.getReferenceExpression() : null;
     if (referenceExpression == null) {
-      LOG.error("ReferenceExpression generated by HaxeElementGenerator is null!");
+      log.error("ReferenceExpression generated by HaxeElementGenerator is null!");
     } else {
       replace(referenceExpression);
     }
@@ -770,7 +772,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeReferenceExpression referenceExpression =
       HaxeElementGenerator.createReferenceExpressionFromText(getProject(), newName);
     if (referenceExpression == null) {
-      LOG.error("ReferenceExpression generated by HaxeElementGenerator is null!");
+      log.error("ReferenceExpression generated by HaxeElementGenerator is null!");
     } else {
       replace(referenceExpression);
     }
@@ -1072,7 +1074,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiReferenceParameterList getParameterList() {
     // TODO:  Unimplemented.
-    LOG.warn("getParameterList is unimplemented");
+    log.warn("getParameterList is unimplemented");
 
     // REFERENCE_PARAMETER_LIST  in Java
     HaxeTypeParam child = (HaxeTypeParam)findChildByType(HaxeTokenTypes.TYPE_PARAM);
@@ -1084,7 +1086,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiType[] getTypeParameters() {
     // TODO:  Unimplemented.
-    LOG.warn("getTypeParameters is unimplemented");
+    log.warn("getTypeParameters is unimplemented");
     return new PsiType[0];
   }
 
@@ -1101,7 +1103,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public void processVariants(@NotNull PsiScopeProcessor processor) {
     // TODO:  Unimplemented.
-    LOG.warn("processVariants is unimplemented");
+    log.warn("processVariants is unimplemented");
   }
 
   @Nullable

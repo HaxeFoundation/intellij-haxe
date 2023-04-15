@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.util.ReflectionUtil;
+import lombok.CustomLog;
 
 import javax.swing.*;
 import java.awt.event.ActionListener;
@@ -36,8 +37,8 @@ import java.util.function.Consumer;
 /**
  * Created by fedorkorotkov.
  */
+@CustomLog
 public class HaxeTestUtils {
-  public static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeTestUtils");
 
   public static final String HAXE_TOOLKIT_BASE_DIR = "haxe";
   public static final String HAXE_STDLIB_DIR = "std";
@@ -150,9 +151,9 @@ public class HaxeTestUtils {
 
           Method getTimer = ReflectionUtil.getDeclaredMethod(timer.getClass(), "getTimer");
           Timer swingTimer = (Timer)getTimer.invoke(timer);
-          LOG.warn("Timer still open:" + swingTimer.toString());
+          log.warn("Timer still open:" + swingTimer.toString());
           for (ActionListener listener : swingTimer.getActionListeners()) {
-            LOG.warn(" -> open listener:" + listener.toString());
+            log.warn(" -> open listener:" + listener.toString());
             if (listener.toString().contains("AquaProgressBarUI")) {
               swingTimer.stop();
             }
@@ -164,7 +165,7 @@ public class HaxeTestUtils {
            | NoSuchMethodException
            | IllegalAccessException
            | InvocationTargetException e) {
-      LOG.warn("Error trying to clean up timers: ", e);
+      log.warn("Error trying to clean up timers: ", e);
       exceptionHandler.accept(e);
     }
   }

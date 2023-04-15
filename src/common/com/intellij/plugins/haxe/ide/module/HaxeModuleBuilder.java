@@ -38,7 +38,7 @@ import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;

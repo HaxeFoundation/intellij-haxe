@@ -18,7 +18,8 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -28,9 +29,9 @@ import java.util.*;
  *
  * Ordering is kept.  Duplicates are discarded.
  */
+@CustomLog
 public class HaxeClasspath {
 
-  static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.haxelib.HaxeClasspath");
 
   /**
    * An immutable empty classpath that can be re-used.
@@ -316,7 +317,7 @@ public class HaxeClasspath {
     };
     Collector logCollector = new Collector(null == header ? "HaxeClasspath dump" : header);
     iterate(logCollector);
-    LOG.debug(logCollector.myLog);
+    log.debug(logCollector.myLog);
   }
 
 }

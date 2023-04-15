@@ -21,10 +21,11 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.util.HaxeDebugLogger;
+
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -35,6 +36,7 @@ import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import lombok.CustomLog;
 import org.apache.log4j.Level;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -46,14 +48,14 @@ import java.util.List;
 /**
  * @author: Srikanth.Ganapavarapu
  */
+@CustomLog
 public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
 
   // TODO: Merge this PsiMixin class(and interface) with HaxeMethod.  There is no reason to keep both, or that this be named 'mixin'.
 
-  private static final HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl");
   static {
-    LOG.info("Loaded HaxeMethodPsiMixinImpl");
-    LOG.setLevel(Level.DEBUG);
+    log.info("Loaded HaxeMethodPsiMixinImpl");
+    log.setLevel(LogLevel.DEBUG);
   }
 
   protected HaxeMethodPsiMixinImpl(ASTNode node) {
