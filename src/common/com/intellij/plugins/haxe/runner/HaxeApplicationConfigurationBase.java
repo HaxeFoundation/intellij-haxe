@@ -20,10 +20,6 @@ import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
 
-/*
-@replace.with.plugin.autogen.warning@
-*/
-
 /**
  * A wrapper around ModuleBasedConfiguration to deal with the change in
  * generic arguments between versions 18.2 and 18.3 of IDEA.  This file supports 18.3+.

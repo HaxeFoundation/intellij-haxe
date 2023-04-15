@@ -2,7 +2,7 @@ Haxe plugin for Intellij IDEA and Android Studio
 ======================================
 
 This plugin allows you to develop multi-platform programs using the [Haxe](http://haxe.org/) language with [Intellij IDEA](http://www.jetbrains.com/idea), [Android Studio](https://developer.android.com/studio/) and other IntelliJ IDEA-based IDEs by JetBrains.
-It requires Intellij IDEA Ultimate or Community Edition, versions 2016.1 through 2020.2, or Android Studio versions 2.2 through 4.0. 
+It requires Intellij IDEA Ultimate or Community Edition 2022.3 or later,  or Android Studio 2022 or later
 
 #### Technical Support
 Support for this plugin is available through the project's home page: [http://intellij-haxe.org](http://intellij-haxe.org), or
@@ -10,10 +10,11 @@ the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](h
 
 #### Past Versions Announcement
 
-Very, very few users are continuing to use this plugin with older versions of IDEA.  Plugin version 1.3 will be the last to officially support
-IDE versions prior to 2018.3.5.  (If you and/or your business need these or previous versions supported, then
-[contact the project maintainers](http://intellij-haxe.org/contact) at the project page ([http://intellij-haxe.org](http://intellij-haxe.org)) and continuing support
-can be arranged.) 
+Very, very few users are continuing to use this plugin with older versions of IDEA. 
+Maintaining a code base that can compile to multiple versions is also a lot of work.
+its therefore been decided that from now on we will only target one version in develop branch but make maintenance branches for older versions so that  important fixes can be backported.
+
+If you for some reason need to compile one of the old versions that was part of the multi-version code base you can still find it on the `legacy/develop` branch.  
 
 Install
 -------
@@ -43,7 +44,7 @@ If you already have a project open in IDEA:
 ### To manually install the latest or a previous Github release
 
 Download the `intellij-haxe.jar` file from the release you want from [Github releases](https://github.com/HaxeFoundation/intellij-haxe/releases).
-More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-2016.1.jar`)
+More recent releases have begun to be named `intellij-haxe-<release>.jar`, where &lt;release&gt; is the version of Idea for which the Jar is built.  (e.g. `intellij-haxe-2022.3.jar`)
 Make sure that you pick the proper one for your release.  A message should pop up and warn you if a release is incompatible.
 
 If you do not yet have a project open in IDEA (and after first-time setup):
@@ -68,19 +69,17 @@ This describes the command line build.  To build from within Intellij IDEA itsel
 your development environment.  Much more detail is provided there for command line build options as well.
 
 ### Dependencies
-- Oracle JDK 8 or OpenJDK 8
+- OpenJDK 17
 - A windows command prompt or bash compatible shell
 
 ### Build command
-Use the command matching your system and replace `<IDEA_VERSION>` with desired version, ex. `2017.3.4`
-
 Windows
 ```
-gradlew.bat clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
+gradlew.bat clean build verifyPlugin 
 ```
 Mac/Linux
 ```
-./gradlew clean build verifyPlugin -PtargetVersion=<IDEA_VERSION>
+./gradlew clean build verifyPlugin 
 ```
 
 >NOTE: You can run the build without tests by substituting `build` with `buildPlugin` on the lines above
@@ -88,13 +87,6 @@ Mac/Linux
 This will generate a `intelllij-haxe-<release>.jar` file at the root of the project that you can then install from disk
 (see “Install the latest or a previous Github release).
 
-Note that the gradle build configuration is set to use a default version when no version is provided(see gradle.properties)
-when developing in IDEA this version will be used. You may want to change `defaultIdeaVersion` to the version you are targeting.
-
-ex.
-```
-defaultIdeaVersion=2017.3.4
-```
 
 Note that the first time you build the project Gradle will download the requested version of IntelliJ Ultimate and 
 any other other dependencies. This can be quite slow at times and prone to failure.  For repeated building and testing,
@@ -109,11 +101,11 @@ Same as for build.
 ### Test command
 Windows
 ```
-gradlew.bat test -PtargetVersion=<IDEA_VERSION>
+gradlew.bat test
 ```
 Mac/Linux
 ```
-./gradlew test -PtargetVersion=<IDEA_VERSION>
+./gradlew test
 ```
 This will build and run the tests and display the JUnit report.   
 
