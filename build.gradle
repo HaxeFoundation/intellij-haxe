@@ -20,7 +20,7 @@
 plugins {
     id 'de.undercouch.download' version '3.3.0'
     id 'org.jetbrains.intellij' version '1.13.3'
-    id "org.jetbrains.grammarkit" version "2022.3"
+    id "org.jetbrains.grammarkit" version "2022.3.1"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
 }
 
@@ -320,58 +320,61 @@ task cleanGenerated(type: Delete, group: 'generate') {
     delete "$generatedTestSrcDir"
 }
 
-task generateHaxeParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
-    workingDir = "${toolDir}"
-    main '-jar'
-    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarHaxe}"]
-
-    inputs.file "${grammarHaxe}"
-    outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang").exists() }
+task generateHaxeParser(group: 'generate',  type: GenerateParserTask) {
+    group = "parsers"
+    targetRoot.set("${generatedSrcDir}")
+    sourceFile.set(file("${grammarHaxe}"))
+    pathToParser.set("com/intellij/plugins/haxe/lang/parser/HaxeParser.java")
+    pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
 }
 
 task generateHaxeLexer(group: 'generate', dependsOn:'generateHaxeParser', type: GenerateLexerTask) {
-    source = "${haxeFlex}"
-    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer"
-    targetClass = "com.intellij.plugins.haxe.lang.lexer._HaxeLexer"
+    sourceFile.set(file("${haxeFlex}"))
+    targetDir.set("${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer")
+    targetClass.set("com.intellij.plugins.haxe.lang.lexer._HaxeLexer")
 
     inputs.file "${haxeFlex}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/lang/lexer/_HaxeLexer.java").exists() }
-
 }
+
 task generateHxmlLexer(group: 'generate', dependsOn:'generateHxmlParser', type: GenerateLexerTask) {
-    source = "${hxmlFlex}"
-    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer"
-    targetClass = "com.intellij.plugins.haxe.hxml.lexer.HXMLLexer"
+    sourceFile.set(file("${hxmlFlex}"))
+    targetDir.set("${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer")
+    targetClass.set("com.intellij.plugins.haxe.hxml.lexer.HXMLLexer")
 
     inputs.file "${hxmlFlex}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml/lexer/HXMLLexer.java").exists() }
 
 }
+
 task generateMetadataLexer(group: 'generate', dependsOn:'generateMetadataParser', type: GenerateLexerTask) {
-    source = "${metadataFlex}"
-    targetDir = "${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer"
-    targetClass = "com.intellij.plugins.haxe.metadata.lexer.MetadataLexer"
+    sourceFile.set(file("${metadataFlex}"))
+    targetDir.set("${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer")
+    targetClass.set("com.intellij.plugins.haxe.metadata.lexer.MetadataLexer")
 
     inputs.file "${metadataFlex}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java").exists() }
-
 }
 
 
 
-task generateHxmlParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
-    workingDir = "${toolDir}"
-    main '-jar'
-    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarHxml}"]
+task generateHxmlParser(group: 'generate',  type: GenerateParserTask) {
+    group = "parsers"
+    targetRoot.set("${generatedSrcDir}")
+    sourceFile.set(file("${grammarHxml}"))
+    pathToParser.set("com/intellij/plugins/haxe/hxml/HXMLParser")
+    pathToPsiRoot.set("com/intellij/plugins/haxe/hxml")
 
     inputs.file "${grammarHxml}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/hxml").exists() }
 }
 
-task generateMetadataParser(dependsOn: ':setupTools', type: JavaExec, group: 'generate') {
-    workingDir = "${toolDir}"
-    main '-jar'
-    args = ['--add-opens=java.base/java.lang.reflect=ALL-UNNAMED', '--add-opens=java.base/java.util=ALL-UNNAMED', '--add-opens=java.base/java.lang=ALL-UNNAMED', 'grammar-kit.jar', "${generatedSrcDir}", "${grammarMetadata}"]
+task generateMetadataParser(group: 'generate',  type: GenerateParserTask) {
+    group = "parsers"
+    targetRoot.set("${generatedSrcDir}")
+    sourceFile.set(file("${grammarMetadata}"))
+    pathToParser.set("com/intellij/plugins/haxe/metadata/parser/HaxeMetadataParser")
+    pathToPsiRoot.set("com/intellij/plugins/haxe/metadata")
 
     inputs.file "${grammarMetadata}"
     outputs.upToDateWhen { file("${generatedSrcDir}/com/intellij/plugins/haxe/metadata").exists() }

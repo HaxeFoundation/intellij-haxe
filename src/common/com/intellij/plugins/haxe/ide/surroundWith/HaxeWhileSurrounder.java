@@ -41,8 +41,8 @@ public class HaxeWhileSurrounder extends HaxeManyStatementsSurrounder {
     final HaxeWhileStatement whileStatement =
       (HaxeWhileStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "while(a) {\n}");
     HaxeDoWhileBody body = whileStatement.getBody();
-    List<HaxeBlockStatement> blockStatementList = null != body ? body.getBlockStatementList() : Collections.emptyList();
-    addStatements(blockStatementList.get(0), elements);
+    HaxeBlockStatement blockStatement = null != body ? body.getBlockStatement() : null;
+    addStatements(blockStatement, elements);
     return whileStatement;
   }
 

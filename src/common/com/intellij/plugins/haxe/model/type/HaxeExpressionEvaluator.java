@@ -221,7 +221,8 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeWhileStatement) {
       HaxeDoWhileBody whileBody = ((HaxeWhileStatement)element).getBody();
-      List<HaxeExpression> list = null != whileBody ? whileBody.getExpressionList() : Collections.emptyList();
+      HaxeBlockStatement blockStatement = null != whileBody ? whileBody.getBlockStatement() : null;
+      List<HaxeExpression> list = null != blockStatement ? blockStatement.getExpressionList() : Collections.emptyList();
       SpecificTypeReference type = null;
       HaxeExpression lastExpression = null;
       for (HaxeExpression expression : list) {

@@ -39,8 +39,8 @@ public class HaxeTryCatchSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeTryStatement tryStatement =
       (HaxeTryStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "try {\n} catch(a) {\n}");
-    List<HaxeBlockStatement> blockStatementList = tryStatement.getBlockStatementList();
-    addStatements(blockStatementList.get(0), elements);
+    HaxeBlockStatement blockStatement = tryStatement.getBlockStatement();
+    addStatements(blockStatement, elements);
     return tryStatement;
   }
 
