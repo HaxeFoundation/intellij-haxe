@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.CustomLog;
 
@@ -61,7 +62,7 @@ public final class HaxeDebugTimeLog {
 
   public HaxeDebugTimeLog(@Nullable String messagePrefix, Since since) {
     this(HaxeDebugLogUtil.getLogger(messagePrefix), since);
-    myLog.setLevel(Level.DEBUG);
+    myLog.setLevel(LogLevel.DEBUG);
   }
 
   public HaxeDebugTimeLog(@NotNull Logger log, Since since) {
