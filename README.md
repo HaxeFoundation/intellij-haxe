@@ -12,7 +12,7 @@ the github issues list [http://github.com/HaxeFoundation/intellij-haxe/issues](h
 
 Very, very few users are continuing to use this plugin with older versions of IDEA. 
 Maintaining a code base that can compile to multiple versions is also a lot of work.
-its therefor been decided that from now on we will only target one version in develop branch but make maintenance branches for older versions so that  important fixes can be backported.
+its therefore been decided that from now on we will only target one version in develop branch but make maintenance branches for older versions so that  important fixes can be backported.
 
 If you for some reason need to compile one of the old versions that was part of the multi-version code base you can still find it on the `legacy/develop` branch.  
 

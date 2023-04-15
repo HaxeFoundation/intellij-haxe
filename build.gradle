@@ -40,10 +40,6 @@ allprojects {
         generatedSrcDir = "${haxePluginDir}/gen/"
         generatedTestSrcDir = "${haxePluginDir}/genTest/"
 
-        // dependencies
-        dependenciesDir = "${rootDir}/dependencies"
-        downloadsDir = "${dependenciesDir}/downloads"
-
         ideaBaseDir = "${rootDir}/idea-IU"
         ideaTargetDir = "${ideaBaseDir}/ideaIU-${ideaVersion}"
 
