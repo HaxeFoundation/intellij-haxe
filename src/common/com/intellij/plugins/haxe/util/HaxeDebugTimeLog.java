@@ -19,7 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.diagnostic.Logger;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

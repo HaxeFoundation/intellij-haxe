@@ -32,15 +32,15 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiErrorElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.SharedImplUtil;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import lombok.CustomLog;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 
+@CustomLog
 public class HaxePsiBuilder extends PsiBuilderImpl {
 
-  private static final Logger LOG = Logger.getLogger("#HaxePsiBuilder");
 
   private static final HashSet<String> reportedErrors = new HashSet<String>();
 
@@ -80,7 +80,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
       // The trace output causes unit tests to fail. :/
       setDebugMode(false);
     } else {
-      setDebugMode(LOG.isTraceEnabled());
+      setDebugMode(log.isTraceEnabled());
     }
   }
 
@@ -89,7 +89,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
   public ASTNode getTreeBuilt() {
     ASTNode built = super.getTreeBuilt();
 
-    if (LOG.isDebugEnabled() && !ApplicationManager.getApplication().isUnitTestMode()) {
+    if (log.isDebugEnabled() && !ApplicationManager.getApplication().isUnitTestMode()) {
       // Walk the tree, depth first and print out all remaining error elements.
       new ASTNodeWalker().walk(built, new Lambda<ASTNode>() {
         @Override
@@ -130,7 +130,7 @@ public class HaxePsiBuilder extends PsiBuilderImpl {
       needToReport = reportedErrors.add(error);
     }
     if (needToReport) {
-      LOG.debug(error);
+      log.debug(error);
     }
   }
 }

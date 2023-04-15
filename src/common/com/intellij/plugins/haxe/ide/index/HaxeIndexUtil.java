@@ -24,7 +24,7 @@ import com.intellij.openapi.project.Project;
 
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 
 /**
  * Created by fedorkorotkov.

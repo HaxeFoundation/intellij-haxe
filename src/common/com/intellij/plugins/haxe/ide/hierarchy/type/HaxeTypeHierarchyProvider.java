@@ -30,7 +30,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

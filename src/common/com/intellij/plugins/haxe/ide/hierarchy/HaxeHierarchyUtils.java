@@ -36,7 +36,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.MethodSignatureUtil;
 import lombok.CustomLog;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

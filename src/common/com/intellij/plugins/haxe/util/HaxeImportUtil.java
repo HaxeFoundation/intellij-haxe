@@ -27,7 +27,7 @@ import com.intellij.psi.PsiPackage;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.MultiMap;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

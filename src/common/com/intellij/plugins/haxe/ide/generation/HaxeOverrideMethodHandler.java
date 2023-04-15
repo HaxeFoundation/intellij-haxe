@@ -27,7 +27,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 
 import java.util.List;
 

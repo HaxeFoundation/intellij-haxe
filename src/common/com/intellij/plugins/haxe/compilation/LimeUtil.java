@@ -22,7 +22,7 @@ import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 
 import com.intellij.psi.*;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 
 import java.util.List;
 

@@ -26,7 +26,7 @@ import com.intellij.openapi.ui.Messages;
 
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Timer;

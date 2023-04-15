@@ -18,7 +18,7 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.DebugUtil;
-import org.apache.log4j.Level;
+
 
 import java.util.Stack;
 

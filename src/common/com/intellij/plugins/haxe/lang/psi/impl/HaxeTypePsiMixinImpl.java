@@ -25,7 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 
 import com.intellij.psi.*;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.Nullable;
 
 /**

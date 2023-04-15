@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.util.HaxeDebugPsiUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;

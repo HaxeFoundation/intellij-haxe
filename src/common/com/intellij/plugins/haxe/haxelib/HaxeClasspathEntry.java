@@ -27,7 +27,7 @@ import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.util.io.URLUtil;
 import lombok.CustomLog;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

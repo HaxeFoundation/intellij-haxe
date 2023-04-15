@@ -32,7 +32,7 @@ import com.intellij.testFramework.LightPlatformCodeInsightTestCase;
 import com.intellij.testFramework.utils.parameterInfo.MockCreateParameterInfoContext;
 import com.intellij.testFramework.utils.parameterInfo.MockParameterInfoUIContext;
 import com.intellij.testFramework.utils.parameterInfo.MockUpdateParameterInfoContext;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 

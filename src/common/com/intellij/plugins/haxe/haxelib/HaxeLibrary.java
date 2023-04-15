@@ -25,7 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import lombok.CustomLog;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.log4j.Level;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
