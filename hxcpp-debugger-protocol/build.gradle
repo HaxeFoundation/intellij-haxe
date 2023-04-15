@@ -26,12 +26,13 @@ buildSearchableOptions.enabled = false
 
 shouldGenerateSources()
 
-ext.hxcppSrcFolder = "src"
+ext.hxcppSrcFolder = "src/main/haxe"
 sourceSets.main.java.srcDirs = ["$hxcppGeneratedFolder" ]
 
 // helping intellij detecting source directories
-idea.module { generatedSourceDirs += file('gen/src') }
-idea.module { sourceDirs += file('src/JavaProtocol/src') }
+idea.module { generatedSourceDirs += file('src/gen/java') }
+idea.module { sourceDirs += file('src/main/fallback') }
+idea.module { sourceDirs += file('src/main/java') }
 
 task installHxJava(group: "hxcpp") {
     doLast {
@@ -58,14 +59,14 @@ task generateDebuggerJavaSource(type: Exec, group: "hxcpp") {
     outputs.upToDateWhen { file('gen/src').exists() }
 
     workingDir 'src/main/haxe/'
-    commandLine 'haxe', '-cp', '..', '-java', '../../../gen/', '-main', 'JavaProtocol',
+    commandLine 'haxe', '-cp', '..', '-java', '../../gen/', '-main', 'JavaProtocol',
             '-lib', "hxcpp-debugger:git:$hxcppDebuggerGit#$hxcppDebuggerBranch",
             '-lib', "hxjava:$hxjavaVersion"
 }
 
 clean.dependsOn('cleanGenerated')
 task cleanGenerated(type: Delete, group: 'hxcpp') {
-    delete 'gen/'
+    delete 'src/gen/'
 }
 
 
@@ -116,10 +117,10 @@ private String getHaxeVersion() {
 
 private void configureGenerated() {
     ext.generateHxcppDebugger = true
-    ext.hxcppGeneratedFolder = 'gen/src'
+    ext.hxcppGeneratedFolder = 'src/main/gen/java'
 }
 
 private void configureFallback() {
     ext.generateHxcppDebugger = false
-    ext.hxcppGeneratedFolder = "src/JavaProtocol/src"
+    ext.hxcppGeneratedFolder = "src/fallback/java"
 }

@@ -80,11 +80,11 @@ allprojects {
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 
 
-sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
-sourceSets.main.resources.srcDir 'resources'
+sourceSets.main.java.srcDirs = ['src/main/java', 'gen']
+//sourceSets.main.resources.srcDir 'src/main/resources'
 
-sourceSets.test.java.srcDirs = [ 'testSrc', "genTest"]
-sourceSets.test.resources.srcDir 'testData'
+//sourceSets.test.java.srcDirs = [ 'src/test/java']
+//sourceSets.test.resources.srcDir 'src/test/resources'
 
 idea.module { generatedSourceDirs += file('gen') }
 
@@ -157,19 +157,13 @@ compileJava {
 }
 
 processResources {
-    from('src/common') {
+    from('src/main/java') {
         includeEmptyDirs = false
         include '**/*.properties'
 //        include 'META-INF/*.xml'
     }
 }
 
-processResources {
-    from('src') {
-        include 'META-INF/pluginIcon.svg'
-        include 'META-INF/pluginIcon_dark.svg'
-    }
-}
 
 patchPluginXml {
     def props = findSdkValuesAndProperties()
@@ -177,9 +171,9 @@ patchPluginXml {
     untilBuild = props.getProperty("plugin.installable.until")
 
     pluginXmlFiles = [
-            file('src/META-INF/plugin.xml'),
-            file('src/META-INF/debugger-support.xml'),
-            file('src/META-INF/flex-debugger-support.xml')
+            file('src/main/resources/META-INF/plugin.xml'),
+            file('src/main/resources/META-INF/debugger-support.xml'),
+            file('src/main/resources/META-INF/flex-debugger-support.xml')
     ]
 }
 

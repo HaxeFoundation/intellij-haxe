@@ -20,10 +20,9 @@ verifyPlugin.enabled = false
 prepareSandbox.enabled = false
 buildSearchableOptions.enabled = false
 
-sourceSets.main.java.srcDir "src"
 
 processResources {
-    from ('src') {
+    from ('src/main/java') {
         include '**/*.properties'
     }
 }
