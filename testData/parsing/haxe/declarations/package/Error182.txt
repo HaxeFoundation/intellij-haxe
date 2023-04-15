@@ -4,5 +4,5 @@ Haxe File
     REFERENCE_EXPRESSION
       IDENTIFIER
         HaxePsiToken:ID('error')
-    PsiErrorElement:'.' or ';' expected
+    PsiErrorElement:';' or <expression> expected
       <empty list>

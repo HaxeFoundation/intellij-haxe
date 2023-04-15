@@ -366,7 +366,7 @@ private enumConstructorParameters ::= parenthesizedParameterList
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier '?' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 extends=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=3 implements=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
 localVarDeclaration ::= componentName typeTag? varInit?
@@ -574,13 +574,13 @@ doWhileBody ::= statement
 whileStatement ::= 'while' '(' expression ')' doWhileBody ';'?
   { methods=[guard="expression" body="doWhileBody"]}
 doWhileStatement ::= 'do' doWhileBody 'while' '(' expression ')' ';'
-  { methods=[guard="expression" body="doWhileBody"] extends="whileStatement" }
+  { methods=[guard="expression" body="doWhileBody"] implements="whileStatement" }
 
 private returnValue ::= objectLiteral
                       | ("macro"? statement)
                       | expression
                       | localVarDeclarationList   // Void value, so allowable, but not useful
-lamdaReturnStatement ::= 'return' (returnValue)? {extends="returnStatement"}
+lamdaReturnStatement ::= 'return' (returnValue)? {implements="returnStatement"}
 returnStatement ::= 'return' (returnValue)? <<semicolonUnlessPrecededByStatement>>
 
 breakStatement ::= 'break' ';'

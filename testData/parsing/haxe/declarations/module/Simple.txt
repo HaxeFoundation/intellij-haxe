@@ -20,5 +20,5 @@ Haxe File
           HaxePsiToken:(('(')
           HaxePsiToken:OPEN_QUOTE('"')
           HaxePsiToken:REGULAR_STRING_PART('Module method );\n}')
-          PsiErrorElement:'!', '%', '&&', ')', '.', '...', ':', <<, <operation>, <operator>, '?', CLOSING_QUOTE, LONG_TEMPLATE_ENTRY_START, REGULAR_STRING_PART, SHORT_TEMPLATE_ENTRY_START, is or '||' expected
+          PsiErrorElement:')', '.', <operation>, <operator>, CLOSING_QUOTE, LONG_TEMPLATE_ENTRY_START, REGULAR_STRING_PART, SHORT_TEMPLATE_ENTRY_START or is expected
             <empty list>

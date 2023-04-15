@@ -24,6 +24,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.resolve.FileContextUtil;
 import com.intellij.psi.tree.IElementType;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.EXPRESSION;
+
 public class HaxeParserWrapper extends HaxeParser {
 
   private static HaxeDebugLogger LOG = HaxeDebugLogger.getInstance("#HaxeParserWrapper");
@@ -52,13 +54,19 @@ public class HaxeParserWrapper extends HaxeParser {
     return super.parse(t,b);
   }
 
-  @Override
-  protected boolean parse_root_(IElementType t, PsiBuilder b, int l) {
-    if (t == HaxeMetadataTokenTypes.CT_META_ARGS) {
-      return compileTimeMetaArgList(b, l + 1);
-    } else if (t == HaxeMetadataTokenTypes.RT_META_ARGS) {
-      return runTimeMetaArgList(b, l + 1);
+  protected boolean parse_root__(IElementType type, PsiBuilder builder, int level) {
+    if (type == HaxeMetadataTokenTypes.CT_META_ARGS) {
+      return compileTimeMetaArgList(builder, level + 1);
+    } else if (type == HaxeMetadataTokenTypes.RT_META_ARGS) {
+      return runTimeMetaArgList(builder, level + 1);
     }
-    return haxeFile(b, l + 1);
+    return haxeFile(builder, level + 1);
   }
+
+  @Override
+  protected boolean parse_root_(IElementType type, PsiBuilder builder) {
+    return parse_root__(type, builder, 0);
+  }
+
+
 }

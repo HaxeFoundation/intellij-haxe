@@ -40,8 +40,8 @@ public class HaxeDoWhileSurrounder extends HaxeManyStatementsSurrounder {
   protected PsiElement doSurroundElements(PsiElement[] elements, PsiElement parent) {
     final HaxeDoWhileStatement whileStatement =
       (HaxeDoWhileStatement)HaxeElementGenerator.createStatementFromText(elements[0].getProject(), "do {\n} while(a);");
-    List<HaxeBlockStatement> blockStatementList = whileStatement.getBody().getBlockStatementList();
-    addStatements(blockStatementList.get(0), elements);
+    HaxeBlockStatement blockStatement = whileStatement.getBody().getBlockStatement();
+    addStatements(blockStatement, elements);
     return whileStatement;
   }
 
