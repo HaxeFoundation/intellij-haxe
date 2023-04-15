@@ -99,21 +99,11 @@ test.dependsOn('setupTools')
 if (!file("$generatedSrcDir").exists()) file("$generatedSrcDir").mkdirs()
 
 
-// Sources that contain templates to be generated.
-sourceSets {
-    templates {
-    }
-    testTemplates {
-    }
-}
-sourceSets.templates.resources.srcDir 'src/common'
-
 sourceSets.main.java.srcDirs = ['src/common', 'src/icons', 'gen']
 sourceSets.main.resources.srcDir 'resources'
 
 sourceSets.test.java.srcDirs = [ 'testSrc', "genTest"]
 sourceSets.test.resources.srcDir 'testData'
-sourceSets.testTemplates.resources.srcDir 'testSrc'
 
 idea.module { generatedSourceDirs += file('gen') }
 
@@ -201,15 +191,10 @@ processResources {
 }
 
 patchPluginXml {
-    //TODO  find a way to get version info before  patchPluginXml is configured (first build fails as build.txt file is missing)
-    try {
-        def props = findSdkValuesAndProperties()
-        sinceBuild = props.getProperty("plugin.installable.since")
-        untilBuild = props.getProperty("plugin.installable.until")
-    }catch(Exception e){
-        sinceBuild = "200"
-        untilBuild = "224.*"
-    }
+    def props = findSdkValuesAndProperties()
+    sinceBuild = props.getProperty("plugin.installable.since")
+    untilBuild = props.getProperty("plugin.installable.until")
+
     pluginXmlFiles = [
             file('src/META-INF/plugin.xml'),
             file('src/META-INF/debugger-support.xml'),
