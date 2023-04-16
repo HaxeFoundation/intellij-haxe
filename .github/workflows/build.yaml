@@ -43,35 +43,19 @@ jobs:
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
 
-      - name: Cache plugin downloads
-        uses: actions/cache@v3
-        with:
-          path: $GITHUB_WORKSPACE/dependencies
-          key: ${{ matrix.IDEA_VERSION }}-downloads-${{ hashFiles('downloads/**') }}
-          restore-keys: ${{ matrix.IDEA_VERSION }}-downloads
-
-      - name: Cache intelliJ downloads
+      - name: Cache idea
         uses: actions/cache@v3
         with:
           path: $GITHUB_WORKSPACE/idea-IU
-          key: ${{ matrix.IDEA_VERSION }}-idea-${{ hashFiles('ideaIU-${{ matrix.IDEA_VERSION }}/**') }}
-          restore-keys: ${{ matrix.IDEA_VERSION }}-idea
-
-      - name: Prepare (windows)
-        if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat  setupDependencies
+          key: ${{ matrix.IDEA_VERSION }}-${{ matrix.OS }}
+          restore-keys: ${{ matrix.IDEA_VERSION }}-${{ matrix.OS }}
 
       - name: Build with Gradle (windows)
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat clean setupDependencies build verifyPlugin
-
-      - name: Prepare (linux/mac)
-        if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew setupDependencies
+        run: .\gradlew.bat clean buildPlugin verifyPlugin
 
       - name: Build with Gradle (linux/mac)
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew clean build verifyPlugin
+        run: ./gradlew clean buildPlugin verifyPlugin
 
