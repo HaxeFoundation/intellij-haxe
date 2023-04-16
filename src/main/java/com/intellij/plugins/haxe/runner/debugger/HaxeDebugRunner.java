@@ -1371,7 +1371,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
               // XXX: Should we log this, too??
             }
             // Add the output to the "Problems" pane.
-            ProblemsView.SERVICE.getInstance(project).addMessage(MessageCategory.INFORMATION, new String[]{message},
+            ProblemsView.getInstance(project).addMessage(MessageCategory.INFORMATION, new String[]{message},
                                                                  null, null, null,
                                                                  null, UUID.randomUUID());
           }
