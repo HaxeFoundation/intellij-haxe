@@ -46,6 +46,7 @@ dependencies {
 
     compileOnly(files(flexShared))
     compileOnly(files(flexSupport))
+
     compileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
     compileOnly(files("${ideaTargetDir}/lib/util.jar"))
 
@@ -55,6 +56,7 @@ dependencies {
 
     testCompileOnly(files(flexShared))
     testCompileOnly(files(flexSupport))
+
     testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
     testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
 
@@ -218,7 +220,7 @@ tasks {
     }
 
     jar {
-        finalizedBy("copyJar")
+//        finalizedBy("copyJar")
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
         archiveBaseName.set("intellij-haxe")
@@ -236,15 +238,15 @@ tasks {
         from(zipTree(pluginDir)).include("com/intellij/uiDesigner/core/*.class")
 
     }
-
-
+    instrumentedJar {
+        finalizedBy("copyJar")
+    }
 }
 
 
 tasks.create<Copy>("copyJar") {
-
         val jarName = "intellij-haxe-" + properties("platformVersion").get() + ".jar"
-        val jarTask = tasks.getByName("jar") as Jar
+        val jarTask = tasks.getByName("instrumentedJar") as Jar
         from("${project.rootDir}/build/libs/").include(jarTask.archiveFileName.get())
         into("${project.rootDir}")
         rename({ jarName })
@@ -265,7 +267,7 @@ tasks.create<GenerateParserTask>("generateHaxeParser") {
 }
 tasks.create<GenerateLexerTask>("generateHaxeLexer") {
     group = "lexers"
-    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/lexer/Haxe.flex"))
+    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/lexer/haxe.flex"))
     targetDir.set("src/main/gen/com/intellij/plugins/haxe/lang/lexer")
     targetClass.set("HaxeLexer")
 }
