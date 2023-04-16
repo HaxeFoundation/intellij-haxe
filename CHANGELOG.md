@@ -1,828 +1,762 @@
-# Changelog
-  <p>1.3.1 (HaxeFoundation release)</p>
-  <ul>
-    <li>Allow both 'inline' and 'extern' to exist on functions and vars.</li>
-    <li>Correctly resolve when 'using' static extensions such as StringTools.</li>
-    <li>Correctly resolve expressions inside of parenthesis.</li>
-  </ul>
-    
-  <p>1.3 (HaxeFoundation release)</p>
-  <ul>
-    <li>IDEA Versions 2020.2, 2020.1 and 2019.3 support.</li>
-    <li>Add fine-grained control of the semantic annotator to the Settings panel. (File->Settings->Editor->Inspections->Haxe)</li>
-    <li>Rewrite metadata handling:
-      <ul>
-        <li>Allow metadata at all positions.</li>
-        <li>Validate object syntax in compile-time metadata.</li>
-        <li>Parse code in run-time metadata, and highlight errors.</li>
-        <li>Check @forward(&lt;names&gt;) for existing method names.</li>
-        <li>Allow completion within metadata parens.</li>
-        <li>Add UI to allow reformatting and color options.</li>
-      </ul>
-    </li>
-    <li>Allow immediate array accesses on literal arrays. (e.g. var a=["1","2"][1];)</li>
-    <li>Fix several issues with type checking, particularly when generics are involved.</li>
-    <li>Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.</li>
-    <li>Recover from circular class dependencies.</li>
-    <li>Better error messages for a number of parsing errors.</li>
-    <li>Fix not finding packages which begin with and underscore. (Issue 941)</li>
-    <li>Handle function-level type parameters during semantic checks. (Issue 973)</li>
-    <li>Don't use class type parameters when resolving static function parameters.</li>
-    <li>Better handling of function types an mismatched assignments. (Issues 943, 773)</li>
-    <li>Fix crash when reading libraries if the library name was empty. (Issue 949)</li>
-    <li>Haxe 4: Allow dotted identifiers in conditional compilation.</li>
-    <li>Haxe 4: Allow dotted meta names.</li>
-    <li>Haxe 4: Allow 'final' on var declarations in switch cases.</li>
-    <li>Mark attempts to write to 'final' variables.</li>
-    <li>Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)</li>
-    <li>Better constant detection and handling of default parameters for methods.
-      <ul>
-        <li>Detect function type constants and report accordingly.</li>
-        <li>Detect initialization calculations containing only constants as constant.</li>
-        <li>Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))</li>
-        <li>Detect identifiers/constants referencing other constants as still constant.</li>
-        <li>Detect enums without parameters as constants.</li>
-        <li>Better flagging of errors when default parameters <i>are not</i> constants.</li>
-      </ul>
-    </li>
-    <li>Much better handling of generics throughout, including type error checking code.</li>
-    <li>Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.</li>
-    <li>Color unparseable data when typing; shows developers where functionality is limited while code is invalid.</li>
-    <li>Better handling/recovery of errors in String Interpolation. (e.g. '${expr}')</li>
-    <li>Allow/disallow variable declarations in various places.</li>
-    <li>Require semi-colon on return statements in non-lambda bodies.</li>
-    <li>Better recovery on class parsing errors.</li>
-    <li>Fix PsiInvalidElementAccessExceptions (Issue #953)</li>
-    <li>Upgrade smart-enter statement fixer for 'if' statements.</li>
-    <li>Better handling of missing bodies when using smart-enter.</li>
-    <li>Properly handle generics on typedefs over generic types.</li>
-    <li>Properly unify EnumValue with enum values.</li>
-    <li>Fix indenting for map comprehensions.</li>
-    <li>Fix and update inspection descriptions in settings dialog.</li>
-    <li>Implement "Implement methods" for missing interface functions.</li>
-    <li>Fix the case where generic parameters used in superclasses were not being correctly translated through the type hierarchy when resolving (or were resolving to the wrong type).</li>
-  </ul>
+## [Unreleased]
 
-  <p>1.2 (HaxeFoundation release)</p>
-  <ul>
-    <li>Update builds for 2019.1 and 2018.x versions.</li>
-    <li>Fix completion on abstracts using generic underlying types (e.g. abstract MyClass&lt;T&gt;(T) {}) (Issue #772)</li>
-    <li>Fix completion through abstracts.</li>
-    <li>Resolve fields and methods through abstracts.</li>
-    <li>Haxe 4: Special rules to resolve Null&lt;T&gt; as abstract.</li>
-    <li>Fixed constructor being renamed when a class is renamed (refactored).  (Issue #776, #785)</li>
-    <li>Fixed ClassCastException when Refactor-&gt;Rename was used on generic type names.</li>
-    <li>No longer display type mismatch errors when using abstracts with (varying) generic type parameters.  (e.g. Null&lt;String&gt;, Null&lt;Test&gt;)</li>
-    <li>Better detection of types inferred after declaration (monomorphs).</li>
-    <li>Fixed type detection for expressions in parenthesis.</li>
-    <li>Downgrade visibility (public/private) incompatibility to a warning.</li>
-    <li>Allow "Dynamic" as an interface type.</li>
-    <li>Detect simple type mismatches in declarations and assignments.  Add quick fixes for them.</li>
-    <li>Check type of type check statements (e.g. `(myExpression : Float)`) and warn.  Add quick fixes.</li>
-    <li>Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.</li>
-    <li>Fix Extract Variable and Extract Constant refactorings (Issue #844):
-      <ul>
-        <li>Fixed infinite loop when extracting multiple occurrences.</li>
-        <li>Avoid keywords when making name suggestions.</li>
-        <li>Fix multi-select for custom names in all occurrences.</li>
-        <li>Fix semi-colon insertion/detection.</li>
-        <li>Suggest variable names based upon expression type.</li>
-      </ul>
-    </li>
-    <li>Allow AIR targets to be debugged using the flash system. (Issue #849)</li>
-  </ul>
-  <p>1.1 (HaxeFoundation release)</p>
-  <ul>
-    <li>Added support of haxe 4 syntax "enum abstract".</li>
-    <li>Add support of <a href="https://github.com/HaxeFoundation/haxe/pull/6596">final syntax</a> introduced in Haxe 4.</li>
-    <li>Add support of <a href="https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md">new function types syntax</a> introduced in Haxe 4.</li>
-    <li>Increased responsiveness in UI, annotations, and other operations that look up type information by a factor of 10.</li>
-    <li>Now infers generic types from map and array literals. (e.g. ["this" => "yours"] is Map&lt;String,String&gt;).</li>
-    <li>Now resolves typedefs to underlying types. (e.g. `var v:Null&lt;String&gt;` is resolved as a `String` type.)</li>
-    <li>Now propagates type parameters (generics) properly through typedefs.</li>
-    <li>Now resolves types when used with array access (e.g. `map[0].length` no longer marked as errors).</li>
-    <li>Now infers types of methods without specific typing (e.g. `map.get(0).length` no longer marked as errors).</li>
-    <li>Added support of read/write access separation for "find usages".</li>
-    <li>Inspections for non-haxe files disabled. (Issue #875)</li>
-    <li>Fixed recognizing type of "this" expression.</li>
-    <li>Fixed bug when physical variables were marked as not real.</li>
-    <li>Fixed searching of interface implementations and inheritance hierarchy.</li>
-    <li>Added find usages support for constructors. <a href="https://github.com/HaxeFoundation/intellij-haxe/issues/530">(Issue #530)</a></li>
-    <li>Fixed find usages support for properties.</li>
-    <li>Add completion dropdown when ':' is typed and a type is expected.</li>
-    <li>Fix of support of explicit abstract forwards. Now fields and methods that have not been forwarded will not be resolved as valid.</li>
-    <li>Fixed recognition of standard types.</li>
-    <li>Fixed NPE that occurred if current project sdk was not properly configured.</li>
-    <li>Fix indents for anonymous structures fields and extends list.</li>
-    <li>Fix indents for fat arrow expressions.</li>
-    <li>Fix parsing of anonymous type with empty body.</li>
-    <li>Add anonymous types in anonymous types support.</li>
-    <li>Add anonymous structures names support.</li>
-    <li>Added chained anonymous fields recognition.</li>
-    <li>Add proper generics propagation for anonymous structures, typedefs and classes.</li>
-    <li>Add generic constraint support.</li>
-    <li>Add Null&lt;T&gt; support.</li>
-    <li>Add proper from-to declaration support, types infer and compatibility checks.</li>
-    <li>Fix referenced var-init support check.</li>
-    <li>Automatically change references when moving a class across packages.</li>
-    <li>Add super() call when generating override methods.</li>
-    <li>Generate module and automatically set up SDK, libraries, and run configurations on "Import project from sources."</li>
-    <li>Create "Hello World" example as initial content for new projects.</li>
-    <li>Auto-open Main.hx when creating a new module.</li>
-  </ul>
+*   Add HXML completion for Haxe 4
+*   Fixed issue where IDE would freeze when writing HXML files
+*   Add HashLink target
+*   improved block-statement parsing and added quickfix for missing semicolon
+*   Add support for import.hx
+*   Recognize and use static extensions having unifiable (assignable) types. (Issue #964)
+*   Add support for 'is' keyword.
+*   Rewrite expression parsing.
+*   Don't break parsing when multiple package statements occur in the same file. (Warning and quick-fix provided.)
+*   Fixed NPE when typing 'cast' expressions.
+*   Checks field and property implementations when implementing interfaces
+*   Improved method implementation checks for interfaces
+*   Recognize implicit cast methods in Abstracts (Methods annotated with @:to / @From)
+*   Fix type incompatiblity warning when assigning parameterized (generic) function result type.
+*   Fix a few cases where empty square brackets were not recognized for initializing Maps. (Issue #980)
+*   Updated which classes are auto-imported.
+*   Follow usings as if they were imports when resolving identifiers.
+*   Fixed resolving static extensions in usings. (Issue #992)
+*   Better support for quote handling when typing.
+*   Allow double-dollar escapes in strings.
+*   Allow assigning to Dynamic, now that Dynamic allows a type parameter.
+*   Adjust "Darcula" colors for readability.
+*   Fixed some problems parsing switch cases with multiple extractor (fat arrow) expressions.
+*   Haxe4: Support new syntax for optional variables and type constraints (including auto-completions). (Issue #950)
+*   Removed parsing of templates in regular (double-quoted) strings. (Issues #289, #718)
+*   Treat successive expressions and statements without semi-colons as errors.
 
-  <p>1.0.1 (HaxeFoundation release)</p>
-  <ul>
-    <li>Updated change notes for 1.0.0 (enumerated several important import changes).</li>
-    <li>Add Haxe Sdk setup validation.</li>
-    <li>Use SDK classpath as well as sourcepath to find the standard library. (Issue #774)</li>
-    <li>Better error handling when haxelibs are installed incorrectly. (Issue #780)</li>
-    <li>2017.3 and 2018.1 builds. (Issues #719, #789)</li>
-    <li>Workaround debugger crash. (Issue #792)</li>
-    <li>Fix typo in haxelib metadata parser, which was keeping library sub-tree source directories from being found.</li>
-  </ul>
-  <p>1.0.0 (HaxeFoundation release)</p>
-  <ul>
-    <li>Import of static fields/methods.</li>
-    <li>Imports alias hinting support.</li>
-    <li>Proper wildcard import resolution.</li>
-    <li>Import optimizer now works properly.</li>
-    <li>Proper module scoping for resolving.</li>
-    <li>Add $trace to the list of built-ins to recognize.</li>
-    <li>Semantic Annotation: Infer missing function types from code blocks.</li>
-    <li>Semantic Annotation: Support arrow functions.</li>
-    <li>Semantic Annotation: Add local variable type checking.</li>
-    <li>Properly detect function types when used in type parameters (generics).</li>
-    <li>Fix Flash "Run" target to launch the file that the compile process creates.</li>
-    <li>Non-OpenFL projects now use a better algorithm to determine output directories and files.</li>
-    <li>Add source directories to classpath during compiler completions. (More completions, fewer errors.)</li>
-    <li>Use non-haxe-logo version of icons when completions are not provided by the compiler.</li>
-    <li>Compatibility fix for non-IDEA products: stop logging to stderr! (Issue #724)</li>
-    <li>Improved Enum parsing; added generalized algebraic data types support.</li>
-    <li>Add true Map literal support. (No longer parsed as Array.)</li>
-    <li>Added visibility detection rules (e.g. @NoCompletion) regarding language docs.</li>
-    <li>Fixes to error message parsing (no longer account info messages to JetBrains installation directory).</li>
-    <li>Split 'lime test' into 'lime update; lime build' and 'lime run', for Make and Run/Debug tasks.</li>
-    <li>Add folding support:
-      <ul>
-        <li>For documentation comments (/** */).</li>
-        <li>For comment regions. (// region Name ... // end region) (Issue #529)</li>
-        <li>Braces for classes, methods, etc.</li>
-        <li>For imports and usings.</li>
-        <li>For compiler conditionals (#if, etc.)</li>
-      </ul>
-    </li>
-    <li>Fixed a number of NPEs in the ProjectUpdater.</li>
-    <li>Add enums from the current file completion suggestion lists.</li>
-    <li>Fixed the resolution order for imports vs. package. (Issue #741)</li>
-    <li>Fixed inability to resolve enum parameter symbols at case statement. (Issue #351)</li>
-    <li>Dropped support for IDEA versions 14 and 15.</li>
-    <li>Internal: Began refactoring the resolver. New models are introduced.</li>
-    <li>Changed "static variable override" to a weak warning, instead of a regular warning.</li>
-    <li>Imports handling has been refactored.</li>
-    <li>Allow @:meta without parens.</li>
-    <li>Properly parse variable declarations in return statements. (Issue #329)</li>
-    <li>Fixed parsing of 'throw' statements within a ternary expression. (Issue #704)</li>
-    <li>Allow all string literal forms as field identifiers in structures. (Issue #662)</li>
-  </ul>
-  <p>0.11.2: (Haxe Foundation Release)</p>
-  <ul>
-    <li>Parsing fixes: </li>
-    <ul>
-      <li>Expressions inside of type parameters.</li>
-      <li>Make sequential operators cause syntax errors.</li>
-      <li>Allow anonymous local function declarations.</li>
-      <li>External function declarations with simple bodies getting 'Unexpected semicolon' messages.</li>
-      <li>Custom meta-data with empy parentheis.</li>
-      <li>Named nested (local) function declarations.</li>
-      <li>Prototype functions in abstract types.</li>
-      <li>Allow @arrayAccess</li>
-      <li>Array access where the name is parenthesized.</li>
-      <li>Allow @final on property declarations.</li>
-      <li>Allow and recover from variable declarations that don't require a semicolon (e.g. preceded by a block).</li>
-      <li>Allow trailing comma inside of an object literal.</li>
-      <li>Allow trailing comma at the end of an array literal.</li>
-      <li>Block statements when used as an initializer.</li>
-    </ul>
-    <li>Fix NPE when haxelib.json was missing from a library.</li>
-    <li>Fix an exception when the Haxe SDK is set up incorrectly.</li>
-    <li>Added Adobe AIR target</li>
-    <li>Refactor haxelib library dependency detection and project update.</li>
-    <li>For FindUsages, ask whether to search for base class/interface usages.</li>
-    <li>Fix bug with environment variables not being passed through to forked processes in some cases. (Issue #659)</li>
-    <li>Add haxelib and neko directories to (the start of) the Path before forking a process.</li>
-    <li>Better tracking of settings changes.</li>
-    <li>Better parsing of HXML/lime (or &quot;haxelib run lime&quot;) output.</li>
-    <li>Fix IndexOutOfBoundsException when checking for static extensions and static member methods have no parameters. (Issue #652)</li>
-    <li>Better parser recovery for &quot;extends&quot; and &quot;implements&quot; statements. (Issue #137)</li>
-    <li>Fixed identifier resolving for dot-references defined in &quottype params.&quot; (Issue#674)</li>
-    <li>Fixed parameter count resolution for anonymous functions. (Partially closes issue #521.)</li>
-    <li>Add neko and haxelib directories to the PATH/Path environment variable when running plugin commands (affects lime, etc.).</li>
-    <li>Better cache coherency for completions.</li>
-    <li>Improved hxml parsing.</li>
-    <li>Added mechanism to track project and module settings changes.</li>
-    <li>Improve locating files when traversing the stack frames during debugging.</li>
-  </ul>
-  <p>0.11.1: (community release)</p>
-  <ul>
-    <li>Check for and halt type resolution when a cyclical/recursive definition is found.</li>
-    <li>Address some freezes by delaying use of indices until indexing is complete.</li>
-    <li>Speed haxelib syncing (and stop unnecessary re-indexing).  (Regression)</li>
-    <li>Fix freezes by fixing some multi-threading issues and other exceptions being thrown.</li>
-    <li>Speed up parsing of arrow functions.</li>
-    <li>Add Haxe-specific double-click selection logic for strings and comments. (Issue #212)</li>
-    <li>Reroute debugging informational errors to the status bar instead of modal dialogs. </li>
-    <li>Fix compilation halting on "- Link" informational messages.</li>
-    <li>Add neko and haxelib directories to the path when building projects (for all platforms; used to be OSX-only).</li>
-    <li>Fix multi-platform build issues (for the plugin, particularly affects Windows builds).</li>
-  </ul>
-  <p>0.11.0: (community release)</p>
-  <ul>
-    <li>Support IDEA 2017.1</li>
-    <li>Add parsing support for "Arrow Functions."</li>
-    <li>Better recovery of parsing errors in function parameter lists.</li>
-    <li>Fixed exceptions occurring when adding libraries, so auto-adding will work again.</li>
-    <li>Delay using project indexes until scanning is complete.</li>
-    <li>Proper resolution of constructors ('new').</li>
-    <li>Display parameter tip text when creating new object instantiations.</li>
-    <li>Better parsing of shift-and-assign operators. (Issue #637)</li>
-    <li>Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)</li>
-    <li>Resolve chained classes with type parameters (generics). </li>
-    <li>Correct completion with EitherType&lt;&gt;. (Issue#512). </li>
-    <li>Parse @:const type parameters without error.  Also allow constants as type parameters.</li>
-    <li>Added navigation to getter/setter methods from property accessors.</li>
-    <li>Annotate strings with incorrect quotes and add quick-fix intention to convert them.</li>
-    <li>Note optional arguments with a ? when displaying methods.</li>
-    <li>Improved method signature check.</li>
-    <li>Added searching of implementation declared by superclasses.</li>
-    <li>Properly parse and evaluate compiler conditionals (#if...#else...#end)</li>
-    <li>Resolve array access with types other than "Array."</li>
-    <li>Better 'Main class' chooser for the 'Project Settings-&gt;Haxe Compiler' dialog.</li>
-    <li>Fix property getter/setter quick-fixes.</li>
-    <li>Add location data, if known, to compiler completion error messages.</li>
-    <li>Display available completions even when the compiler reports an error.</li>
-    <li>Fixed incomplete results from a compiler run.</li>
-    <li>Better logic for removing duplicate entries from completion lists.</li>
-    <li>Better code completion using the compiler -- OFF BY DEFAULT!  Turn on in File-&gt;Project Structure...</li>
-    <li>Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)</li>
-    <li>Fix parsing of one-liner conditional compilation style (issue #417, #121, partly #115)</li>
-    <li>Support for `@:require` haxe_ver comparing (issue #418)</li>
-    <li>Support for `@:require` and `@:jsRequire` with multiple arguments</li>
-    <li>Better handling of closing parens, brackets, quotes. (Issues #545, 546)</li>
-    <li>Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)</li>
-    <li>Fix library name parsing issues for haxelibs using non-standard paths.</li>
-    <li>Resolve URLs properly when adding haxelibs.</li>
-    <li>Updated Haxe logo bitmaps.</li>
-  </ul>
-  <p>0.10.1: (community release)</p>
-  <ul>
-    <li>Use Java's file library for detecting symlinks instead of IDEA's.</li>
-    <li>Formatting: Prevent excess linefeed between doctyp and function.</li>
-    <li>Fix completion for for loop variables. (issue #511)</li>
-    <li>Support for IDEA up through 2016.3.</li>
-    <li>Updated parsing for hxcpp 3.3 compiler error output.</li>
-    <li>Add support for type check syntax (expr : type).  (issue #510)</li>
-    <li>Fixed cursor not indented in class body after var or function declaration. (issue #492, case 1)</li>
-    <li>Highlight "in" and "as" as keywords when they appear in import statements.</li>
-    <li>Highlight "in" as a keyword when it appears in a for statement. (issue #501)</li>
-    <li>Add support for string literals as the keys in structures. (issue #498)</li>
-    <li>Support @:native annotation for functions and variables. (issue #490)</li>
-    <li>Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)</li>
-    <li>Fix re-ordering imports in certain situations. (issue #494)</li>
-    <li>Fix 'never' setter. (issue #486)</li>
-    <li>Change class paths for external libraries on OSX.</li>
-    <li>Fixed creating classes in TEST source roots</li>
-    <li>Fixed debug Flash on Haxe-compiler target</li>
-    <li>Fixed crash on MACRO_CLASS_LIST assert</li>
-    <li>@:deprecated support (issue #459, #473)</li>
-    <li>Alias imports support (issue #466)</li>
-    <li>Imports optimization: reordering added (issue #471)</li>
-    <li>Fixed typedef multiple extensions highlighting</li>
-  </ul>
-  <p>0.9.10: (community release)</p>
-  <ul>
-    <li>Better packages resolving</li>
-    <li>Fix catch parameter declaration (issue #419)</li>
-    <li>Fix inherited type in field initializer (issue #412)</li>
-    <li>Delete single-class file in one operation from Project View (issue #424)</li>
-    <li>Fix interface properties accessor check annotation (issue #411)</li>
-    <li>Error highlighting added for variable redefinition (issue #431)</li>
-    <li>Fix generic sub-type resolving when import just type-module (issue #435)</li>
-    <li>Extensions: using variants and resolving for children and implementations of base class or interface added (issue #433)</li>
-    <li>Fix typedef generic params resolving (issue #304)</li>
-    <li>General "@:enum abstract" support (issues #427, #428, #429)</li>
-    <li>Fix import / using statements class name completion (issue #286)</li>
-    <li>Incorrect “public” modifier when override methods fixed (issue #439)</li>
-    <li>Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)</li>
-    <li>Fix use scope for var declarations (issue #235)</li>
-    <li>Find usages import filtering (issue #426)</li>
-    <li>Completion for word `super`: handle `super` word like `this` word (issue #87)</li>
-    <li>Fix forwarding abstract fields completion and resolving. (issue #447, #108)</li>
-    <li>Navigate to symbols (issue #340)</li>
-    <li>Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)</li>
-    <li>Fix method local variables and arguments completion. (issue #455)</li>
-  </ul>
-  <p>0.9.9: (community release)</p>
-  <ul>
-    <li>IDEA v15 compatibility.  (IDEA 13 compatiblity removed.)</li>
-    <li>v15 Project Structure and Module settings dialogs work. (TiVo Issue #380)</li>
-    <li>HXML: Fix `Editor/Colors & Fonts/HXML` tab (name & preview)</li>
-    <li>HXML: highlighting for included `.hxml` file</li>
-    <li>Fix unhandled exceptions while parsing numeric constants</li>
-    <li>Fix typedef types not resolved variants for completion list</li>
-    <li>Fix error annotation when implements `extern interface`</li>
-    <li>Fix extending anonymous types. (TiVo Issue #353)</li>
-    <li>Error annotation if type extends itself. (TiVo Issue #377)</li>
-    <li>Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)</li>
-    <li>Fix resolving variables having names identical to type names except for case. (TiVo Issues #405, #234)</li>
-    <li>Fix incorrect package resolution. (TiVo Issues #95, #176)</li>
-    <li>Fix base fields resolving for extended anonymous types (TiVo Issue #408)</li>
-    <li>Prevent recursion due to extending self for classes and typedefs.</li>
-    <li>Using file with multiple helper classes typedefs (for example `haxe.macro.Tools`) (TiVo Issue #128)</li>
-    <li>Allow short assignment syntax for generics. (TiVo Issue #388)</li>
-    <li>Fixed expected package name to no longer reference the system root. (TiVo Issue #387)</li>
-    <li>Save and restore OpenFL arguments on the Haxe Module settings dialog. (TiVo Issue #74)</li>
-    <li>Fixed repainting issue for OpenFL dialog when selecting compiler types. (TiVo Issue #44)</li>
-    <li>Fixed error parsing for Windows platforms.</li>
-  </ul>
-  <p>0.9.8: (community release)</p>
-  <ul>
-    <li>Version 14.1.5 and 14.1.6 compatibility.</li>
-    <li>Fix up some expressions to ignore non-error messages.</li>
-    <li>Fix comment alignment for single-line comments.(Issue #295)</li>
-  </ul>
-  <p>0.9.7: (community release)</p>
-  <ul>
-    <li>Fix the watch pane when debugging: typing and completion now work.</li>
-    <li>Load files using canonical names so that sym-linked files use the same buffer
-        as the original file.
-    </li>
-    <li>Use full package name when determining file to open when debugging.</li>
-    <li>Attempt to follow the classpath to determine which file to open when
-        multiple files have the same package names.
-    </li>
-    <li>Use implicit classpath entries during classpath operations. (e.g. haxe/std)</li>
-    <li>Remove "statics of XXX" from the debugger variable window pane.  (The Haxe debugger
-        at http://github.com/tivo/hxcpp-debugger has been updated to show statics
-        as part of the object tree for objects in view.
-    </li>
-    <li>Remove error embellishments before displaying errors in the debugger variable pane.</li>
-  </ul>
-  <p>0.9.6: (community release)</p>
-  <ul>
-    <li>Fix debugger trying to populate all variables when stopped at a breakpoint.</li>
-    <li>Suppress display of back-end generated intermediate variables when debugging.</li>
-    <li>Fix NPE when editing files outside of a project.</li>
-  </ul>
-  <p>0.9.5: (community release)</p>
-  <ul>
-    <li>Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)</li>
-    <li>Support static extensions in completion. (Again, Thanks, Carlos!)<li>
-    <li>Fix debugger getting stuck "collecting data" for some variables (particularly, "this"). (Issue #325)</li>
-    <li>Better compiler error highlighting. (Issue #180 redux.)</li>
-    <li>Fix Cut/Copy/Paste buffer inconsistencies (Issue #196)</li>
-    <li>Add generics support. (First level only, chained sequences remain incomplete.)</li>
-    <li>Allow object literals as return statements. (Issue #278)</li>
-    <li>Fix NPE during annotation, causing annotation to stop. (Issue #316)</li>
-  </ul>
-  <p>0.9.4: (community release)</p>
-  <ul>
-    <li>Fix compile error highlighting in the output pane and jumping to source location when an error is clicked upon (Issues #129, #160, #180).</li>
-    <li>Fix debugger execution under IDEA 14 and 14.1.</li>
-    <li>Fix move package</li>
-    <li>Fix MoveFile showing "unimplemented" message. (Issues #222, #88)</li>
-    <li>Fix copy/paste clipboard functionality.</li>
-    <li>Show completion for all static members (Issue #262).</li>
-    <li>All unit tests enabled and passing for IDEA versions 13.1, 14.0, and 14.1.1.</li>
-    <li>Fix rename not updating all usages (Issue #222)</li>
-    <li>Fix parameter info tool tips and code tips.</li>
-    <li>Command line ant builds (of the plugin) for automated testing.</li>
-    <li>Fix parsing 'new' in ternary expressions (Issue #229).</li>
-    <li>Better handling of comments.</li>
-    <li>Fix member visibility scoping issues with extern and private keywords.</li>
-    <li>Stop generating 'public' and 'private' modifiers when generating getter/setters.</li>
-    <li>Stop treating interfaces and extern class declarations identically.</li>
-    <li>Disallow multiple variables being declared in one statement for class fields.</li>
-    <li>Print compiler commands to the message pane along with command output.</li>
-    <li>Fix hang when using the OpenFL compiler for variable and method completion.</li>
-    <li>Use correct completion contributor for OpenFL project configurations.</li>
-    <li>Fix parsing failures for certain cases of "@meta" and "@:pos" (Issue #81).</li>
-    <li>Fix unresolved type error if using full class path without importing the class (Issue #39).</li>
-    <li>Resolve extern enum values via qualified name.</li>
-    <li>Resolve classes within the same package but defined in a different module (Issue #168).</li>
-    <li>Hopefully fix compiler based auto-complete performance problems (Issue #230).</li>
-    <li>Fix Plugin wrongly accepting comma separated fields that the compiler wont (Issue #83).</li>
-    <li>Fix rare ClassCastException when re-opening projects.</li>
-    <li>Fix NotNullExceptions when getting field types for dynamic fields.</li>
-  </ul>
-  <p>0.9.3: (community release)</p>
-  <ul>
-    <li>Fix local variable name suggestions to not clash with existing class fields.</li>
-    <li>Fix Introduce Variable refactoring to find all occurrences of the selected expression.</li>
-    <li>
-      No longer block Java (and other) tests from running when Haxe
-      plugin is installed. (Issue #166)
-    </li>
-    <li>
-      Resolve static function imports for import with in keyword.
-      ("import String.fromCharCode in f;")  (Issue #191)
-    </li>
-    <li>
-      Give extern fields public visibility: 'function a()' will be treated
-      as 'public function a()' and will appear in completions.
-    </li>
-    <li>Fix (un)comment multiple lines of code feature.  (Issue #209)</li>
-    <li>Support 'as' keyword in import statements.</li>
-    <li>Implemented Refactoring: Pull Members Up/Push Members Down</li>
-    <li>Support extern interfaces. (Issue #202)</li>
-    <li>Fix visibility determination for methods. (Better completions)</li>
-    <li>Check for duplicate imports when copy/pasting.</li>
-    <li>
-      Fix resolving classes that appear inside of an import file with a
-      different name than the class itself.  Fixes goto declaration as well.
-    </li>
-    <li>Fix colorizing identifiers (variable names) in code.</li>
-    <li>Fix Issue 162: "call(new x(), new x());" parse failure.</li>
-    <li>(Re)Allow "new" for extern and prototype function declarations.</li>
-    <li>Fixed IDEA freeze when XML is edited</li>
-    <li>Implemented Refactoring: Extract Superclass</li>
-    <li>Implemented Refactoring: Extract Interface</li>
-    <li>Implemented Refactoring: Push Members Down</li>
-    <li>Fixed OutOfBoundsException when resolving names.</li>
-    <li>Fix most unit tests.</li>
-  </ul>
-  <p>0.9.2: (community release, IDEA 14 only)</p>
-  <ul>
-    <li>Fixed: HaxeReferenceCopyPasteProcessor issue preventing from using copy paste clipboard functionality</li>
-  </ul>
-  <p>0.9: (community release)</p>
-  <ul>
-    <li>Release ID change only</li>
-  </ul>
-  <p>0.8.1.1.TiVo.4: (community version, TiVo Release 4)</p>
-  <ul>
-    <li>Class Hierarchy view panels implemented. (Menu->Navigate->Type Hierarchy, et al)</li>
-    <li>Better handling of import files.</li>
-    <li>Better handling of Haxe language parsing, including many Haxe 3 features.</li>
-    <li>Automatic detection and use of installed haxe libraries (using the 'haxelib' command).</li>
-    <li>Better completion (Ctrl-space) using the Haxe compiler -- OpenFL projects only.</li>
-    <li>Refactorings:
-      <ul>
-        <li>Pull up members from class to super-class</li>
-        <li>Pull up members from class to interface</li>
-        <li>Split into declaration and assignment</li>
-        <li>Optimize imports</li>
-      </ul>
-    </li>
-    <p> The following sub-releases are included:</p>
-    <ul>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.16: (community version, TiVo RC5)</p>
-      <ul>
-        <li>Refactoring: Pull up members from class to super-class</li>
-        <li>Refactoring: Pull up members from class to interface</li>
-        <li>Launch Haxe/Neko tests (Patch #131)</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.15: (community version, TiVo RC4)</p>
-      <ul>
-        <li>Fixed issue 37 (Parser doesn't recover after new A)</li>
-        <li>Fixed issue 95 (Local and class variable names resolving to similar package names)</li>
-        <li>Fixed issue 132 (incorrect processing of duplicate imports)</li>
-        <li>Fixed issue 134 (incorrect reformat of object and array children)</li>
-        <li>Fixed reference resolution for expressions in parenthesis - otherwise, code assist does not work for those.</li>
-        <li>Fixed: launching test with neko, overriding haxe build parameters for test run configuration, filtering test result output, compilation path of non test build, line number for ErrorFilter; and removed hard-coded path for ErrorFilter</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)</p>
-      <ul>
-        <li>Fixed NPE causing the structure view to not populate, resulting from an errant merge.</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)</p>
-      <ul>
-        <li>Resolve 'convenience' imports that do not export a class named similarly to the file. (TiVo Issue #55)</li>
-        <li>Update unbalanced preprocessor token highlighting and detection.</li>
-        <li>Improve indentation of comments and preprocessor macros.</li>
-        <li>Update for Grammar-Kit 1.2.0.1 </li>
-        <li>Fixed syntax rules (BNF) for constructors and external functions.</li>
-        <li>Fixed syntax rules (BNF) for code blocks; removed them from being valid syntax everywhere an expression can appear.</li>
-        <li>Fixed syntax rules (BNF) to allow meta tags on typedefs.</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)</p>
-      <ul>
-        <li>Auto-indent when adding curly brackets now works correctly. Fixes github tivo/intellij-haxe Issue #119. (Thanks, Jérémy!)</li>
-        <li>Fix IDE hang on completion for Haxe compiler completions.</li>
-        <li>Fix auto-adding new import statements above package declaration and/or comments.</li>
-        <li>Fix NPE when manually adding new import statements.</li>
-        <li>Put debugging dialogs on the UI thread.</li>
-        <li>Fix ArrayOutOfBounds exception when initializing haxelib cache.</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.11: (community version, TiVo RC1)</p>
-      <ul>
-        <li>Fix NPE when colorizing.</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)</p>
-      <ul>
-        <li> Added timeout to long-running call hierarchy searches. </li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.9: (community version, TiVo WIP)</p>
-      <ul>
-        <li> Fixed Haxe command-line debugger integration for OpenFL projects that
-             are targetting C++ native runtime environments.
-        </li>
-        <li> Fixed method hierarchy runtime exceptions, and auto-scrolling to source. </li>
-        <li> Fixed type hierarchy auto-scrolling to source. </li>
-        <li> Enhanced run & debug output to be color-coded for improved readability. </li>
-        <li> Fixed find-usages regression. </li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)</p>
-      <ul>
-        <li> More load-time optimizations using new 'haxelib list-path' command. </li>
-        <li> Add package and file names to Type hierarchy window.  (File names only
-             display if the file name differs from the type name.)
-        </li>
-        <li> Fixed supertypes list in the combo view of the Type hierarchy window. </li>
-        <li> Allow block statements everywhere. </li>
-        <li> Allow array literals to have additional comma [1,] </li>
-        <li> Moving a file from one package to another no longer displays "Unimplemented"
-             and now moves the file, however references are not yet updated.
-             Issue #88 -- still unresolved.
-        </li>
-        <li> Updated unit tests. Issues: #71, #68.</li>
-        <li> Fix formatting for ">=", which is used be to reformatted to "> =". Issue </li>
-        <li> Fix logic for HaxeIfSurrounder.java /testIf test case/ </li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.7: (community version, TiVo WIP)</p>
-      <ul>
-        <li>Repaired resolving references to classes and variables.</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)</p>
-      <ul>
-        <li>Further optimized load time for large projects.</li>
-        <li>Run haxelib->Project/SDK/Module library dependency synchronization
-            in the background.
-        </li>
-        <li>HXML completion: add parameters for compiler argument to
-            presentable text of completion item
-        </li>
-        <li>Completion from Haxe compiler: parse function parameters and
-            return type to generate completion item with parameters and return
-            type
-        </li>
-        <li>Completion from Haxe compiler: format data from compiler replace
-            "&lt;" to "<" and "&gt;" to ">"
-        </li>
-        <li>HaxeReferenceImpl.java getVariants(completion): Handle case when
-            "var d:Array&lt;Int&gt; = []; d.|" when d is not resolved
-        </li>
-        <li>Add description to completion recived from Haxe compiler:
-            HaxeMetaTagsCompletionContributor.java
-            HXMLDefineCompletionContributor.java
-            HXMLCompilerArgumentsCompletionContributor.java
-        </li>
-        <li>Preliminary Haxe compiler completion support (OpenFL only)</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)</p>
-      <ul>
-        <li>Decreased time to load large projects considerably.
-            Note that project loading is still on the UI thread, so
-            it may appear to lock up for a short period of time.
-            For very large projects, 90 seconds is not out of the ordinary.
-        </li>
-        <li>HXML completion: Provide available libraries list</li>
-        <li>HXML completion: show installed haxelibs(also installed libs removed from available haxelibs list)</li>
-        <li>Fix meta tag parsing issues</li>
-        <li>HaxeMetaTagsCompletionContributor provides completion for meta tags</li>
-        <li>Project Xml(NME, OpenFL project project) completion: show available and installed haxelibs</li>
-        <li>SplitIntoDeclarationAndAssignment intention action</li>
-      </ul>
-    </li>
-    <li>
-      <p>0.8.1.1.TiVo.ClassHierarchy.4: (community version, TiVo WIP)</p>
-      <ul>
-        <li>Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.</li>
-        <li>Class Hierarchy partial implementation.</li>
-        <li>SuperTypes work.  Sub-types work within the same module.</li>
-        <li>All recent changes from github.com/Jetbrains/intellij-haxe/master</li>
-        <li>Support typedef optional parameters</li>
-        <li>Support optional function types</li>
-        <li>Eat compile-time conditional statements only (prevent eating conditional body as it was before)</li>
-        <li>Fix multiple metas issue on class</li>
-        <li>Highlight compile-time conditional statements if they don't have matching closing statements</li>
-        <li>Remove "from" and "to" from keywords, instead highlight them only if they used in abstract declaration</li>
-        <li>Prevent suggesting imports for using statements</li>
-        <li>Resolve references that have full path to type/field</li>
-        <li>Support function types, anonymous types as abstract type</li>
-        <li>Automatically add and remove dependencies when project gets opened</li>
-        <li>Remove ">=" and ">>=" tokens from lexer, instead parse ('>' '=') to avoid issues(https://github.com/TiVo/intellij-haxe/issues/42)</li>
-        <li>Support "inline" declaration attribute on local functions</li>
-        <li>Suggest to import class on code paste</li>
-        <li>Support macro expressions(including ECheckType)</li>
-        <li>Lots more... TODO: Get a complete list of updates.</li>
-      </ul>
-    </li>
-    </ul>
-  </ul>
-  <p>0.8.1.1.TiVo.2: (TiVo version)</p>
-   <ul>
-    <li>openFL path can now be retrieved from an .iml file</li>
-   </ul>
-  <p>0.8.1.1: (community version)</p>
-   <ul>
-    <li>"Find usages in project" fixed.</li>
-    <li>Allowed @:final on methods and fields.</li>
-    <li>Re-implemented hxcpp debugger support to work with Haxe v3 built-in debugger</li>
-   </ul>
-  <p>0.8.1: (community version)</p>
-   <ul>
-    <li>Remove com.intellij.modules.java from dependencies list to make plugin work in PHPStorm(and other IntelliJ IDEA platform-based IDEs)</li>
-   </ul>
-  <p>0.8: (community version)</p>
-   <ul>
-    <li>Migration to new IntelliJ IDEA 13.1 API</li>
-    <li>HXML syntax highlighting</li>
-    <li>HXML completion</li>
-    <li>Parser support for different types of imports</li>
-    <li>Parser support for @:jsRequire and more parser fixes</li>
-   </ul>
-  <p>0.7.2: (community version)</p>
-   <ul>
-    <li>New version number</li>
-    <li>basic hxml support</li>
-    <li>@:jsRequire meta support</li>
-    <li>Haxe grammar: @:jsRequire and macro support</li>
-    <li>templates naming fix ("create new class/enum/interface" issue)</li>
-    <li>new/get/set/never keywords, get/set identifiers are valid, jar build</li>
-   </ul>
-  <p>0.7.1:</p>
-   <ul>
-    <li>Bug fixes for  13.1.1</li>
-   </ul>
-  <p>0.7:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.6.9:</p>
-   <ul>
-    <li>Neko target for OpenFL</li>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.6.5:</p>
-   <ul>
-    <li>OpenFL support</li>
-   </ul>
-  <p>0.6.4:</p>
-   <ul>
-    <li>Optimize imports</li>
-   </ul>
-  <p>0.6.3:</p>
-   <ul>
-    <li>Parser improvements</li>
-   </ul>
-  <p>0.6.2:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.6.1:</p>
-   <ul>
-    <li>Haxe 3 support</li>
-   </ul>
-  <p>0.6:</p>
-   <ul>
-    <li>Folding</li>
-   </ul>
-  <p>0.5.8:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.5.6:</p>
-   <ul>
-    <li>NME support improvements</li>
-    <li>HXCPP debugger improvements</li>
-   </ul>
-  <p>0.5.5:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.5.4:</p>
-   <ul>
-    <li>New Compiler Mode</li>
-   </ul>
-  <p>0.5.2:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.5.1:</p>
-   <ul>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.5:</p>
-   <ul>
-    <li>HXCPP Debugging</li>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.4.7:</p>
-   <ul>
-    <li>Introduce Variable Refactoring</li>
-    <li>Using Completion</li>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.4.6:</p>
-   <ul>
-    <li>Conditional Compilation Support</li>
-    <li>Bug fixes</li>
-   </ul>
-  <p>0.4.5:</p>
-   <ul>
-    <li>Live Templates</li>
-    <li>Surround With Action</li>
-    <li>Smart completion</li>
-    <li>Goto Test Action</li>
-   </ul>
-  <p>0.4.4:</p>
-   <ul>
-    <li>Bug fixes</li>
-    <li>EReg support</li>
-   </ul>
-  <p>0.4.3:</p>
-   <ul>
-    <li>Bug fixes</li>
-    <li>Structure view</li>
-   </ul>
-  <p>0.4.1:</p>
-   <ul>
-    <li>Bug fixes</li>
-    <li>Unresolved type inspection</li>
-   </ul>
-  <p>0.4:</p>
-   <ul>
-    <li>NME Support</li>
-    <li>Override/Implement method action</li>
-    <li>Generate getter/setter action</li>
-    <li>Parameter info action</li>
-   </ul>
-  <p>0.3:</p>
-   <ul>
-    <li>Type resolving improvements</li>
-    <li>Goto Implementation(s) action</li>
-    <li>Goto Super Method action</li>
-    <li>Move refactoring</li>
-   </ul>
-  <p>0.2.3:</p>
-   <ul>
-    <li>Completion fixes</li>
-   </ul>
-  <p>0.2.2:</p>
-   <ul>
-    <li>Type resolving improvements</li>
-    <li>Rename refactoring</li>
-    <li>NMML scheme</li>
-    <li>HXML support</li>
-   </ul>
-  <p>0.2.1:</p>
-   <ul>
-    <li>Type resolving improvements</li>
-    <li>Documentation support</li>
-    <li>New color settings</li>
-   </ul>
-  <p>0.2:</p>
-   <ul>
-    <li>Jump to declaration of local, std symbol or class</li>
-    <li>Reference completion</li>
-    <li>Class completion</li>
-    <li>Color settings</li>
-    <li>Code formatter</li>
-    <li>Go to Class</li>
-    <li>Icons for Haxe files</li>
-    <li>Search for usages</li>
-    <li>Highlight symbol occurencies</li>
-    <li>Debugger for Flash target ("Flash/Flex Support" plugin required)</li>
-   </ul>
-  <p>0.1:</p>
-   <ul>
-    <li>Haxe module and SDK</li>
-    <li>Parsing Haxe files</li>
-    <li>Keyword completion</li>
-    <li>Compile Haxe files and run in Neko VM</li>
-   </ul>
+## 1.3.1 (HaxeFoundation release)
 
+*   Allow both 'inline' and 'extern' to exist on functions and vars.
+*   Correctly resolve when 'using' static extensions such as StringTools.
+*   Correctly resolve expressions inside of parenthesis.
+
+## 1.3.0 (HaxeFoundation release)
+
+*   IDEA Versions 2020.2, 2020.1 and 2019.3 support.
+*   Add fine-grained control of the semantic annotator to the Settings panel. (File->Settings->Editor->Inspections->Haxe)
+*   Rewrite metadata handling:
+    *   Allow metadata at all positions.
+    *   Validate object syntax in compile-time metadata.
+    *   Parse code in run-time metadata, and highlight errors.
+    *   Check @forward(<names>) for existing method names.
+    *   Allow completion within metadata parens.
+    *   Add UI to allow reformatting and color options.
+*   Allow immediate array accesses on literal arrays. (e.g. var a=\["1","2"\]\[1\];)
+*   Fix several issues with type checking, particularly when generics are involved.
+*   Allow non-standard orderings of class and method modifiers (e.g. final, private, extern) and warn on duplicates.
+*   Recover from circular class dependencies.
+*   Better error messages for a number of parsing errors.
+*   Fix not finding packages which begin with and underscore. (Issue 941)
+*   Handle function-level type parameters during semantic checks. (Issue 973)
+*   Don't use class type parameters when resolving static function parameters.
+*   Better handling of function types an mismatched assignments. (Issues 943, 773)
+*   Fix crash when reading libraries if the library name was empty. (Issue 949)
+*   Haxe 4: Allow dotted identifiers in conditional compilation.
+*   Haxe 4: Allow dotted meta names.
+*   Haxe 4: Allow 'final' on var declarations in switch cases.
+*   Mark attempts to write to 'final' variables.
+*   Handle Map types as extended map types. (e.g. IntMap, StringMap, etc.)
+*   Better constant detection and handling of default parameters for methods.
+
+*   Detect function type constants and report accordingly.
+*   Detect initialization calculations containing only constants as constant.
+*   Detect several standard library functions as returning constants when their arguments are constant. (e.g. Std.int("1"))
+*   Detect identifiers/constants referencing other constants as still constant.
+*   Detect enums without parameters as constants.
+*   Better flagging of errors when default parameters _are not_ constants.
+
+*   Much better handling of generics throughout, including type error checking code.
+*   Use type parameters from left-hand (e.g. left.right) expressions when resolving right-hand fields and method return types.
+*   Color unparseable data when typing; shows developers where functionality is limited while code is invalid.
+*   Better handling/recovery of errors in String Interpolation. (e.g. '${expr}')
+*   Allow/disallow variable declarations in various places.
+*   Require semi-colon on return statements in non-lambda bodies.
+*   Better recovery on class parsing errors.
+*   Fix PsiInvalidElementAccessExceptions (Issue #953)
+*   Upgrade smart-enter statement fixer for 'if' statements.
+*   Better handling of missing bodies when using smart-enter.
+*   Properly handle generics on typedefs over generic types.
+*   Properly unify EnumValue with enum values.
+*   Fix indenting for map comprehensions.
+*   Fix and update inspection descriptions in settings dialog.
+*   Implement "Implement methods" for missing interface functions.
+*   Fix the case where generic parameters used in superclasses were not being correctly translated through the type hierarchy when resolving (or were resolving to the wrong type).
+*   Fix apparent hang when presenting the "Override Method" dialog in large code bases. (Issue #990)
+
+## 1.2.0 (HaxeFoundation release)
+
+*   Update builds for 2019.1 and 2018.x versions.
+*   Fix completion on abstracts using generic underlying types (e.g. abstract MyClass<T>(T) {}) (Issue #772)
+*   Fix completion through abstracts.
+*   Resolve fields and methods through abstracts.
+*   Haxe 4: Special rules to resolve Null<T> as abstract.
+*   Fixed constructor being renamed when a class is renamed (refactored). (Issue #776, #785)
+*   Fixed ClassCastException when Refactor->Rename was used on generic type names.
+*   No longer display type mismatch errors when using abstracts with (varying) generic type parameters. (e.g. Null<String>, Null<Test>)
+*   Better detection of types inferred after declaration (monomorphs).
+*   Fixed type detection for expressions in parenthesis.
+*   Downgrade visibility (public/private) incompatibility to a warning.
+*   Allow "Dynamic" as an interface type.
+*   Detect simple type mismatches in declarations and assignments. Add quick fixes for them.
+*   Check type of type check statements (e.g. \`(myExpression : Float)\`) and warn. Add quick fixes.
+*   Auto-close regions and conditionally (un)compiled code, and add checkboxes to the Settings panel for folding.
+*   Fix Extract Variable and Extract Constant refactorings (Issue #844):
+    *   Fixed infinite loop when extracting multiple occurrences.
+    *   Avoid keywords when making name suggestions.
+    *   Fix multi-select for custom names in all occurrences.
+    *   Fix semi-colon insertion/detection.
+    *   Suggest variable names based upon expression type.
+*   Allow AIR targets to be debugged using the flash system. (Issue #849)
+
+## 1.1.0 (HaxeFoundation release)
+
+*   Added support of haxe 4 syntax "enum abstract".
+*   Add support of [final syntax](https://github.com/HaxeFoundation/haxe/pull/6596) introduced in Haxe 4.
+*   Add support of [new function types syntax](https://github.com/HaxeFoundation/haxe-evolution/blob/master/proposals/0003-new-function-type.md) introduced in Haxe 4.
+*   Increased responsiveness in UI, annotations, and other operations that look up type information by a factor of 10.
+*   Now infers generic types from map and array literals. (e.g. \["this" => "yours"\] is Map).
+*   Now resolves typedefs to underlying types. (e.g. \`var v:Null\` is resolved as a \`String\` type.)
+*   Now propagates type parameters (generics) properly through typedefs.
+*   Now resolves types when used with array access (e.g. \`map\[0\].length\` no longer marked as errors).
+*   Now infers types of methods without specific typing (e.g. \`map.get(0).length\` no longer marked as errors).
+*   Added support of read/write access separation for "find usages".
+*   Inspections for non-haxe files disabled. (Issue #875)
+*   Fixed recognizing type of "this" expression.
+*   Fixed bug when physical variables were marked as not real.
+*   Fixed searching of interface implementations and inheritance hierarchy.
+*   Added find usages support for constructors. [(Issue #530)](https://github.com/HaxeFoundation/intellij-haxe/issues/530)
+*   Fixed find usages support for properties.
+*   Add completion dropdown when ':' is typed and a type is expected.
+*   Fix of support of explicit abstract forwards. Now fields and methods that have not been forwarded will not be resolved as valid.
+*   Fixed recognition of standard types.
+*   Fixed NPE that occurred if current project sdk was not properly configured.
+*   Fix indents for anonymous structures fields and extends list.
+*   Fix indents for fat arrow expressions.
+*   Fix parsing of anonymous type with empty body.
+*   Add anonymous types in anonymous types support.
+*   Add anonymous structures names support.
+*   Added chained anonymous fields recognition.
+*   Add proper generics propagation for anonymous structures, typedefs and classes.
+*   Add generic constraint support.
+*   Add Null<T> support.
+*   Add proper from-to declaration support, types infer and compatibility checks.
+*   Fix referenced var-init support check.
+*   Automatically change references when moving a class across packages.
+*   Add super() call when generating override methods.
+*   Generate module and automatically set up SDK, libraries, and run configurations on "Import project from sources."
+*   Create "Hello World" example as initial content for new projects.
+*   Auto-open Main.hx when creating a new module.
+
+## 1.0.2 (HaxeFoundation release)
+
+*   Performance hot-fix for projects that have multiple source roots. (Issue #799)
+
+## 1.0.1 (HaxeFoundation release)
+
+*   Updated change notes for 1.0.0 (enumerated several important import changes).
+*   Add Haxe Sdk setup validation.
+*   Use SDK classpath as well as sourcepath to find the standard library. (Issue #774)
+*   Better error handling when haxelibs are installed incorrectly. (Issue #780)
+*   2017.3 and 2018.1 builds. (Issues #719, #789)
+*   Workaround debugger crash. (Issue #792)
+*   Fix typo in haxelib metadata parser, which was keeping library sub-tree source directories from being found.
+
+## 1.0.0 (HaxeFoundation release)
+
+*   Import of static fields/methods.
+*   Imports alias hinting support.
+*   Proper wildcard import resolution.
+*   Import optimizer now works properly.
+*   Proper module scoping for resolving.
+*   Add $trace to the list of built-ins to recognize.
+*   Semantic Annotation: Infer missing function types from code blocks.
+*   Semantic Annotation: Support arrow functions.
+*   Semantic Annotation: Add local variable type checking.
+*   Properly detect function types when used in type parameters (generics).
+*   Fix Flash "Run" target to launch the file that the compile process creates.
+*   Non-OpenFL projects now use a better algorithm to determine output directories and files.
+*   Add source directories to classpath during compiler completions. (More completions, fewer errors.)
+*   Use non-haxe-logo version of icons when completions are not provided by the compiler.
+*   Compatibility fix for non-IDEA products: stop logging to stderr! (Issue #724)
+*   Improved Enum parsing; added generalized algebraic data types support.
+*   Add true Map literal support. (No longer parsed as Array.)
+*   Added visibility detection rules (e.g. @NoCompletion) regarding language docs.
+*   Fixes to error message parsing (no longer account info messages to JetBrains installation directory).
+*   Split 'lime test' into 'lime update; lime build' and 'lime run', for Make and Run/Debug tasks.
+*   Add folding support:
+    *   For documentation comments (/\*\* \*/).
+    *   For comment regions. (// region Name ... // end region) (Issue #529)
+    *   Braces for classes, methods, etc.
+    *   For imports and usings.
+    *   For compiler conditionals (#if, etc.)
+*   Fixed a number of NPEs in the ProjectUpdater.
+*   Add enums from the current file completion suggestion lists.
+*   Fixed the resolution order for imports vs. package. (Issue #741)
+*   Fixed inability to resolve enum parameter symbols at case statement. (Issue #351)
+*   Dropped support for IDEA versions 14 and 15.
+*   Internal: Began refactoring the resolver. New models are introduced.
+*   Changed "static variable override" to a weak warning, instead of a regular warning.
+*   Allow @:meta without parens.
+*   Properly parse variable declarations in return statements. (Issue #329)
+*   Fixed parsing of 'throw' statements within a ternary expression. (Issue #704)
+*   Allow all string literal forms as field identifiers in structures. (Issue #662)
+
+## 0.11.2 (Haxe Foundation Release)
+
+*   Parsing fixes:
+    *   Expressions inside of type parameters.
+    *   Make sequential operators cause syntax errors.
+    *   Allow anonymous local function declarations.
+    *   External function declarations with simple bodies getting 'Unexpected semicolon' messages.
+    *   Custom meta-data with empty parenthesis.
+    *   Named nested (local) function declarations.
+    *   Prototype functions in abstract .types.
+    *   Allow @arrayAccess
+    *   Array access where the name is parenthesized.
+    *   Allow @final on property declarations.
+    *   Allow and recover from variable declarations that don't require a semicolon (e.g. preceded by a block).
+    *   Allow trailing comma inside of an object literal.
+    *   Allow trailing comma at the end of an array literal.
+    *   Block statements when used as an initializer.
+*   Fix NPE when haxelib.json was missing from a library.
+*   Fix an exception when the Haxe SDK is set up incorrectly.
+*   Added Adobe AIR target
+*   Refactor haxelib library dependency detection and project update.
+*   For FindUsages, ask whether to search for base class/interface usages.
+*   Fix bug with environment variables not being passed through to forked processes in some cases. (Issue #659)
+*   Add haxelib and neko directories to (the start of) the Path before forking a process.
+*   Better tracking of settings changes.
+*   Better parsing of HXML/lime (or "haxelib run lime") output.
+*   Fix IndexOutOfBoundsException when checking for static extensions and static member methods have no parameters. (Issue #652)
+*   Better parser recovery for "extends" and "implements" statements. (Issue #137)
+*   Fixed identifier resolving for dot-references defined in "type params." (Issue#674)
+*   Fixed parameter count resolution for anonymous functions. (Partially closes issue #521.)
+*   Add neko and haxelib directories to the PATH/Path environment variable when running plugin commands (affects lime, etc.).
+*   Better cache coherency for completions.
+*   Improved hxml parsing.
+*   Added mechanism to track project and module settings changes.
+*   Improve locating files when traversing the stack frames during debugging.
+
+## 0.11.1 (community release)
+
+*   Check for and halt type resolution when a cyclical/recursive definition is found.
+*   Address some freezes by delaying use of indices until indexing is complete.
+*   Speed haxelib syncing (and stop unnecessary re-indexing). (Regression)
+*   Fix freezes by fixing some multi-threading issues and other exceptions being thrown.
+*   Speed up parsing of arrow functions.
+*   Add Haxe-specific double-click selection logic for strings and comments. (Issue #212)
+*   Reroute debugging informational errors to the status bar instead of modal dialogs.
+*   Fix compilation halting on "- Link" informational messages.
+*   Add neko and haxelib directories to the path when building projects (for all platforms; used to be OSX-only).
+*   Fix multi-platform build issues (for the plugin, particularly affects Windows builds).
+
+## 0.11.0 (community release)
+
+*   Support IDEA 2017.1
+*   Add parsing support for "Arrow Functions."
+*   Better recovery of parsing errors in function parameter lists.
+*   Fixed exceptions occurring when adding libraries, so auto-adding will work again.
+*   Delay using project indexes until scanning is complete.
+*   Proper resolution of constructors ('new').
+*   Display parameter tip text when creating new object instantiations.
+*   Better parsing of shift-and-assign operators.
+*   Now correctly resolves variables declared in 'for' statements when the iterated type is parameterized. (Issue #528)
+*   Resolve chained classes with type parameters (generics).
+*   Correct completion with EitherType<>. (Issue#512).
+*   Parse @:const type parameters without error. Also allow constants as type parameters.
+*   Added navigation to getter/setter methods from property accessors.
+*   Annotate strings with incorrect quotes and add quick-fix intention to convert them.
+*   Note optional arguments with a ? when displaying methods.
+*   Improved method signature check.
+*   Added searching of implementation declared by superclasses.
+*   Properly parse and evaluate compiler conditionals (#if...#else...#end)
+*   Resolve array access with types other than "Array."
+*   Better 'Main class' chooser for the 'Project Settings->Haxe Compiler' dialog.
+*   Fix property getter/setter quick-fixes.
+*   Add location data, if known, to compiler completion error messages.
+*   Display available completions even when the compiler reports an error.
+*   Fixed incomplete results from a compiler run.
+*   Better logic for removing duplicate entries from completion lists.
+*   Better code completion using the compiler -- OFF BY DEFAULT! Turn on in File->Project Structure...
+*   Fix parsing of all compiler conditionals. (#417, #121, partly #115, and others)
+*   Fix parsing of one-liner conditional compilation style (issue #417, #121, partly #115)
+*   Support for \`@:require\` haxe\_ver comparing (issue #418)
+*   Support for \`@:require\` and \`@:jsRequire\` with multiple arguments
+*   Better handling of closing parens, brackets, quotes. (Issues #545, 546)
+*   Fix parsing when an anonymous function call is defined and immediately executed. (Issue #544)
+*   Fix library name parsing issues for haxelibs using non-standard paths.
+*   Resolve URLs properly when adding haxelibs.
+*   Updated Haxe logo bitmaps.
+
+## 0.10.1.1 (community release)
+
+*   Update compatibility for 2016.3.2
+*   Update documentation to refer to HaxeFoundation instead of TiVo.
+
+## 0.10.1 (community release)
+
+*   Use Java's file library for detecting symlinks instead of IDEA's.
+*   Formatting: Prevent excess linefeed between doctyp and function.
+*   Fix completion for for loop variables. (issue #511)
+*   Support for IDEA up through 2016.3.
+*   Updated parsing for hxcpp 3.3 compiler error output.
+*   Add support for type check syntax (expr : type). (issue #510)
+*   Fixed cursor not indented in class body after var or function declaration. (issue #492, case 1)
+*   Highlight "in" and "as" as keywords when they appear in import statements.
+*   Highlight "in" as a keyword when it appears in a for statement. (issue #501)
+*   Add support for string literals as the keys in structures. (issue #498)
+*   Support @:native annotation for functions and variables. (issue #490)
+*   Stop using the classpath to auto-add external libraries to projects. (issues #477 #100)
+*   Fix re-ordering imports in certain situations. (issue #494)
+*   Fix 'never' setter. (issue #486)
+*   Change class paths for external libraries on OSX.
+*   Fixed creating classes in TEST source roots
+*   Fixed debug Flash on Haxe-compiler target
+*   Fixed crash on MACRO\_CLASS\_LIST assert
+*   @:deprecated support (issue #459, #473)
+*   Alias imports support (issue #466)
+*   Imports optimization: reordering added (issue #471)
+*   Fixed typedef multiple extensions highlighting
+
+## 0.9.10 (community release)
+
+*   Better packages resolving
+*   Fix catch parameter declaration (issue #419)
+*   Fix inherited type in field initializer (issue #412)
+*   Delete single-class file in one operation from Project View (issue #424)
+*   Fix interface properties accessor check annotation (issue #411)
+*   Error highlighting added for variable redefinition (issue #431)
+*   Fix generic sub-type resolving when import just type-module (issue #435)
+*   Extensions: using variants and resolving for children and implementations of base class or interface added (issue #433)
+*   Fix typedef generic params resolving (issue #304)
+*   General "@:enum abstract" support (issues #427, #428, #429)
+*   Fix import / using statements class name completion (issue #286)
+*   Incorrect “public” modifier when override methods fixed (issue #439)
+*   Incorrect field access modifier after action generate set/get methods. Can't use action generate set/get methods for static fields. (TiVo Issue #442)
+*   Fix use scope for var declarations (issue #235)
+*   Find usages import filtering (issue #426)
+*   Completion for word \`super\`: handle \`super\` word like \`this\` word (issue #87)
+*   Fix forwarding abstract fields completion and resolving. (issue #447, #108)
+*   Navigate to symbols (issue #340)
+*   Fix incorrect error annotation in extended class for static fields and methods with same names like in base class. (issue #449)
+*   Fix method local variables and arguments completion. (issue #455)
+
+## 0.9.9: (community release)
+
+*   IDEA v15 compatibility. (IDEA 13 compatiblity removed.)
+*   v15 Project Structure and Module settings dialogs work. (TiVo Issue #380)
+*   HXML: Fix \`Editor/Colors & Fonts/HXML\` tab (name & preview)
+*   HXML: highlighting for included \`.hxml\` file
+*   Fix unhandled exceptions while parsing numeric constants
+*   Fix typedef types not resolved variants for completion list
+*   Fix error annotation when implements \`extern interface\`
+*   Fix extending anonymous types. (TiVo Issue #353)
+*   Error annotation if type extends itself. (TiVo Issue #377)
+*   Fix qualified name resolving for ancillary types declaration (multiple types inside .hx file)
+*   Fix resolving variables having names identical to type names except for case. (TiVo Issues #405, #234)
+*   Fix incorrect package resolution. (TiVo Issues #95, #176)
+*   Fix base fields resolving for extended anonymous types (TiVo Issue #408)
+*   Prevent recursion due to extending self for classes and typedefs.
+*   Using file with multiple helper classes typedefs (for example \`haxe.macro.Tools\`) (TiVo Issue #128)
+*   Allow short assignment syntax for generics. (TiVo Issue #388)
+*   Fixed expected package name to no longer reference the system root. (TiVo Issue #387)
+*   Save and restore OpenFL arguments on the Haxe Module settings dialog. (TiVo Issue #74)
+*   Fixed repainting issue for OpenFL dialog when selecting compiler types. (TiVo Issue #44)
+*   Fixed error parsing for Windows platforms.
+
+## 0.9.8: (community release)
+
+*   Version 14.1.5 and 14.1.6 compatibility.
+*   Fix up some expressions to ignore non-error messages.
+*   Fix comment alignment for single-line comments.(Issue #295)
+
+## 0.9.7: (community release)
+
+*   Fix the watch pane when debugging: typing and completion now work.
+*   Load files using canonical names so that sym-linked files use the same buffer as the original file.
+*   Use full package name when determining file to open when debugging.
+*   Attempt to follow the classpath to determine which file to open when multiple files have the same package names.
+*   Use implicit classpath entries during classpath operations. (e.g. haxe/std)
+*   Remove "statics of XXX" from the debugger variable window pane. (The Haxe debugger at https://github.com/tivo/hxcpp-debugger has been updated to show statics as part of the object tree for objects in view.
+*   Remove error embellishments before displaying errors in the debugger variable pane.
+
+## 0.9.6: (community release)
+
+*   Fix debugger trying to populate all variables when stopped at a breakpoint.
+*   Suppress display of back-end generated intermediate variables when debugging.
+*   Fix NPE when editing files outside of a project.
+
+## 0.9.5: (community release)
+
+*   Add new typing support for type checking and completion. (Thanks to Carlos Ballesteros!) (Issues #288,#291,#308,#317)
+*   Support static extensions in completion. (Again, Thanks, Carlos!)
+
+*   Fix debugger getting stuck "collecting data" for some variables (particularly, "this"). (Issue #325)
+*   Better compiler error highlighting. (Issue #180 redux.)
+*   Fix Cut/Copy/Paste buffer inconsistencies (Issue #196)
+*   Add generics support. (First level only, chained sequences remain incomplete.)
+*   Allow object literals as return statements. (Issue #278)
+*   Fix NPE during annotation, causing annotation to stop. (Issue #316)
+
+## 0.9.4: (community release)
+
+*   Fix compile error highlighting in the output pane and jumping to source location when an error is clicked upon (Issues #129, #160, #180).
+*   Fix debugger execution under IDEA 14 and 14.1.
+*   Fix move package
+*   Fix MoveFile showing "unimplemented" message. (Issues #222, #88)
+*   Fix copy/paste clipboard functionality.
+*   Show completion for all static members (Issue #262).
+*   All unit tests enabled and passing for IDEA versions 13.1, 14.0, and 14.1.1.
+*   Fix rename not updating all usages (Issue #222)
+*   Fix parameter info tool tips and code tips.
+*   Command line ant builds (of the plugin) for automated testing.
+*   Fix parsing 'new' in ternary expressions (Issue #229).
+*   Better handling of comments.
+*   Fix member visibility scoping issues with extern and private keywords.
+*   Stop generating 'public' and 'private' modifiers when generating getter/setters.
+*   Stop treating interfaces and extern class declarations identically.
+*   Disallow multiple variables being declared in one statement for class fields.
+*   Print compiler commands to the message pane along with command output.
+*   Fix hang when using the OpenFL compiler for variable and method completion.
+*   Use correct completion contributor for OpenFL project configurations.
+*   Fix parsing failures for certain cases of "@meta" and "@:pos" (Issue #81).
+*   Fix unresolved type error if using full class path without importing the class (Issue #39).
+*   Resolve extern enum values via qualified name.
+*   Resolve classes within the same package but defined in a different module (Issue #168).
+*   Hopefully fix compiler based auto-complete performance problems (Issue #230).
+*   Fix Plugin wrongly accepting comma separated fields that the compiler wont (Issue #83).
+*   Fix rare ClassCastException when re-opening projects.
+*   Fix NotNullExceptions when getting field types for dynamic fields.
+
+## 0.9.3: (community release)
+
+*   Fix local variable name suggestions to not clash with existing class fields.
+*   Fix Introduce Variable refactoring to find all occurrences of the selected expression.
+*   No longer block Java (and other) tests from running when Haxe plugin is installed. (Issue #166)
+*   Resolve static function imports for import with in keyword. ("import String.fromCharCode in f;") (Issue #191)
+*   Give extern fields public visibility: 'function a()' will be treated as 'public function a()' and will appear in completions.
+*   Fix (un)comment multiple lines of code feature. (Issue #209)
+*   Support 'as' keyword in import statements.
+*   Implemented Refactoring: Pull Members Up/Push Members Down
+*   Support extern interfaces. (Issue #202)
+*   Fix visibility determination for methods. (Better completions)
+*   Check for duplicate imports when copy/pasting.
+*   Fix resolving classes that appear inside of an import file with a different name than the class itself. Fixes goto declaration as well.
+*   Fix colorizing identifiers (variable names) in code.
+*   Fix Issue 162: "call(new x(), new x());" parse failure.
+*   (Re)Allow "new" for extern and prototype function declarations.
+*   Fixed IDEA freeze when XML is edited
+*   Implemented Refactoring: Extract Superclass
+*   Implemented Refactoring: Extract Interface
+*   Implemented Refactoring: Push Members Down
+*   Fixed OutOfBoundsException when resolving names.
+*   Fix most unit tests.
+
+## 0.9.2: (community release, IDEA 14 only)
+
+*   Fixed: HaxeReferenceCopyPasteProcessor issue preventing from using copy paste clipboard functionality
+
+## 0.9: (community release)
+
+*   Release ID change only
+
+## 0.8.1.1.TiVo.4: (community version, TiVo Release 4)
+
+*   Class Hierarchy view panels implemented. (Menu->Navigate->Type Hierarchy, et al)
+*   Better handling of import files.
+*   Better handling of Haxe language parsing, including many Haxe 3 features.
+*   Automatic detection and use of installed haxe libraries (using the 'haxelib' command).
+*   Better completion (Ctrl-space) using the Haxe compiler -- OpenFL projects only.
+*   Refactorings:
+    *   Pull up members from class to super-class
+    *   Pull up members from class to interface
+    *   Split into declaration and assignment
+    *   Optimize imports
+
+The following sub-releases are included:
+
+*   0.8.1.1.TiVo.ClassHierarchy.16: (community version, TiVo RC5)
+
+    *   Refactoring: Pull up members from class to super-class
+    *   Refactoring: Pull up members from class to interface
+    *   Launch Haxe/Neko tests (Patch #131)
+*   0.8.1.1.TiVo.ClassHierarchy.15: (community version, TiVo RC4)
+
+    *   Fixed issue 37 (Parser doesn't recover after new A)
+    *   Fixed issue 95 (Local and class variable names resolving to similar package names)
+    *   Fixed issue 132 (incorrect processing of duplicate imports)
+    *   Fixed issue 134 (incorrect reformat of object and array children)
+    *   Fixed reference resolution for expressions in parenthesis - otherwise, code assist does not work for those.
+    *   Fixed: launching test with neko, overriding haxe build parameters for test run configuration, filtering test result output, compilation path of non test build, line number for ErrorFilter; and removed hard-coded path for ErrorFilter
+*   0.8.1.1.TiVo.ClassHierarchy.14: (community version, TiVo RC3)
+
+    *   Fixed NPE causing the structure view to not populate, resulting from an errant merge.
+*   0.8.1.1.TiVo.ClassHierarchy.13: (community version, TiVo RC2)
+
+    *   Resolve 'convenience' imports that do not export a class named similarly to the file. (TiVo Issue #55)
+    *   Update unbalanced preprocessor token highlighting and detection.
+    *   Improve indentation of comments and preprocessor macros.
+    *   Update for Grammar-Kit 1.2.0.1
+    *   Fixed syntax rules (BNF) for constructors and external functions.
+    *   Fixed syntax rules (BNF) for code blocks; removed them from being valid syntax everywhere an expression can appear.
+    *   Fixed syntax rules (BNF) to allow meta tags on typedefs.
+*   0.8.1.1.TiVo.ClassHierarchy.12: (community version, TiVo RC1+Fixes)
+
+    *   Auto-indent when adding curly brackets now works correctly. Fixes github tivo/intellij-haxe Issue #119. (Thanks, Jérémy!)
+    *   Fix IDE hang on completion for Haxe compiler completions.
+    *   Fix auto-adding new import statements above package declaration and/or comments.
+    *   Fix NPE when manually adding new import statements.
+    *   Put debugging dialogs on the UI thread.
+    *   Fix ArrayOutOfBounds exception when initializing haxelib cache.
+*   0.8.1.1.TiVo.ClassHierarchy.11: (community version, TiVo RC1)
+
+    *   Fix NPE when colorizing.
+*   0.8.1.1.TiVo.ClassHierarchy.10: (community version, TiVo WIP)
+
+    *   Added timeout to long-running call hierarchy searches.
+*   0.8.1.1.TiVo.ClassHierarchy.9: (community version, TiVo WIP)
+
+    *   Fixed Haxe command-line debugger integration for OpenFL projects that are targetting C++ native runtime environments.
+    *   Fixed method hierarchy runtime exceptions, and auto-scrolling to source.
+    *   Fixed type hierarchy auto-scrolling to source.
+    *   Enhanced run & debug output to be color-coded for improved readability.
+    *   Fixed find-usages regression.
+*   0.8.1.1.TiVo.ClassHierarchy.8: (community version, TiVo WIP)
+
+    *   More load-time optimizations using new 'haxelib list-path' command.
+    *   Add package and file names to Type hierarchy window. (File names only display if the file name differs from the type name.)
+    *   Fixed supertypes list in the combo view of the Type hierarchy window.
+    *   Allow block statements everywhere.
+    *   Allow array literals to have additional comma \[1,\]
+    *   Moving a file from one package to another no longer displays "Unimplemented" and now moves the file, however references are not yet updated. Issue #88 -- still unresolved.
+    *   Updated unit tests. Issues: #71, #68.
+    *   Fix formatting for ">=", which is used be to reformatted to "> =". Issue
+    *   Fix logic for HaxeIfSurrounder.java /testIf test case/
+*   0.8.1.1.TiVo.ClassHierarchy.7: (community version, TiVo WIP)
+
+    *   Repaired resolving references to classes and variables.
+*   0.8.1.1.TiVo.ClassHierarchy.6: (community version, TiVo WIP)
+
+    *   Further optimized load time for large projects.
+    *   Run haxelib->Project/SDK/Module library dependency synchronization in the background.
+    *   HXML completion: add parameters for compiler argument to presentable text of completion item
+    *   Completion from Haxe compiler: parse function parameters and return type to generate completion item with parameters and return type
+    *   Completion from Haxe compiler: format data from compiler replace "<" to "<" and ">" to ">"
+    *   HaxeReferenceImpl.java getVariants(completion): Handle case when "var d:Array = \[\]; d.|" when d is not resolved
+    *   Add description to completion recived from Haxe compiler: HaxeMetaTagsCompletionContributor.java HXMLDefineCompletionContributor.java HXMLCompilerArgumentsCompletionContributor.java
+    *   Preliminary Haxe compiler completion support (OpenFL only)
+*   0.8.1.1.TiVo.ClassHierarchy.5: (community version, TiVo WIP)
+
+    *   Decreased time to load large projects considerably. Note that project loading is still on the UI thread, so it may appear to lock up for a short period of time. For very large projects, 90 seconds is not out of the ordinary.
+    *   HXML completion: Provide available libraries list
+    *   HXML completion: show installed haxelibs(also installed libs removed from available haxelibs list)
+    *   Fix meta tag parsing issues
+    *   HaxeMetaTagsCompletionContributor provides completion for meta tags
+    *   Project Xml(NME, OpenFL project project) completion: show available and installed haxelibs
+    *   SplitIntoDeclarationAndAssignment intention action
+*   0.8.1.1.TiVo.ClassHierarchy.4: (community version, TiVo WIP)
+
+    *   Merged with version 0.8.1.1.TiVo.2 from the TiVo/master branch.
+    *   Class Hierarchy partial implementation.
+    *   SuperTypes work. Sub-types work within the same module.
+    *   All recent changes from github.com/Jetbrains/intellij-haxe/master
+    *   Support typedef optional parameters
+    *   Support optional function types
+    *   Eat compile-time conditional statements only (prevent eating conditional body as it was before)
+    *   Fix multiple metas issue on class
+    *   Highlight compile-time conditional statements if they don't have matching closing statements
+    *   Remove "from" and "to" from keywords, instead highlight them only if they used in abstract declaration
+    *   Prevent suggesting imports for using statements
+    *   Resolve references that have full path to type/field
+    *   Support function types, anonymous types as abstract type
+    *   Automatically add and remove dependencies when project gets opened
+    *   Remove ">=" and ">>=" tokens from lexer, instead parse ('>' '=') to avoid issues(https://github.com/TiVo/intellij-haxe/issues/42)
+    *   Support "inline" declaration attribute on local functions
+    *   Suggest to import class on code paste
+    *   Support macro expressions(including ECheckType)
+    *   Lots more... TODO: Get a complete list of updates.
+
+## 0.8.1.1.TiVo.2: (TiVo version)
+
+*   openFL path can now be retrieved from an .iml file
+
+## 0.8.1.1: (community version)
+
+*   "Find usages in project" fixed.
+*   Allowed @:final on methods and fields.
+*   Re-implemented hxcpp debugger support to work with Haxe v3 built-in debugger
+
+## 0.8.1: (community version)
+
+*   Remove com.intellij.modules.java from dependencies list to make plugin work in PHPStorm(and other IntelliJ IDEA platform-based IDEs)
+
+## 0.8: (community version)
+
+*   Migration to new IntelliJ IDEA 13.1 API
+*   HXML syntax highlighting
+*   HXML completion
+*   Parser support for different types of imports
+*   Parser support for @:jsRequire and more parser fixes
+
+## 0.7.2: (community version)
+
+*   New version number
+*   basic hxml support
+*   @:jsRequire meta support
+*   Haxe grammar: @:jsRequire and macro support
+*   templates naming fix ("create new class/enum/interface" issue)
+*   new/get/set/never keywords, get/set identifiers are valid, jar build
+
+## 0.7.1:
+
+*   Bug fixes for 13.1.1
+
+## 0.7:
+
+*   Bug fixes
+
+## 0.6.9:
+
+*   Neko target for OpenFL
+*   Bug fixes
+
+## 0.6.5:
+
+*   OpenFL support
+
+## 0.6.4:
+
+*   Optimize imports
+
+## 0.6.3:
+
+*   Parser improvements
+
+## 0.6.2:
+
+*   Bug fixes
+
+## 0.6.1:
+
+*   Haxe 3 support
+
+## 0.6:
+
+*   Folding
+
+## 0.5.8:
+
+*   Bug fixes
+
+## 0.5.6:
+
+*   NME support improvements
+*   HXCPP debugger improvements
+
+## 0.5.5:
+
+*   Bug fixes
+
+## 0.5.4:
+
+*   New Compiler Mode
+
+## 0.5.2:
+
+*   Bug fixes
+
+## 0.5.1:
+
+*   Bug fixes
+
+## 0.5:
+
+*   HXCPP Debugging
+*   Bug fixes
+
+## 0.4.7:
+
+*   Introduce Variable Refactoring
+*   Using Completion
+*   Bug fixes
+
+## 0.4.6:
+
+*   Conditional Compilation Support
+*   Bug fixes
+
+## 0.4.5:
+
+*   Live Templates
+*   Surround With Action
+*   Smart completion
+*   Goto Test Action
+
+## 0.4.4:
+
+*   Bug fixes
+*   EReg support
+
+## 0.4.3:
+
+*   Bug fixes
+*   Structure view
+
+## 0.4.1:
+
+*   Bug fixes
+*   Unresolved type inspection
+
+## 0.4:
+
+*   NME Support
+*   Override/Implement method action
+*   Generate getter/setter action
+*   Parameter info action
+
+## 0.3:
+
+*   Type resolving improvements
+*   Goto Implementation(s) action
+*   Goto Super Method action
+*   Move refactoring
+
+## 0.2.3:
+
+*   Completion fixes
+
+## 0.2.2:
+
+*   Type resolving improvements
+*   Rename refactoring
+*   NMML scheme
+*   HXML support
+
+## 0.2.1:
+
+*   Type resolving improvements
+*   Documentation support
+*   New color settings
+
+## 0.2:
+
+*   Jump to declaration of local, std symbol or class
+*   Reference completion
+*   Class completion
+*   Color settings
+*   Code formatter
+*   Go to Class
+*   Icons for Haxe files
+*   Search for usages
+*   Highlight symbol occurencies
+*   Debugger for Flash target ("Flash/Flex Support" plugin required)
+
+## 0.1:
+
+*   Haxe module and SDK
+*   Parsing Haxe files
+*   Keyword completion
+*   Compile Haxe files and run in Neko VM

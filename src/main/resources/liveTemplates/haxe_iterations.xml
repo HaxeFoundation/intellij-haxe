@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2000-2013 JetBrains s.r.o.
+  ~ Copyright 2014-2014 Hays Clark
+  ~ Copyright 2014-2014 AS3Boyan
+  ~ Copyright 2014-2014 Elias Ku
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<templateSet group="Haxe">
+
+  <template name="iter" value="for ($VAR$ in $ARRAY$) {&#10;  $END$&#10;}"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.iter" toReformat="true"
+            toShortenFQNames="true">
+    <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array &quot;" alwaysStopAt="true"/>
+    <variable name="VAR" expression="haxeSuggestVariableName()" defaultValue="&quot;o&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="HAXE" value="true"/>
+    </context>
+  </template>
+
+  <template name="itar" value="for ($INDEX$ in 0...$ARRAY$.length) {&#10;  var $VAR$ = $ARRAY$[$INDEX$];&#10;  $END$&#10;}"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.itar" toReformat="true"
+            toShortenFQNames="true">
+    <variable name="INDEX" expression="haxeSuggestIndexName()" defaultValue="&quot;i&quot;" alwaysStopAt="true"/>
+    <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array&quot;" alwaysStopAt="true"/>
+    <variable name="VAR" expression="haxeSuggestVariableName()" defaultValue="&quot;o&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="HAXE" value="true"/>
+    </context>
+  </template>
+
+  <template name="ritar" value="for ($INDEX$ in $ARRAY$.length...0) {&#10;  var $VAR$ = $ARRAY$[$INDEX$];&#10;  $END$&#10;}"
+            resource-bundle="messages.HaxeBundle" key="livetemplate.description.ritar" toReformat="true"
+            toShortenFQNames="true">
+    <variable name="INDEX" expression="haxeSuggestIndexName()" defaultValue="&quot;i&quot;" alwaysStopAt="true"/>
+    <variable name="ARRAY" expression="haxeArrayVariable()" defaultValue="&quot;array&quot;" alwaysStopAt="true"/>
+    <variable name="VAR" expression="haxeSuggestVariableName()" defaultValue="&quot;o&quot;" alwaysStopAt="true"/>
+    <context>
+      <option name="HAXE" value="true"/>
+    </context>
+  </template>
+
+</templateSet>
+
