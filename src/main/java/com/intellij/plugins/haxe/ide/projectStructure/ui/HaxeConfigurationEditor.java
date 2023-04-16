@@ -122,7 +122,7 @@ public class HaxeConfigurationEditor {
   }
 
   private void addActionListeners() {
-    myMainClassFieldWithButton.getButton().addActionListener(new ActionListener() {
+    myMainClassFieldWithButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         ClassFilter filter = new ClassFilter() {
           @Override
@@ -159,7 +159,7 @@ public class HaxeConfigurationEditor {
       }
     });
 
-    myFolderTextField.getButton().addActionListener(new ActionListener() {
+    myFolderTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final VirtualFile folder =
@@ -237,9 +237,9 @@ public class HaxeConfigurationEditor {
       }
     };
 
-    myHxmlFileChooserTextField.getButton().addActionListener(fileChooserListener);
-    myNMEFileChooserTextField.getButton().addActionListener(fileChooserListener);
-    myOpenFLFileChooserTextField.getButton().addActionListener(fileChooserListener);
+    myHxmlFileChooserTextField.addActionListener(fileChooserListener);
+    myNMEFileChooserTextField.addActionListener(fileChooserListener);
+    myOpenFLFileChooserTextField.addActionListener(fileChooserListener);
 
     myEditMacrosesButton.addActionListener(new ActionListener() {
       @Override

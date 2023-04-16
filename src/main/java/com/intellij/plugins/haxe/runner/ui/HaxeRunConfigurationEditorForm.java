@@ -93,7 +93,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       }
     });
 
-    myPathToFileTextField.getButton().addActionListener(new ActionListener() {
+    myPathToFileTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false);
@@ -115,7 +115,7 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       }
     });
 
-    myExecutableField.getButton().addActionListener(new ActionListener() {
+    myExecutableField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false);

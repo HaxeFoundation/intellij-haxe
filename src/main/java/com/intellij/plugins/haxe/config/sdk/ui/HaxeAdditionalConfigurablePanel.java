@@ -45,7 +45,7 @@ public class HaxeAdditionalConfigurablePanel {
   private JTextArea myNoteWhenUsingCompilerTextArea;
 
   public HaxeAdditionalConfigurablePanel() {
-    myNekoTextField.getButton().addActionListener(new ActionListener() {
+    myNekoTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
@@ -56,7 +56,7 @@ public class HaxeAdditionalConfigurablePanel {
       }
     });
     myNekoLabel.setLabelFor(myNekoTextField.getTextField());
-    myHaxelibTextField.getButton().addActionListener(new ActionListener() {
+    myHaxelibTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
