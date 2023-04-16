@@ -21,6 +21,7 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.fileEditor.impl.LoadTextUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
@@ -161,7 +162,7 @@ public class HaxeCompilerServices {
 
             //Make sure module is Haxe Module
             if (moduleForFile != null
-                && ModuleUtil.getModuleType(moduleForFile).equals(HaxeModuleType.getInstance())) {
+                && ModuleType.get(moduleForFile).equals(HaxeModuleType.getInstance())) {
                 //Get module settings
                 HaxeModuleSettings moduleSettings = HaxeModuleSettings.getInstance(moduleForFile);
                 HaxeConfiguration buildConfig = moduleSettings.getBuildConfiguration();

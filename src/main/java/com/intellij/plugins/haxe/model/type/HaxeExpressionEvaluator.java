@@ -560,7 +560,7 @@ public class HaxeExpressionEvaluator {
       if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
         return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
       } else if (type == HaxeTokenTypes.LITFLOAT) {
-        Float value = new Float(element.getText());
+        Float value = Float.valueOf(element.getText());
         return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText()))
           .withConstantValue(value)
           .createHolder();

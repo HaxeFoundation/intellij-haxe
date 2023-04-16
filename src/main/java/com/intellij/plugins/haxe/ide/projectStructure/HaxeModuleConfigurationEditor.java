@@ -35,7 +35,7 @@ public class HaxeModuleConfigurationEditor implements ModuleConfigurationEditor 
   private HaxeConfigurationEditor haxeConfigurationEditor;
 
   public HaxeModuleConfigurationEditor(ModuleConfigurationState state) {
-    haxeConfigurationEditor = new HaxeConfigurationEditor(state.getRootModel().getModule(), state.getRootModel().getModuleExtension(
+    haxeConfigurationEditor = new HaxeConfigurationEditor(state.getCurrentRootModel().getModule(), state.getCurrentRootModel().getModuleExtension(
       CompilerModuleExtension.class));
   }
 

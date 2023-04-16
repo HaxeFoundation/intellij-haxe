@@ -355,18 +355,18 @@ public class HaxeConditionalExpression {
 
   @NotNull
   private Object constantValue(ASTNode node) throws CalculationException {
-    if (isTrueKeyword(node))        { return new Boolean(true); }
-    if (isFalseKeyword(node))       { return new Boolean(false); }
-    if (isString(node))             { return new String(node.getText()); }
-    if (isNumber(node))             { return new Float(node.getText()); }
+    if (isTrueKeyword(node))        { return Boolean.TRUE; }
+    if (isFalseKeyword(node))       { return Boolean.FALSE; }
+    if (isString(node))             { return node.getText(); }
+    if (isNumber(node))             { return Float.valueOf(node.getText()); }
 
     throw new CalculationException("Unrecognized value token: " + node.toString());
   }
 
   @NotNull
   private Object identifierValue(String s) throws CalculationException {
-    if (KTRUE.toString().equals(s))   { return new Boolean(true); }
-    if (KFALSE.toString().equals(s))  { return new Boolean(false); }
+    if (KTRUE.toString().equals(s))   { return Boolean.TRUE; }
+    if (KFALSE.toString().equals(s))  { return Boolean.FALSE; }
 
     FloatResult result = new FloatResult();
     if (isFloat(s,result))            { return result.result; }
@@ -386,7 +386,7 @@ public class HaxeConditionalExpression {
   @NotNull
   private Object lookupIdentifier(ASTNode identifier) throws CalculationException {
     if (identifier == null) {
-      return new Boolean(false);
+      return Boolean.FALSE;
     }
     if (context == null) {
       return SDK_DEFINES.contains(identifier);
@@ -413,14 +413,14 @@ public class HaxeConditionalExpression {
 
         if (possible.equals(name)) {
           if (null == value) {
-            return new Boolean(true);
+            return Boolean.TRUE;
           } else {
             return identifierValue(value);
           }
         }
       }
     }
-    return new Boolean(false);
+    return Boolean.FALSE;
   }
 
 
@@ -485,7 +485,7 @@ public class HaxeConditionalExpression {
                                      + lhs.toString() + " " + optype.toString() + " " + rhs.toString() + "'.");
     } catch (CompareException e) {
       // parser eval#1625 maps any calculation failures to false.
-      return new Boolean(false);
+      return Boolean.FALSE;
     }
   }
 

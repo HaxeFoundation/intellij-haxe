@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe;
 
+import com.intellij.AbstractBundle;
 import com.intellij.CommonBundle;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NonNls;
@@ -36,7 +37,7 @@ public class HaxeCommonBundle {
   public static final String BUNDLE = "messages.HaxeCommonBundle";
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
-    return CommonBundle.message(getBundle(), key, params);
+    return AbstractBundle.message(getBundle(), key, params);
   }
 
   private static ResourceBundle getBundle() {

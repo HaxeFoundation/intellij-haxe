@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.ide.formatter.settings;
 import com.intellij.lang.Language;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable;
+import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions;
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,11 +92,11 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                    "SPACE_AROUND_UNARY_OPERATOR"
       );
       consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_AROUND_ARROW", "Around ->",
-                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
+                                CodeStyleSettingsCustomizableOptions.getInstance().SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
       consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_BEFORE_TYPE_REFERENCE_COLON", "Space before type reference colon ':'",
-                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
+                                CodeStyleSettingsCustomizableOptions.getInstance().SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
       consumer.showCustomOption(HaxeCodeStyleSettings.class, "SPACE_AFTER_TYPE_REFERENCE_COLON", "Space after type reference colon ':'",
-                                CodeStyleSettingsCustomizable.SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
+                                CodeStyleSettingsCustomizableOptions.getInstance().SPACES_OTHER, CodeStyleSettingsCustomizable.OptionAnchor.NONE);
     }
     else if (settingsType == SettingsType.BLANK_LINES_SETTINGS) {
       consumer.showStandardOptions("KEEP_BLANK_LINES_IN_CODE");

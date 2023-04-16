@@ -174,7 +174,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
     }
     */
 
-    if (!ModuleUtil.getModuleType(module).equals(HaxeModuleType.getInstance())) {
+    if (!ModuleType.get(module).equals(HaxeModuleType.getInstance())) {
       return true;
     }
 

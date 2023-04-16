@@ -32,7 +32,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType;
  */
 public class HaxeModuleConfigurationEditorProvider implements ModuleConfigurationEditorProvider {
   public ModuleConfigurationEditor[] createEditors(final ModuleConfigurationState state) {
-    final Module module = state.getRootModel().getModule();
+    final Module module = state.getCurrentRootModel().getModule();
     if (ModuleType.get(module) != HaxeModuleType.getInstance()) {
       return ModuleConfigurationEditor.EMPTY;
     }
