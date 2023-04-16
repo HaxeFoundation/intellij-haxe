@@ -22,7 +22,7 @@
             </constraints>
             <properties>
               <labelFor value="70531"/>
-              <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.tests.run.module"/>
+              <text resource-bundle="messages/HaxeBundle" key="haxe.tests.run.module"/>
             </properties>
           </component>
           <component id="897c8" class="javax.swing.JComboBox" binding="myComboModules">
@@ -59,7 +59,7 @@
             </constraints>
             <properties>
               <labelFor value="70531"/>
-              <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.tests.run.runner.class"/>
+              <text resource-bundle="messages/HaxeBundle" key="haxe.tests.run.runner.class"/>
             </properties>
           </component>
           <component id="aa2b0" class="javax.swing.JComboBox" binding="myComboRunnerClasses">

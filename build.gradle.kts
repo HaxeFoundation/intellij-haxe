@@ -1,3 +1,4 @@
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
@@ -27,15 +28,37 @@ plugins {
 
 group = properties("pluginGroup").get()
 version = properties("pluginVersion").get()
-
 sourceSets["main"].java.srcDirs("src/main/gen")
 
-dependencies{
+var platformVersion = properties("platformVersion").get();
+
+val ideaBaseDir = "${project.rootDir}/idea-IU"
+val ideaTargetDir = "${ideaBaseDir}/ideaIU-${platformVersion}"
+
+
+dependencies {
     implementation(project(":common"))
     implementation(project(":jps-plugin"))
     implementation(project(":hxcpp-debugger-protocol"))
-}
 
+    val flexShared = "${ideaTargetDir}/config/plugins/flex/lib/flex-shared.jar"
+    val flexSupport = "${ideaTargetDir}/config/plugins/flex/lib/FlexSupport.jar"
+
+    compileOnly(files(flexShared))
+    compileOnly(files(flexSupport))
+    compileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
+    compileOnly(files("${ideaTargetDir}/lib/util.jar"))
+
+    testCompileOnly(project(":jps-plugin"))
+    testCompileOnly(project(":common"))
+    testCompileOnly(project(":hxcpp-debugger-protocol"))
+
+    testCompileOnly(files(flexShared))
+    testCompileOnly(files(flexSupport))
+    testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
+    testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
+
+}
 
 
 allprojects {
@@ -61,6 +84,9 @@ allprojects {
         version.set(properties("platformVersion"))
         type.set(properties("platformType"))
 
+        ideaDependencyCachePath.set("${project.rootDir}/idea-IU")
+        sandboxDir.set("${project.rootDir}/build/idea-sandbox")
+
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
         plugins.set(properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) })
     }
@@ -68,21 +94,20 @@ allprojects {
 }
 
 subprojects {
-
-    tasks{
-        runIde{isEnabled  = false}
-        patchPluginXml{isEnabled = false}
-        verifyPlugin{isEnabled = false}
-        prepareSandbox{isEnabled = false}
-        buildSearchableOptions{isEnabled = false}
+    tasks {
+        runIde { isEnabled = false }
+        patchPluginXml { isEnabled = false }
+        verifyPlugin { isEnabled = false }
+        prepareSandbox { isEnabled = false }
+        buildSearchableOptions { isEnabled = false }
     }
-
 }
 
 
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
     groups.empty()
+    headerParserRegex.set("\\d+\\.\\d+(\\.\\d+)*(.*)") // old version names does not conform to standard
     repositoryUrl.set(properties("pluginRepositoryUrl"))
 }
 
@@ -92,7 +117,7 @@ tasks {
         gradleVersion = properties("gradleVersion").get()
     }
 
-    buildPlugin{
+    buildPlugin {
         dependsOn(generateParser, generateLexer)
     }
 
@@ -101,20 +126,37 @@ tasks {
         sinceBuild.set(properties("pluginSinceBuild"))
         untilBuild.set(properties("pluginUntilBuild"))
 
+        pluginXmlFiles.set(listOf(
+                file("src/main/resources/META-INF/plugin.xml"),
+                file("src/main/resources/META-INF/debugger-support.xml"),
+                file("src/main/resources/META-INF/flex-debugger-support.xml")
+        ))
 
-//        val changelog = project.changelog // local variable for configuration cache compatibility
-//        // Get the latest available change notes from the changelog file
-//        changeNotes.set(properties("pluginVersion").map {
-//            pluginVersion ->
-//            with(changelog) {
-//                renderItem(
-//                        (getOrNull(pluginVersion) ?: getUnreleased())
-//                                .withHeader(false)
-//                                .withEmptySections(false),
-//                        Changelog.OutputType.HTML,
-//                )
-//            }
-//        })
+        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
+        pluginDescription.set(providers.fileContents(layout.projectDirectory.file("DESCRIPTION.md")).asText.map {
+            val start = "<!-- Plugin description -->"
+            val end = "<!-- Plugin description end -->"
+
+            with(it.lines()) {
+                if (!containsAll(listOf(start, end))) {
+                    throw GradleException("Plugin description section not found in DESCRIPTION.md:\n$start ... $end")
+                }
+                subList(indexOf(start) + 1, indexOf(end)).joinToString("\n").let(::markdownToHTML)
+            }
+        })
+
+        val changelog = project.changelog // local variable for configuration cache compatibility
+        // Get the latest available change notes from the changelog file
+        changeNotes.set(properties("pluginVersion").map { pluginVersion ->
+            with(changelog) {
+                renderItem(
+                        (getOrNull(pluginVersion) ?: getUnreleased())
+                                .withHeader(true)
+                                .withEmptySections(false),
+                        Changelog.OutputType.HTML,
+                )
+            }
+        })
     }
 
     // Configure UI tests plugin
@@ -145,19 +187,24 @@ tasks {
         dependsOn("cleanGenerated")
     }
 
-    build{
+    compileJava {
+        dependsOn("generateParser")
+        dependsOn("generateLexer")
+    }
+
+    processResources {
         dependsOn("generateParser")
         dependsOn("generateLexer")
     }
 
 
-    generateParser{
-      dependsOn("generateHaxeParser")
-      dependsOn("generateMetadataParser")
-      dependsOn("generateHxmlParser")
+    generateParser {
+        dependsOn("generateHaxeParser")
+        dependsOn("generateMetadataParser")
+        dependsOn("generateHxmlParser")
         enabled = false
     }
-    generateLexer{
+    generateLexer {
         dependsOn("generateHaxeLexer")
         dependsOn("generateMetadataLexer")
         dependsOn("generateHxmlLexer")
@@ -165,12 +212,44 @@ tasks {
     }
 
     processResources {
-        from ("src") {
+        from("src") {
             include("**/*.properties")
         }
     }
 
+    jar {
+        finalizedBy("copyJar")
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+        archiveBaseName.set("intellij-haxe")
+        includeEmptyDirs = false;
+
+        include("**/*").includeEmptyDirs = false
+        // include submodules
+        from(project(":jps-plugin").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
+        from(project(":common").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
+        from(project(":hxcpp-debugger-protocol").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
+
+        val type = properties("platformType").get();
+        val version = properties("platformVersion").get();
+        val pluginDir = "${project.rootDir}/idea-${type}/idea${type}-${version}/lib/forms_rt.jar"
+        from(zipTree(pluginDir)).include("com/intellij/uiDesigner/core/*.class")
+
+    }
+
+
 }
+
+
+tasks.create<Copy>("copyJar") {
+
+        val jarName = "intellij-haxe-" + properties("platformVersion").get() + ".jar"
+        val jarTask = tasks.getByName("jar") as Jar
+        from("${project.rootDir}/build/libs/").include(jarTask.archiveFileName.get())
+        into("${project.rootDir}")
+        rename({ jarName })
+}
+
 
 tasks.create<Delete>("cleanGenerated") {
     group = "grammarkit"

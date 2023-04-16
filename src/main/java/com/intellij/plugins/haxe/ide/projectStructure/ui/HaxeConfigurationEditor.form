@@ -42,7 +42,7 @@
                       <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.configuration.use.hxml.to.build"/>
+                      <text resource-bundle="messages/HaxeBundle" key="haxe.configuration.use.hxml.to.build"/>
                     </properties>
                   </component>
                   <component id="2d99c" class="com.intellij.ui.components.JBRadioButton" binding="myNmmlFileRadioButton">
@@ -50,7 +50,7 @@
                       <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.configuration.use.nmml.to.build"/>
+                      <text resource-bundle="messages/HaxeBundle" key="haxe.configuration.use.nmml.to.build"/>
                     </properties>
                   </component>
                   <component id="2b27c" class="com.intellij.ui.components.JBRadioButton" binding="myUserPropertiesRadioButton">
@@ -58,7 +58,7 @@
                       <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.configuration.use.custon.properties"/>
+                      <text resource-bundle="messages/HaxeBundle" key="haxe.configuration.use.custon.properties"/>
                     </properties>
                   </component>
                   <hspacer id="98086">
@@ -71,7 +71,7 @@
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.compile.with"/>
+                      <text resource-bundle="messages/HaxeBundle" key="haxe.compile.with"/>
                     </properties>
                   </component>
                   <component id="d2fc1" class="com.intellij.ui.components.JBRadioButton" binding="myOpenFLFileRadioButton">
@@ -115,7 +115,7 @@
                         </constraints>
                         <properties>
                           <labelFor value="d2ab2"/>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.target"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.run.target"/>
                         </properties>
                       </component>
                       <hspacer id="64e9">
@@ -128,7 +128,7 @@
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.conditional.compilation.setting"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.conditional.compilation.setting"/>
                         </properties>
                       </component>
                       <component id="876a3" class="javax.swing.JTextField" binding="myDefinedMacroses">
@@ -146,7 +146,7 @@
                           <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.settings.edit"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.settings.edit"/>
                         </properties>
                       </component>
                       <hspacer id="931b8">
@@ -171,7 +171,7 @@
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.exclude.compile"/>
+                      <text resource-bundle="messages/HaxeBundle" key="haxe.run.exclude.compile"/>
                     </properties>
                   </component>
                   <grid id="a9131" binding="myAdditionalComponentPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
@@ -190,8 +190,8 @@
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
-                      <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="module.settings.synchronize.dependencies.title"/>
-                      <toolTipText resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="module.settings.synchronize.dependencies"/>
+                      <text resource-bundle="messages/HaxeBundle" key="module.settings.synchronize.dependencies.title"/>
+                      <toolTipText resource-bundle="messages/HaxeBundle" key="module.settings.synchronize.dependencies"/>
                     </properties>
                   </component>
                 </children>
@@ -223,7 +223,7 @@
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.configuration.nmml.file"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.configuration.nmml.file"/>
                         </properties>
                       </component>
                       <component id="1ffa9" class="javax.swing.JLabel">
@@ -231,7 +231,7 @@
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.nme.arguments"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.nme.arguments"/>
                         </properties>
                       </component>
                       <component id="479f8" class="com.intellij.ui.RawCommandLineEditor" binding="myNMEArguments">
@@ -255,7 +255,7 @@
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.configuration.hxml.file"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.configuration.hxml.file"/>
                         </properties>
                       </component>
                       <component id="a0b9c" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myHxmlFileChooserTextField">
@@ -279,7 +279,7 @@
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.openfl.arguments"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.openfl.arguments"/>
                         </properties>
                       </component>
                       <component id="39470" class="com.intellij.ui.RawCommandLineEditor" binding="myOpenFLArgumentTextField">
@@ -293,7 +293,7 @@
                           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.openfl.xmlproject"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.openfl.xmlproject"/>
                         </properties>
                       </component>
                       <component id="f6736" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myOpenFLFileChooserTextField">
@@ -327,7 +327,7 @@
                           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.main.class"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.main.class"/>
                         </properties>
                       </component>
                       <component id="83d52" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myMainClassFieldWithButton">
@@ -342,7 +342,7 @@
                         </constraints>
                         <properties>
                           <labelFor value="29145"/>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.output.file.name"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.output.file.name"/>
                         </properties>
                       </component>
                       <component id="29145" class="javax.swing.JTextField" binding="myOutputFileNameTextField">
@@ -363,7 +363,7 @@
                           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.output.folder"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.output.folder"/>
                         </properties>
                       </component>
                       <component id="e22c3" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="myFolderTextField">
@@ -377,7 +377,7 @@
                           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
-                          <text resource-bundle="com/intellij/plugins/haxe/HaxeBundle" key="haxe.run.parameters"/>
+                          <text resource-bundle="messages/HaxeBundle" key="haxe.run.parameters"/>
                         </properties>
                       </component>
                       <component id="eeeaf" class="com.intellij.ui.RawCommandLineEditor" binding="myAppArguments">
