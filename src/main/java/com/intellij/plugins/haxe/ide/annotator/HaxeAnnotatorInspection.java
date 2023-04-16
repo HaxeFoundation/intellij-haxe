@@ -37,7 +37,7 @@ import org.jetbrains.annotations.*;
 public class HaxeAnnotatorInspection extends LocalInspectionTool implements UnfairLocalInspectionTool {
 
   @NonNls
-  public static final String HAXE_BUNDLE = "com.intellij.plugins.haxe.HaxeBundle";
+  public static final String HAXE_BUNDLE = "messages.HaxeBundle";
 
   protected final HighlightDisplayKey inspectionToolKey;
   protected final String shortName;

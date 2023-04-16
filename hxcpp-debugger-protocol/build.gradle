@@ -30,7 +30,7 @@ ext.hxcppSrcFolder = "src/main/haxe"
 sourceSets.main.java.srcDirs = ["$hxcppGeneratedFolder" ]
 
 // helping intellij detecting source directories
-idea.module { generatedSourceDirs += file('src/gen/java') }
+idea.module { generatedSourceDirs += file('src/gen/src') }
 idea.module { sourceDirs += file('src/main/fallback') }
 idea.module { sourceDirs += file('src/main/java') }
 
@@ -117,7 +117,7 @@ private String getHaxeVersion() {
 
 private void configureGenerated() {
     ext.generateHxcppDebugger = true
-    ext.hxcppGeneratedFolder = 'src/main/gen/java'
+    ext.hxcppGeneratedFolder = 'src/gen/src'
 }
 
 private void configureFallback() {

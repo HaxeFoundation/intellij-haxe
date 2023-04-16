@@ -23,7 +23,7 @@ plugins {
     id "org.jetbrains.grammarkit" version "2022.3.1"
     id "com.asarkar.gradle.build-time-tracker" version "2.0.4"
     id 'com.adarshr.test-logger' version '3.2.0'
-    id 'io.freefair.lombok'  version '6.3.0'
+    id 'io.freefair.lombok'  version '8.0.1'
 }
 
 import org.jetbrains.intellij.DependenciesUtils

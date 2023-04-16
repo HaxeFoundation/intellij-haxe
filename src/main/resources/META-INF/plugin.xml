@@ -1111,7 +1111,7 @@
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          parentId="build"
                          id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
-                         key="haxe.settings.name" bundle="com.intellij.plugins.haxe.HaxeBundle"
+                         key="haxe.settings.name" bundle="messages.HaxeBundle"
                          nonDefaultProject="true" />
 
     <importFilteringRule implementation="com.intellij.plugins.haxe.ide.HaxeImportFilteringRule"/>
@@ -1127,38 +1127,38 @@
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
 
 <!--
-    <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="messages.HaxeBundle"
                      groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
                      key="haxe.inspections.semantic.annotator.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator$SemanticAnnotator"/>
 
-    <localInspection language="Haxe" bundle="com.intellij.plugins.haxe.HaxeBundle" enabledByDefault="true"
+    <localInspection language="Haxe" bundle="messages.HaxeBundle" enabledByDefault="true"
                      groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
                      key="haxe.inspections.incompatible.type.checks.name"
                      shortName="IncompatibleTypeChecks"
                      implementationClass="com.intellij.plugins.haxe.ide.annotator.TypeCheckExpressionChecker$IncompatibleTypeChecks"/>
 -->
 
-    <localInspection language="XML" shortName="NMEBuildDirectory" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="XML" shortName="NMEBuildDirectory" bundle="messages.HaxeBundle"
                      key="haxe.inspections.nme.build.directory" groupKey="haxe.inspections.group.name" enabledByDefault="true"
                      level="WARNING" implementationClass="com.intellij.plugins.haxe.codeInspection.NMEBuildDirectoryInspection"/>
 
-    <localInspection language="Haxe" shortName="HaxeUnusedImport" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="Haxe" shortName="HaxeUnusedImport" bundle="messages.HaxeBundle"
                      key="haxe.inspection.unused.import.name"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
 
-    <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.unresolved.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection"/>
 
-    <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="Haxe" shortName="HaxeDeprecatedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.deprecated.symbol"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeDeprecatedInspection"/>
 
-    <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="com.intellij.plugins.haxe.HaxeBundle"
+    <localInspection language="Haxe" shortName="HaxePreprocessorInspection" bundle="messages.HaxeBundle"
                      key="haxe.inspection.preprocessor.symbol.name"
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxePreprocessorInspection"/>

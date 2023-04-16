@@ -29,7 +29,7 @@ public class HaxeBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   @NonNls
-  private static final String BUNDLE = "com.intellij.plugins.haxe.HaxeBundle";
+  private static final String BUNDLE = "messages.HaxeBundle";
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
     return CommonBundle.message(getBundle(), key, params);
