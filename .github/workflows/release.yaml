@@ -91,13 +91,13 @@ jobs:
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
       - name: Build with Gradle
-        run: ./gradlew clean build  verifyPlugin -PtargetVersion="${{ matrix.IDEA_VERSION }}" -x test
+        run: ./gradlew clean test buildPlugin verifyPlugin
 
 
       - name: Find assets
         id: find_assets
         run: |
-          ARTIFACT_PATHNAME=$(ls *.jar | head -n 1)
+          ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
           ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
           echo name=artifact_name::${ARTIFACT_NAME} >> $GITHUB_OUTPUT
           echo name=artifact_pathname::${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT

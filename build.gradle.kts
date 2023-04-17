@@ -1,4 +1,3 @@
-import org.gradle.jvm.tasks.Jar
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
@@ -25,7 +24,7 @@ plugins {
     // generate parser and lexer
     id("org.jetbrains.grammarkit") version "2022.3.1"
 
-    id ("com.adarshr.test-logger")  version "3.2.0"
+    id("com.adarshr.test-logger") version "3.2.0"
 }
 
 group = properties("pluginGroup").get()
@@ -102,6 +101,7 @@ subprojects {
     tasks {
         runIde { isEnabled = false }
         patchPluginXml { isEnabled = false }
+        buildPlugin { isEnabled = false }
         verifyPlugin { isEnabled = false }
         prepareSandbox { isEnabled = false }
         buildSearchableOptions { isEnabled = false }
@@ -222,60 +222,47 @@ tasks {
         }
     }
 
-    jar {
-//        finalizedBy("copyJar")
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-        archiveBaseName.set("intellij-haxe")
-        includeEmptyDirs = false;
+    buildPlugin {
+        val oldName = archiveBaseName.get() + "-" + archiveVersion.get() + ".zip"
+        val newName = "intellij-haxe-" + properties("platformVersion").get() + ".zip"
 
-        include("**/*").includeEmptyDirs = false
-        // include submodules
-        from(project(":jps-plugin").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
-        from(project(":common").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
-        from(project(":hxcpp-debugger-protocol").sourceSets["main"].output).include("**/*").includeEmptyDirs = false
-
-        val type = properties("platformType").get();
-        val version = properties("platformVersion").get();
-        val pluginDir = "${project.rootDir}/idea/idea${type}-${version}/lib/forms_rt.jar"
-        from(zipTree(pluginDir)).include("com/intellij/uiDesigner/core/*.class")
-
+        outputs.upToDateWhen {
+            file("${project.rootDir}/" + newName).exists()
+        }
+        doLast {
+            copy {
+                from("${project.rootDir}/build/distributions/").include(oldName)
+                into("${project.rootDir}/")
+                rename({ newName })
+            }
+        }
     }
-    instrumentedJar {
-        finalizedBy("copyJar")
-    }
+
+
 }
 
 
-tasks.create<Copy>("copyJar") {
-        val jarName = "intellij-haxe-" + properties("platformVersion").get() + ".jar"
-        val jarTask = tasks.getByName("instrumentedJar") as Jar
-        from("${project.rootDir}/build/libs/").include(jarTask.archiveFileName.get())
-        into("${project.rootDir}")
-        rename({ jarName })
-}
-
-
-tasks.create<Delete>("cleanGenerated") {
+tasks.register<Delete>("cleanGenerated") {
     group = "grammarkit"
     delete = setOf("src/main/gen/")
 }
 
-tasks.create<GenerateParserTask>("generateHaxeParser") {
+tasks.register<GenerateParserTask>("generateHaxeParser") {
     group = "parsers"
     targetRoot.set("src/main/gen")
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/parser/haxe.bnf"))
     pathToParser.set("com/intellij/plugins/haxe/lang/parser/HaxeParser.java")
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
 }
-tasks.create<GenerateLexerTask>("generateHaxeLexer") {
+tasks.register<GenerateLexerTask>("generateHaxeLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/lexer/haxe.flex"))
     targetDir.set("src/main/gen/com/intellij/plugins/haxe/lang/lexer")
     targetClass.set("HaxeLexer")
 }
 
-tasks.create<GenerateParserTask>("generateMetadataParser") {
+tasks.register<GenerateParserTask>("generateMetadataParser") {
     group = "parsers"
     targetRoot.set("src/main/gen")
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/parser/metadata.bnf"))
@@ -284,7 +271,7 @@ tasks.create<GenerateParserTask>("generateMetadataParser") {
 
 }
 
-tasks.create<GenerateLexerTask>("generateMetadataLexer") {
+tasks.register<GenerateLexerTask>("generateMetadataLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
     targetDir.set("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/")
@@ -292,7 +279,7 @@ tasks.create<GenerateLexerTask>("generateMetadataLexer") {
 }
 
 
-tasks.create<GenerateParserTask>("generateHxmlParser") {
+tasks.register<GenerateParserTask>("generateHxmlParser") {
     group = "parsers"
     targetRoot.set("src/main/gen")
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/hxml/parser/hxml.bnf"))
@@ -300,7 +287,7 @@ tasks.create<GenerateParserTask>("generateHxmlParser") {
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
 }
 
-tasks.create<GenerateLexerTask>("generateHxmlLexer") {
+tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/hxml/lexer/hxml.flex"))
     targetDir.set("src/main/gen/com/intellij/plugins/haxe/hxml/lexer")
