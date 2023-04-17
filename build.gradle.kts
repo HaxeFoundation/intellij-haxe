@@ -24,6 +24,8 @@ plugins {
     id("io.freefair.lombok") version "8.0.1"
     // generate parser and lexer
     id("org.jetbrains.grammarkit") version "2022.3.1"
+
+    id ("com.adarshr.test-logger")  version "3.2.0"
 }
 
 group = properties("pluginGroup").get()

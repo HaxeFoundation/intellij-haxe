@@ -1,18 +1,12 @@
-out/
 .DS_Store
 .idea/
-.iml
-.project
 .gradle/
-dependencies/downloads/
-dependencies/tools/
-idea-IU
-/idea-IU*
+/idea/
 /build/
 */build/
-/build_test/
+*/gen/
+.iml
+.project
 local-build-overrides.xml
 intellij-haxe*.jar
-/gen/
-/genTest/
 
