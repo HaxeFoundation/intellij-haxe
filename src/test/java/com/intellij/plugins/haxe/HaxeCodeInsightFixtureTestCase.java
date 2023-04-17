@@ -17,7 +17,7 @@
  */
 package com.intellij.plugins.haxe;
 
-import com.intellij.codeInsight.daemon.impl.DefaultHighlightVisitorBasedInspection;
+import com.intellij.codeInsight.daemon.impl.HighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.application.PathManager;
 import com.intellij.openapi.module.Module;
@@ -160,7 +160,10 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
    * @return - An annotator-based inspection class instance.
    */
   protected InspectionProfileEntry getAnnotatorBasedInspection() {
-    return new DefaultHighlightVisitorBasedInspection.AnnotatorBasedInspection();
+    HighlightVisitorBasedInspection inspection = new HighlightVisitorBasedInspection();
+    inspection.setHighlightErrorElements(false);
+    inspection.setRunAnnotators(true);
+    return inspection;
   }
 
   public void setTestStyleSettings() {
