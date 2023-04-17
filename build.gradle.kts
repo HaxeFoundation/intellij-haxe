@@ -31,9 +31,10 @@ version = properties("pluginVersion").get()
 sourceSets["main"].java.srcDirs("src/main/gen")
 
 var platformVersion = properties("platformVersion").get();
+var platformType = properties("platformType").get();
 
-val ideaBaseDir = "${project.rootDir}/idea-IU"
-val ideaTargetDir = "${ideaBaseDir}/ideaIU-${platformVersion}"
+val ideaBaseDir = "${project.rootDir}/idea"
+val ideaTargetDir = "${ideaBaseDir}/idea${platformType}-${platformVersion}"
 
 
 dependencies {
@@ -86,7 +87,7 @@ allprojects {
         version.set(properties("platformVersion"))
         type.set(properties("platformType"))
 
-        ideaDependencyCachePath.set("${project.rootDir}/idea-IU")
+        ideaDependencyCachePath.set("${project.rootDir}/idea")
         sandboxDir.set("${project.rootDir}/build/idea-sandbox")
 
         // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
@@ -234,7 +235,7 @@ tasks {
 
         val type = properties("platformType").get();
         val version = properties("platformVersion").get();
-        val pluginDir = "${project.rootDir}/idea-${type}/idea${type}-${version}/lib/forms_rt.jar"
+        val pluginDir = "${project.rootDir}/idea/idea${type}-${version}/lib/forms_rt.jar"
         from(zipTree(pluginDir)).include("com/intellij/uiDesigner/core/*.class")
 
     }
