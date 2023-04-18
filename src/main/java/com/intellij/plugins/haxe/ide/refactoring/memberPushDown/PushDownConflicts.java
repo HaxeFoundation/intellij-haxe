@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.memberPushDown;
 
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.InheritanceUtil;
@@ -137,7 +138,7 @@ public class PushDownConflicts {
       final PsiField field = targetClass.findFieldByName(name, false);
       if (field != null) {
         String message = RefactoringBundle.message("0.already.contains.field.1", RefactoringUIUtil.getDescription(targetClass, false), CommonRefactoringUtil.htmlEmphasize(name));
-        myConflicts.putValue(field, CommonRefactoringUtil.capitalize(message));
+        myConflicts.putValue(field, StringUtil.capitalize(message));
       }
     }
     else if (movedMember instanceof PsiMethod) {
@@ -183,7 +184,7 @@ public class PushDownConflicts {
       if(myMovedMembers.contains(classMember) && !myAbstractMembers.contains(classMember)) {
         String message = RefactoringBundle.message("0.uses.1.which.is.pushed.down", RefactoringUIUtil.getDescription(mySource, false),
                                                    RefactoringUIUtil.getDescription(classMember, false));
-        message = CommonRefactoringUtil.capitalize(message);
+        message = StringUtil.capitalize(message);
         myConflicts.putValue(mySource, message);
       }
     }
