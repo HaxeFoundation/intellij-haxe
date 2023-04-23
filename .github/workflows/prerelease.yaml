@@ -85,25 +85,12 @@ jobs:
         run: ./gradlew clean test buildPlugin verifyPlugin
 
 
-      - name: Find assets
-        id: find_assets
-        run: |
-          ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
-          ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
-          echo name=artifact_name::${ARTIFACT_NAME} >> $GITHUB_OUTPUT
-          echo name=artifact_pathname::${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT
-
-
-      - name: Upload Asset
-        id: upload-asset
-        uses: actions/upload-release-asset@v1
+      # Upload artifact as a release asset
+      - name: Upload Release Asset
+        if: ${{ inputs.tagName || github.event.release.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ${{ steps.find_assets.outputs.artifact_pathname }}
-          asset_name: intellij-haxe-${{ matrix.IDEA_VERSION }}-beta.jar
-          asset_content_type: application/java-archive
+        run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
 
   finish:
     name: publish Pre-release
