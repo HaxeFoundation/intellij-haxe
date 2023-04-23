@@ -3,8 +3,10 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericParam;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -23,10 +25,8 @@ public class HaxeTypeAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (element.getLanguage() == HaxeLanguage.INSTANCE) {
-      if (element instanceof HaxeType haxeType) {
-        check(haxeType, holder);
-      }
+    if (element instanceof HaxeType haxeType) {
+      check(haxeType, holder);
     }
   }
 
@@ -44,14 +44,14 @@ public class HaxeTypeAnnotator implements Annotator {
       holder.newAnnotation(HighlightSeverity.ERROR, "Type name must start by upper case")
         .range(identifier)
         .withFix(new HaxeFixer("Change name") {
-        @Override
-        public void run() {
-          HaxeDocumentModel.fromElement(identifier).replaceElementText(
-            identifier,
-            typeName.substring(0, 1).toUpperCase() + typeName.substring(1)
-          );
-        }
-      }).create();
+          @Override
+          public void run() {
+            HaxeDocumentModel.fromElement(identifier).replaceElementText(
+              identifier,
+              typeName.substring(0, 1).toUpperCase() + typeName.substring(1)
+            );
+          }
+        }).create();
     }
   }
 

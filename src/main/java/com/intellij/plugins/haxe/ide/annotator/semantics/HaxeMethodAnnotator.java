@@ -32,11 +32,9 @@ public class HaxeMethodAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (element.getLanguage() == HaxeLanguage.INSTANCE) {
       if (element instanceof HaxeMethod haxeMethod) {
         check(haxeMethod, holder);
       }
-    }
   }
   static public void check(final HaxeMethod methodPsi, final AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();

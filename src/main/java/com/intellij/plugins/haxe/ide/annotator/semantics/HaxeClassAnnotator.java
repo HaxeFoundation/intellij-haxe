@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -40,7 +39,7 @@ public class HaxeClassAnnotator implements Annotator {
   static public void check(final HaxeClass clazzPsi, final AnnotationHolder holder) {
 
     HaxeClassModel clazz = clazzPsi.getModel();
-    if(clazzPsi instanceof HaxeAnonymousType && clazz.getParentClass() != null){
+    if (clazzPsi instanceof HaxeAnonymousType && clazz.getParentClass() != null) {
       // avoiding unnecessary extra annotations when  HaxeAnonymousType is part of other non-anonymous types like typedefs etc.
       return;
     }
@@ -140,7 +139,8 @@ public class HaxeClassAnnotator implements Annotator {
       if (isAnonymousType(clazz)) {
         if (!isAnonymousType(reference)) {
           // @TODO: Move to bundle
-          holder.newAnnotation(HighlightSeverity.ERROR, "Not an anonymous type").range(clazz.haxeClass.getHaxeExtendsList().get(0)).create();
+          holder.newAnnotation(HighlightSeverity.ERROR, "Not an anonymous type").range(clazz.haxeClass.getHaxeExtendsList().get(0))
+            .create();
         }
       }
       else if (clazz.isInterface()) {
@@ -281,12 +281,11 @@ public class HaxeClassAnnotator implements Annotator {
 
                 if (intSetter != null && setter != null) {
                   if (!intSetter.getText().equals(setter.getText())) {
-                    holder.newAnnotation(HighlightSeverity.ERROR,"Field " + fieldDeclaration.getName()
-                                                                 + " has different property access than in  "
-                                                                 + intReference.getHaxeClass().getName())
+                    holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
+                                                                  + " has different property access than in  "
+                                                                  + intReference.getHaxeClass().getName())
                       .range(setter.getElement())
                       .create();
-
                   }
                 }
               }

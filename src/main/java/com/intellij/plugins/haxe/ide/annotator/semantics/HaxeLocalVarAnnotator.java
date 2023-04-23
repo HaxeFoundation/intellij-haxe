@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
 import com.intellij.plugins.haxe.model.HaxeLocalVarModel;
 import com.intellij.psi.PsiElement;
@@ -14,10 +13,8 @@ public class HaxeLocalVarAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (element.getLanguage() == HaxeLanguage.INSTANCE) {
-      if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
-        check(varDeclaration, holder);
-      }
+    if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
+      check(varDeclaration, holder);
     }
   }
 

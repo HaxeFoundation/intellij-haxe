@@ -20,7 +20,6 @@
 package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -39,6 +38,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaToken;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +52,8 @@ import java.util.Set;
 public class HaxeColorAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
+    if (node instanceof PsiWhiteSpace) return;
+
     if (isNewOperator(node) || isIsOperator(node)) {
       colorizeKeyword(holder, node);
       return;
@@ -93,15 +95,18 @@ public class HaxeColorAnnotator implements Annotator {
       if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
         //annotateCompilationExpression(node, holder);
         //FIXME Temporary override:
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR).create();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR)
+          .create();
         return;
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
+          .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
         return;
       }
       if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node).textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
+        holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node)
+          .textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
       }
     }
   }
@@ -114,24 +119,23 @@ public class HaxeColorAnnotator implements Annotator {
       final int offset = pair.getSecond();
       final int absoluteOffset = node.getTextOffset() + offset;
       final TextRange range = new TextRange(absoluteOffset, absoluteOffset + word.length());
-      
+
       //final Annotation annotation = holder.createInfoAnnotation(range, null);
       final String attributeName = definitions.contains(word) ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
                                                               : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
       //annotation.setTextAttributes(TextAttributesKey.find(attributeName));
       //annotation.registerFix(new HaxeDefineIntention(word, definitions.contains(word)), range);
-      
-       holder.newAnnotation(HighlightSeverity.INFORMATION, "")
-         .textAttributes(TextAttributesKey.find(attributeName))
-         .withFix(new HaxeDefineIntention(word, definitions.contains(word)))
-         .range(range)
-         .create();
+
+      holder.newAnnotation(HighlightSeverity.INFORMATION, "")
+        .textAttributes(TextAttributesKey.find(attributeName))
+        .withFix(new HaxeDefineIntention(word, definitions.contains(word)))
+        .range(range)
+        .create();
     }
   }
 
   public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
     TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-    //holder.createInfoAnnotation(element, null).setTextAttributes(attributesKey);
     holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attributesKey).create();
   }
 
@@ -146,7 +150,8 @@ public class HaxeColorAnnotator implements Annotator {
            element.getParent() instanceof HaxeIsTypeExpression;
   }
 
-  /** Checks for keywords that are NOT PsiStatements; those are handled by IDEA.
+  /**
+   * Checks for keywords that are NOT PsiStatements; those are handled by IDEA.
    */
   private static boolean isKeyword(PsiElement element) {
     boolean isKeyword = false;
@@ -155,7 +160,8 @@ public class HaxeColorAnnotator implements Annotator {
     if (element instanceof PsiJavaToken) {
       if (parent instanceof HaxeForStatement) {
         isKeyword = "in".equals(element.getText());
-      } else if (parent instanceof HaxeImportStatement && ((HaxeImportStatement)parent).getAlias() != null) {
+      }
+      else if (parent instanceof HaxeImportStatement && ((HaxeImportStatement)parent).getAlias() != null) {
         String elementText = element.getText();
         isKeyword = "in".equals(elementText) || "as".equals(elementText);
       }

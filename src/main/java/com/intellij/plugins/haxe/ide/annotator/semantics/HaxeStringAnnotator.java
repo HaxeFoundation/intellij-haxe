@@ -5,7 +5,6 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.psi.PsiElement;
@@ -26,10 +25,8 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (element.getLanguage() == HaxeLanguage.INSTANCE) {
-      if (element instanceof HaxeStringLiteralExpression stringLiteral) {
-        check(stringLiteral, holder);
-      }
+    if (element instanceof HaxeStringLiteralExpression stringLiteral) {
+      check(stringLiteral, holder);
     }
   }
 

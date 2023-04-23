@@ -46,6 +46,7 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (element instanceof HaxeType || element instanceof HaxeReferenceExpression) {
       assert myHolder == null;
       try {
         myHolder = holder;
@@ -54,6 +55,7 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
       finally {
         myHolder = null;
       }
+    }
   }
 
   @Override
@@ -90,6 +92,7 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
       }
     }
   }
+
   private static class AnnotatorTracker extends Key<HighlightSeverity> {
     public AnnotatorTracker(@NonNls @NotNull String name) {
       super(name);

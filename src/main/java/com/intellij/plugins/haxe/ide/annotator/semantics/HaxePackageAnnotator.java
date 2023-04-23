@@ -5,7 +5,6 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
@@ -29,10 +28,8 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspe
 public class HaxePackageAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    if (element.getLanguage() == HaxeLanguage.INSTANCE) {
-      if (element instanceof HaxePackageStatement packageStatement) {
-        check(packageStatement, holder);
-      }
+    if (element instanceof HaxePackageStatement packageStatement) {
+      check(packageStatement, holder);
     }
   }
 
