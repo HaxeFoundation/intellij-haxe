@@ -76,7 +76,7 @@ public class HaxeColorAnnotator implements Annotator {
           element = ((HaxeReference)node).getReferenceNameElement();
           if (element != null) node = element;
         }
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "").textAttributes(attribute).create();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(attribute).create();
         //holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
         return;
       }
@@ -93,18 +93,15 @@ public class HaxeColorAnnotator implements Annotator {
       if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
         //annotateCompilationExpression(node, holder);
         //FIXME Temporary override:
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "").textAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR).create();
-        //holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR).create();
         return;
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "").textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
-        //holder.createInfoAnnotation(node, null).setTextAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED);
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
         return;
       }
       if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
-        //holder.createInfoAnnotation(node, "Unparseable data").setTextAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA);
+        holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node).textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
       }
     }
   }
@@ -135,7 +132,7 @@ public class HaxeColorAnnotator implements Annotator {
   public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
     TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
     //holder.createInfoAnnotation(element, null).setTextAttributes(attributesKey);
-    holder.newAnnotation(HighlightSeverity.INFORMATION, "").textAttributes(attributesKey).create();
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attributesKey).create();
   }
 
   private static boolean isNewOperator(PsiElement element) {
@@ -179,7 +176,7 @@ public class HaxeColorAnnotator implements Annotator {
       final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
       if (attribute != null) {
         //holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "").textAttributes(attribute).create();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
       }
       return true;
     }

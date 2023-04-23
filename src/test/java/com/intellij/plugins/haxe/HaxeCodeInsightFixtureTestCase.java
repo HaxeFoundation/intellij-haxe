@@ -20,6 +20,9 @@ package com.intellij.plugins.haxe;
 import com.intellij.codeInsight.daemon.impl.HighlightVisitorBasedInspection;
 import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.openapi.application.PathManager;
+import com.intellij.openapi.diagnostic.DefaultLogger;
+import com.intellij.openapi.diagnostic.LogLevel;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
@@ -37,6 +40,7 @@ import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,6 +57,12 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
   protected HaxeCodeInsightFixtureTestCase() {
     super();
+    Logger.setUnitTestMode();
+    Logger.setFactory(category -> {
+      DefaultLogger logger = new DefaultLogger(category);
+      logger.setLevel(LogLevel.DEBUG);
+      return logger;
+    });
     //HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
   }
 

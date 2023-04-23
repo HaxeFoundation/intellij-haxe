@@ -34,8 +34,8 @@ class IsOperator extends Base {
         // Incorrect uses before 4.2, acceptable in 4.2
 #if (true || haxe_ver >= 4.1)
         var associativityTest = "test" + <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">"this" is String</error>; // 4.1: characters 49-51 : Missing ;
-        var singleExpression <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">=  myString</error> is String; // 4.1: characters 42-44 : Missing ;
-        var singleExpression2 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is String.String; // 4.1: characters 42-44 : Missing ;
+        var singleExpression =  <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is String</error>; // 4.1: characters 42-44 : Missing ;
+        var singleExpression2 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is String.String</error>; // 4.1: characters 42-44 : Missing ;
         var multiExpression3 =  <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">myString is String</error> || i == 1;  // must be wrapped with parentheses in 4.1, allowed in 4.2. 'Missing ;' in 3.4.
         var multiExpression3_a = i == 2 && <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">myString is String</error>; // 4.1:  characters 53-55 : Missing ;
         var multiExpression3_b = <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">myString is String</error> != true; // 4.1: characters 43-45 : Missing ;
@@ -67,35 +67,35 @@ class IsOperator extends Base {
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">{x:1, y:2, z:3} is String</error>; // 4.1: characters 28-34 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">ary[0] is String</error>; // 4.1: characters 16-18 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">ary[0].substr(0,2) is String</error>; // 4.1: characters 28-30 : Missing ;
-        <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">b = cast("Nothing", String)</error> is String; // 4.1: characters 38-40 : Missing ;
-        <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">b = cast("Nothing", String).substr(0, 2)</error> is String; // 4.1: characters 51-53 : Missing ;
+        b = <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">cast("Nothing", String) is String</error>; // 4.1: characters 38-40 : Missing ;
+        b = <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">cast("Nothing", String).substr(0, 2) is String</error>; // 4.1: characters 51-53 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">new String("new") is String</error>; // 4.1: characters 27-29 : Missing ;
         "No" + <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">"thing" is String</error>; // 4.1: characters 26-28 : Missing ;
         if (i == 2) throw <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">new ValueException("Some exception!") is String</error>; // 4.1: characters 56-58 : Missing ;
-        final fin : Bool <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= "A String"</error> is String; // 4.1: characters 39-41 : Missing ;
+        final fin : Bool = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">"A String" is String</error>; // 4.1: characters 39-41 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">i is String</error>; // 4.1: characters 11-13 : Missing ;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">this is String</error>; // 4.1: characters 14-16 : Missing ;
 
         // Acceptable in 4.2
-        <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">b = ints[0]++</error> is String;
+        b = <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">ints[0]++ is String</error>;
         // b = --ints[0] is String;  // compiler bug
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">point.x++ is String</error>;
         // ++point.x is String;  // compiler bug
         // b = ++i is String;  // compiler bug
-        <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">b = (++i)</error> is String;
+        b = <error descr="Expression on left-hand side of ''is'' operator cannot be an assignment expression. (pre-4.2 semantics)">(++i) is String</error>;
         <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">i-- is String</error>;
         trace(<error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">!i is String</error>);
         // i! is String;  // Parses, but unsupported outside of macros.
 #end
 
         // Incorrect uses in all versions.
-        var incorrectUse <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= this.stage</error> is <error descr="Right-hand side of ''is'' operator must be a Type name.">123</error>; //  incorrect use, Expected Type/Class got literal 'Missing ;' in 3.4.
-        var incorrectUse2 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= this.stage</error> is <error descr="Right-hand side of ''is'' operator must be a Type name."><error descr="Type name must start by upper case">myString</error></error>; //  incorrect use, Expected Type/Class got variable. 'Missing ;' in 3.4.
-        var incorrectUse3 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Unsupported type for ''is'' operator.">{x:1, y:1}</error>;  // Syntax error: 'Unexpected `1`.' 'Missing ;' in 3.4.
+        var incorrectUse = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">this.stage is <error descr="Right-hand side of ''is'' operator must be a Type name.">123</error></error>; //  incorrect use, Expected Type/Class got literal 'Missing ;' in 3.4.
+        var incorrectUse2 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">this.stage is <error descr="Right-hand side of ''is'' operator must be a Type name."><error descr="Type name must start by upper case">myString</error></error></error>; //  incorrect use, Expected Type/Class got variable. 'Missing ;' in 3.4.
+        var incorrectUse3 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is <error descr="Unsupported type for ''is'' operator.">{x:1, y:1}</error></error>;  // Syntax error: 'Unexpected `1`.' 'Missing ;' in 3.4.
         var incorrectUse4 = <error descr="Unparenthesized \"is\" expression cannot be used here. (pre-4.2 semantics)">myString is <error descr="Unsupported type for ''is'' operator.">{x:Int, y:Int}</error></error> || call(); // 'Unsupported type for `is` operator.' 'Missing ;' in 3.4.
-        var incorrectUse5 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Type parameters are not supported for the ''is'' operator.">Point<Int></error>;     // 'Type parameters are not supported for the `is` operator.' 'Missing ;' in 3.4.
-        var incorrectUse6 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Unsupported type for ''is'' operator.">{var x:Int; var y:Int;}</error>  // 'Unsupported type for `is` operator.'
-        var incorrectUse7 <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">= myString</error> is <error descr="Unsupported type for ''is'' operator.">{function iterator(){}}</error>  // 'Unsupported type for `is` operator.'
+        var incorrectUse5 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is <error descr="Type parameters are not supported for the ''is'' operator.">Point<Int></error></error>;     // 'Type parameters are not supported for the `is` operator.' 'Missing ;' in 3.4.
+        var incorrectUse6 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is <error descr="Unsupported type for ''is'' operator.">{var x:Int; var y:Int;}</error></error>  // 'Unsupported type for `is` operator.'
+        var incorrectUse7 = <error descr="Unparenthesized ''is'' expression cannot be used for variable initialization. (pre-4.2 semantics)">myString is <error descr="Unsupported type for ''is'' operator.">{function iterator(){}}</error></error>  // 'Unsupported type for `is` operator.'
 
         if (true) {"Some" + "thing";} else {"Nothing";} is<error descr="Missing semicolon."> </error>String; // 4.2: characters 60-66 : Missing ;
         try { var s; s = "else"; } catch (e) {} is<error descr="Missing semicolon."> </error>String; // 4.2: characters 52-58 : Missing ;

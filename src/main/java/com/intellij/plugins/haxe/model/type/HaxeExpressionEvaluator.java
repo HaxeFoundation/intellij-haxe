@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -278,10 +279,14 @@ public class HaxeExpressionEvaluator {
 
         //leftValue.mutateConstantValue(null);
         if (!leftResult.canAssign(rightResult)) {
-          context.addError(HaxeStandardAnnotation.typeMismatch(right, rightValue.toStringWithoutConstant(), leftValue.toStringWithoutConstant())
-                             .withFix(new HaxeCastFixer(right, rightValue, leftValue))
-                             .withFixes(HaxeExpressionConversionFixer.createStdTypeFixers(right, rightValue, leftValue))
-          );
+
+          List<HaxeExpressionConversionFixer> fixers = HaxeExpressionConversionFixer.createStdTypeFixers(right, rightValue, leftValue);
+          AnnotationBuilder builder = HaxeStandardAnnotation.typeMismatch(context.holder, right, rightValue.toStringWithoutConstant(),
+                                                                          leftValue.toStringWithoutConstant())
+            .withFix(new HaxeCastFixer(right, rightValue, leftValue));
+          fixers.forEach(builder::withFix);
+          builder.create();
+
         }
 
         if (leftResult.isImmutable()) {

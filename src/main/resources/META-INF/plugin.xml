@@ -211,8 +211,21 @@
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
-    <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator"/>
+
+
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLocalVarAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeFieldAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeClassAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeIsTypeExpressionAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAssignExpressionAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxePackageAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeCheckExprAnnotator"/>
+
+    <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
 
     <inspectionToolProvider implementation="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections$Registrar"/>
 
@@ -220,7 +233,7 @@
     <localInspection language="Haxe" shortName="SemanticAnnotator" bundle="messages.HaxeBundle"
                      groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"
                      key="haxe.inspections.semantic.annotator.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator$SemanticAnnotator"/>
+                     implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension$SemanticAnnotator"/>
 
     <localInspection language="Haxe" bundle="messages.HaxeBundle" enabledByDefault="true"
                      groupPath="Haxe" groupKey="inspections.semantic.annotation.group.name"

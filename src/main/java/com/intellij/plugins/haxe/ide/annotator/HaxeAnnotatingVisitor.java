@@ -79,12 +79,10 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   @Override
   public void visitCallExpression(@NotNull HaxeCallExpression o) {
     final PsiElement child = o.getFirstChild();
-    if (child instanceof HaxeReferenceExpression) {
-      HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)child;
+    if (child instanceof HaxeReferenceExpression referenceExpression) {
       final PsiElement reference = referenceExpression.resolve();
 
-      if (reference instanceof HaxeMethodDeclaration) {
-        final HaxeMethodDeclaration functionDeclaration = (HaxeMethodDeclaration)reference;
+      if (reference instanceof HaxeMethodDeclaration functionDeclaration) {
         if (functionDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
           handleDeprecatedCallExpression(referenceExpression);
         }
@@ -123,8 +121,7 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   private void checkDeprecatedVarCall(HaxeReferenceExpression referenceExpression) {
     PsiElement reference = referenceExpression.resolve();
 
-    if (reference instanceof HaxeFieldDeclaration) {
-      HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)reference;
+    if (reference instanceof HaxeFieldDeclaration varDeclaration) {
       if (varDeclaration.hasCompileTimeMetadata(HaxeMeta.DEPRECATED)) {
         handleDeprecatedCallExpression(referenceExpression);
       }

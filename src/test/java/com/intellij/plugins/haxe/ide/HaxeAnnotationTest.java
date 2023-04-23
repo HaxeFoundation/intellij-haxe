@@ -30,7 +30,6 @@ import org.junit.Test;
 /**
  * @author: Fedor.Korotkov
  */
-@Ignore(" Annotation logic needs major rework")
 public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {

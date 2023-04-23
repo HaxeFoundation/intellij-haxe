@@ -1,5 +1,5 @@
-class <info descr="">Method</info> {
-  public function <info descr="">test</info>():Void {
-    <info descr=""><info descr="">new</info> <info descr="">Deprecated</info>().<warning descr="Deprecated symbol">method</warning></info>();
+class <info descr="null">Method</info> {
+  public function <info descr="null">test</info>():Void {
+    <info descr="null">new</info> <info descr="null">Deprecated</info>().<warning descr="Deprecated symbol"><info descr="null">method</info></warning>();
   }
 }

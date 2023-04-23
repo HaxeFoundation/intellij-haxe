@@ -31,7 +31,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
@@ -44,7 +44,7 @@ import org.junit.Test;
 import java.lang.reflect.Constructor;
 import java.util.*;
 
-@Ignore(" Annotation logic needs major rework")
+
 public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   public void setUp() throws Exception {
@@ -65,7 +65,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    registerInspectionsForTesting(HaxeSemanticAnnotator.getInspectionProvider(), myFixture.getProject(), unsetInspections);
+    //registerInspectionsForTesting(HaxeHighlightRangeExtension.getInspectionProvider(), myFixture.getProject(), unsetInspections);
+    registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }
 

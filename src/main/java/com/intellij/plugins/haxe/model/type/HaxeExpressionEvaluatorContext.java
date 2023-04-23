@@ -21,8 +21,6 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotation;
-import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotationHolder;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -107,14 +105,6 @@ public class HaxeExpressionEvaluatorContext {
     return this.scope.get(key);
   }
 
-  @NotNull
-  public Annotation addError(HaxeAnnotation annotation, HaxeFixer... fixers) {
-    if (holder == null || annotation == null) return createDummyAnnotation();
-    for (HaxeFixer fixer : fixers) {
-      annotation.withFix(fixer);
-    }
-    return new HaxeAnnotationHolder(holder).addAnnotation(annotation);
-  }
 
   @NotNull
   public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {

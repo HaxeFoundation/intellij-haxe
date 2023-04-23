@@ -181,7 +181,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return getDeclaringClass();
   }
 
-  @Nullable
+  @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (haxeMethod.getGenericParam() != null) {

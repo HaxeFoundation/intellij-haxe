@@ -15,9 +15,12 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
+import com.intellij.lang.annotation.AnnotationBuilder;
+import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * A library of annotations that can be re-used.  Place annotations that are used more than
@@ -27,15 +30,15 @@ public class HaxeStandardAnnotation {
 
   private HaxeStandardAnnotation() {}
 
-  public static HaxeAnnotation typeMismatch(PsiElement incompatibleElement, String incompatibleType, String correctType) {
+  public static @NotNull AnnotationBuilder typeMismatch(AnnotationHolder holder, PsiElement incompatibleElement, String incompatibleType, String correctType) {
     String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1", incompatibleType, correctType);
+    return holder.newAnnotation(HighlightSeverity.ERROR,message).range(incompatibleElement.getTextRange());
 
-    return new HaxeAnnotation(HighlightSeverity.ERROR, incompatibleElement.getTextRange(), message, null);
   }
 
-  public static HaxeAnnotation returnTypeMismatch(PsiElement incompatibleElement, String incompatibleType, String correctType) {
+  public static @NotNull AnnotationBuilder returnTypeMismatch(AnnotationHolder holder, PsiElement incompatibleElement, String incompatibleType, String correctType) {
     String message = HaxeBundle.message("haxe.semantic.incompatible.return.type.0.should.be.1", incompatibleType, correctType);
-    return new HaxeAnnotation(HighlightSeverity.ERROR, incompatibleElement.getTextRange(), message, null);
+    return holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement.getTextRange());
   }
 
 }

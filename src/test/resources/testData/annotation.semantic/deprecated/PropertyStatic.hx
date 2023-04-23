@@ -1,5 +1,5 @@
-class <info descr="">PropertyStatic</info> {
-  public function <info descr="">test</info>():Void {
-    <info descr=""><info descr="">Deprecated</info>.<warning descr="Deprecated symbol">propertyStatic</warning></info>;
+class <info descr="null">PropertyStatic</info> {
+  public function <info descr="null">test</info>():Void {
+    <info descr="null">Deprecated</info>.<warning descr="Deprecated symbol"><info descr="null">propertyStatic</info></warning>;
   }
 }

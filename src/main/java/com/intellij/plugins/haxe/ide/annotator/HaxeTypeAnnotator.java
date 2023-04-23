@@ -20,6 +20,8 @@ package com.intellij.plugins.haxe.ide.annotator;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
@@ -30,6 +32,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -38,18 +41,19 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
+  private static final AnnotatorTracker ANNOTATOR_TRACKER = new AnnotatorTracker("AnnotatorTracker");
   private AnnotationHolder myHolder = null;
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    assert myHolder == null;
-    try {
-      myHolder = new HaxeAnnotationHolder(holder);
-      element.accept(this);
-    }
-    finally {
-      myHolder = null;
-    }
+      assert myHolder == null;
+      try {
+        myHolder = holder;
+        element.accept(this);
+      }
+      finally {
+        myHolder = null;
+      }
   }
 
   @Override
@@ -77,8 +81,18 @@ public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
     final List<HaxeComponent> components =
       HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);
     if (!components.isEmpty()) {
-      myHolder.createErrorAnnotation(expression, HaxeBundle.message("haxe.unresolved.type"))
-        .registerFix(new HaxeTypeAddImportIntentionAction(expression, components));
+      // TODO: "hackish" way to avoid duplicate annotations, try to find a better solution
+      if (expression.getUserData(ANNOTATOR_TRACKER) != HighlightSeverity.ERROR) {
+        expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
+        myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
+          .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
+          .create();
+      }
+    }
+  }
+  private static class AnnotatorTracker extends Key<HighlightSeverity> {
+    public AnnotatorTracker(@NonNls @NotNull String name) {
+      super(name);
     }
   }
 }

@@ -1,12 +1,12 @@
 package;
 
 import StdTypes;
-import <info descr="">String</info>;
-import <info descr="">Array</info>;
+import <info descr="null">String</info>;
+import <info descr="null">Array</info>;
 
-class <info descr="">Test</info> {
-  public function <info descr="">test</info>() {
-    var <info descr="">a</info> = [ "string1", "string2" ];
-    trace(<info descr=""><info descr="">a</info>[0].length</info>);
+class <info descr="null">Test</info> {
+  public function <info descr="null">test</info>() {
+    var <info descr="null">a</info> = [ "string1", "string2" ];
+    trace(<info descr="null">a</info>[0].<info descr="null">length</info>);
   }
 }

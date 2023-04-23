@@ -29,11 +29,11 @@ public class MissingSemicolonQuickFixProvider implements ErrorQuickFixProvider {
   private static final String MISSING_SEMICOLON = HaxeBundle.message("parsing.error.missing.semi.colon");
 
   @Override
-  public void registerErrorQuickFix(@NotNull PsiErrorElement errorElement, @NotNull HighlightInfo highlightInfo) {
+  public void registerErrorQuickFix(@NotNull PsiErrorElement errorElement, @NotNull HighlightInfo.Builder builder) {
     if (MISSING_SEMICOLON.equals(errorElement.getErrorDescription())) {
 
       HaxeMissingSemicolonFixer action = addMissingSemicolon(errorElement);
-      highlightInfo.registerFix(action, null, "Add semicolon", errorElement.getTextRange(), null);
+      builder.registerFix(action, null, "Add semicolon", errorElement.getTextRange(), null);
     }
   }
 
