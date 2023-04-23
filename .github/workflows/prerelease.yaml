@@ -22,7 +22,7 @@ jobs:
 
       - name: Get short SHA
         id: short_sha
-        run: echo "::name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_OUTPUT
+        run: echo "sha8=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_OUTPUT
 
       - name: Create Pre-release
         id: create_release
