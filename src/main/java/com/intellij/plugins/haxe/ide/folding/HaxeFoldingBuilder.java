@@ -260,11 +260,10 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
           // #if introduces a new level.  Other kinds do not.
           if (PPIF == type) {
             interruptedStack.push(inProcess);
-            inProcess = marker;
           } else {
             buildCCRegion(descriptors, inProcess, marker, document);
-            inProcess = marker;
           }
+          inProcess = marker;
         }
       }
     }

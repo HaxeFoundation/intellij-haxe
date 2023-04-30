@@ -29,7 +29,6 @@ import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
-
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -207,7 +206,7 @@ public class ExtractSuperClassUtil {
         }
       }
     }
-    return baseConstructors.toArray(new PsiMethod[baseConstructors.size()]);
+    return baseConstructors.toArray(new PsiMethod[0]);
   }
 
   private static void clearPsiReferenceList(PsiReferenceList refList) throws IncorrectOperationException {

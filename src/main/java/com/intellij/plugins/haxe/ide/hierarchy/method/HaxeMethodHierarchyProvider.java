@@ -26,11 +26,9 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 @CustomLog
 public class HaxeMethodHierarchyProvider implements HierarchyProvider {
 
-  {
+  static {
     log.info("Loaded HaxeMethodHierarchyProvider");
     log.setLevel(LogLevel.DEBUG);
   }

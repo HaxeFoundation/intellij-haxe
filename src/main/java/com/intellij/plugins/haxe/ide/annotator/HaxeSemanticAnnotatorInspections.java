@@ -55,7 +55,7 @@ public enum HaxeSemanticAnnotatorInspections {
   SUPERINTERFACE_TYPE(new SuperInterfaceTypeCompatibilityInspection()),
   ;
 
-  HaxeAnnotatorInspection inspection;
+  final HaxeAnnotatorInspection inspection;
 
   public boolean isEnabled(PsiElement element) {
     return inspection.isEnabled(element);

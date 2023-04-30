@@ -34,7 +34,7 @@ public class HaxeMetaCoalescingLexerAdapter extends MergingLexerAdapterBase {
     return myMergeFunction;
   }
 
-  public class HaxeMetaMergeFunction implements MergeFunction {
+  public static class HaxeMetaMergeFunction implements MergeFunction {
     @Override
     public IElementType merge(IElementType type, Lexer originalLexer) {
       if (type == META_ID) return HaxeTokenTypes.EMBEDDED_META;

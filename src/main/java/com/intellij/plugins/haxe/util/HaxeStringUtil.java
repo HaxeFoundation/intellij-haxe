@@ -69,47 +69,37 @@ public class HaxeStringUtil {
   }
 
   static private String _unescapeString(String str) {
-    String out = "";
-    try {
+    StringBuilder out = new StringBuilder();
       char[] chars = str.toCharArray();
       for (int n = 0; n < chars.length;) {
         char c = chars[n++];
-        switch (c) {
-          case '\\':
-            char c2 = chars[n++];
-            switch (c2) {
-              case '0': out += '\0'; break;
-              case 'n': out += '\n'; break;
-              case 'r': out += '\r'; break;
-              case 't': out += '\t'; break;
-              case 'b': out += '\b'; break;
-              case 'x':
-              {
-                String hex = str.substring(n, n + 2);
-                n += 2;
-                out += (char)Integer.parseInt(hex, 16);
-                break;
-              }
-              case 'u':
-              {
-                String hex = str.substring(n, n + 4);
-                n += 4;
-                out += (char)Integer.parseInt(hex, 16);
-                break;
-              }
-              default:
-                break;
+        if (c == '\\') {
+          char c2 = chars[n++];
+          switch (c2) {
+            case '0' -> out.append('\0');
+            case 'n' -> out.append('\n');
+            case 'r' -> out.append('\r');
+            case 't' -> out.append('\t');
+            case 'b' -> out.append('\b');
+            case 'x' -> {
+              String hex = str.substring(n, n + 2);
+              n += 2;
+              out.append((char)Integer.parseInt(hex, 16));
             }
-            break;
-          default:
-            out += c;
-            break;
+            case 'u' -> {
+              String hex = str.substring(n, n + 4);
+              n += 4;
+              out.append((char)Integer.parseInt(hex, 16));
+            }
+            default -> {
+            }
+          }
+        }
+        else {
+          out.append(c);
         }
       }
-    } catch (Throwable t) {
-
-    }
-    return out;
+    return out.toString();
   }
 
   public static String join(String separator, CharSequence... elements) {

@@ -135,7 +135,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
         .getInstance().incUseCount(new StatisticsInfo(PULL_UP_STATISTICS_KEY + myClass.getQualifiedName(), name));
     }
     List<MemberInfo> infos = getSelectedMemberInfos();
-    invokeRefactoring(new PullUpProcessor(myClass, superClass, infos.toArray(new MemberInfo[infos.size()]),
+    invokeRefactoring(new PullUpProcessor(myClass, superClass, infos.toArray(new MemberInfo[0]),
                                           new DocCommentPolicy(getJavaDocPolicy())));
     close(OK_EXIT_CODE);
   }

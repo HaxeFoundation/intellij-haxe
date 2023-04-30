@@ -27,11 +27,9 @@ import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
-import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkAdditionalData;
-import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.CompilerProjectExtension;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderEnumerator;
@@ -47,7 +45,6 @@ import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
-
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.util.PathUtil;
 import lombok.CustomLog;
@@ -85,7 +82,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
     for (final Module module : getModulesToCompile(context.getCompileScope() /*, context.getProject() */)) {
       itemList.add(new MyProcessingItem(module));
     }
-    return itemList.toArray(new ProcessingItem[itemList.size()]);
+    return itemList.toArray(new ProcessingItem[0]);
   }
 
   private static List<Module> getModulesToCompile(final CompileScope scope /*, final Project project */) {
@@ -161,7 +158,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
         result.add(processingItem);
       }
     }
-    return result.toArray(new ProcessingItem[result.size()]);
+    return result.toArray(new ProcessingItem[0]);
   }
 
   private static boolean compileModule(final CompileContext context,

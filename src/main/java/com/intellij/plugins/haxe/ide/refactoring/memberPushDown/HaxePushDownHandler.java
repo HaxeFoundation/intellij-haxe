@@ -22,8 +22,8 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringBundle;
@@ -99,7 +99,7 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
     }
     HaxePushDownDialog dialog = new HaxePushDownDialog(
       project,
-      members.toArray(new MemberInfo[members.size()]),
+      members.toArray(new MemberInfo[0]),
       aClass);
     dialog.show();
   }

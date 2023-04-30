@@ -139,7 +139,7 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     result.append(")");
 
     if (!typeText.isEmpty()) {
-      result.append(":" + typeText);
+      result.append(":").append(typeText);
     }
 
     result.append(";");

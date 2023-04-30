@@ -36,12 +36,12 @@ import java.util.*;
 public class PsiFileUtils {
 
   static public String getListPath(List<PsiFileSystemItem> range) {
-    String out = "";
+    StringBuilder out = new StringBuilder();
     for (PsiFileSystemItem item : range) {
-      if (out.length() != 0) out += "/";
-      out += item.getName();
+      if (out.length() != 0) out.append("/");
+      out.append(item.getName());
     }
-    return out;
+    return out.toString();
   }
 
   static public List<PsiFileSystemItem> getRange(PsiFileSystemItem from, PsiFileSystemItem to) {
@@ -89,13 +89,13 @@ public class PsiFileUtils {
   }
 
   static public String getDirectoryPath(PsiDirectory dir) {
-    String out = "";
+    StringBuilder out = new StringBuilder();
     while (dir != null) {
-      if (out.length() != 0) out = "/" + out;
-      out = dir.getName() + out;
+      if (out.length() != 0) out.insert(0, "/");
+      out.insert(0, dir.getName());
       dir = dir.getParent();
     }
-    return out;
+    return out.toString();
   }
 }
 

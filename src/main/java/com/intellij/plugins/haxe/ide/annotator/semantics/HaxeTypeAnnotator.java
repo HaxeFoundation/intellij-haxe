@@ -35,6 +35,7 @@ public class HaxeTypeAnnotator implements Annotator {
     checkValidTypeParameters(type, holder);
   }
 
+  //TODO mlo : extract to dumbAware?
   static public void checkValidClassName(final PsiIdentifier identifier, final AnnotationHolder holder) {
     if (identifier == null) return;
     if (!INVALID_TYPE_NAME.isEnabled(identifier)) return;

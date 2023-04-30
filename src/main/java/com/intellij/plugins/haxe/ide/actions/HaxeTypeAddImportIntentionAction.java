@@ -25,7 +25,6 @@ import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.lang.injection.InjectedLanguageManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
@@ -104,7 +103,7 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   public void invoke(@NotNull final Project project, final Editor editor, PsiFile file) throws IncorrectOperationException {
     if (candidates.size() > 1) {
       NavigationUtil.getPsiElementPopup(
-        candidates.toArray(new PsiElement[candidates.size()]),
+        candidates.toArray(new PsiElement[0]),
         new DefaultPsiElementCellRenderer(),
         HaxeBundle.message("choose.class.to.import.title"),
         new PsiElementProcessor<PsiElement>() {
@@ -130,12 +129,8 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   }
 
   private void doImport(final Editor editor, final PsiElement component) {
-    new WriteCommandAction(myType.getProject(), myType.getContainingFile()) {
-      @Override
-      protected void run(Result result) throws Throwable {
-        HaxeAddImportHelper.addImport(((HaxeClass)component).getQualifiedName(), myType.getContainingFile());
-      }
-    }.execute();
+    WriteCommandAction.writeCommandAction(myType.getProject(), myType.getContainingFile())
+      .run(() -> HaxeAddImportHelper.addImport(((HaxeClass)component).getQualifiedName(), myType.getContainingFile()));
   }
 
   @Override

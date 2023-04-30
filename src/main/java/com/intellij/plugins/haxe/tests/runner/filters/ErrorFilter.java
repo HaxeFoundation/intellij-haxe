@@ -42,7 +42,7 @@ public class ErrorFilter implements Filter {
   @Nullable
   @Override
   public Result applyFilter(String s, int i) {
-    if(s.indexOf(START_TOKEN) == -1) {
+    if(!s.contains(START_TOKEN)) {
       return null;
     }
     int classAndLineIndex = START_TOKEN.length();

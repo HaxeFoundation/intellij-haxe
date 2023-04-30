@@ -17,7 +17,6 @@ package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
-
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -118,7 +117,7 @@ public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessor
         result.add(new BindToOldUsageInfo(element, ref, myClass));
       }
     }
-    UsageInfo[] usageInfos = result.toArray(new UsageInfo[result.size()]);
+    UsageInfo[] usageInfos = result.toArray(new UsageInfo[0]);
     return UsageViewUtil.removeDuplicatedUsages(usageInfos);
   }
 

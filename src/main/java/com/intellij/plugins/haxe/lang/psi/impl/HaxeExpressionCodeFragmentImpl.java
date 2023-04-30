@@ -85,8 +85,7 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
 
   public boolean isValid() {
     if (!super.isValid()) return false;
-    if (myContext != null && !myContext.isValid()) return false;
-    return true;
+    return myContext == null || myContext.isValid();
   }
 
   protected HaxeExpressionCodeFragmentImpl clone() {

@@ -45,7 +45,7 @@ public class HaxeSurroundDescriptor implements SurroundDescriptor {
       result.add(child);
       child = child.getNextSibling();
     }
-    return result.toArray(new PsiElement[result.size()]);
+    return result.toArray(new PsiElement[0]);
   }
 
   @NotNull

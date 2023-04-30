@@ -27,7 +27,6 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
-
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.JavaPsiFacade;
@@ -40,7 +39,6 @@ import com.intellij.testFramework.builders.ModuleFixtureBuilder;
 import com.intellij.testFramework.fixtures.*;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureBuilderImpl;
 import com.intellij.testFramework.fixtures.impl.ModuleFixtureImpl;
-import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,8 +48,11 @@ import java.util.List;
  * Created by fedorkorotkov.
  */
 abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
+  private final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
+
   protected CodeInsightTestFixture myFixture;
   private ModuleFixtureBuilder moduleFixtureBuilder;
+
   protected String myHaxeToolkit = null;
 
   @SuppressWarnings("JUnitTestCaseWithNonTrivialConstructors")
@@ -60,7 +61,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     Logger.setUnitTestMode();
     Logger.setFactory(category -> {
       DefaultLogger logger = new DefaultLogger(category);
-      logger.setLevel(LogLevel.DEBUG);
+      logger.setLevel(LogLevel.WARNING);
       return logger;
     });
     //HaxeDebugLogger.configurePrimaryLoggerToSwallowLogs();
@@ -70,7 +71,6 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
   protected void setUp() throws Exception {
     super.setUp();
 
-    final IdeaTestFixtureFactory testFixtureFactory = IdeaTestFixtureFactory.getFixtureFactory();
     testFixtureFactory.registerFixtureBuilder(MyHaxeModuleFixtureBuilderImpl.class, MyHaxeModuleFixtureBuilderImpl.class);
     final TestFixtureBuilder<IdeaProjectTestFixture> projectBuilder = testFixtureFactory.createFixtureBuilder(getName());
     myFixture = testFixtureFactory.createCodeInsightFixture(projectBuilder.getFixture());

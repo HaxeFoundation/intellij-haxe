@@ -22,11 +22,9 @@ import com.intellij.codeInsight.editorActions.smartEnter.SmartEnterProcessor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -46,7 +44,7 @@ public class HaxeSmartEnterProcessor extends SmartEnterProcessor {
     fixers.add(new MissingClassBodyFixer());
     fixers.add(new IfConditionFixer());
     fixers.add(new SemicolonFixer());
-    ourFixers = fixers.toArray(new Fixer[fixers.size()]);
+    ourFixers = fixers.toArray(new Fixer[0]);
   }
 
   public void setSkipEnter(boolean skipEnter) {

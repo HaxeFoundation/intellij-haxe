@@ -99,7 +99,7 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
         result.add(new HaxeStructureViewElement(subNamedComponent));
       }
     }
-    return result.toArray(new TreeElement[result.size()]);
+    return result.toArray(new TreeElement[0]);
   }
 
   @Override

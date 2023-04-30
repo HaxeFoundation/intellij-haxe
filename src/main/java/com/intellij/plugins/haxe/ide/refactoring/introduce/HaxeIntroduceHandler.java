@@ -63,7 +63,7 @@ import java.util.*;
 public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   @Nullable
   protected static PsiElement findAnchor(PsiElement occurrence) {
-    return findAnchor(Arrays.asList(occurrence));
+    return findAnchor(Collections.singletonList(occurrence));
   }
 
   @Nullable
@@ -591,7 +591,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
                                          HaxeIntroduceOperation operation,
                                          List<PsiElement> occurrences) {
       super(target, operation.getEditor(), operation.getProject(), "Introduce Variable",
-            occurrences.toArray(new PsiElement[occurrences.size()]), null);
+            occurrences.toArray(new PsiElement[0]), null);
       myTarget = target;
     }
 

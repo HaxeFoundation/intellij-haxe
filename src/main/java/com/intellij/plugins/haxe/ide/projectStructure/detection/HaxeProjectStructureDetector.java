@@ -40,7 +40,6 @@ import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.util.NullableFunction;
-import com.intellij.util.StringBuilderSpinAllocator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -118,25 +117,22 @@ public class HaxeProjectStructureDetector extends ProjectStructureDetector {
 
   @Nullable
   static String readQualifiedName(final CharSequence charSequence, final Lexer lexer, boolean allowStar) {
-    final StringBuilder buffer = StringBuilderSpinAllocator.alloc();
-    try {
-      while (true) {
-        if (lexer.getTokenType() != HaxeTokenTypes.ID && !(allowStar && lexer.getTokenType() != HaxeTokenTypes.OMUL)) break;
-        buffer.append(charSequence, lexer.getTokenStart(), lexer.getTokenEnd());
-        if (lexer.getTokenType() == HaxeTokenTypes.OMUL) break;
-        lexer.advance();
-        if (lexer.getTokenType() != HaxeTokenTypes.ODOT) break;
-        buffer.append('.');
-        lexer.advance();
-      }
-      String packageName = buffer.toString();
-      if (StringUtil.endsWithChar(packageName, '.')) return null;
-      return packageName;
+    final StringBuilder buffer = new StringBuilder();
+
+    while (true) {
+      if (lexer.getTokenType() != HaxeTokenTypes.ID && !(allowStar && lexer.getTokenType() != HaxeTokenTypes.OMUL)) break;
+      buffer.append(charSequence, lexer.getTokenStart(), lexer.getTokenEnd());
+      if (lexer.getTokenType() == HaxeTokenTypes.OMUL) break;
+      lexer.advance();
+      if (lexer.getTokenType() != HaxeTokenTypes.ODOT) break;
+      buffer.append('.');
+      lexer.advance();
     }
-    finally {
-      StringBuilderSpinAllocator.dispose(buffer);
-    }
+    String packageName = buffer.toString();
+    if (StringUtil.endsWithChar(packageName, '.')) return null;
+    return packageName;
   }
+
 
   public static void skipWhiteSpaceAndComments(Lexer lexer) {
     while (HaxeTokenTypeSets.COMMENTS.contains(lexer.getTokenType()) || HaxeTokenTypeSets.WHITESPACES.contains(lexer.getTokenType())) {

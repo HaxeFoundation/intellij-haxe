@@ -19,10 +19,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
-
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
 import com.intellij.psi.JavaResolveResult;
@@ -446,7 +444,7 @@ public class HaxeClassResolveResult implements Cloneable {
     return new JavaResult(this);
   }
 
-  private class JavaResult implements JavaResolveResult {
+  private static class JavaResult implements JavaResolveResult {
     private HaxeClassResolveResult originalResult = null;
     public JavaResult(HaxeClassResolveResult result) { originalResult = result; }
     @Override public PsiElement getElement() { return (originalResult != null ? originalResult.getHaxeClass() : null); }

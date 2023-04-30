@@ -21,11 +21,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.plugins.haxe.lang.psi.*;
-
-import com.intellij.psi.*;
+import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
+import com.intellij.psi.PsiType;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -34,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 @CustomLog
 public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypePsiMixin {
 
-  {
+  static {
     log.setLevel(LogLevel.DEBUG);
   }
 

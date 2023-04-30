@@ -101,7 +101,7 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
       });
     }
 
-    return descriptors.toArray(new HierarchyNodeDescriptor[descriptors.size()]);
+    return descriptors.toArray(new HierarchyNodeDescriptor[0]);
   }
 
 

@@ -105,7 +105,7 @@ public class HaxeMethodUtils {
   public static PsiMethod[] findDeepestSuperMethods(PsiMethod method) {
     if (!canHaveSuperMethod(method, false)) return PsiMethod.EMPTY_ARRAY;
     Collection<PsiMethod> collection = DeepestSuperMethodsSearch.search(method).findAll();
-    return collection.toArray(new PsiMethod[collection.size()]);
+    return collection.toArray(new PsiMethod[0]);
   }
 
 }

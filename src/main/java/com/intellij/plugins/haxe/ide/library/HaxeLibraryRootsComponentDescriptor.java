@@ -58,7 +58,7 @@ public class HaxeLibraryRootsComponentDescriptor extends LibraryRootsComponentDe
   @NotNull
   @Override
   public List<? extends AttachRootButtonDescriptor> createAttachButtons() {
-    return Arrays.asList(new AttachUrlJavadocDescriptor());
+    return List.of(new AttachUrlJavadocDescriptor());
   }
 
   private static class AttachUrlJavadocDescriptor extends AttachRootButtonDescriptor {

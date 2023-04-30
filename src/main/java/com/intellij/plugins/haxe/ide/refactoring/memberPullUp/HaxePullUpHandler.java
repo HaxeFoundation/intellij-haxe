@@ -27,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -194,7 +193,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
   @Override
   public boolean checkConflicts(final HaxePullUpDialog dialog) {
     final List<MemberInfo> infos = dialog.getSelectedMemberInfos();
-    final MemberInfo[] memberInfos = infos.toArray(new MemberInfo[infos.size()]);
+    final MemberInfo[] memberInfos = infos.toArray(new MemberInfo[0]);
     final PsiClass superClass = dialog.getSuperClass();
     if (!checkWritable(superClass, memberInfos)) return false;
     final MultiMap<PsiElement, String> conflicts = new MultiMap<PsiElement, String>();

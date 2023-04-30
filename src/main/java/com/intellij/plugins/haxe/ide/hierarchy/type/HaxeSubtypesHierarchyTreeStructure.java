@@ -85,14 +85,14 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   }
 
   @NotNull
-  private final Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
+  private Object[] typeListToObjArray(@NotNull final HaxeTypeHierarchyNodeDescriptor descriptor, @NotNull final List<PsiClass> classes) {
     final int size = classes.size();
     if (size > 0) {
       final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>(size);
       for (PsiClass aClass : classes) {
         descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aClass, false));
       }
-      return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[descriptors.size()]);
+      return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[0]);
     }
     return ArrayUtil.EMPTY_OBJECT_ARRAY;
   }
@@ -114,7 +114,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   protected static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
     if (!theClass.isValid()) return PsiClass.EMPTY_ARRAY;
     final ArrayList<PsiClass> allSuperClasses = getSuperTypesAsList(theClass);
-    return allSuperClasses.toArray(new PsiClass[allSuperClasses.size()]);
+    return allSuperClasses.toArray(new PsiClass[0]);
   }
 
   private static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {

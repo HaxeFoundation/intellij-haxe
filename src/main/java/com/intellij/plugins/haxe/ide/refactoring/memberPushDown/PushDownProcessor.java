@@ -28,7 +28,6 @@ import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -153,7 +152,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       });
     }*/
 
-    return usages.toArray(new UsageInfo[usages.size()]);
+    return usages.toArray(new UsageInfo[0]);
   }
 
   private boolean isMoved(PsiMember member) {

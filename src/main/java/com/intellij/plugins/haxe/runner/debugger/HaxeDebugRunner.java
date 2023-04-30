@@ -47,12 +47,12 @@ import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.wm.impl.status.StatusBarUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
-import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.compilation.LimeUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.haxelib.HaxelibClasspathUtils;
+import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.NMERunningState;
@@ -976,13 +976,10 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
 
       private void addChildren(XValueChildrenList childrenList,
                                debugger.StringList stringList) {
-        while (true) {
-          if (stringList == debugger.StringList.Terminator) {
-            break;
-          }
+        while (stringList != debugger.StringList.Terminator) {
 
           String string = (String)stringList.params[0];
-          if (! isIntermediateVariableName(string)) {
+          if (!isIntermediateVariableName(string)) {
             childrenList.add(string, new Value(string));
           }
 

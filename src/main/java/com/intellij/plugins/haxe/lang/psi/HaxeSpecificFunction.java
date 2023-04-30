@@ -30,7 +30,7 @@ import java.util.List;
 
 public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl implements HaxeFunctionType {
 
-  public class Argument extends HaxeFunctionArgumentImpl {
+  public static class Argument extends HaxeFunctionArgumentImpl {
     final private HaxeParameter parameter;
 
     public Argument(@NotNull HaxeParameter parameter) {

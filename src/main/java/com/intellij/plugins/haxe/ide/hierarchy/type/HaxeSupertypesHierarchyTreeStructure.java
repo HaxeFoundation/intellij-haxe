@@ -44,6 +44,6 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
     for (PsiClass aSuper : supers) {
         descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aSuper, false));
     }
-    return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[descriptors.size()]);
+    return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[0]);
   }
 }

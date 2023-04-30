@@ -20,9 +20,7 @@ package com.intellij.plugins.haxe.haxelib;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
-
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,7 +92,7 @@ public class HaxelibLibraryCacheManager {
   /**
    * Cache entry for the SDK table.
    */
-  final class SdkEntry {
+  static final class SdkEntry {
     final Sdk mySdk;
     final HaxelibLibraryCache myMgr;
 

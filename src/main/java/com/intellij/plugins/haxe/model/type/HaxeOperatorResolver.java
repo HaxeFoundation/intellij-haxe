@@ -17,10 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.tree.TokenSet;
 
 public class HaxeOperatorResolver {
   static public SpecificTypeReference getBinaryOperatorResult(
@@ -37,7 +34,7 @@ public class HaxeOperatorResolver {
       );
     }
 
-    SpecificTypeReference result = result = HaxeTypeUnifier.unify(left, right, context.root);
+    SpecificTypeReference result = HaxeTypeUnifier.unify(left, right, context.root);
     if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
 
     if (operator.equals("+")) {

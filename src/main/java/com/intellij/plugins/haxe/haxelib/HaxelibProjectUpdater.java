@@ -36,7 +36,8 @@ import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.hxml.HXMLFileType;
@@ -44,18 +45,23 @@ import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.nmml.NMMLFileType;
-import com.intellij.plugins.haxe.util.*;
+import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeFileUtil;
+import com.intellij.plugins.haxe.util.Lambda;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -1048,7 +1054,7 @@ public class HaxelibProjectUpdater {
   /**
    *  Cache for project library lists.
    */
-  final private class ProjectLibraryCache {
+  static final private class ProjectLibraryCache {
 
     private Sdk sdk;
     private HaxeLibraryList nmmlList;

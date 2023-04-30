@@ -18,16 +18,13 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.openapi.vfs.VirtualFileSystem;
-
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.util.io.URLUtil;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,9 +88,7 @@ public class HaxeClasspathEntry {
 
     HaxeClasspathEntry entry = (HaxeClasspathEntry)o;
 
-    if (!myUrl.equals(entry.myUrl)) return false;
-
-    return true;
+    return myUrl.equals(entry.myUrl);
   }
 
   @Override
@@ -124,7 +119,7 @@ public class HaxeClasspathEntry {
    * @param url
    * @return
    */
-  public final static int hashUrl(String url) {
+  public static int hashUrl(String url) {
     return url.hashCode();
   }
 }

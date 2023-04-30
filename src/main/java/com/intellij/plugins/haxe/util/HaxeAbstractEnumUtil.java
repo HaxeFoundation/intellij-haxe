@@ -46,8 +46,7 @@ public class HaxeAbstractEnumUtil {
    */
   @Contract("null -> false")
   public static boolean couldBeAbstractEnumField(@Nullable PsiElement element) {
-    if (element != null && element instanceof HaxeFieldDeclaration) {
-      final HaxeFieldDeclaration decl = (HaxeFieldDeclaration)element;
+    if (element != null && element instanceof HaxeFieldDeclaration decl) {
       if (decl.getPropertyDeclaration() == null && !decl.isStatic()) {
         return true;
       }

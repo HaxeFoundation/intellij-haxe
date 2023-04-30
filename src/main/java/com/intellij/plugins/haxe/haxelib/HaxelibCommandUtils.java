@@ -26,7 +26,6 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
-
 import com.intellij.plugins.haxe.util.HaxeProcessUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import lombok.CustomLog;
@@ -36,10 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -103,9 +99,7 @@ public class HaxelibCommandUtils {
 
     ArrayList<String> commandLineArguments = new ArrayList<String>();
     commandLineArguments.add(getHaxelibPath(sdk));
-    for (String arg : args) {
-      commandLineArguments.add(arg);
-    }
+    commandLineArguments.addAll(Arrays.asList(args));
 
     HaxeSdkAdditionalDataBase sdkData = HaxeSdkUtilBase.getSdkData(sdk);
     String haxelibPath = null != sdkData ? sdkData.getHaxelibPath() : HaxeSdkUtil.suggestHomePath();

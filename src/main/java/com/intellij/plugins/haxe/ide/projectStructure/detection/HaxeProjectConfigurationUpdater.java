@@ -50,7 +50,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.Vector;
 
 public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilderImpl.ProjectConfigurationUpdater {
   private Set<String> myLibraries;
@@ -158,7 +157,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
             current = null;
           }
         } else {
-          result.add(new HaxeProjectConfigurationUpdater.LibraryData(meta.getName(), cp));
+          result.add(new LibraryData(meta.getName(), cp));
           break;
         }
       }
@@ -202,7 +201,7 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     return Paths.get(path).isAbsolute() ? path : Paths.get(dir, path).toString();
   }
 
-  private class LibraryData {
+  private static class LibraryData {
     private final String myClasspath;
     private final String myName;
 

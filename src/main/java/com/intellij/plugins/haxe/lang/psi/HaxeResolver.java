@@ -28,7 +28,10 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.util.*;
+import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.ResolveState;
@@ -659,7 +662,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return HaxeDebugUtil.traceThreadMessage(msg, 120);
   }
 
-  private class ResolveScopeProcessor implements PsiScopeProcessor {
+  private static class ResolveScopeProcessor implements PsiScopeProcessor {
     private final List<PsiElement> result;
     final String name;
 

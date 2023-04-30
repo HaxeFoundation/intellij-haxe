@@ -25,9 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-
 import lombok.CustomLog;
-
 
 import java.util.List;
 
@@ -37,7 +35,7 @@ import java.util.List;
 @CustomLog
 public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
 
-  {
+  static {
     log.info("Loaded HaxeOverrideMethodHandler");
     log.setLevel(LogLevel.DEBUG);
   }

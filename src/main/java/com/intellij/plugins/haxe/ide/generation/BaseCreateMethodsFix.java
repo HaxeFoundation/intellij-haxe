@@ -24,7 +24,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.HaxeNamedElementNode;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -171,7 +170,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   }
 
   public Set<T> getElementsToProcess() {
-    final T[] objects = (T[])elementsToProcess.toArray(new HaxeNamedComponent[elementsToProcess.size()]);
+    final T[] objects = (T[])elementsToProcess.toArray(new HaxeNamedComponent[0]);
     final Comparator<T> tComparator = new Comparator<T>() {
       public int compare(final T o1, final T o2) {
         return o1.getTextOffset() - o2.getTextOffset();

@@ -65,7 +65,7 @@ public class HaxePushDownDialog extends RefactoringDialog {
         list.add(info);
       }
     }
-    return list.toArray(new MemberInfo[list.size()]);
+    return list.toArray(new MemberInfo[0]);
   }
 
   protected void doHelpAction() {

@@ -16,7 +16,9 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.*;
+import com.intellij.openapi.vfs.VirtualFileAdapter;
+import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
@@ -43,7 +45,7 @@ public class HaxeCompilerProjectCache {
 
   // We're only keeping one file for now, to keep things simple.
   private cacheEntry myCacheEntry = null;
-  private class cacheEntry {
+  private static class cacheEntry {
 
     public Module myModule;
     public String myFilename; // project file name (from module, but fully located path that the compiler will use).

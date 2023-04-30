@@ -24,6 +24,7 @@ import com.intellij.ui.AddDeleteListPanel;
 import javax.swing.*;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -40,7 +41,7 @@ public class HaxeProjectSettingsForm {
   public boolean isModified(HaxeProjectSettings settings) {
     final List<String> oldList = Arrays.asList(settings.getUserCompilerDefinitions());
     final List<String> newList = Arrays.asList(myAddDeleteListPanel.getItems());
-    final boolean isEqual = oldList.size() == newList.size() && oldList.containsAll(newList);
+    final boolean isEqual = oldList.size() == newList.size() && new HashSet<>(oldList).containsAll(newList);
     return !isEqual;
   }
 

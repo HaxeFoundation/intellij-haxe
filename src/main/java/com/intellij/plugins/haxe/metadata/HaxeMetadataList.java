@@ -107,7 +107,7 @@ public class HaxeMetadataList extends ArrayList<HaxeMeta> {
 
     @Override
     public boolean containsAll(@NotNull Collection<?> c) {
-      return emptyList.containsAll(c);
+      return new HashSet<>(emptyList).containsAll(c);
     }
 
     @Override

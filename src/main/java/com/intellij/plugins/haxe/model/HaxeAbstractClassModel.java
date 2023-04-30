@@ -110,6 +110,6 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         }
       }
     }
-    return allEmpty ? true : false;
+    return allEmpty;
   }
 }

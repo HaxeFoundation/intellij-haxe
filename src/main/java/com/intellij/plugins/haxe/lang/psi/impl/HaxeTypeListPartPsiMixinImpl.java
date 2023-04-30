@@ -22,7 +22,6 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -32,7 +31,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -436,7 +434,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
    * Deals with type references that appear as children to HaxeTypeOrAnonymous
    * child elements.
    */
-  private class HaxeClassDelegateForTypeChild extends PsiTypeParameterImpl {
+  private static class HaxeClassDelegateForTypeChild extends PsiTypeParameterImpl {
 
     private HaxeType myChildType = null;
 

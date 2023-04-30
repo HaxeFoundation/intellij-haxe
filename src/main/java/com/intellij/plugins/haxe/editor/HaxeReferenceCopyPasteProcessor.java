@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.editor;
 
 import com.intellij.codeInsight.daemon.impl.CollectHighlightsUtil;
 import com.intellij.codeInsight.editorActions.CopyPastePostProcessor;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.RangeMarker;
@@ -116,12 +115,7 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<Haxe
     String[] selectedObjects = dialog.getSelectedElements();
 
     for (final String object : selectedObjects) {
-      new WriteCommandAction(project, file) {
-        @Override
-        protected void run(@NotNull Result result) throws Throwable {
-          HaxeAddImportHelper.addImport(object, file);
-        }
-      }.execute();
+      WriteCommandAction.writeCommandAction(project, file).run(() -> HaxeAddImportHelper.addImport(object, file));
     }
   }
 }

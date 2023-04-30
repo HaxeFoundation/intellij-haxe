@@ -27,7 +27,6 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
-
 import com.intellij.psi.*;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.MethodReferencesSearch;
@@ -36,7 +35,6 @@ import com.intellij.util.Processor;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.containers.HashMap;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -108,7 +106,7 @@ public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
       });
       // XXX: If this mechanism works, make buildChildrenInternal() return a list instead of an array.
       //       So we don't have all of this useless conversion back and forth.
-      return children.toArray(new Object[children.size()]);
+      return children.toArray(new Object[0]);
 
     } else {
 
@@ -166,7 +164,7 @@ public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
         if (timeoutHandler.checkAndCancelIfNecessary()) break;
       }
 
-      return methodToDescriptorMap.values().toArray(new Object[methodToDescriptorMap.size()]);
+      return methodToDescriptorMap.values().toArray(new Object[0]);
 
     } catch (ProcessCanceledException e) {
 

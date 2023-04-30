@@ -20,14 +20,15 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.projectRoots.Sdk;
-
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.concurrent.ConcurrentSkipListSet;
 
 /**
@@ -226,7 +227,7 @@ public final class HaxelibLibraryCache {
    * from the haxelib command.  It should be checked before running
    * haxelib.
    */
-  private final class InternalCache {
+  private static final class InternalCache {
     final Hashtable<String, HaxeLibrary> myCache;
 
     public InternalCache() {

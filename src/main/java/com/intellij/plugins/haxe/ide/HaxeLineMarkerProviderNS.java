@@ -22,7 +22,6 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeHighlighting.Pass;
 import com.intellij.codeInsight.daemon.DaemonBundle;
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
@@ -77,7 +76,7 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
   private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(new HaxeClass[supers.size()]));
+    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(new HaxeClass[0]));
 
     final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
     final List<HaxeNamedComponent> subItems = new ArrayList<>();

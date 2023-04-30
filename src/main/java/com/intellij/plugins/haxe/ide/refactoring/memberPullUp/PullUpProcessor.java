@@ -32,7 +32,6 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -98,7 +97,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
         }
       }
     }
-    return result.isEmpty() ? UsageInfo.EMPTY_ARRAY : result.toArray(new UsageInfo[result.size()]);
+    return result.isEmpty() ? UsageInfo.EMPTY_ARRAY : result.toArray(new UsageInfo[0]);
   }
 
   @Nullable
