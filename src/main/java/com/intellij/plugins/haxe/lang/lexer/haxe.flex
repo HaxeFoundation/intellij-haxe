@@ -160,7 +160,6 @@ import com.intellij.openapi.diagnostic.LogLevel;
 %unicode
 %class _HaxeLexer
 %implements FlexLexer, HaxeTokenTypes, HaxeTokenTypeSets
-%unicode
 %public
 
 %function advance

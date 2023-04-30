@@ -97,6 +97,10 @@ allprojects {
 
 }
 
+grammarKit {
+    jflexRelease.set("1.9.1")
+}
+
 subprojects {
     tasks {
         runIde { isEnabled = false }

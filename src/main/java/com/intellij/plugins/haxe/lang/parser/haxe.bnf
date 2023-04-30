@@ -555,7 +555,7 @@ private notBlockStatement ::= ('untyped' statement ';'?)
 
 
 forStatement ::= 'for' '(' iterableDeclaration ')' statement ';'?
-{recoverWhile=forStatement_recover mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeForStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeForStatementPsiMixin"}
 // XXX: Somehow or another, forStatement must derive from AbstractHaxeNamedComponent, or variable resolution will break.
 private iterableDeclaration ::= forDeclaration 'in' iterable {pin=1 recoverWhile="iterable_decl_recovery"}
 private iterable_decl_recovery ::= !(')')
@@ -722,7 +722,7 @@ private value ::= ('untyped' expression)
                 | referenceExpression
                 | thisExpression
                 | superExpression
-{pin=2}
+{pin=1}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral
