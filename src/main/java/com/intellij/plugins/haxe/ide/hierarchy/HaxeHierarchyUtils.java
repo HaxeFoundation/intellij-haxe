@@ -27,7 +27,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
-
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.impl.PsiMultiReference;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
@@ -36,7 +35,6 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.MethodSignatureUtil;
 import lombok.CustomLog;
 import org.apache.commons.lang.NotImplementedException;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,8 +114,7 @@ public class HaxeHierarchyUtils {
    */
   @NotNull
   public static List<HaxeClass> getClassList(@NotNull HaxeFile psiRoot) {
-    CachedValuesManager manager = CachedValuesManager.getManager(psiRoot.getProject());
-    ArrayList<HaxeClass> classList = manager.getCachedValue(psiRoot, () -> {
+    return  CachedValuesManager.getCachedValue(psiRoot, () -> {
       ArrayList<HaxeClass> classes = new ArrayList<>();
       for (PsiElement child : psiRoot.getChildren()) {
         if (child instanceof HaxeClass) {
@@ -127,7 +124,6 @@ public class HaxeHierarchyUtils {
       return new CachedValueProvider.Result<>(classes, psiRoot);
     });
 
-    return classList;
   }
 
   /**

@@ -91,7 +91,7 @@ public class CreateGetterSetterQuickfix extends BaseIntentionAction {
             }
 
             private PsiElement createNewLine() {
-              return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n\n");
+              return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n\n");
             }
           }.execute();
         }

@@ -88,7 +88,7 @@ public class HaxeFileTemplateUtil {
 
   public static PsiElement createClass(String className, String packageName, PsiDirectory directory, String templateName, @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader)
     throws Exception {
-    final Properties props = new Properties(FileTemplateManager.getInstance().getDefaultProperties(directory.getProject()));
+    final Properties props = new Properties(FileTemplateManager.getInstance(directory.getProject()).getDefaultProperties());
     props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
     props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
 

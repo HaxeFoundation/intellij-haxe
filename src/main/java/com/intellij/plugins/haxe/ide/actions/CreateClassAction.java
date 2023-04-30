@@ -34,7 +34,7 @@ import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.containers.ContainerUtilRt;
+import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
@@ -48,7 +48,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   private static Set<JavaSourceRootType> SOURCES;
   static {
-    SOURCES = ContainerUtilRt.newLinkedHashSet(JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE);
+    SOURCES =  ContainerUtil.newLinkedHashSet(JavaSourceRootType.SOURCE, JavaSourceRootType.TEST_SOURCE);
   }
 
   public CreateClassAction() {

@@ -71,7 +71,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
     else if (!supers.isEmpty() && namedComponent instanceof HaxeClass) {
       PsiElementListNavigator.openTargets(
         editor,
-        HaxeResolveUtil.getComponentNames(supers).toArray(new NavigatablePsiElement[supers.size()]),
+        HaxeResolveUtil.getComponentNames(supers).<NavigatablePsiElement>toArray(new NavigatablePsiElement[supers.size()]),
         DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":"),
         "Subclasses of " + namedComponent.getName(),
         new DefaultPsiElementCellRenderer()
