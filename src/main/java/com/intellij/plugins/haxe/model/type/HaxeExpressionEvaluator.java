@@ -20,7 +20,6 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.lang.annotation.Annotation;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
@@ -34,14 +33,16 @@ import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
-import com.intellij.plugins.haxe.util.*;
+import com.intellij.plugins.haxe.util.HaxeDebugUtil;
+import com.intellij.plugins.haxe.util.HaxeJavaUtil;
+import com.intellij.plugins.haxe.util.HaxeStringUtil;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -363,13 +364,16 @@ public class HaxeExpressionEvaluator {
           ResultHolder access = typeHolder.getType().access(accessName, context, localResolver);
           if (access == null) {
             resolved = false;
-            Annotation annotation = context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType());
+
             if (children.length == 1) {
-              annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
+              context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType(),
+                               new HaxeCreateLocalVariableFixer(accessName, element));
             } else {
-              annotation.registerFix(new HaxeCreateMethodFixer(accessName, element));
-              annotation.registerFix(new HaxeCreateFieldFixer(accessName, element));
+              context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType(),
+              new HaxeCreateMethodFixer(accessName, element),
+              new HaxeCreateFieldFixer(accessName, element));
             }
+
           }
           typeHolder = access;
         }
@@ -841,7 +845,7 @@ public class HaxeExpressionEvaluator {
         //SpecificTypeReference unified = HaxeTypeUnifier.unify(statementType, assertedType, element);
         //if (!unified.canAssign(statementType)) {
         if (!assertedType.canAssign(statementType)) {
-          Annotation annotation = context.addError(element, "Statement of type '" + statementType.getElementContext().getText() + "' does not unify with asserted type '" + assertedType.getElementContext().getText() + ".'");
+          context.addError(element, "Statement of type '" + statementType.getElementContext().getText() + "' does not unify with asserted type '" + assertedType.getElementContext().getText() + ".'");
           // TODO: Develop some fixers.
           // annotation.registerFix(new HaxeCreateLocalVariableFixer(accessName, element));
         }

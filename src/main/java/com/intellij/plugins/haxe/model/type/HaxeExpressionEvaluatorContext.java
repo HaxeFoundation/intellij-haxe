@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.annotation.Annotation;
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
@@ -107,39 +107,39 @@ public class HaxeExpressionEvaluatorContext {
 
 
   @NotNull
-  public Annotation addError(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return createDummyAnnotation();
-    Annotation annotation = holder.createErrorAnnotation(element, error);
+  public void addError(PsiElement element, String error, HaxeFixer... fixers) {
+    if (holder == null) return;
+    AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, error).range(element);
     for (HaxeFixer fixer : fixers) {
-      annotation.registerFix(fixer);
+      builder.withFix(fixer);
     }
-    return annotation;
+    builder.create();
   }
 
   @NotNull
-  public Annotation addWarning(PsiElement element, String error, HaxeFixer... fixers) {
-    if (holder == null) return createDummyAnnotation();
-    Annotation annotation = holder.createWarningAnnotation(element, error);
+  public void addWarning(PsiElement element, String error, HaxeFixer... fixers) {
+    if (holder == null) return ;
+    AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WARNING, error).range(element);
     for (HaxeFixer fixer : fixers) {
-      annotation.registerFix(fixer);
+      builder.withFix(fixer);
     }
-    return annotation;
+    builder.create();
   }
 
   public boolean isReportingErrors() {
     return holder != null;
   }
 
-  private Annotation createDummyAnnotation() {
-    return new Annotation(0, 0, HighlightSeverity.ERROR, "", "");
-  }
+
 
   @NotNull
-  public Annotation addUnreachable(PsiElement element) {
-    if (holder == null) return createDummyAnnotation();
-    Annotation annotation = holder.createInfoAnnotation(element, null);
-    annotation.setTextAttributes(HaxeSyntaxHighlighterColors.LINE_COMMENT);
-    return annotation;
+  public void addUnreachable(PsiElement element) {
+    if (holder == null) return ;
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+      .textAttributes(HaxeSyntaxHighlighterColors.LINE_COMMENT)
+      .range(element)
+      .create();
+
   }
 
   final public List<HaxeExpressionEvaluatorContext> lambdas = new LinkedList<HaxeExpressionEvaluatorContext>();
