@@ -19,10 +19,8 @@
  */
 package com.intellij.plugins.haxe.ide.info;
 
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.lang.parameterInfo.*;
 import com.intellij.openapi.util.Condition;
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
@@ -31,7 +29,6 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,32 +40,6 @@ import java.util.List;
 public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement, HaxeFunctionDescription> {
   private int currentParameterIndex = -1;
   String myParametersListPresentableText = "";
-
-  @Override
-  public boolean couldShowInLookup() {
-    return true;
-  }
-
-  @Override
-  public Object[] getParametersForLookup(@NotNull LookupElement item, ParameterInfoContext context) {
-    final Object object = item.getObject();
-
-    if (object instanceof PsiElement) {
-      final PsiElement element = (PsiElement)object;
-      final HaxeComponentType type = HaxeComponentType.typeOf(element.getParent());
-
-      if (type == HaxeComponentType.METHOD) {
-        return new Object[]{element.getParent()};
-      }
-    }
-    return ArrayUtil.EMPTY_OBJECT_ARRAY;
-  }
-
-  @Nullable
-  @Override
-  public Object[] getParametersForDocumentation(@NotNull HaxeFunctionDescription description, ParameterInfoContext context) {
-    return description.getParameters();
-  }
 
   @Override
   public PsiElement findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
@@ -274,16 +245,6 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     }
 
     return null;
-  }
-
-  @Override
-  public String getParameterCloseChars() {
-    return ",){}";
-  }
-
-  @Override
-  public boolean tracksParameterIndex() {
-    return true;
   }
 
   @Override

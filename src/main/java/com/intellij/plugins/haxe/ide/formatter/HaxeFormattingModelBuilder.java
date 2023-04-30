@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.formatter;
 
+import com.intellij.formatting.FormattingContext;
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelBuilder;
 import com.intellij.lang.ASTNode;
@@ -31,12 +32,12 @@ import org.jetbrains.annotations.Nullable;
  * @author fedor.korotkov
  */
 public class HaxeFormattingModelBuilder implements FormattingModelBuilder {
-  @NotNull
+
   @Override
-  public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
-    return new HaxeFormattingModel(
-      element.getContainingFile(),
-      settings,
+  public @NotNull FormattingModel createModel(@NotNull FormattingContext formattingContext) {
+    PsiElement element = formattingContext.getPsiElement();
+    CodeStyleSettings settings = formattingContext.getCodeStyleSettings();
+    return new HaxeFormattingModel(element.getContainingFile(), settings,
       new HaxeBlock(element.getNode(), null, null, settings)
     );
   }
