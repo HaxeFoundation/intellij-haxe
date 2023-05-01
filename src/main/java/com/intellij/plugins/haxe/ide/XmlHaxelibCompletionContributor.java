@@ -20,10 +20,12 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.xml.XMLLanguage;
+import com.intellij.openapi.application.ex.ApplicationUtil;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.XmlPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
-
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,13 +36,20 @@ import java.util.List;
  */
 public class XmlHaxelibCompletionContributor extends CompletionContributor {
 
-  protected static List<String> availableHaxelibs = null;
-  protected static List<String> localHaxelibs = null;
+  protected static List<String> availableHaxelibs = List.of();
+  protected static List<String> localHaxelibs = List.of();
 
-  public XmlHaxelibCompletionContributor() {
-    HaxelibCache haxelibCache = HaxelibCache.getInstance();
-    availableHaxelibs = haxelibCache.getAvailableHaxelibs();
-    localHaxelibs = haxelibCache.getLocalHaxelibs();
+  public XmlHaxelibCompletionContributor() throws Exception {
+
+    ProgressIndicator indicator = ProgressManager.getGlobalProgressIndicator();
+
+    ApplicationUtil.runWithCheckCanceled(() -> {
+      HaxelibCache haxelibCache = HaxelibCache.getInstance();
+      availableHaxelibs = haxelibCache.getAvailableHaxelibs();
+      localHaxelibs = haxelibCache.getLocalHaxelibs();
+      return null;
+    }, indicator);
+
 
     extend(CompletionType.BASIC, PlatformPatterns.psiElement().inside(
       XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("name"))

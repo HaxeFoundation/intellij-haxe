@@ -524,157 +524,159 @@ public class HaxelibProjectUpdater {
     HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
-    // If the module says not to keep libs synched, then don't.
-    if (!settings.isKeepSynchronizedWithProjectFile()) {
-      timeLog.stamp("Module " + module.getName() + " is set to not synchronize dependencies.");
-      return;
-    }
+    ApplicationManager.getApplication().runReadAction(() -> {
+      // If the module says not to keep libs synched, then don't.
+      if (!settings.isKeepSynchronizedWithProjectFile()) {
+        timeLog.stamp("Module " + module.getName() + " is set to not synchronize dependencies.");
+        return;
+      }
 
-    switch (settings.getBuildConfiguration()) {
-      case NMML:
-        timeLog.stamp("Start loading haxelibs from NMML file.");
-        HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
-        if (null != nme) {
-          haxelibExternalItems.add(nme.createReference(HaxelibSemVer.ANY_VERSION));
-        }
-        else {
-          // TODO: Figure out how to communicate this to the user.
-          log.warn("Required library 'nme' is not known to haxelib.");
-        }
-
-        // TODO: Pull libs off of the command line, too.
-
-        String nmmlPath = settings.getNmmlPath();
-        if (nmmlPath != null && !nmmlPath.isEmpty()) {
-          VirtualFile file = LocalFileFinder.findFile(nmmlPath);
-
-          if (file != null && file.getFileType().equals(NMMLFileType.INSTANCE)) {
-            VirtualFileManager.getInstance().syncRefresh();
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-
-            if (psiFile != null && psiFile instanceof XmlFile) {
-              haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
-            }
+      switch (settings.getBuildConfiguration()) {
+        case NMML:
+          timeLog.stamp("Start loading haxelibs from NMML file.");
+          HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
+          if (null != nme) {
+            haxelibExternalItems.add(nme.createReference(HaxelibSemVer.ANY_VERSION));
           }
-        }
-        timeLog.stamp("Finished loading haxelibs from NMML file.");
-
-        // TODO: Load classpaths from the NMML file, CL, and ensure that they are included in the module sources.
-
-        break;
-
-      case OPENFL:
-        timeLog.stamp("Start loading haxelibs from openFL configuration file.");
-        HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
-        if (null != openfl) {
-          haxelibExternalItems.add(openfl.createReference(HaxelibSemVer.ANY_VERSION)); // No specific version.
-        }
-        else {
-          // TODO: Figure out how to report this to the user.
-          log.warn("Required library 'openfl' is not known to haxelib.");
-        }
-
-        // TODO: Pull libs off of the command line, too.
-
-        String openFLXmlPath = settings.getOpenFLPath();
-        if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
-          VirtualFile file = LocalFileFinder.findFile(openFLXmlPath);
-
-          if (file != null && file.getFileType().equals(XmlFileType.INSTANCE)) {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-
-            if (psiFile != null && psiFile instanceof XmlFile) {
-              haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
-            }
+          else {
+            // TODO: Figure out how to communicate this to the user.
+            log.warn("Required library 'nme' is not known to haxelib.");
           }
-        }
-        else {
-          // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
 
-          String projectBasePath = project.getBasePath();
-          if (null == projectBasePath) {
-            projectBasePath = "";
-          }
-          File dir = new File(projectBasePath);
-          List<String> projectClasspaths =
-            HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
-                                                               HaxelibSdkUtils.lookupSdk(module));
+          // TODO: Pull libs off of the command line, too.
 
-          for (String classpath : projectClasspaths) {
-            VirtualFile file = LocalFileFinder.findFile(classpath);
-            if (file != null) {
-              HaxeLibrary lib = libManager.getLibraryByPath(file.getPath());
-              if (null != lib) {
-                haxelibExternalItems.add(lib.createReference());
-              }
-              else {
-                // TODO: Figure out how to communicate this to the user.
-                log.warn("Library referenced by openFL configuration is not known to haxelib " + classpath);
+          String nmmlPath = settings.getNmmlPath();
+          if (nmmlPath != null && !nmmlPath.isEmpty()) {
+            VirtualFile file = LocalFileFinder.findFile(nmmlPath);
+
+            if (file != null && file.getFileType().equals(NMMLFileType.INSTANCE)) {
+              VirtualFileManager.getInstance().syncRefresh();
+              PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+
+              if (psiFile != null && psiFile instanceof XmlFile) {
+                haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
               }
             }
           }
-        }
-        haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
-        timeLog.stamp("Finished loading haxelibs from openfl file.");
+          timeLog.stamp("Finished loading haxelibs from NMML file.");
 
-        // TODO: Add classpaths from the xml file and the CL to the module sources.
+          // TODO: Load classpaths from the NMML file, CL, and ensure that they are included in the module sources.
 
-        break;
+          break;
 
-      case HXML:
-        timeLog.stamp("Start loading haxelibs from HXML file.");
-        String hxmlPath = settings.getHxmlPath();
+        case OPENFL:
+          timeLog.stamp("Start loading haxelibs from openFL configuration file.");
+          HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
+          if (null != openfl) {
+            haxelibExternalItems.add(openfl.createReference(HaxelibSemVer.ANY_VERSION)); // No specific version.
+          }
+          else {
+            // TODO: Figure out how to report this to the user.
+            log.warn("Required library 'openfl' is not known to haxelib.");
+          }
 
-        // TODO: Walk the command line looking for libs, too.
+          // TODO: Pull libs off of the command line, too.
 
-        if (hxmlPath != null && !hxmlPath.isEmpty()) {
-          VirtualFile file = LocalFileFinder.findFile(hxmlPath);
+          String openFLXmlPath = settings.getOpenFLPath();
+          if (openFLXmlPath != null && !openFLXmlPath.isEmpty()) {
+            VirtualFile file = LocalFileFinder.findFile(openFLXmlPath);
 
-          if (file != null && file.getFileType().equals(HXMLFileType.INSTANCE)) {
-            PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
-            if (psiFile != null) {
-              HXMLProjectModel hxml = new HXMLProjectModel(psiFile);
-              // TODO: Needs to walk all of the children and load referenced .hxml files in place. Should probably be added to the model.
-              List<String> libs = hxml.getLibraries();
-              if (libs != null) {
-                for (String lib : libs) {
-                  HaxeLibraryReference reference = HaxeLibraryReference.create(module, lib);
-                  if (null != reference.getLibrary()) {
-                    haxelibExternalItems.add(reference);
-                  }
-                  else {
-                    log.warn("Library referenced by HXML configuration is not known to haxelib.");
+            if (file != null && file.getFileType().equals(XmlFileType.INSTANCE)) {
+              PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+
+              if (psiFile != null && psiFile instanceof XmlFile) {
+                haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
+              }
+            }
+          }
+          else {
+            // XXX: EMB - Not sure of the validity of using this path if xml lib isn't specified.
+
+            String projectBasePath = project.getBasePath();
+            if (null == projectBasePath) {
+              projectBasePath = "";
+            }
+            File dir = new File(projectBasePath);
+            List<String> projectClasspaths =
+              HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
+                                                                 HaxelibSdkUtils.lookupSdk(module));
+
+            for (String classpath : projectClasspaths) {
+              VirtualFile file = LocalFileFinder.findFile(classpath);
+              if (file != null) {
+                HaxeLibrary lib = libManager.getLibraryByPath(file.getPath());
+                if (null != lib) {
+                  haxelibExternalItems.add(lib.createReference());
+                }
+                else {
+                  // TODO: Figure out how to communicate this to the user.
+                  log.warn("Library referenced by openFL configuration is not known to haxelib " + classpath);
+                }
+              }
+            }
+          }
+          haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
+          timeLog.stamp("Finished loading haxelibs from openfl file.");
+
+          // TODO: Add classpaths from the xml file and the CL to the module sources.
+
+          break;
+
+        case HXML:
+          timeLog.stamp("Start loading haxelibs from HXML file.");
+          String hxmlPath = settings.getHxmlPath();
+
+          // TODO: Walk the command line looking for libs, too.
+
+          if (hxmlPath != null && !hxmlPath.isEmpty()) {
+            VirtualFile file = LocalFileFinder.findFile(hxmlPath);
+
+            if (file != null && file.getFileType().equals(HXMLFileType.INSTANCE)) {
+              PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
+              if (psiFile != null) {
+                HXMLProjectModel hxml = new HXMLProjectModel(psiFile);
+                // TODO: Needs to walk all of the children and load referenced .hxml files in place. Should probably be added to the model.
+                List<String> libs = hxml.getLibraries();
+                if (libs != null) {
+                  for (String lib : libs) {
+                    HaxeLibraryReference reference = HaxeLibraryReference.create(module, lib);
+                    if (null != reference.getLibrary()) {
+                      haxelibExternalItems.add(reference);
+                    }
+                    else {
+                      log.warn("Library referenced by HXML configuration is not known to haxelib.");
+                    }
                   }
                 }
               }
             }
           }
-        }
-        timeLog.stamp("Finish loading haxelibs from HXML file.");
+          timeLog.stamp("Finish loading haxelibs from HXML file.");
 
-        // TODO: Add classpaths from the HXML file and CL to module sources
+          // TODO: Add classpaths from the HXML file and CL to module sources
 
-        break;
+          break;
 
-      case CUSTOM:
-        timeLog.stamp("Start loading haxelibs from properties.");
+        case CUSTOM:
+          timeLog.stamp("Start loading haxelibs from properties.");
 
-        // TODO: Grab the command line?? Run it through the algorithm for USE_HXML.
+          // TODO: Grab the command line?? Run it through the algorithm for USE_HXML.
 
-        timeLog.stamp("Finish loading haxelibs from properties.");
-        break;
+          timeLog.stamp("Finish loading haxelibs from properties.");
+          break;
 
-      default:
-        throw new HaxeDebugUtil.InvalidCaseException(settings.getBuildConfiguration());
-    }
+        default:
+          throw new HaxeDebugUtil.InvalidCaseException(settings.getBuildConfiguration());
+      }
 
-    // We can't just remove all of the project classpaths from the module's
-    // library list here because we need to remove any managed classpaths that
-    // are no longer valid in the modules.  We can't do that if we don't have
-    // the list of valid ones.  :/
-    timeLog.stamp("Adding libraries to module.");
-    resolveModuleLibraries(tracker, module, haxelibExternalItems);
-    timeLog.stamp("Finished adding libraries to module.");
+      // We can't just remove all of the project classpaths from the module's
+      // library list here because we need to remove any managed classpaths that
+      // are no longer valid in the modules.  We can't do that if we don't have
+      // the list of valid ones.  :/
+      timeLog.stamp("Adding libraries to module.");
+      resolveModuleLibraries(tracker, module, haxelibExternalItems);
+      timeLog.stamp("Finished adding libraries to module.");
+    });
   }
 
 
@@ -695,19 +697,7 @@ public class HaxelibProjectUpdater {
 
       //LOG.debug("Scanning module " + (++i) + " of " + count + ": " + module.getName());
       timeLog.stamp("\nScanning module " + (num) + " of " + count + ": " + module.getName());
-
-      if (myTestInForeground) {
-        syncOneModule(tracker, module, timeLog);
-      }
-      else {
-        // Running inside of a read action lets the UI run, and messes with the timing.
-        doReadAction(new Runnable() {
-          @Override
-          public void run() {
-            syncOneModule(tracker, module, timeLog);
-          }
-        });
-      }
+      syncOneModule(tracker, module, timeLog);
     }
     timeLog.stamp("Completed.");
     timeLog.print();
@@ -742,8 +732,23 @@ public class HaxelibProjectUpdater {
     //  }
     //});
 
-    syncProjectClasspath(tracker);
-    syncModuleClasspaths(tracker);
+    //syncProjectClasspath(tracker);
+    //syncModuleClasspaths(tracker);
+    ProgressManager progressManager = ProgressManager.getInstance();
+    progressManager.run(new Task.Backgroundable(null, "Synchronizing classpaths...") {
+        @Override
+        public void run(@NotNull ProgressIndicator indicator) {
+          syncProjectClasspath(tracker);
+          syncModuleClasspaths(tracker);
+        }
+      });
+
+
+    //final Application application = ApplicationManager.getApplication();
+    //application.invokeAndWait(() -> {
+    //  syncProjectClasspath(tracker);
+    //  syncModuleClasspaths(tracker);
+    //}, ModalityState.NON_MODAL);
   }
 
   /**
@@ -1043,12 +1048,14 @@ public class HaxelibProjectUpdater {
    */
   private static void doReadAction(final Runnable action) {
     final Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        application.runReadAction(action);
-      }
-    }, application.getDefaultModalityState());
+    application.runReadAction(action);
+    //if (application.isDispatchThread()) {
+    //  application.executeOnPooledThread(action);
+    //}else {
+    //  application.invokeAndWait(action, ModalityState.defaultModalityState());
+    //}
+    //application.invokeAndWait(action, ModalityState.defaultModalityState());
+    //application.invokeLater(action, ModalityState.defaultModalityState());
   }
 
   /**

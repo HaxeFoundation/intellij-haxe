@@ -17,71 +17,69 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.intellij.openapi.application.Application;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
-
+import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.ProjectActivity;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Manage the module lifecycle, primarily for class path info.
  */
+@Service
 @CustomLog
-public class HaxelibModuleManager implements com.intellij.openapi.module.ModuleComponent {
+public class HaxelibModuleManagerService implements ProjectManagerListener, ProjectActivity, ModuleListener,  Disposable {
 
   static {      // Take this out when finished debugging.
     log.setLevel(LogLevel.DEBUG);
   }
 
-  Module mMyModule = null;
-  public HaxelibModuleManager(Module myModule) {
-    mMyModule = myModule;
-  }
+  public HaxelibModuleManagerService() {
 
-  static int debugQueueCounter = 0;
+  }
+  @Nullable
   @Override
-  public void projectOpened() {
-    debugQueueCounter++;
-    final Project project = mMyModule.getProject();
-    log.debug("Project opened event (" + debugQueueCounter + ") for " + project);
+  //projectOpened is deprecated using ProjectActivity instead
+  public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
+    log.debug("Project opened event  for " + project);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      HaxelibProjectUpdater.getInstance().openProject(mMyModule.getProject());
+      HaxelibProjectUpdater.getInstance().openProject(project);
+    }
+    return null;
+  }
+
+  @Override
+  public void projectClosed(@NotNull Project project) {
+    log.debug("Project closed event for  " + project.getName());
+
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      HaxelibProjectUpdater.getInstance().closeProject(project);
     }
   }
 
   @Override
-  public void projectClosed() {
-    log.debug("Project closed event for module " + mMyModule.getName());
-
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      HaxelibProjectUpdater.getInstance().closeProject(mMyModule.getProject());
+  public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
+    for (Module module : modules) {
+      log.debug("Module added event for " + module.getName());
     }
   }
 
-  @Override
-  public void moduleAdded() {
-    log.debug("Module added event for " + mMyModule.getName());
-  }
 
   @Override
-  public void initComponent() {
-    log.debug("initComponent() for module " + mMyModule.getName());
-  }
-
-  @Override
-  public void disposeComponent() {
-    log.debug("disposeComponent() for module " + mMyModule.getName());
-  }
-
-  @NotNull
-  @Override
-  public String getComponentName() {
-    return this.getClass().getCanonicalName();//"com.intellij.plugins.haxe.haxelib.HaxelibManager";
+  public void dispose() {
+    log.debug("disposeComponent()" );
   }
 
 }

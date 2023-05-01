@@ -15,10 +15,8 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.execution.process.AnsiEscapeDecoder;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +32,7 @@ import java.util.Scanner;
  *
  * Created by ebishton on 6/14/17.
  */
-public class HaxeCompilerProcessHandler extends ColoredProcessHandler implements AnsiEscapeDecoder.ColoredChunksAcceptor {
+public class HaxeCompilerProcessHandler extends ColoredProcessHandler {
 
   static final String STDERR_PREFIX = "(stderr) ";
 
@@ -78,31 +76,11 @@ public class HaxeCompilerProcessHandler extends ColoredProcessHandler implements
   }
 
   @Override
-  public void coloredChunksAvailable(@NotNull List<Pair<String, Key>> chunks) {
-    List<String> lines = new ArrayList<String>();
-    StringBuilder line = new StringBuilder();
-
-    for (Pair<String, Key> chunk : chunks) {
-
-      // TODO: Spit out the colored chunks... somehow...
-      coloredTextAvailable(chunk.getFirst(), chunk.getSecond());
-
-      // Combine/split chunks into lines for error processing.
-      String part = chunk.getFirst();
-      int nl;
-      while (null != part && !part.isEmpty() && (nl = part.indexOf('\n')) >= 0) {
-        line.append(part.substring(0, nl + 1));
-        lines.add(line.toString());
-        line.setLength(0);
-        part = part.substring(nl + 1);
-      }
-      if (null != part && !part.isEmpty()) {
-        line.append(part);
-      }
+  public void coloredTextAvailable(@NotNull String text, @NotNull Key attributes) {
+    super.coloredTextAvailable(text, attributes);
+    if(text.trim().length()>0) {// avoid empty lines
+      context.handleOutput(new String[]{text});
     }
-    if (0 != line.length()) {
-      lines.add(line.toString());
-    }
-    context.handleOutput(lines.toArray(new String[0]));
+    // TODO mlo: add support for compiler new output format
   }
 }

@@ -198,6 +198,9 @@
                     serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
                     serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
+
+    <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
+
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          parentId="build"
                          id="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
@@ -286,13 +289,18 @@
     </intentionAction>
 
     <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
+
+    <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
+
   </extensions>
 
-  <module-components>
-    <component>
-      <implementation-class>com.intellij.plugins.haxe.haxelib.HaxelibModuleManager</implementation-class>
-    </component>
-  </module-components>
+  <applicationListeners>
+    <listener class="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"
+              topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    <listener class="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"
+              topic="com.intellij.openapi.project.ModuleListener"/>
+  </applicationListeners>
+
 
   <actions>
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"
