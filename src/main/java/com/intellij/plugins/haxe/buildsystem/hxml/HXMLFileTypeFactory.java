@@ -15,15 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml;
+package com.intellij.plugins.haxe.buildsystem.hxml;
 
-import com.intellij.lang.Language;
-import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
+import com.intellij.openapi.fileTypes.FileTypeConsumer;
+import com.intellij.openapi.fileTypes.FileTypeFactory;
+import org.jetbrains.annotations.NotNull;
 
-public class HXMLLanguage extends Language {
-  public static HXMLLanguage INSTANCE = new HXMLLanguage();
-
-  protected HXMLLanguage() {
-    super(HaxeBundle.message("hxml.language.id"));
+/**
+ * Created by eliasku on 8/8/14.
+ */
+public class HXMLFileTypeFactory extends FileTypeFactory {
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    consumer.consume(
+      HXMLFileType.INSTANCE,
+      new ExtensionFileNameMatcher(HXMLFileType.DEFAULT_EXTENSION));
   }
 }

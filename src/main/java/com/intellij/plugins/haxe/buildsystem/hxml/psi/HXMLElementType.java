@@ -15,20 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml;
+package com.intellij.plugins.haxe.buildsystem.hxml.psi;
 
-import com.intellij.openapi.fileTypes.ExtensionFileNameMatcher;
-import com.intellij.openapi.fileTypes.FileTypeConsumer;
-import com.intellij.openapi.fileTypes.FileTypeFactory;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by eliasku on 8/8/14.
- */
-public class HXMLFileTypeFactory extends FileTypeFactory {
-  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
-    consumer.consume(
-      HXMLFileType.INSTANCE,
-      new ExtensionFileNameMatcher(HXMLFileType.DEFAULT_EXTENSION));
+public class HXMLElementType  extends IElementType {
+
+  public HXMLElementType(@NotNull @NonNls String debugName) {
+    super(debugName, HXMLLanguage.INSTANCE);
   }
+
 }

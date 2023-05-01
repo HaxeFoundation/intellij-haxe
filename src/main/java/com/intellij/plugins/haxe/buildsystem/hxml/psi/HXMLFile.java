@@ -15,12 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml.psi;
+package com.intellij.plugins.haxe.buildsystem.hxml.psi;
 
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.plugins.haxe.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.psi.FileViewProvider;
 import org.jetbrains.annotations.NotNull;
 

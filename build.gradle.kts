@@ -286,14 +286,14 @@ tasks.register<GenerateLexerTask>("generateMetadataLexer") {
 tasks.register<GenerateParserTask>("generateHxmlParser") {
     group = "parsers"
     targetRoot.set("src/main/gen")
-    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/hxml/parser/hxml.bnf"))
+    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/parser/hxml.bnf"))
     pathToParser.set("com/intellij/plugins/haxe/hxml/parser/HXMLParser.java")
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
 }
 
 tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     group = "lexers"
-    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/hxml/lexer/hxml.flex"))
+    sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/lexer/hxml.flex"))
     targetDir.set("src/main/gen/com/intellij/plugins/haxe/hxml/lexer")
     targetClass.set("HXMLLexer")
 }

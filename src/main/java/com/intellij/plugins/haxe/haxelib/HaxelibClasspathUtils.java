@@ -35,25 +35,20 @@ import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
+import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
-import com.intellij.plugins.haxe.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.hxml.psi.HXMLClasspath;
-import com.intellij.plugins.haxe.hxml.psi.HXMLPsiImplUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
-
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.xml.XmlDocument;
-import com.intellij.psi.xml.XmlFile;
-import com.intellij.psi.xml.XmlTag;
+import com.intellij.util.io.URLUtil;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
-import com.intellij.util.io.URLUtil;
 
 import java.io.File;
 import java.util.*;

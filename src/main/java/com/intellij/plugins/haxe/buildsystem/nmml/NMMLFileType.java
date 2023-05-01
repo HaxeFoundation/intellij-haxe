@@ -15,52 +15,46 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml;
+package com.intellij.plugins.haxe.buildsystem.nmml;
 
-import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.intellij.openapi.vfs.CharsetToolkit;
-import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.ide.highlighter.XmlLikeFileType;
+import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.plugins.haxe.HaxeBundle;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class HXMLFileType extends LanguageFileType {
+/**
+ * @author: Fedor.Korotkov
+ */
+public class NMMLFileType extends XmlLikeFileType {
+  public static final NMMLFileType INSTANCE = new NMMLFileType();
+  public static final String DEFAULT_EXTENSION = "nmml";
 
-  public static final HXMLFileType INSTANCE = new HXMLFileType();
-
-  @NonNls
-  public static final String DEFAULT_EXTENSION = "hxml";
-
-  private HXMLFileType() {
-    super(HXMLLanguage.INSTANCE);
+  public NMMLFileType() {
+    super(XMLLanguage.INSTANCE);
   }
 
   @NotNull
-  @NonNls
+  @Override
   public String getName() {
-    return HaxeBundle.message("hxml.file.type.name");
+    return HaxeBundle.message("nme.nmml");
   }
 
-  @NonNls
   @NotNull
+  @Override
   public String getDescription() {
-    return HaxeBundle.message("hxml.file.type.description");
+    return HaxeBundle.message("nme.nmml.description");
   }
 
   @NotNull
-  @NonNls
+  @Override
   public String getDefaultExtension() {
     return DEFAULT_EXTENSION;
   }
 
-  public Icon getIcon() {
-    return icons.HaxeIcons.HAXE_LOGO;
-  }
-
   @Override
-  public String getCharset(@NotNull VirtualFile file, byte[] content) {
-    return CharsetToolkit.UTF8;
+  public Icon getIcon() {
+    return icons.HaxeIcons.NMML_LOGO;
   }
 }

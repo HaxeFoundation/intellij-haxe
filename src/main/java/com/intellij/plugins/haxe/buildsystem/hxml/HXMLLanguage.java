@@ -15,21 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml.psi;
+package com.intellij.plugins.haxe.buildsystem.hxml;
 
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lang.Language;
+import com.intellij.plugins.haxe.HaxeBundle;
 
-public class HXMLTokenType extends IElementType {
+public class HXMLLanguage extends Language {
+  public static HXMLLanguage INSTANCE = new HXMLLanguage();
 
-  public HXMLTokenType(@NotNull @NonNls String debugName) {
-    super(debugName, HXMLLanguage.INSTANCE);
-  }
-
-  @Override
-  public String toString() {
-    return "HXMLTokenType." + super.toString();
+  protected HXMLLanguage() {
+    super(HaxeBundle.message("hxml.language.id"));
   }
 }

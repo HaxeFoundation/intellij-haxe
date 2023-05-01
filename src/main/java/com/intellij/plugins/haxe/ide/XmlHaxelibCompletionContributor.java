@@ -21,6 +21,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.xml.XMLLanguage;
 import com.intellij.openapi.application.ex.ApplicationUtil;
+import com.intellij.openapi.progress.DumbProgressIndicator;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.patterns.PlatformPatterns;
@@ -42,7 +43,10 @@ public class XmlHaxelibCompletionContributor extends CompletionContributor {
   public XmlHaxelibCompletionContributor() throws Exception {
 
     ProgressIndicator indicator = ProgressManager.getGlobalProgressIndicator();
-
+    if(indicator == null) {
+      //TODO mlo: find a better solution (CompletionProgressIndicator is internal API :( )
+      indicator = DumbProgressIndicator.INSTANCE;
+    }
     ApplicationUtil.runWithCheckCanceled(() -> {
       HaxelibCache haxelibCache = HaxelibCache.getInstance();
       availableHaxelibs = haxelibCache.getAvailableHaxelibs();

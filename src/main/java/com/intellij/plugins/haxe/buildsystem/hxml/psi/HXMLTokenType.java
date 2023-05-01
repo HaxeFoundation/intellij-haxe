@@ -15,18 +15,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.nmml;
+package com.intellij.plugins.haxe.buildsystem.hxml.psi;
 
-import com.intellij.openapi.fileTypes.FileTypeConsumer;
-import com.intellij.openapi.fileTypes.FileTypeFactory;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author: Fedor.Korotkov
- */
-public class NMMLFileTypeFactory extends FileTypeFactory {
-  public void createFileTypes(final @NotNull FileTypeConsumer consumer) {
-    final NMMLFileType fileType = NMMLFileType.INSTANCE;
-    consumer.consume(fileType, fileType.getDefaultExtension());
+public class HXMLTokenType extends IElementType {
+
+  public HXMLTokenType(@NotNull @NonNls String debugName) {
+    super(debugName, HXMLLanguage.INSTANCE);
+  }
+
+  @Override
+  public String toString() {
+    return "HXMLTokenType." + super.toString();
   }
 }

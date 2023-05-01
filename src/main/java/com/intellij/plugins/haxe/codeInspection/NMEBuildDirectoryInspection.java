@@ -22,7 +22,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.nmml.NMMLFileType;
+import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.XmlRecursiveElementVisitor;
@@ -75,7 +75,7 @@ public class NMEBuildDirectoryInspection extends LocalInspectionTool {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
 
-    final XmlTag lastTag = ContainerUtil.iterateAndGetLastItem(visitor.getResult());
+    final XmlTag lastTag = ContainerUtil.getLastItem(visitor.getResult());
 
     if (lastTag == null) {
       return ProblemDescriptor.EMPTY_ARRAY;

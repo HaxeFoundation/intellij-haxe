@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml.model;
+package com.intellij.plugins.haxe.buildsystem.hxml.model;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
@@ -21,12 +21,10 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
 import com.intellij.plugins.haxe.hxml.psi.HXMLProperty;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
-
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

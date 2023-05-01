@@ -15,17 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.hxml.psi;
+package com.intellij.plugins.haxe.buildsystem.hxml.lexer;
 
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.psi.tree.IElementType;
-import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.lexer.FlexAdapter;
+import com.intellij.plugins.haxe.hxml.lexer.HXMLLexer;
 
-public class HXMLElementType  extends IElementType {
-
-  public HXMLElementType(@NotNull @NonNls String debugName) {
-    super(debugName, HXMLLanguage.INSTANCE);
+/**
+ * Created by eliasku on 8/8/14.
+ */
+public class HXMLLexerAdapter extends FlexAdapter {
+  public HXMLLexerAdapter() {
+    super(new HXMLLexer());
   }
-
 }

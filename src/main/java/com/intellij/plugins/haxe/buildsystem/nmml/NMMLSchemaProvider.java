@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.nmml;
+package com.intellij.plugins.haxe.buildsystem.nmml;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.io.FileUtilRt;
@@ -36,7 +36,7 @@ import java.net.URL;
 public class NMMLSchemaProvider extends XmlSchemaProvider {
   @Override
   public XmlFile getSchema(@NotNull @NonNls String url, @Nullable Module module, @NotNull PsiFile baseFile) {
-    final URL resource = NMMLSchemaProvider.class.getResource("/nmml.xsd");
+    final URL resource = NMMLSchemaProvider.class.getResource("/xsd/nmml/nmml.xsd");
     final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
     PsiFile result = baseFile.getManager().findFile(fileByURL);
     if (result instanceof XmlFile) {

@@ -19,9 +19,9 @@ package com.intellij.plugins.haxe.lang.parser;
 
 import com.intellij.lang.ASTFactory;
 import com.intellij.lang.LanguageASTFactory;
-import com.intellij.plugins.haxe.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.hxml.HXMLParserDefinition;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.impl.source.tree.LazyParseableElement;

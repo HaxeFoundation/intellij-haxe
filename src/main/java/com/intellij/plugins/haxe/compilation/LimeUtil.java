@@ -17,12 +17,11 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
-import com.intellij.plugins.haxe.hxml.HXMLFileType;
-import com.intellij.plugins.haxe.hxml.model.HXMLProjectModel;
-
-import com.intellij.psi.*;
+import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
+import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiFileFactory;
 import lombok.CustomLog;
-
 
 import java.util.List;
 

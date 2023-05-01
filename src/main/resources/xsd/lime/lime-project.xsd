@@ -1,0 +1,817 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified"
+           elementFormDefault="qualified">
+
+    <xs:complexType name="app">
+        <xs:attribute name="main" type="xs:string"/>
+        <xs:attribute name="file" type="xs:string"/>
+        <xs:attribute name="path" type="xs:string"/>
+        <xs:attribute name="preloader" type="xs:string"/>
+        <xs:attribute name="swf-version" type="natural-number"/>
+        <xs:attribute name="min-swf-version" type="natural-number"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="assets">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="font" type="asset"/>
+            <xs:element name="image" type="asset"/>
+            <xs:element name="music" type="asset"/>
+            <xs:element name="sound" type="asset"/>
+            <xs:element name="template" type="asset"/>
+            <xs:element name="library" type="asset"/>
+            <xs:element name="manifest" type="asset"/>
+            <xs:element name="binary" type="asset"/>
+            <xs:element name="text" type="asset"/>
+        </xs:choice>
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="embed" type="xs:boolean"/>
+        <xs:attribute name="rename" type="xs:string"/>
+        <xs:attribute name="library" type="string-min-len-1"/>
+        <xs:attribute name="glyphs" type="xs:string"/>
+        <xs:attribute name="include" type="xs:string" default="*"/>
+        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attribute name="type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="binary"/>
+                    <xs:enumeration value="bundle"/>
+                    <xs:enumeration value="font"/>
+                    <xs:enumeration value="image"/>
+                    <xs:enumeration value="music"/>
+                    <xs:enumeration value="sound"/>
+                    <xs:enumeration value="template"/>
+                    <xs:enumeration value="text"/>
+                    <xs:enumeration value="manifest"/>
+                    <xs:enumeration value="bytes"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="meta">
+        <xs:attribute name="title" type="xs:string"/>
+        <xs:attribute name="description" type="xs:string"/>
+        <xs:attribute name="package" type="xs:string"/>
+        <xs:attribute name="version" type="xs:string"/>
+        <xs:attribute name="company" type="xs:string"/>
+        <xs:attribute name="company-id" type="xs:string"/>
+        <xs:attribute name="build-number" type="xs:string"/>
+        <xs:attribute name="company-url" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="window">
+        <xs:attribute name="id" type="natural-number"/>
+        <xs:attribute name="background" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Set to empty, null or transparent for transparent background. Use 0x000000 format.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="orientation" default="auto">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="auto">
+                        <xs:annotation>
+                            <xs:documentation>Allows the operating system to decide which orientation to use
+                            </xs:documentation>
+                        </xs:annotation>
+                    </xs:enumeration>
+                    <xs:enumeration value="portrait"/>
+                    <xs:enumeration value="landscape"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="width" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number"/>
+        <xs:attribute name="fps" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>There is a special fps="0" value for HTML5, which is default, which uses
+                    "requestAnimationFrame" instead of forcing a
+                    frame rate
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="antialiasing" type="natural-number"/>
+        <xs:attribute name="parameters" type="xs:string"/>
+        <xs:attribute name="title" type="xs:string"/>
+        <xs:attribute name="allow-high-dpi" type="xs:boolean"/>
+        <xs:attribute name="color-depth" type="natural-number"/>
+
+        <xs:attribute name="hardware" type="xs:boolean"/>
+        <xs:attribute name="allow-shaders" type="xs:boolean"/>
+        <xs:attribute name="require-shaders" type="xs:boolean"/>
+        <xs:attribute name="depth-buffer" type="xs:boolean"/>
+        <xs:attribute name="stencil-buffer" type="xs:boolean"/>
+        <xs:attribute name="fullscreen" type="xs:boolean"/>
+        <xs:attribute name="resizable" type="xs:boolean"/>
+        <xs:attribute name="borderless" type="xs:boolean"/>
+        <xs:attribute name="vsync" type="xs:boolean"/>
+
+        <xs:attribute name="minimized" type="xs:boolean"/>
+        <xs:attribute name="maximized" type="xs:boolean"/>
+        <xs:attribute name="alwaysOnTop" type="xs:boolean"/>
+
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="source">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="classpath">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="sample">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="haxelib">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="version" type="xs:string"/>
+        <xs:attribute name="optional" type="xs:boolean"/>
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="ndll">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="haxelib" type="xs:string"/>
+        <xs:attribute name="dir" type="xs:string"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="register" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+
+    <xs:complexType name="include">
+        <xs:annotation>
+            <xs:documentation>Include another project file</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attribute name="haxelib" type="string-min-len-1"/>
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="noerror" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="language">
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="icon">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="width" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number"/>
+        <xs:attribute name="size" type="natural-number"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="template">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="rename" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="library">
+        <xs:annotation>
+            <xs:documentation>
+                Organise your assets by libraries so you can load/unload them when needed.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="embed" type="xs:boolean"/>
+        <xs:attribute name="preload" type="xs:boolean"/>
+        <xs:attribute name="generate" type="xs:boolean"/>
+        <xs:attribute name="prefix" type="xs:string"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="target">
+        <xs:attribute name="handler" type="string-min-len-1"/>
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="haxeflag">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="compilerflag">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="haxedef">
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="value" type="xs:string"/>
+        <xs:attribute name="remove" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="setenv">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="set">
+        <xs:annotation>
+            <xs:documentation>Set value for conditional logic in this project file or in a template (::SET_NAME::)
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="value" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="unset">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="define">
+        <xs:annotation>
+            <xs:documentation>Set value for conditional logic in this project file or in a template (::DEFINE_NAME::).
+                This value is also passed to Haxe.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="undefine">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="java">
+        <xs:annotation>
+            <xs:documentation>Adds Java classes to the project when targeting Android.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1" use="required">
+            <xs:annotation>
+                <xs:documentation>path to Java classes</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="certificate">
+        <xs:annotation>
+            <xs:documentation>Used to add a keystore for release signing.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="type" type="xs:string"/>
+        <xs:attribute name="password" type="xs:string"/>
+        <xs:attribute name="alias" type="xs:string"/>
+        <xs:attribute name="alias-password" type="xs:string"/>
+        <xs:attribute name="identity" type="xs:string"/>
+        <xs:attribute name="team-id" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="ios">
+        <xs:attribute name="deployment" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>minimum iOS target version</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="binaries">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="armv6"/>
+                    <xs:enumeration value="armv7"/>
+                    <xs:enumeration value="fat"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="devices">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="iphone"/>
+                    <xs:enumeration value="ipad"/>
+                    <xs:enumeration value="universal"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="linker-flags" type="xs:string"/>
+        <xs:attribute name="prerendered-icon" type="xs:boolean"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="android">
+        <xs:attribute name="install-location" type="xs:string"/>
+        <xs:attribute name="permission" type="xs:string"/>
+        <xs:attribute name="target-sdk-version" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="architecture">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="exclude" type="xs:string"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="launchImage">
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attribute name="width" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="splashscreen">
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attribute name="width" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="launchStoryboard">
+        <xs:annotation>
+            <xs:documentation>
+                Sets the launch screen storyboard (useful only for iOS development).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="imageset" type="image"/>
+        </xs:choice>
+        <xs:attribute name="path" type="string-min-len-1"/>
+        <xs:attribute name="name" type="string-min-len-1"/>
+        <xs:attribute name="template" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Specific storyboard template you’re using, chosen from the templates available at
+                    templates/ios/storyboards.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="assetsPath" type="string-min-len-1"/>
+        <xs:attribute name="bg-RGB" type="hexadecimal">
+            <xs:annotation>
+                <xs:documentation>0x000000 format for background used when content mode is not fullscreen by
+                    splash.storyboard template.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="bg-String" type="hexadecimal">
+            <xs:annotation>
+                <xs:documentation>Hexadecimal format for background used when content mode is not fullscreen by
+                    splash.storyboard template.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="bg-Int" type="hexadecimal">
+            <xs:annotation>
+                <xs:documentation>0x000000 format for background used when content mode is not fullscreen by
+                    splash.storyboard template.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="contentMode" type="contentMode">
+            <xs:annotation>
+                <xs:documentation>Determines how the image scales to fit the screen, used by splash.storyboard
+                    template.
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="portrait" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Used by splash.storyboard template.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="landscape" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Used by splash.storyboard template.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="ipad" type="string-min-len-1">
+            <xs:annotation>
+                <xs:documentation>Used by splash.storyboard template.</xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="dependency">
+        <xs:annotation>
+            <xs:documentation>
+                Native framework or reference that is required to compile your project, or additional library you need
+                copied.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="embed" type="xs:boolean"/>
+        <xs:attribute name="force-load" type="xs:boolean"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="config">
+        <xs:annotation>
+            <xs:documentation>
+                Set platform-specific values. E.g: config type="android" install-location="preferExternal"
+            </xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="air"/>
+                    <xs:enumeration value="android"/>
+                    <xs:enumeration value="blackberry"/>
+                    <xs:enumeration value="console-pc"/>
+                    <xs:enumeration value="firefox"/>
+                    <xs:enumeration value="flash"/>
+                    <xs:enumeration value="html5"/>
+                    <xs:enumeration value="ios"/>
+                    <xs:enumeration value="linux"/>
+                    <xs:enumeration value="mac"/>
+                    <xs:enumeration value="ps3"/>
+                    <xs:enumeration value="ps4"/>
+                    <xs:enumeration value="tizen"/>
+                    <xs:enumeration value="vita"/>
+                    <xs:enumeration value="windows"/>
+                    <xs:enumeration value="webos"/>
+                    <xs:enumeration value="wiiu"/>
+                    <xs:enumeration value="xbox1"/>
+                    <xs:enumeration value="emscripten"/>
+                    <xs:enumeration value="tvos"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="minimum-sdk-version" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="target-sdk-version" type="natural-number">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="install-location" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="extension" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="permission" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="gradle-version" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Android only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="build-library" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>Cpp only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="deployment" type="xs:decimal">
+            <xs:annotation>
+                <xs:documentation>iOS only: minimum iOS target version
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="binaries">
+            <xs:annotation>
+                <xs:documentation>iOS only
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="fat"/>
+                    <xs:enumeration value="armv6"/>
+                    <xs:enumeration value="armv7"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="devices">
+            <xs:annotation>
+                <xs:documentation>iOS only
+                </xs:documentation>
+            </xs:annotation>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="iphone"/>
+                    <xs:enumeration value="ipad"/>
+                    <xs:enumeration value="universal"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="linker-flags" type="xs:string">
+            <xs:annotation>
+                <xs:documentation>iOS only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+        <xs:attribute name="prerendered-icon" type="xs:boolean">
+            <xs:annotation>
+                <xs:documentation>iOS only
+                </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="path">
+        <xs:annotation>
+            <xs:documentation>Adds a directory to your system's PATH environment variable</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="value" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="echo">
+        <xs:annotation>
+            <xs:documentation>Prints a specified message to the console.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="value" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+    <xs:complexType name="log">
+        <xs:annotation>
+            <xs:documentation>Throw an error or log a warning or info message to the console.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="error" type="string-min-len-1"/>
+        <xs:attribute name="warn" type="string-min-len-1"/>
+        <xs:attribute name="info" type="string-min-len-1"/>
+        <xs:attribute name="value" type="string-min-len-1"/>
+        <xs:attribute name="verbose" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+    </xs:complexType>
+    <xs:complexType name="error">
+        <xs:annotation>
+            <xs:documentation>Throws an error.</xs:documentation>
+        </xs:annotation>
+        <xs:attribute name="value" type="string-min-len-1" use="required"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="prebuild">
+        <xs:annotation>
+            <xs:documentation>Lets you set pre-build commands such as Haxe code (interpeted by the Haxe interpreter), a
+                run file command, or a console command.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="arg" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:choice>
+        <xs:attribute name="haxe" type="string-min-len-1"/>
+        <xs:attribute name="open" type="string-min-len-1"/>
+        <xs:attribute name="command" type="string-min-len-1"/>
+        <xs:attribute name="cmd" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:complexType name="postbuild">
+        <xs:annotation>
+            <xs:documentation>Lets you set post-build commands such as Haxe code (interpeted by the Haxe interpreter), a
+                run file command, or a console command.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="arg" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:choice>
+        <xs:attribute name="haxe" type="string-min-len-1"/>
+        <xs:attribute name="open" type="string-min-len-1"/>
+        <xs:attribute name="command" type="string-min-len-1"/>
+        <xs:attribute name="cmd" type="string-min-len-1"/>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:element name="project">
+        <xs:annotation>
+            <xs:documentation>Root element of the OpenFL project descriptor.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element name="app" type="app" maxOccurs="unbounded" minOccurs="1"/>
+                <xs:element name="window" type="window" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="meta" type="meta" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="haxelib" type="haxelib" maxOccurs="unbounded" minOccurs="1"/>
+                <xs:element name="source" type="source" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="classpath" type="classpath" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="sample" type="sample" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="include" type="include" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="language" type="language" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="icon" type="icon" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="haxedef" type="haxedef" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="section" type="section" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="setenv" type="setenv" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="set" type="set" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="unset" type="unset" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="define" type="define" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="undefine" type="undefine" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="java" type="java" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="certificate" type="certificate" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="ndll" type="ndll" maxOccurs="unbounded" minOccurs="0"/>
+                <!--                deprecated/ -->
+                <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+                <!--                /deprecated-->
+                <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="splashscreen" type="splashscreen" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
+                <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+            </xs:choice>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:complexType name="extension">
+        <xs:annotation>
+            <xs:documentation>Alternative root element of the OpenFL project descriptor.</xs:documentation>
+        </xs:annotation>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="app" type="app" maxOccurs="unbounded" minOccurs="1"/>
+            <xs:element name="window" type="window" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="meta" type="meta" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxelib" type="haxelib" maxOccurs="unbounded" minOccurs="1"/>
+            <xs:element name="source" type="source" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="classpath" type="classpath" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="sample" type="sample" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="include" type="include" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="language" type="language" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="icon" type="icon" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxedef" type="haxedef" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="section" type="section" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="setenv" type="setenv" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="set" type="set" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="unset" type="unset" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="define" type="define" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="undefine" type="undefine" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="java" type="java" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="certificate" type="certificate" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="ndll" type="ndll" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="splashscreen" type="splashscreen" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="section">
+        <xs:annotation>
+            <xs:documentation>Group other tags together. This is usually most valuable when combined with “if” and/or
+                “unless” logic.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:choice maxOccurs="unbounded" minOccurs="0">
+            <xs:element name="app" type="app" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="window" type="window" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="meta" type="meta" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxelib" type="haxelib" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="source" type="source" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="classpath" type="classpath" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="sample" type="sample" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="include" type="include" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="language" type="language" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="icon" type="icon" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="assets" type="assets" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="template" type="template" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="library" type="library" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="target" type="target" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxeflag" type="haxeflag" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="compilerflag" type="compilerflag" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="haxedef" type="haxedef" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="section" type="section" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="setenv" type="setenv" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="set" type="set" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="unset" type="unset" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="define" type="define" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="undefine" type="undefine" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="java" type="java" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="certificate" type="certificate" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="ndll" type="ndll" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="ios" type="ios" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="android" type="android" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="architecture" type="architecture" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="launchImage" type="launchImage" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="splashscreen" type="splashscreen" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="launchStoryboard" type="launchStoryboard" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="dependency" type="dependency" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="config" type="config" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="path" type="path" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="echo" type="echo" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="log" type="log" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="error" type="error" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="prebuild" type="prebuild" maxOccurs="unbounded" minOccurs="0"/>
+            <xs:element name="postbuild" type="postbuild" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:choice>
+        <xs:attributeGroup ref="conditional"/>
+        <xs:anyAttribute processContents="lax"/>
+    </xs:complexType>
+
+    <xs:attributeGroup name="conditional">
+        <xs:attribute type="xs:string" name="if"/>
+        <xs:attribute type="xs:string" name="unless"/>
+    </xs:attributeGroup>
+
+    <xs:complexType name="asset">
+        <xs:attribute name="path" type="string-min-len-1" use="required"/>
+        <xs:attribute name="id" type="xs:string"/>
+    </xs:complexType>
+
+    <xs:complexType name="image">
+        <xs:attribute name="name" type="string-min-len-1" use="required"/>
+        <xs:attribute name="width" type="natural-number"/>
+        <xs:attribute name="height" type="natural-number"/>
+    </xs:complexType>
+
+    <xs:simpleType name="natural-number">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="[0-9]+"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="string-min-len-1">
+        <xs:restriction base="xs:string">
+            <xs:minLength value="1"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="hexadecimal">
+        <xs:restriction base="xs:string">
+            <xs:pattern value="([0-9A-Fa-fx])+"/>
+            <xs:minLength value="1"/>
+            <xs:maxLength value="8"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="contentMode">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="center"/>
+            <xs:enumeration value="scaleAspectFill"/>
+            <xs:enumeration value="scaleAspectFit"/>
+            <xs:enumeration value="scaleToFill"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+</xs:schema>

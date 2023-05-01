@@ -22,7 +22,7 @@ import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.nmml.NMMLFileType;
+import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.SmartList;
