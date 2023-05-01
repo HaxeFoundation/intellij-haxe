@@ -67,17 +67,10 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
 
-      - name: Cache plugin downloads
-        uses: actions/cache@v3
-        with:
-          path: $GITHUB_WORKSPACE/dependencies
-          key: ${{ matrix.IDEA_VERSION }}-downloads-${{ hashFiles('downloads/**') }}
-          restore-keys: ${{ matrix.IDEA_VERSION }}-downloads
-
       - name: Cache intelliJ downloads
         uses: actions/cache@v3
         with:
-          path: $GITHUB_WORKSPACE/idea-IU
+          path: $GITHUB_WORKSPACE/idea
           key: ${{ matrix.IDEA_VERSION }}-idea-${{ hashFiles('ideaIU-${{ matrix.IDEA_VERSION }}/**') }}
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
