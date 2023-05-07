@@ -1,3 +1,3 @@
   function main() {
-    trace("Module method );
+    trace("Module method");
 }

@@ -219,14 +219,15 @@ bitOperation ::= '|' | '&' | '^'      { extends=operator }
 private additiveOperator ::= '+' | '-'        { extends=operator }
 private assignableOperator ::= '++' | '--'    { extends=operator }
 private colonOperator ::= ':'                 { extends=operator }
-isOperator ::= 'is'                   { extends=operator }
+isOperator ::= 'is'                           { extends=operator }
 private iteratorOperator ::= '...'            { extends=operator }
 private logicAndOperator ::= '&&'             { extends=operator }
 private logicOrOperator ::= '||'              { extends=operator }
 private moduloOperator ::= '%'                { extends=operator }
 private multiplicativeOperator ::= '*' | '/'  { extends=operator }
 private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
-private questionOperator ::= '?'              { extends=operator }
+private coalescingOperator ::= '??'           { extends=operator }
+private questionOperator ::= <<ternary>>      { extends=operator }
 private suffixOperator ::= '!'                { extends=operator }
 
 // KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER is only used for getters/setters)
@@ -238,12 +239,21 @@ thisExpression ::= 'this'
 
 superExpression ::= 'super'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+//Haxe 4.3+
+abstractExpression ::= 'abstract'
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
-private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
+// TODO: to avoid huge rollbacks we combine module and toplevel declarations
+// TODO: the idea is : if the result contains module parts, treat as module if only toplevel treat as toplevel
+// TODO: there might be some checks that needs to be done in code (multiple public classes ?)
+private moduleOrTopLevelDeclaration ::= ((embeddedMeta* topLevelDeclaration) | moduleBody)+
+private topLevel ::= importStatement | usingStatement |  moduleOrTopLevelDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
+//private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | 'final')
 
 // These are top-level parsing entry points for metadata.
@@ -270,7 +280,6 @@ usingStatement ::= 'using' simpleQualifiedReferenceExpression ';'
   implements="com.intellij.plugins.haxe.lang.psi.HaxeUsingStatementPsiMixin"
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUsingStatementPsiMixinImpl"
 }
-
 private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
                               | externClassDeclaration
@@ -311,7 +320,8 @@ private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' |
 externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-moduleDeclaration ::= moduleBody{pin=1}
+//see moduleOrTopLevelDeclaration
+//moduleDeclaration ::= moduleBody{pin=1}
 
 moduleBody ::= moduleBodyPart+  {pin=1}
 private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractClassDeclaration))
@@ -367,9 +377,9 @@ fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDec
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier '?' componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 implements=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
-
-localVarDeclarationList ::= mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2}
-localVarDeclaration ::= componentName typeTag? varInit?
+//NOTE: static local variable is a haxe 4.3+ feature
+localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=3}
+localVarDeclaration ::= 'static'? componentName typeTag? varInit?
   {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
 private local_var_declaration_part_recover ::= !('!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
@@ -482,9 +492,13 @@ typeList ::= typeListPart (',' typeListPart)*
 haxe4typeList ::= typeListPart ('&' typeListPart)+
 {extends=typeList}
 
+//TODO mlo:  separate "type-generics" and "method-generics" as they have different rules
+//typeGenericParam ::= '<' defaultGenericListPart (',' defaultGenericListPart)* '>'
+//methodGenericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
-genericListPart ::= regularGenericListPart | constGenericListPart
+genericListPart ::= defaultGenericListPart |  regularGenericListPart | constGenericListPart
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+private defaultGenericListPart ::= componentName '=' typeWrapper
 private regularGenericListPart ::= componentName (':' ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart ))? {pin=2}
 // constGenericListPart is only available when the macroMember is '@:const' (constMeta).  It's only useful in macros.
 // We can't use constMeta here until the lexer returns a string for macros instead of META_ID.
@@ -647,6 +661,7 @@ private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '
 // The lookahead predicate on valueExpression is required for suffix expressions to be parsed properly,
 // even though the suffix expressions appear before the value.
 expression ::= assignExpression
+             | coalescingExpression
              | ternaryExpression
              | logicOrExpression
              | logicAndExpression
@@ -666,6 +681,7 @@ expression ::= assignExpression
 assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
 isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="/expression[0]" operator="isOperator"] }
 iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
+coalescingExpression ::= expression coalescingOperator expression             { extends=binaryExpression }
 ternaryExpression ::= expression questionOperator expression colonOperator expression
   { rightAssociative=true
     methods=[ guardExpression="/expression[0]"
@@ -695,7 +711,7 @@ fake binaryExpression ::= expression* operator+ {
 fake unaryExpression ::= expression* operator+ {
   methods=[expression="/expression[0]" operator="/operator[0]"]
 }
-private assignableValueExpression ::= referenceExpression (qualifiedReferenceExpression)* arrayAccessExpression*
+private assignableValueExpression ::= referenceExpression (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
 
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
@@ -722,6 +738,7 @@ private value ::= ('untyped' expression)
                 | referenceExpression
                 | thisExpression
                 | superExpression
+                | abstractExpression
 {pin=1}
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
@@ -759,10 +776,10 @@ typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
-private qualifiedReferenceTail ::= qualifiedReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 private callFunctionLiteral ::= functionLiteral callExpression
-private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | parenthesizedExpression) (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | abstractExpression | parenthesizedExpression) (callExpression | arrayAccessExpression | qualifiedNullSafeReferenceExpression)*
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 left callExpression ::= '(' expressionList? ')'
@@ -772,6 +789,7 @@ left arrayAccessExpression ::= '[' expression ']'
 
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+left qualifiedNullSafeReferenceExpression ::= ('?.'|'.') identifier {elementType="referenceExpression" pin=2}
 left qualifiedReferenceExpression ::= '.' identifier {elementType="referenceExpression" pin=2}
 private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
 

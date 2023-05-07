@@ -52,6 +52,23 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     marker_.collapse(operator);
     return true;
   }
+  private static boolean parseOperatorNotFollowedBy(PsiBuilder builder_, IElementType operator, IElementType token) {
+    final PsiBuilder.Marker marker_ = builder_.mark();
+
+    IElementType fistElement = builder_.lookAhead(0);
+    IElementType secondElement = builder_.lookAhead(1);
+    if (fistElement == operator  && secondElement != token) {
+      if (consumeTokenFast(builder_, operator)) {
+        marker_.collapse(operator);
+        return true;
+      }
+
+    }
+
+    marker_.rollbackTo();
+    builder_.setWhitespaceSkippedCallback(null);
+    return false;
+  }
 
   public static boolean shiftRight(PsiBuilder builder_, int level_) {
     return parseOperator(builder_, OSHIFT_RIGHT, OGREATER, OGREATER);
@@ -71,6 +88,10 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
 
   public static boolean gtEq(PsiBuilder builder_, int level_) {
     return parseOperator(builder_, OGREATER_OR_EQUAL, OGREATER, OASSIGN);
+  }
+
+  public static boolean ternary(PsiBuilder builder_, int level_) {
+    return parseOperatorNotFollowedBy(builder_, OQUEST, ODOT);
   }
 
 
