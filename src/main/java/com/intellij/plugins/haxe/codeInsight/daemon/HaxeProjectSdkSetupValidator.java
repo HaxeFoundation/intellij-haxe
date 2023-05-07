@@ -16,20 +16,22 @@
 package com.intellij.plugins.haxe.codeInsight.daemon;
 
 import com.intellij.codeInsight.daemon.impl.JavaProjectSdkSetupValidator;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectBundle;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
+import com.intellij.openapi.roots.ui.configuration.SdkPopupBuilder;
+import com.intellij.openapi.roots.ui.configuration.SdkPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
+import com.intellij.ui.EditorNotificationPanel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -121,43 +123,16 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
   }
 
   @Override
-  public void doFix(@NotNull Project project, @NotNull VirtualFile file) {
-    SdkValidationResult result = validateSdk(project, file);
-    if (result == null) {
-      return;
-    }
-
-    switch (result) {
-      case PROJECT_SDK_NOT_DEFINED:
-      case MODULE_SDK_NOT_DEFINED:
-      case NO_VALID_SDK_ROOTS_FOUND:
-        super.doFix(project, file);
-        break;
-      case MULTIPLE_ROOTS_FOUND:
-        pruneExcessiveRoots(project, file);
-        break;
-    }
+  public @NotNull EditorNotificationPanel.ActionHandler getFixHandler(@NotNull Project project, @NotNull VirtualFile file) {
+    return preparePopup(project, file).buildEditorNotificationPanelHandler();
   }
 
-  private void pruneExcessiveRoots(Project project, VirtualFile file) {
-    final Module module = ModuleUtilCore.findModuleForFile(file, project);
-    if (module != null && !module.isDisposed()) {
-      final Sdk sdk = ModuleRootManager.getInstance(module).getSdk();
-      if (sdk != null) {
-        final SdkModificator modificator = sdk.getSdkModificator();
-        final VirtualFile stdRoot = getDistinctRootsStream(sdk)
-          .filter(root -> root.findChild(STD_TYPES_HX) != null)
-          .findFirst()
-          .orElse(null);
-
-        if (stdRoot != null) {
-          modificator.removeAllRoots();
-          modificator.addRoot(stdRoot, OrderRootType.CLASSES);
-          modificator.addRoot(stdRoot, OrderRootType.SOURCES);
-          WriteAction.run(modificator::commitChanges);
-        }
-      }
-    }
+  private @NotNull SdkPopupBuilder preparePopup(@NotNull Project project, @NotNull VirtualFile file) {
+    return SdkPopupFactory
+      .newBuilder()
+      .withProject(project)
+      .withSdkTypeFilter(type -> type instanceof HaxeSdkType)
+      .updateSdkForFile(file);
   }
 }
 
