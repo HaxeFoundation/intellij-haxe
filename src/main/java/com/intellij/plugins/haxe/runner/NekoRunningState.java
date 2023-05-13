@@ -72,7 +72,6 @@ public class NekoRunningState extends CommandLineState {
     HaxeCommandLine commandLine = new HaxeCommandLine(module);
 
     commandLine.setExePath(sdkData.getNekoBinPath());
-    //commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
 
     //Get output path provided in settings
     //Neko is always compiled to /release/ folder

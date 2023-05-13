@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.move;
 
-import com.intellij.openapi.roots.impl.DirectoryIndex;
+import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
@@ -27,7 +27,6 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFileHandler;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
@@ -48,7 +47,7 @@ public class HaxeFileMoveHandler extends MoveFileHandler {
 
   @Override
   public void prepareMovedFile(PsiFile file, PsiDirectory moveDestination, Map<PsiElement, PsiElement> oldToNewMap) {
-    file.putUserData(destinationPackageKey, DirectoryIndex.getInstance(file.getProject()).getPackageName(moveDestination.getVirtualFile()));
+    file.putUserData(destinationPackageKey, PackageIndex.getInstance(file.getProject()).getPackageNameByDirectory(moveDestination.getVirtualFile()));
   }
 
   @Override

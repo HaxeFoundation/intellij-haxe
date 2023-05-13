@@ -26,8 +26,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableModelsProvider;
 import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.OrderRootType;
-import com.intellij.openapi.roots.impl.libraries.LibraryEx;
-import com.intellij.openapi.roots.impl.libraries.LibraryImpl;
+import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.LocalFileSystem;
@@ -171,9 +170,8 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     for(LibraryData lib:libraries) {
       VirtualFile root = LocalFileSystem.getInstance().findFileByPath(lib.getClasspath());
       if(root != null) {
-        LibraryImpl library = (LibraryImpl)librariesModel.createLibrary(lib.getName());
-        LibraryEx.ModifiableModelEx model = library.getModifiableModel();
-        model.setKind(HaxeLibraryType.HAXE_LIBRARY);
+        Library library = librariesModel.createLibrary(lib.getName(), HaxeLibraryType.HAXE_LIBRARY);
+        Library.ModifiableModel model = library.getModifiableModel();
         model.addRoot(root, OrderRootType.CLASSES);
         model.addRoot(root, OrderRootType.SOURCES);
         model.commit();

@@ -29,9 +29,9 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.RootProvider;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -77,8 +77,8 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static HaxeClasspath getUnmanagedProjectLibraryClasspath(@NotNull Project project) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    if (null == libraryTable) return HaxeClasspath.EMPTY_CLASSPATH;
+
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
 
     HaxeClasspath classpath = new HaxeClasspath();
 
@@ -129,7 +129,7 @@ public class HaxelibClasspathUtils {
   @NotNull
   public static List<String> getProjectLibraryNames(@NotNull Project project, boolean filterManagedLibs) {
     List<String> nameList = new ArrayList<String>();
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     Library[] libraries = libraryTable.getLibraries();
     for (Library library : libraries) {
       if (filterManagedLibs && HaxelibNameUtil.isManagedLibrary(library.getName())) {
@@ -174,8 +174,7 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static HaxeClasspath getProjectLibraryClasspath(@NotNull Project project) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    if (null == libraryTable) return HaxeClasspath.EMPTY_CLASSPATH;
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
     return loadClasspathFrom(libraryTable);
   }
 

@@ -20,8 +20,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.roots.impl.DirectoryIndex;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -81,7 +81,7 @@ public class ExtractSuperClassUtil {
 
     Module[] modules = ModuleHelper.getModules(project);
     //PsiClass superclass = CreateClassUtil.createClassFromCustomTemplate(targetDirectory, modules[0], superclassName, "HaxeClass.hx.ft");
-    String packageName = DirectoryIndex.getInstance(targetDirectory.getProject()).getPackageName(targetDirectory.getVirtualFile());
+    String packageName = PackageIndex.getInstance(targetDirectory.getProject()).getPackageNameByDirectory(targetDirectory.getVirtualFile());
     PsiClass superclass = null;
     try {
       HaxeFile haxeFile = (HaxeFile)HaxeFileTemplateUtil.createClass(superclassName, packageName, targetDirectory, "HaxeClass", null);

@@ -21,9 +21,9 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
@@ -251,8 +251,9 @@ public class HaxelibUtil {
    */
   @NotNull
   public static HaxeLibraryList getProjectLibraries(@NotNull Project project, boolean filterManagedLibs, boolean filterUnmanagedLibs) {
-    LibraryTable libraryTable = ProjectLibraryTable.getInstance(project);
-    if (null == libraryTable || (filterManagedLibs && filterUnmanagedLibs)) {
+
+    LibraryTable libraryTable = LibraryTablesRegistrar.getInstance().getLibraryTable(project);
+    if (filterManagedLibs && filterUnmanagedLibs) {
       return new HaxeLibraryList(HaxelibSdkUtils.lookupSdk(project));
     }
 
