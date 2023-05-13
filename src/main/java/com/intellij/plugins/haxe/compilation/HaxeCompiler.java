@@ -37,6 +37,7 @@ import com.intellij.openapi.roots.OrderEnumerator;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.newvfs.impl.FakeVirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
@@ -395,7 +396,10 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
     @NotNull
     public VirtualFile getFile() {
-      return myModule.getModuleFile();
+      //TODO MLO: does not look like its used, and we will get rid of this when we move to new  compiler execution logic
+      // creating fake as  "myModule.getModuleFile" is internal API
+      return new FakeVirtualFile(ProjectUtil.guessModuleDir(myModule), "Dummy");
+      //return myModule.getModuleFile();
     }
 
     public ValidityState getValidityState() {

@@ -22,6 +22,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
@@ -110,8 +111,7 @@ public class HaxeCompilerUtil
 
         // If that didn't work, then try the directory the module file (.iml) is in.
         if (null == file) {
-            VirtualFile moduleFile = module.getModuleFile();
-            VirtualFile moduleDir = null != moduleFile ? moduleFile.getParent() : null;
+            VirtualFile moduleDir = ProjectUtil.guessModuleDir(module);
             file = null != moduleDir ? moduleDir.findFileByRelativePath(path) : null;
         }
 
