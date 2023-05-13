@@ -28,6 +28,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.UnnamedConfigurable;
 import com.intellij.openapi.options.ex.SingleConfigurableEditor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.CompilerModuleExtension;
 import com.intellij.openapi.roots.PackageIndex;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -203,8 +204,6 @@ public class HaxeConfigurationEditor {
     ActionListener fileChooserListener = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        final VirtualFile moduleFile = myModule.getModuleFile();
-        assert moduleFile != null;
         final boolean isNMML = myNmmlFileRadioButton.isSelected();
         final boolean isOpenFL = myOpenFLFileRadioButton.isSelected();
         final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false) {
@@ -218,7 +217,7 @@ public class HaxeConfigurationEditor {
                    );
           }
         };
-        final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, moduleFile.getParent());
+        final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, ProjectUtil.guessModuleDir(myModule));
         if (file != null) {
           String path = FileUtil.toSystemIndependentName(file.getPath());
           if (isNMML) {
