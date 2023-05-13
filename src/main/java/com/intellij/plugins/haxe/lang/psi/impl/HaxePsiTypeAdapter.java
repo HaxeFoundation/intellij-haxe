@@ -64,7 +64,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
     log.setLevel(LogLevel.DEBUG);
   }
 
-  public static final PsiPrimitiveType DYNAMIC = new PsiPrimitiveType("Dynamic", PsiAnnotation.EMPTY_ARRAY);
+  public static final PsiPrimitiveType DYNAMIC = new PsiPrimitiveType("Dynamic", TypeAnnotationProvider.EMPTY);
 
   HaxeType myType = null;
 
