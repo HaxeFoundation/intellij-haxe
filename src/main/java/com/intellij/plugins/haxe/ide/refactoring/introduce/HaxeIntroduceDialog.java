@@ -62,7 +62,7 @@ public class HaxeIntroduceDialog extends DialogWrapper {
   }
 
   private void setUpNameComboBox(Collection<String> possibleNames) {
-    final EditorComboBoxEditor comboEditor = new StringComboboxEditor(myProject, HaxeFileType.HAXE_FILE_TYPE, myNameComboBox);
+    final EditorComboBoxEditor comboEditor = new StringComboboxEditor(myProject, HaxeFileType.INSTANCE, myNameComboBox);
 
     myNameComboBox.setEditor(comboEditor);
     myNameComboBox.setRenderer(new EditorComboBoxRenderer(comboEditor));
