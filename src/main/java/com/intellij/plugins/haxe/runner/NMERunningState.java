@@ -27,8 +27,10 @@ import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -83,7 +85,11 @@ public class NMERunningState extends CommandLineState {
     }
     final HaxeCommandLine commandLine = new HaxeCommandLine(module);
 
-    commandLine.setWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+    VirtualFile workDir = ProjectUtil.guessModuleDir(module);
+    if(workDir == null) {
+      throw new ExecutionException("Unable to to determine workdirectory");
+    }
+    commandLine.setWorkDirectory(workDir.getCanonicalPath());
     final String haxelibPath = sdkData.getHaxelibPath();
     if (haxelibPath == null || haxelibPath.isEmpty()) {
       throw new ExecutionException(HaxeCommonBundle.message("no.haxelib.for.sdk", sdk.getName()));

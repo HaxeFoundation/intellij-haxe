@@ -33,7 +33,9 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
@@ -89,7 +91,11 @@ public class HaxeRunner extends DefaultProgramRunner {
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
           final HaxeCommandLine commandLine = new HaxeCommandLine(module);
-          commandLine.withWorkDirectory(PathUtil.getParentPath(module.getModuleFilePath()));
+          VirtualFile workDir = ProjectUtil.guessModuleDir(module);
+          if(workDir == null) {
+            throw new ExecutionException("Unable to to determine workdirectory");
+          }
+          commandLine.withWorkDirectory(workDir.getCanonicalPath());
           commandLine.setExePath(configuration.getCustomExecutablePath());
           commandLine.addParameter(filePath);
 
