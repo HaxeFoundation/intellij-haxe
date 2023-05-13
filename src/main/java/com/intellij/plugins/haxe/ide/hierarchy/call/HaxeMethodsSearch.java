@@ -42,8 +42,9 @@ import org.jetbrains.annotations.NonNls;
 public class HaxeMethodsSearch extends ExtensibleQueryFactory<PsiMethod, HaxeMethodsSearch.SearchParameters> {
 
   // We're going to keep using the OverridingMethodSearch executor.
-  public static ExtensionPointName<QueryExecutor> EP_NAME = ExtensionPointName.create("com.intellij.plugins.haxe.haxeMethodsSearch");
-  public static final HaxeMethodsSearch INSTANCE = new HaxeMethodsSearch("com.intellij.plugins.haxe");
+  public static ExtensionPointName<QueryExecutor<PsiMethod, HaxeMethodsSearch.SearchParameters>> EP_NAME = ExtensionPointName.create("com.intellij.plugins.haxe.haxeMethodsSearch");
+  public static final HaxeMethodsSearch INSTANCE = new HaxeMethodsSearch();
+
 
   // The Java searcher that we're using (defined in src/META-INF/plugin.xml:<plugins.haxe.haxeMethodsSearch>)
   // expects to get an OverridingMethodsSearch.SearchParameter as an argument.  We can't just use that class
@@ -55,8 +56,8 @@ public class HaxeMethodsSearch extends ExtensibleQueryFactory<PsiMethod, HaxeMet
     }
   }
 
-  private HaxeMethodsSearch(@NonNls final String epNameSpace) {
-    super(epNameSpace);
+  private HaxeMethodsSearch() {
+    super(EP_NAME);
   }
 
   public static Query<PsiMethod> search(final PsiMethod method, SearchScope scope, final boolean checkDeep, HaxeHierarchyTimeoutHandler timeoutHandler) {
