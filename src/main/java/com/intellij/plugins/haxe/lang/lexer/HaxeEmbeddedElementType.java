@@ -37,7 +37,10 @@ public class HaxeEmbeddedElementType extends HaxeLazyParseableElementType {
   }
 
   @Override
-  public boolean isParsable(@NotNull CharSequence buffer, @NotNull Language fileLanguage, @NotNull Project project) {
+  public boolean isParsable(@Nullable ASTNode parent,
+                            @NotNull CharSequence buffer,
+                            @NotNull Language fileLanguage,
+                            @NotNull Project project) {
     // Don't allow a reparse of the data inside independently of the reset of the file.
     // If you do, then adding a character which changes the meaning of the node (such
     // as adding a paren to metadata to close it early) will not reparse the portions

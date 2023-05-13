@@ -167,15 +167,6 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @NotNull
   @Override
-  public PsiArrayType createArrayType(@NotNull PsiAnnotation... annotations) {
-    // Wrong answer, but until we need it, we can punt.
-    // TODO: Implement HaxePsiAdapter.createArrayType
-    log.debug("Implement HaxePsiAdapter.createArrayType");
-    return new PsiArrayType(this);
-  }
-
-  @NotNull
-  @Override
   public String getPresentableText() {
     return myType.getText();
   }

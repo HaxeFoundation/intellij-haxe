@@ -132,7 +132,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   protected PsiElement addNewlineIfAnchorIsAtOpenCurly(PsiElement anchor) {
     if (anchor.getNode().getElementType() == HaxeTokenTypes.PLCURLY) {
       final PsiElement endingNewLineNode =
-              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+              PsiParserFacade.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
       anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;
@@ -142,7 +142,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
     ASTNode next = anchor.getNode().getTreeNext();
     if (next.getElementType() == PRCURLY) {
       final PsiElement endingNewLineNode =
-              PsiParserFacade.SERVICE.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
+              PsiParserFacade.getInstance(anchor.getProject()).createWhiteSpaceFromText("\n");
       anchor = anchor.getParent().addAfter(endingNewLineNode, anchor);
     }
     return anchor;
@@ -151,7 +151,7 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
   /** Called for *each* element that is added. */
   protected PsiElement afterAddHandler(PsiElement element, PsiElement anchor) {
     final PsiElement newLineNode =
-      PsiParserFacade.SERVICE.getInstance(element.getProject()).createWhiteSpaceFromText("\n\n");
+      PsiParserFacade.getInstance(element.getProject()).createWhiteSpaceFromText("\n\n");
     anchor.getParent().addBefore(newLineNode, anchor);
     return anchor;
   }
