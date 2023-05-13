@@ -31,9 +31,9 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.impl.libraries.ProjectLibraryTable;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
+import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -468,7 +468,8 @@ public class HaxelibProjectUpdater {
         HaxeLibraryList projectLibraries = ModuleRootManager.getInstance(module).isSdkInherited()
                                          ? getProjectLibraryList(tracker)
                                          : new HaxeLibraryList(module);
-        final LibraryTable projectTable = ProjectLibraryTable.getInstance(tracker.getProject());
+
+        final LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
 
         timeLog.stamp("<-- Time elapsed retrieving project libraries.");
 
@@ -968,7 +969,7 @@ public class HaxelibProjectUpdater {
         final HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("Write action:");
         timeLog.stamp("Begin: Updating project libraries");
 
-        LibraryTable projectTable = ProjectLibraryTable.getInstance(tracker.getProject());
+        LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
         final LibraryTable.ModifiableModel projectModifiableModel = projectTable.getModifiableModel();
 
         // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
