@@ -526,7 +526,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
   }
 
   protected void modifyDeclaration(@NotNull PsiElement declaration) {
-    final PsiElement newLineNode = PsiParserFacade.SERVICE.getInstance(declaration.getProject()).createWhiteSpaceFromText("\n");
+    final PsiElement newLineNode = PsiParserFacade.getInstance(declaration.getProject()).createWhiteSpaceFromText("\n");
     final PsiElement parent = declaration.getParent();
     parent.addAfter(newLineNode, declaration);
   }

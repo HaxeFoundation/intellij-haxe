@@ -59,7 +59,7 @@ public abstract class HaxeManyStatementsSurrounder implements Surrounder {
   protected static void addStatements(HaxeBlockStatement block, PsiElement[] elements) throws IncorrectOperationException {
     block.addRangeAfter(elements[0], elements[elements.length - 1], block.getFirstChild());
     final PsiElement newLineNode =
-      PsiParserFacade.SERVICE.getInstance(block.getProject()).createWhiteSpaceFromText("\n");
+      PsiParserFacade.getInstance(block.getProject()).createWhiteSpaceFromText("\n");
     block.addAfter(newLineNode, block.getFirstChild());
   }
 
