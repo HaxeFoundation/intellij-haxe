@@ -338,7 +338,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
       @Override
       public String getErrorRoot() {
-        return (myErrorRoot != null) ? myErrorRoot : PathUtil.getParentPath(module.getModuleFilePath());
+        return (myErrorRoot != null) ? myErrorRoot :  ProjectUtil.guessModuleDir(module).getCanonicalPath();
       }
 
       @Override
@@ -361,19 +361,21 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
       @Override
       public String getModuleDirPath() {
-        return PathUtil.getParentPath(module.getModuleFilePath());
+        return ProjectUtil.guessModuleDir(module).getCanonicalPath();
       }
     };
   }
 
   private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {
     final Module module = moduleConfiguration.getModule();
-    if (module == null || module.getModuleFile() == null) {
+    if (module == null) {
       return -1;
     }
     for (int i = 0; i < items.length; ++i) {
-      if (module.getModuleFile().equals(items[i].getFile())) {
-        return i;
+      if (items[i] instanceof MyProcessingItem processingItem) {
+        if (module == processingItem.myModule) {
+          return i;
+        }
       }
     }
     return -1;
