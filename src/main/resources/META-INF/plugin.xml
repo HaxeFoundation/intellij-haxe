@@ -58,7 +58,13 @@
 
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
-    <fileTypeFactory implementation="com.intellij.plugins.haxe.HaxeFileTypeLoader"/>
+
+    <fileType
+        name="Haxe"
+        implementationClass="com.intellij.plugins.haxe.HaxeFileType"
+        fieldName="INSTANCE"
+        language="Haxe"
+        extensions="hx"/>
 
     <fileType
         name="NMML"
@@ -66,6 +72,13 @@
         fieldName="INSTANCE"
         language="XML"
         extensions="nmml"/>
+
+    <fileType
+        name="HXML"
+        implementationClass="com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType"
+        fieldName="INSTANCE"
+        language="HXML"
+        extensions="hxml"/>
 
     <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileDescription" rootTagName="project"/>
     <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlFileDescription" rootTagName="project"/>
@@ -75,7 +88,6 @@
     <xml.schemaProvider implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlSchemaProvider"/>
 
     <!-- HXML BEGIN -->
-    <fileTypeFactory implementation="com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileTypeFactory"/>
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.buildsystem.hxml.HXMLParserDefinition"/>
     <lang.syntaxHighlighterFactory language="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
@@ -192,8 +204,9 @@
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestIndexNameMacro"/>
     <liveTemplateMacro implementation="com.intellij.plugins.haxe.ide.template.macro.HaxeSuggestVariableNameMacro"/>
 
-    <liveTemplateContext implementation="com.intellij.plugins.haxe.ide.template.HaxeTemplateContextType"/>
-    <defaultLiveTemplatesProvider implementation="com.intellij.plugins.haxe.ide.template.HaxeDefaultLiveTemplatesProvider"/>
+    <liveTemplateContext implementation="com.intellij.plugins.haxe.ide.template.HaxeTemplateContextType" contextId="HAXE"/>
+    <defaultLiveTemplates file="liveTemplates/haxe_iterations.xml"/>
+    <defaultLiveTemplates file="liveTemplates/haxe_miscellaneous.xml"/>
 
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
@@ -205,10 +218,8 @@
 
     <definitionsSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearchExecutor"/>
 
-    <projectService serviceInterface="com.intellij.plugins.haxe.config.HaxeProjectSettings"
-                    serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
-    <projectService serviceInterface="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"
-                    serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 

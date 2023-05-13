@@ -147,7 +147,7 @@ public class UsefulPsiTreeUtil {
   private static void populateClassesList(List<HaxeClass> classList, Project project, VirtualFile file) {
     VirtualFile[] files = file.getChildren();
     for (VirtualFile virtualFile : files) {
-      if (virtualFile.getFileType().equals(HaxeFileType.HAXE_FILE_TYPE)) {
+      if (virtualFile.getFileType().equals(HaxeFileType.INSTANCE)) {
         PsiFile psiFile = PsiManager.getInstance(project).findFile(virtualFile);
 
         String nameWithoutExtension = virtualFile.getNameWithoutExtension();

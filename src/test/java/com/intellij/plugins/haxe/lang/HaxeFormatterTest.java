@@ -55,7 +55,7 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     CodeStyleSettings currSettings = CodeStyleSettingsManager.getSettings(project);
     assertNotNull(currSettings);
     CodeStyleSettings tempSettings = currSettings.clone();
-    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.HAXE_FILE_TYPE);
+    CodeStyleSettings.IndentOptions indentOptions = tempSettings.getIndentOptions(HaxeFileType.INSTANCE);
     assertNotNull(indentOptions);
     defineStyleSettings(tempSettings);
     CodeStyleSettingsManager.getInstance(project).setTemporarySettings(tempSettings);

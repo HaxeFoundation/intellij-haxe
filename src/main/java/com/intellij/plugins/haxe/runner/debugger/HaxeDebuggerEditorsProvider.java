@@ -33,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeDebuggerEditorsProvider extends XDebuggerEditorsProvider {
   @NotNull
   public FileType getFileType() {
-    return HaxeFileType.HAXE_FILE_TYPE;
+    return HaxeFileType.INSTANCE;
   }
 
   @NotNull
