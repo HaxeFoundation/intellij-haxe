@@ -24,6 +24,7 @@ import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.structureView.impl.java.VisibilitySorter;
 import com.intellij.ide.util.treeView.smartTree.*;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
@@ -88,7 +89,7 @@ public class HaxeStructureViewModel extends StructureViewModelBase implements St
     @NotNull
     public ActionPresentation getPresentation() {
       return new ActionPresentationData(
-        IdeBundle.message("action.structureview.show.fields"),
+        HaxeBundle.message("action.structureview.show.fields"),
         null,
         PlatformIcons.FIELD_ICON
       );

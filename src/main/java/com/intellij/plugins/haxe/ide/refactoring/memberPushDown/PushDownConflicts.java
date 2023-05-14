@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.memberPushDown;
 
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.*;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.InheritanceUtil;
@@ -137,7 +138,7 @@ public class PushDownConflicts {
       String name = movedMember.getName();
       final PsiField field = targetClass.findFieldByName(name, false);
       if (field != null) {
-        String message = RefactoringBundle.message("0.already.contains.field.1", RefactoringUIUtil.getDescription(targetClass, false), CommonRefactoringUtil.htmlEmphasize(name));
+        String message = HaxeRefactoringBundle.message("0.already.contains.field.1", RefactoringUIUtil.getDescription(targetClass, false), CommonRefactoringUtil.htmlEmphasize(name));
         myConflicts.putValue(field, StringUtil.capitalize(message));
       }
     }
@@ -164,7 +165,7 @@ public class PushDownConflicts {
         if (innerClass.equals(movedMember)) continue;
 
         if (name.equals(innerClass.getName())) {
-          String message = RefactoringBundle.message("0.already.contains.inner.class.named.1", RefactoringUIUtil.getDescription(targetClass, false),
+          String message = HaxeRefactoringBundle.message("0.already.contains.inner.class.named.1", RefactoringUIUtil.getDescription(targetClass, false),
                                                      CommonRefactoringUtil.htmlEmphasize(name));
           myConflicts.putValue(innerClass, message);
         }

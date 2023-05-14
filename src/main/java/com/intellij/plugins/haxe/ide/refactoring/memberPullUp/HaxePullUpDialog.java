@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 import com.intellij.openapi.help.HelpManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.*;
 import com.intellij.psi.statistics.StatisticsInfo;
 import com.intellij.psi.statistics.StatisticsManager;
@@ -141,7 +142,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
   }
   @Override
   protected void addCustomElementsToCentralPanel(JPanel panel) {
-    myJavaDocPanel = new DocCommentPanel(RefactoringBundle.message("javadoc.for.abstracts"));
+    myJavaDocPanel = new DocCommentPanel(HaxeRefactoringBundle.message("doc.for.abstracts"));
     myJavaDocPanel.setPolicy(JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC);
     boolean hasJavadoc = false;
     for (MemberInfo info : myMemberInfos) {

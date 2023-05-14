@@ -23,6 +23,7 @@ import com.intellij.ide.util.FQNameCellRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.openapi.ui.VerticalFlowLayout;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBList;
@@ -62,7 +63,7 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
       setTitle(CodeInsightBundle.message("dialog.import.on.paste.title2"));
     }
     */
-    setTitle(CodeInsightBundle.message("dialog.import.on.paste.title"));
+    setTitle(HaxeBundle.message("dialog.import.on.paste.title"));
     init();
 
     myList.setSelectionInterval(0, myNamedElements.length - 1);
@@ -83,7 +84,7 @@ public class HaxeRestoreReferencesDialog extends DialogWrapper {
     myList.setCellRenderer(new FQNameCellRenderer());
     panel.add(ScrollPaneFactory.createScrollPane(myList), BorderLayout.CENTER);
 
-    panel.add(new JBLabel(CodeInsightBundle.message("dialog.paste.on.import.text"), SMALL, BRIGHTER), BorderLayout.NORTH);
+    panel.add(new JBLabel(HaxeBundle.message("dialog.paste.on.import.text"), SMALL, BRIGHTER), BorderLayout.NORTH);
 
     final JPanel buttonPanel = new JPanel(new VerticalFlowLayout());
     final JButton okButton = new JButton(CommonBundle.getOkButtonText());
