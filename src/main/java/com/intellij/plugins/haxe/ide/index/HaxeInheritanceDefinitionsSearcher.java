@@ -31,13 +31,9 @@ import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.FileBasedIndex;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Workhorse class for HaxeInheritanceDefnitionsSearchExecutor.  This class, by
@@ -95,7 +91,7 @@ public class HaxeInheritanceDefinitionsSearcher  {
   }
 
   static private boolean processInheritors(final String qName, final PsiElement context, final Processor<? super PsiElement> consumer) {
-    final Set<String> namesSet = new THashSet<String>();
+    final Set<String> namesSet = new HashSet<String>();
     final LinkedList<String> namesQueue = new LinkedList<String>();
     namesQueue.add(qName);
     final Project project = context.getProject();

@@ -35,7 +35,6 @@ import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
 import gnu.trove.THashMap;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -93,7 +92,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     HaxeIndexUtil.warnIfDumbMode(project);
     final Collection<VirtualFile> files =
       FileBasedIndex.getInstance().getContainingFiles(HAXE_SYMBOL_INDEX, name, searchScope);
-    final Set<HaxeComponentName> result = new THashSet<>();
+    final Set<HaxeComponentName> result = new HashSet<>();
     for (VirtualFile vFile : files) {
       final PsiFile psiFile = PsiManager.getInstance(project).findFile(vFile);
       if (psiFile == null || psiFile.getFileType() != HaxeFileType.INSTANCE) {

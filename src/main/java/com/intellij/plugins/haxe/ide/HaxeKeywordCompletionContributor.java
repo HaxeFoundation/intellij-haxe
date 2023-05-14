@@ -39,7 +39,6 @@ import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +50,7 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
  * @author: Fedor.Korotkov
  */
 public class HaxeKeywordCompletionContributor extends CompletionContributor {
-  private static final Set<String> allowedKeywords = new THashSet<String>() {
+  private static final Set<String> allowedKeywords = new HashSet<String>() {
     {
       for (IElementType elementType : HaxeTokenTypeSets.KEYWORDS.getTypes()) {
         add(elementType.toString());

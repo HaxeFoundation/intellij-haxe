@@ -24,11 +24,10 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.testFramework.PlatformTestCase;
-import gnu.trove.THashSet;
-import org.jetbrains.annotations.NotNull;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,7 +58,7 @@ public class HaxeSourceRootDetectionTest extends PlatformTestCase {
     Map<ProjectStructureDetector, List<DetectedProjectRoot>> detectorListMap = detectionProcessor.runDetectors();
     detected = detectorListMap.get(haxeProjectStructureDetector);
     assertNotNull(detected);
-    final Set<String> actual = new THashSet<String>();
+    final Set<String> actual = new HashSet<String>();
     for (DetectedProjectRoot projectRoot : detected) {
       final String relativePath = FileUtil.getRelativePath(dir, projectRoot.getDirectory());
       assertNotNull(relativePath);
