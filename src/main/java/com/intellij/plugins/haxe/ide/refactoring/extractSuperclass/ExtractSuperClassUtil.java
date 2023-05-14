@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 import com.intellij.codeInsight.generation.OverrideImplementExploreUtil;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.PackageIndex;
@@ -43,7 +44,6 @@ import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.MultiMap;
-import com.intellij.webcore.ModuleHelper;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.Nullable;
@@ -79,7 +79,7 @@ public class ExtractSuperClassUtil {
       HaxeDebugLogger.getInstance(ExtractSuperClassUtil.class).error(template.getName());
     }*/
 
-    Module[] modules = ModuleHelper.getModules(project);
+    Module[] modules = ModuleManager.getInstance(project).getModules();
     //PsiClass superclass = CreateClassUtil.createClassFromCustomTemplate(targetDirectory, modules[0], superclassName, "HaxeClass.hx.ft");
     String packageName = PackageIndex.getInstance(targetDirectory.getProject()).getPackageNameByDirectory(targetDirectory.getVirtualFile());
     PsiClass superclass = null;

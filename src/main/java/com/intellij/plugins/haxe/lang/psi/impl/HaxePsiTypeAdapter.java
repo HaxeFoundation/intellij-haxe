@@ -24,6 +24,7 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
@@ -63,8 +64,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   static {
     log.setLevel(LogLevel.DEBUG);
   }
-
-  public static final PsiPrimitiveType DYNAMIC = new PsiPrimitiveType("Dynamic", TypeAnnotationProvider.EMPTY);
+  public static final HaxePsiPrimitiveType DYNAMIC = new HaxePsiPrimitiveType("Dynamic", PsiAnnotation.EMPTY_ARRAY);
 
   HaxeType myType = null;
 
