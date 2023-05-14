@@ -28,6 +28,7 @@ import com.intellij.openapi.roots.ui.configuration.SdkPopupFactory;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.HaxeProjectBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
@@ -58,9 +59,9 @@ public class HaxeProjectSdkSetupValidator extends JavaProjectSdkSetupValidator {
     if (result != null) {
       switch (result) {
         case MODULE_SDK_NOT_DEFINED:
-          return ProjectBundle.message("module.sdk.not.defined");
+          return HaxeProjectBundle.message("module.sdk.not.defined");
         case PROJECT_SDK_NOT_DEFINED:
-          return ProjectBundle.message("project.sdk.not.defined");
+          return HaxeProjectBundle.message("project.sdk.not.defined");
         case MULTIPLE_ROOTS_FOUND:
           return HaxeBundle.message("sdk.roots.multiple");
         case NO_VALID_SDK_ROOTS_FOUND:

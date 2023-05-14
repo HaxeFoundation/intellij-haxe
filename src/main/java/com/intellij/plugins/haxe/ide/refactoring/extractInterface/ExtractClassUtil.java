@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.ide.refactoring.extractInterface;
 
 import com.intellij.openapi.application.ApplicationNamesInfo;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPsiElementPointer;
@@ -39,13 +40,13 @@ public class ExtractClassUtil {
       String superClassName = superClass.getName();
       String className = ((PsiClass)classElement).getName();
       String createdString = superClass.isInterface() ?
-                             RefactoringBundle.message("interface.has.been.successfully.created", superClassName) :
-                             RefactoringBundle.message("class.has.been.successfully.created", superClassName);
+                             HaxeRefactoringBundle.message("interface.has.been.successfully.created", superClassName) :
+                             HaxeRefactoringBundle.message("class.has.been.successfully.created", superClassName);
       String message = createdString + "\n" +
-                       RefactoringBundle.message("use.super.references.prompt",
+                       HaxeRefactoringBundle.message("use.super.references.prompt",
                                                  ApplicationNamesInfo.getInstance().getProductName(), className, superClassName);
       YesNoPreviewUsagesDialog dialog = new YesNoPreviewUsagesDialog(
-        RefactoringBundle.message("analyze.and.replace.usages"),
+        HaxeRefactoringBundle.message("analyze.and.replace.usages"),
         message,
         JavaRefactoringSettings.getInstance().EXTRACT_INTERFACE_PREVIEW_USAGES,
         /*HelpID.TURN_REFS_TO_SUPER*/null, project);

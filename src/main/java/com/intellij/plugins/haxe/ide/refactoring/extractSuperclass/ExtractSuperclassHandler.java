@@ -31,6 +31,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpConflictsUtil;
 
 import com.intellij.psi.*;
@@ -96,7 +97,8 @@ public class ExtractSuperclassHandler implements RefactoringActionHandler, Extra
     }
 
     if (mySubclass.isEnum()) {
-      String message = RefactoringBundle.getCannotRefactorMessage(RefactoringBundle.message("superclass.cannot.be.extracted.from.an.enum"));
+      String message = RefactoringBundle.getCannotRefactorMessage(
+        HaxeRefactoringBundle.message("superclass.cannot.be.extracted.from.an.enum"));
       CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.EXTRACT_SUPERCLASS);
       return;
     }

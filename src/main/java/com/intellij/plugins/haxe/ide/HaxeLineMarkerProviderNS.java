@@ -231,7 +231,7 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
         public void navigate(MouseEvent e, PsiElement elt) {
           PsiElementListNavigator.openTargets(
             e, HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]),
-            DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size()),
+            DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), ""),
             "Subclasses of " + componentWithDeclarationList.getName(),
             new DefaultPsiElementCellRenderer()
           );

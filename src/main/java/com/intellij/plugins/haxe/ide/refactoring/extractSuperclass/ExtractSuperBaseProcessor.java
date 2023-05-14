@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -172,7 +173,7 @@ public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessor
   }
 
   protected String getCommandName() {
-    return RefactoringBundle.message("extract.subclass.command");
+    return HaxeRefactoringBundle.message("extract.subclass.command");
   }
 
   @NotNull

@@ -22,25 +22,25 @@ import com.intellij.CommonBundle;
 import com.intellij.DynamicBundle;
 import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.lang.ref.Reference;
 import java.util.ResourceBundle;
 
-public class HaxeBundle extends DynamicBundle {
+public class HaxeRefactoringBundle extends DynamicBundle {
   private static Reference<ResourceBundle> ourBundle;
 
   @NonNls
-  private static final String BUNDLE = "messages.HaxeBundle";
+  private static final String BUNDLE = "messages.HaxeRefactoringBundle";
 
-  public HaxeBundle() {
+  public HaxeRefactoringBundle() {
     super(BUNDLE);
   }
 
   public static String message(@PropertyKey(resourceBundle = BUNDLE) String key, Object... params) {
-    return  AbstractBundle.message(getBundle(), key, params);
+    return AbstractBundle.message(getBundle(), key, params);
   }
+
 
   private static ResourceBundle getBundle() {
     ResourceBundle bundle = null;

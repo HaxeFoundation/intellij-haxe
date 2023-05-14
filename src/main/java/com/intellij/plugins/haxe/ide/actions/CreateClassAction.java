@@ -78,7 +78,7 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   @Override
   protected void buildDialog(Project project, PsiDirectory directory, CreateFileFromTemplateDialog.Builder builder) {
-    builder.setTitle(IdeBundle.message("action.create.new.class"));
+    builder.setTitle(HaxeBundle.message("action.create.new.class"));
     for (FileTemplate fileTemplate : HaxeFileTemplateUtil.getApplicableTemplates()) {
       final String templateName = fileTemplate.getName();
       final String shortName = HaxeFileTemplateUtil.getTemplateShortName(templateName);

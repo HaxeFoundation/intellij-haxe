@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractSuperclass;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiMethod;
@@ -62,7 +63,7 @@ class ExtractSuperclassDialog extends JavaExtractSuperBaseDialog {
   protected String getClassNameLabelText() {
     return isExtractSuperclass()
            ? RefactoringBundle.message("superclass.name")
-           : RefactoringBundle.message("extractSuper.rename.original.class.to");
+           : HaxeRefactoringBundle.message("extractSuper.rename.original.class.to");
   }
 
   @Override
@@ -104,7 +105,7 @@ class ExtractSuperclassDialog extends JavaExtractSuperBaseDialog {
 
   @Override
   protected String getDocCommentPanelName() {
-    return RefactoringBundle.message("javadoc.for.abstracts");
+    return HaxeRefactoringBundle.message("doc.for.abstracts");
   }
 
   @Override

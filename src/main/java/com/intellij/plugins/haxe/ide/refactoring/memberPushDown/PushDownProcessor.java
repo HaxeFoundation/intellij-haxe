@@ -26,6 +26,7 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -179,7 +180,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         }
       } else {
         String noInheritors = myClass.isInterface() ?
-                              RefactoringBundle.message("interface.0.does.not.have.inheritors", myClass.getQualifiedName()) :
+                              HaxeRefactoringBundle.message("interface.0.does.not.have.inheritors", myClass.getQualifiedName()) :
                               RefactoringBundle.message("class.0.does.not.have.inheritors", myClass.getQualifiedName());
         final String message = noInheritors + "\n" + RefactoringBundle.message("push.down.will.delete.members");
         final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
@@ -218,12 +219,12 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     for (UsageInfo info : usagesIn) {
       final PsiElement element = info.getElement();
       if (element instanceof PsiFunctionalExpression) {
-        pushDownConflicts.getConflicts().putValue(element, RefactoringBundle.message("functional.interface.broken"));
+        pushDownConflicts.getConflicts().putValue(element, HaxeRefactoringBundle.message("functional.interface.broken"));
       }
     }
     final PsiAnnotation annotation = AnnotationUtil.findAnnotation(myClass, CommonClassNames.JAVA_LANG_FUNCTIONAL_INTERFACE);
     if (annotation != null && isMoved(LambdaUtil.getFunctionalInterfaceMethod(myClass))) {
-      pushDownConflicts.getConflicts().putValue(annotation, RefactoringBundle.message("functional.interface.broken"));
+      pushDownConflicts.getConflicts().putValue(annotation, HaxeRefactoringBundle.message("functional.interface.broken"));
     }
     return showConflicts(pushDownConflicts.getConflicts(), usagesIn);
   }

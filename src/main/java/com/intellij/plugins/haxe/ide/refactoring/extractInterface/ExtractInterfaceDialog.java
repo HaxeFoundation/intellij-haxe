@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.psi.*;
 import com.intellij.refactoring.*;
 import com.intellij.refactoring.classMembers.DelegatingMemberInfoModel;
@@ -159,7 +160,7 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
 
   @Override
   protected String getDocCommentPanelName() {
-    return RefactoringBundle.message("extractSuperInterface.javadoc");
+    return HaxeRefactoringBundle.message("extractSuperInterface.doc");
   }
 
   @Override
