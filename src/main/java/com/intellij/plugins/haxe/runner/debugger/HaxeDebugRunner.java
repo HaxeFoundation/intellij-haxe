@@ -77,17 +77,13 @@ import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.*;
 import com.intellij.xdebugger.impl.XSourcePositionImpl;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl;
-import gnu.trove.THashSet;
 import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.UUID;
-import java.util.Vector;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -848,7 +844,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
               }
             );
 
-          java.util.Collection<VirtualFile> matches = new THashSet<VirtualFile>();
+          java.util.Collection<VirtualFile> matches = new HashSet<VirtualFile>();
           if (!files.isEmpty()) {
             for (VirtualFile f : files) {
               if (f.getPath().endsWith(mFileName)) {

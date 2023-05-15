@@ -25,17 +25,17 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
  * @author: Fedor.Korotkov
  */
 public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
-  private static final Set<String> BUILTIN = new THashSet<String>(Arrays.asList(
+  private static final Set<String> BUILTIN = new HashSet<String>(Arrays.asList(
     "$type", "trace", "__call__", "__vmem_set__", "__vmem_get__", "__vmem_sign__", "__global__", "_global", "__foreach__"
   ));
 

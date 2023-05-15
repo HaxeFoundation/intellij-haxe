@@ -25,11 +25,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testIntegration.TestFinder;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * @author: Fedor.Korotkov
@@ -47,7 +47,7 @@ public class HaxeTestFinder implements TestFinder {
     if (haxeClass == null) {
       return Collections.emptyList();
     }
-    final Collection<PsiElement> result = new THashSet<PsiElement>();
+    final Collection<PsiElement> result = new HashSet<PsiElement>();
     final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
     final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
     result.addAll(HaxeComponentIndex.getItemsByName(packageAndName.getSecond() + "Test", element.getProject(), searchScope));
@@ -62,7 +62,7 @@ public class HaxeTestFinder implements TestFinder {
     if (haxeClass == null) {
       return Collections.emptyList();
     }
-    final Collection<PsiElement> result = new THashSet<PsiElement>();
+    final Collection<PsiElement> result = new HashSet<PsiElement>();
     final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
     final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
     final String className = packageAndName.getSecond();

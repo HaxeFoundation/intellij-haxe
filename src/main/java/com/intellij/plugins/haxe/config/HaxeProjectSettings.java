@@ -25,10 +25,10 @@ import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.util.HaxeModificationTracker;
 import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.THashSet;
 import org.jdom.Element;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -47,7 +47,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   private HaxeModificationTracker tracker = new HaxeModificationTracker(getClass().getName());
 
   public Set<String> getUserCompilerDefinitionsAsSet() {
-    return new THashSet<String>(Arrays.asList(getUserCompilerDefinitions()));
+    return new HashSet<String>(Arrays.asList(getUserCompilerDefinitions()));
   }
 
   public static HaxeProjectSettings getInstance(Project project) {

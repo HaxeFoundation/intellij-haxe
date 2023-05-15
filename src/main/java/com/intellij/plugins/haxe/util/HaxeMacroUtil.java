@@ -25,11 +25,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -40,7 +40,7 @@ public class HaxeMacroUtil {
     if (at == null) {
       return Collections.emptySet();
     }
-    final Set<HaxeComponentName> result = new THashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> result = new HashSet<HaxeComponentName>();
     PsiTreeUtil.treeWalkUp(new PsiScopeProcessor() {
       @Override
       public boolean execute(@NotNull PsiElement element, ResolveState state) {

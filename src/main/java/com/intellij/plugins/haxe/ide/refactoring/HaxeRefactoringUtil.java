@@ -31,23 +31,19 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.THashSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeRefactoringUtil {
   public static Set<String> collectUsedNames(HaxePsiCompositeElement context) {
-    final Set<HaxeComponentName> usedComponentNames = new THashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> usedComponentNames = new HashSet<HaxeComponentName>();
     PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(usedComponentNames), context, null, new ResolveState());
-    return new THashSet<String>(ContainerUtil.map(usedComponentNames, new Function<HaxeComponentName, String>() {
+    return new HashSet<String>(ContainerUtil.map(usedComponentNames, new Function<HaxeComponentName, String>() {
       @Nullable
       @Override
       public String fun(HaxeComponentName componentName) {
@@ -57,7 +53,7 @@ public class HaxeRefactoringUtil {
   }
 
   public static Set<String> collectKeywords() {
-    THashSet<String> words = new THashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), (IElementType k)->k.toString()));
+    Set<String> words = new HashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), (IElementType k)->k.toString()));
     words.addAll(ContainerUtil.map(HaxeTokenTypeSets.SOFT_KEYWORDS.getTypes(), (IElementType k)->k.toString()));
     words.addAll(ContainerUtil.map(HaxeTokenTypeSets.KEYWORD_CONSTANTS.getTypes(), (IElementType k)->k.toString()));
     return words;

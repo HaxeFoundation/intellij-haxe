@@ -42,7 +42,6 @@ import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.CommonJavaRefactoringUtil;
 import com.intellij.util.Function;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.containers.HashMap;
 import com.intellij.util.containers.MultiMap;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
@@ -50,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -228,7 +228,7 @@ public class ExtractSuperClassUtil {
                                                                       final PsiClass derivedClass,
                                                                       final MemberInfo[] selectedMembers) throws IncorrectOperationException {
     final PsiManager manager = derivedClass.getManager();
-    Set<PsiElement> movedElements = new com.intellij.util.containers.HashSet<PsiElement>();
+    Set<PsiElement> movedElements = new HashSet<PsiElement>();
     for (final MemberInfo info : selectedMembers) {
       movedElements.add(info.getMember());
     }

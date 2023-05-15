@@ -23,12 +23,12 @@ import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
-import gnu.trove.THashSet;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -195,7 +195,7 @@ public class HaxeConditionalExpression {
    */
 
   /** Defines that we want in place if there is no Project context. */
-  private final static Set<String> SDK_DEFINES = new THashSet<String>(List.of(
+  private final static Set<String> SDK_DEFINES = new HashSet<String>(List.of(
     "macro"
   ));
   /** Used for setting defines in the test bed. */

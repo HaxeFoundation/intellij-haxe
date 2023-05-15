@@ -44,7 +44,6 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
-import gnu.trove.THashSet;
 import lombok.CustomLog;
 
 import org.jetbrains.annotations.NonNls;
@@ -1139,7 +1138,7 @@ public class HaxeResolveUtil {
     if (attributeList == null || attributeList.isEmpty()) {
       return Collections.emptySet();
     }
-    final Set<IElementType> resultSet = new THashSet<IElementType>();
+    final Set<IElementType> resultSet = new HashSet<IElementType>();
     for (HaxePsiModifier attribute : attributeList) {
       PsiElement result = attribute.getFirstChild();
       if (result instanceof LeafPsiElement) {
