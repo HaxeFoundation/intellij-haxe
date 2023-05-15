@@ -80,6 +80,7 @@ import com.intellij.xdebugger.impl.XSourcePositionImpl;
 import com.intellij.xdebugger.impl.ui.tree.nodes.XValueNodeImpl;
 import haxe.root.JavaProtocol;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.io.IOException;
@@ -380,22 +381,22 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     @Override
-    public void resume() {
+    public void resume(@Nullable XSuspendContext context) {
       this.expectOK(debugger.Command.Continue(1));
     }
 
     @Override
-    public void startStepOver() {
+    public void startStepOver(@Nullable XSuspendContext context) {
       this.expectOK(debugger.Command.Next(1));
     }
 
     @Override
-    public void startStepInto() {
+    public void startStepInto(@Nullable XSuspendContext context) {
       this.expectOK(debugger.Command.Step(1));
     }
 
     @Override
-    public void startStepOut() {
+    public void startStepOut(@Nullable XSuspendContext context) {
       this.expectOK(debugger.Command.Finish(1));
     }
 
@@ -424,7 +425,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
     }
 
     @Override
-    public void runToPosition(@NotNull XSourcePosition position) {
+    public void runToPosition(@NotNull XSourcePosition position, @Nullable XSuspendContext context) {
       // Complicated!  Basically, just make sure that there is a single
       // enabled breakpoint at [position], and then when [position] is
       // hit, set breakpoints back to how they were before ... but ...
