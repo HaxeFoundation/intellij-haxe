@@ -51,7 +51,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   }
 
   public static HaxeProjectSettings getInstance(Project project) {
-    return ServiceManager.getService(project, HaxeProjectSettings.class);
+    return project.getService(HaxeProjectSettings.class);
   }
 
   public String[] getUserCompilerDefinitions() {

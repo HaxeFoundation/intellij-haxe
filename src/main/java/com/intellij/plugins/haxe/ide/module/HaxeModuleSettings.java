@@ -139,7 +139,7 @@ public class HaxeModuleSettings extends HaxeModuleSettingsBaseImpl
 
 
   public static HaxeModuleSettings getInstance(@NotNull Module module) {
-    return ModuleServiceManager.getService(module, HaxeModuleSettings.class);
+    return  module.getService(HaxeModuleSettings.class);
   }
 
   @Override

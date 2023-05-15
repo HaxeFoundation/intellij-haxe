@@ -38,7 +38,7 @@ public class HaxeRunConfigurationType implements ConfigurationType {
   }
 
   public static HaxeRunConfigurationType getInstance() {
-    return ContainerUtil.findInstance(Extensions.getExtensions(CONFIGURATION_TYPE_EP), HaxeRunConfigurationType.class);
+    return ContainerUtil.findInstance(CONFIGURATION_TYPE_EP.getExtensionList(), HaxeRunConfigurationType.class);
   }
 
   public String getDisplayName() {

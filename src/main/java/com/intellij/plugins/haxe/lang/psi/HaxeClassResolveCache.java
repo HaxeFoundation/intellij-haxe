@@ -38,7 +38,7 @@ public class HaxeClassResolveCache {
 
   public static HaxeClassResolveCache getInstance(Project project) {
     ProgressIndicatorProvider.checkCanceled(); // We hope this method is being called often enough to cancel daemon processes smoothly
-    return ServiceManager.getService(project, HaxeClassResolveCache.class);
+    return project.getService(HaxeClassResolveCache.class);
   }
 
   public HaxeClassResolveCache(@NotNull MessageBus messageBus) {
