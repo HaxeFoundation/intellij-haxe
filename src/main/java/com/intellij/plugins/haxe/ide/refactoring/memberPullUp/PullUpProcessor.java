@@ -69,7 +69,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
   private final DocCommentPolicy myJavaDocPolicy;
   private Set<PsiMember> myMembersAfterMove = null;
   private Set<PsiMember> myMovedMembers = null;
-  private final Map<Language, PullUpHelper<MemberInfo>> myProcessors = ContainerUtil.newHashMap();
+  private final Map<Language, PullUpHelper<MemberInfo>> myProcessors = new HashMap<>();
 
   public PullUpProcessor(PsiClass sourceClass, PsiClass targetSuperClass, MemberInfo[] membersToMove, DocCommentPolicy javaDocPolicy) {
     super(sourceClass.getProject());
@@ -186,8 +186,8 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
   }
 
   public void moveMembersToBase() throws IncorrectOperationException {
-    myMovedMembers = ContainerUtil.newHashSet();
-    myMembersAfterMove = ContainerUtil.newHashSet();
+    myMovedMembers = new HashSet();
+    myMembersAfterMove = new HashSet();
 
     // build aux sets
     for (MemberInfo info : myMembersToMove) {

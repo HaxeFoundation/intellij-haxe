@@ -65,36 +65,25 @@ public class CreateGetterSetterQuickfix extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    ApplicationManager.getApplication().invokeLater(
-      new Runnable() {
-        @Override
-        public void run() {
-          if (classModel.getBodyPsi() == null) return;
+    ApplicationManager.getApplication().invokeLater(() -> {
+        if (classModel.getBodyPsi() == null) return;
 
-          final StringBuilder builder = new StringBuilder();
-          GetterSetterMethodBuilder.build(builder, field, generateGetter);
+        final StringBuilder builder = new StringBuilder();
+        GetterSetterMethodBuilder.build(builder, field, generateGetter);
 
-          new WriteCommandAction.Simple(project) {
-            @Override
-            public void run() {
-              List<HaxeNamedComponent> elements =
-                HaxeElementGenerator.createNamedSubComponentsFromText(project, builder.toString());
+        WriteCommandAction.writeCommandAction(project).run(() ->{
+            List<HaxeNamedComponent> elements =
+              HaxeElementGenerator.createNamedSubComponentsFromText(project, builder.toString());
 
-              PsiElement body = classModel.getBodyPsi();
-              PsiElement anchor = body.getLastChild().getPrevSibling();
+            PsiElement body = classModel.getBodyPsi();
+            PsiElement anchor = body.getLastChild().getPrevSibling();
 
-              for (PsiElement element : elements) {
-                PsiElement newLine = createNewLine();
-                anchor = body.addAfter(element, anchor);
-                anchor = body.addBefore(newLine, anchor);
-              }
+            for (PsiElement element : elements) {
+              PsiElement newLine =  PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n\n");
+              anchor = body.addAfter(element, anchor);
+              anchor = body.addBefore(newLine, anchor);
             }
-
-            private PsiElement createNewLine() {
-              return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n\n");
-            }
-          }.execute();
-        }
+        });
       }
     );
   }

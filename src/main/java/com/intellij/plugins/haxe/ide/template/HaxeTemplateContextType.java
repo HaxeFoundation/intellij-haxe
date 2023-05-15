@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.ide.template;
 
+import com.intellij.codeInsight.template.TemplateActionContext;
 import com.intellij.codeInsight.template.TemplateContextType;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -28,11 +29,11 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeTemplateContextType extends TemplateContextType {
   protected HaxeTemplateContextType() {
-    super("HAXE", HaxeBundle.message("haxe.language.id"));
+    super( HaxeBundle.message("haxe.language.id"));
   }
 
   @Override
-  public boolean isInContext(@NotNull PsiFile file, int offset) {
-    return file.getLanguage() instanceof HaxeLanguage;
+  public boolean isInContext(@NotNull TemplateActionContext templateActionContext) {
+    return templateActionContext.getFile().getLanguage() instanceof HaxeLanguage;
   }
 }

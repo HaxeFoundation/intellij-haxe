@@ -39,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 /**
  * @author dsl
@@ -146,7 +147,7 @@ public abstract class ExtractSuperBaseProcessor extends TurnRefsToSuperProcessor
           }
         }
       }
-      if (!Comparing.equal(oldQualifiedName, superClass.getQualifiedName())) {
+      if (!Objects.equals(oldQualifiedName, superClass.getQualifiedName())) {
         processTurnToSuperRefs(usages, superClass);
       }
       final PsiFile containingFile = myClass.getContainingFile();

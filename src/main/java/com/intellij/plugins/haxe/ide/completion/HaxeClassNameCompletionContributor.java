@@ -150,13 +150,10 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       // no import statement needed
       return;
     }
-    new WriteCommandAction(context.getProject(), context.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
+    WriteCommandAction.writeCommandAction(context.getProject(), context.getFile()).run(() -> {
         final String importPath = (String)item.getObject();
         HaxeAddImportHelper.addImport(importPath, context.getFile());
-      }
-    }.execute();
+      });
   }
 
   /**
@@ -166,9 +163,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     (context, item) -> replaceElementToFullPath(context, item, context.getTailOffset() - 1);
 
   private static void replaceElementToFullPath(final InsertionContext context, final LookupElement item, final int tailOffset) {
-    new WriteCommandAction(context.getProject(), context.getFile()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
+    WriteCommandAction.writeCommandAction(context.getProject(), context.getFile()).run(() -> {
         final String importPath = (String)item.getObject();
         final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
         if (currentReference != null && currentReference.getElement() != null) {
@@ -178,8 +173,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
             currentElement.replace(fullPathReference);
           }
         }
-      }
-    }.execute();
+      });
   }
 
   private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {

@@ -129,8 +129,7 @@ public class HaxelibMetadata {
       return null;
     }
 
-    JsonParser parser = new JsonParser();
-    JsonElement root = parser.parse(jsonData);
+    JsonElement root = JsonParser.parseString(jsonData);
     if (!root.isJsonObject()) {
       log.debug("Unexpected JSON type (expected JsonObject).");
       return null;
