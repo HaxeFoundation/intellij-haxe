@@ -23,10 +23,10 @@ import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -45,12 +45,12 @@ public class HaxeGenericSpecialization implements Cloneable {
   final Map<String, HaxeClassResolveResult> map;
 
   public HaxeGenericSpecialization() {
-    this(new THashMap<String, HaxeClassResolveResult>());
+    this(new HashMap<String, HaxeClassResolveResult>());
   }
 
   @Override
   protected HaxeGenericSpecialization clone() {
-    final Map<String, HaxeClassResolveResult> clonedMap = new THashMap<String, HaxeClassResolveResult>();
+    final Map<String, HaxeClassResolveResult> clonedMap = new HashMap<String, HaxeClassResolveResult>();
     for (String key : map.keySet()) {
       clonedMap.put(key, map.get(key));
     }
@@ -158,7 +158,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     // after an inner specialization is requested.
 
     final String prefixToRemove = getGenericKey(element, "");
-    final Map<String, HaxeClassResolveResult> result = new THashMap<>();
+    final Map<String, HaxeClassResolveResult> result = new HashMap<>();
     for (String key : map.keySet()) {
       final HaxeClassResolveResult value = map.get(key);
       if (!prefixToRemove.isEmpty() && key.startsWith(prefixToRemove)) {

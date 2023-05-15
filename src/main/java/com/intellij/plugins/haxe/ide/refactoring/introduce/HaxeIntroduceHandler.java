@@ -509,38 +509,6 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       });
 
 
-    //new WriteCommandAction<PsiElement>(project, expression.getContainingFile()) {
-    //  protected void run(final @NotNull Result<? super PsiElement> result) throws Throwable {
-    //    final PsiElement createdDeclaration = addDeclaration(operation, declaration);
-    //    result.setResult(createdDeclaration);
-    //    if (createdDeclaration != null) {
-    //      modifyDeclaration(createdDeclaration);
-    //    }
-    //
-    //    PsiElement newExpression = createExpression(project, operation);
-    //    if (null == newExpression) {
-    //      Logger.getInstance(this.getClass()).warn("Could not create replaceable expression for '" + operation.getName() + "'.");
-    //      return;
-    //    }
-    //
-    //    if (operation.isReplaceAll()) {
-    //      List<PsiElement> newOccurrences = new ArrayList<PsiElement>();
-    //      for (PsiElement occurrence : operation.getOccurrences()) {
-    //        final PsiElement replaced = replaceExpression(occurrence, newExpression, operation);
-    //        if (replaced != null) {
-    //          newOccurrences.add(replaced);
-    //        }
-    //      }
-    //      operation.setOccurrences(newOccurrences);
-    //    }
-    //    else {
-    //      final PsiElement replaced = replaceExpression(expression, newExpression, operation);
-    //      operation.setOccurrences(Collections.singletonList(replaced));
-    //    }
-    //
-    //    postRefactoring(operation.getElement());
-    //  }
-    //}.execute().getResultObject();
 
     // We have added the new declaration, but the new element gets invalidated by
     // the reformatting that is triggered at the end of the write action (the execute above).

@@ -34,7 +34,6 @@ import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -131,7 +130,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final Map<String, HaxeClassInfo> result = new THashMap<String, HaxeClassInfo>(classes.size());
+      final Map<String, HaxeClassInfo> result = new HashMap<String, HaxeClassInfo>(classes.size());
       for (HaxeClass haxeClass : classes) {
         if (haxeClass.getName() == null) {
           continue;

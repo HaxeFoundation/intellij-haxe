@@ -16,8 +16,8 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.openapi.vfs.VirtualFileListener;
 import com.intellij.openapi.vfs.VirtualFileManager;
 import com.intellij.plugins.haxe.config.HaxeProjectSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
@@ -73,7 +73,7 @@ public class HaxeCompilerProjectCache {
     myCacheEntry = null;
 
     VirtualFileManager mgr = VirtualFileManager.getInstance();
-    mgr.addVirtualFileListener(new VirtualFileAdapter() {
+    mgr.addVirtualFileListener(new VirtualFileListener() {
       @Override
       public void fileDeleted(@NotNull VirtualFileEvent event) {
         updateCache(event);

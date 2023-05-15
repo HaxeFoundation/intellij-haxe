@@ -34,7 +34,6 @@ import com.intellij.util.CommonProcessors;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +116,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final Map<String, Void> result = new THashMap<>();
+      final Map<String, Void> result = new HashMap<>();
       for (HaxeClass haxeClass : classes) {
         final String className = haxeClass.getName();
         if (className == null) {

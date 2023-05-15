@@ -33,7 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -73,15 +73,12 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
     }
     myComboModules.setSelectedItem(configuration.getConfigurationModule().getModule());
 
-    myComboModules.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof Module) {
-          final Module module = (Module)value;
-          setText(module.getName());
-        }
+    myComboModules.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value instanceof Module module) {
+        label.setText(module.getName());
       }
-    });
+    }));
+
 
     myCustomPathCheckBox.addActionListener(new ActionListener() {
       @Override

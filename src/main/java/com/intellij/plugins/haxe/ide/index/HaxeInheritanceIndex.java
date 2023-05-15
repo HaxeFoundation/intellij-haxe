@@ -31,13 +31,9 @@ import com.intellij.util.indexing.*;
 import com.intellij.util.io.DataExternalizer;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -105,8 +101,8 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
       if (classes.isEmpty()) {
         return Collections.emptyMap();
       }
-      final Map<String, List<HaxeClassInfo>> result = new THashMap<String, List<HaxeClassInfo>>(classes.size());
-      final Map<String, String> qNameCache = new THashMap<String, String>();
+      final Map<String, List<HaxeClassInfo>> result = new HashMap<String, List<HaxeClassInfo>>(classes.size());
+      final Map<String, String> qNameCache = new HashMap<String, String>();
       for (HaxeClass haxeClass : classes) {
         final HaxeClassInfo value = new HaxeClassInfo(haxeClass.getQualifiedName(), HaxeComponentType.typeOf(haxeClass));
         for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {

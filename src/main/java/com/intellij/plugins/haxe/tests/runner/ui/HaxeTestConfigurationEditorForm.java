@@ -29,7 +29,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.ui.ListCellRendererWrapper;
+import com.intellij.ui.SimpleListCellRenderer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
@@ -82,16 +82,13 @@ public class HaxeTestConfigurationEditorForm extends SettingsEditor<HaxeTestsCon
       }
     });
 
-    myComboRunnerClasses.setRenderer(new ListCellRendererWrapper() {
-      @Override
-      public void customize(JList list, Object value, int index, boolean selected, boolean hasFocus) {
-        if (value instanceof HaxeClass) {
-          final HaxeClass haxeClass = (HaxeClass)value;
-          setText(haxeClass.getName());
-        }
-      }
-    });
 
+    myComboRunnerClasses.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
+      if (value instanceof HaxeClass) {
+        final HaxeClass haxeClass = (HaxeClass)value;
+        label.setText(haxeClass.getName());
+      }
+    }));
     //
 
     updateModule((Module)myComboModules.getSelectedItem());

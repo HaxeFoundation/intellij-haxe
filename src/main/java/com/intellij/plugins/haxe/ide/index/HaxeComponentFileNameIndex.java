@@ -30,13 +30,9 @@ import com.intellij.util.Processor;
 import com.intellij.util.indexing.*;
 import com.intellij.util.io.EnumeratorStringDescriptor;
 import com.intellij.util.io.KeyDescriptor;
-import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -127,7 +123,7 @@ public class HaxeComponentFileNameIndex extends ScalarIndexExtension<String> {
         return Collections.emptyMap();
       }
       boolean moduleAdded = false;
-      final Map<String, Void> result = new THashMap<String, Void>(classes.size());
+      final Map<String, Void> result = new HashMap<String, Void>(classes.size());
       for (HaxeClass haxeClass : classes) {
         final String className = haxeClass.getName();
         if (className != null) {
