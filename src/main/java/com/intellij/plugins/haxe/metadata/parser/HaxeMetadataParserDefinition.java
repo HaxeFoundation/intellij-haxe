@@ -74,12 +74,6 @@ public class HaxeMetadataParserDefinition implements ParserDefinition {
     return new HaxeFile(viewProvider);
   }
 
-  // Required to build for versions before 182.
-  @Override
-  public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
-    return SpaceRequirements.MAY;
-  }
-
   // Required to build for 16x versions.
   @Override
   @NotNull

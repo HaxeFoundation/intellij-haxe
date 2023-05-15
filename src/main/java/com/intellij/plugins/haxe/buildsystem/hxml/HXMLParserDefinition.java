@@ -82,10 +82,6 @@ public class HXMLParserDefinition implements ParserDefinition {
     return new HXMLFile(viewProvider);
   }
 
-  public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
-    return SpaceRequirements.MAY;
-  }
-
   @NotNull
   public PsiElement createElement(ASTNode node) {
     return HXMLTypes.Factory.createElement(node);

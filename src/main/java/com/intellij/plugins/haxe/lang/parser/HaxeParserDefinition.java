@@ -69,11 +69,8 @@ public class HaxeParserDefinition implements ParserDefinition {
     return HaxeTokenTypes.Factory.createElement(node);
   }
 
-  public PsiFile createFile(FileViewProvider viewProvider) {
+  @NotNull
+  public PsiFile createFile(@NotNull FileViewProvider viewProvider) {
     return new HaxeFile(viewProvider);
-  }
-
-  public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
-    return SpaceRequirements.MAY;
   }
 }
