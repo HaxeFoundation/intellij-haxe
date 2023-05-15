@@ -67,9 +67,8 @@ public class HaxeBreakpointType extends XLineBreakpointType<XBreakpointPropertie
     rules.add(byFile);
     return rules;
   }
-
   @Override
-  public XDebuggerEditorsProvider getEditorsProvider() {
+  public XDebuggerEditorsProvider getEditorsProvider(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, @NotNull Project project) {
     return myEditorProvider;
   }
 

@@ -577,7 +577,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
               this.enqueueCommand(p.getFirst(),
                                   p.getSecond());
             }
-            this.resume();
+            this.resume(null);
           }
         }
         else {

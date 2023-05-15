@@ -21,6 +21,7 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.xdebugger.XExpression;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.evaluation.EvaluationMode;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
@@ -36,13 +37,16 @@ public class HaxeDebuggerEditorsProvider extends XDebuggerEditorsProvider {
     return HaxeFileType.INSTANCE;
   }
 
+
   @NotNull
-  public Document createDocument(@NotNull final Project project,
-                                 @NotNull final String text, @Nullable final XSourcePosition position, @NotNull EvaluationMode mode) {
-    return HaxeDebuggerSupportUtils.createDocument(
-      text,
-      project,
-      position != null ? position.getFile() : null, position != null ? position.getOffset() : -1
+  public Document createDocument(@NotNull Project project,
+                                 @NotNull XExpression expression,
+                                 @Nullable XSourcePosition sourcePosition,
+                                 @NotNull EvaluationMode mode) {
+
+    return HaxeDebuggerSupportUtils.createDocument(expression.getExpression(), project,
+                                                   sourcePosition != null ? sourcePosition.getFile() : null,
+                                                   sourcePosition != null ? sourcePosition.getOffset() : -1
     );
   }
 }
