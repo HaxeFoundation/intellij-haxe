@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
 import com.intellij.util.xmlb.XmlSerializer;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -38,11 +39,6 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public Icon getIcon() {
-    return icons.HaxeIcons.HAXE_LOGO;
-  }
-
-  @Override
-  public Icon getIconForAddAction() {
     return icons.HaxeIcons.HAXE_LOGO;
   }
 
@@ -114,6 +110,7 @@ public class HaxeSdkType extends SdkType {
     }
   }
 
+  @NotNull
   @Override
   public FileChooserDescriptor getHomeChooserDescriptor() {
     final FileChooserDescriptor result = super.getHomeChooserDescriptor();

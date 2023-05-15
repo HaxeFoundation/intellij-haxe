@@ -33,6 +33,7 @@ import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
 import com.intellij.ide.plugins.PluginManager;
+import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.module.Module;
@@ -203,8 +204,7 @@ public class HaxeDebugRunner extends DefaultProgramRunner {
                                         final Executor executor,
                                         final String launchPath)
     throws ExecutionException {
-    final IdeaPluginDescriptor plugin =
-      PluginManager.getPlugin(PluginId.getId("com.intellij.flex"));
+    final IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId("com.intellij.flex"));
     if (plugin == null) {
       throw new ExecutionException
         (HaxeBundle.message("install.flex.plugin"));

@@ -172,9 +172,15 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
 
     if (usagesIn.length == 0) {
       if (myClass.isEnum() || myClass.hasModifierProperty(PsiModifier.FINAL)) {
-        if (Messages.showOkCancelDialog((myClass.isEnum() ? "Enum " + myClass.getQualifiedName() + " doesn't have constants to inline to. " : "Final class " + myClass.getQualifiedName() + "does not have inheritors. ") +
-                                        "Pushing members down will result in them being deleted. " +
-                                        "Would you like to proceed?", JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon()) != Messages.OK) {
+        String message = (myClass.isEnum()
+                          ? "Enum " + myClass.getQualifiedName() + " doesn't have constants to inline to. "
+                          : "Final class " + myClass.getQualifiedName() + "does not have inheritors. ") +
+                         "Pushing members down will result in them being deleted. " +
+                         "Would you like to proceed?";
+        if (Messages.showOkCancelDialog(message, JavaPushDownHandler.getRefactoringName(),
+                                        Messages.getOkButton(),
+                                        Messages.getCancelButton(),
+                                        Messages.getWarningIcon()) != Messages.OK) {
           return false;
         }
       } else {

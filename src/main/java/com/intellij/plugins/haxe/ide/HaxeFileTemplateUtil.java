@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.ide.fileTemplates.FileTemplate;
 import com.intellij.ide.fileTemplates.FileTemplateManager;
 import com.intellij.ide.fileTemplates.FileTemplateUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
@@ -39,28 +40,18 @@ import java.util.Properties;
 public class HaxeFileTemplateUtil {
   private final static String HAXE_TEMPLATE_PREFIX = "Haxe";
 
-  public static List<FileTemplate> getApplicableTemplates() {
-    return getApplicableTemplates(new Condition<FileTemplate>() {
-      @Override
-      public boolean value(FileTemplate fileTemplate) {
-        return HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
-      }
-    });
+  public static List<FileTemplate> getApplicableTemplates(@NotNull Project project) {
+    return getApplicableTemplates(project, fileTemplate -> HaxeFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension()));
   }
 
-  public static List<FileTemplate> getNMMLTemplates() {
-    return getApplicableTemplates(new Condition<FileTemplate>() {
-      @Override
-      public boolean value(FileTemplate fileTemplate) {
-        return NMMLFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension());
-      }
-    });
+  public static List<FileTemplate> getNMMLTemplates(@NotNull Project project) {
+    return getApplicableTemplates(project, fileTemplate -> NMMLFileType.DEFAULT_EXTENSION.equals(fileTemplate.getExtension()));
   }
 
-  public static List<FileTemplate> getApplicableTemplates(Condition<FileTemplate> filter) {
+  public static List<FileTemplate> getApplicableTemplates(@NotNull Project project, Condition<FileTemplate> filter) {
     List<FileTemplate> applicableTemplates = new SmartList<FileTemplate>();
-    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getInternalTemplates(), filter));
-    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance().getAllTemplates(), filter));
+    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getInternalTemplates(), filter));
+    applicableTemplates.addAll(ContainerUtil.findAll(FileTemplateManager.getInstance(project).getAllTemplates(), filter));
     return applicableTemplates;
   }
 
