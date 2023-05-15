@@ -26,7 +26,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -42,22 +42,23 @@ public class HaxeGenericSpecialization implements Cloneable {
     }
   };
 
-  final Map<String, HaxeClassResolveResult> map;
+  // This must remain ordered, thus the LinkedHashMap. (HaxeGenericResolver relies on order it seems)
+  final LinkedHashMap<String, HaxeClassResolveResult> map;
 
   public HaxeGenericSpecialization() {
-    this(new HashMap<String, HaxeClassResolveResult>());
+    this(new LinkedHashMap<String, HaxeClassResolveResult>());
   }
 
   @Override
   protected HaxeGenericSpecialization clone() {
-    final Map<String, HaxeClassResolveResult> clonedMap = new HashMap<String, HaxeClassResolveResult>();
+    final LinkedHashMap<String, HaxeClassResolveResult> clonedMap = new LinkedHashMap<String, HaxeClassResolveResult>();
     for (String key : map.keySet()) {
       clonedMap.put(key, map.get(key));
     }
     return new HaxeGenericSpecialization(clonedMap);
   }
 
-  protected HaxeGenericSpecialization(Map<String, HaxeClassResolveResult> map) {
+  protected HaxeGenericSpecialization(LinkedHashMap<String, HaxeClassResolveResult> map) {
     this.map = map;
   }
 
@@ -145,12 +146,12 @@ public class HaxeGenericSpecialization implements Cloneable {
 
   @NotNull
   public HaxeGenericSpecialization getInnerSpecialization(@Nullable PsiElement element) {
-    final Map<String, HaxeClassResolveResult> result = getMapWithInnerSpecializations(element);
+    final LinkedHashMap<String, HaxeClassResolveResult> result = getMapWithInnerSpecializations(element);
     return new HaxeGenericSpecialization(result);
   }
 
   @NotNull
-  private Map<String, HaxeClassResolveResult> getMapWithInnerSpecializations(@Nullable PsiElement element) {
+  private LinkedHashMap<String, HaxeClassResolveResult> getMapWithInnerSpecializations(@Nullable PsiElement element) {
     // We are no longer removing fully-qualified entries for the element.  Rather,
     // we are duplicating them without the FQDN in the key so that pieces of the
     // code that do not have FQDN info can continue to match (which is what we
@@ -158,7 +159,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     // after an inner specialization is requested.
 
     final String prefixToRemove = getGenericKey(element, "");
-    final Map<String, HaxeClassResolveResult> result = new HashMap<>();
+    final LinkedHashMap<String, HaxeClassResolveResult> result = new LinkedHashMap<>();
     for (String key : map.keySet()) {
       final HaxeClassResolveResult value = map.get(key);
       if (!prefixToRemove.isEmpty() && key.startsWith(prefixToRemove)) {
