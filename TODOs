@@ -1,0 +1,6 @@
+- Rewrite haxeLib updater to conform with read/write thread mechanics & activities
+- Fix issue with annotation/ metadata breaking refactoring (pull members up)
+- rewrite compiler/run/debug logic , do it the way jetbrains recommends.
+- rework CodeStyleSettings (get rid of INSERT_OVERRIDE_ANNOTATION)
+
+- add support for Abstract classes (rename current abstract "class" type to avoid confusion)

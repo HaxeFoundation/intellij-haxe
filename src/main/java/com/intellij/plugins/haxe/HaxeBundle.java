@@ -18,14 +18,12 @@
 package com.intellij.plugins.haxe;
 
 import com.intellij.AbstractBundle;
-import com.intellij.CommonBundle;
 import com.intellij.DynamicBundle;
-import com.intellij.reference.SoftReference;
 import org.jetbrains.annotations.NonNls;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.lang.ref.Reference;
+import java.lang.ref.SoftReference;
 import java.util.ResourceBundle;
 
 public class HaxeBundle extends DynamicBundle {
@@ -49,7 +47,7 @@ public class HaxeBundle extends DynamicBundle {
 
     if (bundle == null) {
       bundle = ResourceBundle.getBundle(BUNDLE);
-      ourBundle = new SoftReference<ResourceBundle>(bundle);
+      ourBundle = new SoftReference<>(bundle);
     }
     return bundle;
   }
