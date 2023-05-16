@@ -19,16 +19,20 @@
 package com.intellij.plugins.haxe.runner;
 
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.configurations.CommandLineState;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.executors.DefaultRunExecutor;
 import com.intellij.execution.filters.TextConsoleBuilder;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.GenericProgramRunner;
+import com.intellij.execution.runners.ProgramRunner;
+import com.intellij.execution.ui.ExecutionUiService;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -41,13 +45,12 @@ import com.intellij.plugins.haxe.compilation.HaxeCompilerUtil;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.util.HaxeCommandLine;
-import com.intellij.util.PathUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeRunner extends DefaultProgramRunner {
+public class HaxeRunner extends GenericProgramRunner<RunnerSettings> {
   public static final String HAXE_RUNNER_ID = "HaxeRunner";
 
   @NotNull
@@ -55,10 +58,9 @@ public class HaxeRunner extends DefaultProgramRunner {
   public String getRunnerId() {
     return HAXE_RUNNER_ID;
   }
-
   @Override
-  protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment env) throws ExecutionException {
-    final HaxeApplicationConfiguration configuration = (HaxeApplicationConfiguration)env.getRunProfile();
+  protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment environment) throws ExecutionException {
+    final HaxeApplicationConfiguration configuration = (HaxeApplicationConfiguration)environment.getRunProfile();
     final Module module = configuration.getConfigurationModule().getModule();
 
     if (module == null) {
@@ -68,25 +70,25 @@ public class HaxeRunner extends DefaultProgramRunner {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     if (settings.isUseNmmlToBuild()) {
-      final NMERunningState nmeRunningState = new NMERunningState(env, module, false);
-      return super.doExecute(nmeRunningState, env);
+      final NMERunningState nmeRunningState = new NMERunningState(environment, module, false);
+      return executeState(state, environment, this);
     }
 
     if (settings.isUseOpenFLToBuild()) {
-      final OpenFLRunningState openflRunningState = new OpenFLRunningState(env, module, false);
-      return super.doExecute(openflRunningState, env);
+      final OpenFLRunningState openflRunningState = new OpenFLRunningState(environment, module, false);
+      return executeState(openflRunningState, environment, this);
     }
 
     if (configuration.isCustomFileToLaunch() && FileUtilRt.extensionEquals(configuration.getCustomFileToLaunchPath(), "n")) {
-      final NekoRunningState nekoRunningState = new NekoRunningState(env, module, configuration.getCustomFileToLaunchPath());
-      return super.doExecute(nekoRunningState, env);
+      final NekoRunningState nekoRunningState = new NekoRunningState(environment, module, configuration.getCustomFileToLaunchPath());
+      return executeState(nekoRunningState, environment, this);
     }
 
     if (configuration.isCustomExecutable()) {
       final String filePath = configuration.isCustomFileToLaunch()
                               ? configuration.getCustomFileToLaunchPath()
                               : getOutputFilePath(module, settings);
-      return super.doExecute(new CommandLineState(env) {
+      return executeState(new CommandLineState(environment) {
         @NotNull
         @Override
         protected ProcessHandler startProcess() throws ExecutionException {
@@ -104,7 +106,7 @@ public class HaxeRunner extends DefaultProgramRunner {
 
           return new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
         }
-      }, env);
+      }, environment, this);
     }
 
     if (configuration.isCustomFileToLaunch()) {
@@ -125,8 +127,8 @@ public class HaxeRunner extends DefaultProgramRunner {
       throw new ExecutionException(HaxeBundle.message("haxe.run.wrong.target", settings.getHaxeTarget()));
     }
 
-    final NekoRunningState nekoRunningState = new NekoRunningState(env, module, null);
-    return super.doExecute(nekoRunningState, env);
+    final NekoRunningState nekoRunningState = new NekoRunningState(environment, module, null);
+    return executeState(nekoRunningState, environment, this);
   }
 
   @Override
@@ -134,8 +136,24 @@ public class HaxeRunner extends DefaultProgramRunner {
     return DefaultRunExecutor.EXECUTOR_ID.equals(executorId) && profile instanceof HaxeApplicationConfiguration;
   }
 
+
+
   static String getOutputFilePath(Module module, HaxeModuleSettings settings) {
     FileDocumentManager.getInstance().saveAllDocuments();
     return HaxeCompilerUtil.calculateCompilerOutput(module);
+  }
+
+  private RunContentDescriptor executeState( RunProfileState state, ExecutionEnvironment environment,  ProgramRunner<RunnerSettings> runner)
+    throws ExecutionException {
+    FileDocumentManager.getInstance().saveAllDocuments();
+    return showRunContent(state.execute(environment.getExecutor(), runner), environment);
+  }
+
+  private RunContentDescriptor showRunContent(ExecutionResult executionResult, ExecutionEnvironment environment) {
+    if (executionResult != null) {
+      return ExecutionUiService.getInstance().showRunContent(executionResult, environment);
+    }else {
+      return null;
+    }
   }
 }

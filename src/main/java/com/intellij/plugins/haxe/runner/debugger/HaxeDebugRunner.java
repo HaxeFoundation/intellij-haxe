@@ -24,15 +24,15 @@ import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.RunProfile;
 import com.intellij.execution.configurations.RunProfileState;
+import com.intellij.execution.configurations.RunnerSettings;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.process.ProcessHandler;
-import com.intellij.execution.runners.DefaultProgramRunner;
 import com.intellij.execution.runners.ExecutionEnvironment;
+import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.ide.plugins.PluginManagerCore;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
@@ -98,7 +98,7 @@ import java.util.regex.Pattern;
  * 2. Hxcpp targets, run locally by the IDE
  * 3. Hxcpp targets, run by an external command
  */
-public class HaxeDebugRunner extends DefaultProgramRunner {
+public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
   public static final String HAXE_DEBUG_RUNNER_ID = "HaxeDebugRunner";
 
   @NotNull

@@ -139,7 +139,8 @@ public class HaxeModuleBuilder extends JavaModuleBuilder implements SourcePathsB
       config.setName("Execute");
       config.setModule(module);
       RunnerAndConfigurationSettings runSettings = manager.createConfiguration(config, factory);
-      manager.addConfiguration(runSettings, false);
+      runSettings.storeInLocalWorkspace();
+      manager.addConfiguration(runSettings);
       manager.setSelectedConfiguration(runSettings);
     }
   }
