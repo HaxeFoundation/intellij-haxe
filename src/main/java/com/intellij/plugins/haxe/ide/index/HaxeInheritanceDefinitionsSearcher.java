@@ -35,12 +35,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/**
- * Workhorse class for HaxeInheritanceDefnitionsSearchExecutor.  This class, by
- * all rights, should be (and used to be!) that class.  However, we now have wrappers
- * to deal with the changed signature of {@link QueryExecutorBase#processQuery(Object, Processor)}.
- */
-public class HaxeInheritanceDefinitionsSearcher  {
+public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiElement, DefinitionsScopedSearch.SearchParameters> {
+
+  public HaxeInheritanceDefinitionsSearcher() {
+    super(true);
+  }
+
 
   public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
@@ -54,30 +54,33 @@ public class HaxeInheritanceDefinitionsSearcher  {
   }
 
   /** Package access.  This should only be called from HaxeInheritanceDefinitionsSearchExecutor. */
-  static boolean processQueryInternal(@NotNull final PsiElement queryParameters, @NotNull final Processor<PsiElement> consumer) {
-    final PsiElement queryParametersParent = queryParameters.getParent();
+  @Override
+  public void processQuery(@NotNull DefinitionsScopedSearch.SearchParameters queryParameters, @NotNull Processor<? super PsiElement> consumer) {
+    final PsiElement queryParameterElement = queryParameters.getElement();
+    final PsiElement queryParametersParentElement = queryParameterElement.getParent();
+
     HaxeNamedComponent haxeNamedComponent;
-    if (queryParameters instanceof HaxeClass) {
-      haxeNamedComponent = (HaxeClass)queryParameters;
+    if (queryParameterElement instanceof HaxeClass) {
+      haxeNamedComponent = (HaxeClass)queryParameterElement;
     }
-    else if (queryParametersParent instanceof HaxeNamedComponent && queryParameters instanceof HaxeComponentName) {
-      haxeNamedComponent = (HaxeNamedComponent)queryParametersParent;
+    else if (queryParametersParentElement instanceof HaxeNamedComponent && queryParameterElement instanceof HaxeComponentName) {
+      haxeNamedComponent = (HaxeNamedComponent)queryParametersParentElement;
     }
     else {
-      return true;
+      return;
     }
     if (haxeNamedComponent instanceof HaxeClass) {
-      processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameters, consumer);
+      processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameterElement, consumer);
     }
     else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD ||
              HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD) {
       final String nameToFind = haxeNamedComponent.getName();
-      if (nameToFind == null) return true;
+      if (nameToFind == null) return;
 
       HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
       assert haxeClass != null;
 
-      processInheritors(haxeClass.getQualifiedName(), queryParameters, element -> {
+      processInheritors(haxeClass.getQualifiedName(), queryParameterElement, element -> {
         for (HaxeNamedComponent subHaxeNamedComponent : HaxeResolveUtil.getNamedSubComponents((HaxeClass)element)) {
           if (nameToFind.equals(subHaxeNamedComponent.getName())) {
             consumer.process(subHaxeNamedComponent);
@@ -86,11 +89,9 @@ public class HaxeInheritanceDefinitionsSearcher  {
         return true;
       });
     }
-    return true;
-
   }
 
-  static private boolean processInheritors(final String qName, final PsiElement context, final Processor<? super PsiElement> consumer) {
+  static private void processInheritors(final String qName, final PsiElement context, final Processor<? super PsiElement> consumer) {
     final Set<String> namesSet = new HashSet<String>();
     final LinkedList<String> namesQueue = new LinkedList<String>();
     namesQueue.add(qName);
@@ -108,13 +109,12 @@ public class HaxeInheritanceDefinitionsSearcher  {
           final HaxeClass subClass = HaxeResolveUtil.findClassByQName(subClassInfo.getValue(), context.getManager(), scope);
           if (subClass != null) {
             if (!consumer.process(subClass)) {
-              return true;
+              return;
             }
             namesQueue.add(subClass.getQualifiedName());
           }
         }
       }
     }
-    return true;
   }
 }

@@ -24,6 +24,6 @@ public class HXMLLanguage extends Language {
   public static HXMLLanguage INSTANCE = new HXMLLanguage();
 
   protected HXMLLanguage() {
-    super(HaxeBundle.message("hxml.language.id"));
+    super("HXML");
   }
 }

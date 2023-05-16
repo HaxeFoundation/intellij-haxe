@@ -21,7 +21,6 @@ import com.intellij.codeInsight.template.TemplateActionContext;
 import com.intellij.codeInsight.template.TemplateContextType;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 /**
