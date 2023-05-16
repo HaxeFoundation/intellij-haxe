@@ -71,7 +71,6 @@ public class HaxeTestsConfiguration extends HaxeTestsConfigurationBase
 
   public void writeExternal(final Element element) throws WriteExternalException {
     super.writeExternal(element);
-    writeModule(element);
     XmlSerializer.serializeInto(this, element);
   }
 

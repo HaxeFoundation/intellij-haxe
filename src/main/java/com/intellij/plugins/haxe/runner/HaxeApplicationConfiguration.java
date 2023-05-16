@@ -145,7 +145,6 @@ public class HaxeApplicationConfiguration extends HaxeApplicationConfigurationBa
 
   public void writeExternal(final Element element) throws WriteExternalException {
     super.writeExternal(element);
-    writeModule(element);
     XmlSerializer.serializeInto(this, element);
   }
 

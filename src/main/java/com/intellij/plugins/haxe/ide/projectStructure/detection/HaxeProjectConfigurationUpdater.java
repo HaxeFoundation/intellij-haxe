@@ -133,7 +133,8 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
       config.setName(module.getName() + " " + new File(hxmlPath).getName());
       config.setModule(module);
       RunnerAndConfigurationSettings runSettings = manager.createConfiguration(config, factory);
-      manager.addConfiguration(runSettings, false);
+      runSettings.storeInLocalWorkspace();
+      manager.addConfiguration(runSettings);
       manager.setSelectedConfiguration(runSettings);
     }
   }
