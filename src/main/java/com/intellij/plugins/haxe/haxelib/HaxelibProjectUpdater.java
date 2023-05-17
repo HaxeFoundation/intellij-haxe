@@ -458,53 +458,50 @@ public class HaxelibProjectUpdater {
     final HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("Write action:");
     timeLog.stamp("Queueing write action...");
 
-    doWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        timeLog.stamp("<-- Time elapsed waiting for write access on the AWT thread.");
-        timeLog.stamp("Begin: Updating module libraries for " + module.getName());
+    doWriteAction(() -> {
+      timeLog.stamp("<-- Time elapsed waiting for write access on the AWT thread.");
+      timeLog.stamp("Begin: Updating module libraries for " + module.getName());
 
-        // Figure out the list of project libraries that we should reference, if we can.
-        HaxeLibraryList projectLibraries = ModuleRootManager.getInstance(module).isSdkInherited()
-                                         ? getProjectLibraryList(tracker)
-                                         : new HaxeLibraryList(module);
+      // Figure out the list of project libraries that we should reference, if we can.
+      HaxeLibraryList projectLibraries = ModuleRootManager.getInstance(module).isSdkInherited()
+                                       ? getProjectLibraryList(tracker)
+                                       : new HaxeLibraryList(module);
 
-        final LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
+      final LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
 
-        timeLog.stamp("<-- Time elapsed retrieving project libraries.");
+      timeLog.stamp("<-- Time elapsed retrieving project libraries.");
 
-        ModifiableRootModel moduleRootModel = null;
-        LibraryTable.ModifiableModel libraryTableModel = null;
-        try {
-          moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
-          libraryTableModel = moduleRootModel.getModuleLibraryTable().getModifiableModel();
+      ModifiableRootModel moduleRootModel = null;
+      LibraryTable.ModifiableModel libraryTableModel = null;
+      try {
+        moduleRootModel = ModuleRootManager.getInstance(module).getModifiableModel();
+        libraryTableModel = moduleRootModel.getModuleLibraryTable().getModifiableModel();
 
-          // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
-          if (null != toRemove) {
-            removeLibraries(toRemove, libraryTableModel, timeLog);
-          }
-
-          // Add new dependencies to modules.
-          if (null != toAdd) {
-            addLibraries(toAdd, projectLibraries, projectTable, moduleRootModel, libraryTableModel, timeLog);
-          }
-
-          timeLog.stamp("Committing changes to module libraries");
-          libraryTableModel.commit();
-          libraryTableModel = null;
-          moduleRootModel.commit();
-          moduleRootModel = null;
+        // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
+        if (null != toRemove) {
+          removeLibraries(toRemove, libraryTableModel, timeLog);
         }
-        finally {
-          if (null != moduleRootModel || null != libraryTableModel)
-            timeLog.stamp("Failure to update module libraries");
-          if (null != libraryTableModel)
-            libraryTableModel.dispose();
-          if (null != moduleRootModel)
-            moduleRootModel.dispose();
+
+        // Add new dependencies to modules.
+        if (null != toAdd) {
+          addLibraries(toAdd, projectLibraries, projectTable, moduleRootModel, libraryTableModel, timeLog);
         }
-        timeLog.stamp("Finished: Updating module libraries");
+
+        timeLog.stamp("Committing changes to module libraries");
+        libraryTableModel.commit();
+        libraryTableModel = null;
+        moduleRootModel.commit();
+        moduleRootModel = null;
       }
+      finally {
+        if (null != moduleRootModel || null != libraryTableModel)
+          timeLog.stamp("Failure to update module libraries");
+        if (null != libraryTableModel)
+          libraryTableModel.dispose();
+        if (null != moduleRootModel)
+          moduleRootModel.dispose();
+      }
+      timeLog.stamp("Finished: Updating module libraries");
     });
 
     timeLog.print();
@@ -586,6 +583,7 @@ public class HaxelibProjectUpdater {
               PsiFile psiFile = PsiManager.getInstance(project).findFile(file);
 
               if (psiFile != null && psiFile instanceof XmlFile) {
+                // require read access
                 haxelibExternalItems.addAll(HaxelibUtil.getHaxelibsFromXmlFile((XmlFile)psiFile, libManager));
               }
             }
@@ -674,10 +672,10 @@ public class HaxelibProjectUpdater {
       // library list here because we need to remove any managed classpaths that
       // are no longer valid in the modules.  We can't do that if we don't have
       // the list of valid ones.  :/
-      timeLog.stamp("Adding libraries to module.");
-      resolveModuleLibraries(tracker, module, haxelibExternalItems);
-      timeLog.stamp("Finished adding libraries to module.");
     });
+    timeLog.stamp("Adding libraries to module.");
+    resolveModuleLibraries(tracker, module, haxelibExternalItems);
+    timeLog.stamp("Finished adding libraries to module.");
   }
 
 
@@ -735,21 +733,13 @@ public class HaxelibProjectUpdater {
 
     //syncProjectClasspath(tracker);
     //syncModuleClasspaths(tracker);
+
+
+
     ProgressManager progressManager = ProgressManager.getInstance();
-    progressManager.run(new Task.Backgroundable(null, "Synchronizing classpaths...") {
-        @Override
-        public void run(@NotNull ProgressIndicator indicator) {
-          syncProjectClasspath(tracker);
-          syncModuleClasspaths(tracker);
-        }
-      });
+    progressManager.runProcessWithProgressSynchronously(()-> syncProjectClasspath(tracker), "Synchronizing Project Classpaths...", false, tracker.getProject());
+    progressManager.runProcessWithProgressSynchronously(()-> syncModuleClasspaths(tracker), "Synchronizing Module Classpaths...", false, tracker.getProject());
 
-
-    //final Application application = ApplicationManager.getApplication();
-    //application.invokeAndWait(() -> {
-    //  syncProjectClasspath(tracker);
-    //  syncModuleClasspaths(tracker);
-    //}, ModalityState.NON_MODAL);
   }
 
   /**
@@ -963,64 +953,61 @@ public class HaxelibProjectUpdater {
       });
     }
 
-    doWriteAction(new Runnable() {
-      @Override
-      public void run() {
-        final HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("Write action:");
-        timeLog.stamp("Begin: Updating project libraries");
+    doWriteAction(() -> {
+      final HaxeDebugTimeLog timeLog = new HaxeDebugTimeLog("Write action:");
+      timeLog.stamp("Begin: Updating project libraries");
 
-        LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
-        final LibraryTable.ModifiableModel projectModifiableModel = projectTable.getModifiableModel();
+      LibraryTable projectTable = LibraryTablesRegistrar.getInstance().getLibraryTable(tracker.getProject());
+      final LibraryTable.ModifiableModel projectModifiableModel = projectTable.getModifiableModel();
 
-        // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
-        if (null != toRemove) {
-          timeLog.stamp("Removing unneeded haxelib libraries.");
-          toRemove.iterate(new HaxeLibraryList.Lambda() {
-            @Override
-            public boolean processEntry(HaxeLibraryReference entry) {
-              Library library = projectModifiableModel.getLibraryByName(
-                entry.getName());
-              log.assertTrue(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
-              if (null != library) {
-                projectModifiableModel.removeLibrary(library);
-                timeLog.stamp("Removed library " + entry.getName());
-              }
-              else {
-                timeLog.stamp(
-                  "Library to remove was not found: " + entry.getName());
-              }
-              return true;
+      // Remove unused packed "haxelib|<lib_name>" libraries from the module and project library.
+      if (null != toRemove) {
+        timeLog.stamp("Removing unneeded haxelib libraries.");
+        toRemove.iterate(new HaxeLibraryList.Lambda() {
+          @Override
+          public boolean processEntry(HaxeLibraryReference entry) {
+            Library library = projectModifiableModel.getLibraryByName(
+              entry.getName());
+            log.assertTrue(null != library, "Library " + entry.getName() + " was not found in the project and will not be removed.");
+            if (null != library) {
+              projectModifiableModel.removeLibrary(library);
+              timeLog.stamp("Removed library " + entry.getName());
             }
-          });
-        }
-
-        // Add new dependencies to modules.
-        if (null != toAdd) {
-          timeLog.stamp("Adding haxelib dependencies.");
-          toAdd.iterate(new HaxeLibraryList.Lambda() {
-            @Override
-            public boolean processEntry(HaxeLibraryReference newItem) {
-              Library libraryByName = projectModifiableModel.getLibraryByName(newItem.getName());
-              if (libraryByName == null) {
-                assert newItem.isAvailable(); // Should have been removed if unavailable.
-                libraryByName = projectModifiableModel.createLibrary(newItem.getName());  // TODO: Presentable Name??
-                Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
-                libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.CLASSES);
-                libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.SOURCES);
-                libraryModifiableModel.commit();
-
-                timeLog.stamp("Added library " + libraryByName.getName());
-              }
-              return true;
+            else {
+              timeLog.stamp(
+                "Library to remove was not found: " + entry.getName());
             }
-          });
-        }
-
-        timeLog.stamp("Committing project changes.");
-        projectModifiableModel.commit();
-        timeLog.stamp("Finished: Updating project Libraries");
-        timeLog.print();
+            return true;
+          }
+        });
       }
+
+      // Add new dependencies to modules.
+      if (null != toAdd) {
+        timeLog.stamp("Adding haxelib dependencies.");
+        toAdd.iterate(new HaxeLibraryList.Lambda() {
+          @Override
+          public boolean processEntry(HaxeLibraryReference newItem) {
+            Library libraryByName = projectModifiableModel.getLibraryByName(newItem.getName());
+            if (libraryByName == null) {
+              assert newItem.isAvailable(); // Should have been removed if unavailable.
+              libraryByName = projectModifiableModel.createLibrary(newItem.getName());  // TODO: Presentable Name??
+              Library.ModifiableModel libraryModifiableModel = libraryByName.getModifiableModel();
+              libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.CLASSES);
+              libraryModifiableModel.addRoot(newItem.getLibrary().getSourceRoot().getUrl(), OrderRootType.SOURCES);
+              libraryModifiableModel.commit();
+
+              timeLog.stamp("Added library " + libraryByName.getName());
+            }
+            return true;
+          }
+        });
+      }
+
+      timeLog.stamp("Committing project changes.");
+      projectModifiableModel.commit();
+      timeLog.stamp("Finished: Updating project Libraries");
+      timeLog.print();
     });
   }
 
@@ -1031,12 +1018,14 @@ public class HaxelibProjectUpdater {
    */
   private static void doWriteAction(final Runnable action) {
     final Application application = ApplicationManager.getApplication();
-    application.invokeAndWait(new Runnable() {
-      @Override
-      public void run() {
-        application.runWriteAction(action);
-      }
-    }, application.getDefaultModalityState());
+    application.invokeAndWait( () -> application.runWriteAction(action));
+
+    //application.invokeAndWait(new Runnable() {
+    //  @Override
+    //  public void run() {
+    //    application.runWriteAction(action);
+    //  }
+    //}, application.getDefaultModalityState());
   }
 
   /**

@@ -35,8 +35,8 @@
 
 
   <extensionPoints>
-    <extensionPoint name="module.config" interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
-    <extensionPoint name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
+    <extensionPoint dynamic="true" name="module.config"  interface="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint"/>
+    <extensionPoint dynamic="true" name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">

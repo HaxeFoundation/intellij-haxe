@@ -24,6 +24,7 @@ import com.intellij.openapi.module.ModuleTypeManager;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
@@ -39,30 +40,30 @@ public class HaxeModuleType extends ModuleType<HaxeModuleBuilder> {
   }
 
   @Override
-  public String getName() {
+  public @NotNull String getName() {
     return HaxeBundle.message("haxe.module.type.name");
   }
 
   @Override
-  public String getDescription() {
+  public @NotNull String getDescription() {
     return HaxeBundle.message("haxe.module.type.description");
   }
 
 
   @Override
-  public Icon getNodeIcon(boolean isOpened) {
+  public @NotNull Icon getNodeIcon(boolean isOpened) {
     return icons.HaxeIcons.HAXE_LOGO;
   }
 
   @Override
-  public HaxeModuleBuilder createModuleBuilder() {
+  public @NotNull HaxeModuleBuilder createModuleBuilder() {
     return new HaxeModuleBuilder();
   }
 
 
-  public ModuleWizardStep[] createWizardSteps(final WizardContext wizardContext,
-                                              final HaxeModuleBuilder moduleBuilder,
-                                              final ModulesProvider modulesProvider) {
+  public ModuleWizardStep @NotNull [] createWizardSteps(final WizardContext wizardContext,
+                                                        final HaxeModuleBuilder moduleBuilder,
+                                                        final ModulesProvider modulesProvider) {
     HaxeSdkType type = HaxeSdkType.getInstance();
     type.ensureSdk();
 

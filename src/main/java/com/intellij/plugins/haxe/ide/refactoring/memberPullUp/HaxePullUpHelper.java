@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.memberPullUp;
 
+import com.intellij.application.options.CodeStyle;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ChangeContextUtil;
 import com.intellij.codeInsight.PsiEquivalenceUtil;
@@ -25,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -32,6 +34,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
+import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -263,12 +266,15 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
 
         reformat(movedElement);
       }
-      CodeStyleSettings styleSettings = CodeStyleSettingsManager.getSettings(method.getProject());
-      if (styleSettings.INSERT_OVERRIDE_ANNOTATION) {
-        if (PsiUtil.isLanguageLevel5OrHigher(mySourceClass) && !myIsTargetInterface || PsiUtil.isLanguageLevel6OrHigher(mySourceClass)) {
-          new AddAnnotationFix(Override.class.getName(), method).invoke(method.getProject(), null, mySourceClass.getContainingFile());
-        }
-      }
+      //TODO mlo: commented out as this code no longer work,
+      // try to fix with metadata classes for annotations (haxe Override, not java Override.class)
+
+      //CodeStyleSettings styleSettings = CodeStyleSettingsManager.getSettings(method.getProject());
+      //if (styleSettings.INSERT_OVERRIDE_ANNOTATION) {
+      //  if (PsiUtil.isLanguageLevel5OrHigher(mySourceClass) && !myIsTargetInterface || PsiUtil.isLanguageLevel6OrHigher(mySourceClass)) {
+      //    new AddAnnotationFix(Override.class.getName(), method).invoke(method.getProject(), null, mySourceClass.getContainingFile());
+      //  }
+      //}
       if (!PsiUtil.isLanguageLevel6OrHigher(mySourceClass) && myIsTargetInterface) {
         if (isOriginalMethodAbstract) {
           for (PsiMethod oMethod : OverridingMethodsSearch.search(method)) {
