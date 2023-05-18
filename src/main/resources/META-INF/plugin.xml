@@ -309,6 +309,8 @@
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 
+    <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.missing"/>
+
   </extensions>
 
   <applicationListeners>
@@ -344,5 +346,24 @@
             text="Getter and Setter">
       <add-to-group anchor="after" relative-to-action="Generate.SetAccessor.Haxe" group-id="GenerateGroup"/>
     </action>
+
+
+    <action id="Haxe.project.sync-libs" class="com.intellij.plugins.haxe.ide.actions.haxelib.SyncProjectLibraryListAction"
+            text="Sync Libraries"
+            icon="AllIcons.Actions.Refresh">
+    </action>
+    <action id="Haxe.haxlib.clear-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.ClearHaxeLibCacheAction"
+            text="Clear Haxelib Cache"
+            icon="AllIcons.Actions.Refresh">
+    </action>
+
+    <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe">
+      <reference id="Haxe.project.sync-libs"/>
+      <reference id="Haxe.haxlib.clear-cache"/>
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+      <add-to-group group-id="EditorPopupMenu"/>
+    </group>
+
+
   </actions>
 </idea-plugin>

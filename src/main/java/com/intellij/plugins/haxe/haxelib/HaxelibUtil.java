@@ -374,6 +374,8 @@ public class HaxelibUtil {
         }
         else {
           log.warn("Library specified in XML file is not known to haxelib: " + data.name);
+          HaxelibNotifier.notifyMissingLib(null, data.name);
+
         }
       }
     });

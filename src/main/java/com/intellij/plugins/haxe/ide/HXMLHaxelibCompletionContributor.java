@@ -44,7 +44,7 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
   private HaxelibCache haxelibCache;
 
   public HXMLHaxelibCompletionContributor() {
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> haxelibCache = HaxelibCache.getInstance(), "sdadsds", false, null);
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> haxelibCache = HaxelibCache.getInstance(), "Fetching haxelib list", false, null);
 
     // intelliJ 2018 and older
     extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),  getProvider());

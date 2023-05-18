@@ -60,6 +60,9 @@ public class HaxelibCache {
     return instance;
   }
 
+  public void reload() {
+    load();
+  }
   private void load() {
 
     Module haxeModule = getHaxeModule();

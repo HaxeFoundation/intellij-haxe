@@ -25,15 +25,7 @@ public class OpenflXmlFileDescription extends LimeXmlFileDescription {
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
-        if(!FileUtilRt.extensionEquals(file.getName(), "xml")) return false;
-
-        XmlDocument document = file.getDocument();
-        if(document == null) return false;
-
-        XmlTag rootTag = document.getRootTag();
-        if(rootTag == null) return false;
-
-        return LimeOpenFlUtil.isOpenfl(rootTag);
+        return LimeOpenFlUtil.isOpenFlFile(file);
     }
 
 }

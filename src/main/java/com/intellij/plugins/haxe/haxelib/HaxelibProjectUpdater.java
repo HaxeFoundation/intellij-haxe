@@ -98,13 +98,6 @@ public class HaxelibProjectUpdater {
    * It overrides myRunInForeground.  The UI is blocked with no updates.
    */
   private static final boolean myTestInForeground = false;
-  /**
-   * Set this true to put up a modal dialog and run in the foreground thread
-   * (locking up the UI.)
-   * Set it false to run in a background thread.  Progress is updated in the
-   * status bar and the UI is usable.
-   */
-  private static final boolean myRunInForeground = false;
 
   public static final HaxelibProjectUpdater INSTANCE = new HaxelibProjectUpdater();
 
@@ -146,7 +139,6 @@ public class HaxelibProjectUpdater {
 
     ProjectTracker tracker = myProjects.get(project);
     removed = myProjects.remove(project);
-    tracker.dispose();
     if (removed) {
       myQueue.remove(tracker);
       if (tracker.equals(myQueue.getUpdatingProject())) {
@@ -636,6 +628,7 @@ public class HaxelibProjectUpdater {
     else {
       // TODO: Figure out how to report this to the user.
       log.warn("Required library 'openfl' is not known to haxelib.");
+      HaxelibNotifier.notifyMissingLib(project, "openfl");
     }
 
     // TODO: Pull libs off of the command line, too.
@@ -765,7 +758,7 @@ public class HaxelibProjectUpdater {
   }
 
 
-  private void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
+  public void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
 
     //
     // Either of these commented-out sections will cause indexing to not be attempted
@@ -1229,7 +1222,7 @@ public class HaxelibProjectUpdater {
   /**
    * Tracks the state of a project for updating class paths.
    */
-  public final class ProjectTracker implements Disposable {
+  public final class ProjectTracker {
     final Project myProject;
     boolean myIsDirty;
     boolean myIsUpdating;
@@ -1255,7 +1248,7 @@ public class HaxelibProjectUpdater {
       mySdkManager = new HaxelibLibraryCacheManager();
 
       VirtualFileManager mgr = VirtualFileManager.getInstance();
-      mgr.addAsyncFileListener(this::lookForLibChanges, this);
+      mgr.addAsyncFileListener(this::lookForLibChanges, project);
     }
 
     /**
@@ -1383,12 +1376,6 @@ public class HaxelibProjectUpdater {
         return false;
       }
       return myProject.getName().equals(tracker.getProject().getName());
-    }
-
-    @Override
-    public void dispose() {
-
-
     }
 
     private AsyncFileListener.ChangeApplier lookForLibChanges(List<? extends VFileEvent> events) {
@@ -1641,31 +1628,15 @@ public class HaxelibProjectUpdater {
 
       if (myTestInForeground) {
         doUpdateWork();
-      } else if (myRunInForeground) {
-        // TODO: Put this string in a resource bundle.
-        ProgressManager.getInstance().run(new Task.Modal(project, "Synchronizing with haxelib libraries...", false) {
-          @Override
-          public void run(@NotNull ProgressIndicator indicator) {
-            indicator.setIndeterminate(true);
-            indicator.startNonCancelableSection();
-            doUpdateWork();
-            indicator.finishNonCancelableSection();
-          }
-        });
       } else {
-        ApplicationManager.getApplication().invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            ProgressManager.getInstance().run(
-              // TODO: Put this string in a resource bundle.
-              new Task.Backgroundable(project, "Synchronizing with haxelib libraries...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                  doUpdateWork();
-                }
-              });
-          }
-        });
+        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(
+          // TODO: Put this string in a resource bundle.
+          new Task.Backgroundable(project, "Synchronizing with haxelib libraries...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+              doUpdateWork();
+            }
+          }));
       }
     }
 
