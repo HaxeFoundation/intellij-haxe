@@ -18,10 +18,12 @@ package com.intellij.plugins.haxe.buildsystem.hxml.model;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
 import com.intellij.plugins.haxe.hxml.psi.HXMLProperty;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import lombok.CustomLog;
@@ -30,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Created by ebishton on 9/8/2017.
@@ -77,7 +80,17 @@ public class HXMLProjectModel {
   // public String getMainClass();
 
   public List<String> getLibraries() {
-    return getProperties(LIBRARY);
+      List<String> found = new ArrayList<>();;
+      HXMLLib[] libs = UsefulPsiTreeUtil.getChildrenOfType(psiFile, HXMLLib.class, null);
+      if (null != libs) {
+        for (HXMLLib lib : libs) {
+          lib.getValueList().stream()
+            .map(PsiElement::getText)
+            .filter(Objects::nonNull)
+            .forEach(found::add);
+        }
+      }
+    return found;
   }
 
   @Nullable

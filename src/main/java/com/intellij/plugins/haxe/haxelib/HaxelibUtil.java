@@ -339,14 +339,13 @@ public class HaxelibUtil {
    * Retrieves the list of dependent haxe libraries from an XML-based
    * configuration file.
    *
-   * @param psiFile name of the configuration file to read
+   * @param xmlFile name of the configuration file to read
    * @return a list of dependent libraries; may be empty, won't have duplicates.
    */
   @NotNull
-  public static HaxeLibraryList getHaxelibsFromXmlFile(@NotNull XmlFile psiFile, HaxelibLibraryCache libraryManager) {
+  public static List<HaxeLibData> getHaxelibDataFromXmlFile(@NotNull XmlFile xmlFile) {
     List<HaxeLibraryReference> haxelibNewItems = new ArrayList<HaxeLibraryReference>();
-
-    XmlFile xmlFile = (XmlFile)psiFile;
+    List<HaxeLibData> haxeLibData = new ArrayList<>();
     XmlDocument document = xmlFile.getDocument();
 
     if (document != null) {
@@ -357,20 +356,32 @@ public class HaxelibUtil {
           String name = haxelibTag.getAttributeValue("name");
           String ver = haxelibTag.getAttributeValue("version");
           HaxelibSemVer semver = HaxelibSemVer.create(ver);
-          if (name != null) {
-            HaxeLibrary lib = libraryManager.getLibrary(name, semver);
-            if (lib != null) {
-              haxelibNewItems.add(lib.createReference(semver));
-            } else {
-              log.warn("Library specified in XML file is not known to haxelib: " + name);
-            }
-          }
+          haxeLibData.add(new HaxeLibData(name, ver, semver));
         }
       }
     }
+    return haxeLibData;
+  }
+  @NotNull
+  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull List<HaxeLibData> haxeLibData, HaxelibLibraryCache libraryManager) {
+    List<HaxeLibraryReference> haxelibNewItems = new ArrayList<>();
 
+    haxeLibData.forEach(data -> {
+      if (data.name != null) {
+        HaxeLibrary lib = libraryManager.getLibrary(data.name, data.semver);
+        if (lib != null) {
+          haxelibNewItems.add(lib.createReference(data.semver));
+        }
+        else {
+          log.warn("Library specified in XML file is not known to haxelib: " + data.name);
+        }
+      }
+    });
     return new HaxeLibraryList(libraryManager.getSdk(), haxelibNewItems);
   }
+  //TODO mlo make a proper class out of this
+  public record HaxeLibData(String name, String version, HaxelibSemVer semver){};
+
 
 
   /**

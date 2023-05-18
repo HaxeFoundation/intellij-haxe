@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -26,6 +27,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by as3boyan on 15.11.14.
@@ -59,6 +61,7 @@ public class HaxelibCache {
   }
 
   private void load() {
+
     Module haxeModule = getHaxeModule();
 
     if (haxeModule != null) {
@@ -69,7 +72,15 @@ public class HaxelibCache {
                     ? libManager.getKnownLibraries()  // Use the cache
                     : HaxelibClasspathUtils.getInstalledLibraries(sdk); // the slow way
 
-      availableHaxelibs = HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, " ");  // "Empty" string means all of them. (whitespace needed for argument not to be dropped)
+      try {
+        availableHaxelibs = ApplicationManager.getApplication().executeOnPooledThread(()->HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, " ")).get();  // "Empty" string means all of them. (whitespace needed for argument not to be dropped)
+      }
+      catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      catch (ExecutionException e) {
+        throw new RuntimeException(e);
+      }
       availableHaxelibs.removeAll(localHaxelibs);
     }
   }

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
@@ -40,10 +41,10 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
   protected static List<String> availableHaxelibs = null;
   protected static List<String> localHaxelibs = null;
 
+  private HaxelibCache haxelibCache;
+
   public HXMLHaxelibCompletionContributor() {
-    HaxelibCache haxelibCache = HaxelibCache.getInstance();
-    availableHaxelibs = haxelibCache.getAvailableHaxelibs();
-    localHaxelibs = haxelibCache.getLocalHaxelibs();
+    ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> haxelibCache = HaxelibCache.getInstance(), "sdadsds", false, null);
 
     // intelliJ 2018 and older
     extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),  getProvider());
@@ -53,11 +54,15 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
 
   @NotNull
   private CompletionProvider<CompletionParameters> getProvider() {
-    return new CompletionProvider<CompletionParameters>() {
+
+    return new CompletionProvider<>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
+        getLatestFromCache();
+
+
         for (int i = 0; i < availableHaxelibs.size(); i++) {
           result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
                               .withTailText(" available at haxelib", true));
@@ -67,6 +72,11 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
           result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
                               .withTailText(" installed", true));
         }
+      }
+
+      private void getLatestFromCache() {
+        availableHaxelibs = haxelibCache.getAvailableHaxelibs();
+        localHaxelibs = haxelibCache.getLocalHaxelibs();
       }
     };
   }
