@@ -49,10 +49,16 @@
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
+    <moduleBuilder builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
     <moduleConfigurationEditorProvider implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>
     <projectStructureDetector implementation="com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectStructureDetector"/>
     <projectSdkSetupValidator id="haxeSdk" implementation="com.intellij.plugins.haxe.codeInsight.daemon.HaxeProjectSdkSetupValidator"/>
-
+    <projectOpenProcessor id="openOpenFlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenOpenFlProjectProcessor"/>
+    <projectOpenProcessor id="openLimeProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenLimeProjectProcessor"/>
+    <projectOpenProcessor id="openNMEProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenNMEProjectProcessor"/>
+    <projectOpenProcessor id="openHxmlProjectProcessor"  implementation="com.intellij.plugins.haxe.ide.projectStructure.processor.HaxeOpenHxmlProjectProcessor"/>
+    <projectImportBuilder implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeProjectImportBuilder"/>
+    <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
 

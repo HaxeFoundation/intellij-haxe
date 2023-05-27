@@ -108,9 +108,13 @@ public class HaxelibCommandUtils {
       return Collections.EMPTY_LIST;
     }
 
+      // TODO mlo: try to clean up code so it only uses either dir or file
     File haxelibCmd = new File(haxelibPath);
-    VirtualFile dir = haxelibCmd.isFile() ? LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent()) : null;
-
+    VirtualFile dir = haxelibCmd.isFile() ? LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent()) : LocalFileSystem.getInstance().findFileByPath(haxelibPath);
+    if(dir == null) {
+      log.error("unable to execute haxelib command, haxelib path is null");
+      return List.of();
+    }
     List<String> stdout = new ArrayList<String>();
     int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, dir, sdkData,
                                       stdout, null, null, false);

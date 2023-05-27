@@ -19,7 +19,6 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.haxelib.HaxelibCache;
@@ -27,8 +26,10 @@ import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
@@ -36,15 +37,13 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 /**
  * Created by as3boyan on 15.11.14.
  */
+@CustomLog
 public class HXMLHaxelibCompletionContributor extends CompletionContributor {
 
-  protected static List<String> availableHaxelibs = null;
-  protected static List<String> localHaxelibs = null;
-
-  private HaxelibCache haxelibCache;
+  protected static List<String> availableHaxelibs = Collections.emptyList();
+  protected static List<String> localHaxelibs  = Collections.emptyList();
 
   public HXMLHaxelibCompletionContributor() {
-    ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> haxelibCache = HaxelibCache.getInstance(), "Fetching haxelib list", false, null);
 
     // intelliJ 2018 and older
     extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE).withParent(HXMLLib.class).withLanguage(HXMLLanguage.INSTANCE),  getProvider());
@@ -75,8 +74,8 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
       }
 
       private void getLatestFromCache() {
-        availableHaxelibs = haxelibCache.getAvailableHaxelibs();
-        localHaxelibs = haxelibCache.getLocalHaxelibs();
+        availableHaxelibs = HaxelibCache.getInstance().getAvailableHaxelibs();
+        localHaxelibs = HaxelibCache.getInstance().getLocalHaxelibs();
       }
     };
   }
