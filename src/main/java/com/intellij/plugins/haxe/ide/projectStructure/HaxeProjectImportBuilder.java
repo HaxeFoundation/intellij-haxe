@@ -6,6 +6,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.ModifiableModuleModel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -14,6 +15,8 @@ import com.intellij.openapi.roots.ModifiableRootModel;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.impl.ModifiableModelCommitter;
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
+import com.intellij.openapi.ui.MessageConstants;
+import com.intellij.openapi.ui.ex.MessagesEx;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -32,6 +35,8 @@ import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.intellij.openapi.ui.Messages.*;
 
 public class HaxeProjectImportBuilder extends ProjectImportBuilder<Object> {
 
@@ -71,6 +76,20 @@ public class HaxeProjectImportBuilder extends ProjectImportBuilder<Object> {
     final String moduleName = haxeProjectData.getName();
 
     final String moduleFilePath = haxeProjectData.getProjectRootPath() + "/" + moduleName + ModuleFileType.DOT_DEFAULT_EXTENSION;
+    
+    Module existingModule = moduleModel.findModuleByName(moduleName);
+    if(existingModule != null) {
+      ModuleType<?> type = ModuleType.get(existingModule);
+      int result =
+        MessagesEx.showYesNoDialog(project, HaxeBundle.message("dialog.module.name-conflict.message", moduleName, type.getName()),
+                                   HaxeBundle.message("dialog.module.name-conflict.title"), getYesButton(), getNoButton(),
+                                   getWarningIcon());
+      if (result != MessageConstants.YES) {
+        return List.of();
+      } else {
+        moduleModel.disposeModule(existingModule);
+      }
+    }
     final Module module = moduleModel.newModule(moduleFilePath, HaxeModuleType.getInstance().getId());
 
     if (LocalFileSystem.getInstance().findFileByPath(moduleFilePath) != null) {
