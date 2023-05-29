@@ -53,12 +53,22 @@ public final class HaxelibLibraryCache {
 
   public HaxelibLibraryCache(@NotNull Sdk sdk) {
 
-    List<String> installedLibs = HaxelibUtil.getInstalledLibraryNames(sdk);
 
     mySdk = sdk;
     myCache = new InternalCache();
     knownLibraries = new ConcurrentSkipListSet<String>();
 
+
+    loadInstalledLibrariesList(sdk);
+  }
+  public void reload() {
+    myCache.clear();
+    knownLibraries = new ConcurrentSkipListSet<String>();
+    loadInstalledLibrariesList(mySdk);
+  }
+
+  private void loadInstalledLibrariesList(@NotNull Sdk sdk) {
+    List<String> installedLibs = HaxelibUtil.getInstalledLibraryNames(sdk);
     for (String libName : installedLibs) {
       HaxeLibrary lib = HaxeLibrary.load(this, libName, mySdk);
       if (null != lib) {

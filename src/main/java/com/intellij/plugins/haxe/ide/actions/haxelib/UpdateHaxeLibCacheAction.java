@@ -10,7 +10,7 @@ import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ClearHaxeLibCacheAction extends AnAction implements DumbAware {
+public class UpdateHaxeLibCacheAction extends AnAction implements DumbAware {
   @Override
   public @NotNull ActionUpdateThread getActionUpdateThread() {
     return  ActionUpdateThread.BGT;

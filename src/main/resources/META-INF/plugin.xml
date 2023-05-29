@@ -311,11 +311,16 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <toolWindow id="Haxelib"
+                anchor="bottom"
+                canCloseContents="true"
+                factoryClass="com.intellij.plugins.haxe.ide.toolWindow.HaxelibConsoleWindowFactory"/>
+
     <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 
-    <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.missing"/>
+    <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
 
   </extensions>
 
@@ -358,14 +363,14 @@
             text="Sync Libraries"
             icon="AllIcons.Actions.Refresh">
     </action>
-    <action id="Haxe.haxlib.clear-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.ClearHaxeLibCacheAction"
-            text="Clear Haxelib Cache"
+    <action id="Haxe.haxlib.update-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.UpdateHaxeLibCacheAction"
+            text="Update Haxelib Cache"
             icon="AllIcons.Actions.Refresh">
     </action>
 
     <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe">
       <reference id="Haxe.project.sync-libs"/>
-      <reference id="Haxe.haxlib.clear-cache"/>
+      <reference id="Haxe.haxlib.update-cache"/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="EditorPopupMenu"/>
     </group>

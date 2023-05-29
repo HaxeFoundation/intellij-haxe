@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.ide.highlighter.XmlFileType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
@@ -531,7 +530,7 @@ public class HaxelibProjectUpdater {
 
       switch (settings.getBuildConfiguration()) {
         case NMML:
-          syncNMMLModule(timeLog, project, haxelibExternalItems, libManager, settings);
+          syncNMMLModule(module, timeLog, project, haxelibExternalItems, libManager, settings);
           break;
 
         case OPENFL:
@@ -596,7 +595,7 @@ public class HaxelibProjectUpdater {
           }
         });
           List<HaxelibUtil.HaxeLibData> list = libList.stream().map(HaxelibProjectUpdater::toLibData).toList();
-          haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(list, libManager));
+          haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(module, list, libManager));
       }
     }
     timeLog.stamp("Finish loading haxelibs from HXML file.");
@@ -628,7 +627,7 @@ public class HaxelibProjectUpdater {
     else {
       // TODO: Figure out how to report this to the user.
       log.warn("Required library 'openfl' is not known to haxelib.");
-      HaxelibNotifier.notifyMissingLib(project, "openfl");
+      HaxelibNotifier.notifyMissingLibrary(module, "openfl", null);
     }
 
     // TODO: Pull libs off of the command line, too.
@@ -654,7 +653,7 @@ public class HaxelibProjectUpdater {
           }
         });
 
-        haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(data, libManager));
+        haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(module, data, libManager));
       }
     }
     else {
@@ -689,7 +688,8 @@ public class HaxelibProjectUpdater {
     // TODO: Add classpaths from the xml file and the CL to the module sources.
   }
 
-  private static void syncNMMLModule(@NotNull HaxeDebugTimeLog timeLog,
+  private static void syncNMMLModule(@NotNull Module module,
+                                     @NotNull HaxeDebugTimeLog timeLog,
                                      Project project,
                                      HaxeLibraryList haxelibExternalItems,
                                      HaxelibLibraryCache libManager,
@@ -724,7 +724,7 @@ public class HaxelibProjectUpdater {
         }
       });
 
-      haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(data, libManager));
+      haxelibExternalItems.addAll(HaxelibUtil.createHaxelibsFromHaxeLibData(module, data, libManager));
 
 
     }

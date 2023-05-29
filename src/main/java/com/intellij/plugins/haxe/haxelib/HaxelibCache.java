@@ -61,7 +61,19 @@ public class HaxelibCache {
   }
 
   public void reload() {
-    load();
+    //TODO mlo:  rewrite entire haxelibCache
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(getHaxeModule());
+    try {
+      localHaxelibs =  ApplicationManager.getApplication().executeOnPooledThread(()->HaxelibClasspathUtils.getInstalledLibraries(sdk)).get();
+      availableHaxelibs = ApplicationManager.getApplication().executeOnPooledThread(()->HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, " ")).get();  // "Empty" string means all of them. (whitespace needed for argument not to be dropped)
+      availableHaxelibs.removeAll(localHaxelibs);
+    }
+    catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+    catch (ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
   private void load() {
 

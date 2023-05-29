@@ -363,7 +363,7 @@ public class HaxelibUtil {
     return haxeLibData;
   }
   @NotNull
-  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull List<HaxeLibData> haxeLibData, HaxelibLibraryCache libraryManager) {
+  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, HaxelibLibraryCache libraryManager) {
     List<HaxeLibraryReference> haxelibNewItems = new ArrayList<>();
 
     haxeLibData.forEach(data -> {
@@ -374,7 +374,7 @@ public class HaxelibUtil {
         }
         else {
           log.warn("Library specified in XML file is not known to haxelib: " + data.name);
-          HaxelibNotifier.notifyMissingLib(null, data.name);
+          HaxelibNotifier.notifyMissingLibrary(module, data.name, null);
 
         }
       }
