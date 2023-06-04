@@ -20,11 +20,9 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.OrderRootType;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import lombok.CustomLog;
-import org.apache.commons.lang.NotImplementedException;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +39,7 @@ public class HaxeLibrary {
 
   private static String CURRENT_DIR = ".";
 
-  final private HaxelibLibraryCache myCache;
+  final private ProjectLibraryCache myCache;
   final private String myName;
   final private String myLibraryRoot;
   final private String myRelativeClasspath;
@@ -50,7 +48,7 @@ public class HaxeLibrary {
   // TODO: Add the extraParams.hxml data here.  Use the hxml parser; see LimeUtil.getLimeProjectModel() as an example.
 
 
-  private HaxeLibrary(@NotNull String name, @NotNull VirtualFile libraryRoot, @NotNull HaxelibLibraryCache owner) {
+  private HaxeLibrary(@NotNull String name, @NotNull VirtualFile libraryRoot, @NotNull ProjectLibraryCache owner) {
     myCache = owner;
     myLibraryRoot = libraryRoot.getUrl();
 
@@ -187,7 +185,7 @@ public class HaxeLibrary {
    * @return the loaded HaxeLibrary of the given name; null if not found.
    */
   @Nullable
-  public static HaxeLibrary load(HaxelibLibraryCache owner, String libName, Sdk sdk) {
+  public static HaxeLibrary load(ProjectLibraryCache owner, String libName, Sdk sdk) {
     // Ask haxelib for the path to this library.
     VirtualFile libraryRoot = HaxelibUtil.getLibraryRoot(sdk, libName);
     if (null == libraryRoot) {

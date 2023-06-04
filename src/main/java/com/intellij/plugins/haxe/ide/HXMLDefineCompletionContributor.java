@@ -19,38 +19,54 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.hxml.psi.HXMLDefine;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
-import com.intellij.plugins.haxe.util.HaxeHelpCache;
+import com.intellij.plugins.haxe.util.HaxeCompletionCache;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 /**
  * Created by as3boyan on 19.11.14.
  */
+@CustomLog
 public class HXMLDefineCompletionContributor extends CompletionContributor {
   public HXMLDefineCompletionContributor() {
-    final List<HXMLCompletionItem> defines = HaxeHelpCache.getInstance().getDefines();
+
 
     // intelliJ 2018 and older
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class), getProvider(defines));
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.VALUE).withParent(HXMLDefine.class), createProvider());
     // intelliJ 2019 and newer
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLDefine.class), getProvider(defines));
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().withParent(HXMLValue.class).withSuperParent(2, HXMLDefine.class), createProvider());
   }
 
   @NotNull
-  private CompletionProvider<CompletionParameters> getProvider(List<HXMLCompletionItem> defines) {
-    return new CompletionProvider<CompletionParameters>() {
+  private CompletionProvider<CompletionParameters> createProvider() {
+    return new CompletionProvider<>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
+
+        VirtualFile file = parameters.getEditor().getVirtualFile();
+        Project project = parameters.getEditor().getProject();
+        if(project == null) {
+          log.error("Unable to provide completion, Project is nuull");
+          return;
+        }
+        Module module = ModuleUtil.findModuleForFile(file, project);
+
+        final List<HXMLCompletionItem> defines = HaxeCompletionCache.getInstance(module).getDefines();
+
         for (int i = 0; i < defines.size(); i++) {
           HXMLCompletionItem completionItem = defines.get(i);
           result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));

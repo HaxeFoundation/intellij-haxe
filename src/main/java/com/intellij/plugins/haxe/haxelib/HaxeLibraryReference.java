@@ -17,20 +17,19 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.libraries.Library;
-
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.ANY_VERSION;
+
 /**
  * A library wrapper used in HaxeLibraryLists as created when adding
  * or removing libraries from the module and project library tables.
- *
+ * <p>
  * Note that equals on this class denotes that one reference (or subclass)
  * points to the same library as another reference.  NOT that they are
  * the same reference or member-for-member identical.  Use matches() for that.
@@ -43,7 +42,7 @@ public class HaxeLibraryReference {
   }
 
   protected final String name;
-  protected final HaxelibLibraryCache owner;
+  protected final ProjectLibraryCache owner;
   protected final HaxelibSemVer semver;
   protected final AtomicBoolean isManaged = new AtomicBoolean(false);
 
@@ -52,7 +51,7 @@ public class HaxeLibraryReference {
     this(module, libName, semver, false);
   }
 
-  public HaxeLibraryReference(@NotNull HaxelibLibraryCache owner, @NotNull String libName, @NotNull HaxelibSemVer semver) {
+  public HaxeLibraryReference(@NotNull ProjectLibraryCache owner, @NotNull String libName, @NotNull HaxelibSemVer semver) {
     this(owner, libName, semver, false);
   }
 
@@ -60,7 +59,10 @@ public class HaxeLibraryReference {
     this(HaxelibProjectUpdater.getLibraryCache(module), libName, semver, isManaged);
   }
 
-  public HaxeLibraryReference(@NotNull HaxelibLibraryCache owner, @NotNull String libName, @NotNull HaxelibSemVer semver, boolean isManaged) {
+  public HaxeLibraryReference(@NotNull ProjectLibraryCache owner,
+                              @NotNull String libName,
+                              @NotNull HaxelibSemVer semver,
+                              boolean isManaged) {
     this.name = HaxelibNameUtil.parseHaxelib(libName);
     this.isManaged.set(isManaged || HaxelibNameUtil.isManagedLibrary(libName)); // NOT this.name, which has already been stripped!
     this.semver = semver;
@@ -74,27 +76,24 @@ public class HaxeLibraryReference {
   }
 
   public static HaxeLibraryReference create(@NotNull Module module, @NotNull String name) {
-    return create(module.getProject(), name);
-  }
-
-  public static HaxeLibraryReference create(@NotNull Project project, @NotNull String name) {
-    HaxelibLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(project);
+    ProjectLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(module);
     return create(owner, name);
   }
 
-  public static HaxeLibraryReference create(@NotNull HaxelibLibraryCache owner, @NotNull String name) {
+
+  public static HaxeLibraryReference create(@NotNull ProjectLibraryCache owner, @NotNull String name) {
     if (name.isEmpty()) {
       return null;
     }
 
-    if (name.contains(":")) {
-      String[] parts = name.split(":");
+    if (name.matches(HaxelibNameUtil.startsWith+"(.*):(.*)")) {
+      String[] parts =  HaxelibNameUtil.extractNameAndVersion(name);
       if (parts.length > 2) {
         log.warn("Unexpectedly encountered multiple colons in library description.");
       }
-      return new HaxeLibraryReference(owner, parts[0], HaxelibSemVer.create(parts[1]));
+      return new HaxeLibraryReference(owner, HaxelibNameUtil.startsWith+ parts[0], HaxelibSemVer.create(parts[1]));
     }
-    return new HaxeLibraryReference(owner, name, HaxelibSemVer.ANY_VERSION);
+    return new HaxeLibraryReference(owner, name, ANY_VERSION);
   }
 
   /**
@@ -119,13 +118,13 @@ public class HaxeLibraryReference {
    * @return the Cache that owns the reference (as given at instantiation).
    */
   @NotNull
-  public HaxelibLibraryCache getOwner() {
+  public ProjectLibraryCache getOwner() {
     return owner;
   }
 
   /**
    * @return the semantic version number for this reference.  If this is a development library,
-   *         the version may be HaxelibSemVer.DEVELOPMENT_VERSION instead of the library's internal version number.
+   * the version may be HaxelibSemVer.DEVELOPMENT_VERSION instead of the library's internal version number.
    */
   @NotNull
   public HaxelibSemVer getVersion() {
@@ -134,16 +133,25 @@ public class HaxeLibraryReference {
 
   /**
    * @return the decorated name of the library that this reference refers to.
-   *         The decorated name contains information about whether this object is managed
-   *         automatically.
+   * The decorated name contains information about whether this object is managed
+   * automatically.
    */
   @NotNull
   public String getPresentableName() {
     StringBuilder bld = new StringBuilder();
     bld.append(isManaged.get() ? HaxelibNameUtil.stringifyHaxelib(name) : name);
     bld.append(':');
-    bld.append(semver.toString());
+    bld.append(getLoadedVersion());
     return bld.toString();
+  }
+
+  @NotNull
+  private String getLoadedVersion() {
+    HaxeLibrary library = getLibrary();
+    if (library != null) {
+      return library.getVersion().toString();
+    }
+    return "Unknown";
   }
 
   /**
@@ -194,6 +202,7 @@ public class HaxeLibraryReference {
 
   /**
    * Exact equivalence -- match every member.
+   *
    * @param o
    * @return
    */

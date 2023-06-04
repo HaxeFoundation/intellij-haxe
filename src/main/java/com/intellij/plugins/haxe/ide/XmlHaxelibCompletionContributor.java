@@ -20,59 +20,60 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.lang.xml.XMLLanguage;
-import com.intellij.openapi.application.ex.ApplicationUtil;
-import com.intellij.openapi.progress.DumbProgressIndicator;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.XmlPatterns;
-import com.intellij.plugins.haxe.haxelib.HaxelibCache;
+import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Created by as3boyan on 15.11.14.
  */
+@CustomLog
 public class XmlHaxelibCompletionContributor extends CompletionContributor {
 
-  protected static List<String> availableHaxelibs = List.of();
-  protected static List<String> localHaxelibs = List.of();
-
-  public XmlHaxelibCompletionContributor() throws Exception {
-
-    ProgressIndicator indicator = ProgressManager.getGlobalProgressIndicator();
-    if(indicator == null) {
-      //TODO mlo: find a better solution (CompletionProgressIndicator is internal API :( )
-      indicator = DumbProgressIndicator.INSTANCE;
-    }
-    ApplicationUtil.runWithCheckCanceled(() -> {
-      HaxelibCache haxelibCache = HaxelibCache.getInstance();
-      availableHaxelibs = haxelibCache.getAvailableHaxelibs();
-      localHaxelibs = haxelibCache.getLocalHaxelibs();
-      return null;
-    }, indicator);
-
+  public XmlHaxelibCompletionContributor() {
 
     extend(CompletionType.BASIC, PlatformPatterns.psiElement().inside(
-      XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("name"))
-        .withSuperParent(2, XmlPatterns.xmlTag().withName("haxelib")).withLanguage(XMLLanguage.INSTANCE)),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               for (int i = 0; i < availableHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(availableHaxelibs.get(i))
-                                     .withTailText(" available at haxelib", true));
-               }
+             XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("name"))
+               .withSuperParent(2, XmlPatterns.xmlTag().withName("haxelib")).withLanguage(XMLLanguage.INSTANCE)),
+           createCompletionProvider());
+  }
 
-               for (int i = 0; i < localHaxelibs.size(); i++) {
-                 result.addElement(LookupElementBuilder.create(localHaxelibs.get(i))
-                                     .withTailText(" installed", true));
-               }
-             }
-           });
+  @NotNull
+  private static CompletionProvider<CompletionParameters> createCompletionProvider() {
+    return new CompletionProvider<>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        VirtualFile file = parameters.getEditor().getVirtualFile();
+        Project project = parameters.getEditor().getProject();
+        if(project == null) {
+          log.error("Unable to provide completion, Project is null");
+          return;
+        }
+        Module moduleForFile = ModuleUtil.findModuleForFile(file, project);
+        HaxelibCacheManager instance = HaxelibCacheManager.getInstance(moduleForFile);
+
+        Set<String> availableHaxelibs = instance.getAvailableLibraries().keySet();
+        Set<String> localHaxelibs = instance.getInstalledLibraries().keySet();
+
+        for (String libName : availableHaxelibs) {
+          result.addElement(LookupElementBuilder.create(libName).withTailText(" available at haxelib", true));
+        }
+
+        for (String libName : localHaxelibs) {
+          result.addElement(LookupElementBuilder.create(libName).withTailText(" installed", true));
+        }
+      }
+    };
   }
 }

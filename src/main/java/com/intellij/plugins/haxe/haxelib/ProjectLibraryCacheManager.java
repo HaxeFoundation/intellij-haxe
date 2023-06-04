@@ -41,7 +41,7 @@ import java.util.Hashtable;
  * started adding SDK and/or Module parameters everywhere.
  */
 @CustomLog
-public class HaxelibLibraryCacheManager {
+public class ProjectLibraryCacheManager {
 
   static {
     log.setLevel(LogLevel.DEBUG);
@@ -50,7 +50,7 @@ public class HaxelibLibraryCacheManager {
 
   final SdkCache mySdkCache;
 
-  public HaxelibLibraryCacheManager() {
+  public ProjectLibraryCacheManager() {
     mySdkCache = new SdkCache();
   }
 
@@ -63,7 +63,7 @@ public class HaxelibLibraryCacheManager {
    * @return a library manager for the given module.
    */
   @NotNull
-  public HaxelibLibraryCache getLibraryManager(@NotNull Module module) {
+  public ProjectLibraryCache getLibraryManager(@NotNull Module module) {
     Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
     return getLibraryCache(sdk);
   }
@@ -79,7 +79,7 @@ public class HaxelibLibraryCacheManager {
    * @return a library manager for the given SDK.
    */
   @NotNull
-  public HaxelibLibraryCache getLibraryCache(@NotNull Sdk sdk) {
+  public ProjectLibraryCache getLibraryCache(@NotNull Sdk sdk) {
     SdkEntry entry = mySdkCache.get(sdk.getName());
     if (null == entry) {
       // Not in the cache?  Put it there.
@@ -94,11 +94,11 @@ public class HaxelibLibraryCacheManager {
    */
   static final class SdkEntry {
     final Sdk mySdk;
-    final HaxelibLibraryCache myMgr;
+    final ProjectLibraryCache myMgr;
 
     public SdkEntry(@NotNull Sdk sdk) {
       mySdk = sdk;
-      myMgr = new HaxelibLibraryCache(sdk);
+      myMgr = new ProjectLibraryCache(sdk);
     }
 
     @NotNull
@@ -107,7 +107,7 @@ public class HaxelibLibraryCacheManager {
     }
 
     @NotNull
-    public HaxelibLibraryCache getLibraryCache() {
+    public ProjectLibraryCache getLibraryCache() {
       return myMgr;
     }
 

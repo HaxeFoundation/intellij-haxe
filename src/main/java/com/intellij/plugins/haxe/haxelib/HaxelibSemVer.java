@@ -37,17 +37,30 @@ public class HaxelibSemVer {
     @Override public boolean matchesRequestedVersion(HaxelibSemVer requestedVersion) { return true; }
     @Override public String toString() { return name; }
     // Don't override equals or hashcode.
+    @NotNull
+    public String toDirString() {
+      return name;
+    }
   }
 
+  private static final String GIT_SCM = "git";
+  private static final String MERCURIAL_SCM = "hg";
+  private static final String DEV = "dev";
   public static final ConstantVer ANY_VERSION = new ConstantVer(0,0,0, "any");
-  public static final ConstantVer DEVELOPMENT_VERSION = new ConstantVer(Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE, "dev");
+  public static final ConstantVer DEVELOPMENT_VERSION = new ConstantVer(Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE, DEV);
+  public static final ConstantVer GIT_VERSION = new ConstantVer(Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE, GIT_SCM);
+
+  public static final ConstantVer HG_VERSION = new ConstantVer(Integer.MAX_VALUE,Integer.MAX_VALUE,Integer.MAX_VALUE, MERCURIAL_SCM);
   public static final HaxelibSemVer ZERO_VERSION = new HaxelibSemVer(0,0,0);
 
   public static final String VERSION_REGEX = "([0-9]+)[,.]([0-9]+)[,.]([0-9]+)";
   private static final Pattern versionPattern = Pattern.compile(VERSION_REGEX);
 
-  private static final String GIT_SCM = "git";
-  private static final String MERCURIAL_SCM = "hg";
+  public static boolean isAny(HaxelibSemVer semVer) {
+     return semVer == ANY_VERSION;
+  }
+
+
 
   private int major;
   private int minor;
@@ -77,12 +90,13 @@ public class HaxelibSemVer {
       if (ANY_VERSION.name.equals(semver)) {
         return ANY_VERSION;
       }
-      if ( DEVELOPMENT_VERSION.name.equals(semver)
-        || GIT_SCM.equals(semver)
-        || MERCURIAL_SCM.equals(semver)) {
-        return DEVELOPMENT_VERSION;
-      }
-      return ZERO_VERSION;
+      return switch (semver.toLowerCase()) {
+        case  MERCURIAL_SCM -> HG_VERSION;
+        case  GIT_SCM -> GIT_VERSION;
+        case  DEV -> DEVELOPMENT_VERSION;
+        default -> ZERO_VERSION;
+      };
+
     }
     return new HaxelibSemVer(Integer.parseInt(matcher.group(1)),
                              Integer.parseInt(matcher.group(2)),
@@ -138,6 +152,8 @@ public class HaxelibSemVer {
     if (minor != ver.minor) return false;
     return patch == ver.patch;
   }
+
+
 
   @Override
   public int hashCode() {

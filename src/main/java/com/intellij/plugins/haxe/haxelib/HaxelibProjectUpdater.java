@@ -162,7 +162,7 @@ public class HaxelibProjectUpdater {
    * @return the appropriate HaxelibLibraryCacheManager.
    */
   @Nullable
-  public HaxelibLibraryCacheManager getLibraryCacheManager(@NotNull Module module) {
+  public ProjectLibraryCacheManager getLibraryCacheManager(@NotNull Module module) {
     return getLibraryCacheManager(module.getProject());
   }
 
@@ -177,7 +177,7 @@ public class HaxelibProjectUpdater {
    * @return the appropriate HaxelibLibraryCacheManager.
    */
   @Nullable
-  public HaxelibLibraryCacheManager getLibraryCacheManager(@NotNull Project project) {
+  public ProjectLibraryCacheManager getLibraryCacheManager(@NotNull Project project) {
     ProjectTracker tracker = myProjects.get(project);
     return null == tracker ? null : tracker.getSdkManager();
   }
@@ -193,27 +193,11 @@ public class HaxelibProjectUpdater {
    * @return the HaxelibLibraryCache for the module, if found; null, otherwise.
    */
   @Nullable
-  public static HaxelibLibraryCache getLibraryCache(@NotNull Module module) {
-    HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(module);
+  public static ProjectLibraryCache getLibraryCache(@NotNull Module module) {
+    ProjectLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(module);
     return mgr != null ? mgr.getLibraryManager(module) : null;
   }
 
-  /**
-   * Retrieve the library cache for a given module.
-   * <p>
-   * Convenience function that doesn't quite match the purpose of this class,
-   * but we haven't made the CacheManager a singleton -- and we really can't
-   * unless we move the notion of a project into it.
-   *
-   * @param project
-   * @return the HaxelibLibraryCache for the project, if found; null, otherwise.
-   */
-  @Nullable
-  public static HaxelibLibraryCache getLibraryCache(@NotNull Project project) {
-    HaxelibLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(project);
-    Sdk projectSdk = HaxelibSdkUtils.lookupSdk(project);
-    return (mgr != null && projectSdk != null) ? mgr.getLibraryCache(projectSdk) : null;
-  }
 
   /**
    * Resolve the classpath/library entries for a module.  Determines which
@@ -226,8 +210,9 @@ public class HaxelibProjectUpdater {
    * @param externalLibs potential new libraries that must be available
    *                     to the module when this routine finishes.  These are
    *                     typically specified in the Haxe project files. (e.g. -lib)
+   * @param forceUpdate
    */
-  private void resolveModuleLibraries(ProjectTracker tracker, Module module, HaxeLibraryList externalLibs) {
+  private void resolveModuleLibraries(ProjectTracker tracker, Module module, HaxeLibraryList externalLibs, boolean forceUpdate) {
     HaxeLibraryList toAdd;
     HaxeLibraryList toRemove;
 
@@ -242,7 +227,7 @@ public class HaxelibProjectUpdater {
                      HaxelibUtil.getModuleLibraries(module),
                      externalLibs,
         /*modifies*/ toAdd,
-        /*modifies*/ toRemove);
+        /*modifies*/ toRemove, forceUpdate);
 
     updateModule(tracker, module, toRemove, toAdd);
   }
@@ -510,15 +495,17 @@ public class HaxelibProjectUpdater {
    * The guts of syncModuleClasspaths, separated so that it can be run as
    * either a foreground or background task.
    *
-   * @param tracker for the project being updated.
-   * @param module  being updated.
-   * @param timeLog where to log timing results
+   * @param tracker     for the project being updated.
+   * @param module      being updated.
+   * @param timeLog     where to log timing results
+   * @param forceUpdate
    */
-  private void syncOneModule(@NotNull final ProjectTracker tracker, @NotNull Module module, @NotNull HaxeDebugTimeLog timeLog) {
+  private void syncOneModule(@NotNull final ProjectTracker tracker, @NotNull Module module, @NotNull HaxeDebugTimeLog timeLog,
+                             boolean forceUpdate) {
 
     Project project = tracker.getProject();
     HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
-    HaxelibLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
+    ProjectLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     //ApplicationManager.getApplication().runReadAction(() -> {
@@ -560,7 +547,7 @@ public class HaxelibProjectUpdater {
       // the list of valid ones.  :/
     //});
     timeLog.stamp("Adding libraries to module.");
-    resolveModuleLibraries(tracker, module, haxelibExternalItems);
+    resolveModuleLibraries(tracker, module, haxelibExternalItems, forceUpdate);
     timeLog.stamp("Finished adding libraries to module.");
   }
 
@@ -568,7 +555,7 @@ public class HaxelibProjectUpdater {
                                @NotNull HaxeDebugTimeLog timeLog,
                                Project project,
                                HaxeLibraryList haxelibExternalItems,
-                               HaxelibLibraryCache libManager, HaxeModuleSettings settings) {
+                               ProjectLibraryCache libManager, HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from HXML file.");
     String hxmlPath = settings.getHxmlPath();
 
@@ -617,18 +604,21 @@ public class HaxelibProjectUpdater {
                                 @NotNull HaxeDebugTimeLog timeLog,
                                 Project project,
                                 HaxeLibraryList haxelibExternalItems,
-                                HaxelibLibraryCache libManager,
+                                ProjectLibraryCache libManager,
                                 HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from openFL configuration file.");
-    HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
-    if (null != openfl) {
-      haxelibExternalItems.add(openfl.createReference(HaxelibSemVer.ANY_VERSION)); // No specific version.
-    }
-    else {
-      // TODO: Figure out how to report this to the user.
-      log.warn("Required library 'openfl' is not known to haxelib.");
-      HaxelibNotifier.notifyMissingLibrary(module, "openfl", null);
-    }
+    //TODO mlo: we should rewrite this and change it from openFL to Lime, and lime does not require this lib
+    // it should also be possible to set custom versions so just adding ANY version is probably undesired
+
+    //HaxeLibrary openfl = libManager.getLibrary("openfl", HaxelibSemVer.ANY_VERSION);
+    //if (null != openfl) {
+    //  haxelibExternalItems.add(openfl.createReference(HaxelibSemVer.ANY_VERSION)); // No specific version.
+    //}
+    //else {
+    //  // TODO: Figure out how to report this to the user.
+    //  log.warn("Required library 'openfl' is not known to haxelib.");
+    //  HaxelibNotifier.notifyMissingLibrary(module, "openfl", null);
+    //}
 
     // TODO: Pull libs off of the command line, too.
 
@@ -682,7 +672,7 @@ public class HaxelibProjectUpdater {
         }
       }
     }
-    haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
+    //haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
     timeLog.stamp("Finished loading haxelibs from openfl file.");
 
     // TODO: Add classpaths from the xml file and the CL to the module sources.
@@ -692,7 +682,7 @@ public class HaxelibProjectUpdater {
                                      @NotNull HaxeDebugTimeLog timeLog,
                                      Project project,
                                      HaxeLibraryList haxelibExternalItems,
-                                     HaxelibLibraryCache libManager,
+                                     ProjectLibraryCache libManager,
                                      HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from NMML file.");
     HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
@@ -734,7 +724,7 @@ public class HaxelibProjectUpdater {
   }
 
 
-  private void syncModuleClasspaths(final ProjectTracker tracker) {
+  private void syncModuleClasspaths(final ProjectTracker tracker, boolean forceUpdate) {
     final HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("syncModuleClasspaths");
 
     final Project project = tracker.getProject();
@@ -751,7 +741,7 @@ public class HaxelibProjectUpdater {
 
       //LOG.debug("Scanning module " + (++i) + " of " + count + ": " + module.getName());
       timeLog.stamp("\nScanning module " + (num) + " of " + count + ": " + module.getName());
-      syncOneModule(tracker, module, timeLog);
+      syncOneModule(tracker, module, timeLog, forceUpdate);
     }
     timeLog.stamp("Completed.");
     timeLog.print();
@@ -759,41 +749,13 @@ public class HaxelibProjectUpdater {
 
 
   public void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
-
-    //
-    // Either of these commented-out sections will cause indexing to not be attempted
-    // while the haxelibs are synchronizing.  However, they also hide the fact that
-    // haxelibs are updating by not allowing the haxelib progress dialog to start.
-    // Instead, it looks like indexing restarts over and over and over (which it
-    // kinda does).
-    //
-
-    //DumbServiceImpl dumbService = DumbServiceImpl.getInstance(tracker.getProject());
-    //dumbService.queueTask(new DumbModeTask() {
-    //  @Override
-    //  public void performInDumbMode(@NotNull ProgressIndicator indicator) {
-    //    syncProjectClasspath(tracker);
-    //    syncModuleClasspaths(tracker);
-    //  }
-    //});
-
-    //TransactionGuard tg = TransactionGuard.getInstance();
-    //tg.submitTransactionAndWait(new Runnable() {
-    //  @Override
-    //  public void run() {
-    //    syncProjectClasspath(tracker);
-    //    syncModuleClasspaths(tracker);
-    //  }
-    //});
-
-    //syncProjectClasspath(tracker);
-    //syncModuleClasspaths(tracker);
-
-
+    //TODO mlo  only use this  when force resync is required
+    boolean forceUpdate = true;
 
     ProgressManager progressManager = ProgressManager.getInstance();
-    progressManager.runProcessWithProgressSynchronously(()-> syncProjectClasspath(tracker), "Synchronizing Project Classpaths...", false, tracker.getProject());
-    progressManager.runProcessWithProgressSynchronously(()-> syncModuleClasspaths(tracker), "Synchronizing Module Classpaths...", false, tracker.getProject());
+    progressManager.runProcessWithProgressSynchronously(()-> syncProjectClasspath(tracker, forceUpdate), "Synchronizing Project Classpaths...", false, tracker.getProject());
+    progressManager.runProcessWithProgressSynchronously(()-> syncModuleClasspaths(tracker, forceUpdate), "Synchronizing Module Classpaths...", false, tracker.getProject());
+
 
   }
 
@@ -806,7 +768,7 @@ public class HaxelibProjectUpdater {
    */
   @NotNull
   private HaxeLibraryList getProjectLibraryList(@NotNull ProjectTracker tracker) {
-    ProjectLibraryCache cache = tracker.getCache();
+    ProjectLibraryListCache cache = tracker.getCache();
     HaxeLibraryList projectLibraries;
     HaxeConfiguration buildConfig = HaxeConfiguration.CUSTOM; // Only properties available.
 
@@ -893,7 +855,9 @@ public class HaxelibProjectUpdater {
                                 @NotNull HaxeLibraryList currentList,
                                 @NotNull HaxeLibraryList externallyRequired,
                    /*modifies*/ @NotNull HaxeLibraryList newLibrariesToAdd,
-                   /*modifies*/ @NotNull HaxeLibraryList oldLibrariesToRemove) {
+                   /*modifies*/ @NotNull HaxeLibraryList oldLibrariesToRemove,
+                                boolean forceUpdate
+  ) {
 
     final HaxeLibraryList currentManagedEntries = new HaxeLibraryList(sdk);
     final HaxeLibraryList currentUnmanagedEntries = new HaxeLibraryList(sdk);
@@ -927,11 +891,22 @@ public class HaxelibProjectUpdater {
     markAsManaged(toAdd);
 
     // Anything that is in both lists, we don't want to touch.
-    newLibrariesToAdd.addAll(toAdd);
-    newLibrariesToAdd.removeAll(toRemove);
+    if(!forceUpdate) {
+      newLibrariesToAdd.addAll(toAdd);
+      newLibrariesToAdd.removeAll(toRemove);
 
-    oldLibrariesToRemove.addAll(toRemove);
-    oldLibrariesToRemove.removeAll(toAdd);
+      oldLibrariesToRemove.addAll(toRemove);
+      oldLibrariesToRemove.removeAll(toAdd);
+
+    }else {
+      newLibrariesToAdd.removeAll(toRemove);
+      newLibrariesToAdd.addAll(toAdd);
+
+      oldLibrariesToRemove.removeAll(toAdd);
+      oldLibrariesToRemove.addAll(toRemove);
+    }
+
+
   }
 
 
@@ -942,7 +917,7 @@ public class HaxelibProjectUpdater {
    * @param tracker for the project being updated.
    */
   @NotNull
-  private void syncProjectClasspath(@NotNull ProjectTracker tracker) {
+  private void syncProjectClasspath(@NotNull ProjectTracker tracker, boolean forceUpdate) {
     Sdk sdk = HaxelibSdkUtils.lookupSdk(tracker.getProject());
     boolean isHaxeSDK = sdk.getSdkType().equals(HaxeSdkType.getInstance());
 
@@ -959,7 +934,9 @@ public class HaxelibProjectUpdater {
                      HaxelibUtil.getProjectLibraries(tracker.getProject(),false, false),
                      new HaxeLibraryList(sdk),
         /*modifies*/ toAdd,
-        /*modifies*/ toRemove );
+        /*modifies*/ toRemove,
+        forceUpdate
+    );
 
     if (!toAdd.isEmpty() && !toRemove.isEmpty()) {
       timeLog.stamp("Add/Remove calculations finished.  Queuing write task.");
@@ -1106,7 +1083,7 @@ public class HaxelibProjectUpdater {
   /**
    *  Cache for project library lists.
    */
-  static final private class ProjectLibraryCache {
+  static final public class ProjectLibraryListCache {
 
     private Sdk sdk;
     private HaxeLibraryList nmmlList;
@@ -1118,7 +1095,7 @@ public class HaxelibProjectUpdater {
     private boolean hxmlIsSet;
     private boolean propertiesIsSet;
 
-    public ProjectLibraryCache(@NotNull Sdk sdk) {
+    public ProjectLibraryListCache(@NotNull Sdk sdk) {
       this.sdk = sdk;
       clear();
     }
@@ -1226,8 +1203,8 @@ public class HaxelibProjectUpdater {
     final Project myProject;
     boolean myIsDirty;
     boolean myIsUpdating;
-    ProjectLibraryCache myCache;
-    HaxelibLibraryCacheManager mySdkManager;
+    ProjectLibraryListCache myCache;
+    ProjectLibraryCacheManager mySdkManager;
 
     // TODO: Determine if we need to track whether the project is still open.
 
@@ -1244,8 +1221,8 @@ public class HaxelibProjectUpdater {
       myIsDirty = true;
       myIsUpdating = false;
       myReferenceCount = 0;
-      myCache = new ProjectLibraryCache(HaxelibSdkUtils.lookupSdk(project));
-      mySdkManager = new HaxelibLibraryCacheManager();
+      myCache = new ProjectLibraryListCache(HaxelibSdkUtils.lookupSdk(project));
+      mySdkManager = new ProjectLibraryCacheManager();
 
       VirtualFileManager mgr = VirtualFileManager.getInstance();
       mgr.addAsyncFileListener(this::lookForLibChanges, project);
@@ -1255,7 +1232,7 @@ public class HaxelibProjectUpdater {
      * Get the settings cache.
      */
     @NotNull
-    public ProjectLibraryCache getCache() {
+    public HaxelibProjectUpdater.ProjectLibraryListCache getCache() {
       return myCache;
     }
 
@@ -1263,7 +1240,7 @@ public class HaxelibProjectUpdater {
      * Get the library classpath cache.
      */
     @NotNull
-    public HaxelibLibraryCacheManager getSdkManager() {
+    public ProjectLibraryCacheManager getSdkManager() {
       return mySdkManager;
     }
 
@@ -1406,7 +1383,7 @@ public class HaxelibProjectUpdater {
           HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("syncModuleClasspaths");
           HaxelibProjectUpdater instance = HaxelibProjectUpdater.getInstance();
           ProjectTracker tracker = instance.findProjectTracker(module.getProject());
-          instance.syncOneModule(tracker, module, timeLog);
+          instance.syncOneModule(tracker, module, timeLog, false);
         }
       });
     }

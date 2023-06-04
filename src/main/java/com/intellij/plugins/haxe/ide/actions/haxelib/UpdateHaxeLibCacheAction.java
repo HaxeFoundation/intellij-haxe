@@ -1,14 +1,20 @@
 package com.intellij.plugins.haxe.ide.actions.haxelib;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.buildsystem.lime.LimeOpenFlUtil;
-import com.intellij.plugins.haxe.haxelib.HaxelibCache;
+import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
+import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class UpdateHaxeLibCacheAction extends AnAction implements DumbAware {
   @Override
@@ -26,7 +32,12 @@ public class UpdateHaxeLibCacheAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
-    HaxelibCache.getInstance().reload();
+    Project project = event.getProject();
+
+    Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
+    modules.forEach(module -> HaxelibProjectUpdater.getLibraryCache(module).reload());
+
+    HaxelibCacheManager.getAllInstances().forEach(HaxelibCacheManager::reload);
   }
 
   protected boolean isAvailable(AnActionEvent e) {

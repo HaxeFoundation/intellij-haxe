@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
@@ -29,6 +30,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.*;
 import com.intellij.plugins.haxe.HaxeBundle;
 
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.util.HaxeEventLogUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
@@ -267,7 +269,9 @@ public class HaxelibUtil {
       if (filterManagedLibs && isManaged) continue;
       if (filterUnmanagedLibs && !isManaged) continue;
 
-      libs.add(HaxeLibraryReference.create(project, name));
+      Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
+
+      modules.forEach( module -> libs.add(HaxeLibraryReference.create(module, name)));
     }
     return libs;
   }
@@ -363,7 +367,7 @@ public class HaxelibUtil {
     return haxeLibData;
   }
   @NotNull
-  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, HaxelibLibraryCache libraryManager) {
+  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, ProjectLibraryCache libraryManager) {
     List<HaxeLibraryReference> haxelibNewItems = new ArrayList<>();
 
     haxeLibData.forEach(data -> {
@@ -373,8 +377,15 @@ public class HaxelibUtil {
           haxelibNewItems.add(lib.createReference(data.semver));
         }
         else {
-          log.warn("Library specified in XML file is not known to haxelib: " + data.name);
-          HaxelibNotifier.notifyMissingLibrary(module, data.name, null);
+          log.warn("Library specified in XML file is not found: " + data.name);
+          Map<String, List<String>> libraries = HaxelibCacheManager.getInstance(module).getAvailableLibraries();
+          boolean libAvailable = libraries.containsKey(data.name);
+          boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || libraries.get(data.name).contains(data.version);
+          if(libAvailable && versionAvailable) {
+            HaxelibNotifier.notifyMissingLibrarySuggestInstall(module, data.name, data.version);
+          }else {
+            HaxelibNotifier.notifyMissingLibrary(module, data.name, data.version);
+          }
 
         }
       }

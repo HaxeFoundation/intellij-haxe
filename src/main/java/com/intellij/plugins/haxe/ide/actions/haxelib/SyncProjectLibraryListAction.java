@@ -1,14 +1,19 @@
 package com.intellij.plugins.haxe.ide.actions.haxelib;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.buildsystem.lime.LimeOpenFlUtil;
 import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
 
 public class SyncProjectLibraryListAction extends AnAction implements DumbAware {
 
@@ -25,7 +30,18 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
     HaxelibProjectUpdater instance = HaxelibProjectUpdater.INSTANCE;
     Project project = getProject(e);
     HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);
-    if(tracker!= null) instance.synchronizeClasspaths(tracker);
+
+    clearHaxelibCaches(project);
+
+    if(tracker!= null){
+      tracker.getCache().clear();
+      instance.synchronizeClasspaths(tracker);
+    }
+  }
+
+  private static void clearHaxelibCaches(Project project) {
+    Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
+    modules.forEach(module -> HaxelibProjectUpdater.getLibraryCache(module).reload());
   }
 
   protected boolean isAvailable(AnActionEvent e) {

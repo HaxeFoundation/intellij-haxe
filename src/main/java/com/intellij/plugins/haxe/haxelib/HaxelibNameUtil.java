@@ -18,12 +18,10 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
-import com.google.common.base.Joiner;
 import com.intellij.openapi.util.text.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,24 +29,16 @@ import java.util.List;
  */
 public final class HaxelibNameUtil {
 
-  private final static String managedPrefix = "haxelib";
-  private final static String joiner = "|";
-  private final static String startsWith = managedPrefix + joiner;
+  private final static String managedPrefix = "Haxelib";
+  private final static String joiner = ": ";
+  public final static String startsWith = managedPrefix + joiner;
 
-  public static String stringifyHaxelib(HaxelibItem haxelibItem) {
-    ArrayList<String> strings = new ArrayList<String>();
-    strings.add(managedPrefix);
-    strings.add(haxelibItem.getUrl());
-    return Joiner.on(joiner).join(strings);
+  public static String stringifyHaxelib(String path) {
+    return startsWith + path;
   }
 
-  private static StringBuilder gSB = new StringBuilder(startsWith);
-  public static String stringifyHaxelib(String path) {
-    synchronized(gSB) {
-      gSB.setLength(8); // re-initialize.
-      gSB.append(path);
-      return gSB.toString();
-    }
+  public static String[] extractNameAndVersion(String name) {
+    return  name.replaceFirst(startsWith, "").split(":");
   }
 
   @Nullable

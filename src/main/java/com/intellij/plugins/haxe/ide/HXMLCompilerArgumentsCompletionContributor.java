@@ -21,9 +21,11 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
-import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
@@ -49,12 +51,12 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
 
   public static final Pattern HAXE4_PATTERN = Pattern.compile("(-((?<short>([a-z_0-9]+)),\\s))?--(?<long>[a-z-_0-9]+)[\\s](?<param><[^>]+>)?\\s*(?<param2>\\[.*\\])?\\s+[\\t\\s]+(?<description>[^\\r\\n]+)", Pattern.CASE_INSENSITIVE);
 
-  private void getCompilerArguments() {
+  private void getCompilerArguments(Module module) {
     ArrayList<String> commandLine = new ArrayList<>();
-    List<String> strings = getStrings(commandLine);
+    List<String> compilerArguments = getHaxeCompilerArguments(module, commandLine);
 
-    addHaxe4CompilerArguments(strings);
-    addHaxe3CompilerArguments(strings);
+    addHaxe4CompilerArguments(compilerArguments);
+    addHaxe3CompilerArguments(compilerArguments);
   }
 
   private void addHaxe3CompilerArguments(List<String> strings) {
@@ -137,8 +139,7 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     }
   }
 
-  private List<String> getStrings(ArrayList<String> commandLine) {
-    Module module = HaxelibCache.getHaxeModule();
+  private List<String> getHaxeCompilerArguments(Module module, ArrayList<String> commandLine) {
     commandLine.add(HaxeHelpUtil.getHaxePath(module));
     commandLine.add("--help");
 
@@ -150,15 +151,11 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
   }
 
   public HXMLCompilerArgumentsCompletionContributor() {
-    if (COMPILER_ARGUMENTS.isEmpty()) {
-      getCompilerArguments();
-    }
+
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY_TOKEN).withLanguage(HXMLLanguage.INSTANCE),
-           new CompletionProvider<CompletionParameters>() {
+           new CompletionProvider<>() {
              @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet set) {
+             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) {
 
 
                //String[] compilerArguments;
@@ -171,6 +168,13 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //  "main",
                //  "dce
                //};
+
+               if (COMPILER_ARGUMENTS.isEmpty()) {
+                 VirtualFile file = parameters.getEditor().getVirtualFile();
+                 Project project = parameters.getEditor().getProject();
+                 Module module = ModuleUtil.findModuleForFile(file, project);
+                 getCompilerArguments(module);
+               }
 
                String text = parameters.getPosition().getText();
 

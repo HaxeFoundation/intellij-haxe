@@ -31,7 +31,24 @@ public class HaxelibNotifier {
 
   public static void notifyMissingLibrary(@NotNull Module module, @NotNull String libName, @Nullable String version) {
 
+    // do not create notification for empty string
+    if(libName.isBlank()) return;
+    Notification notification = NotificationGroupManager.getInstance()
+      .getNotificationGroup("haxe.haxelib.warning")
+      .createNotification(libName, NotificationType.WARNING);
 
+    String message = version == null ?
+                     HaxeBundle.message("haxe.haxelib.library.missing.without.version", libName) :
+                     HaxeBundle.message("haxe.haxelib.library.missing.with.version", libName, version);
+
+    notification.setTitle(HaxeBundle.message("haxe.haxelib.library.dependencies"))
+      .setContent(message)
+      .notify(module.getProject());
+  }
+  public static void notifyMissingLibrarySuggestInstall(@NotNull Module module, @NotNull String libName, @Nullable String version) {
+
+    // do not create notification for empty string
+    if(libName.isBlank()) return;
     Notification notification = NotificationGroupManager.getInstance()
       .getNotificationGroup("haxe.haxelib.warning")
       .createNotification(libName, NotificationType.WARNING);
@@ -48,7 +65,8 @@ public class HaxelibNotifier {
 
   @NotNull
   private static AnAction installLibAction(@NotNull Module module, @NotNull String libName, @Nullable String version, Notification notification) {
-    return new AnAction(HaxeBundle.message("haxe.haxelib.library.missing.install")) {
+    String nameAndVersion = version == null ? libName :libName + " " + version  ;
+    return new AnAction(HaxeBundle.message("haxe.haxelib.library.missing.install", nameAndVersion)) {
       @Override
       public void actionPerformed(@NotNull AnActionEvent e) {
         notification.expire();
@@ -139,11 +157,15 @@ public class HaxelibNotifier {
           .notify(project);
 
       }else {
-        HaxelibCache.getInstance().reload();
+        HaxelibCacheManager.getInstance(module).reload();
+
         HaxelibProjectUpdater instance = HaxelibProjectUpdater.INSTANCE;
         HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);
-        tracker.getSdkManager().getLibraryManager(module).reload();
-        if(tracker!= null) instance.synchronizeClasspaths(tracker);
+
+        if(tracker!= null) {
+          tracker.getSdkManager().getLibraryManager(module).reload();
+          instance.synchronizeClasspaths(tracker);
+        }
       }
     }
 

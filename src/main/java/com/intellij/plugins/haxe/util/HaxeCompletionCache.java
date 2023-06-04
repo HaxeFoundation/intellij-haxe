@@ -21,12 +21,10 @@ package com.intellij.plugins.haxe.util;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
-import com.intellij.plugins.haxe.haxelib.HaxelibCache;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,10 +32,13 @@ import java.util.regex.Pattern;
 /**
  * Created by as3boyan on 15.11.14.
  */
-public class HaxeHelpCache {
-  static HaxeHelpCache instance = null;
+public class HaxeCompletionCache {
+  static HaxeCompletionCache instance = null;
   public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
   public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]([^\\r\\n]+)");
+
+  private static final List<HXMLCompletionItem> metaTags = new ArrayList<>();
+  private static final List<HXMLCompletionItem> defines = new ArrayList<>();
 
   public List<HXMLCompletionItem> getMetaTags() {
     return metaTags;
@@ -46,59 +47,56 @@ public class HaxeHelpCache {
     return defines;
   }
 
-  private static List<HXMLCompletionItem> metaTags;
-  private static List<HXMLCompletionItem> defines;
 
-  public HaxeHelpCache() {
-    if (ApplicationManager.getApplication().isUnitTestMode()) {
-      metaTags = Collections.EMPTY_LIST;
-      defines = Collections.EMPTY_LIST;
-      return;
-    }
-
-    load();
-  }
-
-  public static HaxeHelpCache getInstance() {
+  public static HaxeCompletionCache getInstance(Module module) {
     if (instance == null) {
-      instance = new HaxeHelpCache();
+      instance = new HaxeCompletionCache();
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+        instance.load(module);
+      }
     }
 
     return instance;
   }
 
-  private void load() {
+  private void load(Module module) {
     ArrayList<String> commandLineArguments = new ArrayList<String>();
-    Module module = HaxelibCache.getHaxeModule();
     String haxePath = HaxeHelpUtil.getHaxePath(module);
     HaxeSdkAdditionalDataBase haxeSdkData = HaxeSdkUtilBase.getSdkData(module);
 
+    getMetasFromCompiler(commandLineArguments, haxePath, haxeSdkData);
+    getDefinesFromCompiler(commandLineArguments, haxePath, haxeSdkData);
+  }
+
+  private static void getMetasFromCompiler(ArrayList<String> commandLineArguments, String haxePath, HaxeSdkAdditionalDataBase haxeSdkData) {
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-metas");
 
-    List<String> strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
+    List<String> metaTagsFromCompiler = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
 
-    metaTags = new ArrayList<HXMLCompletionItem>();
+    metaTags.clear();
 
-    for (int i = 0, size = strings.size(); i < size; i++) {
-      String string = strings.get(i);
+    for (int i = 0, size = metaTagsFromCompiler.size(); i < size; i++) {
+      String string = metaTagsFromCompiler.get(i);
       Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {
         metaTags.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
       }
     }
+  }
 
+  private static void getDefinesFromCompiler(ArrayList<String> commandLineArguments, String haxePath, HaxeSdkAdditionalDataBase haxeSdkData) {
     commandLineArguments.clear();
     commandLineArguments.add(haxePath);
     commandLineArguments.add("--help-defines");
 
-    strings = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
+    List<String> definesFromCompiler = HaxelibCommandUtils.getProcessStdout(commandLineArguments, haxeSdkData);
 
-    defines = new ArrayList<HXMLCompletionItem>();
+    defines.clear();
 
-    for (int i = 0; i < strings.size(); i++) {
-      String string = strings.get(i);
+    for (int i = 0; i < definesFromCompiler.size(); i++) {
+      String string = definesFromCompiler.get(i);
       Matcher matcher = DEFINE_PATTERN.matcher(string);
 
       if (matcher.find()) {

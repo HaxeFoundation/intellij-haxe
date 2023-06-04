@@ -20,10 +20,15 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.util.HaxeHelpCache;
+import com.intellij.plugins.haxe.util.HaxeCompletionCache;
 import com.intellij.util.ProcessingContext;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -31,14 +36,26 @@ import java.util.List;
 /**
  * Created by as3boyan on 15.11.14.
  */
+@CustomLog
 public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
   public HaxeMetaTagsCompletionContributor() {
-    final List<HXMLCompletionItem> metaTags = HaxeHelpCache.getInstance().getMetaTags();
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.META_ID), new CompletionProvider<CompletionParameters>() {
+
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.META_ID), new CompletionProvider<>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
+
+        VirtualFile file = parameters.getEditor().getVirtualFile();
+        Project project = parameters.getEditor().getProject();
+        if(project == null) {
+          log.error("Unable to provide completion, Project is nuull");
+          return;
+        }
+        Module module = ModuleUtil.findModuleForFile(file, project);
+
+        final List<HXMLCompletionItem> metaTags = HaxeCompletionCache.getInstance(module).getMetaTags();
+
         for (int i = 0; i < metaTags.size(); i++) {
           HXMLCompletionItem completionItem = metaTags.get(i);
           result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));

@@ -35,7 +35,7 @@ public class HaxeLibraryDependency extends HaxeLibraryReference {
     this(HaxelibProjectUpdater.getLibraryCache(module), name, semver, reliant);
   }
 
-  public HaxeLibraryDependency(@NotNull HaxelibLibraryCache owner, @NotNull String name, @Nullable String semver, @Nullable HaxeLibrary reliant) {
+  public HaxeLibraryDependency(@NotNull ProjectLibraryCache owner, @NotNull String name, @Nullable String semver, @Nullable HaxeLibrary reliant) {
     super(owner, name, HaxelibSemVer.create(semver), false);
     reliants = new HaxeLibraryList(owner.getSdk());
     if (null != reliant) {
@@ -43,7 +43,7 @@ public class HaxeLibraryDependency extends HaxeLibraryReference {
     }
   }
 
-  public HaxeLibraryDependency(@NotNull HaxelibLibraryCache owner, @NotNull String name, @Nullable String semver, @NotNull HaxeLibraryList reliants) {
+  public HaxeLibraryDependency(@NotNull ProjectLibraryCache owner, @NotNull String name, @Nullable String semver, @NotNull HaxeLibraryList reliants) {
     this(owner, name, semver, (HaxeLibrary)null);
     this.reliants.addAll(reliants);
   }
