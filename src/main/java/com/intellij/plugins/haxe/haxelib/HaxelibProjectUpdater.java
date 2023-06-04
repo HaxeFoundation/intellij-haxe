@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
@@ -138,12 +139,14 @@ public class HaxelibProjectUpdater {
 
     ProjectTracker tracker = myProjects.get(project);
     removed = myProjects.remove(project);
+
     if (removed) {
       myQueue.remove(tracker);
       if (tracker.equals(myQueue.getUpdatingProject())) {
         delayed = true;
       }
     }
+    tracker.dispose();
     return delayed;
   }
 
@@ -1199,7 +1202,7 @@ public class HaxelibProjectUpdater {
   /**
    * Tracks the state of a project for updating class paths.
    */
-  public final class ProjectTracker {
+  public final class ProjectTracker implements Disposable {
     final Project myProject;
     boolean myIsDirty;
     boolean myIsUpdating;
@@ -1396,6 +1399,12 @@ public class HaxelibProjectUpdater {
         case NMML -> settings.getNmmlPath();
         default -> "N/A";
       };
+    }
+
+    @Override
+    public void dispose() {
+      Collection<Module> modules = ModuleUtil.getModulesOfType(getProject(), HaxeModuleType.getInstance());
+      modules.forEach(HaxelibCacheManager::removeInstance);
     }
   } // end class ProjectTracker
 

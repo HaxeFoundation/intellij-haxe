@@ -24,6 +24,10 @@ public class HaxelibCacheManager {
     return instances.get(module);
   }
 
+  public static void removeInstance(@NotNull Module module) {
+    instances.remove(module);
+  }
+
 
   private final Map<String, List<String>> installedLibraries = new HashMap<>();
   private final Map<String, List<String>> availableLibraries = new HashMap<>();
@@ -33,6 +37,8 @@ public class HaxelibCacheManager {
   private HaxelibCacheManager(Module module) {
     this.module = module;
   }
+
+
 
   public void clear() {
     installedLibraries.clear();
