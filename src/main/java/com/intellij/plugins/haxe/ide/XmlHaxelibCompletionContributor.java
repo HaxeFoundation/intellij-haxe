@@ -27,10 +27,14 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.patterns.XmlPatterns;
 import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.xml.XmlTag;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -44,11 +48,59 @@ public class XmlHaxelibCompletionContributor extends CompletionContributor {
     extend(CompletionType.BASIC, PlatformPatterns.psiElement().inside(
              XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("name"))
                .withSuperParent(2, XmlPatterns.xmlTag().withName("haxelib")).withLanguage(XMLLanguage.INSTANCE)),
-           createCompletionProvider());
+           createNameCompletionProvider());
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement().inside(
+             XmlPatterns.xmlAttributeValue().withParent(XmlPatterns.xmlAttribute("version"))
+               .withSuperParent(2, XmlPatterns.xmlTag().withName("haxelib")).withLanguage(XMLLanguage.INSTANCE)),
+           createVersionCompletionProvider());
+  }
+
+  private CompletionProvider<CompletionParameters> createVersionCompletionProvider() {
+    return new CompletionProvider<>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+        VirtualFile file = parameters.getEditor().getVirtualFile();
+        Project project = parameters.getEditor().getProject();
+        if(project == null) {
+          log.error("Unable to provide completion, Project is null");
+          return;
+        }
+
+        String libName = extractLibName(parameters);
+        if(libName == null) return; // if lib name not found do nothing
+
+        Module moduleForFile = ModuleUtil.findModuleForFile(file, project);
+        HaxelibCacheManager instance = HaxelibCacheManager.getInstance(moduleForFile);
+
+        List<String> availableVersions = instance.fetchAvailableVersions(libName);
+        List<String> installedVersions = instance.getInstalledLibraries().getOrDefault(libName, List.of());
+        availableVersions.removeAll(installedVersions); // avoid duplicates
+
+        for (String libVersion : installedVersions) {
+          result.addElement(LookupElementBuilder.create(libVersion).withTailText(" installed", true));
+        }
+        for (String libVersion : availableVersions) {
+          result.addElement(LookupElementBuilder.create(libVersion).withTailText(" available at haxelib", true));
+        }
+      }
+    };
+  }
+
+  @Nullable
+  private static String extractLibName(@NotNull CompletionParameters parameters) {
+    PsiElement position = parameters.getOriginalPosition();
+    while(!(position instanceof XmlTag tag)) {
+      position = position.getParent();
+      if(position == null) return null;
+    }
+
+    return tag.getAttribute("name").getValue();
   }
 
   @NotNull
-  private static CompletionProvider<CompletionParameters> createCompletionProvider() {
+  private static CompletionProvider<CompletionParameters> createNameCompletionProvider() {
     return new CompletionProvider<>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,

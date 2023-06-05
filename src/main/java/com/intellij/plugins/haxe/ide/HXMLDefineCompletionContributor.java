@@ -60,7 +60,7 @@ public class HXMLDefineCompletionContributor extends CompletionContributor {
         VirtualFile file = parameters.getEditor().getVirtualFile();
         Project project = parameters.getEditor().getProject();
         if(project == null) {
-          log.error("Unable to provide completion, Project is nuull");
+          log.error("Unable to provide completion, Project is null");
           return;
         }
         Module module = ModuleUtil.findModuleForFile(file, project);

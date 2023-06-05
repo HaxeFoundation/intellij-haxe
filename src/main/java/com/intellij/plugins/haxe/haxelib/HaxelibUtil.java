@@ -378,12 +378,21 @@ public class HaxelibUtil {
         }
         else {
           log.warn("Library specified in XML file is not found: " + data.name);
-          Map<String, List<String>> libraries = HaxelibCacheManager.getInstance(module).getAvailableLibraries();
+          HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
+          Map<String, List<String>> libraries = cacheManager.getAvailableLibraries();
+
           boolean libAvailable = libraries.containsKey(data.name);
-          boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || libraries.get(data.name).contains(data.version);
-          if(libAvailable && versionAvailable) {
-            HaxelibNotifier.notifyMissingLibrarySuggestInstall(module, data.name, data.version);
-          }else {
+          if(libAvailable) {
+            List<String> versions = libraries.getOrDefault(data.name, List.of());
+            if(versions.isEmpty()) {
+              // attempt to fetch  versions available online for lib
+              versions = cacheManager.fetchAvailableVersions(data.name);
+            }
+            boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || versions.contains(data.version);
+            if (versionAvailable){
+              HaxelibNotifier.notifyMissingLibrarySuggestInstall(module, data.name, data.version);
+
+            }
             HaxelibNotifier.notifyMissingLibrary(module, data.name, data.version);
           }
 

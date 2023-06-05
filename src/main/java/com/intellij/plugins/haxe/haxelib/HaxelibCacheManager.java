@@ -5,11 +5,17 @@ import com.intellij.openapi.projectRoots.Sdk;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A cache manager for library information retrieved from haxelib
  */
 public class HaxelibCacheManager {
+
+  // current version of haxelib shows versions as date + version + description
+  private static Pattern HAXELIB_VERSION_LINE =
+    Pattern.compile("(?<date>\\d{4}-\\d{2}-\\d{2}\s\\d{2}:\\d{2}:\\d{2})\s(?<version>.*)\s:\s(?<description>.*)");
 
   private static Map<Module, HaxelibCacheManager> instances = new HashMap<>();
 
@@ -37,7 +43,6 @@ public class HaxelibCacheManager {
   private HaxelibCacheManager(Module module) {
     this.module = module;
   }
-
 
 
   public void clear() {
@@ -102,10 +107,33 @@ public class HaxelibCacheManager {
       String libVersions = split[1];
       libVersions = libVersions.replaceAll("\\[", "");
       libVersions = libVersions.replaceAll("]", "");
-      String[] versionArray = libVersions.split("\s+");
+      String[] versionArray = libVersions.trim().split("\s+");
       libMap.put(libName, List.copyOf(Arrays.stream(versionArray).toList()));
     }
     return libMap;
   }
 
+  public List<String> fetchAvailableVersions(String name) {
+    if (getAvailableLibraries().getOrDefault(name, List.of()).isEmpty()) {
+      Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
+      List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, "info", name);
+      // filter to find version numbers
+
+      List<String> versions = list.stream()
+        .map(String::trim)
+        .map(HaxelibCacheManager::extractVersion)
+        .filter(Objects::nonNull)
+        .toList();
+      availableLibraries.put(name, versions);
+    }
+    return new LinkedList<>(availableLibraries.get(name));
+  }
+
+  private static String extractVersion(String line) {
+    Matcher matcher = HAXELIB_VERSION_LINE.matcher(line);
+    if (matcher.matches()) {
+      return matcher.group("version").trim();
+    }
+    return null;
+  }
 }

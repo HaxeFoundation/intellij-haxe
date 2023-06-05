@@ -27,16 +27,16 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
 import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
-import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
-import static com.intellij.patterns.PlatformPatterns.psiElement;
+import static com.intellij.patterns.StandardPatterns.not;
+import static com.intellij.patterns.StandardPatterns.string;
 
 /**
  * Created by as3boyan on 15.11.14.
@@ -44,28 +44,29 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 @CustomLog
 public class HXMLHaxelibCompletionContributor extends CompletionContributor {
 
-  protected static Set<String> availableHaxelibs = Collections.emptySet();
-  protected static Set<String> localHaxelibs = Collections.emptySet();
 
   public HXMLHaxelibCompletionContributor() {
 
-    // intelliJ 2018 and older
-    extend(CompletionType.BASIC, psiElement(HXMLTypes.VALUE)
-             .withParent(HXMLLib.class)
-             .withLanguage(HXMLLanguage.INSTANCE),
-           getProvider());
-
-    // intelliJ 2019 and newer
     extend(CompletionType.BASIC,
            PlatformPatterns.psiElement()
              .withParent(HXMLValue.class)
              .withSuperParent(2, HXMLLib.class)
+             .withText(not(string().contains(":"))) // lib name and version separated by colon
              .withLanguage(HXMLLanguage.INSTANCE),
-           getProvider());
+           getNameProvider());
+
+    extend(CompletionType.BASIC,
+           PlatformPatterns.psiElement()
+             .withParent(HXMLValue.class)
+             .withSuperParent(2, HXMLLib.class)
+             .withText(string().contains(":")) // lib name and version separated by colon
+             .withLanguage(HXMLLanguage.INSTANCE),
+           getVersionProvider());
   }
 
+
   @NotNull
-  private CompletionProvider<CompletionParameters> getProvider() {
+  private CompletionProvider<CompletionParameters> getNameProvider() {
 
     return new CompletionProvider<>() {
       @Override
@@ -80,21 +81,52 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
           return;
         }
         Module module = ModuleUtil.findModuleForFile(file, project);
-        getLatestFromCache(module);
+        HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
-        for (String libName : availableHaxelibs) {
-          result.addElement(LookupElementBuilder.create(libName).withTailText(" available at haxelib", true));
-        }
+        Set<String>  availableHaxelibs = cacheManager.getAvailableLibraries().keySet();
+        Set<String>  localHaxelibs = cacheManager.getInstalledLibraries().keySet();
 
-        for (String libName : localHaxelibs) {
-          result.addElement(LookupElementBuilder.create(libName).withTailText(" installed", true));
-        }
-      }
 
-      private void getLatestFromCache(Module module) {
-        availableHaxelibs = HaxelibCacheManager.getInstance(module).getAvailableLibraries().keySet();
-        localHaxelibs = HaxelibCacheManager.getInstance(module).getInstalledLibraries().keySet();
+          for (String libName : localHaxelibs) {
+            result.addElement(LookupElementBuilder.create(libName).withTailText(" installed", true));
+          }
+
+          for (String libName : availableHaxelibs) {
+            result.addElement(LookupElementBuilder.create(libName).withTailText(" available at haxelib", true));
+          }
       }
     };
   }
+  private CompletionProvider<CompletionParameters> getVersionProvider() {
+    return new CompletionProvider<>() {
+      @Override
+      protected void addCompletions(@NotNull CompletionParameters parameters,
+                                    ProcessingContext context,
+                                    @NotNull CompletionResultSet result) {
+
+        VirtualFile file = parameters.getEditor().getVirtualFile();
+        Project project = parameters.getEditor().getProject();
+        if (project == null) {
+          log.error("Unable to provide completion, Project is null");
+          return;
+        }
+        String text = parameters.getOriginalPosition().getText();
+        String libName = text.substring(0,text.indexOf(":")).trim();
+        Module module = ModuleUtil.findModuleForFile(file, project);
+        HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
+
+        List<String> availableVersions = cacheManager.fetchAvailableVersions(libName);
+        List<String> installedVersions = cacheManager.getInstalledLibraries().getOrDefault(libName, List.of());
+
+        for (String version : installedVersions) {
+          result.addElement(LookupElementBuilder.create(libName+":"+version).withTailText(" installed", true));
+        }
+
+        for (String version : availableVersions) {
+          result.addElement(LookupElementBuilder.create(libName+":"+version).withTailText(" available at haxelib", true));
+        }
+      }
+    };
+  }
+
 }
