@@ -40,7 +40,7 @@
   </extensionPoints>
 
   <extensions defaultExtensionNs="com.intellij">
-    <compileServer.plugin classpath="haxe-jps-plugin.jar;haxe-common.jar"/>
+    <compileServer.plugin  classpath="jps-plugin.jar;common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
