@@ -279,15 +279,21 @@ public class HaxeExpressionEvaluator {
         final SpecificTypeReference rightValue = rightResult.getType();
 
         //leftValue.mutateConstantValue(null);
-        if (!leftResult.canAssign(rightResult)) {
 
-          List<HaxeExpressionConversionFixer> fixers = HaxeExpressionConversionFixer.createStdTypeFixers(right, rightValue, leftValue);
-          AnnotationBuilder builder = HaxeStandardAnnotation.typeMismatch(context.holder, right, rightValue.toStringWithoutConstant(),
-                                                                          leftValue.toStringWithoutConstant())
-            .withFix(new HaxeCastFixer(right, rightValue, leftValue));
-          fixers.forEach(builder::withFix);
-          builder.create();
+        // skipping `canAssign` check if we dont have a holder to add annotations to
+        // this is probably just waste of time when resolving in files we dont have open.
+        // TODO try to  see if we need this or can move it so its not executed unnessesary
+        if (context.holder != null) {
+          if (!leftResult.canAssign(rightResult)) {
 
+            List<HaxeExpressionConversionFixer> fixers = HaxeExpressionConversionFixer.createStdTypeFixers(right, rightValue, leftValue);
+            AnnotationBuilder builder = HaxeStandardAnnotation
+              .typeMismatch(context.holder, right, rightValue.toStringWithoutConstant(), leftValue.toStringWithoutConstant())
+              .withFix(new HaxeCastFixer(right, rightValue, leftValue));
+
+            fixers.forEach(builder::withFix);
+            builder.create();
+          }
         }
 
         if (leftResult.isImmutable()) {
