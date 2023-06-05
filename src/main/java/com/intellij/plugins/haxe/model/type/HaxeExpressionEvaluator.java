@@ -389,6 +389,10 @@ public class HaxeExpressionEvaluator {
             typeHolder = SpecificHaxeClassReference.withGenerics(
               new HaxeClassReference(((HaxeClass)subelement).getModel(), element), resolver.getSpecifics()).createHolder();
           }
+          else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
+            SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
+            typeHolder = type.createHolder();
+          }
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
