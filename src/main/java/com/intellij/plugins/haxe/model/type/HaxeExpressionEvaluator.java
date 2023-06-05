@@ -431,11 +431,36 @@ public class HaxeExpressionEvaluator {
         parameterExpressions = Collections.emptyList();
       }
 
-      if (functionType instanceof SpecificFunctionReference) {
-        SpecificFunctionReference ftype = (SpecificFunctionReference)functionType;
+      if (functionType instanceof SpecificFunctionReference ftype) {
         HaxeExpressionEvaluator.checkParameters(callelement, ftype, parameterExpressions, context, resolver);
 
-        return ftype.getReturnType().duplicate();
+        ResultHolder returnType = ftype.getReturnType();
+        if(returnType.isUnknown() || returnType.isDynamic() || returnType.isVoid()) {
+          return returnType.duplicate();
+        }
+
+        if(returnType.isFunctionType()){
+          return returnType.getFunctionType().createHolder();
+        }
+
+        if(returnType.isClassType() || returnType.isEnumValueType()) {
+          HaxeClassModel model = returnType.getClassType().getHaxeClassModel();
+          if(model == null) {
+            // should not happen but might for literals? (Int?) see UpdateUnknownInGenerics test
+            // this is a fallback to the previous solution for functionTypes
+            return returnType.duplicate();
+          }
+          HaxeClassReference reference = new HaxeClassReference(model, element);
+          if(model.getGenericParams().isEmpty()) {
+            SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withoutGenerics(reference);
+            return new ResultHolder(classReference);
+          } else {
+            SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withGenerics(reference, resolver.getSpecifics());
+            return new ResultHolder(classReference);
+          }
+
+        }
+
       }
 
       if (functionType.isDynamic()) {
