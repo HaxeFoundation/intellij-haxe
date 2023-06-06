@@ -525,7 +525,7 @@ macroFieldReification::= "$p" macroStatementWrapper
 macroDynamicReification::= "$v" macroStatementWrapper
 
 macroExpReification::= "$e" macroStatementWrapper
-macroShorthandExpReification::= DOLLAR "{" expression "}" // shorthand for $e / expression ?
+macroShorthandExpReification::= '$' "{" expression "}" // shorthand for $e / expression ?
 
 private macroStatementWrapper ::= "{" expression "}"
 
@@ -711,7 +711,8 @@ fake binaryExpression ::= expression* operator+ {
 fake unaryExpression ::= expression* operator+ {
   methods=[expression="/expression[0]" operator="/operator[0]"]
 }
-private assignableValueExpression ::= referenceExpression (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
+// might not be the best solution to add  (| thisExpression | superExpression | abstractExpression) here but it solves issues with postfix stuff (like "this.size++;")
+private assignableValueExpression ::= (referenceExpression | thisExpression | superExpression | abstractExpression) (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
 
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!

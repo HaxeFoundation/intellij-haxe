@@ -339,11 +339,18 @@ public class HaxeMethodAnnotator implements Annotator {
     // Order of assignment compatibility is to parent, from subclass.
     if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
+      if (parentResult.getType().isUnknown()) {
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING,HaxeBundle.message("haxe.unresolved.type"))
+          .range(psi.getTextRange())
+          .create();
+      }
+      else {
 
-      returnTypeMismatch(holder, psi, currentResult.getType().toStringWithoutConstant(), parentResult.getType().toStringWithConstant())
-        .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), () -> {
-          document.replaceElementText(currentResult.getElementContext(), parentResult.toStringWithoutConstant());
-        })).create();
+        returnTypeMismatch(holder, psi, currentResult.getType().toStringWithoutConstant(), parentResult.getType().toStringWithConstant())
+          .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), () -> {
+            document.replaceElementText(currentResult.getElementContext(), parentResult.toStringWithoutConstant());
+          })).create();
+      }
     }
   }
 

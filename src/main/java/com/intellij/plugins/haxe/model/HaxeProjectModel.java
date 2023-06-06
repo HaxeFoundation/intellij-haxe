@@ -84,6 +84,10 @@ public class HaxeProjectModel {
   public HaxePackageModel getStdPackage() {
     return getRootsCache().stdPackageModel;
   }
+  @NotNull
+  public HaxePackageModel getSExprPackage() {
+    return getRootsCache().exprPackageModel;
+  }
 
   @Nullable
   public List<HaxeModel> resolve(FullyQualifiedInfo info) {
@@ -105,6 +109,11 @@ public class HaxeProjectModel {
 
     if (result.isEmpty()) {
       resolvedValue = getStdPackage().resolve(info);
+      if (resolvedValue != null) result.add(resolvedValue);
+    }
+
+    if (result.isEmpty()) {
+      resolvedValue = getSExprPackage().resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }
 
@@ -157,11 +166,13 @@ class RootsCache {
   final List<HaxeSourceRootModel> roots;
   final HaxeSourceRootModel sdkRoot;
   final HaxeStdPackageModel stdPackageModel;
+  final HaxeExprPackageModel exprPackageModel;
 
   private RootsCache(List<HaxeSourceRootModel> roots, HaxeSourceRootModel sdkRoot) {
     this.roots = roots;
     this.sdkRoot = sdkRoot;
     this.stdPackageModel = new HaxeStdPackageModel(sdkRoot);
+    this.exprPackageModel = new HaxeExprPackageModel(sdkRoot);
   }
 
   static RootsCache fromProjectModel(HaxeProjectModel model) {
