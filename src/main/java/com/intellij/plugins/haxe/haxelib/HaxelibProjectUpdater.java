@@ -123,8 +123,10 @@ public class HaxelibProjectUpdater {
    */
   public void openProject(@NotNull Project project) {
     ProjectTracker tracker = myProjects.add(project);
-    tracker.setDirty(true);
-    myQueue.add(tracker);
+    if(tracker!= null) {
+      tracker.setDirty(true);
+      myQueue.add(tracker);
+    }
   }
 
   /**
@@ -134,20 +136,21 @@ public class HaxelibProjectUpdater {
    * @return whether the close has been delayed because an update is in process.
    */
   public boolean closeProject(Project project) {
-    boolean delayed = false;
-    boolean removed = false;
 
     ProjectTracker tracker = myProjects.get(project);
-    removed = myProjects.remove(project);
 
-    if (removed) {
-      myQueue.remove(tracker);
-      if (tracker.equals(myQueue.getUpdatingProject())) {
-        delayed = true;
+    if (tracker != null) {
+      boolean removed = myProjects.remove(project);
+      if (removed) {
+        myQueue.remove(tracker);
+        tracker.dispose();
+        if (tracker.equals(myQueue.getUpdatingProject())) {
+          return true;
+        }
       }
     }
-    tracker.dispose();
-    return delayed;
+
+    return false;
   }
 
   public  ProjectTracker findProjectTracker(Project project) {
@@ -1450,18 +1453,19 @@ public class HaxelibProjectUpdater {
       return tracker;
     }
 
-    public boolean remove(@NotNull Project project) {
-      boolean removed = false;
-      synchronized(this) {
-        ProjectTracker tracker = myMap.get(project.getName());
-        if (null != tracker) {
-          int refs = tracker.removeReference();
-          if (refs == 0) {
-            removed = null != myMap.remove(project.getName());
+    public boolean remove(Project project) {
+      if(project != null) {
+        synchronized (this) {
+          ProjectTracker tracker = myMap.get(project.getName());
+          if (null != tracker) {
+            int refs = tracker.removeReference();
+            if (refs == 0) {
+              return  null != myMap.remove(project.getName());
+            }
           }
         }
       }
-      return removed;
+      return false;
     }
 
     @Nullable

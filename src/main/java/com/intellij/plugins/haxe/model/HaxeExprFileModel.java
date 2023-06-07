@@ -5,7 +5,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeExprFileModel extends HaxeFileModel {
-  public static final String EXPR_HX = "/haxe/macro/Expr.hx";
   private static final Key<HaxeExprFileModel> HAXE_EXPR_FILE_MODEL_KEY = new Key<>("HAXE_STD_FILE_MODEL");
 
   private HaxeExprFileModel(@NotNull HaxeFile file) {

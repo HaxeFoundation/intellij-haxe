@@ -24,8 +24,6 @@ public class HaxeExprPackageModel extends HaxePackageModel {
   }
 
 
-  private List<HaxeGlobalUsingModel> globalUsingModels = null;
-
   HaxeExprPackageModel(@NotNull HaxeSourceRootModel root) {
     super(root, "", null);
   }
