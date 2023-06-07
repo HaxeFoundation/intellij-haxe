@@ -65,6 +65,10 @@ public final class ProjectLibraryCache {
   }
 
   private void loadInstalledLibrariesList(@NotNull Sdk sdk) {
+    if(!HaxelibSdkUtils.isValidHaxeSdk(sdk)){
+      log.warn("Unable to load install library list, invalid SDK paths");
+      return;
+    }
     List<String> installedLibs = HaxelibUtil.getInstalledLibraryNames(sdk);
     for (String libName : installedLibs) {
       HaxeLibrary lib = HaxeLibrary.load(this, libName, mySdk);

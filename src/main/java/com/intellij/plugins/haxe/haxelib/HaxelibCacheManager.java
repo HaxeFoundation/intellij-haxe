@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 /**
  * A cache manager for library information retrieved from haxelib
  */
+@CustomLog
 public class HaxelibCacheManager {
 
   // current version of haxelib shows versions as date + version + description
@@ -74,11 +76,19 @@ public class HaxelibCacheManager {
 
   private void fetchInstalledLibraryData() {
     Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
+    if(!HaxelibSdkUtils.isValidHaxeSdk(sdk)) {
+      log.warn("Unable to fetchInstalledLibraryData, invalid SDK paths");
+      return;
+    }
     installedLibraries.putAll(readInstalledLibraries(sdk));
   }
 
   private void fetchAvailableForDownload() {
     Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
+    if(!HaxelibSdkUtils.isValidHaxeSdk(sdk)) {
+      log.warn("Unable to fetchAvailableForDownload, invalid SDK paths");
+      return;
+    }
     availableLibraries.putAll(readAvailableOnline(sdk));
   }
 
@@ -116,6 +126,10 @@ public class HaxelibCacheManager {
   public List<String> fetchAvailableVersions(String name) {
     if (getAvailableLibraries().getOrDefault(name, List.of()).isEmpty()) {
       Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
+      if(!HaxelibSdkUtils.isValidHaxeSdk(sdk)) {
+        log.warn("Unable to fetch Available Versions, invalid SDK paths");
+        return List.of();
+      }
       List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, "info", name);
       // filter to find version numbers
 

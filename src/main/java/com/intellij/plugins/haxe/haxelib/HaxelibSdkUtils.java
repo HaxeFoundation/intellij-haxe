@@ -24,10 +24,14 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Static interface for SDK utility functions.
@@ -90,6 +94,12 @@ public class HaxelibSdkUtils {
       sdk = getDefaultSDK("Invalid (or no) SDK specified for project " + project.getName());
     }
     return sdk;
+  }
+  public static boolean isValidHaxeSdk(@NotNull Sdk haxeSdk) {
+    HaxeSdkData data = (HaxeSdkData)haxeSdk.getSdkAdditionalData();
+    if(data == null) return false;
+    if(!Files.exists(Path.of(data.getHomePath()))) return false;
+    return Files.exists(Path.of(data.getHaxelibPath()));
   }
 
 
