@@ -30,11 +30,13 @@ import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+@CustomLog
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<String> CACHE_NAME_KEY = new Key<>("HAXE_CACHE_NAME_KEY");
@@ -522,8 +524,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return propagateGenericsToType(classType, genericResolver);
   }
 
-  public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference type,
+  public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference originalType,
                                                              @Nullable HaxeGenericResolver genericResolver) {
+    SpecificHaxeClassReference type = originalType;
     if (type == null) return null;
     if (genericResolver == null) return type;
 
@@ -538,9 +541,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
     }
     for (ResultHolder specific : type.getSpecifics()) {
-      final SpecificHaxeClassReference classType = propagateGenericsToType(specific.getClassType(), genericResolver);
-      if (null != classType) {
-        specific.setType(classType);
+      // recursive guard
+      if (specific.getClassType() != originalType) {
+        final SpecificHaxeClassReference classType = propagateGenericsToType(specific.getClassType(), genericResolver);
+        if (null != classType) {
+          specific.setType(classType);
+        }
+      }else {
+        log.warn("can not propagate Generics To Type, type and specific is the same type");
       }
     }
     return type;

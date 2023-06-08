@@ -154,19 +154,29 @@ public class HaxeGenericResolverUtil {
 
                 HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call, null);
                 HaxeExpressionEvaluator.evaluate(expression, evaluatorContext, resolver);
+                ResultHolder result = evaluatorContext.result;
                 if (null != resolverType && resolverType.isUnknown()) {
-                  methodResolver.add(paramName, evaluatorContext.result);
+                  methodResolver.add(paramName, result);
                 }
                 // If the type contains generic arguments, then evaluate those and see if they are in the resolver.
                 if (paramSpecifics.length > 0) {
-                  ResultHolder[] resolvedSpecifics = evaluatorContext.result.getClassType().getSpecifics();
-
-                  int numSpecifics = Math.min(paramSpecifics.length, resolvedSpecifics.length);
-                  for (int i = 0; i < numSpecifics; ++i) {
-                    String paramSpecificName = paramSpecifics[i].getType().toStringWithoutConstant();
-                    resolverType = methodResolver.resolve(paramSpecificName);
-                    if (null != resolverType && resolverType.isUnknown()) {
-                      methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                  ResultHolder[] resolvedSpecifics = null;
+                  if (result.isClassType()) {
+                     resolvedSpecifics = result.getClassType().getSpecifics();
+                  }else if (result.isFunctionType()) {
+                    //TODO mlo consider making a method in FunctionType to do this ? (if it works as intended that is)
+                    List<SpecificFunctionReference.Argument> arguments = result.getFunctionType().getArguments();
+                    List<ResultHolder> list = arguments.stream().map(SpecificFunctionReference.Argument::getType).toList();
+                    resolvedSpecifics = list.toArray(new ResultHolder[0]);
+                  }
+                  if (resolvedSpecifics != null) {
+                    int numSpecifics = Math.min(paramSpecifics.length, resolvedSpecifics.length);
+                    for (int i = 0; i < numSpecifics; ++i) {
+                      String paramSpecificName = paramSpecifics[i].getType().toStringWithoutConstant();
+                      resolverType = methodResolver.resolve(paramSpecificName);
+                      if (null != resolverType && resolverType.isUnknown()) {
+                        methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                      }
                     }
                   }
                 }
