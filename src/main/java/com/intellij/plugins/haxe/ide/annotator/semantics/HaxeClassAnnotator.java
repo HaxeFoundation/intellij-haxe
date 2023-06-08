@@ -48,7 +48,7 @@ public class HaxeClassAnnotator implements Annotator {
     checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
     checkExtends(clazz, holder);
-    if (!clazzPsi.isInterface()) {
+    if (!clazzPsi.isInterface() && !clazzPsi.isTypeDef()) {
       checkInterfaces(clazz, holder);
       checkInterfacesMethods(clazz, holder);
       checkInterfacesFields(clazz, holder);

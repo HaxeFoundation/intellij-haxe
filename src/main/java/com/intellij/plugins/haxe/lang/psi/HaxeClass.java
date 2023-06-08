@@ -77,6 +77,8 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   boolean isInterface();
 
+  boolean isTypeDef();
+
   @NotNull
   List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver);
 

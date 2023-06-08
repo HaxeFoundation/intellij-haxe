@@ -142,7 +142,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < specifics.length; n++) {
         if (n > 0) out.append(", ");
         ResultHolder specific = specifics[n];
-        out.append(specific == null ? UNKNOWN : specific.toStringWithoutConstant());
+        if(specific == null) {
+          out.append( UNKNOWN);
+        }
+        else if(specific.getType() == this) {
+          out.append("*Recursion Error*");
+          log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
+        }else {
+          out.append(specific.toStringWithoutConstant());
+        }
       }
       out.append(">");
     }

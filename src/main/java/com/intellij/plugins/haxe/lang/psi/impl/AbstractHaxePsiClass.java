@@ -156,6 +156,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public boolean isInterface() {
     return HaxeComponentType.typeOf(this) == HaxeComponentType.INTERFACE;
   }
+  @Override
+  public boolean isTypeDef() {
+    return  HaxeComponentType.typeOf(this)  == HaxeComponentType.TYPEDEF;
+  }
 
   @NotNull
   @Override

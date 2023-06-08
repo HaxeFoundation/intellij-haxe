@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeClassReference;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -99,6 +100,11 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
       return targetHaxeClass.isInterface();
     }
     return super.isInterface();
+  }
+
+  @Override
+  public boolean isTypeDef() {
+    return HaxeComponentType.typeOf(this) == HaxeComponentType.TYPEDEF;
   }
 
   @Override
