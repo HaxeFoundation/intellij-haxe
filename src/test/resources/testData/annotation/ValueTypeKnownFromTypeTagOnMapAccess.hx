@@ -2,12 +2,12 @@
 package ;
 
 import StdTypes;
-import <info descr="null">Map</info>;
-import <info descr="null">String</info>;
+import <text_attr descr="null">Map</text_attr>;
+import <text_attr descr="null">String</text_attr>;
 
-class <info descr="null">Test</info> {
-  function <info descr="null">doTest</info>() {
-    var <info descr="null">a</info> : <info descr="null">Map</info><<info descr="null">String</info>, <info descr="null">String</info>> = [ "ONE" => "one", "TWO" => "two" ];
-    trace(<info descr="null">a</info>["ONE"].<info descr="null">length</info>);
+class <text_attr descr="null">Test</text_attr> {
+  function <text_attr descr="null">doTest</text_attr>() {
+    var <text_attr descr="null">a</text_attr> : <text_attr descr="null">Map</text_attr><<text_attr descr="null">String</text_attr>, <text_attr descr="null">String</text_attr>> = [ "ONE" => "one", "TWO" => "two" ];
+    trace(<text_attr descr="null">a</text_attr>["ONE"].<text_attr descr="null">length</text_attr>);
   }
 }

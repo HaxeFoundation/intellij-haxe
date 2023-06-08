@@ -78,8 +78,7 @@ public class HaxeColorAnnotator implements Annotator {
           element = ((HaxeReference)node).getReferenceNameElement();
           if (element != null) node = element;
         }
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(attribute).create();
-        //holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
+        holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node).textAttributes(attribute).create();
         return;
       }
     }
@@ -93,19 +92,16 @@ public class HaxeColorAnnotator implements Annotator {
       IElementType tt = astNode.getElementType();
 
       if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
-        //annotateCompilationExpression(node, holder);
-        //FIXME Temporary override:
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(HaxeSyntaxHighlighterColors.DEFINED_VAR)
-          .create();
+        annotateCompilationExpression(node, holder);
         return;
       }
       if (tt == HaxeTokenTypeSets.PPBODY) {
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
+        holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node)
           .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
         return;
       }
       if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
-        holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node)
+        holder.newAnnotation(HighlightSeverity.TEXT_ATTRIBUTES, "Unparseable data").range(node)
           .textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
       }
     }
@@ -120,13 +116,11 @@ public class HaxeColorAnnotator implements Annotator {
       final int absoluteOffset = node.getTextOffset() + offset;
       final TextRange range = new TextRange(absoluteOffset, absoluteOffset + word.length());
 
-      //final Annotation annotation = holder.createInfoAnnotation(range, null);
       final String attributeName = definitions.contains(word) ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
                                                               : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
-      //annotation.setTextAttributes(TextAttributesKey.find(attributeName));
-      //annotation.registerFix(new HaxeDefineIntention(word, definitions.contains(word)), range);
 
-      holder.newAnnotation(HighlightSeverity.INFORMATION, "")
+
+      holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES)
         .textAttributes(TextAttributesKey.find(attributeName))
         .withFix(new HaxeDefineIntention(word, definitions.contains(word)))
         .range(range)
@@ -136,7 +130,7 @@ public class HaxeColorAnnotator implements Annotator {
 
   public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
     TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(attributesKey).create();
+    holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(element).textAttributes(attributesKey).create();
   }
 
   private static boolean isNewOperator(PsiElement element) {
@@ -165,11 +159,12 @@ public class HaxeColorAnnotator implements Annotator {
         String elementText = element.getText();
         isKeyword = "in".equals(elementText) || "as".equals(elementText);
       }
-    }
-    else if (element instanceof HaxeIdentifier) {
-      if (parent instanceof HaxeAbstractClassDeclaration) {
-        String elementText = element.getText();
-        isKeyword = "from".equals(elementText) || "to".equals(elementText);
+
+      else if (element instanceof HaxeIdentifier) {
+        if (parent instanceof HaxeAbstractClassDeclaration) {
+          String elementText = element.getText();
+          isKeyword = "from".equals(elementText) || "to".equals(elementText);
+        }
       }
     }
     return isKeyword;
@@ -182,7 +177,7 @@ public class HaxeColorAnnotator implements Annotator {
       final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
       if (attribute != null) {
         //holder.createInfoAnnotation(node, null).setTextAttributes(attribute);
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
+        holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).textAttributes(attribute).create();
       }
       return true;
     }

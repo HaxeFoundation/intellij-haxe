@@ -1,15 +1,15 @@
 package;
 
-class <info descr="null">Test</info> {
-  var <info descr="null">t2</info> : <info descr="null">Null</info><<info descr="null">Test2</info>>;
-  public function <info descr="null">new</info>() {
-    <info descr="null">t2</info> = <info descr="null">new</info> <info descr="null">Test2</info>();
-    trace(<info descr="null">t2</info>.<info descr="null">s</info>);
-    trace(<info descr="null">t2</info>.<warning descr="Unresolved symbol">unknown</warning>);
+class <text_attr descr="null">Test</text_attr> {
+  var <text_attr descr="null">t2</text_attr> : <text_attr descr="null">Null</text_attr><<text_attr descr="null">Test2</text_attr>>;
+  public function <text_attr descr="null">new</text_attr>() {
+    <text_attr descr="null">t2</text_attr> = <text_attr descr="null">new</text_attr> <text_attr descr="null">Test2</text_attr>();
+    trace(<text_attr descr="null">t2</text_attr>.<text_attr descr="null">s</text_attr>);
+    trace(<text_attr descr="null">t2</text_attr>.<warning descr="Unresolved symbol">unknown</warning>);
   }
 }
 
-class <info descr="null">Test2</info> {
-  public var <info descr="null">s</info> : <info descr="null">Null</info><<info descr="null">String</info>> = "something";
-  public function <info descr="null">new</info>() {}
+class <text_attr descr="null">Test2</text_attr> {
+  public var <text_attr descr="null">s</text_attr> : <text_attr descr="null">Null</text_attr><<text_attr descr="null">String</text_attr>> = "something";
+  public function <text_attr descr="null">new</text_attr>() {}
 }

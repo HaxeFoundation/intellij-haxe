@@ -1,15 +1,15 @@
 package;
 
 @:forward
-abstract <info descr="null">MyStr</info>(<info descr="null">String</info>) from <info descr="null">String</info> to <info descr="null">String</info> {
-  public function <info descr="null">doubleLength</info>() { return 2 * this.<info descr="null">length</info>(); }
+abstract <text_attr descr="null">MyStr</text_attr>(<text_attr descr="null">String</text_attr>) from <text_attr descr="null">String</text_attr> to <text_attr descr="null">String</text_attr> {
+  public function <text_attr descr="null">doubleLength</text_attr>() { return 2 * this.<text_attr descr="null">length</text_attr>(); }
 }
 
-class <info descr="null">Test</info> {
-  public function <info descr="null">new</info>() {
-    var <info descr="null">ms</info> : <info descr="null">Null</info><<info descr="null">MyStr</info>> = "something";
-    trace(<info descr="null">ms</info>.<info descr="null">length</info>());
-    trace(<info descr="null">ms</info>.<info descr="null">doubleLength</info>());
-    trace(<info descr="null">ms</info>.<warning descr="Unresolved symbol">unknown</warning>());
+class <text_attr descr="null">Test</text_attr> {
+  public function <text_attr descr="null">new</text_attr>() {
+    var <text_attr descr="null">ms</text_attr> : <text_attr descr="null">Null</text_attr><<text_attr descr="null">MyStr</text_attr>> = "something";
+    trace(<text_attr descr="null">ms</text_attr>.<text_attr descr="null">length</text_attr>());
+    trace(<text_attr descr="null">ms</text_attr>.<text_attr descr="null">doubleLength</text_attr>());
+    trace(<text_attr descr="null">ms</text_attr>.<warning descr="Unresolved symbol">unknown</warning>());
   }
 }

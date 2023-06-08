@@ -1,12 +1,12 @@
 package;
 
-using <info descr="">Std</info>;
+using <text_attr descr="null">Std</text_attr>;
 
-class <info descr="">Test</info> {
-  function <info descr="">demo4</info>() {
-    var <info descr="">m</info>:<info descr="">Array</info><<info descr="">Array</info><<info descr="">Int</info>>> = <info descr="">new</info> <info descr="">Array</info><<info descr="">Array</info><<info descr="">Int</info>>>();
-    (<info descr="">m</info>).<info descr="">length</info>;
-    var <info descr="">i</info> = 0;
-    (<info descr="">m</info>[<info descr="">i</info>]).<info descr="">length</info>;
+class <text_attr descr="null">Test</text_attr> {
+  function <text_attr descr="null">demo4</text_attr>() {
+    var <text_attr descr="null">m</text_attr>:<text_attr descr="null">Array</text_attr><<text_attr descr="null">Array</text_attr><<text_attr descr="null">Int</text_attr>>> = <text_attr descr="null">new</text_attr> <text_attr descr="null">Array</text_attr><<text_attr descr="null">Array</text_attr><<text_attr descr="null">Int</text_attr>>>();
+    (<text_attr descr="null">m</text_attr>).<text_attr descr="null">length</text_attr>;
+    var <text_attr descr="null">i</text_attr> = 0;
+    (<text_attr descr="null">m</text_attr>[<text_attr descr="null">i</text_attr>]).<text_attr descr="null">length</text_attr>;
   }
 }

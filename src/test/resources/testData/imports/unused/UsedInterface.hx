@@ -1,5 +1,5 @@
-import <info descr="null">helper.IFoo</info>;
+import <text_attr descr="null">helper.IFoo</text_attr>;
 
-class <info descr="null">UsedInterface</info> {
-  var <info descr="null">ifoo</info>:<info descr="null">IFoo</info>;
+class <text_attr descr="null">UsedInterface</text_attr> {
+  var <text_attr descr="null">ifoo</text_attr>:<text_attr descr="null">IFoo</text_attr>;
 }
