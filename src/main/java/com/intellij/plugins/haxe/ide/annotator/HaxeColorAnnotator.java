@@ -136,7 +136,7 @@ public class HaxeColorAnnotator implements Annotator {
 
   public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
     TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attributesKey).create();
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(attributesKey).create();
   }
 
   private static boolean isNewOperator(PsiElement element) {
