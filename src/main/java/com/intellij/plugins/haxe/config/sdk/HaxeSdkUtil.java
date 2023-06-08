@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.config.sdk;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.projectRoots.SdkModificator;
 import com.intellij.openapi.roots.JavadocOrderRootType;
 import com.intellij.openapi.roots.OrderRootType;
@@ -58,9 +59,13 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     try {
       VirtualFile dir = VirtualFileManager.getInstance().findFileByUrl(HaxeFileUtil.fixUrl(path));
       List<String> output = new ArrayList<>();
-      int exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, true, dir, output,
-                                                                             null, null, false);
-
+      int exitCode;
+      if (ApplicationManager.getApplication().isDispatchThread()) {
+        exitCode = HaxeProcessUtil.runSynchronousProcessOnBackgroundThread(command, true, dir, output, null, null, true);
+      }
+      else {
+        exitCode = HaxeProcessUtil.runProcess(command, true, dir, output, null, null, true);
+      }
       if (exitCode != 0) {
         log.error("Haxe compiler exited with invalid exit code: " + exitCode);
         return null;

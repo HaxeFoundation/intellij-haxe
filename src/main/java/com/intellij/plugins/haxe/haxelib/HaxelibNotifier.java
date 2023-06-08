@@ -86,8 +86,10 @@ public class HaxelibNotifier {
 
       ConsoleView consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
       Content content = toolWindow.getContentManager().getFactory().createContent(consoleView.getComponent(), "Install " + libName, true);
-      toolWindow.getContentManager().addContent(content);
       content.setCloseable(true);
+
+      toolWindow.getContentManager().addContent(content);
+      toolWindow.getContentManager().setSelectedContent(content);
 
 
       try {

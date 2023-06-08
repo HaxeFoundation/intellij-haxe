@@ -170,7 +170,7 @@ public class HaxelibUtil {
           }
         }
         String libRoot = FileUtil.join(rootName, libParts[0], libParts[1]);
-        VirtualFile srcroot = LocalFileSystem.getInstance().findFileByPath(libRoot);
+        VirtualFile srcroot = LocalFileSystem.getInstance().refreshAndFindFileByPath(libRoot);
         if (null == srcroot) {
           logWarningEvent(HaxeBundle.message("haxelib.synchronization.title"),
                           HaxeBundle.message("library.source.root.was.not.found.0", libRoot));
@@ -391,9 +391,9 @@ public class HaxelibUtil {
             boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || versions.contains(data.version);
             if (versionAvailable){
               HaxelibNotifier.notifyMissingLibrarySuggestInstall(module, data.name, data.version);
-
+            }else {
+              HaxelibNotifier.notifyMissingLibrary(module, data.name, data.version);
             }
-            HaxelibNotifier.notifyMissingLibrary(module, data.name, data.version);
           }
 
         }
