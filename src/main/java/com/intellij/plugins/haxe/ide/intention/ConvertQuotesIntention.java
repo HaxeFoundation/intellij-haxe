@@ -82,6 +82,6 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
   }
 
   private boolean isWrappedWithDoubleQuotes(HaxeStringLiteralExpression expression) {
-    return Objects.equals(expression.getFirstChild().getText(), DOUBLE_QUOTES);
+    return expression.getFirstChild().textMatches(DOUBLE_QUOTES);
   }
 }

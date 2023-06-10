@@ -53,7 +53,7 @@ public class HaxeSlowColorAnnotator implements Annotator {
         final boolean isStatic = PsiTreeUtil.getParentOfType(node, HaxeImportStatement.class) == null && checkStatic(element.getParent());
         final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(element.getParent()), isStatic);
         if (attribute != null) {
-          element = ((HaxeReference)node).getReferenceNameElement();
+          element = reference.getReferenceNameElement();
           if (element != null) node = element;
           holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node).textAttributes(attribute).create();
         }

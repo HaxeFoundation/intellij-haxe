@@ -32,13 +32,13 @@ public class HaxeStandardAnnotation {
 
   public static @NotNull AnnotationBuilder typeMismatch(@NotNull AnnotationHolder holder,@NotNull PsiElement incompatibleElement, String incompatibleType, String correctType) {
     String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1", incompatibleType, correctType);
-    return holder.newAnnotation(HighlightSeverity.ERROR,message).range(incompatibleElement.getTextRange());
+    return holder.newAnnotation(HighlightSeverity.ERROR,message).range(incompatibleElement);
 
   }
 
   public static @NotNull AnnotationBuilder returnTypeMismatch(@NotNull AnnotationHolder holder, @NotNull PsiElement incompatibleElement, String incompatibleType, String correctType) {
     String message = HaxeBundle.message("haxe.semantic.incompatible.return.type.0.should.be.1", incompatibleType, correctType);
-    return holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement.getTextRange());
+    return holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement);
   }
 
 }

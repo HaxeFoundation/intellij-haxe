@@ -129,8 +129,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
         return token.getTokenType() == HaxeTokenTypes.KTO;
       }
       else if (parent instanceof HaxeImportStatement importStatement && importStatement.getAlias() != null) {
-        String text = token.getText();
-        return "in".equals(text) || "as".equals(text);
+        return token.textMatches("in") || token.textMatches("as");
       }
     return false;
   }
@@ -145,8 +144,8 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
     final boolean isStatic = PsiTreeUtil.getParentOfType(node, HaxeImportStatement.class) == null && checkStatic(element.getParent());
     final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(element.getParent()), isStatic);
     if (attribute != null) {
-      if (node instanceof HaxeReference) {
-        element = ((HaxeReference)node).getReferenceNameElement();
+      if (node instanceof HaxeReference reference) {
+        element = reference.getReferenceNameElement();
         if (element instanceof HaxeComponentName name) node = name;
       }
       holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node).textAttributes(attribute).create();

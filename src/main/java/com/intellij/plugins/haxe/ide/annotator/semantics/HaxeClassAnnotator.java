@@ -250,10 +250,10 @@ public class HaxeClassAnnotator implements Annotator {
 
               if (propertyDeclaration == null) {
                 // some combinations are compatible with normal variables
-                if (intGetter.getText().equals("default") && (intSetter.getText().equals("never") || intSetter.getText().equals("null"))) {
+                if (intGetter.textMatches("default") && (intSetter.textMatches("never") || intSetter.textMatches("null"))) {
                   continue;
                 }
-                if (intGetter.getText().equals("never") && (intSetter.getText().equals("null"))) {
+                if (intGetter.textMatches("never") && (intSetter.textMatches("null"))) {
                   continue;
                 }
 

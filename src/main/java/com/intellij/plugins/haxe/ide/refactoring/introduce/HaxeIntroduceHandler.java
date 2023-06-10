@@ -562,7 +562,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     PsiElement element = file.findElementAt(expression.getTextRange().getEndOffset());
 
     if (element instanceof PsiWhiteSpace) {
-      if (element.getText().contains("\n")) {
+      if (element.textContains('\n')) {
         return null;
       }
       element = file.findElementAt(element.getTextRange().getEndOffset());

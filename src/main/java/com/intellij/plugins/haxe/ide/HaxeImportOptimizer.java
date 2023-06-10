@@ -92,7 +92,7 @@ public class HaxeImportOptimizer implements ImportOptimizer {
     final HaxeImportStatement firstImport = allImports.get(0);
     int startOffset = firstImport.getStartOffsetInParent();
     final HaxeImportStatement lastImport = allImports.get(allImports.size() - 1);
-    int endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+    int endOffset = lastImport.getStartOffsetInParent() + lastImport.getTextLength();
 
     // We assume the common practice of placing all imports in a single "block" at the top of a file. If there is something else (comments,
     // code, etc) there we just stop reordering to prevent data loss.
@@ -125,7 +125,7 @@ public class HaxeImportOptimizer implements ImportOptimizer {
 
       // Reevaluating offset values according to the previous comment.
       startOffset = firstImport.getStartOffsetInParent();
-      endOffset = lastImport.getStartOffsetInParent() + lastImport.getText().length();
+      endOffset = lastImport.getStartOffsetInParent() + lastImport.getTextLength();
 
       document.deleteString(startOffset, endOffset);
 

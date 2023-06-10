@@ -220,7 +220,7 @@ public class HaxeResolveUtil {
     final List<HaxeClass> declarations = findComponentDeclarations(file);
     for (HaxeClass haxeClass : declarations) {
       final HaxeComponentName identifier = haxeClass.getComponentName();
-      if (identifier != null && componentName.equals(identifier.getText())) {
+      if (identifier != null && identifier.textMatches(componentName)) {
         return haxeClass;
       }
     }
