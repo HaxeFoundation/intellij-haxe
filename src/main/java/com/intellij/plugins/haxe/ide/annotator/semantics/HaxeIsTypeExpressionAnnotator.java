@@ -1,14 +1,12 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -20,6 +18,7 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.IS_TYPE_INSPECTION;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.IS_TYPE_INSPECTION_4dot1_COMPATIBLE;
+import static com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUtil.colorizeKeyword;
 
 public class HaxeIsTypeExpressionAnnotator implements Annotator, DumbAware {
 
@@ -106,7 +105,7 @@ public class HaxeIsTypeExpressionAnnotator implements Annotator, DumbAware {
 
   private static void recolorIsKeyword(AnnotationHolder holder, HaxeIsTypeExpression element) {
     HaxeIsOperator op = element.getOperator();
-    HaxeColorAnnotator.colorizeKeyword(holder, op);
+    colorizeKeyword(holder, op);
   }
 
   @NotNull

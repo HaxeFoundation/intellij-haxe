@@ -232,7 +232,8 @@
 
     <errorQuickFixProvider implementation="com.intellij.plugins.haxe.ide.annotator.MissingSemicolonQuickFixProvider"/>
 
-    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeColorAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeFastColorAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeSlowColorAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator"/>
 
 

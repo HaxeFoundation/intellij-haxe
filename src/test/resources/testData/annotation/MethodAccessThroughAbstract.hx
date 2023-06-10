@@ -1,7 +1,7 @@
 package;
 
 @:forward
-abstract <text_attr descr="null">MyStr</text_attr>(<text_attr descr="null">String</text_attr>) from <text_attr descr="null">String</text_attr> to <text_attr descr="null">String</text_attr> {
+abstract <text_attr descr="null">MyStr</text_attr>(<text_attr descr="null">String</text_attr>) <text_attr descr="null">from</text_attr> <text_attr descr="null">String</text_attr> <text_attr descr="null">to</text_attr> <text_attr descr="null">String</text_attr> {
   public function <text_attr descr="null">doubleLength</text_attr>() { return 2 * this.<text_attr descr="null">length</text_attr>(); }
 }
 
