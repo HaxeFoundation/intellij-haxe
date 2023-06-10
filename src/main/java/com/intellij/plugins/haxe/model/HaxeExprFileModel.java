@@ -1,11 +1,13 @@
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeExprFileModel extends HaxeFileModel {
-  private static final Key<HaxeExprFileModel> HAXE_EXPR_FILE_MODEL_KEY = new Key<>("HAXE_STD_FILE_MODEL");
 
   private HaxeExprFileModel(@NotNull HaxeFile file) {
     super(file);
@@ -17,11 +19,12 @@ public class HaxeExprFileModel extends HaxeFileModel {
   }
 
   public static HaxeExprFileModel fromFile(@NotNull HaxeFile file) {
-    HaxeExprFileModel model = file.getUserData(HAXE_EXPR_FILE_MODEL_KEY);
-    if (model == null) {
-      model = new HaxeExprFileModel(file);
-      file.putUserData(HAXE_EXPR_FILE_MODEL_KEY, model);
-    }
-    return model;
+    return CachedValuesManager.getProjectPsiDependentCache(file, HaxeExprFileModel::cacheValueProvider).getValue();
+  }
+
+  private static CachedValueProvider.Result<HaxeExprFileModel> cacheValueProvider(@NotNull HaxeFile file) {
+    return CachedValueProvider.Result.create(new HaxeExprFileModel(file),
+                                             ModificationTracker.EVER_CHANGED,
+                                             ProjectRootModificationTracker.getInstance(file.getProject()));
   }
 }

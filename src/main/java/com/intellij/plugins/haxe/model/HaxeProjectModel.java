@@ -85,7 +85,7 @@ public class HaxeProjectModel {
     return getRootsCache().stdPackageModel;
   }
   @NotNull
-  public HaxePackageModel getSExprPackage() {
+  public HaxePackageModel getExprPackage() {
     return getRootsCache().exprPackageModel;
   }
 
@@ -113,7 +113,7 @@ public class HaxeProjectModel {
     }
 
     if (result.isEmpty()) {
-      resolvedValue = getSExprPackage().resolve(info);
+      resolvedValue = getExprPackage().resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }
 

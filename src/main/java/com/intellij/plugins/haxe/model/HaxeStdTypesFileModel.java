@@ -15,13 +15,15 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.util.Key;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 
 public class HaxeStdTypesFileModel extends HaxeFileModel {
   public static final String STD_TYPES_HX = "StdTypes.hx";
-  private static final Key<HaxeStdTypesFileModel> HAXE_STD_FILE_MODEL_KEY = new Key<>("HAXE_STD_FILE_MODEL");
 
   private HaxeStdTypesFileModel(@NotNull HaxeFile file) {
     super(file);
@@ -33,11 +35,13 @@ public class HaxeStdTypesFileModel extends HaxeFileModel {
   }
 
   public static HaxeStdTypesFileModel fromFile(@NotNull HaxeFile file) {
-    HaxeStdTypesFileModel model = file.getUserData(HAXE_STD_FILE_MODEL_KEY);
-    if (model == null) {
-      model = new HaxeStdTypesFileModel(file);
-      file.putUserData(HAXE_STD_FILE_MODEL_KEY, model);
-    }
-    return model;
+    return CachedValuesManager.getProjectPsiDependentCache(file, HaxeStdTypesFileModel::cacheValueProvider).getValue();
   }
+
+  private static CachedValueProvider.Result<HaxeStdTypesFileModel> cacheValueProvider(@NotNull HaxeFile file) {
+    return CachedValueProvider.Result.create(new HaxeStdTypesFileModel(file),
+                                             ModificationTracker.EVER_CHANGED,
+                                             ProjectRootModificationTracker.getInstance(file.getProject()));
+  }
+
 }
