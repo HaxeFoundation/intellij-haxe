@@ -369,6 +369,7 @@ public class HaxelibUtil {
   @NotNull
   public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, ProjectLibraryCache libraryManager) {
     List<HaxeLibraryReference> haxelibNewItems = new ArrayList<>();
+    List<MissingLibInfo> missingList = new ArrayList<>();
 
     haxeLibData.forEach(data -> {
       if (data.name != null) {
@@ -390,18 +391,19 @@ public class HaxelibUtil {
             }
             boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || versions.contains(data.version);
             if (versionAvailable){
-              HaxelibNotifier.notifyMissingLibrarySuggestInstall(module, data.name, data.version);
+              missingList.add(new MissingLibInfo( data.name, data.version, true));
             }else {
-              HaxelibNotifier.notifyMissingLibrary(module, data.name, data.version);
+              missingList.add(new MissingLibInfo( data.name, data.version,  false));
             }
           }
-
         }
       }
     });
+    HaxelibNotifier.notifyMissingLibraries(module, missingList);
     return new HaxeLibraryList(libraryManager.getSdk(), haxelibNewItems);
   }
-  //TODO mlo make a proper class out of this
+  //TODO mlo make a proper class out of these
+  public record MissingLibInfo(String name, String version, boolean installable){};
   public record HaxeLibData(String name, String version, HaxelibSemVer semver){};
 
 
