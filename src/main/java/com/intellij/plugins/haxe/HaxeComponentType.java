@@ -86,7 +86,7 @@ public enum HaxeComponentType {
   }, TYPEDEF(8) {
     @Override
     public Icon getIcon() {
-      return AllIcons.Nodes.Annotationtype;
+      return HaxeIcons.Typedef;
     }
   }, CLASSVARIABLE(9) {
     @Override

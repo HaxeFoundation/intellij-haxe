@@ -29,9 +29,11 @@ public class HaxeIcons {
 
   public static final Icon Class = load("/icons/class.svg");
   public static final Icon Enum = load("/icons/enum.svg");
+  public static final Icon Typedef = load("/icons/typedef.svg");
   public static final Icon Interface = load("/icons/interface.svg");
   public static final Icon Method = load("/icons/method.svg");
   public static final Icon Field = load("/icons/field.svg");
+
 
   public static final Icon HAXE_LOGO = load("/icons/Haxe_logo.svg");
   public static final Icon NMML_LOGO = load("/icons/buildsystem/nme.svg");
