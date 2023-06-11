@@ -185,9 +185,9 @@ public class HaxeLibrary {
    * @return the loaded HaxeLibrary of the given name; null if not found.
    */
   @Nullable
-  public static HaxeLibrary load(ProjectLibraryCache owner, String libName, Sdk sdk) {
+  public static HaxeLibrary load(ProjectLibraryCache owner, String libName, String libVersion, Sdk sdk) {
     // Ask haxelib for the path to this library.
-    VirtualFile libraryRoot = HaxelibUtil.getLibraryRoot(sdk, libName);
+    VirtualFile libraryRoot = HaxelibUtil.getLibraryRoot(sdk, libName,libVersion);
     if (null == libraryRoot) {
       // XXX: This case might occur if the library is not managed by haxelib, but then
       //      that should be a classpath, not a lib.

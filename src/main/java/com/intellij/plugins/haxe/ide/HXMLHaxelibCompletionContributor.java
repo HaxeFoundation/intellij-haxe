@@ -83,17 +83,20 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
         Module module = ModuleUtil.findModuleForFile(file, project);
         HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
-        Set<String>  availableHaxelibs = cacheManager.getAvailableLibraries().keySet();
-        Set<String>  localHaxelibs = cacheManager.getInstalledLibraries().keySet();
+        Set<String>  available = cacheManager.getAvailableLibraries().keySet();
+        Set<String>  installed = cacheManager.getInstalledLibraries().keySet();
 
+        List<LookupElementBuilder> installedSuggestions = installed.stream()
+          .map(libName -> LookupElementBuilder.create(libName).withTailText(" installed", true))
+          .toList();
 
-          for (String libName : localHaxelibs) {
-            result.addElement(LookupElementBuilder.create(libName).withTailText(" installed", true));
-          }
+        List<LookupElementBuilder> availableSuggestions = available.stream()
+          .map(libName -> LookupElementBuilder.create(libName).withTailText(" available at haxelib", true))
+          .toList();
 
-          for (String libName : availableHaxelibs) {
-            result.addElement(LookupElementBuilder.create(libName).withTailText(" available at haxelib", true));
-          }
+        result.addAllElements(installedSuggestions);
+        result.addAllElements(availableSuggestions);
+
       }
     };
   }
@@ -115,16 +118,22 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
         Module module = ModuleUtil.findModuleForFile(file, project);
         HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
-        List<String> availableVersions = cacheManager.fetchAvailableVersions(libName);
-        List<String> installedVersions = cacheManager.getInstalledLibraries().getOrDefault(libName, List.of());
+        Set<String> available = cacheManager.fetchAvailableVersions(libName);
+        Set<String> installed = cacheManager.getInstalledLibraries().getOrDefault(libName, Set.of());
 
-        for (String version : installedVersions) {
-          result.addElement(LookupElementBuilder.create(libName+":"+version).withTailText(" installed", true));
-        }
+        List<LookupElementBuilder> installedSuggestions = installed.stream()
+          .map(version -> LookupElementBuilder.create(libName + ":" + version).withTailText(" installed", true))
+          .toList();
 
-        for (String version : availableVersions) {
-          result.addElement(LookupElementBuilder.create(libName+":"+version).withTailText(" available at haxelib", true));
-        }
+          List<LookupElementBuilder> availableSuggestions = available.stream()
+            .map(version -> LookupElementBuilder.create(libName+":"+version).withTailText(" available at haxelib", true))
+            .toList();
+
+        result.addAllElements(installedSuggestions);
+        result.addAllElements(availableSuggestions);
+
+
+
       }
     };
   }

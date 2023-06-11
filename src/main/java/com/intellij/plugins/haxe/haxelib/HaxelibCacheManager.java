@@ -6,8 +6,10 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * A cache manager for library information retrieved from haxelib
@@ -37,8 +39,8 @@ public class HaxelibCacheManager {
   }
 
 
-  private final Map<String, List<String>> installedLibraries = new HashMap<>();
-  private final Map<String, List<String>> availableLibraries = new HashMap<>();
+  private final Map<String, Set<String>> installedLibraries = new HashMap<>();
+  private final Map<String, Set<String>> availableLibraries = new HashMap<>();
 
   private final Module module;
 
@@ -59,7 +61,7 @@ public class HaxelibCacheManager {
   }
 
 
-  public Map<String, List<String>> getInstalledLibraries() {
+  public Map<String, Set<String>> getInstalledLibraries() {
     if (installedLibraries.isEmpty()) {
       fetchInstalledLibraryData();
     }
@@ -67,7 +69,7 @@ public class HaxelibCacheManager {
   }
 
 
-  public Map<String, List<String>> getAvailableLibraries() {
+  public Map<String, Set<String>> getAvailableLibraries() {
     if (availableLibraries.isEmpty()) {
       fetchAvailableForDownload();
     }
@@ -93,54 +95,38 @@ public class HaxelibCacheManager {
   }
 
 
-  private static Map<String, List<String>> readAvailableOnline(Sdk sdk) {
+  private static Map<String, Set<String>> readAvailableOnline(Sdk sdk) {
     // "Empty" string means all of them. (whitespace needed for argument not to be dropped)
     List<String> searchResults = HaxelibClasspathUtils.getAvailableLibrariesMatching(sdk, " ");
-    Map<String, List<String>> libMap = new HashMap<>();
-    searchResults.forEach(libName -> libMap.put(libName, List.of()));
+    Map<String, Set<String>> libMap = new HashMap<>();
+    searchResults.forEach(libName -> libMap.put(libName, Set.of()));
     return libMap;
   }
 
-  private static Map<String, List<String>> readInstalledLibraries(@NotNull Sdk sdk) {
+  private static Map<String, Set<String>> readInstalledLibraries(@NotNull Sdk sdk) {
+    HaxelibInstalledIndex index = HaxelibInstalledIndex.fetchFromHaxelib(sdk);
+    return index.getInstalledLibrariesAndVersions();
 
-    // haxelib list output looks like:
-    //      lime-tools: 1.4.0 [1.5.6]
-    // The library name comes first, followed by a colon, followed by a
-    // list of the available versions.
-
-
-    Map<String, List<String>> libMap = new HashMap<>();
-    List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
-    for (String s : list) {
-      String[] split = s.split(":");
-      String libName = split[0];
-      String libVersions = split[1];
-      libVersions = libVersions.replaceAll("\\[", "");
-      libVersions = libVersions.replaceAll("]", "");
-      String[] versionArray = libVersions.trim().split("\s+");
-      libMap.put(libName, List.copyOf(Arrays.stream(versionArray).toList()));
-    }
-    return libMap;
   }
 
-  public List<String> fetchAvailableVersions(String name) {
-    if (getAvailableLibraries().getOrDefault(name, List.of()).isEmpty()) {
+  public Set<String> fetchAvailableVersions(String name) {
+    if (getAvailableLibraries().getOrDefault(name, Set.of()).isEmpty()) {
       Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
       if(!HaxelibSdkUtils.isValidHaxeSdk(sdk)) {
         log.warn("Unable to fetch Available Versions, invalid SDK paths");
-        return List.of();
+        return Set.of();
       }
       List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, "info", name);
       // filter to find version numbers
 
-      List<String> versions = list.stream()
+      Set<String> versions = list.stream()
         .map(String::trim)
         .map(HaxelibCacheManager::extractVersion)
         .filter(Objects::nonNull)
-        .toList();
-      availableLibraries.put(name, versions);
+        .collect(Collectors.toSet());
+      availableLibraries.put(name, new ConcurrentSkipListSet<>(versions));
     }
-    return new LinkedList<>(availableLibraries.get(name));
+    return new HashSet<>(availableLibraries.get(name));
   }
 
   private static String extractVersion(String line) {

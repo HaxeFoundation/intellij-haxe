@@ -24,10 +24,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.*;
 
 /**
  * Manages library retrieval and caching.
@@ -43,9 +40,9 @@ public final class ProjectLibraryCache {
   static {
     log.setLevel(LogLevel.DEBUG);
   }
-  private ConcurrentSkipListSet<String> knownLibraries;
-  private final Hashtable<String, HaxeLibrary> myCache;
+  private final Hashtable<String, List<HaxeLibrary>> myCache;
   private final Sdk mySdk;
+  private  HaxelibInstalledIndex haxelibIndex;
 
 
   public ProjectLibraryCache(@NotNull Sdk sdk) {
@@ -53,14 +50,14 @@ public final class ProjectLibraryCache {
 
     mySdk = sdk;
     myCache = new Hashtable<>();
-    knownLibraries = new ConcurrentSkipListSet<>();
+    haxelibIndex = HaxelibInstalledIndex.EMPTY;
 
 
     loadInstalledLibrariesList(sdk);
   }
   public void reload() {
     myCache.clear();
-    knownLibraries = new ConcurrentSkipListSet<>();
+    haxelibIndex = HaxelibInstalledIndex.EMPTY;
     loadInstalledLibrariesList(mySdk);
   }
 
@@ -69,12 +66,17 @@ public final class ProjectLibraryCache {
       log.warn("Unable to load install library list, invalid SDK paths");
       return;
     }
-    List<String> installedLibs = HaxelibUtil.getInstalledLibraryNames(sdk);
-    for (String libName : installedLibs) {
-      HaxeLibrary lib = HaxeLibrary.load(this, libName, mySdk);
-      if (null != lib) {
-        myCache.put(lib.getName(), lib);
-        knownLibraries.add(lib.getName());
+
+    haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(sdk);
+
+    for (String libName : haxelibIndex.getInstalledLibraries()) {
+      Set<String> versions = haxelibIndex.getInstalledVersions(libName);
+      myCache.put(libName, new ArrayList<>());
+      for (String libVersion : versions) {
+        HaxeLibrary lib = HaxeLibrary.load(this, libName, libVersion, mySdk);
+        if (null != lib) {
+          myCache.get(libName).add(lib);
+        }
       }
     }
   }
@@ -82,13 +84,22 @@ public final class ProjectLibraryCache {
 
 
   @Nullable
-  public HaxeLibrary getLibrary(String name, HaxelibSemVer requestedVersion) {
-    if (libraryIsKnown(name)) {
-      HaxeLibrary lib = myCache.get(name);  // We only ever load the "current" one.
-      if (null != lib && (null == requestedVersion || requestedVersion.matchesRequestedVersion(lib.getVersion()))) {
-        return lib;
-      } else {
+  public HaxeLibrary getLibrary(String name, @Nullable HaxelibSemVer requestedVersion) {
+    if (libraryIsInstalled(name)) {
+      List<HaxeLibrary> libs = myCache.get(name);
 
+      HaxelibSemVer libVersion = Optional.ofNullable(requestedVersion).orElseGet(() -> {
+        // if no version specified use haxelib default
+        String version = haxelibIndex.getSelectedVersion(name);
+        return HaxelibSemVer.create(version);
+      });
+
+      Optional<HaxeLibrary> libWithRequestedVersion = libs.stream()
+          .filter(library -> libVersion.matchesRequestedVersion(library.getVersion()))
+          .findFirst();
+
+      if (libWithRequestedVersion.isPresent()) {
+        return libWithRequestedVersion.get();
       }
     }
     return null;
@@ -109,11 +120,10 @@ public final class ProjectLibraryCache {
   @NotNull
   private Collection<String> retrieveKnownLibraries() {
     // If we don't have the list, then load it.
-    if (null == knownLibraries) {
-      List<String> libs = HaxelibClasspathUtils.getInstalledLibraries(mySdk);
-      knownLibraries = new ConcurrentSkipListSet<>(libs);
+    if (haxelibIndex == HaxelibInstalledIndex.EMPTY) {
+      haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(mySdk);
     }
-    return knownLibraries;
+    return haxelibIndex.getInstalledLibraries();
   }
 
   /**
@@ -122,7 +132,7 @@ public final class ProjectLibraryCache {
    * @param libraryName the library of interest.  Case sensitive!
    * @return true if the library is found, false otherwise.
    */
-  public boolean libraryIsKnown(String libraryName) {
+  public boolean libraryIsInstalled(String libraryName) {
     return retrieveKnownLibraries().contains(libraryName);
   }
 

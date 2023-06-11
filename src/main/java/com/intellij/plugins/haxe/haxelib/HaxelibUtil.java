@@ -89,7 +89,7 @@ public class HaxelibUtil {
   }
 
 
-  public static VirtualFile getLibraryRoot(@NotNull Sdk sdk, @NotNull String libName) {
+  public static VirtualFile getLibraryRoot(@NotNull Sdk sdk, @NotNull String libName, String libVersion) {
     LocalFileSystem lfs = LocalFileSystem.getInstance();
 
     VirtualFile haxelibRoot = getLibraryBasePath(sdk);
@@ -104,38 +104,46 @@ public class HaxelibUtil {
     // if it exists, uses the path found in that file.
     // Failing that, it looks for .current in the same path, and uses the semantic
     // version found in that file to compute the path name.
+
     String libDirName = HaxeFileUtil.joinPath(rootName, libName);
     VirtualFile libDir = lfs.findFileByPath(libDirName);
     if (null != libDir) {
-      // Hidden ".dev" file takes precedence.  It contains the path to the library root.
-      VirtualFile dotDev = libDir.findChild(".dev");
-      if (null != dotDev) {
-        try {
-          String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
-          VirtualFile libRoot = lfs.findFileByPath(libRootName);
-          if (null != libRoot) {
-            return libRoot;
+      if(libVersion == null) {
+        // Hidden ".dev" file takes precedence.  It contains the path to the library root.
+        VirtualFile dotDev = libDir.findChild(".dev");
+        if (null != dotDev) {
+          try {
+            String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
+            VirtualFile libRoot = lfs.findFileByPath(libRootName);
+            if (null != libRoot) {
+              return libRoot;
+            }
+          }
+          catch (IOException e) {
+            log.debug("IOException reading .dev file for library " + libName, e);
           }
         }
-        catch (IOException e) {
-          log.debug("IOException reading .dev file for library " + libName, e);
-        }
-      }
-      // Hidden ".current" file contains the semantic version (not the path!) of the
-      // library that haxelib will use.
-      VirtualFile dotCurrent = libDir.findChild(".current");
-      if (null != dotCurrent) {
-        try {
-          String currentVer = FileUtil.loadFile(new File(dotCurrent.getPath()));
-          HaxelibSemVer semver = HaxelibSemVer.create(currentVer.trim());
-          String libRootName = HaxeFileUtil.joinPath(rootName, libName, semver.toDirString());
-          VirtualFile libRoot = lfs.findFileByPath(libRootName);
-          if (null != libRoot) {
-            return libRoot;
+        // Hidden ".current" file contains the semantic version (not the path!) of the
+        // library that haxelib will use.
+        VirtualFile dotCurrent = libDir.findChild(".current");
+        if (null != dotCurrent) {
+          try {
+            String currentVer = FileUtil.loadFile(new File(dotCurrent.getPath()));
+            HaxelibSemVer semver = HaxelibSemVer.create(currentVer.trim());
+            String libRootName = HaxeFileUtil.joinPath(rootName, libName, semver.toDirString());
+            VirtualFile libRoot = lfs.findFileByPath(libRootName);
+            if (null != libRoot) {
+              return libRoot;
+            }
+          }
+          catch (IOException e) {
+            log.debug("IOException reading .current file for library " + libName, e);
           }
         }
-        catch (IOException e) {
-          log.debug("IOException reading .current file for library " + libName, e);
+      }else {
+        VirtualFile libVersionDir = libDir.findChild(libVersion.replaceAll("\\.", ","));
+        if(libVersionDir!= null  && libVersionDir.exists()) {
+          return libVersionDir;
         }
       }
     } else {
@@ -183,6 +191,61 @@ public class HaxelibUtil {
                     HaxeBundle.message("could.not.determine.library.source.root.0", libName));
     return null;
   }
+
+
+  public static Map<String, List<String>> readInstalledLibraries(@NotNull Sdk sdk) {
+
+    // haxelib list output looks like:
+    //      lime-tools: 1.4.0 [1.5.6]
+    // The library name comes first, followed by a colon, followed by a
+    // list of the available versions.
+
+
+    Map<String, List<String>> libMap = new HashMap<>();
+    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
+    if ((listCmdOutput.size() > 0) && (! listCmdOutput.get(0).contains("Unknown command"))) {
+      for (String line : listCmdOutput) {
+        String[] split = line.split(":");
+        String libName = split[0];
+        String libVersions = split[1];
+        libVersions = libVersions.replaceAll("\\[", "");
+        libVersions = libVersions.replaceAll("]", "");
+        String[] versionArray = libVersions.trim().split("\s+");
+        libMap.put(libName, List.copyOf(Arrays.stream(versionArray).toList()));
+      }
+      return libMap;
+    }
+    return Map.of();
+  }
+  public static Hashtable<String, String> readSelectedVersions(@NotNull Sdk sdk) {
+
+    // haxelib list output looks like:
+    //      lime-tools: 1.4.0 [1.5.6]
+    // The library name comes first, followed by a colon, followed by a
+    // list of the available versions.
+
+
+    Hashtable<String, String> libMap = new Hashtable<>();
+    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
+    if ((listCmdOutput.size() > 0) && (!listCmdOutput.get(0).contains("Unknown command"))) {
+      for (String line : listCmdOutput) {
+        String[] split = line.split(":");
+        String libName = split[0];
+        String libVersions = split[1];
+        String[] versionArray = libVersions.trim().split("\s+");
+        for (String version : versionArray) {
+          if (version.startsWith("[") && version.endsWith("]")) {
+            version = version.replaceAll("\\[", "");
+            version = version.replaceAll("]", "");
+            libMap.put(libName, version);
+          }
+        }
+      }
+      return libMap;
+    }
+    return new Hashtable<>();
+  }
+
 
 
   public static List<String> getInstalledLibraryNames(@NotNull Sdk sdk) {
@@ -380,11 +443,11 @@ public class HaxelibUtil {
         else {
           log.warn("Library specified in XML file is not found: " + data.name);
           HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
-          Map<String, List<String>> libraries = cacheManager.getAvailableLibraries();
+          Map<String, Set<String>> libraries = cacheManager.getAvailableLibraries();
 
           boolean libAvailable = libraries.containsKey(data.name);
           if(libAvailable) {
-            List<String> versions = libraries.getOrDefault(data.name, List.of());
+            Set<String> versions = libraries.getOrDefault(data.name, Set.of());
             if(versions.isEmpty()) {
               // attempt to fetch  versions available online for lib
               versions = cacheManager.fetchAvailableVersions(data.name);

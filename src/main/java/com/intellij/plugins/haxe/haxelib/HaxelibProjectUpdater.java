@@ -661,7 +661,7 @@ public class HaxelibProjectUpdater {
       }
       File dir = new File(projectBasePath);
       List<String> projectClasspaths =
-        HaxelibClasspathUtils.getProjectDisplayInformation(project, dir, "openfl",
+        HaxelibClasspathUtils.getProjectDisplayInformation(module, dir, "openfl",
                                                            HaxelibSdkUtils.lookupSdk(module));
 
       for (String classpath : projectClasspaths) {

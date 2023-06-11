@@ -347,28 +347,7 @@ public class HaxelibClasspathUtils {
     return result;
   }
 
-  /**
-   * Retrieve the list of libraries known to 'haxelib', using the version of
-   * haxelib specified in the SDK.
-   *
-   * @param sdk the SDK to get installed libraries from.
-   * @return a (possibly empty) list of libraries
-   */
-  @NotNull
-  public static List<String> getInstalledLibraries(@NotNull Sdk sdk) {
 
-    // haxelib list output looks like:
-    //      lime-tools: 1.4.0 [1.5.6]
-    // The library name comes first, followed by a colon, followed by a
-    // list of the available versions.
-
-    List<String> installedHaxelibs = new ArrayList<String>();
-    for (String s : HaxelibCommandUtils.issueHaxelibCommand(sdk, "list")) {
-      installedHaxelibs.add(s.split(":")[0]);
-    }
-
-    return installedHaxelibs;
-  }
 
 
   /**
@@ -392,17 +371,18 @@ public class HaxelibClasspathUtils {
 
   /**
    *
-   * @param project
+   * @param module
    * @param dir
    * @param executable
    * @param sdk
    * @return
    */
   @NotNull
-  public static List<String> getProjectDisplayInformation(@NotNull Project project, @NotNull File dir, @NotNull String executable, @NotNull Sdk sdk) {
+  public static List<String> getProjectDisplayInformation(@NotNull Module module, @NotNull File dir, @NotNull String executable, @NotNull Sdk sdk) {
     List<String> strings1 = Collections.EMPTY_LIST;
 
-    if (getInstalledLibraries(sdk).contains(executable)) {
+    ProjectLibraryCache cache = HaxelibProjectUpdater.getLibraryCache(module);
+    if (cache != null && cache.libraryIsInstalled(executable)) {
       ArrayList<String> commandLineArguments = new ArrayList<String>();
       commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(sdk));
       commandLineArguments.add("run");
@@ -414,7 +394,7 @@ public class HaxelibClasspathUtils {
                                                                   dir,
                                                                   HaxeSdkUtilBase.getSdkData(sdk));
       String s = Joiner.on("\n").join(strings);
-      strings1 = getHXMLFileClasspaths(project, s);
+      strings1 = getHXMLFileClasspaths(module.getProject(), s);
     }
 
     return strings1;

@@ -74,8 +74,8 @@ public class XmlHaxelibCompletionContributor extends CompletionContributor {
         Module moduleForFile = ModuleUtil.findModuleForFile(file, project);
         HaxelibCacheManager instance = HaxelibCacheManager.getInstance(moduleForFile);
 
-        List<String> availableVersions = instance.fetchAvailableVersions(libName);
-        List<String> installedVersions = instance.getInstalledLibraries().getOrDefault(libName, List.of());
+        Set<String> availableVersions = instance.fetchAvailableVersions(libName);
+        Set<String> installedVersions = instance.getInstalledLibraries().getOrDefault(libName, Set.of());
         availableVersions.removeAll(installedVersions); // avoid duplicates
 
         for (String libVersion : installedVersions) {
@@ -115,16 +115,19 @@ public class XmlHaxelibCompletionContributor extends CompletionContributor {
         Module moduleForFile = ModuleUtil.findModuleForFile(file, project);
         HaxelibCacheManager instance = HaxelibCacheManager.getInstance(moduleForFile);
 
-        Set<String> availableHaxelibs = instance.getAvailableLibraries().keySet();
-        Set<String> localHaxelibs = instance.getInstalledLibraries().keySet();
+        Set<String> available = instance.getAvailableLibraries().keySet();
+        Set<String> installed = instance.getInstalledLibraries().keySet();
 
-        for (String libName : availableHaxelibs) {
-          result.addElement(LookupElementBuilder.create(libName).withTailText(" available at haxelib", true));
-        }
+        List<LookupElementBuilder> installedSuggestions = installed.stream()
+          .map(libName -> LookupElementBuilder.create(libName).withTailText(" installed", true))
+          .toList();
 
-        for (String libName : localHaxelibs) {
-          result.addElement(LookupElementBuilder.create(libName).withTailText(" installed", true));
-        }
+        List<LookupElementBuilder> availableSuggestions = available.stream()
+          .map(libName -> LookupElementBuilder.create(libName).withTailText(" available at haxelib", true))
+          .toList();
+
+        result.addAllElements(installedSuggestions);
+        result.addAllElements(availableSuggestions);
       }
     };
   }
