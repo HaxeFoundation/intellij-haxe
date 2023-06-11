@@ -18,6 +18,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.ui.MessageConstants;
 import com.intellij.openapi.ui.ex.MessagesEx;
 import com.intellij.openapi.vfs.LocalFileSystem;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.ModifiableArtifactModel;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
@@ -127,5 +128,9 @@ public class HaxeProjectImportBuilder extends ProjectImportBuilder<Object> {
   private static void configureContentRoots(HaxeProjectData haxeProjectData, ModifiableRootModel rootModel) {
     ContentEntry contentRoot = rootModel.addContentEntry(haxeProjectData.getProjectRoot());
     haxeProjectData.getSourcePaths().forEach(source -> contentRoot.addSourceFolder(source, false));
+    VirtualFile localHaxelibRepo = haxeProjectData.getProjectRoot().findChild(".haxelib");
+    if(localHaxelibRepo != null && localHaxelibRepo.exists()) {
+      contentRoot.addExcludeFolder(localHaxelibRepo);
+    }
   }
 }

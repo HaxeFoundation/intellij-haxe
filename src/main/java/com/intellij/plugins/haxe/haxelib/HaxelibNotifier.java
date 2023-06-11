@@ -261,7 +261,7 @@ public class HaxelibNotifier {
     HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);
 
     if (tracker != null) {
-      tracker.getSdkManager().getLibraryManager(module).reload();
+      tracker.getLibraryManager().getLibraryManager(module).reload();
       instance.synchronizeClasspaths(tracker);
     }
   }

@@ -42,7 +42,7 @@ public class HaxeLibraryReference {
   }
 
   protected final String name;
-  protected final ProjectLibraryCache owner;
+  protected final ModuleLibraryCache owner;
   protected final HaxelibSemVer semver;
   protected final AtomicBoolean isManaged = new AtomicBoolean(false);
 
@@ -51,7 +51,7 @@ public class HaxeLibraryReference {
     this(module, libName, semver, false);
   }
 
-  public HaxeLibraryReference(@NotNull ProjectLibraryCache owner, @NotNull String libName, @NotNull HaxelibSemVer semver) {
+  public HaxeLibraryReference(@NotNull ModuleLibraryCache owner, @NotNull String libName, @NotNull HaxelibSemVer semver) {
     this(owner, libName, semver, false);
   }
 
@@ -59,7 +59,7 @@ public class HaxeLibraryReference {
     this(HaxelibProjectUpdater.getLibraryCache(module), libName, semver, isManaged);
   }
 
-  public HaxeLibraryReference(@NotNull ProjectLibraryCache owner,
+  public HaxeLibraryReference(@NotNull ModuleLibraryCache owner,
                               @NotNull String libName,
                               @NotNull HaxelibSemVer semver,
                               boolean isManaged) {
@@ -76,12 +76,12 @@ public class HaxeLibraryReference {
   }
 
   public static HaxeLibraryReference create(@NotNull Module module, @NotNull String name) {
-    ProjectLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(module);
+    ModuleLibraryCache owner = HaxelibProjectUpdater.getLibraryCache(module);
     return create(owner, name);
   }
 
 
-  public static HaxeLibraryReference create(@NotNull ProjectLibraryCache owner, @NotNull String name) {
+  public static HaxeLibraryReference create(@NotNull ModuleLibraryCache owner, @NotNull String name) {
     if (name.isEmpty()) {
       return null;
     }
@@ -118,7 +118,7 @@ public class HaxeLibraryReference {
    * @return the Cache that owns the reference (as given at instantiation).
    */
   @NotNull
-  public ProjectLibraryCache getOwner() {
+  public ModuleLibraryCache getOwner() {
     return owner;
   }
 

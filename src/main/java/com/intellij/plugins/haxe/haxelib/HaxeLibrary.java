@@ -39,7 +39,7 @@ public class HaxeLibrary {
 
   private static String CURRENT_DIR = ".";
 
-  final private ProjectLibraryCache myCache;
+  final private ModuleLibraryCache myCache;
   final private String myName;
   final private String myLibraryRoot;
   final private String myRelativeClasspath;
@@ -48,12 +48,12 @@ public class HaxeLibrary {
   // TODO: Add the extraParams.hxml data here.  Use the hxml parser; see LimeUtil.getLimeProjectModel() as an example.
 
 
-  private HaxeLibrary(@NotNull String name, @NotNull VirtualFile libraryRoot, @NotNull ProjectLibraryCache owner) {
+  private HaxeLibrary(@NotNull String name, @NotNull VirtualFile libraryRoot, @NotNull ModuleLibraryCache owner) {
     myCache = owner;
     myLibraryRoot = libraryRoot.getUrl();
 
     myMetadata = HaxelibMetadata.load(libraryRoot);
-    HaxeLibraryInfo pathInfo = HaxelibUtil.deriveLibraryInfoFromPath(owner.getSdk(), libraryRoot.getPath());
+    HaxeLibraryInfo pathInfo = HaxelibUtil.deriveLibraryInfoFromPath(owner, libraryRoot.getPath());
 
     String mdname = myMetadata.getName();
     if (null != mdname && !mdname.isEmpty()) {
@@ -185,9 +185,9 @@ public class HaxeLibrary {
    * @return the loaded HaxeLibrary of the given name; null if not found.
    */
   @Nullable
-  public static HaxeLibrary load(ProjectLibraryCache owner, String libName, String libVersion, Sdk sdk) {
+  public static HaxeLibrary load(ModuleLibraryCache owner, String libName, String libVersion, Sdk sdk) {
     // Ask haxelib for the path to this library.
-    VirtualFile libraryRoot = HaxelibUtil.getLibraryRoot(sdk, libName,libVersion);
+    VirtualFile libraryRoot = HaxelibUtil.getLibraryRoot(sdk,owner,  libName,libVersion);
     if (null == libraryRoot) {
       // XXX: This case might occur if the library is not managed by haxelib, but then
       //      that should be a classpath, not a lib.

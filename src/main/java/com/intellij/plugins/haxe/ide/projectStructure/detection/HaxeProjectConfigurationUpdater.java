@@ -21,7 +21,9 @@ import com.intellij.execution.RunnerAndConfigurationSettings;
 import com.intellij.execution.configurations.ConfigurationFactory;
 import com.intellij.ide.util.projectWizard.importSources.impl.ProjectFromSourcesBuilderImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.ModifiableModelsProvider;
 import com.intellij.openapi.roots.ModifiableRootModel;
@@ -38,6 +40,7 @@ import com.intellij.plugins.haxe.haxelib.HaxelibMetadata;
 import com.intellij.plugins.haxe.haxelib.HaxelibSdkUtils;
 import com.intellij.plugins.haxe.ide.library.HaxeLibraryType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
+import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.ide.projectStructure.HXMLData;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.plugins.haxe.runner.HaxeRunConfigurationType;
@@ -47,6 +50,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -61,8 +65,10 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
 
   @Override
   public void updateProject(@NotNull Project project, @NotNull ModifiableModelsProvider modelsProvider, @NotNull ModulesProvider modulesProvider) {
+
     if(myLibraries != null && !myLibraries.isEmpty()) {
-      List<LibraryData> libraries = collectLibraries(project);
+      Module rootModule = getRootModule(modelsProvider, modulesProvider);
+      List<LibraryData> libraries = collectLibraries(rootModule);
       if(!libraries.isEmpty()) {
         setupLibraries(project, modelsProvider, modulesProvider, libraries);
       }
@@ -139,11 +145,12 @@ public class HaxeProjectConfigurationUpdater implements ProjectFromSourcesBuilde
     }
   }
 
-  private List<LibraryData> collectLibraries(Project project) {
+  private List<LibraryData> collectLibraries(Module module) {
     List<HaxeProjectConfigurationUpdater.LibraryData> result = new ArrayList<>();
-    Sdk sdk = HaxelibSdkUtils.lookupSdk(project);
+    Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
     String[] libNames = myLibraries.toArray(new String[0]);
-    Set<String> cpList = HaxelibClasspathUtils.getHaxelibLibrariesClasspaths(sdk, libNames);
+    VirtualFile workDir = ProjectUtil.guessModuleDir(module);
+    Set<String> cpList = HaxelibClasspathUtils.getHaxelibLibrariesClasspaths(sdk, workDir, libNames);
     for(String cp:cpList) {
       VirtualFile current = LocalFileSystem.getInstance().findFileByPath(cp);
       //"haxelib path" returns something like "/path/to/repo/libname/1,0,0/src"

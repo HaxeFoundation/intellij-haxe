@@ -280,64 +280,16 @@ public class HaxelibClasspathUtils {
 
 
   /**
-   * Locate files and dependencies using 'haxelib path <name>'
-   *
-   * @param name name of the base file or library to search for.
-   * @return a set of path name URLs, may be an empty list.
-   */
-  @NotNull
-  public static List<String> getHaxelibLibraryPathUrl(@NotNull Sdk sdk, @NotNull String name) {
-    List<String> strings = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path",
-                                                                   name);
-    List<String> classpathUrls = new ArrayList<String>(strings.size());
-
-    for (String string : strings) {
-      if (isClassPathLine(string)) {
-        VirtualFile file = LocalFileFinder.findFile(string);
-        if (file != null) {
-          classpathUrls.add(file.getUrl());
-        }
-      }
-    }
-
-    return classpathUrls;
-  }
-
-  /**
-   * Locate files and dependencies using 'haxelib path <name>'
-   *
-   * @param name name of the base file or library to search for.
-   * @return a set of HaxelibItems, may be an empty list.
-   */
-  @NotNull
-  public static HaxeClasspath getHaxelibLibraryPath(@NotNull Sdk sdk, @NotNull String name) {
-    List<String> strings = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path", name);
-    HaxeClasspath classpath = new HaxeClasspath(strings.size());
-
-    for (String string : strings) {
-      if (isClassPathLine(string)) {
-        VirtualFile file = LocalFileFinder.findFile(string);
-        if (file != null) {
-          // There are no duplicates in the return from haxelib, so no need to check contains().
-          classpath.add(new HaxelibItem(file.getPath(), file.getUrl()));
-        }
-      }
-    }
-
-    return classpath;
-  }
-
-  /**
    * Local classpaths of specified libraries and their dependencies.
    */
-  public static Set<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk, String... libNames) {
+  public static Set<String> getHaxelibLibrariesClasspaths(@NotNull Sdk sdk,VirtualFile workDir, String... libNames) {
     Set<String> result = new HashSet<>();
 
     ArrayList<String> args = new ArrayList<>();
     args.add("path");
     Collections.addAll(args, libNames);
 
-    List<String> out = HaxelibCommandUtils.issueHaxelibCommand(sdk, args.toArray(new String[0]));
+    List<String> out = HaxelibCommandUtils.issueHaxelibCommand(sdk,workDir,  args.toArray(new String[0]));
     for(String line:out) {
       if(!isClassPathLine(line)) {
         continue;
@@ -361,7 +313,7 @@ public class HaxelibClasspathUtils {
    */
   @NotNull
   public static List<String> getAvailableLibrariesMatching(@NotNull Sdk sdk, @NotNull String word) {
-    List<String> stringList = HaxelibCommandUtils.issueHaxelibCommand(sdk, "search", word);
+    List<String> stringList = HaxelibCommandUtils.issueHaxelibCommand(sdk, null,"search", word);
     if (stringList.size() > 0) {
       // Last line is the count of libraries found.
       stringList.remove(stringList.size() - 1);
@@ -381,7 +333,7 @@ public class HaxelibClasspathUtils {
   public static List<String> getProjectDisplayInformation(@NotNull Module module, @NotNull File dir, @NotNull String executable, @NotNull Sdk sdk) {
     List<String> strings1 = Collections.EMPTY_LIST;
 
-    ProjectLibraryCache cache = HaxelibProjectUpdater.getLibraryCache(module);
+    ModuleLibraryCache cache = HaxelibProjectUpdater.getLibraryCache(module);
     if (cache != null && cache.libraryIsInstalled(executable)) {
       ArrayList<String> commandLineArguments = new ArrayList<String>();
       commandLineArguments.add(HaxelibCommandUtils.getHaxelibPath(sdk));

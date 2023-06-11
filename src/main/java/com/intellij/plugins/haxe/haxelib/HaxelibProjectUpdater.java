@@ -185,7 +185,7 @@ public class HaxelibProjectUpdater {
   @Nullable
   public ProjectLibraryCacheManager getLibraryCacheManager(@NotNull Project project) {
     ProjectTracker tracker = myProjects.get(project);
-    return null == tracker ? null : tracker.getSdkManager();
+    return null == tracker ? null : tracker.getLibraryManager();
   }
 
   /**
@@ -199,7 +199,7 @@ public class HaxelibProjectUpdater {
    * @return the HaxelibLibraryCache for the module, if found; null, otherwise.
    */
   @Nullable
-  public static ProjectLibraryCache getLibraryCache(@NotNull Module module) {
+  public static ModuleLibraryCache getLibraryCache(@NotNull Module module) {
     ProjectLibraryCacheManager mgr = HaxelibProjectUpdater.getInstance().getLibraryCacheManager(module);
     return mgr != null ? mgr.getLibraryManager(module) : null;
   }
@@ -511,7 +511,7 @@ public class HaxelibProjectUpdater {
 
     Project project = tracker.getProject();
     HaxeLibraryList haxelibExternalItems = new HaxeLibraryList(module);
-    ProjectLibraryCache libManager = tracker.getSdkManager().getLibraryManager(module);
+    ModuleLibraryCache libManager = tracker.getLibraryManager().getLibraryManager(module);
     HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
 
     //ApplicationManager.getApplication().runReadAction(() -> {
@@ -561,7 +561,7 @@ public class HaxelibProjectUpdater {
                                @NotNull HaxeDebugTimeLog timeLog,
                                Project project,
                                HaxeLibraryList haxelibExternalItems,
-                               ProjectLibraryCache libManager, HaxeModuleSettings settings) {
+                               ModuleLibraryCache libManager, HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from HXML file.");
     String hxmlPath = settings.getHxmlPath();
 
@@ -610,7 +610,7 @@ public class HaxelibProjectUpdater {
                                 @NotNull HaxeDebugTimeLog timeLog,
                                 Project project,
                                 HaxeLibraryList haxelibExternalItems,
-                                ProjectLibraryCache libManager,
+                                ModuleLibraryCache libManager,
                                 HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from openFL configuration file.");
     //TODO mlo: we should rewrite this and change it from openFL to Lime, and lime does not require this lib
@@ -688,7 +688,7 @@ public class HaxelibProjectUpdater {
                                      @NotNull HaxeDebugTimeLog timeLog,
                                      Project project,
                                      HaxeLibraryList haxelibExternalItems,
-                                     ProjectLibraryCache libManager,
+                                     ModuleLibraryCache libManager,
                                      HaxeModuleSettings settings) {
     timeLog.stamp("Start loading haxelibs from NMML file.");
     HaxeLibrary nme = libManager.getLibrary("nme", HaxelibSemVer.ANY_VERSION);
@@ -1210,7 +1210,7 @@ public class HaxelibProjectUpdater {
     boolean myIsDirty;
     boolean myIsUpdating;
     ProjectLibraryListCache myCache;
-    ProjectLibraryCacheManager mySdkManager;
+    ProjectLibraryCacheManager myLibraryCacheManager;
 
     // TODO: Determine if we need to track whether the project is still open.
 
@@ -1228,7 +1228,7 @@ public class HaxelibProjectUpdater {
       myIsUpdating = false;
       myReferenceCount = 0;
       myCache = new ProjectLibraryListCache(HaxelibSdkUtils.lookupSdk(project));
-      mySdkManager = new ProjectLibraryCacheManager();
+      myLibraryCacheManager = new ProjectLibraryCacheManager();
 
       VirtualFileManager mgr = VirtualFileManager.getInstance();
       mgr.addAsyncFileListener(this::lookForLibChanges, project);
@@ -1246,8 +1246,8 @@ public class HaxelibProjectUpdater {
      * Get the library classpath cache.
      */
     @NotNull
-    public ProjectLibraryCacheManager getSdkManager() {
-      return mySdkManager;
+    public ProjectLibraryCacheManager getLibraryManager() {
+      return myLibraryCacheManager;
     }
 
     /**
@@ -1280,6 +1280,7 @@ public class HaxelibProjectUpdater {
           //      the project.  In that case, we would want to detect whether
           //      the project settings really changed, and act accordingly.
           myCache.clear();
+          myLibraryCacheManager.clear();
         }
       }
       return ret;
@@ -1408,6 +1409,12 @@ public class HaxelibProjectUpdater {
     public void dispose() {
       Collection<Module> modules = ModuleUtil.getModulesOfType(getProject(), HaxeModuleType.getInstance());
       modules.forEach(HaxelibCacheManager::removeInstance);
+      modules.forEach(myLibraryCacheManager::removeInstance);
+    }
+
+    public void moduleRemoved(Module module) {
+      HaxelibCacheManager.removeInstance(module);
+      myLibraryCacheManager.removeInstance(module);
     }
   } // end class ProjectTracker
 

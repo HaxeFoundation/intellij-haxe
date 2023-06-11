@@ -79,6 +79,7 @@ public class HaxelibModuleManagerService implements ProjectManagerListener, Proj
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
     HaxelibCacheManager.removeInstance(module);
+    HaxelibProjectUpdater.getInstance().findProjectTracker(project).moduleRemoved(module);
   }
 
   @Override

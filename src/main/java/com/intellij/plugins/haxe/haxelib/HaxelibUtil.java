@@ -71,28 +71,30 @@ public class HaxelibUtil {
    * @return
    */
   @Nullable
-  public static VirtualFile getLibraryBasePath(@NotNull final Sdk sdk) {
-    VirtualFile rootDirectory = sdk.getUserData(HaxelibRootKey);
-    if (null == rootDirectory) {
-      List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, "config");
+  public static VirtualFile getLibraryBasePath(@NotNull final Sdk sdk, VirtualFile workDir) {
+      List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir, "config");
       for (String s : output) {
         if (s.isEmpty()) continue;
         VirtualFile file = LocalFileSystem.getInstance().findFileByPath(s);
         if (null != file) {
-          rootDirectory = file;
-          sdk.putUserData(HaxelibRootKey, file);
-          break;
+          return file;
         }
-      }
     }
-    return rootDirectory;
+    return null;
   }
 
 
-  public static VirtualFile getLibraryRoot(@NotNull Sdk sdk, @NotNull String libName, String libVersion) {
+  public static VirtualFile getLibraryRoot(@NotNull Sdk sdk, ModuleLibraryCache libraryCache, @NotNull String libName, String libVersion) {
     LocalFileSystem lfs = LocalFileSystem.getInstance();
 
-    VirtualFile haxelibRoot = getLibraryBasePath(sdk);
+    VirtualFile workDirectory = libraryCache.getHaxelibWorkDirectory();
+    VirtualFile haxelibRoot =  libraryCache.getRepositoryPath();
+
+    if(haxelibRoot == null) {
+
+      haxelibRoot = getLibraryBasePath(sdk, workDirectory);
+      libraryCache.setRepositoryPath(haxelibRoot);
+    }
     if(haxelibRoot == null) {
       log.debug("Haxe libraries base path was not found for current project sdk");
       return null;
@@ -152,7 +154,7 @@ public class HaxelibUtil {
     }
 
     // If we got here, then see what haxelib can give us.  This takes >40ms on average.
-    List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, "path", libName);
+    List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDirectory,  "path", libName);
     for (String s : output) {
       if (s.isEmpty()) continue;
       if (s.startsWith("-D")) continue;
@@ -192,75 +194,6 @@ public class HaxelibUtil {
     return null;
   }
 
-
-  public static Map<String, List<String>> readInstalledLibraries(@NotNull Sdk sdk) {
-
-    // haxelib list output looks like:
-    //      lime-tools: 1.4.0 [1.5.6]
-    // The library name comes first, followed by a colon, followed by a
-    // list of the available versions.
-
-
-    Map<String, List<String>> libMap = new HashMap<>();
-    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
-    if ((listCmdOutput.size() > 0) && (! listCmdOutput.get(0).contains("Unknown command"))) {
-      for (String line : listCmdOutput) {
-        String[] split = line.split(":");
-        String libName = split[0];
-        String libVersions = split[1];
-        libVersions = libVersions.replaceAll("\\[", "");
-        libVersions = libVersions.replaceAll("]", "");
-        String[] versionArray = libVersions.trim().split("\s+");
-        libMap.put(libName, List.copyOf(Arrays.stream(versionArray).toList()));
-      }
-      return libMap;
-    }
-    return Map.of();
-  }
-  public static Hashtable<String, String> readSelectedVersions(@NotNull Sdk sdk) {
-
-    // haxelib list output looks like:
-    //      lime-tools: 1.4.0 [1.5.6]
-    // The library name comes first, followed by a colon, followed by a
-    // list of the available versions.
-
-
-    Hashtable<String, String> libMap = new Hashtable<>();
-    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
-    if ((listCmdOutput.size() > 0) && (!listCmdOutput.get(0).contains("Unknown command"))) {
-      for (String line : listCmdOutput) {
-        String[] split = line.split(":");
-        String libName = split[0];
-        String libVersions = split[1];
-        String[] versionArray = libVersions.trim().split("\s+");
-        for (String version : versionArray) {
-          if (version.startsWith("[") && version.endsWith("]")) {
-            version = version.replaceAll("\\[", "");
-            version = version.replaceAll("]", "");
-            libMap.put(libName, version);
-          }
-        }
-      }
-      return libMap;
-    }
-    return new Hashtable<>();
-  }
-
-
-
-  public static List<String> getInstalledLibraryNames(@NotNull Sdk sdk) {
-    final List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
-    if ((listCmdOutput.size() > 0) && (! listCmdOutput.get(0).contains("Unknown command"))) {
-      final List<String> installedHaxelibs = new ArrayList<String>();
-
-      for (final String line : listCmdOutput) {
-        final String[] tokens = line.split(":");
-        installedHaxelibs.add(tokens[0]);
-      }
-      return installedHaxelibs;
-    }
-    return Collections.emptyList();
-  }
 
 
   /**
@@ -346,12 +279,12 @@ public class HaxelibUtil {
    * @return The relative path, or null if the path isn't a library path.
    */
   @Nullable
-  public static String getLibraryRelativeDirectory(@NotNull Sdk sdk, String path) {
+  public static String getLibraryRelativeDirectory(@NotNull Sdk sdk, VirtualFile workDirectory, String path) {
     if (null == path || path.isEmpty()) {
       return null;
     }
 
-    VirtualFile haxelibRoot = getLibraryBasePath(sdk);
+    VirtualFile haxelibRoot = getLibraryBasePath(sdk, workDirectory);
     String rootName = haxelibRoot.getPath();
 
     String s = FileUtil.toSystemIndependentName(path);
@@ -361,34 +294,21 @@ public class HaxelibUtil {
     return null;
   }
 
-  /**
-   * Given a path, determine if it is a library path and, if so, what the library name is.
-   * @param path file name or URL for a potential haxe library.
-   * @return a library name, if available.
-   */
-  @Nullable
-  public static String deriveLibraryNameFromPath(@NotNull Sdk sdk, String path) {
-    String rel = getLibraryRelativeDirectory(sdk, path);
-    if (null != rel && !rel.isEmpty()) {
-      List<String> libParts = FileUtil.splitPath(rel);
-      // First part is the library name.
-      return libParts.get(0);
-    }
-    return null;
-  }
 
 
   /**
    * Get information derivable from a library classpath.
-   * @param sdk
+   * @param libraryCache
    * @param path
    * @return
    */
   @Nullable
-  public static HaxeLibraryInfo deriveLibraryInfoFromPath(@NotNull Sdk sdk, String path) {
+  public static HaxeLibraryInfo deriveLibraryInfoFromPath(@NotNull ModuleLibraryCache libraryCache, String path) {
     // TODO: Figure out how to get info from paths that are dev paths?  Don't need that for current callers.
+    VirtualFile workDirectory = libraryCache.getHaxelibWorkDirectory();
+    Sdk sdk = libraryCache.getSdk();
 
-    String rel = getLibraryRelativeDirectory(sdk, path);
+    String rel = getLibraryRelativeDirectory(sdk, workDirectory , path);
     if (null != rel && !rel.isEmpty()) {
       List<String> libParts = HaxeFileUtil.splitPath(rel);
       if (libParts.size() >= 2) {
@@ -430,7 +350,7 @@ public class HaxelibUtil {
     return haxeLibData;
   }
   @NotNull
-  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, ProjectLibraryCache libraryManager) {
+  public static HaxeLibraryList createHaxelibsFromHaxeLibData(@NotNull Module module, @NotNull List<HaxeLibData> haxeLibData, ModuleLibraryCache libraryManager) {
     List<HaxeLibraryReference> haxelibNewItems = new ArrayList<>();
     List<MissingLibInfo> missingList = new ArrayList<>();
 

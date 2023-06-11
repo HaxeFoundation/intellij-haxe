@@ -1,7 +1,9 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.vfs.VirtualFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,7 +21,7 @@ public class HaxelibCacheManager {
 
   // current version of haxelib shows versions as date + version + description
   private static Pattern HAXELIB_VERSION_LINE =
-    Pattern.compile("(?<date>\\d{4}-\\d{2}-\\d{2}\s\\d{2}:\\d{2}:\\d{2})\s(?<version>.*)\s:\s(?<description>.*)");
+    Pattern.compile("(?<date>\\d{4}-\\d{2}-\\d{2}\s\\d{2}:\\d{2}:\\d{2})\s(?<version>.*?)\s:\s(?<description>.*)");
 
   private static Map<Module, HaxelibCacheManager> instances = new HashMap<>();
 
@@ -103,8 +105,9 @@ public class HaxelibCacheManager {
     return libMap;
   }
 
-  private static Map<String, Set<String>> readInstalledLibraries(@NotNull Sdk sdk) {
-    HaxelibInstalledIndex index = HaxelibInstalledIndex.fetchFromHaxelib(sdk);
+  private Map<String, Set<String>> readInstalledLibraries(@NotNull Sdk sdk) {
+    VirtualFile file = ProjectUtil.guessModuleDir(module);
+    HaxelibInstalledIndex index = HaxelibInstalledIndex.fetchFromHaxelib(sdk, file);
     return index.getInstalledLibrariesAndVersions();
 
   }
@@ -116,7 +119,8 @@ public class HaxelibCacheManager {
         log.warn("Unable to fetch Available Versions, invalid SDK paths");
         return Set.of();
       }
-      List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, "info", name);
+      VirtualFile file = ProjectUtil.guessModuleDir(module);
+      List<String> list = HaxelibCommandUtils.issueHaxelibCommand(sdk, file,"info", name);
       // filter to find version numbers
 
       Set<String> versions = list.stream()

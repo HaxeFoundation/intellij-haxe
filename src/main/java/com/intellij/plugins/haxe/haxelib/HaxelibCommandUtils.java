@@ -98,11 +98,11 @@ public class HaxelibCommandUtils {
    */
 
   @NotNull
-  public static List<String> issueHaxelibCommand(@NotNull Sdk sdk, String... args) {
+  public static List<String> issueHaxelibCommand(@NotNull Sdk sdk, @Nullable VirtualFile workDir, String... args) {
     Application application = ApplicationManager.getApplication();
     if (application.isDispatchThread()) {
       List<String> result = new ArrayList<>();
-      ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> result.addAll(_issueHaxelibCommand(sdk, args)),
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(() -> result.addAll(_issueHaxelibCommand(sdk,workDir, args)),
                                                                         "Haxelib Command", false, null);
       return result;
     }
@@ -111,7 +111,7 @@ public class HaxelibCommandUtils {
         // TODO: this is a hacky way to get around the `checkEdtAndReadAction` check,
         //  while we move the logic to another thread we block the current one using get(), preferred
         //  method would be some kind of callback
-        return application.executeOnPooledThread(()-> _issueHaxelibCommand(sdk, args)).get();
+        return application.executeOnPooledThread(()-> _issueHaxelibCommand(sdk, workDir, args)).get();
       }
       catch (InterruptedException e) {
         throw new RuntimeException(e);
@@ -121,13 +121,13 @@ public class HaxelibCommandUtils {
       }
     }
     else {
-      return _issueHaxelibCommand(sdk, args);
+      return _issueHaxelibCommand(sdk, workDir, args);
     }
 
   }
 
   @NotNull
-  private static List<String> _issueHaxelibCommand(@NotNull Sdk sdk, String... args) {
+  private static List<String> _issueHaxelibCommand(@NotNull Sdk sdk, @Nullable VirtualFile workDir, String... args) {
 
     // TODO: Wrap the process with a timer?
 
@@ -144,15 +144,17 @@ public class HaxelibCommandUtils {
 
     // TODO mlo: try to clean up code so it only uses either dir or file
     File haxelibCmd = new File(haxelibPath);
-    VirtualFile dir = haxelibCmd.isFile()
-                      ? LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent())
-                      : LocalFileSystem.getInstance().findFileByPath(haxelibPath);
-    if (dir == null) {
+    if(workDir == null) {
+      workDir = haxelibCmd.isFile()
+                        ? LocalFileSystem.getInstance().findFileByPath(haxelibCmd.getParent())
+                        : LocalFileSystem.getInstance().findFileByPath(haxelibPath);
+    }
+    if (workDir == null) {
       log.error("unable to execute haxelib command, haxelib path is null");
       return List.of();
     }
     List<String> stdout = new ArrayList<String>();
-    int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, dir, sdkData,
+    int exitvalue = HaxeProcessUtil.runProcess(commandLineArguments, true, workDir, sdkData,
                                                stdout, null, null, false);
 
     if (0 != exitvalue) {

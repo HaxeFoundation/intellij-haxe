@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.vfs.VirtualFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -39,7 +40,7 @@ public class HaxelibInstalledIndex {
     return selectedVersions.getOrDefault(Library, null);
   }
 
-  public static HaxelibInstalledIndex fetchFromHaxelib(@NotNull Sdk sdk){
+  public static HaxelibInstalledIndex fetchFromHaxelib(@NotNull Sdk sdk, VirtualFile workDir){
     // haxelib list output looks like:
     //      lime-tools: 1.4.0 [1.5.6]
     // The library name comes first, followed by a colon, followed by a
@@ -47,7 +48,7 @@ public class HaxelibInstalledIndex {
 
     HaxelibInstalledIndex index = new HaxelibInstalledIndex();
 
-    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, "list");
+    List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir,  "list");
     if ((listCmdOutput.size() > 0) && (!listCmdOutput.get(0).contains("Unknown command"))) {
       for (String line : listCmdOutput) {
         int firstColon = line.indexOf(":");

@@ -19,7 +19,10 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.openapi.diagnostic.LogLevel;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.vfs.VirtualFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,26 +32,27 @@ import java.util.*;
 /**
  * Manages library retrieval and caching.
  *
- * This should be instantiated once for each SDK in the project.  (Projects,
- * particularly those that keep separate versions of the libraries in
- * source control using separate branches, are not necessarily using the
- * same haxe installation.)
+ * This should be instantiated once for each Module.
+ * haxelib projects can be configured to use a local haxelib repo that differs from its SDK default.
+ * since modules may share SDK but have different installed libraries we have to keep a cache for each module.
  */
 @CustomLog
-public final class ProjectLibraryCache {
+public final class ModuleLibraryCache {
 
   static {
     log.setLevel(LogLevel.DEBUG);
   }
   private final Hashtable<String, List<HaxeLibrary>> myCache;
   private final Sdk mySdk;
+  private final Module myModule;
+  private VirtualFile repositoryPath;
   private  HaxelibInstalledIndex haxelibIndex;
 
 
-  public ProjectLibraryCache(@NotNull Sdk sdk) {
-
+  public ModuleLibraryCache(@NotNull Module module, @NotNull Sdk sdk) {
 
     mySdk = sdk;
+    myModule = module;
     myCache = new Hashtable<>();
     haxelibIndex = HaxelibInstalledIndex.EMPTY;
 
@@ -56,6 +60,7 @@ public final class ProjectLibraryCache {
     loadInstalledLibrariesList(sdk);
   }
   public void reload() {
+    repositoryPath = null;
     myCache.clear();
     haxelibIndex = HaxelibInstalledIndex.EMPTY;
     loadInstalledLibrariesList(mySdk);
@@ -66,8 +71,8 @@ public final class ProjectLibraryCache {
       log.warn("Unable to load install library list, invalid SDK paths");
       return;
     }
-
-    haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(sdk);
+    VirtualFile workDir = getHaxelibWorkDirectory();
+    haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(sdk, workDir);
 
     for (String libName : haxelibIndex.getInstalledLibraries()) {
       Set<String> versions = haxelibIndex.getInstalledVersions(libName);
@@ -81,6 +86,10 @@ public final class ProjectLibraryCache {
     }
   }
 
+  @Nullable
+  public VirtualFile getHaxelibWorkDirectory() {
+    return ProjectUtil.guessModuleDir(myModule);
+  }
 
 
   @Nullable
@@ -121,7 +130,8 @@ public final class ProjectLibraryCache {
   private Collection<String> retrieveKnownLibraries() {
     // If we don't have the list, then load it.
     if (haxelibIndex == HaxelibInstalledIndex.EMPTY) {
-      haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(mySdk);
+      VirtualFile workDir = getHaxelibWorkDirectory();
+      haxelibIndex = HaxelibInstalledIndex.fetchFromHaxelib(mySdk, workDir);
     }
     return haxelibIndex.getInstalledLibraries();
   }
@@ -148,11 +158,18 @@ public final class ProjectLibraryCache {
     // Looking up a library in the cache resolves to a serial search.  Instead,
     // parse the path for a library name and version, and then look it up.
 
-    HaxeLibraryInfo info = HaxelibUtil.deriveLibraryInfoFromPath(mySdk, path);
+    HaxeLibraryInfo info = HaxelibUtil.deriveLibraryInfoFromPath(this, path);
     if (null != info) {
       return getLibrary(info.name, info.semver);
     }
     return null;
   }
 
+  public VirtualFile getRepositoryPath() {
+    return repositoryPath;
+  }
+
+  public void setRepositoryPath(VirtualFile root) {
+    repositoryPath  = root;
+  }
 }

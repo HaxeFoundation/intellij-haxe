@@ -48,10 +48,9 @@ public class ProjectLibraryCacheManager {
   }
 
 
-  final SdkCache mySdkCache;
+  final Hashtable<Module, SdkEntry> myCacheMap = new Hashtable<>();
 
   public ProjectLibraryCacheManager() {
-    mySdkCache = new SdkCache();
   }
 
   /**
@@ -63,125 +62,47 @@ public class ProjectLibraryCacheManager {
    * @return a library manager for the given module.
    */
   @NotNull
-  public ProjectLibraryCache getLibraryManager(@NotNull Module module) {
+  public ModuleLibraryCache getLibraryManager(@NotNull Module module) {
     Sdk sdk = HaxelibSdkUtils.lookupSdk(module);
-    return getLibraryCache(sdk);
+    if(myCacheMap.containsKey(module)) {
+      return myCacheMap.get(module).getLibraryCache();
+    }else {
+      SdkEntry entry = new SdkEntry(module, sdk);
+      myCacheMap.put(module,  entry);
+      return entry.getLibraryCache();
+    }
   }
 
-  /**
-   * Get the library manager associated with the given SDK.  There is
-   * only one per project with the given name (e.g. modules that specify
-   * the same SDK will get the same library manager object).  Therefore,
-   * if all modules specify the same SDK it is functionally identical to
-   * inheriting the project SDK.
-   *
-   * @param sdk - SDK to look up libraries for.
-   * @return a library manager for the given SDK.
-   */
-  @NotNull
-  public ProjectLibraryCache getLibraryCache(@NotNull Sdk sdk) {
-    SdkEntry entry = mySdkCache.get(sdk.getName());
-    if (null == entry) {
-      // Not in the cache?  Put it there.
-      entry = new SdkEntry(sdk);
-      mySdkCache.add(entry);
-    }
-    return entry.getLibraryCache();
+  public void clear() {
+    myCacheMap.clear();
   }
+
+  public void removeInstance(Module module) {
+    myCacheMap.remove(module);
+  }
+
 
   /**
    * Cache entry for the SDK table.
    */
   static final class SdkEntry {
-    final Sdk mySdk;
-    final ProjectLibraryCache myMgr;
+    final Module module;
+    final ModuleLibraryCache myMgr;
 
-    public SdkEntry(@NotNull Sdk sdk) {
-      mySdk = sdk;
-      myMgr = new ProjectLibraryCache(sdk);
+    public SdkEntry(@NotNull Module module, @NotNull Sdk sdk) {
+      this.module = module;
+      myMgr = new ModuleLibraryCache(module, sdk);
     }
 
     @NotNull
     public String getName() {
-      return mySdk.getName();
+      return module.getName();
     }
 
     @NotNull
-    public ProjectLibraryCache getLibraryCache() {
+    public ModuleLibraryCache getLibraryCache() {
       return myMgr;
     }
 
-    public boolean nameEquals(@NotNull SdkEntry entry) {
-      return getName().equals(entry.getName());
-    }
-
-    public boolean nameEquals(@NotNull String name) {
-      return getName().equals(name);
-    }
   }
-
-  /**
-   * Cache of library managers per SDK.
-   */
-  final class SdkCache {
-    // Optimize the common case where we only have one...
-    SdkEntry cacheOfOne = null;
-
-    Hashtable<String, SdkEntry> myCache;
-
-    public SdkCache() {
-    }
-
-    /**
-     * Lazy initialization.
-     */
-    private void initCache() {
-      myCache = new Hashtable<String, SdkEntry>();
-    }
-
-    /**
-     * Add a library manager to the cache.  If a library manager of the same
-     * name already exists, the old one will be kept and the new ignored.
-     *
-     * @param entry An SdkEntry object
-     */
-    public void add(@NotNull SdkEntry entry) {
-      if (null == myCache) {
-        if (null == cacheOfOne ) {
-          cacheOfOne = entry;
-        } else if (! cacheOfOne.nameEquals(entry)) {  // Don't need to add another of the same name.
-          initCache();
-          add(entry);
-          add(cacheOfOne);
-          cacheOfOne = null;
-        }
-      } else {
-        if (! myCache.containsKey(entry.getName())) {  // Don't replace a full cache with an empty one.
-          SdkEntry oldEntry = myCache.put(entry.getName(), entry);
-          if (null != oldEntry) {
-            log.warn("Duplicating cached data for entry " + entry.getName());
-          }
-        }
-      }
-    }
-
-    public void clear() {
-      cacheOfOne = null;
-      if (null != myCache) {
-        myCache.clear();
-      }
-    }
-
-    @Nullable
-    public SdkEntry get(@NotNull String name) {
-      if (null != cacheOfOne && cacheOfOne.nameEquals(name)) {
-        return cacheOfOne;
-      }
-      if (null != myCache) {
-        return myCache.get(name);
-      }
-      return null;
-    }
-  }
-
 }
