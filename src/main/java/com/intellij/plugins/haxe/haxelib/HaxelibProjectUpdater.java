@@ -23,6 +23,7 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.progress.PerformInBackgroundOption;
@@ -38,10 +39,8 @@ import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
 import com.intellij.openapi.startup.StartupManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
-import com.intellij.openapi.vfs.AsyncFileListener;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
@@ -49,6 +48,7 @@ import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeFileUtil;
@@ -64,7 +64,6 @@ import org.jetbrains.io.LocalFileFinder;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 
 /**
@@ -143,7 +142,7 @@ public class HaxelibProjectUpdater {
       boolean removed = myProjects.remove(project);
       if (removed) {
         myQueue.remove(tracker);
-        tracker.dispose();
+        Disposer.dispose(tracker);
         if (tracker.equals(myQueue.getUpdatingProject())) {
           return true;
         }
@@ -1057,13 +1056,6 @@ public class HaxelibProjectUpdater {
   private static void doWriteAction(final Runnable action) {
     final Application application = ApplicationManager.getApplication();
     application.invokeAndWait( () -> application.runWriteAction(action));
-
-    //application.invokeAndWait(new Runnable() {
-    //  @Override
-    //  public void run() {
-    //    application.runWriteAction(action);
-    //  }
-    //}, application.getDefaultModalityState());
   }
 
   /**
@@ -1077,19 +1069,12 @@ public class HaxelibProjectUpdater {
   private static void doReadAction(final Runnable action) {
     final Application application = ApplicationManager.getApplication();
     application.runReadAction(action);
-    //if (application.isDispatchThread()) {
-    //  application.executeOnPooledThread(action);
-    //}else {
-    //  application.invokeAndWait(action, ModalityState.defaultModalityState());
-    //}
-    //application.invokeAndWait(action, ModalityState.defaultModalityState());
-    //application.invokeLater(action, ModalityState.defaultModalityState());
   }
 
   /**
    *  Cache for project library lists.
    */
-  static final public class ProjectLibraryListCache {
+  static final public class ProjectLibraryListCache implements Disposable {
 
     private Sdk sdk;
     private HaxeLibraryList nmmlList;
@@ -1198,6 +1183,15 @@ public class HaxelibProjectUpdater {
       this.propertiesList = propertiesList;
       propertiesIsSet = true;
     }
+
+    @Override
+    public void dispose() {
+      sdk = null;
+      nmmlList = null;
+      openFLList = null;
+      hxmlList = null;
+      propertiesList = null;
+    }
   }
 
 
@@ -1229,9 +1223,10 @@ public class HaxelibProjectUpdater {
       myReferenceCount = 0;
       myCache = new ProjectLibraryListCache(HaxelibSdkUtils.lookupSdk(project));
       myLibraryCacheManager = new ProjectLibraryCacheManager();
+      Disposer.register(this, myCache);
+      Disposer.register(this, myLibraryCacheManager);
+      ExternalSystemProjectTracker.getInstance(project).register(new HaxelibAutoImport(project), this);
 
-      VirtualFileManager mgr = VirtualFileManager.getInstance();
-      mgr.addAsyncFileListener(this::lookForLibChanges, project);
     }
 
     /**
@@ -1362,51 +1357,12 @@ public class HaxelibProjectUpdater {
       return myProject.getName().equals(tracker.getProject().getName());
     }
 
-    private AsyncFileListener.ChangeApplier lookForLibChanges(List<? extends VFileEvent> events) {
-      if(getProject().isDisposed()) return null;
-      List<String> list = events.stream()
-        .map(VFileEvent::getFile)
-        .filter(Objects::nonNull)
-        .map(VirtualFile::getCanonicalPath)
-        .toList();
-
-      updateLibs(list);
-      return null;
-    }
-
-    private void updateLibs(List<String> list) {
-      if(getProject().isDisposed()) return;
-      Collection<Module> type = ModuleUtil.getModulesOfType(getProject(), HaxeModuleType.getInstance());
-      Map<String, Module> moduleMap = type.stream()
-        .filter(Objects::nonNull)
-        .collect(Collectors.toMap(m-> getBuildConfigFile(HaxeModuleSettings.getInstance(m)), m -> m));
 
 
-
-      list.stream().filter(moduleMap::containsKey).forEach(k -> {
-        Module module = moduleMap.get(k);
-        HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
-        if (settings.isKeepSynchronizedWithProjectFile()) {
-          HaxeDebugTimeLog timeLog = HaxeDebugTimeLog.startNew("syncModuleClasspaths");
-          HaxelibProjectUpdater instance = HaxelibProjectUpdater.getInstance();
-          ProjectTracker tracker = instance.findProjectTracker(module.getProject());
-          instance.syncOneModule(tracker, module, timeLog, false);
-        }
-      });
-    }
-
-    private String getBuildConfigFile(HaxeModuleSettings settings) {
-      HaxeConfiguration configuration = settings.getBuildConfiguration();
-      return switch (configuration) {
-        case OPENFL -> settings.getOpenFLPath();
-        case HXML -> settings.getHxmlPath();
-        case NMML -> settings.getNmmlPath();
-        default -> "N/A";
-      };
-    }
 
     @Override
     public void dispose() {
+      ExternalSystemProjectTracker.getInstance(getProject()).remove(HaxelibAutoImport.mySystemProjectId);
       Collection<Module> modules = ModuleUtil.getModulesOfType(getProject(), HaxeModuleType.getInstance());
       modules.forEach(HaxelibCacheManager::removeInstance);
       modules.forEach(myLibraryCacheManager::removeInstance);

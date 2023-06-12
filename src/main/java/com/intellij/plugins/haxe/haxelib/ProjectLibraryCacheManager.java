@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -41,7 +42,7 @@ import java.util.Hashtable;
  * started adding SDK and/or Module parameters everywhere.
  */
 @CustomLog
-public class ProjectLibraryCacheManager {
+public class ProjectLibraryCacheManager implements Disposable {
 
   static {
     log.setLevel(LogLevel.DEBUG);
@@ -79,6 +80,11 @@ public class ProjectLibraryCacheManager {
 
   public void removeInstance(Module module) {
     myCacheMap.remove(module);
+  }
+
+  @Override
+  public void dispose() {
+    myCacheMap.clear();
   }
 
 

@@ -19,6 +19,11 @@ import java.util.Objects;
 public abstract class HaxeProjectProcessor extends ProjectOpenProcessorBase<HaxeProjectImportBuilder> {
 
   @Override
+  public boolean isStrongProjectInfoHolder() {
+    return true;
+  }
+
+  @Override
   protected boolean doQuickImport(@NotNull VirtualFile file, @NotNull WizardContext wizardContext) {
     HaxeProjectImportBuilder builder = getBuilder();
     builder.setFileToImport(file.getPath());
@@ -30,6 +35,16 @@ public abstract class HaxeProjectProcessor extends ProjectOpenProcessorBase<Haxe
   @Override
   protected HaxeProjectImportBuilder doGetBuilder() {
     return ProjectImportBuilder.EXTENSIONS_POINT_NAME.findExtensionOrFail(HaxeProjectImportBuilder.class);
+  }
+
+  @Override
+  public boolean canOpenProject(@NotNull VirtualFile file) {
+    String path = file.getCanonicalPath();
+    if (path== null || path.contains(".haxelib") ) {
+      log.debug("Ignoring files in .haxelib repo");
+      return false;
+    }
+    return true;
   }
 
   @Override

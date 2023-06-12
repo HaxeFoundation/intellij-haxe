@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.projectStructure.ui;
 
 import com.intellij.ide.actions.ShowSettingsUtilImpl;
 import com.intellij.ide.util.ClassFilter;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -43,6 +44,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
 import com.intellij.plugins.haxe.ide.projectStructure.TreeHaxeClassChooserDialog;
+import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.psi.PsiClass;
@@ -487,6 +489,9 @@ public class HaxeConfigurationEditor {
 
     final String url = myExtension.getCompilerOutputUrl();
     final String urlCandidate = VfsUtil.pathToUrl(myFolderTextField.getText());
+
+    ExternalSystemProjectTracker.getInstance(myModule.getProject()).scheduleProjectRefresh();
+    ExternalSystemProjectTracker.getInstance(myModule.getProject()).markDirty(HaxelibAutoImport.mySystemProjectId);
 
     // IMPORTANT!: do not save if only "file://"
     // The virtual file system can resolve this (usually to workDir) and can cause a lot of damage when  a clean task is executed.

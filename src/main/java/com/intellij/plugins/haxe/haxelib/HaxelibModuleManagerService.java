@@ -21,11 +21,13 @@ import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.diagnostic.LogLevel;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.startup.ProjectActivity;
+import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import lombok.CustomLog;
@@ -73,6 +75,7 @@ public class HaxelibModuleManagerService implements ProjectManagerListener, Proj
   public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
     for (Module module : modules) {
       log.debug("Module added event for " + module.getName());
+      ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
     }
   }
 
@@ -80,6 +83,7 @@ public class HaxelibModuleManagerService implements ProjectManagerListener, Proj
   public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
     HaxelibCacheManager.removeInstance(module);
     HaxelibProjectUpdater.getInstance().findProjectTracker(project).moduleRemoved(module);
+    ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
   }
 
   @Override

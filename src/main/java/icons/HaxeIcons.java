@@ -40,5 +40,7 @@ public class HaxeIcons {
   public static final Icon LIME_LOGO = load("/icons/buildsystem/lime.svg");
   public static final Icon OPENFL_LOGO = load("/icons/buildsystem/openfl.svg");
 
+  public static final Icon HAXE_RELOAD = load("/icons/Haxe_reload.svg");
+
 
 }

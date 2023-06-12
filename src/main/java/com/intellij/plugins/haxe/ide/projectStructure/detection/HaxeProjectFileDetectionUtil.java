@@ -18,7 +18,7 @@ import java.util.Optional;
 public class HaxeProjectFileDetectionUtil {
 
   public boolean isOpenFLProject(VirtualFile file) {
-    if (file.isDirectory()) return false;
+    if (file == null || file.isDirectory()) return false;
     if (fileExtensionIs(file, "xml")) {
       return guessProjectType(file) == XmlProjectType.OPENFL;
     }
@@ -26,7 +26,7 @@ public class HaxeProjectFileDetectionUtil {
   }
 
   public boolean isLimeProject(VirtualFile file) {
-    if (file.isDirectory()) return false;
+    if (file == null || file.isDirectory()) return false;
     if (fileExtensionIs(file, "xml")) {
       return guessProjectType(file) == XmlProjectType.LIME;
     }
@@ -34,12 +34,12 @@ public class HaxeProjectFileDetectionUtil {
   }
 
   public boolean isHxmlProject(VirtualFile file) {
-    if (file.isDirectory()) return false;
+    if (file == null  || file.isDirectory()) return false;
     return  fileExtensionIs(file, "hxml");
   }
 
   public boolean isNMMLProject(VirtualFile file) {
-    if (file.isDirectory()) return false;
+    if (file == null  || file.isDirectory()) return false;
     // nmml files looks like  lime but has different file extension
     if (fileExtensionIs(file, "nmml")) {
       return guessProjectType(file) == XmlProjectType.LIME;

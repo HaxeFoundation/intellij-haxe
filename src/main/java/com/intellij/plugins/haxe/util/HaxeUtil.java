@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.util;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -27,6 +28,7 @@ import com.intellij.openapi.roots.ContentIterator;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import com.intellij.util.FileContentUtil;
 import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +41,8 @@ import java.util.Collection;
  */
 public class HaxeUtil {
   public static void reparseProjectFiles(@NotNull final Project project) {
+
+    ExternalSystemProjectTracker.getInstance(project).markDirty(HaxelibAutoImport.mySystemProjectId);
     Task.Backgroundable task = new Task.Backgroundable(project, HaxeBundle.message("haxe.project.reparsing"), false) {
       public void run(@NotNull ProgressIndicator indicator) {
         final Collection<VirtualFile> haxeFiles = new ArrayList<VirtualFile>();

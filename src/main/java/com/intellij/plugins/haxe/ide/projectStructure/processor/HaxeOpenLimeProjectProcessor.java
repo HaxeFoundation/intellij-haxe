@@ -23,6 +23,6 @@ public class HaxeOpenLimeProjectProcessor extends HaxeProjectProcessor {
 
   @Override
   public boolean canOpenProject(@NotNull VirtualFile file) {
-    return HaxeProjectFileDetectionUtil.isLimeProject(file);
+    return super.canOpenProject(file) && HaxeProjectFileDetectionUtil.isLimeProject(file);
   }
 }

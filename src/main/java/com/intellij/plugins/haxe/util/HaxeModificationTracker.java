@@ -16,6 +16,7 @@
 package com.intellij.plugins.haxe.util;
 
 
+import com.intellij.openapi.externalSystem.autoimport.ExternalSystemProjectTracker;
 import lombok.CustomLog;
 
 import javax.management.RuntimeErrorException;

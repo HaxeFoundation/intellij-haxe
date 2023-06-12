@@ -1,8 +1,10 @@
 package com.intellij.plugins.haxe.haxelib;
 
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +19,7 @@ import java.util.stream.Collectors;
  * A cache manager for library information retrieved from haxelib
  */
 @CustomLog
-public class HaxelibCacheManager {
+public class HaxelibCacheManager implements Disposable {
 
   // current version of haxelib shows versions as date + version + description
   private static Pattern HAXELIB_VERSION_LINE =
@@ -44,9 +46,10 @@ public class HaxelibCacheManager {
   private final Map<String, Set<String>> installedLibraries = new HashMap<>();
   private final Map<String, Set<String>> availableLibraries = new HashMap<>();
 
-  private final Module module;
+  private Module module;
 
   private HaxelibCacheManager(Module module) {
+    Disposer.register(module, this);
     this.module = module;
   }
 
@@ -139,5 +142,11 @@ public class HaxelibCacheManager {
       return matcher.group("version").trim();
     }
     return null;
+  }
+
+  @Override
+  public void dispose() {
+    instances.clear();
+    module = null;
   }
 }

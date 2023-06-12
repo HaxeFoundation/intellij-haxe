@@ -23,6 +23,8 @@ public class HaxeOpenHxmlProjectProcessor extends HaxeProjectProcessor {
 
   @Override
   public boolean canOpenProject(@NotNull VirtualFile file) {
-    return HaxeProjectFileDetectionUtil.isHxmlProject(file);
+    return super.canOpenProject(file) && HaxeProjectFileDetectionUtil.isHxmlProject(file);
   }
+
+
 }

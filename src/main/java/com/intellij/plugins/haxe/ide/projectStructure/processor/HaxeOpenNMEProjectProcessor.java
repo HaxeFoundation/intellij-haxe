@@ -23,6 +23,6 @@ public class HaxeOpenNMEProjectProcessor extends HaxeProjectProcessor {
 
   @Override
   public boolean canOpenProject(@NotNull VirtualFile file) {
-    return HaxeProjectFileDetectionUtil.isNMMLProject(file);
+    return super.canOpenProject(file) && HaxeProjectFileDetectionUtil.isNMMLProject(file);
   }
 }

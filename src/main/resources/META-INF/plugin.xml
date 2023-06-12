@@ -61,6 +61,7 @@
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
+    <externalIconProvider implementationClass="com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibIconProvider"  key="Haxelib"/>
 
     <fileType
         name="Haxe"
@@ -360,14 +361,34 @@
     </action>
 
 
+    <action id="Haxe.project.openfl.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsOpenFlProjectAction"
+            text="Load As Project"
+            icon="HaxeIcons.OPENFL_LOGO">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+    </action>
+
+    <action id="Haxe.project.nme.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsNmeProjectAction"
+            text="Load As Project"
+            icon="HaxeIcons.NMML_LOGO">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+    </action>
+
+    <action id="Haxe.project.hxml.load-project-file" class="com.intellij.plugins.haxe.ide.actions.haxelib.loadproject.LoadAsHxmlProjectAction"
+            text="Load As Project"
+            icon="HaxeIcons.HAXE_LOGO">
+      <add-to-group group-id="ProjectViewPopupMenu"/>
+    </action>
+
     <action id="Haxe.project.sync-libs" class="com.intellij.plugins.haxe.ide.actions.haxelib.SyncProjectLibraryListAction"
             text="Sync Libraries"
             icon="AllIcons.Actions.Refresh">
     </action>
+
     <action id="Haxe.haxlib.update-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.UpdateHaxeLibCacheAction"
             text="Update Haxelib Cache"
             icon="AllIcons.Actions.Refresh">
     </action>
+
 
     <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe">
       <reference id="Haxe.project.sync-libs"/>
@@ -375,7 +396,6 @@
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="EditorPopupMenu"/>
     </group>
-
 
   </actions>
 </idea-plugin>

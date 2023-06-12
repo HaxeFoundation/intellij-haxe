@@ -7,6 +7,7 @@ import com.intellij.openapi.roots.ui.configuration.ModulesProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.projectStructure.detection.HaxeProjectFileDetectionUtil;
 import icons.HaxeIcons;
+import lombok.CustomLog;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.util.Objects;
 
+@CustomLog
 public class HaxeOpenOpenFlProjectProcessor extends HaxeProjectProcessor {
   @NotNull
   @Override
@@ -29,6 +31,6 @@ public class HaxeOpenOpenFlProjectProcessor extends HaxeProjectProcessor {
 
   @Override
   public boolean canOpenProject(@NotNull VirtualFile file) {
-    return HaxeProjectFileDetectionUtil.isOpenFLProject(file);
+    return super.canOpenProject(file) && HaxeProjectFileDetectionUtil.isOpenFLProject(file);
   }
 }
