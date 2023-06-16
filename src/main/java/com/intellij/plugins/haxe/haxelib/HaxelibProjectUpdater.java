@@ -754,13 +754,9 @@ public class HaxelibProjectUpdater {
 
 
   public void synchronizeClasspaths(@NotNull ProjectTracker tracker) {
-    //TODO mlo  only use this  when force resync is required
-    boolean forceUpdate = true;
-
     ProgressManager progressManager = ProgressManager.getInstance();
-    progressManager.runProcessWithProgressSynchronously(()-> syncProjectClasspath(tracker, forceUpdate), "Synchronizing Project Classpaths...", false, tracker.getProject());
-    progressManager.runProcessWithProgressSynchronously(()-> syncModuleClasspaths(tracker, forceUpdate), "Synchronizing Module Classpaths...", false, tracker.getProject());
-
+    progressManager.executeProcessUnderProgress(()-> syncProjectClasspath(tracker, true), progressManager.getProgressIndicator());
+    progressManager.executeProcessUnderProgress(()-> syncModuleClasspaths(tracker, true), progressManager.getProgressIndicator());
 
   }
 
