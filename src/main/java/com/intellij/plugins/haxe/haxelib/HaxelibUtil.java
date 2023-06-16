@@ -378,6 +378,8 @@ public class HaxelibUtil {
             }else {
               missingList.add(new MissingLibInfo( data.name, data.version,  false));
             }
+          }else {
+            missingList.add(new MissingLibInfo( data.name, data.version,  false));
           }
         }
       }

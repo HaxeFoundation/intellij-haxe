@@ -76,21 +76,29 @@ public class HaxelibNotifier {
       .map(info -> info.name() + Optional.ofNullable(info.version()).map(s -> ":"+s).orElse(""))
       .collect(Collectors.joining(", "));
 
+    List<HaxelibUtil.MissingLibInfo> installable = list.stream().filter(HaxelibUtil.MissingLibInfo::installable).toList();
+
     // do not create notification for empty string
     Notification notification = NotificationGroupManager.getInstance()
       .getNotificationGroup("haxe.haxelib.warning")
       .createNotification("", NotificationType.WARNING);
 
     String message = HaxeBundle.message("haxe.haxelib.libraries.missing.with.version", libNames);
-    List<AnAction> actions = list.stream().map(info -> installLibAction(module, info.name(), info.version(), notification))
+
+    List<AnAction> actions = installable.stream()
+        .map(info -> installLibAction(module, info.name(), info.version(), notification))
         .toList();
 
 
-    notification.setTitle(HaxeBundle.message("haxe.haxelib.library.dependencies"))
-      .setContent(message)
-      .addAction(installAllAction(module, list, notification));
-    //Single lib install options
-    actions.forEach(notification::addAction);
+    notification.setTitle(HaxeBundle.message("haxe.haxelib.library.dependencies")).setContent(message);
+      if(!installable.isEmpty()) {
+        if(installable.size()> 1) {
+          notification.addAction(installAllAction(module, list, notification));
+        }
+        //solo install action
+        actions.forEach(notification::addAction);
+
+      }
 
     notification.notify(module.getProject());
   }

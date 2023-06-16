@@ -53,7 +53,7 @@ public class HaxelibInstalledIndex {
       for (String line : listCmdOutput) {
         int firstColon = line.indexOf(":");
 
-        String libName = line.substring(0,firstColon);;
+        String libName = line.substring(0,firstColon);
         String libVersions = line.substring(firstColon+1);
 
         index.installedLibraries.put(libName, new ConcurrentSkipListSet<>());
