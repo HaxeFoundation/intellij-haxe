@@ -396,6 +396,7 @@ private functionCommonBody ::= blockStatement
                              | forStatement
                              | whileStatement
                              | doWhileStatement
+                             | switchStatement
                              | expression ';'
                              | ';'
 
