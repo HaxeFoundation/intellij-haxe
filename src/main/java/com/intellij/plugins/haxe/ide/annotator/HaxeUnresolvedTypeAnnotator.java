@@ -40,7 +40,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeTypeAnnotator extends HaxeVisitor implements Annotator {
+public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotator {
   private static final AnnotatorTracker ANNOTATOR_TRACKER = new AnnotatorTracker("AnnotatorTracker");
   private AnnotationHolder myHolder = null;
 

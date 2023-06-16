@@ -32,7 +32,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.apache.commons.lang.StringUtils;
@@ -61,7 +61,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                       String... additionalFiles)
     throws Exception {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeTypeAnnotator());
+    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeUnresolvedTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
     //registerInspectionsForTesting(HaxeHighlightRangeExtension.getInspectionProvider(), myFixture.getProject(), unsetInspections);
     registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);

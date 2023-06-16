@@ -21,10 +21,9 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.util.ArrayUtil;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -46,7 +45,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
     myFixture.configureByFile(getTestName(false) + ".hx");
-    final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
+    final HaxeUnresolvedTypeAnnotator annotator = new HaxeUnresolvedTypeAnnotator();
     try {
       LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
       myFixture.enableInspections(getAnnotatorBasedInspection());

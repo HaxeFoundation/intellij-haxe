@@ -47,6 +47,10 @@ public class HaxeSlowColorAnnotator implements Annotator {
       if (chain) {
         if (tryAnnotateQName(node, holder)) return;
       }
+      if (reference instanceof HaxeLiteralExpression|| reference instanceof  HaxeThisExpression) {
+        //skipping literal expression
+        return;
+      }
       PsiElement element = reference.resolveToComponentName();
 
       if (element instanceof HaxeComponentName) {

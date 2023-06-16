@@ -21,7 +21,7 @@ import com.intellij.lang.LanguageAnnotators;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
-import com.intellij.plugins.haxe.ide.annotator.HaxeTypeAnnotator;
+import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
 import org.junit.Test;
 
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
@@ -34,7 +34,7 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
     boolean old = HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK;
     HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK = true;
     myFixture.configureByFiles(getTestName(false) + ".hx");
-    final HaxeTypeAnnotator annotator = new HaxeTypeAnnotator();
+    final HaxeUnresolvedTypeAnnotator annotator = new HaxeUnresolvedTypeAnnotator();
     LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
     myFixture.enableInspections(getAnnotatorBasedInspection());
     myFixture.testHighlighting(true, false, false);

@@ -25,6 +25,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -73,6 +74,15 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
         PsiElement nameIdentifier = reference.getReferenceNameElement();
         if (nameIdentifier == null) return;
+        if (isPartOfImportStatement(reference)) {
+          result.add(manager.createProblemDescriptor(
+            nameIdentifier,
+            TextRange.from(0, nameIdentifier.getTextLength()),
+            getDisplayName(),
+            ProblemHighlightType.ERROR,
+            isOnTheFly
+          ));
+        }
         result.add(manager.createProblemDescriptor(
           nameIdentifier,
           TextRange.from(0, nameIdentifier.getTextLength()),
@@ -83,5 +93,13 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       }
     }.visitFile(file);
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
+  }
+
+  private boolean isPartOfImportStatement(HaxeReferenceExpression reference) {
+    PsiElement parent = reference.getParent();
+    while (parent instanceof HaxeReferenceExpression) {
+      parent = parent.getParent();
+    }
+    return parent instanceof HaxeImportStatement;
   }
 }
