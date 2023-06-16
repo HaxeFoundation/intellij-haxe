@@ -444,11 +444,11 @@ public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getPsiElementType(@NotNull PsiElement element, @Nullable PsiElement resolveContext, HaxeGenericResolver resolver) {
     if (element == resolveContext) return SpecificTypeReference.getInvalid(element).createHolder();
-    if (element instanceof HaxeReferenceExpression) {
+    if (element instanceof HaxeReferenceExpression expression) {
       // First, try to resolve it to a class -- this deals with field-level specializations.
       // This calls the old resolver which doesn't deal with expressions.
       ResultHolder resultHolder = null;
-      HaxeClassResolveResult result = ((HaxeReferenceExpression)element).resolveHaxeClass();
+      HaxeClassResolveResult result = expression.resolveHaxeClass();
       HaxeClass haxeClass = result.getHaxeClass();
       if (haxeClass instanceof HaxeSpecificFunction) {
         resultHolder = new ResultHolder(SpecificFunctionReference.create((HaxeSpecificFunction)haxeClass));
@@ -457,22 +457,22 @@ public class HaxeTypeResolver {
       }
       // If it doesn't resolve to a class, fall back to whatever *does* resolve to. This calls
       // the newer resolve code (this class), which does deal with expressions properly.
-      PsiElement targetElement = ((HaxeReferenceExpression)element).resolve();
-      if (null == resultHolder && targetElement instanceof HaxePsiField) {
-        resultHolder = getTypeFromFieldDeclaration((HaxePsiField)targetElement, element, resolver);
+      PsiElement targetElement = expression.resolve();
+      if (null == resultHolder && targetElement instanceof HaxePsiField psiField) {
+        resultHolder = getTypeFromFieldDeclaration(psiField, element, resolver);
       }
 
       if (null != resultHolder) {
         // If it's a constant, grab the constant value.
-        if (targetElement instanceof HaxePsiField) {
-          HaxeFieldModel model = new HaxeFieldModel((HaxePsiField)targetElement);
+        if (targetElement instanceof HaxePsiField field) {
+          HaxeFieldModel model = new HaxeFieldModel(field);
           if (model.isConstant()) {
             resultHolder = resultHolder.withConstantValue(
               model.isEnumValue() ? model.getBasePsi() : model.getInitializerExpression());
           }
         }
-        if (targetElement instanceof HaxeLocalVarDeclaration) {
-          HaxeLocalVarModel model = new HaxeLocalVarModel((HaxeLocalVarDeclaration)targetElement);
+        if (targetElement instanceof HaxeLocalVarDeclaration varDeclaration) {
+          HaxeLocalVarModel model = new HaxeLocalVarModel(varDeclaration);
           if (model.isFinal()) {
             resultHolder.disableMutating();
           }

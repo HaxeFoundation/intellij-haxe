@@ -287,9 +287,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (log.isTraceEnabled()) log.trace(traceMsg(null));
     final ResolveResult[] resolveResults = multiResolve(incompleteCode);
 
-    PsiElement resolved = resolveResults.length == 0 ||
-                          resolveResults.length > 1 ||
-                          !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
+    PsiElement resolved = resolveResults.length != 1 || !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
     if (log.isTraceEnabled()) log.trace(traceMsg("Resolved to " + (resolved != null ? resolved.toString() : "<null>")));
     return resolved;
   }

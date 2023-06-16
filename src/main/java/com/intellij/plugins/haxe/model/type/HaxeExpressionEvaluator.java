@@ -348,8 +348,8 @@ public class HaxeExpressionEvaluator {
       ResultHolder typeHolder = handle(children[0], context, resolver);
       boolean resolved = !typeHolder.getType().isUnknown();
       for (int n = 1; n < children.length; n++) {
-        String accessName = children[n].getText();
-        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && "code".equals(accessName)) {
+        PsiElement child = children[n];
+        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && child.textMatches("code")) {
           String str = (String)typeHolder.getType().getConstant();
           typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
           if (str == null || str.length() != 1) {
@@ -367,6 +367,7 @@ public class HaxeExpressionEvaluator {
           if (null != typeHolder.getClassType()) {
             localResolver.addAll(typeHolder.getClassType().getGenericResolver());
           }
+          String accessName = child.getText();
           ResultHolder access = typeHolder.getType().access(accessName, context, localResolver);
           if (access == null) {
             resolved = false;
@@ -728,11 +729,8 @@ public class HaxeExpressionEvaluator {
           for (int i = 0; i < list.size(); i++) {
             HaxeParameter parameter = list.get(i);
             ResultHolder argumentType = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
-            String argumentName = parameter.getName();
-            if (argumentName != null) {
-              context.setLocal(argumentName, argumentType);
-            }
-            arguments.add(new Argument(i, parameter.getOptionalMark() != null, argumentType, argumentName));
+            context.setLocal(parameter.getName(), argumentType);
+            arguments.add(new Argument(i, parameter.getOptionalMark() != null, argumentType, parameter.getName()));
           } // TODO: Add Void if list.size() == 0
         }
         context.addLambda(context.createChild(function.getLastChild()));
@@ -823,19 +821,15 @@ public class HaxeExpressionEvaluator {
       return HaxeTypeUnifier.unify(handle(list[1], context, resolver).getType(), handle(list[2], context, resolver).getType(), element).createHolder();
     }
 
-    if (element instanceof HaxePrefixExpression) {
-      HaxeExpression expression = ((HaxePrefixExpression)element).getExpression();
-      if (expression == null) {
-        return handle(element.getFirstChild(), context, resolver);
-      } else {
-        ResultHolder typeHolder = handle(expression, context, resolver);
-        SpecificTypeReference type = typeHolder.getType();
-        if (type.getConstant() != null) {
-          String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
-          return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
-        }
-        return typeHolder;
+    if (element instanceof HaxePrefixExpression prefixExpression) {
+      HaxeExpression expression = prefixExpression.getExpression();
+      ResultHolder typeHolder = handle(expression, context, resolver);
+      SpecificTypeReference type = typeHolder.getType();
+      if (type.getConstant() != null) {
+        String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
+        return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
       }
+      return typeHolder;
     }
 
     if (
