@@ -43,4 +43,7 @@ public class HaxeIcons {
   public static final Icon HAXE_RELOAD = load("/icons/Haxe_reload.svg");
 
 
+  public static final Icon TYPEDEF_GUTTER = load("/icons/typedef_gutter.svg");
+
+
 }

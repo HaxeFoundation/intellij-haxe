@@ -41,6 +41,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,8 +68,8 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
 
   protected void collectSlowLineMarkersWorker(@NotNull List<PsiElement> elements, @NotNull Collection<LineMarkerInfo> result) {
     for (PsiElement element : elements) {
-      if (element instanceof HaxeClass) {
-        HaxeLineMarkerProviderNS.collectClassMarkers(result, (HaxeClass)element);
+      if (element instanceof HaxeClass haxeClass) {
+        HaxeLineMarkerProviderNS.collectClassMarkers(result, haxeClass);
       }
     }
   }
@@ -78,29 +79,55 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(new HaxeClass[0]));
 
-    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
+    List<HaxeClass> items = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
+
+    final List<HaxeClass> subClasses = items.stream().filter(c -> !(c instanceof  HaxeTypedefDeclaration)).toList();;
+    final List<HaxeClass> typeDefs = items.stream().filter(c -> c instanceof  HaxeTypedefDeclaration).toList();
+
     final List<HaxeNamedComponent> subItems = new ArrayList<>();
     for (HaxeClass subClass : subClasses) {
-      subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));
+        subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));
     }
 
     final boolean isInterface = HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
-    for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.getNamedSubComponents(haxeClass)) {
-      final HaxeComponentType type = HaxeComponentType.typeOf(haxeNamedComponent);
-      if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
-        LineMarkerInfo item = HaxeLineMarkerProviderNS.tryCreateOverrideMarker(haxeNamedComponent, superItems);
-        if (item != null) {
-          result.add(item);
-        }
-        item = HaxeLineMarkerProviderNS.tryCreateImplementationMarker(haxeNamedComponent, subItems, isInterface);
-        if (item != null) {
-          result.add(item);
+    if (!haxeClass.isTypeDef()) {
+      for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.getNamedSubComponents(haxeClass)) {
+        final HaxeComponentType type = HaxeComponentType.typeOf(haxeNamedComponent);
+        if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
+          LineMarkerInfo item = HaxeLineMarkerProviderNS.tryCreateOverrideMarker(haxeNamedComponent, superItems);
+          if (item != null) {
+            result.add(item);
+          }
+          item = HaxeLineMarkerProviderNS.tryCreateImplementationMarker(haxeNamedComponent, subItems, isInterface);
+          if (item != null) {
+            result.add(item);
+          }
         }
       }
+    }else {
+      HaxeType type = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous().getType();
+      if (type!= null) {
+        HaxeClassResolveResult resolveResult = type.getReferenceExpression().resolveHaxeClass();
+        HaxeClass resolved = resolveResult.getHaxeClass();
+        if(resolved != null) {
+          LineMarkerInfo marker = HaxeLineMarkerProviderNS.createTypedefMarker(haxeClass, List.of(resolved));
+          if (marker != null) {
+            result.add(marker);
+          }
+        }
+      }
+
     }
 
     if (!subClasses.isEmpty()) {
       final LineMarkerInfo marker = HaxeLineMarkerProviderNS.createImplementationMarker(haxeClass, subClasses);
+      if (marker != null) {
+        result.add(marker);
+      }
+    }
+
+    if (!typeDefs.isEmpty()) {
+      final LineMarkerInfo marker = HaxeLineMarkerProviderNS.createTypedefMarker(haxeClass, typeDefs);
       if (marker != null) {
         result.add(marker);
       }
@@ -226,6 +253,36 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       ? AllIcons.Gutter.ImplementedMethod
       : AllIcons.Gutter.OverridenMethod,
       item -> DaemonBundle.message("method.is.implemented.too.many"),
+      new GutterIconNavigationHandler<PsiElement>() {
+        @Override
+        public void navigate(MouseEvent e, PsiElement elt) {
+          PsiElementListNavigator.openTargets(
+            e, HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]),
+            DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), ""),
+            "Subclasses of " + componentWithDeclarationList.getName(),
+            new DefaultPsiElementCellRenderer()
+          );
+        }
+      },
+      GutterIconRenderer.Alignment.RIGHT,
+      accessibleNameProvider
+    );
+  }
+  @Nullable
+  private static LineMarkerInfo createTypedefMarker(final HaxeClass componentWithDeclarationList,
+                                                           final List<HaxeClass> items) {
+    final HaxeComponentName componentName = componentWithDeclarationList.getComponentName();
+    if (componentName == null) {
+      return null;
+    }
+    final PsiElement element = componentName.getIdentifier().getFirstChild();
+    Supplier<String> accessibleNameProvider = () -> componentWithDeclarationList instanceof HaxeTypedefDeclaration ? "Go to Implementation" : "Go to Typedef";
+    boolean isTypeDef = componentWithDeclarationList.isTypeDef();
+    return new LineMarkerInfo<>(
+      element,
+      element.getTextRange(),
+      isTypeDef ? AllIcons.Gutter.ImplementedMethod : HaxeIcons.TYPEDEF_GUTTER,
+      item -> isTypeDef? HaxeBundle.message("haxe.gutter.typedef.implementation") : HaxeBundle.message("haxe.gutter.typedef"),
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {

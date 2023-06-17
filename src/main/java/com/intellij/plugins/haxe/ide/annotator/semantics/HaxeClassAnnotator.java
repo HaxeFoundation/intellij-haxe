@@ -144,14 +144,16 @@ public class HaxeClassAnnotator implements Annotator {
         }
       }
       else if (clazz.isInterface()) {
-        if (!reference.isInterface()) {
+        if (!reference.isInterface() && !reference.isTypedef()) {
           // @TODO: Move to bundle
           holder.newAnnotation(HighlightSeverity.ERROR, "Not an interface").range(reference.getPsi()).create();
         }
       }
-      else if (!reference.isClass()) {
-        // @TODO: Move to bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Not a class").range(reference.getPsi()).create();
+      else if (clazz.isClass() ) {
+         if (!reference.isClass() && !reference.isTypedef()) {
+           // @TODO: Move to bundle
+           holder.newAnnotation(HighlightSeverity.ERROR, "Not a class").range(reference.getPsi()).create();
+         }
       }
 
       final String qname1 = reference.haxeClass.getQualifiedName();
