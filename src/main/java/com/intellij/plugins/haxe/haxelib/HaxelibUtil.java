@@ -111,20 +111,6 @@ public class HaxelibUtil {
     VirtualFile libDir = lfs.findFileByPath(libDirName);
     if (null != libDir) {
       if(libVersion == null) {
-        // Hidden ".dev" file takes precedence.  It contains the path to the library root.
-        VirtualFile dotDev = libDir.findChild(".dev");
-        if (null != dotDev) {
-          try {
-            String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
-            VirtualFile libRoot = lfs.findFileByPath(libRootName);
-            if (null != libRoot) {
-              return libRoot;
-            }
-          }
-          catch (IOException e) {
-            log.debug("IOException reading .dev file for library " + libName, e);
-          }
-        }
         // Hidden ".current" file contains the semantic version (not the path!) of the
         // library that haxelib will use.
         VirtualFile dotCurrent = libDir.findChild(".current");
@@ -142,6 +128,21 @@ public class HaxelibUtil {
             log.debug("IOException reading .current file for library " + libName, e);
           }
         }
+      } else if(libVersion.equalsIgnoreCase("dev")) {
+          // Hidden ".dev" file takes precedence.  It contains the path to the library root.
+          VirtualFile dotDev = libDir.findChild(".dev");
+          if (null != dotDev) {
+            try {
+              String libRootName = FileUtil.loadFile(new File(dotDev.getPath()));
+              VirtualFile libRoot = lfs.findFileByPath(libRootName);
+              if (null != libRoot) {
+                return libRoot;
+              }
+            }
+            catch (IOException e) {
+              log.debug("IOException reading .dev file for library " + libName, e);
+            }
+          }
       }else {
         VirtualFile libVersionDir = libDir.findChild(libVersion.replaceAll("\\.", ","));
         if(libVersionDir!= null  && libVersionDir.exists()) {
