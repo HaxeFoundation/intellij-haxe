@@ -23,7 +23,7 @@ public class HaxelibCacheManager implements Disposable {
 
   // current version of haxelib shows versions as date + version + description
   private static Pattern HAXELIB_VERSION_LINE =
-    Pattern.compile("(?<date>\\d{4}-\\d{2}-\\d{2}\s\\d{2}:\\d{2}:\\d{2})\s(?<version>.*?)\s:\s(?<description>.*)");
+    Pattern.compile("(?<date>\\d{4}-\\d{2}-\\d{2}\s\\d{2}:\\d{2}:\\d{2})\s(?<version>.*?)\s:\s?(?<description>.*)");
 
   private static Map<Module, HaxelibCacheManager> instances = new HashMap<>();
 

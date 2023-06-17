@@ -149,7 +149,7 @@ public class HaxeLibraryReference {
   private String getLoadedVersion() {
     HaxeLibrary library = getLibrary();
     if (library != null) {
-      return library.getVersion().toString();
+      return library.getVersionString();
     }
     return "Unknown";
   }

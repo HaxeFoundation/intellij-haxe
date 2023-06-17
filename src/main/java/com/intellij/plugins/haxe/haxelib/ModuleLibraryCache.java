@@ -95,22 +95,37 @@ public final class ModuleLibraryCache {
   @Nullable
   public HaxeLibrary getLibrary(String name, @Nullable HaxelibSemVer requestedVersion) {
     if (libraryIsInstalled(name)) {
-      List<HaxeLibrary> libs = myCache.get(name);
+      List<HaxeLibrary> libVersions = myCache.get(name);
+      String haxeLibSelectedVersion = haxelibIndex.getSelectedVersion(name);
+
 
       HaxelibSemVer libVersion = Optional.ofNullable(requestedVersion).orElseGet(() -> {
         // if no version specified use haxelib default
-        String version = haxelibIndex.getSelectedVersion(name);
+        String version = haxeLibSelectedVersion;
         return HaxelibSemVer.create(version);
       });
 
-      Optional<HaxeLibrary> libWithRequestedVersion = libs.stream()
-          .filter(library -> libVersion.matchesRequestedVersion(library.getVersion()))
+      if(libVersion == HaxelibSemVer.ANY_VERSION && haxeLibSelectedVersion != null ) {
+        HaxelibSemVer selected = HaxelibSemVer.create(haxeLibSelectedVersion);
+
+        Optional<HaxeLibrary> selectedLib = libVersions.stream()
+          .filter(library -> selected.matchesRequestedVersion(library.getVersion()))
           .findFirst();
+
+        if (selectedLib.isPresent()) {
+          return selectedLib.get();
+        }
+      }
+
+      Optional<HaxeLibrary> libWithRequestedVersion = libVersions.stream()
+        .filter(library -> libVersion.matchesRequestedVersion(library.getVersion()))
+        .findFirst();
 
       if (libWithRequestedVersion.isPresent()) {
         return libWithRequestedVersion.get();
       }
     }
+
     return null;
   }
 

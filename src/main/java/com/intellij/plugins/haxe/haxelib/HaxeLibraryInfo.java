@@ -37,12 +37,14 @@ public class HaxeLibraryInfo {
   final public String name;
   final public HaxelibSemVer semver;
   final public String relativeClasspath;
+  public String versionString;
 
 
-  HaxeLibraryInfo(@NotNull String name, @NotNull String semver, @Nullable String relativeClasspath) {
-    this(name,
-         HaxelibSemVer.create(semver),
-         null != relativeClasspath ? relativeClasspath : ".");
+  HaxeLibraryInfo(@NotNull String name, @NotNull String version, @Nullable String relativeClasspath) {
+    this(name, HaxelibSemVer.create(version), null != relativeClasspath ? relativeClasspath : ".");
+    if (semver == HaxelibSemVer.ZERO_VERSION) {
+      versionString = version;
+    }
   }
 
   HaxeLibraryInfo(@NotNull String name, @NotNull HaxelibSemVer semver, @NotNull String relativeClasspath) {
@@ -64,5 +66,9 @@ public class HaxeLibraryInfo {
   @NotNull
   public HaxelibSemVer getVersion() {
     return semver;
+  }
+  @NotNull
+  public String  getVersionString() {
+    return versionString != null ? versionString : semver.toString();
   }
 }

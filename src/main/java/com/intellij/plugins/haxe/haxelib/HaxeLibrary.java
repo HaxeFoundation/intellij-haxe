@@ -177,6 +177,10 @@ public class HaxeLibrary {
   public HaxelibSemVer getVersion() {
     return mySemVer;
   }
+  @NotNull
+  public String getVersionString() {
+    return myMetadata.getVersion();
+  }
 
   /**
    * Load a library from disk.  This *DOES NOT* place the library into the library manager.
