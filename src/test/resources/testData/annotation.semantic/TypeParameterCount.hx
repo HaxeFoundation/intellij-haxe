@@ -9,7 +9,7 @@ class Test
         var myMap4:Map<String, Int> = new Map<String, Int>();
 
         //Wrong
-        var myMap5:<error descr="Invalid number of type parameters for Map">Map<String></error> = new Map();
-        var myMap6:<error descr="Invalid number of type parameters for Map">Map</error> = new Map<String, Int>();
+        var myMap5:<error descr="Invalid number of type parameters for Map (expected: 2 got: 1)">Map<String></error> = new Map();
+        var myMap6:<error descr="Invalid number of type parameters for Map (expected: 2 got: 0)">Map</error> = new Map<String, Int>();
     }
 }

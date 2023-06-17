@@ -232,10 +232,10 @@ public class HaxeClassModel implements HaxeExposableModel {
 
     if(reference.isAbstract()) {
       SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
-      if(canAssignToFrom(parameterWithRealRealSpecifics, underlying, false)) return true;
+      if(canAssignToFrom(parameterWithRealRealSpecifics, underlying, false, null)) return true;
     }
 
-    return canAssignToFrom(parameterWithRealRealSpecifics, reference, false);
+    return canAssignToFrom(parameterWithRealRealSpecifics, reference, false, null);
   }
 
   public List<SpecificHaxeClassReference> getImplicitCastTypesList(SpecificHaxeClassReference targetType) {
@@ -246,7 +246,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     List<SpecificHaxeClassReference> list = new ArrayList<>();
     for (HaxeMethodModel m : methodsWithMetadata) {
       // TODO consider applying generics from targetType to be more strict about what methods are supported ?
-      if (canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m)), false)) {
+      if (canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m)), false, null)) {
         SpecificHaxeClassReference type = getImplicitCastFromType(m);
         if (type != null) {
           list.add(type);

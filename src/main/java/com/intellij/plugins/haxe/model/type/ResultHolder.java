@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -70,6 +71,9 @@ public class ResultHolder {
   public boolean isUnknown() {
     return type.isUnknown();
   }
+  public boolean missingClassModel() {
+    return !isClassType()  || getClassType().getHaxeClassModel() == null;
+  }
 
   public boolean isVoid() {
     return type.isVoid();
@@ -117,6 +121,11 @@ public class ResultHolder {
     return out;
   }
 
+// this method and the way AnnotationHolder is passed around is probably something we don't want in the future
+// however it is useful to annotate types that we cant properly do a canAssign check
+  public boolean canAssignAnnotateWarnings(ResultHolder that, AnnotationHolder holder) {
+    return HaxeTypeCompatible.canAssignToFromWithAnnotator(this, that, holder);
+  }
   public boolean canAssign(ResultHolder that) {
     return HaxeTypeCompatible.canAssignToFrom(this, that);
   }

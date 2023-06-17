@@ -187,8 +187,8 @@ public enum HaxeSemanticAnnotatorInspections {
 
   public static class MethodSignatureCompatiblityInspection extends HaxeAnnotatorInspection {
     public MethodSignatureCompatiblityInspection() {
-      super("haxe.inspections.method.signature.compatiblity.name",
-            "haxe.inspections.method.signature.compatiblity.description");
+      super("haxe.inspections.method.signature.compatibility.name",
+            "haxe.inspections.method.signature.compatibility.description");
     }
   }
 

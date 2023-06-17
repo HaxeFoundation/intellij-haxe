@@ -19,6 +19,10 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +43,7 @@ public class HaxeTypeCompatible {
     return canAssignToFrom(to, from.getType());
   }
 
-  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
+  static public boolean canAssignToFromWithAnnotator(@Nullable ResultHolder to, @Nullable ResultHolder from, @Nullable AnnotationHolder holder) {
     if (null == to || null == from) return false;
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
@@ -47,7 +51,19 @@ public class HaxeTypeCompatible {
     else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
-    return canAssignToFrom(to.getType(), from.getType(), true);
+    return canAssignToFrom(to.getType(), from.getType(), true, holder);
+  }
+
+  private static void annotateUnableToEvaluate(@NotNull PsiElement from, @NotNull AnnotationHolder holder) {
+    TextRange range = from.getTextRange();
+    if(holder.getCurrentAnnotationSession().getPriorityRange().containsRange(range.getStartOffset(), range.getEndOffset())) {
+      holder.newAnnotation(HighlightSeverity.WEAK_WARNING, HaxeBundle.message("haxe.inspections.assignment.type.compatibility.unable.description")).range(range)
+        .create();
+    }
+  }
+
+  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
+    return canAssignToFromWithAnnotator(to,from, null);
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
@@ -84,14 +100,24 @@ public class HaxeTypeCompatible {
 
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
-    @Nullable SpecificTypeReference from) {
-    return canAssignToFrom(to,from, true);
+    @Nullable SpecificTypeReference from
+  ) {
+    return canAssignToFrom(to,from, true, null);
   }
+  static public boolean canAssignToFrom(
+    @Nullable SpecificTypeReference to,
+    @Nullable SpecificTypeReference from,
+    @Nullable AnnotationHolder holder
+  ) {
+    return canAssignToFrom(to,from, true, holder);
+  }
+
 
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from,
-    Boolean transitive
+    Boolean transitive,
+    @Nullable AnnotationHolder holder
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
@@ -101,21 +127,21 @@ public class HaxeTypeCompatible {
       List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)to, true);
       SpecificFunctionReference fromFunctionType = asFunctionReference(from);
       for(SpecificFunctionReference functionType  : functionTypes) {
-        if(canAssignToFromFunction(functionType, fromFunctionType)) return true;
+        if(canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
       }
     }
     if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, false)) {
       List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
       SpecificFunctionReference toFunctionType = asFunctionReference(to);
       for(SpecificFunctionReference functionType  : functionTypes) {
-        if(canAssignToFromFunction(toFunctionType, functionType)) return true;
+        if(canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
       }
     }
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
       SpecificFunctionReference toRef = asFunctionReference(to);
       SpecificFunctionReference fromRef = asFunctionReference(from);
-      return canAssignToFromFunction(toRef, fromRef);
+      return canAssignToFromFunction(toRef, fromRef, holder);
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
@@ -127,7 +153,8 @@ public class HaxeTypeCompatible {
 
   static private boolean canAssignToFromFunction(
     @NotNull SpecificFunctionReference to,
-    @NotNull SpecificFunctionReference from
+    @NotNull SpecificFunctionReference from,
+    @Nullable AnnotationHolder holder
   ) {
 
     // The Function class is always assignable to other functions.
@@ -151,7 +178,19 @@ public class HaxeTypeCompatible {
         return false;
       }
       for (int n = 0; n < toArgSize; n++) {
-        if (!to.arguments.get(n).canAssignToFrom(from.arguments.get(n))) return false;
+        SpecificFunctionReference.Argument fromArg = from.arguments.get(n);
+        SpecificFunctionReference.Argument toArg = to.arguments.get(n);
+
+
+        // if type is unknown and/or lack model annotate with warning instead of showing unassignable error
+        if (toArg.getType().isUnknown() || toArg.getType().missingClassModel()) {
+          if (holder != null) {
+              annotateUnableToEvaluate(fromArg.getType().getElementContext(), holder);
+          }
+        }else {
+          if (!toArg.canAssignToFrom(fromArg))
+            return false;
+        }
       }
     }
     // Void return on the to just means that the value isn't used/cared about. See
@@ -281,11 +320,14 @@ public class HaxeTypeCompatible {
     ResultHolder[] specificsFrom = from.getSpecifics();
 
     if(to.getHaxeClass().equals(from.getHaxeClass())) {
-      //Class type can only have 1 Spesific (Class<T>) so we only check the first one
-      HaxeClassReference toReference = specificsTo.length > 0 ? specificsTo[0].getClassType().getHaxeClassReference() : null;
-      HaxeClassReference fromReference = specificsFrom.length > 0 ? specificsFrom[0].getClassType().getHaxeClassReference() : null;
-      if(toReference != null && fromReference != null)
-      if (toReference.refersToSameClass(fromReference)) return true;
+      //Class type can only have 1 Specific (Class<T>) so we only check the first one
+      if(specificsTo.length == 1 && specificsFrom.length == 1) {
+        HaxeClassReference toReference = specificsTo[0].getClassType().getHaxeClassReference();
+        HaxeClassReference fromReference = specificsFrom[0].getClassType().getHaxeClassReference();
+        if (toReference.refersToSameClass(fromReference)) return true;
+        // if "target" has dynamic specific, anything from "source" should be allowed
+        if (specificsTo[0].getClassType().isDynamic()) return true;
+      }
     }
 
     if(!from.isContextAType() || from.isContextAnEnumType()) return false;

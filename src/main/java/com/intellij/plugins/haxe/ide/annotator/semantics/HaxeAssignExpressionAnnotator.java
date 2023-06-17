@@ -40,7 +40,7 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
     ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
 
-    if (!lhsType.canAssign(rhsType)) {
+    if (!lhsType.canAssignAnnotateWarnings(rhsType, holder)) {
       List<HaxeExpressionConversionFixer> fixers =
         HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType());
 

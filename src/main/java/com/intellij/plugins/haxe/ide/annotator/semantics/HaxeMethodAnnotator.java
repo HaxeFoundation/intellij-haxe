@@ -337,7 +337,7 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
 
     // Order of assignment compatibility is to parent, from subclass.
-    if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
+    if (!canAssignToFrom(parentResult.getType(), currentResult.getType(), holder)) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       if (parentResult.getType().isUnknown()) {
         holder.newAnnotation(HighlightSeverity.WEAK_WARNING,HaxeBundle.message("haxe.unresolved.type"))

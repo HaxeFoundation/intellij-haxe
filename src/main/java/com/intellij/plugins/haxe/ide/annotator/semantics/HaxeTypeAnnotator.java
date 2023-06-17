@@ -3,10 +3,8 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeGenericParam;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -15,8 +13,6 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.INVALID_TYPE_NAME;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.DYNAMIC;
@@ -57,21 +53,26 @@ public class HaxeTypeAnnotator implements Annotator {
   }
 
   static public void checkValidTypeParameters(final HaxeType type, final AnnotationHolder holder) {
-    if (type.getContext() != null && type.getContext().getParent() instanceof HaxeTypeTag) {
+    PsiElement context = type.getContext();
+    if (context != null && context.getParent() instanceof HaxeTypeTag) {
+      if (context.getParent().getParent() instanceof HaxeParameter) {
+        // if HaxeType is part of a method parameter then  type specifics are possibly inherited
+        //  this check is currently only checking assignment to variables and arguments when calling methods
+        return;
+      }
       SpecificHaxeClassReference haxeClassReference = HaxeTypeResolver.getTypeFromType(type).getClassType();
-
       if (haxeClassReference != null) {
         HaxeClass haxeClass = haxeClassReference.getHaxeClass();
         if (haxeClass != null) {
           // Dynamic is special and does not require Type parameter to de specified
           if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
 
-          int typeParameterCount = countTypeParameters(haxeClassReference);
+          int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
           int classParameterCount = countTypeParameters(haxeClass);
 
           if (typeParameterCount != classParameterCount) {
             String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
-            holder.newAnnotation(HighlightSeverity.ERROR, "Invalid number of type parameters for " + typeName)
+            holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCount, typeParameterCount))
               .range(type)
               .create();
           }
@@ -80,9 +81,6 @@ public class HaxeTypeAnnotator implements Annotator {
     }
   }
 
-  static private int countTypeParameters(SpecificHaxeClassReference reference) {
-    return (int)Stream.of(reference.getSpecifics()).filter(holder -> !holder.isUnknown()).count();
-  }
 
   static private int countTypeParameters(HaxeClass haxeClass) {
     HaxeGenericParam param = haxeClass.getGenericParam();

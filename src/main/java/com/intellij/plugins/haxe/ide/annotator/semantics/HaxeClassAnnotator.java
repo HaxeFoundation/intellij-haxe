@@ -186,7 +186,7 @@ public class HaxeClassAnnotator implements Annotator {
       HaxeClassModel interfazeClass = interfaze.getHaxeClass();
       boolean isDynamic =
         null != interfazeClass && SpecificHaxeClassReference.withoutGenerics(interfazeClass.getReference()).isDynamic();
-      if (interfazeClass == null || !(interfazeClass.isInterface() || isDynamic)) {
+      if (interfazeClass != null && !(interfazeClass.isInterface() || isDynamic)) {
         holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.interface.error.message"))
           .range(interfaze.getPsi())
           .create();

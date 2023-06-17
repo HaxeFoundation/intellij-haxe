@@ -61,6 +61,7 @@ public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCas
 
   @Test
   public void testUpdateUnknownOnLambdas() throws Exception {
+    myFixture.configureByFiles("std/StdTypes.hx", "std/String.hx");
     doTestNoFixWithWarnings();
   }
 }
