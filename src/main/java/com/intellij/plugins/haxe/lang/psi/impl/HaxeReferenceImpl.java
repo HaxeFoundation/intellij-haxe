@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -325,6 +326,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @NotNull
   private HaxeClassResolveResult resolveHaxeClassInternal() {
+    ProgressIndicatorProvider.checkCanceled();
 
     if (isType(HaxeThisExpression.class)) {
       HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);

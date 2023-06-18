@@ -23,6 +23,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -59,6 +60,7 @@ public class HaxeExpressionEvaluator {
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context,
                                                         HaxeGenericResolver resolver) {
+    ProgressIndicatorProvider.checkCanceled();
     context.result = handle(element, context, resolver);
     return context;
   }
