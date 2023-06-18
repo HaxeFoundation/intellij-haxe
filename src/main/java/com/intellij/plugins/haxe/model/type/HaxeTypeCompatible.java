@@ -30,6 +30,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getDynamic;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 public class HaxeTypeCompatible {
@@ -51,7 +52,27 @@ public class HaxeTypeCompatible {
     else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
-    return canAssignToFrom(to.getType(), from.getType(), true, holder);
+    //TODO mlo, hack to allow macro expressions to assign to anything
+    if (isMacroExpression(from)) {
+      from.setType(getDynamic(from.getElementContext()));
+    }
+
+    return canAssignToFrom(to.getType(), from.getType(), true, holder, to.getOrigin(), from.getOrigin());
+  }
+
+  //TODO mlo, hack to allow macro expressions to assign to anything
+  // thoughts: ExprOf<T> might be mapped to T when only one part of the assignment is macro
+  private static boolean isMacroExpression(ResultHolder from) {
+    SpecificHaxeClassReference type = from.getClassType();
+    if (type != null && type.getHaxeClass() != null) {
+      String qualifiedName = type.getHaxeClass().getQualifiedName();
+      return switch (qualifiedName) {
+        case "haxe.macro.Expr" -> true;
+        case "haxe.macro.ExprOf" -> true;
+        default -> false;
+      };
+    }
+    return false;
   }
 
   private static void annotateUnableToEvaluate(@NotNull PsiElement from, @NotNull AnnotationHolder holder) {
@@ -107,14 +128,14 @@ public class HaxeTypeCompatible {
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from
   ) {
-    return canAssignToFrom(to,from, true, null);
+    return canAssignToFrom(to,from, true, null, null, null);
   }
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from,
     @Nullable AnnotationHolder holder
   ) {
-    return canAssignToFrom(to,from, true, holder);
+    return canAssignToFrom(to,from, true, holder, null, null);
   }
 
 
@@ -122,7 +143,9 @@ public class HaxeTypeCompatible {
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from,
     Boolean transitive,
-    @Nullable AnnotationHolder holder
+    @Nullable AnnotationHolder holder,
+    @Nullable PsiElement toOrigin,
+    @Nullable PsiElement fromOrigin
   ) {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
@@ -150,7 +173,7 @@ public class HaxeTypeCompatible {
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
-      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, transitive) ;
+      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, transitive, toOrigin, fromOrigin) ;
     }
 
     return false;
@@ -259,13 +282,15 @@ public class HaxeTypeCompatible {
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
   ) {
-    return canAssignToFromType(to,from, true);
+    return canAssignToFromType(to,from, true, null ,null);
   }
 
   static private boolean canAssignToFromType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from,
-    Boolean transitive
+    Boolean transitive,
+    @Nullable PsiElement toOrigin,
+    @Nullable PsiElement fromOrigin
   ) {
 
     // Null<T> is a special case.  It must act like a T in all ways.  Whereas,
@@ -284,7 +309,7 @@ public class HaxeTypeCompatible {
       String toName = to.getHaxeClass().getName();
       switch (toName) {
         case SpecificTypeReference.ENUM_VALUE:
-          return handleEnumValue(to,from);
+          return handleEnumValue(to,from, fromOrigin);
         case SpecificTypeReference.CLASS:
           return handleClassType(to,from);
         case SpecificTypeReference.ENUM:
@@ -315,10 +340,19 @@ public class HaxeTypeCompatible {
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
   }
 
-  private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+  private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from, @Nullable PsiElement fromOrigin) {
     if(to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) return true;
     if(from.isEnumClass()) return false;
-    return (from.isEnumType() && !from.isContextAType())|| from.isContextAnEnumDeclaration();
+    // assigning the "real" enum Type (as in just the name of the enum/class in code) to a variable of enum type  should not be allowed,
+    // assigning value from  the result of a method call or anything else that has the type as part of a typeTag should be allowed
+    // to be able to separate these 2 cases with the same SpecificHaxeClassReference we need to know the origin of the value
+    // this is a hackish attempt at solving this without  breaking  other part of the code (type.context needs to be the correct class for generics to be resolved correclty)
+    if(fromOrigin != null) {
+      return (from.isEnumType() && !( fromOrigin instanceof HaxeClass))|| from.isContextAnEnumDeclaration();
+    }else {
+      return (from.isEnumType() && !from.isContextAType() )|| from.isContextAnEnumDeclaration();
+    }
+
   }
   private static boolean handleClassType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     ResultHolder[] specificsTo = to.getSpecifics();

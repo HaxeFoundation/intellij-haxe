@@ -77,12 +77,11 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
   private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(new HaxeClass[0]));
+    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(HaxeClass.EMPTY_ARRAY));
 
-    List<HaxeClass> items = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
-
-    final List<HaxeClass> subClasses = items.stream().filter(c -> !(c instanceof  HaxeTypedefDeclaration)).toList();;
-    final List<HaxeClass> typeDefs = items.stream().filter(c -> c instanceof  HaxeTypedefDeclaration).toList();
+    final List<HaxeClass> subs = HaxeInheritanceDefinitionsSearcher.getItemsByQName(haxeClass);
+    final List<HaxeClass> subClasses = subs.stream().filter(c -> !(c instanceof  HaxeTypedefDeclaration)).toList();;
+    final List<HaxeClass> typeDefs = subs.stream().filter(c -> c instanceof  HaxeTypedefDeclaration).toList();
 
     final List<HaxeNamedComponent> subItems = new ArrayList<>();
     for (HaxeClass subClass : subClasses) {

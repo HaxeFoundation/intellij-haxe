@@ -44,7 +44,7 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
 
   public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
-    DefinitionsScopedSearch.search(haxeClass).forEach(element -> {
+    DefinitionsScopedSearch.search(haxeClass).allowParallelProcessing().forEach(element -> {
       if (element instanceof HaxeClass) {
         result.add((HaxeClass)element);
       }

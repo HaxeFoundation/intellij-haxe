@@ -400,6 +400,9 @@ public class HaxeExpressionEvaluator {
             SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
             typeHolder = type.createHolder();
           }
+          else if (subelement instanceof HaxeParameter parameter) {
+            typeHolder = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter);
+          }
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
@@ -451,21 +454,7 @@ public class HaxeExpressionEvaluator {
         }
 
         if(returnType.isClassType() || returnType.isEnumValueType()) {
-          HaxeClassModel model = returnType.getClassType().getHaxeClassModel();
-          if(model == null) {
-            // should not happen but might for literals? (Int?) see UpdateUnknownInGenerics test
-            // this is a fallback to the previous solution for functionTypes
-            return returnType.duplicate();
-          }
-          HaxeClassReference reference = new HaxeClassReference(model, element);
-          if(model.getGenericParams().isEmpty()) {
-            SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withoutGenerics(reference);
-            return new ResultHolder(classReference);
-          } else {
-            SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withGenerics(reference, resolver.getSpecifics());
-            return new ResultHolder(classReference);
-          }
-
+          return returnType.withOrigin(ftype.context);
         }
 
       }

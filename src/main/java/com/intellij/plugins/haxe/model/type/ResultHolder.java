@@ -36,8 +36,14 @@ public class ResultHolder {
   private boolean canMutate = true;
   private int mutationCount = 0;
 
+  private  PsiElement origin;
+
   public ResultHolder(@NotNull SpecificTypeReference type) {
+    this(type, null);
+  }
+  public ResultHolder(@NotNull SpecificTypeReference type, PsiElement origin) {
     this.type = type;
+    this.origin = origin;
   }
 
   @NotNull
@@ -157,5 +163,13 @@ public class ResultHolder {
 
   public PsiElement getElementContext() {
     return type.getElementContext();
+  }
+
+
+  public ResultHolder withOrigin(PsiElement origin) {
+    return new ResultHolder(this.getType(), origin);
+  }
+  public PsiElement getOrigin() {
+    return origin;
   }
 }
