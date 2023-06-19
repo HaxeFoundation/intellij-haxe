@@ -119,11 +119,17 @@ public class HaxeClassReference {
     if (null == other) return false;
 
     HaxeClass myClass = getHaxeClass();
-    if (null == myClass) return false;
 
     HaxeClass otherClass = other.getHaxeClass();
-    if (null == otherClass) return false;
 
+    if (null == myClass && null != otherClass ) return false;
+    if (null == otherClass && null != myClass) return false;
+
+    if (myClass == null && otherClass == null) {
+      // unknown models, best guess generic types, compare text as a best effort
+      // this kan happen when for instance a class A implements interface B and the method signature in both are generics
+      return other.getName().equals(this.getName());
+    }
     // resolve typedefs for correct comparison
     if (myClass.getModel().isTypedef()) {
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(myClass.getContext());

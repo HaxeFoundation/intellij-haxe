@@ -121,9 +121,15 @@ public class HaxeTypeResolver {
 
       HaxeTypeTag typeTag = decl.getTypeTag();
       if (typeTag != null) {
-        final ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
+        ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
+        if(resolver != null) {
+          ResultHolder resolved = resolver.resolve(typeFromTag);
+          if (resolved != null) typeFromTag = resolved;
+        }
         final Object initConstant = result != null ? result.getType().getConstant() : null;
-        result = typeFromTag.withConstantValue(initConstant);
+        if(typeFromTag != null) {
+          result = typeFromTag.withConstantValue(initConstant);
+        }
       }
 
       if (result != null) {
@@ -270,8 +276,6 @@ public class HaxeTypeResolver {
       if (typeOrAnonymous != null) {
         return getTypeFromTypeOrAnonymous(typeOrAnonymous);
       }
-
-      //comp.getContainingFile().getNode().putUserData();
 
       if (functionType != null) {
         return getTypeFromFunctionType(functionType);
@@ -518,11 +522,13 @@ public class HaxeTypeResolver {
 
     if (expectedType == null) return;
     for (ReturnInfo retinfo : context.getReturnInfos()) {
-      if (expectedType.canAssign(retinfo.type)) continue;
-      context.addError(
-        retinfo.element,
-        "Can't return " + retinfo.type + ", expected " + expectedType.toStringWithoutConstant()
-      );
+      if (context.holder != null) {
+        if (expectedType.canAssign(retinfo.type)) continue;
+        context.addError(
+          retinfo.element,
+          "Can't return " + retinfo.type + ", expected " + expectedType.toStringWithoutConstant()
+        );
+      }
     }
   }
 

@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.appendMethodGenericResolver;
 import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
 
 /**
@@ -86,7 +87,8 @@ public class HaxeLookupElement extends LookupElement {
 
     HaxeGenericResolver resolver =  null;
     if(leftReference != null && leftReference.getHaxeClass() != null) {
-      resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), leftReference.getGenericResolver());
+      resolver = leftReference.getSpecialization().toGenericResolver(myComponentName);
+      resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), resolver);
     }
 
 

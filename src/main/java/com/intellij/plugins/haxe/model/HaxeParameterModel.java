@@ -22,15 +22,15 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import static com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference.propagateGenericsToType;
 
 /**
  * HaxeParameterModels (parameter) appear in method and catch parameters -- not type parameters.
@@ -88,6 +88,13 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
     ResultHolder typeResult = getType();
     if (resolver != null) {
+      if(typeResult.getType() instanceof SpecificHaxeClassReference classReference) {
+        propagateGenericsToType(classReference, resolver);
+      }
+      if(typeResult.getType() instanceof SpecificFunctionReference functionReference) {
+      // TODO propagate to functionTypes
+        //propagateGenericsToType(classReference, resolver);
+      }
       ResultHolder resolved = resolver.resolve(typeResult.getType().toStringWithoutConstant());
       if (resolved != null) return resolved;
     }

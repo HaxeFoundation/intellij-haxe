@@ -58,6 +58,13 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
 
   @Override
   public HaxeGenericParam getGenericParam() {
+    // anonymous types can have generics, but they are defined in parent
+    // ex. typedef Iterator<T> = {function next():T;}
+    if (getParent() instanceof HaxeTypeOrAnonymous typeOrAnonymous) {
+      if( typeOrAnonymous.getParent() instanceof  HaxeTypedefDeclaration typedef) {
+        return typedef.getGenericParam();
+      }
+    }
     return null;
   }
 

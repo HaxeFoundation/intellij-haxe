@@ -512,7 +512,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             resolver.addAll(modelResolver);
           }
         }
-        final HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
+        //TODO mlo: Not sure if the concept of merging specializations is a good idea, but we need to keep all generics information
+        // from both the left part of the expression and from the method call. (soft merge lets the left side take precedence)
+        HaxeGenericSpecialization mergedSpecialization = leftResult.getSpecialization().softMerge(resolver.getSpecialization(null));
+        HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, mergedSpecialization);
+
+        //final HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
+
         result.specialize(this);
         return result;
       }

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -304,6 +305,8 @@ public class HaxeResolveUtil {
    */
   @NotNull
   public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
+    ProgressIndicatorProvider.checkCanceled();
+
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
     final HashSet<HaxeClass> processed = new HashSet<>();
     final List<HaxeClass> temp = Arrays.asList(rootHaxeClasses.clone());
@@ -778,7 +781,11 @@ public class HaxeResolveUtil {
 
     HaxeClass haxeClass = type == null ? null : tryResolveClassByQName(type);
     if (haxeClass == null && type != null && specialization.containsKey(specializationContext, type.getText())) {
-      return specialization.get(specializationContext, type.getText());
+      HaxeClassResolveResult result = specialization.get(specializationContext, type.getText());
+      if(result.getHaxeClass() instanceof  HaxeAnonymousType) {
+        result.specializeByTypeInference(type);
+      }
+      return result;
     }
 
     if (null != haxeClass && haxeClass.isGeneric()) {
@@ -789,7 +796,11 @@ public class HaxeResolveUtil {
 
     HaxeClassResolveResult result = getHaxeClassResolveResult(haxeClass, specialization.getInnerSpecialization(specializationContext));
     if (result.getHaxeClass() != null) {
-      result.specializeByParameters(type == null ? null : type.getTypeParam());
+      // anonymous types does not have TypeParam directly  but gets it generics from parent
+      // so to avoid "skipping" a hierarchy level we only do this for non-HaxeAnonymous types
+      if(!(result.getHaxeClass() instanceof HaxeAnonymousType)) {
+        result.specializeByParameters(type == null ? null : type.getTypeParam());
+      }
     }
 
     return result;

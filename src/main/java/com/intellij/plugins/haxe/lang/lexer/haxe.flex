@@ -332,15 +332,16 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "private"                                 {  return emitToken( KPRIVATE);  }
 "static"                                  {  return emitToken( KSTATIC);  }
 "dynamic"                                 {  return emitToken( KDYNAMIC);  }
+"overload"                                {  return emitToken( KOVERLOAD);  }
 "never"                                   {  return emitToken( KNEVER);  }
 "override"                                {  return emitToken( KOVERRIDE);  }
 "inline"                                  {  return emitToken( KINLINE);  }
-"macro" [\ ]+                                   {  return emitToken( KMACRO2); }
+"macro" [\ ]+                             {  return emitToken( KMACRO2); }
 
 "untyped"                                 {  return emitToken( KUNTYPED);  }
 "typedef"                                 {  return emitToken( KTYPEDEF);  }
 
-"extern" [\ ]+                                  {  return emitToken( KEXTERN);  }
+"extern" [\ ]+                            {  return emitToken( KEXTERN);  }
 
 "try"                                     {  return emitToken( KTRY);  }
 "catch"                                   {  return emitToken( KCATCH);  }

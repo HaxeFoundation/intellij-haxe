@@ -70,6 +70,7 @@ public class HaxeExpressionEvaluator {
                                      final HaxeExpressionEvaluatorContext context,
                                      final HaxeGenericResolver resolver) {
     try {
+      ProgressIndicatorProvider.checkCanceled();
       return _handle(element, context, resolver);
     }
     catch (NullPointerException e) {
@@ -322,13 +323,15 @@ public class HaxeExpressionEvaluator {
       ResultHolder result = typeTag != null ? typeTagResult : initResult;
 
       if (init != null && typeTag != null) {
-        if (!typeTagResult.canAssign(initResult)) {
-          context.addError(
-            element,
-            "Can't assign " + initResult + " to " + typeTagResult,
-            new HaxeTypeTagChangeFixer(typeTag, initResult.getType()),
-            new HaxeTypeTagRemoveFixer(typeTag)
-          );
+        if (context.holder != null) {
+          if (!typeTagResult.canAssign(initResult)) {
+            context.addError(
+              element,
+              "Can't assign " + initResult + " to " + typeTagResult,
+              new HaxeTypeTagChangeFixer(typeTag, initResult.getType()),
+              new HaxeTypeTagRemoveFixer(typeTag)
+            );
+          }
         }
       }
 
@@ -405,6 +408,12 @@ public class HaxeExpressionEvaluator {
           else if (subelement instanceof HaxeParameter parameter) {
             typeHolder = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter);
           }
+          else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration && varDeclaration.getVarInit() != null) {
+              HaxeVarInit init = varDeclaration.getVarInit();
+              HaxeExpression initExpression = init.getExpression();
+              HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+          }
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
@@ -425,8 +434,8 @@ public class HaxeExpressionEvaluator {
           PsiReference reference = callLeft.getReference();
           if (reference != null) {
             PsiElement subelement = reference.resolve();
-            if (subelement instanceof HaxeMethod) {
-              functionType = ((HaxeMethod)subelement).getModel().getFunctionType(resolver);
+            if (subelement instanceof HaxeMethod haxeMethod) {
+              functionType = haxeMethod.getModel().getFunctionType(resolver);
             }
           }
         }
@@ -905,12 +914,14 @@ public class HaxeExpressionEvaluator {
       HaxeExpression expression = parameterExpressions.get(n);
       ResultHolder value = handle(expression, context, resolver);
 
-      if (!type.canAssign(value)) {
-        context.addError(
-          expression,
-          "Can't assign " + value + " to " + type,
-          new HaxeCastFixer(expression, value.getType(), type.getType())
-        );
+      if (context.holder != null) {
+        if (!type.canAssign(value)) {
+          context.addError(
+            expression,
+            "Can't assign " + value + " to " + type,
+            new HaxeCastFixer(expression, value.getType(), type.getType())
+          );
+        }
       }
     }
 

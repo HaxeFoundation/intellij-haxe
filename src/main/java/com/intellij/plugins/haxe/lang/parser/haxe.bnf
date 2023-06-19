@@ -136,6 +136,7 @@
       kDYNAMIC="dynamic"
       kNEVER="never"
       kOVERRIDE="override"
+      kOVERLOAD="overload"
       kINLINE="inline"
       kMACRO2="macro"
 
@@ -362,7 +363,7 @@ enumBody ::= '{' enumValueDeclaration* '}'
  *  declarations
  */
 
-methodModifier ::= 'extern' | 'final' | 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
+methodModifier ::= 'extern' | 'final' | 'static' | 'inline' | 'dynamic' | 'override' | 'overload' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 fieldModifier ::= 'extern' | 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 mutabilityModifier ::= 'final' | 'var'
 

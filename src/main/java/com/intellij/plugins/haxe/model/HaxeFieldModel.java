@@ -21,6 +21,8 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -169,6 +171,16 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   public boolean isEnumValue() {
     return getBasePsi() instanceof HaxeEnumValueDeclaration;
+  }
+
+  @Override
+  public String getPresentableText(HaxeMethodContext context) {
+    return getPresentableText(context, null);
+  }
+  @Override
+  public String getPresentableText(HaxeMethodContext context, HaxeGenericResolver resolver) {
+    ResultHolder type = getResultType(resolver);
+    return type == null ? this.getName() : this.getName() + ":" + type;
   }
 
   /**

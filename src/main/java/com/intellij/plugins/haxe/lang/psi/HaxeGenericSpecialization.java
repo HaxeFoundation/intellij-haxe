@@ -58,6 +58,23 @@ public class HaxeGenericSpecialization implements Cloneable {
     return new HaxeGenericSpecialization(clonedMap);
   }
 
+
+  //EXPERIMENTAL!
+  public HaxeGenericSpecialization softMerge(HaxeGenericSpecialization specialization) {
+    final LinkedHashMap<String, HaxeClassResolveResult> mergedMap = new LinkedHashMap<String, HaxeClassResolveResult>();
+
+    for (String key : map.keySet()) {
+      mergedMap.put(key, map.get(key));
+    }
+
+    for (String key : specialization.map.keySet()) {
+      if(!mergedMap.containsKey(key)) {
+        mergedMap.put(key, specialization.map.get(key));
+      }
+    }
+    return new HaxeGenericSpecialization(mergedMap);
+  }
+
   protected HaxeGenericSpecialization(LinkedHashMap<String, HaxeClassResolveResult> map) {
     this.map = map;
   }

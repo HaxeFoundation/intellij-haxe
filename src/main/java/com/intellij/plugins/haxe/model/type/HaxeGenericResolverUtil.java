@@ -77,7 +77,7 @@ public class HaxeGenericResolverUtil {
     return resolver;
   }
 
-  @Nullable static HaxeGenericResolver appendMethodGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
+  @NotNull public static HaxeGenericResolver appendMethodGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
     HaxeMethod method = UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
     if (null != method) {
       appendMethodGenericResolver(method, resolver);
@@ -89,7 +89,7 @@ public class HaxeGenericResolverUtil {
     return resolver;
   }
 
-  @Nullable static HaxeGenericResolver appendStatementGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
+  @NotNull static HaxeGenericResolver appendStatementGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
 
     HaxeReference left = HaxeResolveUtil.getLeftReference(element);
@@ -106,7 +106,7 @@ public class HaxeGenericResolverUtil {
     return resolver;
   }
 
-  @Nullable static HaxeGenericResolver appendCallExpressionGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
+  @NotNull static HaxeGenericResolver appendCallExpressionGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
 
     if (element instanceof HaxeCallExpression) {

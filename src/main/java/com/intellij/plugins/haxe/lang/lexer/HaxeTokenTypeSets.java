@@ -128,6 +128,7 @@ public interface HaxeTokenTypeSets {
     KINTERFACE,
     KNULL,
     KOVERRIDE,
+    KOVERLOAD,
     KPACKAGE,
     KPRIVATE,
     KPUBLIC,
