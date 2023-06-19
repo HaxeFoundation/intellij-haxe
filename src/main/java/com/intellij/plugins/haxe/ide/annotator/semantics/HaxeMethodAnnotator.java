@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.lang.annotation.*;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
@@ -276,10 +275,15 @@ public class HaxeMethodAnnotator implements Annotator {
       // the arguments may not resolve to the same thing.  So, we need to resolve the element
       // in the super-class before we can check assignment compatibility.
       SpecificHaxeClassReference resolvedParent = resolveSuperclassElement(scopeResolver, currentParam, parentParam);
+    //TODO mlo: Experimental (get constraints from <T:type>method(argsT):T)
+      HaxeGenericResolver resolverWithConstraints = createGenericResolverFromSignatureConstraints(parentParam);
+      resolverWithConstraints.addAll(scopeResolver);
 
       // Order of assignment compatibility is to parent, from subclass.
       ResultHolder currentParamType = currentParam.getType(scopeResolver);
-      ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? scopeResolver : resolvedParent.getGenericResolver());
+      ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? resolverWithConstraints : resolvedParent.getGenericResolver());
+
+
       if (!canAssignToFrom(parentParamType, currentParamType)) {
 
         typeMismatch(holder, currentParam.getBasePsi(), currentParamType.toString(), parentParamType.toString())
@@ -340,9 +344,13 @@ public class HaxeMethodAnnotator implements Annotator {
     if (!canAssignToFrom(parentResult.getType(), currentResult.getType(), holder)) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       if (parentResult.getType().isUnknown()) {
-        holder.newAnnotation(HighlightSeverity.WEAK_WARNING,HaxeBundle.message("haxe.unresolved.type"))
-          .range(psi.getTextRange())
-          .create();
+        if (parentResult.getType() instanceof SpecificHaxeClassReference classReference) {
+          if (classReference.getHaxeClassModel() == null) {
+            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, HaxeBundle.message("haxe.unresolved.type"))
+              .range(psi.getTextRange())
+              .create();
+          }
+        }
       }
       else {
 
@@ -352,6 +360,18 @@ public class HaxeMethodAnnotator implements Annotator {
           })).create();
       }
     }
+  }
+
+  @NotNull private static HaxeGenericResolver createGenericResolverFromSignatureConstraints(HaxeParameterModel param) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    if(param.getMemberModel() instanceof HaxeMethodModel methodModel) {
+      List<HaxeGenericParamModel> params = methodModel.getGenericParams();
+      for(HaxeGenericParamModel paramModel : params) {
+        ResultHolder constraint = paramModel.getConstraint(null);
+        resolver.add(paramModel.getName(), constraint == null ? new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi())) :  constraint);
+      }
+    }
+    return resolver;
   }
 
   @Nullable
