@@ -24,9 +24,7 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodContext;
@@ -38,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NO_COMPLETION;
 import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.appendMethodGenericResolver;
 import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
 
@@ -55,12 +54,24 @@ public class HaxeLookupElement extends LookupElement {
     final List<HaxeLookupElement> result = new ArrayList<>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
       HaxeMethodContext context = null;
+      boolean shouldBeIgnored = false;
       if (componentNamesExtension.contains(componentName)) {
         context = HaxeMethodContext.EXTENSION;
       } else {
         context = HaxeMethodContext.NO_EXTENSION;
       }
-      result.add(new HaxeLookupElement(leftReferenceResolveResult, componentName, context));
+
+      // TODO figure out if  @:noUsing / NO_USING should be filtered
+
+      if(componentName.getParent() instanceof HaxeFieldDeclaration fieldDeclaration) {
+        shouldBeIgnored = fieldDeclaration.hasCompileTimeMetadata(NO_COMPLETION) ;
+      }
+      if(componentName.getParent() instanceof HaxeMethodDeclaration methodDeclaration) {
+        shouldBeIgnored = methodDeclaration.hasCompileTimeMetadata(NO_COMPLETION) ;
+      }
+      if (!shouldBeIgnored) {
+        result.add(new HaxeLookupElement(leftReferenceResolveResult, componentName, context));
+      }
     }
     return result;
   }
