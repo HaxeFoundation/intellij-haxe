@@ -107,7 +107,7 @@ public class HaxeClassAnnotator implements Annotator {
     for (HaxeMemberModel member : clazz.getMembersSelf()) {
       final String memberName = member.getName();
       HaxeMemberModel repeatedMember = map.get(memberName);
-      if (repeatedMember != null) {
+      if (repeatedMember != null && !repeatedMember.isOverload()) {
         repeatedMembers.add(member);
         repeatedMembers.add(repeatedMember);
       }

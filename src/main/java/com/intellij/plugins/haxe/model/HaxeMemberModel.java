@@ -58,6 +58,9 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   public boolean isFinal() {
     return hasModifier(FINAL);
   }
+  public boolean isOverload() {
+    return hasModifier(OVERLOAD);
+  }
 
   private boolean isOverriddenPublicMethod() {
     if (hasModifier(OVERRIDE)) {
