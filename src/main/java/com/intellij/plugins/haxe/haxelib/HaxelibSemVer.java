@@ -34,7 +34,12 @@ public class HaxelibSemVer {
       super(major, minor, patch);
       this.name = name;
     }
-    @Override public boolean matchesRequestedVersion(HaxelibSemVer requestedVersion) { return true; }
+    @Override public boolean matchesRequestedVersion(HaxelibSemVer requestedVersion) {
+      if(requestedVersion instanceof ConstantVer constantVer) {
+        return constantVer.name.equals(name);
+      }
+      return false;
+    }
     @Override public String toString() { return name; }
     // Don't override equals or hashcode.
     @NotNull

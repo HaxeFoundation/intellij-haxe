@@ -48,7 +48,7 @@ public class HaxeLibrary {
   // TODO: Add the extraParams.hxml data here.  Use the hxml parser; see LimeUtil.getLimeProjectModel() as an example.
 
 
-  private HaxeLibrary(@NotNull String name, @NotNull VirtualFile libraryRoot, @NotNull ModuleLibraryCache owner) {
+  private HaxeLibrary(@NotNull String name, @NotNull String version,  @NotNull VirtualFile libraryRoot, @NotNull ModuleLibraryCache owner) {
     myCache = owner;
     myLibraryRoot = libraryRoot.getUrl();
 
@@ -63,8 +63,13 @@ public class HaxeLibrary {
     } else {
       myName = pathInfo == null ? "" : pathInfo.getName();
     }
+    HaxelibSemVer semVer = switch (version) {
+      case "git" -> HaxelibSemVer.GIT_VERSION;
+      case "dev" -> HaxelibSemVer.DEVELOPMENT_VERSION;
+      default -> HaxelibSemVer.create(myMetadata.getVersion());
+    };
 
-    HaxelibSemVer semVer = HaxelibSemVer.create(myMetadata.getVersion());
+
     if (HaxelibSemVer.ZERO_VERSION == semVer && pathInfo != null) {
       semVer = pathInfo.getVersion();
     }
@@ -199,7 +204,7 @@ public class HaxeLibrary {
     }
 
     try {
-      return new HaxeLibrary(libName, libraryRoot, owner);
+      return new HaxeLibrary(libName, libVersion, libraryRoot, owner);
     } catch (InvalidParameterException e) {
       ; // libName must not have been an url
     } catch (Exception e) {
