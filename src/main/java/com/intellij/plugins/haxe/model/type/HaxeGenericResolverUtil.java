@@ -163,6 +163,14 @@ public class HaxeGenericResolverUtil {
                   ResultHolder[] resolvedSpecifics = null;
                   if (result.isClassType()) {
                      resolvedSpecifics = result.getClassType().getSpecifics();
+                     // if the paramType  is a Class<?> and the expression is a type declaration, then that class should be used in the resolver
+                    if(paramType.isClassType() && expression instanceof HaxeReferenceExpression referenceExpression) {
+                      PsiElement resolve = referenceExpression.resolve();
+                      if(resolve instanceof  HaxeClass ) {
+                        resolvedSpecifics = new ResultHolder[]{new ResultHolder(result.getClassType())};
+                      }
+
+                    }
                   }else if (result.isFunctionType()) {
                     //TODO mlo consider making a method in FunctionType to do this ? (if it works as intended that is)
                     List<SpecificFunctionReference.Argument> arguments = result.getFunctionType().getArguments();
@@ -174,8 +182,17 @@ public class HaxeGenericResolverUtil {
                     for (int i = 0; i < numSpecifics; ++i) {
                       String paramSpecificName = paramSpecifics[i].getType().toStringWithoutConstant();
                       resolverType = methodResolver.resolve(paramSpecificName);
-                      if (null != resolverType && resolverType.isUnknown()) {
-                        methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                      if (null != resolverType) {
+                        if (resolverType.isUnknown()) {
+                          methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+
+                          // replacing current type with resolved  parameter if it can be assigned to the type
+                          // ex. you got an interface and the parameter passed is a type that implements that interface
+                        }else if (resolverType.canAssign(resolvedSpecifics[i])) {
+                          methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                        }else {
+                          //TODO mlo: try to add some kind of warning, parameter does not match constraints
+                        }
                       }
                     }
                   }
