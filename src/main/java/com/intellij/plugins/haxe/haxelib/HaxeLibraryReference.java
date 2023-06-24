@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.ANY_VERSION;
+import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.*;
 
 /**
  * A library wrapper used in HaxeLibraryLists as created when adding
@@ -147,11 +147,18 @@ public class HaxeLibraryReference {
 
   @NotNull
   private String getLoadedVersion() {
+    String version = "Unknown";
     HaxeLibrary library = getLibrary();
     if (library != null) {
-      return library.getVersionString();
+        version = library.getVersionString();
+      if(library.getVersion().matchesRequestedVersion(GIT_VERSION)) {
+        version += " [git]";
+      }
+      if(library.getVersion().matchesRequestedVersion(DEVELOPMENT_VERSION)) {
+        version += " [dev]";
+      }
     }
-    return "Unknown";
+    return version;
   }
 
   /**
