@@ -503,10 +503,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           HaxeExpressionList list = ((HaxeCallExpression)this).getExpressionList();
           if(list != null) {
             List<HaxeExpression> parameterExpressions = list.getExpressionList();
+            int parameterNumber = 0;
             for(HaxeExpression exp:  parameterExpressions) {
-              if (exp instanceof HaxeReference) {
-                HaxeClassResolveResult parameterResult = ((HaxeReference)exp).resolveHaxeClass();
+              if (exp instanceof HaxeReference reference) {
+                HaxeClassResolveResult parameterResult = reference.resolveHaxeClass();
                 modelResolver.addAll(parameterResult.getGenericResolver());
+                // hackish way to see if argument is name of class and should be considered Class<?>
+                if (exp instanceof HaxeReferenceExpression referenceExpression && parameterResult.getHaxeClass() != null) {
+                  if (referenceExpression.getIdentifier().textMatches(parameterResult.getHaxeClass().getName())) {
+                    HaxeParameterModel model = method.getModel().getParameters().get(parameterNumber++);
+                    modelResolver.addAll(parameterOverrideGenericConstraints(model, parameterResult));
+                  }
+                }
+
               }
             }
             resolver.addAll(modelResolver);
@@ -671,6 +680,27 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (log.isTraceEnabled()) log.trace(traceMsg("Trying class resolve by fully qualified name."));
 
     return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+  }
+
+  /*
+    Another "hack" to get the correct return type from generics arguments
+    while the method  may set constraints for generics  the final type value is what is passed as argument
+   */
+  private static HaxeGenericResolver parameterOverrideGenericConstraints(HaxeParameterModel  parameterModel, HaxeClassResolveResult result) {
+    HaxeGenericResolver genericResolver  = new HaxeGenericResolver();
+    ResultHolder type = parameterModel.getType();
+    if(type.isClassType()) {
+      ResultHolder[] specifics = type.getClassType().getSpecifics();
+      if (specifics.length > 0) {
+        HaxeClass haxeClass = result.getHaxeClass();
+        if (specifics[0].missingClassModel() && haxeClass != null) {
+          // consider  generic parameter ?
+          String name = specifics[0].getType().getElementContext().getText();
+          genericResolver.add(name, haxeClass.getModel().getInstanceType());
+        }
+      }
+    }
+    return genericResolver;
   }
 
   @Override
