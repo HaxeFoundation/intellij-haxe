@@ -105,9 +105,16 @@ public class HaxeTypeUnifier {
         );
       }
     }
-
-    // @TODO: Do a proper unification
-    return SpecificTypeReference.getDynamic(a.getElementContext());
+    // hack to get around recursive methods
+    // (they will end up as return type void when recursion prevents the current resolving code form reaching a return statment with a real type)
+    if(a.isVoid() && !b.isVoid()) {
+      return b;
+    }else if (!a.isVoid() && b.isVoid()) {
+      return a;
+    }else {
+      // @TODO: Do a proper unification
+      return SpecificTypeReference.getDynamic(a.getElementContext());
+    }
   }
 
   @NotNull

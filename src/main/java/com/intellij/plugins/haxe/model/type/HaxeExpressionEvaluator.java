@@ -161,8 +161,43 @@ public class HaxeExpressionEvaluator {
         }
       }
 
-    if (element instanceof HaxeSwitchStatement) {
+
+    if (element instanceof HaxeSwitchStatement switchStatement) {
       // TODO: Evaluating result of switch statement should properly implemented
+      List<SpecificTypeReference> switchReturnTypes = new LinkedList<>();
+      SpecificTypeReference bestGuess = null;
+
+      if(switchStatement.getSwitchBlock() != null) {
+        List<HaxeSwitchCase> caseList = switchStatement.getSwitchBlock().getSwitchCaseList();
+
+        for (HaxeSwitchCase switchCase : caseList) {
+          HaxeSwitchCaseBlock block = switchCase.getSwitchCaseBlock();
+          ResultHolder handle = handle(block, context, resolver);
+          switchReturnTypes.add(handle.getType());
+        }
+
+        for (SpecificTypeReference returnType : switchReturnTypes) {
+          if (bestGuess == null) {
+            bestGuess = returnType;
+            continue;
+          }
+          bestGuess = HaxeTypeUnifier.unify(bestGuess, returnType, element);
+        }
+      }
+
+      if (bestGuess != null) {
+        return new ResultHolder(bestGuess);
+      }else {
+        return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
+      }
+    }
+
+    if (element instanceof  HaxeSwitchCaseBlock caseBlock) {
+      List<HaxeReturnStatement> list = caseBlock.getReturnStatementList();
+      for (HaxeReturnStatement  statement : list) {
+        return handle(statement, context, resolver);
+      }
+      return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
     }
 
     if (element instanceof HaxeNewExpression) {
@@ -225,6 +260,7 @@ public class HaxeExpressionEvaluator {
         return SpecificHaxeClassReference.getUnknown(element).createHolder();
       }
     }
+
 
     if (element instanceof HaxeWhileStatement) {
       HaxeDoWhileBody whileBody = ((HaxeWhileStatement)element).getBody();

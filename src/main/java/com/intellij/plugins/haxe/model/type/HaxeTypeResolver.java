@@ -552,7 +552,7 @@ public class HaxeTypeResolver {
                                                                 HaxeGenericResolver resolver) {
     PsiElement element = context.root;
     if (processedElements.get().contains(element)) {
-      context.result = SpecificHaxeClassReference.primitive("Dynamic", element).createHolder();
+      context.result = SpecificHaxeClassReference.getDynamic(element).createHolder();
       return context;
     }
 
