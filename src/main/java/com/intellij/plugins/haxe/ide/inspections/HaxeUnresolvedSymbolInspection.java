@@ -27,6 +27,9 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ArrayUtil;
@@ -83,13 +86,24 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
             isOnTheFly
           ));
         }
-        result.add(manager.createProblemDescriptor(
-          nameIdentifier,
-          TextRange.from(0, nameIdentifier.getTextLength()),
-          getDisplayName(),
-          ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
-          isOnTheFly
-        ));
+        if (!parentIsDynamic(reference)) {
+          result.add(manager.createProblemDescriptor(
+            nameIdentifier,
+            TextRange.from(0, nameIdentifier.getTextLength()),
+            getDisplayName(),
+            ProblemHighlightType.LIKE_UNKNOWN_SYMBOL,
+            isOnTheFly
+          ));
+        }
+      }
+
+      private boolean parentIsDynamic(HaxeReferenceExpression reference) {
+        PsiElement parent = reference.getChildren().length > 0 ? reference.getChildren()[0] : null;
+        if(parent != null ) {
+          ResultHolder type = HaxeTypeResolver.getPsiElementType(parent, new HaxeGenericResolver());
+          return type.isDynamic();
+        }
+        return false;
       }
     }.visitFile(file);
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
