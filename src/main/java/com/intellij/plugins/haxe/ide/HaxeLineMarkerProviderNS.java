@@ -104,18 +104,20 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
         }
       }
     }else {
-      HaxeType type = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous().getType();
-      if (type!= null) {
-        HaxeClassResolveResult resolveResult = type.getReferenceExpression().resolveHaxeClass();
-        HaxeClass resolved = resolveResult.getHaxeClass();
-        if(resolved != null) {
-          LineMarkerInfo marker = HaxeLineMarkerProviderNS.createTypedefMarker(haxeClass, List.of(resolved));
-          if (marker != null) {
-            result.add(marker);
+      HaxeTypeOrAnonymous typeOrAnonymous = ((HaxeTypedefDeclaration)haxeClass).getTypeOrAnonymous();
+      if(typeOrAnonymous != null) {
+        HaxeType type = typeOrAnonymous.getType();
+        if (type != null) {
+          HaxeClassResolveResult resolveResult = type.getReferenceExpression().resolveHaxeClass();
+          HaxeClass resolved = resolveResult.getHaxeClass();
+          if (resolved != null) {
+            LineMarkerInfo marker = HaxeLineMarkerProviderNS.createTypedefMarker(haxeClass, List.of(resolved));
+            if (marker != null) {
+              result.add(marker);
+            }
           }
         }
       }
-
     }
 
     if (!subClasses.isEmpty()) {

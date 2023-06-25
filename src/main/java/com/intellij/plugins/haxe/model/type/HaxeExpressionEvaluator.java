@@ -94,7 +94,7 @@ public class HaxeExpressionEvaluator {
                                       final HaxeExpressionEvaluatorContext context,
                                       HaxeGenericResolver resolver) {
     if (element == null) {
-      return SpecificHaxeClassReference.getUnknown(element).createHolder();
+      return SpecificHaxeClassReference.getUnknown(context.root).createHolder();
     }
     if (resolver == null) resolver = new HaxeGenericResolver();
 
@@ -172,8 +172,10 @@ public class HaxeExpressionEvaluator {
 
         for (HaxeSwitchCase switchCase : caseList) {
           HaxeSwitchCaseBlock block = switchCase.getSwitchCaseBlock();
-          ResultHolder handle = handle(block, context, resolver);
-          switchReturnTypes.add(handle.getType());
+          if(block != null) {
+            ResultHolder handle = handle(block, context, resolver);
+            switchReturnTypes.add(handle.getType());
+          }
         }
 
         for (SpecificTypeReference returnType : switchReturnTypes) {
