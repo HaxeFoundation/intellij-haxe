@@ -89,10 +89,14 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     if (!components.isEmpty()) {
       // operator overload metas don't have "real" references so we skip this check
       if (isCompileTimeMeta(expression, HaxeMeta.OP)) return;
-      expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
-      myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
-        .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
-        .create();
+      //TODO find a better way to avoid duplicates
+      if (expression.getUserData(ANNOTATOR_TRACKER) != HighlightSeverity.ERROR) {
+        expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
+        myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
+          .range(expression)
+          .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
+          .create();
+      }
     }
   }
 
