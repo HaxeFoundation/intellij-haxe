@@ -56,8 +56,7 @@ public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
 
         final List<HXMLCompletionItem> metaTags = HaxeCompletionCache.getInstance(module).getMetaTags();
 
-        for (int i = 0; i < metaTags.size(); i++) {
-          HXMLCompletionItem completionItem = metaTags.get(i);
+        for (HXMLCompletionItem completionItem : metaTags) {
           result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
         }
       }

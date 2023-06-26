@@ -76,8 +76,7 @@ public class HaxeCompletionCache {
 
     metaTags.clear();
 
-    for (int i = 0, size = metaTagsFromCompiler.size(); i < size; i++) {
-      String string = metaTagsFromCompiler.get(i);
+    for (String string : metaTagsFromCompiler) {
       Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {

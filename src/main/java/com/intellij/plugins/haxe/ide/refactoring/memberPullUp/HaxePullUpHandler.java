@@ -166,8 +166,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
 
     HaxeClassResolveResult result;
     HaxeClass haxeClass;
-    for (int i = 0; i < extendsList.size(); i++) {
-      result = extendsList.get(i).getReferenceExpression().resolveHaxeClass();
+    for (HaxeType type : extendsList) {
+      result = type.getReferenceExpression().resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
@@ -176,8 +176,8 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
       }
     }
 
-    for (int i = 0; i < implementsList.size(); i++) {
-      result = implementsList.get(i).getReferenceExpression().resolveHaxeClass();
+    for (HaxeType type : implementsList) {
+      result = type.getReferenceExpression().resolveHaxeClass();
       if (result != null) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {

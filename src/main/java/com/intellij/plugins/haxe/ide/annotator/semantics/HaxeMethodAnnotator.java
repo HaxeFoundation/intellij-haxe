@@ -239,10 +239,13 @@ public class HaxeMethodAnnotator implements Annotator {
 
     List<HaxeParameterModel> currentParameters = currentMethod.getParameters();
     final List<HaxeParameterModel> parentParameters = parentMethod.getParameters();
-    int minParameters = Math.min(currentParameters.size(), parentParameters.size());
 
-    if (currentParameters.size() > parentParameters.size()) {
-      for (int n = minParameters; n < currentParameters.size(); n++) {
+    int currentParametersSize = currentParameters.size();
+    int parentParametersSize = parentParameters.size();
+    int minParameters = Math.min(currentParametersSize, parentParametersSize);
+
+    if (currentParametersSize > parentParametersSize) {
+      for (int n = minParameters; n < currentParametersSize; n++) {
         final HaxeParameterModel currentParam = currentParameters.get(n);
         holder.newAnnotation(HighlightSeverity.ERROR,"Unexpected argument" ).range(currentParam.getBasePsi())
           .withFix(
@@ -255,11 +258,11 @@ public class HaxeMethodAnnotator implements Annotator {
           .create();
       }
     }
-    else if (currentParameters.size() != parentParameters.size()) {
+    else if (currentParametersSize != parentParametersSize) {
       holder.newAnnotation(HighlightSeverity.ERROR, "Not matching arity expected " +
-                                                    parentParameters.size() +
+                                                    parentParametersSize +
                                                     " arguments but found " +
-                                                    currentParameters.size())
+                                                    currentParametersSize)
         .range(currentMethod.getNameOrBasePsi())
         .create();
 

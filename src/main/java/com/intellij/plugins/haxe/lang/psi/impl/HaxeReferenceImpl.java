@@ -251,12 +251,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Nullable
   public PsiElement resolveToComponentName() {
     final ResolveResult[] resolveResults = multiResolve(true, false);
-    final PsiElement result = resolveResults.length == 0 ||
-                              resolveResults.length > 1 ||
+    final PsiElement result = resolveResults.length != 1 ||
                               !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
 
-    if (result != null && result instanceof HaxeNamedComponent) {
-      return ((HaxeNamedComponent)result).getComponentName();
+    if (result != null && result instanceof HaxeNamedComponent namedComponent) {
+      return namedComponent.getComponentName();
     }
 
     return result;

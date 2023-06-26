@@ -34,9 +34,10 @@ public class HaxeParameterDescriptionBuilder {
   static HaxeParameterDescription[] buildFromList(@Nullable List<HaxeParameter> parameters, HaxeClassResolveResult resolveResult) {
     if (parameters == null || parameters.size() == 0) return new HaxeParameterDescription[0];
 
-    HaxeParameterDescription[] result = new HaxeParameterDescription[parameters.size()];
+    int parameterSize = parameters.size();
+    HaxeParameterDescription[] result = new HaxeParameterDescription[parameterSize];
 
-    for (int i = 0; i < parameters.size(); i++) {
+    for (int i = 0; i < parameterSize; i++) {
       HaxeParameter parameter = parameters.get(i);
       HaxeParameterDescription parameterDescription = build(parameter, resolveResult);
 

@@ -729,7 +729,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     ArrayList<PsiClass> classes = collector.getRefereeClasses();
     PsiElementFactory factory = JavaPsiFacade.getInstance(classMember.getProject()).getElementFactory();
 
-    for (int i = 0; i < refs.size(); i++) {
+    int refSize = refs.size();
+    for (int i = 0; i < refSize; i++) {
       PsiJavaCodeReferenceElement ref = refs.get(i);
       PsiElement namedElement = members.get(i);
       PsiClass aClass = classes.get(i);

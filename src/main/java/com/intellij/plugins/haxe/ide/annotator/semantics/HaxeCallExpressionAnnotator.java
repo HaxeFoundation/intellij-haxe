@@ -50,9 +50,10 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           long minArgs = findMinArgsCounts(argumentList);
           long maxArgs = argumentList.size();
 
-          if (expressionArgList.size() < minArgs) {
+          int expressionArgListSize = expressionArgList.size();
+          if (expressionArgListSize < minArgs) {
             TextRange range;
-            if (expressionArgList.size() == 0) {
+            if (expressionArgList.isEmpty()) {
               PsiElement first = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(expr.getExpression());
               PsiElement second = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(first);
               range = TextRange.create(first.getTextOffset(), second.getTextOffset() + 1);
@@ -60,20 +61,20 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             else {
               range = referenceParameterList.getTextRange();
             }
-            String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", minArgs, expressionArgList.size());
+            String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", minArgs, expressionArgListSize);
             holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create();
             return;
           }
 
-          if (expressionArgList.size() > maxArgs) {
-            String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgs, expressionArgList.size());
+          if (expressionArgListSize > maxArgs) {
+            String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgs, expressionArgListSize);
             holder.newAnnotation(HighlightSeverity.ERROR, message).range(referenceParameterList.getTextRange()).create();
             return;
           }
 
 
           //TODO handle required after optionals
-          for (int i = 0; i < expressionArgList.size(); i++) {
+          for (int i = 0; i < expressionArgListSize; i++) {
             HaxeExpression expression = expressionArgList.get(i);
             ResultHolder expressionType = findExpressionType(expression);
 
@@ -150,7 +151,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           if (parameterIndex >= parameters.size() || isVarArg(parameters.get(parameterIndex))) return;
 
           //TODO fix method generics (fun<T>(value:T):T)
-          if (method.getModel().getGenericParams().size() > 0) return;
+          if (!method.getModel().getGenericParams().isEmpty()) return;
 
           HaxeParameterModel parameterModel = parameters.get(parameterIndex);
 
