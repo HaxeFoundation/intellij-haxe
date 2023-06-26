@@ -116,8 +116,9 @@ subprojects {
 // Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
     groups.empty()
-    headerParserRegex.set("\\d+\\.\\d+(\\.\\d+)*(.*)") // old version names does not conform to standard
-    repositoryUrl.set(properties("pluginRepositoryUrl"))
+    keepUnreleasedSection.set(false)
+    headerParserRegex.set("(\\d+\\.\\d+(\\.\\d+)*)(.*)") // old version names does not conform to standard
+//    repositoryUrl.set(properties("pluginRepositoryUrl"))
 }
 
 

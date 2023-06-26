@@ -170,7 +170,8 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
                //};
 
                if (COMPILER_ARGUMENTS.isEmpty()) {
-                 VirtualFile file = parameters.getEditor().getVirtualFile();
+                 //VirtualFile file = parameters.getEditor().getVirtualFile();
+                 VirtualFile file = parameters.getOriginalFile().getVirtualFile();
                  Project project = parameters.getEditor().getProject();
                  Module module = ModuleUtil.findModuleForFile(file, project);
                  getCompilerArguments(module);

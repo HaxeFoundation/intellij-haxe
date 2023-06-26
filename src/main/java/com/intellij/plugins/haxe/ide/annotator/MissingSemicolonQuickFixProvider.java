@@ -29,6 +29,16 @@ public class MissingSemicolonQuickFixProvider implements ErrorQuickFixProvider {
   private static final String MISSING_SEMICOLON = HaxeBundle.message("parsing.error.missing.semi.colon");
 
   @Override
+  public void registerErrorQuickFix(@NotNull PsiErrorElement errorElement, @NotNull HighlightInfo highlightInfo) {
+    if (MISSING_SEMICOLON.equals(errorElement.getErrorDescription())) {
+
+      HaxeMissingSemicolonFixer action = addMissingSemicolon(errorElement);
+      highlightInfo.registerFix(action, null, "Add semicolon", errorElement.getTextRange(), null);
+    }
+  }
+  // TODO use this when Android studio switches to 2023.x
+  /*
+    @Override
   public void registerErrorQuickFix(@NotNull PsiErrorElement errorElement, @NotNull HighlightInfo.Builder builder) {
     if (MISSING_SEMICOLON.equals(errorElement.getErrorDescription())) {
 
@@ -36,6 +46,7 @@ public class MissingSemicolonQuickFixProvider implements ErrorQuickFixProvider {
       builder.registerFix(action, null, "Add semicolon", errorElement.getTextRange(), null);
     }
   }
+   */
 
   @NotNull
   private static HaxeMissingSemicolonFixer addMissingSemicolon(@NotNull PsiElement expr) {

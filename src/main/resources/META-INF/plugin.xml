@@ -320,7 +320,7 @@
 
     <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
 
-    <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
+<!--    <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>-->
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
 

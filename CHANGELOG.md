@@ -1,4 +1,16 @@
-## [Unreleased]
+# Changelog
+
+## Unreleased
+
+## 1.4.0
+* Updated to work with intellij 2023 and Android Studio Giraffe
+* Added "open as project" support for nme, lime/openfl and hxml files
+* Reworked haxelib dependency management
+* Added support for more haxe language features to the parser.
+* Improved type resolving/detection 
+
+
+## 1.3.2 (no official release)
 
 *   Add HXML completion for Haxe 4
 *   Fixed issue where IDE would freeze when writing HXML files

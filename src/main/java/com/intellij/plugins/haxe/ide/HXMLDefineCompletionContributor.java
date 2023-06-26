@@ -57,7 +57,8 @@ public class HXMLDefineCompletionContributor extends CompletionContributor {
                                     ProcessingContext context,
                                     @NotNull CompletionResultSet result) {
 
-        VirtualFile file = parameters.getEditor().getVirtualFile();
+        //VirtualFile file = parameters.getEditor().getVirtualFile();   // TODO use this when Android studio switches to 2023.x
+        VirtualFile file = parameters.getOriginalFile().getVirtualFile();
         Project project = parameters.getEditor().getProject();
         if(project == null) {
           log.error("Unable to provide completion, Project is null");
