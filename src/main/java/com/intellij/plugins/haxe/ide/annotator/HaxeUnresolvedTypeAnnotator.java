@@ -29,9 +29,13 @@ import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,14 +87,23 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     final List<HaxeComponent> components =
       HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);
     if (!components.isEmpty()) {
-      // TODO: "hackish" way to avoid duplicate annotations, try to find a better solution
-      if (expression.getUserData(ANNOTATOR_TRACKER) != HighlightSeverity.ERROR) {
-        expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
-        myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
-          .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
-          .create();
+      // operator overload metas don't have "real" references so we skip this check
+      if (isCompileTimeMeta(expression, HaxeMeta.OP)) return;
+      expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
+      myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
+        .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
+        .create();
+    }
+  }
+
+  private boolean isCompileTimeMeta(HaxeReferenceExpression expression, HaxeMetadataTypeName metadataTypeName) {
+    HaxeMetadataCompileTimeMeta type = PsiTreeUtil.getParentOfType(expression, HaxeMetadataCompileTimeMeta.class);
+    if (type != null) {
+      if (type.isType(metadataTypeName)) {
+        return true;
       }
     }
+    return false;
   }
 
   private static class AnnotatorTracker extends Key<HighlightSeverity> {
