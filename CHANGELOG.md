@@ -1,7 +1,10 @@
 # Changelog
 
 ## Unreleased
-* improved type-checking for function calls with generic types
+
+## 1.4.1
+* Fixed bug that prevented Mac users from creating or opening projects 
+* Improved type-checking for function calls with generic types
 
 ## 1.4.0
 * Updated to work with intellij 2023 and Android Studio Giraffe
