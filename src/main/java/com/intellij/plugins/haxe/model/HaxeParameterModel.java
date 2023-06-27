@@ -67,6 +67,10 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return this.hasOptionalPsi() || this.hasInit();
   }
 
+  public boolean isRest() {
+    return basePsi instanceof  HaxeRestParameter;
+  }
+
   public boolean hasInit() {
     return getVarInitPsi() != null;
   }

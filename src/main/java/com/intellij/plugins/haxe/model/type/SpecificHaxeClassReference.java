@@ -96,13 +96,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return (this.getHaxeClass() instanceof  HaxeEnumDeclaration);
   }
 
-  public boolean isExpr() {
-    return getHaxeClass().getQualifiedName().equals("haxe.macro.Expr");
-  }
-
-  public boolean isRest() {
-    return getHaxeClass().getQualifiedName().equals("haxe.extern.Rest");
-  }
 
   public HaxeClassModel getHaxeClassModel() {
     final HaxeClass aClass = getHaxeClass();

@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 @CustomLog
@@ -636,6 +637,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeClassResolveResult.create(fn, specialization);
       }
     }
+    // RestParameter can have a normal typeTag but the argument is treated as an array, so we have to wrap it in an array
+    if(isType(resolve, HaxeRestParameter.class)) {
+      HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
+      ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, resolve);
+      return SpecificTypeReference.getStdClass(ARRAY, resolve, new ResultHolder[]{type}).asResolveResult();
+
+    }
     if(isType(resolve, HaxeParameter.class)) {
       // check if  type parameters has multiple constraints and try to unify
       HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
@@ -670,6 +678,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               return HaxeClassResolveResult.create(constraint);
             }
           }
+        }else{
+
         }
       }
     }

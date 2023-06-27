@@ -1,7 +1,8 @@
 # Changelog
 
 ## Unreleased
-* Bugfix for function-type generics as method arguments 
+* Bugfix for function-type generics as method arguments
+* Added support for rest arguments  (no type checking yet)
 
 ## 1.4.1
 * Fixed bug that prevented Mac users from creating or opening projects 

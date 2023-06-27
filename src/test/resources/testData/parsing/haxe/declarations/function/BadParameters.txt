@@ -39,7 +39,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('Number')
           HaxePsiToken:,(',')
-          PsiErrorElement:<parameter> expected, got ')'
+          PsiErrorElement:'...' or <parameter> expected, got ')'
             <empty list>
         HaxePsiToken:)(')')
         TYPE_TAG

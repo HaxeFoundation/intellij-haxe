@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -177,11 +178,34 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   @Override
   public boolean isVarArgs() {
-    // In Haxe, the method is set to VarArgs at runtime, via a function call.
+    // In Haxe, the method is set to VarArgs at runtime, via a function call. (Reflect.makeVarArgs)
     // We would need the ability to know if a particular run sequence has
     // called such a function.  I don't think we can pull that off without
     // the compiler's help.
     // TODO: Use compiler completion to detect variable arguments usage.
+    /*
+        class Test {
+        static function _foo(args:Array<Dynamic>)
+            {
+            return "Called with: " + args.join(", ");
+        }
+
+        static var foo:Dynamic = Reflect.makeVarArgs(_foo);
+
+        static function main() {
+            trace("Haxe is great!");
+            trace(foo(1));
+            trace(foo(1, 2));
+            trace(foo(1, 2, 3));
+        }
+    }
+     */
+
+
+   // haxe 4.2 supports rest arguments
+    for (HaxeParameterModel parameter : getModel().getParameters()) {
+      if(parameter.isRest()) return true;
+    }
     return false;
   }
 

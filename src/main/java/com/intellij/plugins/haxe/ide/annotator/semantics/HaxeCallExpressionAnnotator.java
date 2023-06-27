@@ -6,7 +6,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -310,10 +309,13 @@ public class HaxeCallExpressionAnnotator implements Annotator {
   }
 
   private static boolean isVarArg(HaxeParameterModel model) {
-    // TODO : this is a bit of a hack to avoid having to resolve Array Expr and Rest, should probably resolve and compare these properly
-    // haxe.extern.Rest<Float>
+    if(model.isRest()) {
+      return true;
+    }
+    //Legacy solutions for rest arguments
     // Array<haxe.macro.Expr>
-
+    // haxe.extern.Rest<Float>
+    // TODO : this is a bit of a hack to avoid having to resolve Array<Expr> and Rest<> Class, should probably resolve and compare these properly
     if (model.getType().getType() instanceof SpecificHaxeClassReference classType) {
       if (classType.getHaxeClass() != null) {
         ResultHolder[] specifics = classType.getSpecifics();
@@ -322,16 +324,24 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           if (type instanceof SpecificHaxeClassReference specificType) {
             if (specificType.getHaxeClass() != null) {
               // Array<haxe.macro.Expr>
-              if (classType.isArray() && specificType.isExpr()) {
+              if (classType.isArray() && isMacroExpr(specificType)) {
                 return true;
               }
               // haxe.extern.Rest<>
-              return classType.isRest();
+              return isExternRestClass(classType);
             }
           }
         }
       }
     }
     return false;
+  }
+
+  private static boolean isMacroExpr( SpecificHaxeClassReference classReference) {
+    return classReference.getHaxeClass().getQualifiedName().equals("haxe.macro.Expr");
+  }
+
+  private static boolean isExternRestClass(SpecificHaxeClassReference classReference) {
+    return classReference.getHaxeClass().getQualifiedName().equals("haxe.extern.Rest");
   }
 }
