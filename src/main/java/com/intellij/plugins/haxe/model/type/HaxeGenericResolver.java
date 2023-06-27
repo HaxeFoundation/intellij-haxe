@@ -25,6 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class HaxeGenericResolver {
   // This must remain ordered, thus the LinkedHashMap.
@@ -34,6 +35,15 @@ public class HaxeGenericResolver {
     this.resolvers = new LinkedHashMap<String, ResultHolder>();
   }
 
+  public HaxeGenericResolver withoutUnknowns() {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (Map.Entry<String, ResultHolder> entry : resolvers.entrySet()) {
+      if(!entry.getValue().isUnknown()) {
+        resolver.resolvers.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return resolver;
+  }
   public ResultHolder add(@NotNull String name, @NotNull ResultHolder specificType) {
     resolvers.put(name, specificType);
     return specificType;

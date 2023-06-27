@@ -6,15 +6,16 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
+import static com.intellij.plugins.haxe.ide.annotator.semantics.TypeParameterUtil.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromFunctionArgument;
@@ -89,10 +90,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             }
 
             if (!canAssignToFrom(parameterType, expressionType)) {
-              String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
-                                                  parameterType.toPresentationString(),
-                                                  expressionType.toPresentationString());
-              holder.newAnnotation(HighlightSeverity.ERROR, message).range(expression.getTextRange()).create();
+              annotateTypeMismatch(holder, parameterType, expressionType, expression);
             }
           }
         }
@@ -139,6 +137,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           resolver = specialization.toGenericResolver(expr);
         }
 
+        Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
+
         //TODO handle required after optionals
         for (int i = 0; i < expressionArgList.size(); i++) {
           HaxeExpression expression = expressionArgList.get(i);
@@ -150,9 +150,6 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           // var args accept all types so no need to do any more validation
           if (parameterIndex >= parameters.size() || isVarArg(parameters.get(parameterIndex))) return;
 
-          //TODO fix method generics (fun<T>(value:T):T)
-          if (!method.getModel().getGenericParams().isEmpty()) return;
-
           HaxeParameterModel parameterModel = parameters.get(parameterIndex);
 
           //TODO mlo: figure out the best  way to resolve parameter generics from owner method and class
@@ -161,6 +158,9 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           HaxeGenericResolver resolver1 = specialization1.toGenericResolver(parameterModel.getParameterPsi());
           resolver.addAll(resolver1);
           ///  experimental end
+
+          // add constraints from method
+          resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 
           ResultHolder parameterType = parameterModel.getType(resolver);
 
@@ -201,16 +201,58 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             SpecificHaxeClassReference enumType = type.getEnumClass();
             expressionType = enumType.createHolder();
           }
+          if (parameterType.getType() instanceof SpecificHaxeClassReference classReference  ) {
+            boolean containsTypeParameter = containsTypeParameter(parameterType, typeParamMap);
+            if (containsTypeParameter) {
+            String className = classReference.getClassName();
+            //if (typeParamNames.contains(className)) {
 
-          if (!canAssignToFrom(parameterType, expressionType)) {
-            String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
-                                                parameterType.toPresentationString(),
-                                                expressionType.toPresentationString());
-            holder.newAnnotation(HighlightSeverity.ERROR, message).range(expression.getTextRange()).create();
+
+              //ResultHolder constraint =  typeParamMap.get(className);
+              Optional<ResultHolder> optionalConstraint = findConstraintForTypeParameter(parameterType, typeParamMap);
+              if (optionalConstraint.isPresent()) {
+                ResultHolder constraint = optionalConstraint.get();
+                if (!canAssignToFrom(constraint, expressionType)) {
+                  annotateTypeMismatch(holder, constraint, expressionType, expression);
+                }
+              }else {
+                // checks if we have used a unconstrained generic type, and then apply that type to any other arguments with that value
+                ResultHolder resolved = resolver.resolve(className);
+                if(resolved == null) {
+                    resolver.add(className, expressionType);
+                    typeParamMap.put(className, expressionType);
+                }else {
+                  if (!canAssignToFrom(resolved, expressionType)) {
+                    annotateTypeMismatch(holder, resolved, expressionType, expression);
+                  }
+                }
+              }
+            }else {
+              if (parameterType.isClassType() && !containsTypeParameter(parameterType, typeParamMap)) {
+                if (!canAssignToFrom(parameterType, expressionType)) {
+                  annotateTypeMismatch(holder, parameterType, expressionType, expression);
+                }
+              }
+            }
+          }else {
+            if (!canAssignToFrom(parameterType, expressionType)) {
+              annotateTypeMismatch(holder, parameterType, expressionType, expression);
+            }
           }
         }
       }
     }
+  }
+
+
+
+
+  private static void annotateTypeMismatch(AnnotationHolder holder, ResultHolder expected, ResultHolder got, HaxeExpression expression) {
+    String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
+                                        expected.toPresentationString(),
+                                        got.toPresentationString());
+
+    holder.newAnnotation(HighlightSeverity.ERROR, message).range(expression.getTextRange()).create();
   }
 
   private static int findMinArgsCounts(List<HaxeFunctionArgument> argumentList) {

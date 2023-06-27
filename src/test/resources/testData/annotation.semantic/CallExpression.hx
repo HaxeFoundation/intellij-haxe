@@ -18,6 +18,9 @@ class CallExpressionTest {
     function typeDefArg(arg1:MyStruct) {}
     function classInheritArgs(arg1:A) {}
     function interfaceInheritArgs(arg1:C) {}
+    function genericArgs<T>(arg1:T, Arg2:T):T {}
+    function genericConstraintsArgs<T:String>(arg1:T):T {}
+    function genericComplexConstraintsArgs<T:String>(arg1:Array<T>) {}
 
 
     public function new() {
@@ -43,9 +46,12 @@ class CallExpressionTest {
 
         functionArgs("FunctionA", (myInt)->{return "String";}); // CORRECT
         functionArgs("FunctionA", (a:Int)->{return "String";}); // CORRECT
+        functionArgs("FunctionA", intToString); // CORRECT
+
         functionArgs("FunctionA", <error descr="Type mismatch (Expected: 'Int->String' got: 'String->String')">(a:String)->{return "String";}</error>); // WRONG function must accept Int parameter
         functionArgs("FunctionA", <error descr="Type mismatch (Expected: 'Int->String' got: 'Int->Int')">(a:Int)->{return 1;}</error>); // WRONG function must return String
         functionArgs("FunctionA", <error descr="Type mismatch (Expected: 'Int->String' got: 'Int')">1</error>); // WRONG argument type is not a function
+        functionArgs("FunctionA", <error descr="Type mismatch (Expected: 'Int->String' got: 'String->Int')">stringToInt</error>); // WRONG
 
         varArgs("Stirng1", "String2", "String3", "String4 "); //CORRECT
         varArgs("Stirng1"); //CORRECT ( when using varArg, arguments are optional)
@@ -64,9 +70,27 @@ class CallExpressionTest {
 
         typeDefArg(new MyStruct());
 
+        genericArgs(1,2); // CORRECT both args are of same type
+        genericArgs(1, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"2"</error>); // WRONG  type missmatch
+
+        genericConstraintsArgs("Str"); // CORRECT  type must be or extend string
+        genericConstraintsArgs(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>); // WRONG   genric type constraints does not allow type
+
+        genericComplexConstraintsArgs([""] ); // CORRECT Array of T (where T is String)
+        genericComplexConstraintsArgs(<error descr="Type mismatch (Expected: 'Array<String>' got: 'Array<Int>')">[1]</error> ); // WRONG Array of T , T not matching constraints
+
         var myMap:Map<String, Int> = new Map();
         myMap.set("", 1); //CORRECT :  argument types matches Type parameters
         myMap.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>); //WRONG : argument types does not match Type parameters
 
     }
+
+    function intToString(i:Int):String {
+        return "";
+    }
+
+    function stringToInt(s:String):Int {
+        return 1;
+    }
+
 }

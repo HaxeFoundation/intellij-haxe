@@ -98,7 +98,7 @@ public class HaxeExpressionEvaluator {
     }
     if (resolver == null) resolver = new HaxeGenericResolver();
 
-    log.debug("Handling element: " + element);
+    if(log.isDebugEnabled())log.debug("Handling element: " + element);
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
       ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
@@ -480,7 +480,7 @@ public class HaxeExpressionEvaluator {
       }
 
       if (functionType.isUnknown()) {
-        log.debug("Couldn't resolve " + callLeft.getText());
+        if(log.isDebugEnabled()) log.debug("Couldn't resolve " + callLeft.getText());
       }
 
       List<HaxeExpression> parameterExpressions = null;
@@ -655,7 +655,7 @@ public class HaxeExpressionEvaluator {
       } else if (type == HaxeTokenTypes.KNULL) {
         return SpecificHaxeClassReference.primitive("Dynamic", element, HaxeNull.instance).createHolder();
       } else {
-        log.debug("Unhandled token type: " + type);
+        if(log.isDebugEnabled())log.debug("Unhandled token type: " + type);
         return SpecificHaxeClassReference.getDynamic(element).createHolder();
       }
     }
@@ -883,16 +883,14 @@ public class HaxeExpressionEvaluator {
       String operatorText;
       if (children.length == 3) {
         operatorText = children[1].getText();
-        return HaxeOperatorResolver.getBinaryOperatorResult(
-          element, handle(children[0], context, resolver).getType(), handle(children[2], context, resolver).getType(),
-          operatorText, context
-        ).createHolder();
+        SpecificTypeReference left = handle(children[0], context, resolver).getType();
+        SpecificTypeReference right = handle(children[2], context, resolver).getType();
+        return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
       } else {
         operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
-        return HaxeOperatorResolver.getBinaryOperatorResult(
-          element, handle(children[0], context, resolver).getType(), handle(children[1], context, resolver).getType(),
-          operatorText, context
-        ).createHolder();
+        SpecificTypeReference left = handle(children[0], context, resolver).getType();
+        SpecificTypeReference right = handle(children[1], context, resolver).getType();
+        return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
       }
     }
 
@@ -922,7 +920,7 @@ public class HaxeExpressionEvaluator {
     }
 
 
-    log.debug("Unhandled " + element.getClass());
+    if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 

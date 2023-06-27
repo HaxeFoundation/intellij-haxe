@@ -801,4 +801,8 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testTypeParameterCount() throws Throwable {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testAssignFromRecursiveMethod() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 }

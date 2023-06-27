@@ -509,7 +509,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                 modelResolver.addAll(parameterResult.getGenericResolver());
                 // hackish way to see if argument is name of class and should be considered Class<?>
                 if (exp instanceof HaxeReferenceExpression referenceExpression && parameterResult.getHaxeClass() != null) {
-                  if (referenceExpression.getIdentifier().textMatches(parameterResult.getHaxeClass().getName())) {
+                  String name = parameterResult.getHaxeClass().getName();
+                  if (name!= null && referenceExpression.getIdentifier().textMatches(name)) {
                     HaxeParameterModel model = method.getModel().getParameters().get(parameterNumber++);
                     modelResolver.addAll(parameterOverrideGenericConstraints(model, parameterResult));
                   }
