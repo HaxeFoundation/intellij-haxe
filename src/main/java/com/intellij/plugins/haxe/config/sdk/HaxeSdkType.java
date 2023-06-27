@@ -58,6 +58,7 @@ public class HaxeSdkType extends SdkType {
 
   @Override
   public String getVersionString(String sdkHome) {
+    if (sdkHome == null) return "(Haxe version not found)";
     final HaxeSdkData haxeSdkData = HaxeSdkUtil.testHaxeSdk(sdkHome);
     return haxeSdkData != null ? haxeSdkData.getVersion() : super.getVersionString(sdkHome);
   }
