@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Bugfix for function-type generics as method arguments 
 
 ## 1.4.1
 * Fixed bug that prevented Mac users from creating or opening projects 

@@ -313,14 +313,16 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       if (classType.getHaxeClass() != null) {
         ResultHolder[] specifics = classType.getSpecifics();
         if (specifics.length == 1) {
-          SpecificHaxeClassReference specificType = (SpecificHaxeClassReference)specifics[0].getType();
-          if (specificType.getHaxeClass() != null) {
-            // Array<haxe.macro.Expr>
-            if (classType.isArray() && specificType.isExpr()) {
-              return true;
+          SpecificTypeReference type = specifics[0].getType();
+          if (type instanceof SpecificHaxeClassReference specificType) {
+            if (specificType.getHaxeClass() != null) {
+              // Array<haxe.macro.Expr>
+              if (classType.isArray() && specificType.isExpr()) {
+                return true;
+              }
+              // haxe.extern.Rest<>
+              return classType.isRest();
             }
-            // haxe.extern.Rest<>
-            return classType.isRest();
           }
         }
       }
