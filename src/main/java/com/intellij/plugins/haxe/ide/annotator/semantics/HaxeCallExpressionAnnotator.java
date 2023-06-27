@@ -139,6 +139,11 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
         Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
 
+        if (method.getModel().isOverload()) {
+          //TODO implement support for overloaded methods
+          return; //(stopping here to avoid marking arguments as type mismatch)
+        }
+
         //TODO handle required after optionals
         for (int i = 0; i < expressionArgList.size(); i++) {
           HaxeExpression expression = expressionArgList.get(i);
