@@ -1,8 +1,11 @@
 # Changelog
 
 ## Unreleased
+* bugfix for haxelib libraries with dots in name
+* bugfix for haxelib libraries with names with uppercase characters  
 * Bugfix for function-type generics as method arguments
 * Added support for rest arguments  (no type checking yet)
+* Added support for Null-safe navigation
 
 ## 1.4.1
 * Fixed bug that prevented Mac users from creating or opening projects 

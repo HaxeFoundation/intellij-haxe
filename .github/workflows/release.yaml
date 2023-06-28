@@ -49,7 +49,7 @@ jobs:
     strategy:
       fail-fast: true # cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2023.1]
+        IDEA_VERSION: [ 2023.1 ]
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -92,8 +92,8 @@ jobs:
         run: |
           ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
           ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
-          echo name=artifact_name::${ARTIFACT_NAME} >> $GITHUB_OUTPUT
-          echo name=artifact_pathname::${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT
+          echo artifact_name=${ARTIFACT_NAME} >> $GITHUB_OUTPUT
+          echo artifact_pathname=${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT
 
 
       - name: Upload Asset
@@ -104,7 +104,7 @@ jobs:
         with:
           upload_url: ${{ needs.prepare.outputs.upload_url }}
           asset_path: ${{ steps.find_assets.outputs.artifact_pathname }}
-          asset_name: intellij-haxe-${{ matrix.IDEA_VERSION }}.jar
+          asset_name: intellij-haxe-${{ matrix.IDEA_VERSION }}.zip
           asset_content_type: application/java-archive
 
 
