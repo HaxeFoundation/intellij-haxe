@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 1.4.2
 * bugfix for haxelib libraries with dots in name
 * bugfix for haxelib libraries with names with uppercase characters  
 * Bugfix for function-type generics as method arguments
