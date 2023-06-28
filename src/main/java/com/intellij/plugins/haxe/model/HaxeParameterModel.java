@@ -159,7 +159,15 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   @Override
   public String getPresentableText(HaxeMethodContext context, HaxeGenericResolver resolver) {
     final ResultHolder type = getResultType(resolver);
-    return type == null ? this.getName() : this.getName() + ":" + type;
+    if (type == null) {
+      return this.getName();
+    }else {
+      if (!type.isUnknown()) {
+        return this.getName() + ":" + type;
+      }else {
+        return this.getName() + ":" + this.getType();
+      }
+    }
   }
 
   public void remove() {
