@@ -73,10 +73,17 @@ public class HaxeResolveUtil {
     if (node == null) return null;
 
     PsiElement leftExpression = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(node);
-    PsiElement dot = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
-    //PsiElement identifier = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(dot);
+    PsiElement dotOrQuest = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
 
-    if (null == dot || dot.getNode().getElementType() != HaxeTokenTypes.ODOT) {
+
+    if (null == dotOrQuest) {
+      return  null;
+    }
+    //  Null-safe navigation operator (?.) check
+    if (dotOrQuest.getNode().getElementType() == HaxeTokenTypes.OQUEST) {
+      dotOrQuest = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(dotOrQuest);
+    }
+    if (null == dotOrQuest || dotOrQuest.getNode().getElementType() != HaxeTokenTypes.ODOT) {
       return null;
     }
 
