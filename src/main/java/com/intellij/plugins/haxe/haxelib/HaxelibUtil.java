@@ -101,13 +101,16 @@ public class HaxelibUtil {
     }
     String rootName = haxelibRoot.getPath();
 
+    // Lib directory name expected to use commas in place of periods.
+    String libFSName = libName.replaceAll("\\.", ",");
+
     // Forking 'haxelib path' is slow, so we will do what it does without forking.
-    // In this case, it locates a subdirectory named $HAXELIB_PATH/libName/.dev, and
+    // In this case, it locates a subdirectory named $HAXELIB_PATH/libFSName/.dev, and
     // if it exists, uses the path found in that file.
     // Failing that, it looks for .current in the same path, and uses the semantic
     // version found in that file to compute the path name.
 
-    String libDirName = HaxeFileUtil.joinPath(rootName, libName);
+    String libDirName = HaxeFileUtil.joinPath(rootName, libFSName);
     VirtualFile libDir = lfs.findFileByPath(libDirName);
     if (null != libDir) {
       if(libVersion == null) {
@@ -118,7 +121,7 @@ public class HaxelibUtil {
           try {
             String currentVer = FileUtil.loadFile(new File(dotCurrent.getPath()));
             HaxelibSemVer semver = HaxelibSemVer.create(currentVer.trim());
-            String libRootName = HaxeFileUtil.joinPath(rootName, libName, semver.toDirString());
+            String libRootName = HaxeFileUtil.joinPath(rootName, libFSName, semver.toDirString());
             VirtualFile libRoot = lfs.findFileByPath(libRootName);
             if (null != libRoot) {
               return libRoot;
