@@ -359,31 +359,40 @@ public class HaxelibUtil {
     List<MissingLibInfo> missingList = new ArrayList<>();
 
     haxeLibData.forEach(data -> {
-      if (data.name != null) {
-        HaxeLibrary lib = libraryManager.getLibrary(data.name, data.semver);
+      String name = data.name;
+      HaxelibSemVer semver = data.semver;
+      if (name != null) {
+        HaxeLibrary lib = libraryManager.getLibrary(name, semver);
+
+        if (lib == null)  {
+          // if not found using case-sensitive name try lowercase search
+          // in some cases `haxelib list` and `haxelib search` does not return the same casing.
+          // it looks like manually installed libs maintain casing while libs installed from haxelib repo are converted to lowercase
+            lib = libraryManager.getLibrary(name.toLowerCase(), semver);
+        }
         if (lib != null) {
-          haxelibNewItems.add(lib.createReference(data.semver));
+          haxelibNewItems.add(lib.createReference(semver));
         }
         else {
-          log.warn("Library specified in XML file is not found: " + data.name);
+          log.warn("Library specified in XML file is not found: " + name);
           HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
           Map<String, Set<String>> libraries = cacheManager.getAvailableLibraries();
 
-          boolean libAvailable = libraries.containsKey(data.name);
+          boolean libAvailable = libraries.containsKey(name);
           if(libAvailable) {
-            Set<String> versions = libraries.getOrDefault(data.name, Set.of());
+            Set<String> versions = libraries.getOrDefault(name, Set.of());
             if(versions.isEmpty()) {
               // attempt to fetch  versions available online for lib
-              versions = cacheManager.fetchAvailableVersions(data.name);
+              versions = cacheManager.fetchAvailableVersions(name);
             }
-            boolean versionAvailable = HaxelibSemVer.isAny(data.semver) || versions.contains(data.version);
+            boolean versionAvailable = HaxelibSemVer.isAny(semver) || versions.contains(data.version);
             if (versionAvailable){
-              missingList.add(new MissingLibInfo( data.name, data.version, true));
+              missingList.add(new MissingLibInfo(name, data.version, true));
             }else {
-              missingList.add(new MissingLibInfo( data.name, data.version,  false));
+              missingList.add(new MissingLibInfo(name, data.version, false));
             }
           }else {
-            missingList.add(new MissingLibInfo( data.name, data.version,  false));
+            missingList.add(new MissingLibInfo(name, data.version, false));
           }
         }
       }

@@ -19,6 +19,8 @@
 package com.intellij.plugins.haxe.haxelib;
 
 import com.intellij.ide.highlighter.XmlFileType;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
@@ -226,6 +228,12 @@ public class HaxelibProjectUpdater {
     Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
     if (null == moduleSdk) {
       log.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
+      NotificationGroupManager.getInstance()
+        .getNotificationGroup("haxe.haxelib.warning")
+        // TODO move to bundle
+        .createNotification("Module '"+module.getName()+"' is missing Haxe SDK", NotificationType.WARNING)
+        .setTitle("Unable to resolve dependencies")
+        .notify(module.getProject());
       return; // Nothing to do if there is no SDK.
     }
     syncLibraryLists(moduleSdk,
