@@ -20,6 +20,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeFunctionArgumentImpl;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
 import org.jetbrains.annotations.NotNull;
@@ -144,5 +145,13 @@ public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl imple
   @Nullable
   public HaxeMethod getMethod() {
     return method;
+  }
+
+  @Override
+  public @Nullable String getName() {
+    if (functionType != null) {
+      return HaxePresentableUtil.buildTypeText(functionType, specialization);
+    }
+    return super.getName();
   }
 }

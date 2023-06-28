@@ -103,14 +103,15 @@ public class HaxeLookupElement extends LookupElement {
     }
 
 
-    String presentableText = myComponentNamePresentation.getPresentableText();
+
 
     // Check for members: methods and fields
     HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(myComponentName);
 
-    if (model != null) {
-      presentableText = model.getPresentableText(context, resolver);
-
+    if (model == null) {
+      presentation.setItemText(myComponentNamePresentation.getPresentableText());
+    }else {
+      presentation.setItemText( model.getPresentableText(context, resolver));
       // Check deprecated modifiers
       if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
         presentation.setStrikeout(true);
@@ -125,7 +126,6 @@ public class HaxeLookupElement extends LookupElement {
       }
     }
 
-    presentation.setItemText(presentableText);
     presentation.setIcon(myComponentNamePresentation.getIcon(true));
     final String pkg = myComponentNamePresentation.getLocationString();
     if (StringUtil.isNotEmpty(pkg)) {

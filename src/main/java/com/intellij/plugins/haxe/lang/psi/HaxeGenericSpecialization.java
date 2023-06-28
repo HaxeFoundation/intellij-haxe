@@ -129,9 +129,15 @@ public class HaxeGenericSpecialization implements Cloneable {
           specialization.put(element, name, resolved);
         } else if (holder.getClassType() != null) {
           HaxeClass clazz = holder.getClassType().getHaxeClass();
-          HaxeClassResolveResult resolved =
-            HaxeClassResolveResult.create(clazz, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
+          HaxeClassResolveResult resolved = HaxeClassResolveResult.create(clazz, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
           specialization.put(element, name, resolved);
+        } else if (holder.getFunctionType() != null) {
+          SpecificFunctionReference type = holder.getFunctionType();
+          if (type.getElementContext() instanceof  HaxeFunctionType functionType){
+            HaxeSpecificFunction function = new HaxeSpecificFunction(functionType, specialization);
+            HaxeClassResolveResult resolved = HaxeClassResolveResult.create(function, fromGenericResolver(context, resolver));
+            specialization.put(element, name, resolved);
+          }
         }
       }
     }

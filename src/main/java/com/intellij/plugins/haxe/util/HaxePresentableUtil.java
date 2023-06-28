@@ -246,4 +246,26 @@ public class HaxePresentableUtil {
   public static String unknownType() {
     return asNullable("Unknown");
   }
+
+  public static String buildTypeText(@NotNull HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+
+    final List<HaxeFunctionArgument> arguments = functionType.getFunctionArgumentList();
+    StringBuilder builder = new StringBuilder();
+
+    if (arguments.isEmpty()) {
+      builder.append(SpecificTypeReference.VOID);
+    } else {
+      for (int i = 0; i < arguments.size(); i++) {
+        if (i > 0) {
+          builder.append("->");
+        }
+        HaxeFunctionArgument argument = arguments.get(i);
+        builder.append(buildTypeText(null, argument, specialization));
+      }
+    }
+    builder.append("->")
+      .append(buildTypeText(null, functionType.getFunctionReturnType(), specialization));
+
+    return builder.toString();
+  }
 }
