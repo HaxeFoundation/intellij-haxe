@@ -52,6 +52,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
 
 @CustomLog
 public class HaxeExpressionEvaluator {
@@ -443,8 +444,15 @@ public class HaxeExpressionEvaluator {
             SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
             typeHolder = type.createHolder();
           }
+
           else if (subelement instanceof HaxeParameter parameter) {
-            typeHolder = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter);
+            if (subelement instanceof HaxeRestParameter restParameter) {
+              HaxeTypeTag tag = restParameter.getTypeTag();
+              ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, restParameter);
+              typeHolder = new ResultHolder(SpecificTypeReference.getStdClass(ARRAY, subelement, new ResultHolder[]{type}));
+            }else {
+              typeHolder = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter);
+            }
           }
           else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration && varDeclaration.getVarInit() != null) {
               HaxeVarInit init = varDeclaration.getVarInit();
