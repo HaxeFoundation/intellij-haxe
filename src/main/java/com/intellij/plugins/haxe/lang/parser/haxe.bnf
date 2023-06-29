@@ -217,19 +217,19 @@ compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | gt     { extends=oper
 bitOperation ::= '|' | '&' | '^'      { extends=operator }
 
 // These are private simply so that the test goldens don't all have to be updated.
-private additiveOperator ::= '+' | '-'        { extends=operator }
-private assignableOperator ::= '++' | '--'    { extends=operator }
-private colonOperator ::= ':'                 { extends=operator }
-isOperator ::= 'is'                           { extends=operator }
-private iteratorOperator ::= '...'            { extends=operator }
-private logicAndOperator ::= '&&'             { extends=operator }
-private logicOrOperator ::= '||'              { extends=operator }
-private moduloOperator ::= '%'                { extends=operator }
-private multiplicativeOperator ::= '*' | '/'  { extends=operator }
-private prefixOperator ::= '-' | '!' | '~'    { extends=operator }
-private coalescingOperator ::= '??'           { extends=operator }
-private questionOperator ::= <<ternary>>      { extends=operator }
-private suffixOperator ::= '!'                { extends=operator }
+additiveOperator ::= '+' | '-'        { extends=operator }
+assignableOperator ::= '++' | '--'    { extends=operator }
+colonOperator ::= ':'                 { extends=operator }
+isOperator ::= 'is'                   { extends=operator }
+iteratorOperator ::= '...'            { extends=operator }
+logicAndOperator ::= '&&'             { extends=operator }
+logicOrOperator ::= '||'              { extends=operator }
+moduloOperator ::= '%'                { extends=operator }
+multiplicativeOperator ::= '*' | '/'  { extends=operator }
+prefixOperator ::= '-' | '!' | '~'    { extends=operator }
+coalescingOperator ::= '??'           { extends=operator }
+questionOperator ::= <<ternary>>      { extends=operator }
+suffixOperator ::= '!'                { extends=operator }
 
 // KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER is only used for getters/setters)
 identifier ::= ID | KFROM | KTO | KNEVER

@@ -35,7 +35,8 @@ Haxe File
               ITERATOR_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
-                HaxePsiToken:...('...')
+                ITERATOR_OPERATOR
+                  HaxePsiToken:...('...')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('11')
             HaxePsiToken:)(')')

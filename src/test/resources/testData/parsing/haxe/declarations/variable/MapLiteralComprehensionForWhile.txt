@@ -84,7 +84,8 @@ Haxe File
                       ITERATOR_EXPRESSION
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('0')
-                        HaxePsiToken:...('...')
+                        ITERATOR_OPERATOR
+                          HaxePsiToken:...('...')
                         REFERENCE_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER
@@ -115,7 +116,8 @@ Haxe File
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('i')
-                          HaxePsiToken:+('+')
+                          ADDITIVE_OPERATOR
+                            HaxePsiToken:+('+')
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('j')
@@ -129,7 +131,8 @@ Haxe File
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('i')
-                            HaxePsiToken:%('%')
+                            MODULO_OPERATOR
+                              HaxePsiToken:%('%')
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('j')

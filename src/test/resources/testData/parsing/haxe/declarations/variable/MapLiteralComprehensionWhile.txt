@@ -104,7 +104,8 @@ Haxe File
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('i')
-                          HaxePsiToken:++('++')
+                          ASSIGNABLE_OPERATOR
+                            HaxePsiToken:++('++')
                         HaxePsiToken:](']')
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')

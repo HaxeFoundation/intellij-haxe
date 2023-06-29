@@ -108,10 +108,12 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('y')
                         HaxePsiToken:)(')')
-                      HaxePsiToken:?('?')
+                      QUESTION_OPERATOR
+                        HaxePsiToken:?('?')
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('1')
-                      HaxePsiToken::(':')
+                      COLON_OPERATOR
+                        HaxePsiToken::(':')
                       TERNARY_EXPRESSION
                         PARENTHESIZED_EXPRESSION
                           HaxePsiToken:(('(')
@@ -125,12 +127,15 @@ Haxe File
                               IDENTIFIER
                                 HaxePsiToken:ID('y')
                           HaxePsiToken:)(')')
-                        HaxePsiToken:?('?')
+                        QUESTION_OPERATOR
+                          HaxePsiToken:?('?')
                         PREFIX_EXPRESSION
-                          HaxePsiToken:-('-')
+                          PREFIX_OPERATOR
+                            HaxePsiToken:-('-')
                           LITERAL_EXPRESSION
                             HaxePsiToken:LITINT('1')
-                        HaxePsiToken::(':')
+                        COLON_OPERATOR
+                          HaxePsiToken::(':')
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('0')
                     HaxePsiToken:;(';')

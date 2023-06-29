@@ -26,7 +26,8 @@ Haxe File
         VAR_INIT
           HaxePsiToken:=('=')
           PREFIX_EXPRESSION
-            HaxePsiToken:-('-')
+            PREFIX_OPERATOR
+              HaxePsiToken:-('-')
             LITERAL_EXPRESSION
               HaxePsiToken:LITINT('134')
         HaxePsiToken:;(';')
@@ -83,7 +84,8 @@ Haxe File
         VAR_INIT
           HaxePsiToken:=('=')
           PREFIX_EXPRESSION
-            HaxePsiToken:-('-')
+            PREFIX_OPERATOR
+              HaxePsiToken:-('-')
             LITERAL_EXPRESSION
               HaxePsiToken:LITFLOAT('1e-99')
         HaxePsiToken:;(';')

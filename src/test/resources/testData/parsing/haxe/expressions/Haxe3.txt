@@ -253,7 +253,8 @@ Haxe File
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('x')
-                HaxePsiToken:++('++')
+                ASSIGNABLE_OPERATOR
+                  HaxePsiToken:++('++')
             HaxePsiToken:)(')')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
@@ -345,7 +346,8 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('x')
-                    HaxePsiToken:*('*')
+                    MULTIPLICATIVE_OPERATOR
+                      HaxePsiToken:*('*')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
                   HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
@@ -942,12 +944,14 @@ Haxe File
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
                                   HaxePsiToken:ID('b')
-                              HaxePsiToken:+('+')
+                              ADDITIVE_OPERATOR
+                                HaxePsiToken:+('+')
                               STRING_LITERAL_EXPRESSION
                                 HaxePsiToken:OPEN_QUOTE('"')
                                 HaxePsiToken:REGULAR_STRING_PART('>')
                                 HaxePsiToken:CLOSING_QUOTE('"')
-                            HaxePsiToken:+('+')
+                            ADDITIVE_OPERATOR
+                              HaxePsiToken:+('+')
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('a')
@@ -973,12 +977,14 @@ Haxe File
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
                                   HaxePsiToken:ID('b')
-                              HaxePsiToken:+('+')
+                              ADDITIVE_OPERATOR
+                                HaxePsiToken:+('+')
                               STRING_LITERAL_EXPRESSION
                                 HaxePsiToken:OPEN_QUOTE('"')
                                 HaxePsiToken:REGULAR_STRING_PART('<=')
                                 HaxePsiToken:CLOSING_QUOTE('"')
-                            HaxePsiToken:+('+')
+                            ADDITIVE_OPERATOR
+                              HaxePsiToken:+('+')
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('a')
@@ -1506,7 +1512,8 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('A')
-                  HaxePsiToken:+('+')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('B')
@@ -1574,7 +1581,8 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('A')
-                  HaxePsiToken:*('*')
+                  MULTIPLICATIVE_OPERATOR
+                    HaxePsiToken:*('*')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('B')
@@ -1659,7 +1667,8 @@ Haxe File
               ITERATOR_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('0')
-                HaxePsiToken:...('...')
+                ITERATOR_OPERATOR
+                  HaxePsiToken:...('...')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('lhs')

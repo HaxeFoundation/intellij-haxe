@@ -23,7 +23,8 @@ Haxe File
           HaxePsiToken:=('=')
           LOGIC_OR_EXPRESSION
             PREFIX_EXPRESSION
-              HaxePsiToken:!('!')
+              PREFIX_OPERATOR
+                HaxePsiToken:!('!')
               ARRAY_ACCESS_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
@@ -32,7 +33,8 @@ Haxe File
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('0')
                 HaxePsiToken:](']')
-            HaxePsiToken:||('||')
+            LOGIC_OR_OPERATOR
+              HaxePsiToken:||('||')
             PARENTHESIZED_EXPRESSION
               HaxePsiToken:(('(')
               COMPARE_EXPRESSION

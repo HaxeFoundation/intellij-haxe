@@ -95,20 +95,24 @@ Haxe File
                     ADDITIVE_EXPRESSION
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('2')
-                      HaxePsiToken:+('+')
+                      ADDITIVE_OPERATOR
+                        HaxePsiToken:+('+')
                       MULTIPLICATIVE_EXPRESSION
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('2')
-                        HaxePsiToken:*('*')
+                        MULTIPLICATIVE_OPERATOR
+                          HaxePsiToken:*('*')
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('2')
-                    HaxePsiToken:+('+')
+                    ADDITIVE_OPERATOR
+                      HaxePsiToken:+('+')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
                   BIT_OPERATION
                     HaxePsiToken:&('&')
                   PREFIX_EXPRESSION
-                    HaxePsiToken:~('~')
+                    PREFIX_OPERATOR
+                      HaxePsiToken:~('~')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITHEX('0x001')
             HaxePsiToken:;(';')
@@ -126,7 +130,8 @@ Haxe File
                     HaxePsiToken:OPEN_QUOTE('"')
                     HaxePsiToken:REGULAR_STRING_PART('test')
                     HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:+('+')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   IS_TYPE_EXPRESSION
                     STRING_LITERAL_EXPRESSION
                       HaxePsiToken:OPEN_QUOTE('"')
@@ -260,7 +265,8 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('String')
                     HaxePsiToken:)(')')
-                  HaxePsiToken:&&('&&')
+                  LOGIC_AND_OPERATOR
+                    HaxePsiToken:&&('&&')
                   LITERAL_EXPRESSION
                     HaxePsiToken:false('false')
             HaxePsiToken:;(';')
@@ -286,7 +292,8 @@ Haxe File
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('String')
-                  HaxePsiToken:&&('&&')
+                  LOGIC_AND_OPERATOR
+                    HaxePsiToken:&&('&&')
                   LITERAL_EXPRESSION
                     HaxePsiToken:false('false')
             HaxePsiToken:;(';')
@@ -417,7 +424,8 @@ Haxe File
                                       IDENTIFIER
                                         HaxePsiToken:ID('Int')
                           HaxePsiToken:}('}')
-                  HaxePsiToken:||('||')
+                  LOGIC_OR_OPERATOR
+                    HaxePsiToken:||('||')
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER

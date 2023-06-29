@@ -154,12 +154,18 @@ public class HaxeExpressionUtil {
     //               in
     //               loop e
 
+    // to check for consts we have to unwrap prefix expressions so we can evaluate any literals
+    if (is_type(expr, HaxePrefixExpression.class)) {
+      expr = ((HaxePrefixExpression)expr).getExpression();
+    }
+
     // Maps, Arrays, Function Literals, Object, Anonymous, Block Statements are
     // Haxe LiteralExpressions.  Booleans, LITINT, LITHEX, LITOCT, LITFLOAT, true, false, null
     // are either HaxeLiteralExpressions OR HaxeConstantExpressions, depending upon
     // the rule that they matched in the BNF.
     if (is_type(expr, HaxeLiteralExpression.class)
-    ||  is_type(expr, HaxeConstantExpression.class)) {
+    ||  is_type(expr, HaxeConstantExpression.class)
+    ) {
       PsiElement childElement = expr.getFirstChild();
       IElementType type = null != childElement ? childElement.getNode().getElementType() : null;
       if (null == type) {  // Optimize failure case.

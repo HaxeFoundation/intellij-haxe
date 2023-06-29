@@ -82,7 +82,8 @@ Haxe File
                             HaxePsiToken:==('==')
                           LITERAL_EXPRESSION
                             HaxePsiToken:LITINT('65')
-                        HaxePsiToken:||('||')
+                        LOGIC_OR_OPERATOR
+                          HaxePsiToken:||('||')
                         COMPARE_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER

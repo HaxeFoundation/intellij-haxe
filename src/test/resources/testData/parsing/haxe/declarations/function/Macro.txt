@@ -71,11 +71,13 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('n')
-                    HaxePsiToken:-('-')
+                    ADDITIVE_OPERATOR
+                      HaxePsiToken:-('-')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
                 HaxePsiToken:)(')')
-              HaxePsiToken:+('+')
+              ADDITIVE_OPERATOR
+                HaxePsiToken:+('+')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
@@ -86,7 +88,8 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('n')
-                    HaxePsiToken:-('-')
+                    ADDITIVE_OPERATOR
+                      HaxePsiToken:-('-')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('1')
                 HaxePsiToken:)(')')

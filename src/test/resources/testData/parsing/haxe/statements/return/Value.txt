@@ -45,7 +45,8 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('x')
-                  HaxePsiToken:%('%')
+                  MODULO_OPERATOR
+                    HaxePsiToken:%('%')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('2')
                 COMPARE_OPERATION

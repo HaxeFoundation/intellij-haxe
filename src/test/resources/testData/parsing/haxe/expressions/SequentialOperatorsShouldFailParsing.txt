@@ -32,10 +32,12 @@ Haxe File
                   LOGIC_OR_EXPRESSION
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('1')
-                    HaxePsiToken:||('||')
+                    LOGIC_OR_OPERATOR
+                      HaxePsiToken:||('||')
                     PsiErrorElement:<expression> expected, got '&&'
                       <empty list>
-                  HaxePsiToken:&&('&&')
+                  LOGIC_AND_OPERATOR
+                    HaxePsiToken:&&('&&')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('2')
             HaxePsiToken:;(';')

@@ -31,16 +31,19 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('a')
-                    HaxePsiToken:*('*')
+                    MULTIPLICATIVE_OPERATOR
+                      HaxePsiToken:*('*')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
-                  HaxePsiToken:+('+')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   MULTIPLICATIVE_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('c')
-                    HaxePsiToken:*('*')
+                    MULTIPLICATIVE_OPERATOR
+                      HaxePsiToken:*('*')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('d')
@@ -59,19 +62,22 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('a')
-                    HaxePsiToken:*('*')
+                    MULTIPLICATIVE_OPERATOR
+                      HaxePsiToken:*('*')
                     PARENTHESIZED_EXPRESSION
                       HaxePsiToken:(('(')
                       ADDITIVE_EXPRESSION
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('b')
-                        HaxePsiToken:+('+')
+                        ADDITIVE_OPERATOR
+                          HaxePsiToken:+('+')
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('c')
                       HaxePsiToken:)(')')
-                  HaxePsiToken:*('*')
+                  MULTIPLICATIVE_OPERATOR
+                    HaxePsiToken:*('*')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('d')
@@ -89,9 +95,11 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('b')
-                  HaxePsiToken:+('+')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   PREFIX_EXPRESSION
-                    HaxePsiToken:--('--')
+                    ASSIGNABLE_OPERATOR
+                      HaxePsiToken:--('--')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('c')
@@ -110,8 +118,10 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
-                    HaxePsiToken:--('--')
-                  HaxePsiToken:+('+')
+                    ASSIGNABLE_OPERATOR
+                      HaxePsiToken:--('--')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('c')
@@ -130,10 +140,13 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
-                    HaxePsiToken:--('--')
-                  HaxePsiToken:+('+')
+                    ASSIGNABLE_OPERATOR
+                      HaxePsiToken:--('--')
+                  ADDITIVE_OPERATOR
+                    HaxePsiToken:+('+')
                   PREFIX_EXPRESSION
-                    HaxePsiToken:--('--')
+                    ASSIGNABLE_OPERATOR
+                      HaxePsiToken:--('--')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('c')
@@ -154,19 +167,22 @@ Haxe File
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('a')
-                      HaxePsiToken:+('+')
+                      ADDITIVE_OPERATOR
+                        HaxePsiToken:+('+')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')
                     HaxePsiToken:)(')')
-                  HaxePsiToken:*('*')
+                  MULTIPLICATIVE_OPERATOR
+                    HaxePsiToken:*('*')
                   PARENTHESIZED_EXPRESSION
                     HaxePsiToken:(('(')
                     ADDITIVE_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('c')
-                      HaxePsiToken:+('+')
+                      ADDITIVE_OPERATOR
+                        HaxePsiToken:+('+')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('d')

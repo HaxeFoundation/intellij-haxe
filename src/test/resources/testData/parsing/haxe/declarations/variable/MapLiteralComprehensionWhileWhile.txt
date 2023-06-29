@@ -119,7 +119,8 @@ Haxe File
                             HaxePsiToken:.('.')
                             IDENTIFIER
                               HaxePsiToken:ID('length')
-                          HaxePsiToken:*('*')
+                          MULTIPLICATIVE_OPERATOR
+                            HaxePsiToken:*('*')
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('i')
@@ -129,7 +130,8 @@ Haxe File
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('i')
-                          HaxePsiToken:+('+')
+                          ADDITIVE_OPERATOR
+                            HaxePsiToken:+('+')
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('j')
@@ -139,13 +141,16 @@ Haxe File
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('i')
-                            HaxePsiToken:++('++')
-                          HaxePsiToken:*('*')
+                            ASSIGNABLE_OPERATOR
+                              HaxePsiToken:++('++')
+                          MULTIPLICATIVE_OPERATOR
+                            HaxePsiToken:*('*')
                           POSTFIX_EXPRESSION
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('j')
-                            HaxePsiToken:++('++')
+                            ASSIGNABLE_OPERATOR
+                              HaxePsiToken:++('++')
                   HaxePsiToken:](']')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')

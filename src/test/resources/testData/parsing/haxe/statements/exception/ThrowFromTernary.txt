@@ -53,7 +53,8 @@ Haxe File
                   HaxePsiToken:==('==')
                 LITERAL_EXPRESSION
                   HaxePsiToken:null('null')
-              HaxePsiToken:?('?')
+              QUESTION_OPERATOR
+                HaxePsiToken:?('?')
               VALUE_EXPRESSION
                 THROW_STATEMENT
                   HaxePsiToken:throw('throw')
@@ -61,7 +62,8 @@ Haxe File
                     HaxePsiToken:OPEN_QUOTE('"')
                     HaxePsiToken:REGULAR_STRING_PART('Mamma mia')
                     HaxePsiToken:CLOSING_QUOTE('"')
-              HaxePsiToken::(':')
+              COLON_OPERATOR
+                HaxePsiToken::(':')
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION

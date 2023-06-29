@@ -146,7 +146,8 @@ Haxe File
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('i3')
-                HaxePsiToken:%('%')
+                MODULO_OPERATOR
+                  HaxePsiToken:%('%')
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('i2')

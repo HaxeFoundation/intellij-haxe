@@ -48,7 +48,8 @@ Haxe File
                   HaxePsiToken:(('(')
                   EXPRESSION_LIST
                     PREFIX_EXPRESSION
-                      HaxePsiToken:++('++')
+                      ASSIGNABLE_OPERATOR
+                        HaxePsiToken:++('++')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('i')

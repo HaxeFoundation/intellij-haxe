@@ -69,7 +69,8 @@ Haxe File
                         ITERATOR_EXPRESSION
                           LITERAL_EXPRESSION
                             HaxePsiToken:LITINT('0')
-                          HaxePsiToken:...('...')
+                          ITERATOR_OPERATOR
+                            HaxePsiToken:...('...')
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('size')

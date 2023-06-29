@@ -180,7 +180,8 @@ Haxe File
                       LITERAL_EXPRESSION
                         HaxePsiToken:true('true')
                     HaxePsiToken:)(')')
-                  HaxePsiToken:?('?')
+                  QUESTION_OPERATOR
+                    HaxePsiToken:?('?')
                   NEW_EXPRESSION
                     HaxePsiToken:new('new')
                     TYPE
@@ -189,7 +190,8 @@ Haxe File
                           HaxePsiToken:ID('A')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
-                  HaxePsiToken::(':')
+                  COLON_OPERATOR
+                    HaxePsiToken::(':')
                   NEW_EXPRESSION
                     HaxePsiToken:new('new')
                     TYPE
@@ -259,7 +261,8 @@ Haxe File
                             HaxePsiToken:ID('B')
                       HaxePsiToken:(('(')
                       HaxePsiToken:)(')')
-                  HaxePsiToken:?('?')
+                  QUESTION_OPERATOR
+                    HaxePsiToken:?('?')
                   NEW_EXPRESSION
                     HaxePsiToken:new('new')
                     TYPE
@@ -268,7 +271,8 @@ Haxe File
                           HaxePsiToken:ID('A')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
-                  HaxePsiToken::(':')
+                  COLON_OPERATOR
+                    HaxePsiToken::(':')
                   NEW_EXPRESSION
                     HaxePsiToken:new('new')
                     TYPE
@@ -338,7 +342,8 @@ Haxe File
                             HaxePsiToken:ID('B')
                       HaxePsiToken:(('(')
                       HaxePsiToken:)(')')
-                  HaxePsiToken:?('?')
+                  QUESTION_OPERATOR
+                    HaxePsiToken:?('?')
                   TERNARY_EXPRESSION
                     COMPARE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -348,7 +353,8 @@ Haxe File
                         HaxePsiToken:==('==')
                       LITERAL_EXPRESSION
                         HaxePsiToken:true('true')
-                    HaxePsiToken:?('?')
+                    QUESTION_OPERATOR
+                      HaxePsiToken:?('?')
                     NEW_EXPRESSION
                       HaxePsiToken:new('new')
                       TYPE
@@ -357,7 +363,8 @@ Haxe File
                             HaxePsiToken:ID('A')
                       HaxePsiToken:(('(')
                       HaxePsiToken:)(')')
-                    HaxePsiToken::(':')
+                    COLON_OPERATOR
+                      HaxePsiToken::(':')
                     NEW_EXPRESSION
                       HaxePsiToken:new('new')
                       TYPE
@@ -366,7 +373,8 @@ Haxe File
                             HaxePsiToken:ID('B')
                       HaxePsiToken:(('(')
                       HaxePsiToken:)(')')
-                  HaxePsiToken::(':')
+                  COLON_OPERATOR
+                    HaxePsiToken::(':')
                   TERNARY_EXPRESSION
                     COMPARE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -376,7 +384,8 @@ Haxe File
                         HaxePsiToken:==('==')
                       LITERAL_EXPRESSION
                         HaxePsiToken:false('false')
-                    HaxePsiToken:?('?')
+                    QUESTION_OPERATOR
+                      HaxePsiToken:?('?')
                     NEW_EXPRESSION
                       HaxePsiToken:new('new')
                       TYPE
@@ -385,7 +394,8 @@ Haxe File
                             HaxePsiToken:ID('A')
                       HaxePsiToken:(('(')
                       HaxePsiToken:)(')')
-                    HaxePsiToken::(':')
+                    COLON_OPERATOR
+                      HaxePsiToken::(':')
                     NEW_EXPRESSION
                       HaxePsiToken:new('new')
                       TYPE

@@ -123,7 +123,8 @@ Haxe File
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('i1')
-              HaxePsiToken:+('+')
+              ADDITIVE_OPERATOR
+                HaxePsiToken:+('+')
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('i2')
@@ -168,7 +169,8 @@ Haxe File
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('i1')
-              HaxePsiToken:*('*')
+              MULTIPLICATIVE_OPERATOR
+                HaxePsiToken:*('*')
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('i2')

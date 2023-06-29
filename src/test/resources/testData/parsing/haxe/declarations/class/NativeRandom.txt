@@ -94,7 +94,8 @@ Haxe File
                     HaxePsiToken:ID('rand')
                 HaxePsiToken:(('(')
                 HaxePsiToken:)(')')
-              HaxePsiToken:%('%')
+              MODULO_OPERATOR
+                HaxePsiToken:%('%')
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('n')

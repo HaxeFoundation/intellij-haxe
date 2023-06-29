@@ -37,7 +37,8 @@ Haxe File
                         HaxePsiToken:ID('b')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')
-                  HaxePsiToken:*('*')
+                  MULTIPLICATIVE_OPERATOR
+                    HaxePsiToken:*('*')
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       ARRAY_ACCESS_EXPRESSION

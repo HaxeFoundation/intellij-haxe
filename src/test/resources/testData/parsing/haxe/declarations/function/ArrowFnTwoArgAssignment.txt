@@ -48,7 +48,8 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('a')
-                    HaxePsiToken:+('+')
+                    ADDITIVE_OPERATOR
+                      HaxePsiToken:+('+')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
@@ -80,7 +81,8 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('a')
-                    HaxePsiToken:+('+')
+                    ADDITIVE_OPERATOR
+                      HaxePsiToken:+('+')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')

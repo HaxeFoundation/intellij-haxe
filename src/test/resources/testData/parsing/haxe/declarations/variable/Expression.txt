@@ -25,7 +25,8 @@ Haxe File
             MULTIPLICATIVE_EXPRESSION
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('2')
-              HaxePsiToken:*('*')
+              MULTIPLICATIVE_OPERATOR
+                HaxePsiToken:*('*')
               REFERENCE_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
@@ -33,7 +34,8 @@ Haxe File
                 HaxePsiToken:.('.')
                 IDENTIFIER
                   HaxePsiToken:ID('PI')
-            HaxePsiToken:*('*')
+            MULTIPLICATIVE_OPERATOR
+              HaxePsiToken:*('*')
             ARRAY_ACCESS_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER

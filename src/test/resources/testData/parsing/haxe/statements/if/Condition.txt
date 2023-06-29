@@ -38,7 +38,8 @@ Haxe File
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('239')
                   HaxePsiToken:)(')')
-                HaxePsiToken:&&('&&')
+                LOGIC_AND_OPERATOR
+                  HaxePsiToken:&&('&&')
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
                   COMPARE_EXPRESSION

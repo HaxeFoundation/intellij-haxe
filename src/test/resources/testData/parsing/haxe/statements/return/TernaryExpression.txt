@@ -47,12 +47,14 @@ Haxe File
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('b')
-              HaxePsiToken:?('?')
+              QUESTION_OPERATOR
+                HaxePsiToken:?('?')
               STRING_LITERAL_EXPRESSION
                 HaxePsiToken:OPEN_QUOTE('"')
                 HaxePsiToken:REGULAR_STRING_PART('true')
                 HaxePsiToken:CLOSING_QUOTE('"')
-              HaxePsiToken::(':')
+              COLON_OPERATOR
+                HaxePsiToken::(':')
               STRING_LITERAL_EXPRESSION
                 HaxePsiToken:OPEN_QUOTE('"')
                 HaxePsiToken:REGULAR_STRING_PART('false')

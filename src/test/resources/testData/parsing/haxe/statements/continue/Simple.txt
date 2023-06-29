@@ -45,7 +45,8 @@ Haxe File
               BLOCK_STATEMENT
                 HaxePsiToken:{('{')
                 PREFIX_EXPRESSION
-                  HaxePsiToken:++('++')
+                  ASSIGNABLE_OPERATOR
+                    HaxePsiToken:++('++')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('i')
@@ -68,7 +69,8 @@ Haxe File
                       HaxePsiToken:continue('continue')
                       HaxePsiToken:;(';')
                 PREFIX_EXPRESSION
-                  HaxePsiToken:++('++')
+                  ASSIGNABLE_OPERATOR
+                    HaxePsiToken:++('++')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('i')
