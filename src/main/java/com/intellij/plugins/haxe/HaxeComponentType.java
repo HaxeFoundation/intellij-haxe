@@ -93,6 +93,10 @@ public enum HaxeComponentType {
     public Icon getIcon() {
       return  HaxeIcons.Field;
     }
+  }, TYPE_PARAMETER(10) {
+    public Icon getIcon() {
+      return icons.HaxeIcons.Class;
+    }
   };
 
   private final int myKey;
@@ -139,6 +143,8 @@ public enum HaxeComponentType {
         return TYPEDEF;
       case 9:
         return CLASSVARIABLE;
+      case 10:
+        return TYPE_PARAMETER;
     }
     return null;
   }
@@ -147,7 +153,6 @@ public enum HaxeComponentType {
   public static HaxeComponentType typeOf(PsiElement element) {
     if (element instanceof HaxeClassDeclaration ||
         element instanceof HaxeExternClassDeclaration ||
-        element instanceof HaxeGenericListPart ||
         element instanceof HaxeAbstractClassDeclaration) {
       return CLASS;
     }
@@ -179,6 +184,9 @@ public enum HaxeComponentType {
     }
     if (element instanceof HaxeParameter) {
       return PARAMETER;
+    }
+    if (element instanceof HaxeGenericListPart ) {
+      return TYPE_PARAMETER;
     }
 
     return null;

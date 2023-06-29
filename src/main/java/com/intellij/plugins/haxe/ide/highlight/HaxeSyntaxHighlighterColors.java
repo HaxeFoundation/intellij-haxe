@@ -30,6 +30,7 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 public class HaxeSyntaxHighlighterColors {
   public static final String HAXE_KEYWORD = "HAXE_KEYWORD";
   public static final String HAXE_CLASS = "HAXE_CLASS";
+  public static final String HAXE_TYPE_PARAMETER = "HAXE_TYPE_PARAMETER";
   public static final String HAXE_INTERFACE = "HAXE_INTERFACE";
   public static final String HAXE_STATIC_MEMBER_FUNCTION = "HAXE_STATIC_MEMBER_FUNCTION";
   public static final String HAXE_INSTANCE_MEMBER_FUNCTION = "HAXE_INSTANCE_MEMBER_FUNCTION";
@@ -78,6 +79,8 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey("HAXE_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER);
   public static final TextAttributesKey CLASS =
     createTextAttributesKey(HAXE_CLASS, DefaultLanguageHighlighterColors.CLASS_NAME);
+  public static final TextAttributesKey TYPE_PARAMETER =
+  createTextAttributesKey("HAXE_TYPE_PARAMETER", DefaultLanguageHighlighterColors.TEMPLATE_LANGUAGE_COLOR);
   public static final TextAttributesKey INTERFACE =
     createTextAttributesKey(HAXE_INTERFACE, DefaultLanguageHighlighterColors.INTERFACE_NAME);
   public static final TextAttributesKey STATIC_MEMBER_FUNCTION =

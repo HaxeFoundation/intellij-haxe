@@ -63,6 +63,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.local.variable"), LOCAL_VARIABLE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.class"), CLASS),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.interface"), INTERFACE),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.type-parameter"), TYPE_PARAMETER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.function"), INSTANCE_MEMBER_FUNCTION),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.static.member.function"), STATIC_MEMBER_FUNCTION),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.variable"), INSTANCE_MEMBER_VARIABLE),
@@ -83,6 +84,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("defined.flag", DEFINED_VAR);
     ourTags.put("undefined.flag", UNDEFINED_VAR);
     ourTags.put("interface", INTERFACE);
+    ourTags.put("type.parameter", TYPE_PARAMETER);
     ourTags.put("instance.member.function", INSTANCE_MEMBER_FUNCTION);
     ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
     ourTags.put("instance.member.variable", INSTANCE_MEMBER_VARIABLE);
@@ -127,38 +129,41 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
   @NotNull
   @Override
   public String getDemoText() {
-    return "<compilation>#if <defined.flag>definedFlag</defined.flag> && <undefined.flag>undefinedFlag</undefined.flag>\n" +
-           "#error \"Error!!\"\n" +
-           "#else</compilation>\n" +
-           "import <class>util.Date</class>;\n" +
-           "<compilation>#end</compilation>\n" +
-           "\n" +
-           "/* Block comment */\n" +
-           "/**\n" +
-           " Document comment\n" +
-           "**/\n" +
-           "@author(\"Penelope\")\n" +
-           "@:final\n" +
-           "class <class>SomeClass</class> implements <interface>IOther</interface> { // some comment\n" +
-           "  private var <instance.member.variable>field</instance.member.variable> = null;\n" +
-           "  private var <instance.member.variable>unusedField</instance.member.variable>:<class>Number</class> = 12345.67890;\n" +
-           "  private var <instance.member.variable>anotherString</instance.member.variable>:<class>String</class> = \"Another\\nStrin\\g\";\n" +
-           "  public static var <static.member.variable>staticField</static.member.variable>:<class>Int</class> = 0;\n" +
-           "\n" +
-           "  public static function <static.member.function>inc</static.member.function>() {\n" +
-           "    <static.member.variable>staticField</static.member.variable>++;\n" +
-           "  }\n" +
-           "  public function <instance.member.function>foo</instance.member.function>(<parameter>param</parameter>:<interface>AnInterface</interface>) {\n" +
-           "    trace(<instance.member.variable>anotherString</instance.member.variable> + <parameter>param</parameter>);\n" +
-           "    var <local.variable>reassignedValue</local.variable>:<class>Int</class> = <class>SomeClass</class>.<static.member.variable>staticField</static.member.variable>; \n" +
-           "    <local.variable>reassignedValue</local.variable> ++; \n" +
-           "    function localFunction() {\n" +
-           "      var <local.variable>a</local.variable>:<class>Int</class> = \\?;// bad character `\\` \n" +
-           "    };\n" +
-           "  }\n" +
-           "}\n" +
-           "/* The next line is deliberately invalid syntax to show unparsable data. */\n" +
-           "<unparseable>var $.{}{}</unparseable>"
-           ;
+    return """
+      <compilation>#if <defined.flag>definedFlag</defined.flag> && <undefined.flag>undefinedFlag</undefined.flag>
+      #error "Error!!"
+      #else</compilation>
+      import <class>util.Date</class>;
+      <compilation>#end</compilation>
+            
+      /* Block comment */
+      /**
+       Document comment
+      **/
+      @author("Penelope")
+      @:final
+      class <class>SomeClass</class><<type.parameter>T</type.parameter>> implements <interface>IOther</interface> { // some comment
+        private var <instance.member.variable>field</instance.member.variable> = null;
+        private var <instance.member.variable>unusedField</instance.member.variable>:<class>Number</class> = 12345.67890;
+        private var <instance.member.variable>anotherString</instance.member.variable>:<class>String</class> = "Another\\nStrin\\g";
+        public static var <static.member.variable>staticField</static.member.variable>:<class>Int</class> = 0;
+            
+        public function generic<<type.parameter>K</type.parameter>:String>(arg:<type.parameter>K</type.parameter>):<type.parameter>K</type.parameter> return arg;
+            
+        public static function <static.member.function>inc</static.member.function>() {
+          <static.member.variable>staticField</static.member.variable>++;
+        }
+        public function <instance.member.function>foo</instance.member.function>(<parameter>param</parameter>:<interface>AnInterface</interface>) {
+          trace(<instance.member.variable>anotherString</instance.member.variable> + <parameter>param</parameter>);
+          var <local.variable>reassignedValue</local.variable>:<class>Int</class> = <class>SomeClass</class>.<static.member.variable>staticField</static.member.variable>;\s
+          <local.variable>reassignedValue</local.variable> ++;\s
+          function localFunction() {
+            var <local.variable>a</local.variable>:<class>Int</class> = \\?;// bad character `\\`\s
+          };
+        }
+      }
+      /* The next line is deliberately invalid syntax to show unparsable data. */
+      <unparseable>var $.{}{}</unparseable>
+      """;
   }
 }

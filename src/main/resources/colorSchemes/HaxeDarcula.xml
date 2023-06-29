@@ -17,6 +17,11 @@
   ~ limitations under the License.
   -->
 <list>
+  <option name="HAXE_TYPE_PARAMETER">
+    <value>
+      <option name="FOREGROUND" value="507874"/>
+    </value>
+  </option>
   <option name="HAXE_CONDITIONALLY_NOT_COMPILED">
     <value>
       <option name="FOREGROUND" value="89B270"/>
