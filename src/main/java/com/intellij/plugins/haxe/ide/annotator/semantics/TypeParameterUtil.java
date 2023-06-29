@@ -1,7 +1,9 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
@@ -14,10 +16,21 @@ public class TypeParameterUtil {
 
   @NotNull
   public static Map<String, ResultHolder> createTypeParameterConstraintMap(HaxeMethod method, HaxeGenericResolver resolver) {
-    List<HaxeGenericParamModel> params = method.getModel().getGenericParams();
     Map<String, ResultHolder> typeParamMap = new HashMap<>();
-    for (HaxeGenericParamModel model : params) {
-      typeParamMap.put(model.getName(), model.getConstraint(resolver));
+
+    HaxeMethodModel methodModel = method.getModel();
+    if (methodModel!= null) {
+      List<HaxeGenericParamModel> params = methodModel.getGenericParams();
+      for (HaxeGenericParamModel model : params) {
+        typeParamMap.put(model.getName(), model.getConstraint(resolver));
+      }
+      HaxeClassModel declaringClass = methodModel.getDeclaringClass();
+      if (declaringClass != null) {
+        List<HaxeGenericParamModel> classParams = declaringClass.getGenericParams();
+        for (HaxeGenericParamModel model : classParams) {
+          typeParamMap.put(model.getName(), model.getConstraint(resolver));
+        }
+      }
     }
     return typeParamMap;
   }
