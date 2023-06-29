@@ -1,10 +1,12 @@
 # Changelog
 
 ## Unreleased
+* Added custom syntax color for type-parameters 
+* Bugfix callExpression annotator did not check against declaring class type-parameters  
 
 ## 1.4.2
-* bugfix for haxelib libraries with dots in name
-* bugfix for haxelib libraries with names with uppercase characters  
+* Bugfix for haxelib libraries with dots in name
+* Bugfix for haxelib libraries with names with uppercase characters  
 * Bugfix for function-type generics as method arguments
 * Added support for rest arguments  (no type checking yet)
 * Added support for Null-safe navigation
