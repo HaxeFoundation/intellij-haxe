@@ -127,7 +127,13 @@ public class HaxeExpressionEvaluator {
       context.addReturnType(result, element);
       return result;
     }
-
+    if (element instanceof HaxeTryStatement tryStatement) {
+     //  does not return a type, but we should iterate trough so we can pick up any return statements
+      @NotNull PsiElement[] children = tryStatement.getChildren();
+      for (PsiElement child : children) {
+         handle(child, context, resolver);
+      }
+    }
     if (element instanceof HaxeIterable) {
       return handle(((HaxeIterable)element).getExpression(), context, resolver);
     }
