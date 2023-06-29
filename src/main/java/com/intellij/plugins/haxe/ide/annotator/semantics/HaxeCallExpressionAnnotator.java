@@ -166,7 +166,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           // add constraints from method
           resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 
-          ResultHolder parameterType = parameterModel.getType(resolver);
+          ResultHolder parameterType = parameterModel.getType(resolver.withoutUnknowns());
 
           ResultHolder expressionType = null;
 

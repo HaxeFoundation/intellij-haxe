@@ -335,6 +335,11 @@ public class HaxeTypeCompatible {
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
+    if (to.isFromTypeParameter()) {
+      // if we don't know the type and don't have any constraints for Type parameters we just accept it for now
+      // to avoid  wrong error annotations
+      return true;
+    }
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
@@ -369,20 +374,33 @@ public class HaxeTypeCompatible {
       }
     }
 
-    if(!from.isContextAType() || from.isContextAnEnumType()) return false;
+    if (from.isEnumClass()) return false;
+    if(!from.isContextAType()) return false;
+
+    if(specificsTo.length !=  specificsFrom.length) return false;
     if(specificsTo.length == 0) return false;
-    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(specificsTo[0].getClassType());
+    if(specificsFrom.length == 0) return false;
+    SpecificHaxeClassReference typeParameterTo =specificsTo[0].getClassType();
+    SpecificHaxeClassReference typeParameterFrom =specificsFrom[0].getClassType();
     // The compiler does not accept types to be assigned to Class<Any> without being casted
     // This is probably due to the abstract implicit cast methods only accepting and returning instances.
-    if(typeParameter.isAny() && !from.isAny()) return false;
-    return canAssignToFromType(typeParameter, from);
+    if(typeParameterTo.isAny() && !from.isAny()) return false;
+    return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }
   private static boolean handleEnumType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
-    if(to.getHaxeClass().equals(from.getHaxeClass())) return true;
-    if(!from.isContextAnEnumType()) return false;
     if(from.isEnumValueClass()) return false;
-    SpecificHaxeClassReference typeParameter = Objects.requireNonNull(to.getSpecifics()[0].getClassType());
-    return canAssignToFromType(typeParameter, from);
+    if (from.isClass()) return false;
+
+    ResultHolder[] specificsTo = to.getSpecifics();
+    ResultHolder[] specificsFrom = from.getSpecifics();
+
+    if (specificsTo.length != specificsFrom.length) return false;
+    if (specificsTo.length == 0) return false;
+    if (specificsFrom.length == 0) return false;
+
+    SpecificHaxeClassReference typeParameterTo = specificsTo[0].getClassType();
+    SpecificHaxeClassReference typeParameterFrom = specificsFrom[0].getClassType();
+    return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }
 
   static public boolean canAssignToFromSpecificType(

@@ -10,7 +10,7 @@ class AssignEnumValue {
                 var ok3:EnumValue = tmp;
                 var ok4:EnumValue = getEnum();
 
- 		var <error descr="Incompatible type: MyEnum should be EnumValue">wrong1:EnumValue = MyEnum</error>;
+ 		var <error descr="Incompatible type: Enum<MyEnum> should be EnumValue">wrong1:EnumValue = MyEnum</error>;
  		var <error descr="Incompatible type: Bool should be EnumValue">wrong2:EnumValue = Enum<MyEnum></error><error descr="<expression> expected, got ';'">;</error>
  	}
 

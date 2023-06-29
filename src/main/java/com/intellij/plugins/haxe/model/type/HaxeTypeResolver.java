@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -359,6 +360,16 @@ public class HaxeTypeResolver {
     return getTypeFromType(type, null);
   }
 
+  static public  boolean isTypeParameter(HaxeReferenceExpression expression) {
+    if(PsiTreeUtil.getParentOfType(expression, HaxeTypeParam.class) != null) {
+      return true;
+    }
+    if (expression.resolve() instanceof  HaxeGenericListPart) {
+      return true;
+    }
+    return false;
+  }
+
   /**
    * Resolves the type reference in HaxeType, including type parameters,
    * and fully resolving type parameters if they are fully specified types or
@@ -379,7 +390,8 @@ public class HaxeTypeResolver {
     HaxeClassReference reference;
     final HaxeClass resolvedHaxeClass = expression.resolveHaxeClass().getHaxeClass();
     if (resolvedHaxeClass == null) {
-      reference = new HaxeClassReference(expression.getText(), type);
+      boolean isTypeParameter = isTypeParameter(expression);
+      reference = new HaxeClassReference(expression.getText(), type, isTypeParameter);
     } else {
       reference = new HaxeClassReference(resolvedHaxeClass.getModel(), type);
     }
@@ -458,6 +470,14 @@ public class HaxeTypeResolver {
         resultHolder = new ResultHolder(SpecificFunctionReference.create((HaxeSpecificFunction)haxeClass));
       } else if (null != haxeClass) {
         resultHolder = new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
+        // if class reference (not chain) wrap as Class<T>
+        // ex: var myTypeVar:Class<MyClass> = MyClass;
+        if(element.getParent() instanceof  HaxeVarInit // is init expression
+           && haxeClass.getName() != null // must have name (filtering out anonymous types)
+           && element.textMatches(haxeClass.getName())  // identical classname and elementText
+           && element.getNextSibling() == null) { // not part of a expression chain (MyClass.someMember)
+          resultHolder = HaxeTypeCompatible.wrapType(resultHolder, element, haxeClass.isEnum()).createHolder();
+        }
       }
       // If it doesn't resolve to a class, fall back to whatever *does* resolve to. This calls
       // the newer resolve code (this class), which does deal with expressions properly.
@@ -481,6 +501,7 @@ public class HaxeTypeResolver {
             resultHolder.disableMutating();
           }
         }
+
         return resultHolder;
       }
     }

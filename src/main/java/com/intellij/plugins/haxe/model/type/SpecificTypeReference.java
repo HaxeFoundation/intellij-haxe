@@ -29,8 +29,6 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
 public abstract class SpecificTypeReference {
   public static final String VOID = "Void";
   public static final String BOOL = "Bool";
@@ -287,6 +285,12 @@ public abstract class SpecificTypeReference {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
       return reference.getHaxeClass() instanceof  HaxeAbstractClassDeclaration;
+    }
+    return false;
+  }
+  final public boolean isFromTypeParameter() {
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      return specificHaxeClassReference.getHaxeClassReference().isTypeParameter();
     }
     return false;
   }
