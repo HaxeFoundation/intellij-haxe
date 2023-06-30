@@ -156,13 +156,6 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
           HaxeParameterModel parameterModel = parameters.get(parameterIndex);
 
-          //TODO mlo: figure out the best  way to resolve parameter generics from owner method and class
-          // experimental
-          HaxeGenericSpecialization specialization1 = specialization.getInnerSpecialization(parameterModel.getParameterPsi());
-          HaxeGenericResolver resolver1 = specialization1.toGenericResolver(parameterModel.getParameterPsi());
-          resolver.addAll(resolver1);
-          ///  experimental end
-
           // add constraints from method
           resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 

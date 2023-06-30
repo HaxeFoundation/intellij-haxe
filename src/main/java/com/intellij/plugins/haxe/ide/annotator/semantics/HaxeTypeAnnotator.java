@@ -62,11 +62,14 @@ public class HaxeTypeAnnotator implements Annotator {
       }
       SpecificHaxeClassReference haxeClassReference = HaxeTypeResolver.getTypeFromType(type).getClassType();
       if (haxeClassReference != null) {
+        if (HaxeTypeResolver.isTypeParameter(type.getReferenceExpression())) {
+          // ignoring  check if type is Type Parameter itself.
+          return;
+        }
         HaxeClass haxeClass = haxeClassReference.getHaxeClass();
         if (haxeClass != null) {
           // Dynamic is special and does not require Type parameter to de specified
           if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
-
           int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
           int classParameterCount = countTypeParameters(haxeClass);
 
