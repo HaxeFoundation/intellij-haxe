@@ -526,7 +526,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference originalType,
-                                                             @Nullable HaxeGenericResolver genericResolver) {
+                                                                   @Nullable HaxeGenericResolver genericResolver) {
     SpecificHaxeClassReference type = originalType;
     if (type == null) return null;
     if (genericResolver == null) return type;
@@ -535,20 +535,21 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       String typeVariableName = type.getHaxeClassReference().name;
       ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
-        SpecificHaxeClassReference possibleType = possibleValue.getClassType();
-        if (possibleType != null) {
-          type = possibleType;
+        SpecificTypeReference possibleType = possibleValue.getType();
+        if (possibleType instanceof SpecificHaxeClassReference classReference) {
+          type = classReference;
         }
       }
     }
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard
       if (specific.getClassType() != originalType) {
-        final SpecificHaxeClassReference classType = propagateGenericsToType(specific.getClassType(), genericResolver);
-        if (null != classType) {
-          specific.setType(classType);
+        final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver);
+        if (null != typeReference) {
+          specific.setType(typeReference);
         }
-      }else {
+      }
+      else {
         log.warn("can not propagate Generics To Type, type and specific is the same type");
       }
     }

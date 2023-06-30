@@ -242,8 +242,8 @@ public class HaxeTypeResolver {
 
     // Resolve any generics on the resolved type as well.
     typeReference = result.getType();
-    if (typeReference instanceof SpecificHaxeClassReference) {
-      SpecificHaxeClassReference.propagateGenericsToType((SpecificHaxeClassReference)typeReference, resolver);
+    if (typeReference instanceof SpecificHaxeClassReference classReference) {
+      SpecificHaxeClassReference.propagateGenericsToType(classReference, resolver);
     }
 
     return result;

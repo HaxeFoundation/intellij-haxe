@@ -639,9 +639,11 @@ public class HaxeResolveUtil {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
       return typeDef.getTargetClass(specialization);
     }
-    if (element instanceof HaxeClass) {
-      final HaxeClass haxeClass = (HaxeClass)element;
+    if (element instanceof HaxeClass haxeClass) {
       return HaxeClassResolveResult.create(haxeClass, specialization);
+    }
+    if (element instanceof  HaxeFunctionType functionType) {
+      return HaxeClassResolveResult.create(functionType, specialization);
     }
     if (element instanceof HaxeIteratorkey || element instanceof HaxeIteratorValue) {
         final HaxeForStatement forStatement = getParentForStatement(element);
@@ -806,6 +808,9 @@ public class HaxeResolveUtil {
       // anonymous types does not have TypeParam directly  but gets it generics from parent
       // so to avoid "skipping" a hierarchy level we only do this for non-HaxeAnonymous types
       if(!(result.getHaxeClass() instanceof HaxeAnonymousType)) {
+        result.specializeByParameters(type == null ? null : type.getTypeParam());
+      }
+      if(result.getFunctionType() != null) {
         result.specializeByParameters(type == null ? null : type.getTypeParam());
       }
     }

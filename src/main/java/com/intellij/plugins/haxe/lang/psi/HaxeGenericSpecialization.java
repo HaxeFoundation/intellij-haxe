@@ -101,11 +101,19 @@ public class HaxeGenericSpecialization implements Cloneable {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     for (String key : innerMap.keySet()) {
       HaxeClassResolveResult resolveResult = innerMap.get(key);
-      HaxeClass resolveClass = resolveResult.getHaxeClass();
-      if (null == resolveClass) {
-        resolveClass = SpecificHaxeClassReference.getUnknown(element).getHaxeClass();
+
+      ResultHolder resultHolder;
+      if (resolveResult.isFunctionType()) {
+        HaxeFunctionType functionType = resolveResult.getFunctionType();
+        resultHolder = resolveResult.getSpecificFunctionReference(functionType, null).createHolder();
+      }else if (resolveResult.isHaxeClass()) {
+        HaxeClass haxeClass = resolveResult.getHaxeClass();
+        resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
+      }else {
+        HaxeClass haxeClass = SpecificHaxeClassReference.getUnknown(element).getHaxeClass();
+        resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
       }
-      ResultHolder resultHolder = resolveResult.getSpecificClassReference(resolveClass, null).createHolder();
+
       resolver.add(key, resultHolder);
     }
     return resolver;
@@ -134,8 +142,9 @@ public class HaxeGenericSpecialization implements Cloneable {
         } else if (holder.getFunctionType() != null) {
           SpecificFunctionReference type = holder.getFunctionType();
           if (type.getElementContext() instanceof  HaxeFunctionType functionType){
-            HaxeSpecificFunction function = new HaxeSpecificFunction(functionType, specialization);
-            HaxeClassResolveResult resolved = HaxeClassResolveResult.create(function, fromGenericResolver(context, resolver));
+            HaxeClassResolveResult resolved = HaxeClassResolveResult.create(functionType, fromGenericResolver(context, resolver));
+            //HaxeSpecificFunction function = new HaxeSpecificFunction(functionType, specialization);
+            //HaxeClassResolveResult resolved = HaxeClassResolveResult.create(function, fromGenericResolver(context, resolver));
             specialization.put(element, name, resolved);
           }
         }

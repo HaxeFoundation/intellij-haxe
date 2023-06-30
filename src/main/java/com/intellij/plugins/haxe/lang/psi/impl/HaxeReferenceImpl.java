@@ -344,7 +344,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       assert haxeClass != null;
       if (haxeClass.getHaxeExtendsList().isEmpty()) {
-        return HaxeClassResolveResult.create(null);
+        return HaxeClassResolveResult.createEmpty();
       }
       final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
       final HaxeClassResolveResult superClassResolveResult = ((HaxeReference)superExpression).resolveHaxeClass();
@@ -364,7 +364,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
       }
       // Else, it's a block statement and not a named literal.
-      return HaxeClassResolveResult.create(null);
+      return HaxeClassResolveResult.createEmpty();
     }
 
     if (isType(HaxeMapLiteral.class)) {
