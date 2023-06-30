@@ -31,7 +31,7 @@ import java.util.List;
 public class HaxeParameterDescriptionBuilder {
 
   @NotNull
-  static HaxeParameterDescription[] buildFromList(@Nullable List<HaxeParameter> parameters, HaxeClassResolveResult resolveResult) {
+  static HaxeParameterDescription[] buildFromList(@Nullable List<HaxeParameter> parameters, HaxeResolveResult resolveResult) {
     if (parameters == null || parameters.size() == 0) return new HaxeParameterDescription[0];
 
     int parameterSize = parameters.size();
@@ -48,7 +48,7 @@ public class HaxeParameterDescriptionBuilder {
   }
 
   @NotNull
-  private static HaxeParameterDescription build(HaxeParameter parameter, HaxeClassResolveResult resolveResult) {
+  private static HaxeParameterDescription build(HaxeParameter parameter, HaxeResolveResult resolveResult) {
     final HaxeParameterModel model = new HaxeParameterModel(parameter);
 
     String name = model.getName();
@@ -79,7 +79,7 @@ public class HaxeParameterDescriptionBuilder {
     String specificTypeText = resultHolder.getType().toStringWithoutConstant();
 
     if (resolveResult.getSpecialization().containsKey(parameter, specificTypeText)) {
-      HaxeClassResolveResult genericClassResolveResult = resolveResult.getSpecialization().get(parameter, specificTypeText);
+      HaxeResolveResult genericClassResolveResult = resolveResult.getSpecialization().get(parameter, specificTypeText);
       HaxeClass genericHaxeClass = genericClassResolveResult.getHaxeClass();
       PsiElement context = parameter.getContext();
       if (genericHaxeClass != null && context != null) {

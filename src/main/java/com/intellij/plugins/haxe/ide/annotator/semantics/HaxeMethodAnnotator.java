@@ -383,10 +383,10 @@ public class HaxeMethodAnnotator implements Annotator {
                                                                      HaxeModel parentParam) {
     HaxeGenericSpecialization scopeSpecialization =
       HaxeGenericSpecialization.fromGenericResolver(currentElement.getBasePsi(), scopeResolver);
-    HaxeClassResolveResult superclassResult = HaxeResolveUtil.getSuperclassResolveResult(parentParam.getBasePsi(),
-                                                                                         currentElement.getBasePsi(),
-                                                                                         scopeSpecialization);
-    if (superclassResult == HaxeClassResolveResult.EMPTY) {
+    HaxeResolveResult superclassResult = HaxeResolveUtil.getSuperclassResolveResult(parentParam.getBasePsi(),
+                                                                                    currentElement.getBasePsi(),
+                                                                                    scopeSpecialization);
+    if (superclassResult == HaxeResolveResult.EMPTY) {
       // TODO: Create Unresolved annotation??
       log.warn("Couldn't resolve a parameter type from a subclass for " + currentElement.getName());
     }

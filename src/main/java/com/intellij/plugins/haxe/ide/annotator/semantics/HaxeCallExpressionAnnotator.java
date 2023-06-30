@@ -164,7 +164,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           ResultHolder expressionType = null;
 
           if (expression instanceof HaxeReferenceExpression) {
-            HaxeClassResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
+            HaxeResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
             if (resolveHaxeClass.getHaxeClass() instanceof HaxeSpecificFunction) {
               SpecificHaxeClassReference parameterClassType = parameterType.getClassType();
               if (parameterClassType != null) {
@@ -276,7 +276,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
     if (type != null && type.length > 0) {
       HaxeReference expression = type[0];
-      HaxeClassResolveResult resolveResult = expression.resolveHaxeClass();
+      HaxeResolveResult resolveResult = expression.resolveHaxeClass();
       SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
       SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
       return finalReference.getGenericResolver();

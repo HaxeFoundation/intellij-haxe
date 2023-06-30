@@ -18,9 +18,8 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveResult;
+import com.intellij.plugins.haxe.lang.psi.HaxeResolveResult;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogUtil;
 
@@ -86,7 +85,7 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
   private void configureLoggerForDebugging() {
     HaxeDebugLogUtil.getLogger(HaxeResolveUtil.class).setLevel(LogLevel.DEBUG);
     HaxeDebugLogUtil.getLogger(HaxeReferenceImpl.class).setLevel(LogLevel.DEBUG);
-    HaxeDebugLogUtil.getLogger(HaxeClassResolveResult.class).setLevel(LogLevel.DEBUG);
+    HaxeDebugLogUtil.getLogger(HaxeResolveResult.class).setLevel(LogLevel.DEBUG);
   }
 
 

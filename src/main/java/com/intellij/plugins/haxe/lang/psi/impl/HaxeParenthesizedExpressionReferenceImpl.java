@@ -46,7 +46,7 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
 
   @Override
   protected List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    HaxeClassResolveResult resolved = getResolvedType();
+    HaxeResolveResult resolved = getResolvedType();
     if (null != resolved.getHaxeClass()) {
       return Collections.singletonList(resolved.getHaxeClass());
     }
@@ -54,7 +54,7 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
   }
 
   @NotNull
-  public HaxeClassResolveResult getResolvedType() {
+  public HaxeResolveResult getResolvedType() {
     HaxeExpressionEvaluatorContext context =
       HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
                                        HaxeGenericResolverUtil.generateResolverFromScopeParents(expression));
@@ -63,9 +63,9 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
     SpecificHaxeClassReference specificReference = result.getClassType();
     if (null != specificReference) {
       HaxeClass clazz = specificReference.getHaxeClass();
-      HaxeClassResolveResult resolved = HaxeClassResolveResult.create(clazz, specificReference.getGenericResolver().getSpecialization(clazz));
+      HaxeResolveResult resolved = HaxeResolveResult.create(clazz, specificReference.getGenericResolver().getSpecialization(clazz));
       return resolved;
     }
-    return HaxeClassResolveResult.EMPTY;
+    return HaxeResolveResult.EMPTY;
   }
 }

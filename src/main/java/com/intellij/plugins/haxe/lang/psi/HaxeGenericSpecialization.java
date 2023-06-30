@@ -37,21 +37,21 @@ public class HaxeGenericSpecialization implements Cloneable {
 
   public static final HaxeGenericSpecialization EMPTY = new HaxeGenericSpecialization() {
     @Override
-    public void put(PsiElement element, String genericName, HaxeClassResolveResult resolveResult) {
+    public void put(PsiElement element, String genericName, HaxeResolveResult resolveResult) {
       throw new HaxeDebugUtil.InvalidValueException("Must not modify (shared) EMPTY specialization.");
     }
   };
 
   // This must remain ordered, thus the LinkedHashMap. (HaxeGenericResolver relies on order it seems)
-  final LinkedHashMap<String, HaxeClassResolveResult> map;
+  final LinkedHashMap<String, HaxeResolveResult> map;
 
   public HaxeGenericSpecialization() {
-    this(new LinkedHashMap<String, HaxeClassResolveResult>());
+    this(new LinkedHashMap<String, HaxeResolveResult>());
   }
 
   @Override
   protected HaxeGenericSpecialization clone() {
-    final LinkedHashMap<String, HaxeClassResolveResult> clonedMap = new LinkedHashMap<String, HaxeClassResolveResult>();
+    final LinkedHashMap<String, HaxeResolveResult> clonedMap = new LinkedHashMap<String, HaxeResolveResult>();
     for (String key : map.keySet()) {
       clonedMap.put(key, map.get(key));
     }
@@ -61,7 +61,7 @@ public class HaxeGenericSpecialization implements Cloneable {
 
   //EXPERIMENTAL!
   public HaxeGenericSpecialization softMerge(HaxeGenericSpecialization specialization) {
-    final LinkedHashMap<String, HaxeClassResolveResult> mergedMap = new LinkedHashMap<String, HaxeClassResolveResult>();
+    final LinkedHashMap<String, HaxeResolveResult> mergedMap = new LinkedHashMap<String, HaxeResolveResult>();
 
     for (String key : map.keySet()) {
       mergedMap.put(key, map.get(key));
@@ -75,7 +75,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     return new HaxeGenericSpecialization(mergedMap);
   }
 
-  protected HaxeGenericSpecialization(LinkedHashMap<String, HaxeClassResolveResult> map) {
+  protected HaxeGenericSpecialization(LinkedHashMap<String, HaxeResolveResult> map) {
     this.map = map;
   }
 
@@ -96,11 +96,11 @@ public class HaxeGenericSpecialization implements Cloneable {
       element = SpecificTypeReference.createUnknownContext();
     }
 
-    Map<String, HaxeClassResolveResult> innerMap = getMapWithInnerSpecializations(element);
+    Map<String, HaxeResolveResult> innerMap = getMapWithInnerSpecializations(element);
 
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     for (String key : innerMap.keySet()) {
-      HaxeClassResolveResult resolveResult = innerMap.get(key);
+      HaxeResolveResult resolveResult = innerMap.get(key);
 
       ResultHolder resultHolder;
       if (resolveResult.isFunctionType()) {
@@ -132,17 +132,17 @@ public class HaxeGenericSpecialization implements Cloneable {
           continue;
         }
         if (context instanceof HaxeClass) {
-          HaxeClassResolveResult resolved =
-            HaxeClassResolveResult.create((HaxeClass)context, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
+          HaxeResolveResult resolved =
+            HaxeResolveResult.create((HaxeClass)context, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
           specialization.put(element, name, resolved);
         } else if (holder.getClassType() != null) {
           HaxeClass clazz = holder.getClassType().getHaxeClass();
-          HaxeClassResolveResult resolved = HaxeClassResolveResult.create(clazz, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
+          HaxeResolveResult resolved = HaxeResolveResult.create(clazz, fromGenericResolver(context, holder.getClassType().getGenericResolver()));
           specialization.put(element, name, resolved);
         } else if (holder.getFunctionType() != null) {
           SpecificFunctionReference type = holder.getFunctionType();
           if (type.getElementContext() instanceof  HaxeFunctionType functionType){
-            HaxeClassResolveResult resolved = HaxeClassResolveResult.create(functionType, fromGenericResolver(context, resolver));
+            HaxeResolveResult resolved = HaxeResolveResult.create(functionType, fromGenericResolver(context, resolver));
             //HaxeSpecificFunction function = new HaxeSpecificFunction(functionType, specialization);
             //HaxeClassResolveResult resolved = HaxeClassResolveResult.create(function, fromGenericResolver(context, resolver));
             specialization.put(element, name, resolved);
@@ -153,7 +153,7 @@ public class HaxeGenericSpecialization implements Cloneable {
     return specialization;
   }
 
-  public void put(@Nullable PsiElement element, @NotNull String genericName, @Nullable HaxeClassResolveResult resolveResult) {
+  public void put(@Nullable PsiElement element, @NotNull String genericName, @Nullable HaxeResolveResult resolveResult) {
     map.put(getGenericKey(element, genericName), resolveResult);
   }
 
@@ -172,18 +172,18 @@ public class HaxeGenericSpecialization implements Cloneable {
     return filtered;
   }
 
-  public HaxeClassResolveResult get(@Nullable PsiElement element, @NotNull String genericName) {
+  public HaxeResolveResult get(@Nullable PsiElement element, @NotNull String genericName) {
     return map.get(getGenericKey(element, genericName));
   }
 
   @NotNull
   public HaxeGenericSpecialization getInnerSpecialization(@Nullable PsiElement element) {
-    final LinkedHashMap<String, HaxeClassResolveResult> result = getMapWithInnerSpecializations(element);
+    final LinkedHashMap<String, HaxeResolveResult> result = getMapWithInnerSpecializations(element);
     return new HaxeGenericSpecialization(result);
   }
 
   @NotNull
-  private LinkedHashMap<String, HaxeClassResolveResult> getMapWithInnerSpecializations(@Nullable PsiElement element) {
+  private LinkedHashMap<String, HaxeResolveResult> getMapWithInnerSpecializations(@Nullable PsiElement element) {
     // We are no longer removing fully-qualified entries for the element.  Rather,
     // we are duplicating them without the FQDN in the key so that pieces of the
     // code that do not have FQDN info can continue to match (which is what we
@@ -191,9 +191,9 @@ public class HaxeGenericSpecialization implements Cloneable {
     // after an inner specialization is requested.
 
     final String prefixToRemove = getGenericKey(element, "");
-    final LinkedHashMap<String, HaxeClassResolveResult> result = new LinkedHashMap<>();
+    final LinkedHashMap<String, HaxeResolveResult> result = new LinkedHashMap<>();
     for (String key : map.keySet()) {
-      final HaxeClassResolveResult value = map.get(key);
+      final HaxeResolveResult value = map.get(key);
       if (!prefixToRemove.isEmpty() && key.startsWith(prefixToRemove)) {
         String newKey = key.substring(prefixToRemove.length());
         result.put(newKey, value);
@@ -265,7 +265,7 @@ public class HaxeGenericSpecialization implements Cloneable {
       builder.append(prefix);
       builder.append(key);
       builder.append(" -> ");
-      HaxeClassResolveResult result = map.get(key);
+      HaxeResolveResult result = map.get(key);
       builder.append(result == null ? "<no value>\n" : result.debugDump(prefix));
     }
     return builder.toString();

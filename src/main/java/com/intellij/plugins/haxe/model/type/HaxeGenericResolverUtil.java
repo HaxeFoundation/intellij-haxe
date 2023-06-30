@@ -97,7 +97,7 @@ public class HaxeGenericResolverUtil {
       appendStatementGenericResolver(left, resolver);
     }
     if (element instanceof HaxeReference) {
-      HaxeClassResolveResult result = ((HaxeReference)element).resolveHaxeClass();
+      HaxeResolveResult result = ((HaxeReference)element).resolveHaxeClass();
       resolver.addAll(result.getGenericResolver());
       if (result.getHaxeClass() != null) {
         resolver.addAll(getResolverSkipAbstractNullScope(result.getHaxeClass().getModel(), result.getGenericResolver()));

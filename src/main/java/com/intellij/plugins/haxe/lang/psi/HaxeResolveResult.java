@@ -42,7 +42,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 @CustomLog
-public class HaxeClassResolveResult implements Cloneable {
+public class HaxeResolveResult implements Cloneable {
 
 
   //static {      // Take this out when finished debugging.
@@ -52,66 +52,66 @@ public class HaxeClassResolveResult implements Cloneable {
   private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
   private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
 
-  public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
+  public static final HaxeResolveResult EMPTY = new HaxeResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
   @Nullable
   private final HaxeFunctionType functionType;
   private final HaxeGenericSpecialization specialization;
 
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass) {
+  private HaxeResolveResult(@Nullable HaxeClass aClass) {
     this(aClass, new HaxeGenericSpecialization());
   }
 
-  private HaxeClassResolveResult(@Nullable HaxeFunctionType functionType, @NotNull HaxeGenericSpecialization specialization) {
+  private HaxeResolveResult(@Nullable HaxeFunctionType functionType, @NotNull HaxeGenericSpecialization specialization) {
     this.haxeClass = null;
     this.functionType = functionType;
     this.specialization = specialization;
   }
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
+  private HaxeResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
     this.haxeClass = aClass;
     this.functionType = null;
     this.specialization = specialization;
   }
 
   @Override
-  protected HaxeClassResolveResult clone() {
+  protected HaxeResolveResult clone() {
     if (isFunctionType()) {
-      return new HaxeClassResolveResult(functionType, specialization.clone());
+      return new HaxeResolveResult(functionType, specialization.clone());
     }else {
-      return new HaxeClassResolveResult(haxeClass, specialization.clone());
+      return new HaxeResolveResult(haxeClass, specialization.clone());
     }
   }
 
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeFunctionType functionType) {
+  public static HaxeResolveResult create(@Nullable HaxeFunctionType functionType) {
     return create(functionType, new HaxeGenericSpecialization());
   }
 
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeClass aClass) {
+  public static HaxeResolveResult create(@Nullable HaxeClass aClass) {
     return create(aClass, new HaxeGenericSpecialization());
   }
   @NotNull
-  public static HaxeClassResolveResult createEmpty() {
+  public static HaxeResolveResult createEmpty() {
     return create((HaxeClass)null, new HaxeGenericSpecialization());
   }
 
   @NotNull
-  private static HaxeClassResolveResult createEmpty(HaxeGenericSpecialization specialization) {
+  private static HaxeResolveResult createEmpty(HaxeGenericSpecialization specialization) {
     return create((HaxeClass)null, specialization);
   }
 
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+  public static HaxeResolveResult create(@Nullable HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
     if (functionType  == null) {
-      return new HaxeClassResolveResult(null);
+      return new HaxeResolveResult(null);
     }
     if (specialization == null) {
       specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
     }
     //TODO implement specialization?
-    return new HaxeClassResolveResult(functionType, specialization);
+    return new HaxeResolveResult(functionType, specialization);
   }
 
   /**
@@ -123,16 +123,16 @@ public class HaxeClassResolveResult implements Cloneable {
    * @return A HaxeClassResolveResult for the class, with parameters fully typed, if possible.
    */
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
+  public static HaxeResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
-      return new HaxeClassResolveResult(null);
+      return new HaxeResolveResult(null);
     }
     if (specialization == null) {
       specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
     }
     try {
       if (resolvesInProcess.get().contains(aClass)) {
-        return HaxeClassResolveResult.EMPTY;
+        return HaxeResolveResult.EMPTY;
       }
       resolvesInProcess.get().add(aClass);
 
@@ -144,7 +144,7 @@ public class HaxeClassResolveResult implements Cloneable {
                   " using specialization " +
                   specialization.debugDump("  "));
       }
-      HaxeClassResolveResult resolveResult = getResult(aClass, specialization);
+      HaxeResolveResult resolveResult = getResult(aClass, specialization);
 
       // Load the specialization with sub-class parameters.
       try {
@@ -157,7 +157,7 @@ public class HaxeClassResolveResult implements Cloneable {
           // The purpose here is to create a specialization with the mapping of names to real types before going down
           // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
           final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
-          final HaxeClassResolveResult superResult = new HaxeClassResolveResult(superclass, innerSpecialization);
+          final HaxeResolveResult superResult = new HaxeResolveResult(superclass, innerSpecialization);
           superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
 
           // Now keep only the specializations that weren't inner.
@@ -165,7 +165,7 @@ public class HaxeClassResolveResult implements Cloneable {
 
           // Now that we have a specialization with real types, we can let the superclass be resolved.
           if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass,aClass)) {
-            final HaxeClassResolveResult result = create(superclass, filteredSpecialization);
+            final HaxeResolveResult result = create(superclass, filteredSpecialization);
             result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
             if (log.isDebugEnabled()) {
               log.debug(debugNestCountForCreate +
@@ -193,18 +193,18 @@ public class HaxeClassResolveResult implements Cloneable {
     }
   }
 
-  private static HaxeClassResolveResult getResult(@NotNull HaxeClass aClass, HaxeGenericSpecialization specialization) {
-    HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
+  private static HaxeResolveResult getResult(@NotNull HaxeClass aClass, HaxeGenericSpecialization specialization) {
+    HaxeResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
 
     if (resolveResult == null) {
-      resolveResult = new HaxeClassResolveResult(aClass);
+      resolveResult = new HaxeResolveResult(aClass);
       loadResultWithConstraints(resolveResult, aClass, specialization);
       HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
     }
     return resolveResult.clone();
   }
 
-  private static void loadResultWithConstraints(HaxeClassResolveResult resolveResult,
+  private static void loadResultWithConstraints(HaxeResolveResult resolveResult,
                                                 @Nullable HaxeClass aClass,
                                                 HaxeGenericSpecialization specialization) {
     // This block of code loads the specialization with the type _constraint_, not the target types.
@@ -225,7 +225,7 @@ public class HaxeClassResolveResult implements Cloneable {
           lazyGenericReferences.add(genericListPart);
           continue;
         }
-        HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
+        HaxeResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
         if (log.isDebugEnabled()) {
           log.debug(debugNestCountForCreate.toString() +
                     "  Adding constraint for " +
@@ -256,9 +256,9 @@ public class HaxeClassResolveResult implements Cloneable {
         final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
         if(specializedType != null) {
           String referencedGenericName = specializedType.getReferenceExpression().getText();
-          HaxeClassResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
+          HaxeResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
           if(referencedSpecialization == null) {
-            referencedSpecialization = HaxeClassResolveResult.createEmpty(specialization);
+            referencedSpecialization = HaxeResolveResult.createEmpty(specialization);
           }
           resolveResult.specialization.put(aClass, componentName.getName(), referencedSpecialization);
         }
@@ -411,7 +411,7 @@ public class HaxeClassResolveResult implements Cloneable {
       final PsiElement type = getTypeOfTypeListPart(part);
       final String name = type != null ? type.getText() : null;
 
-      HaxeClassResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
+      HaxeResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
       HaxeClass resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
       if (null == resolvedClass) {
         resolvedParam = HaxeResolveUtil.getHaxeClassResolveResult(type); // No specialization??
@@ -451,7 +451,7 @@ public class HaxeClassResolveResult implements Cloneable {
 
       if (genericParamName == null) continue;
 
-      final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
+      final HaxeResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       if(specializedTypeResult.getHaxeClass() != null) {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }
@@ -546,8 +546,8 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   private static class JavaResult implements JavaResolveResult {
-    private HaxeClassResolveResult originalResult = null;
-    public JavaResult(HaxeClassResolveResult result) { originalResult = result; }
+    private HaxeResolveResult originalResult = null;
+    public JavaResult(HaxeResolveResult result) { originalResult = result; }
     @Override public PsiElement getElement() { return (originalResult != null ? originalResult.getHaxeClass() : null); }
     @NotNull
     @Override public PsiSubstitutor getSubstitutor() { return PsiSubstitutor.EMPTY; }

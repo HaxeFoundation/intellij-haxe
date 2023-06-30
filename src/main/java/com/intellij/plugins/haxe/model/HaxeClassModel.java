@@ -575,7 +575,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   @NotNull
   public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
     if (getPsi().getGenericParam() != null) {
-      HaxeClassResolveResult result = HaxeClassResolveResult.create(getPsi(),
+      HaxeResolveResult result = HaxeResolveResult.create(getPsi(),
                                       parentResolver == null ? HaxeGenericSpecialization.EMPTY
                                                              : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
       HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());

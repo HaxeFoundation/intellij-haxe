@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceElement {
   @NotNull
-  HaxeClassResolveResult resolveHaxeClass();
+  HaxeResolveResult resolveHaxeClass();
 
   @Nullable
   PsiType getPsiType();

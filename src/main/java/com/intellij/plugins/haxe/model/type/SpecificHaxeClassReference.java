@@ -573,8 +573,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   @NotNull
-  public HaxeClassResolveResult asResolveResult() {
+  public HaxeResolveResult asResolveResult() {
     HaxeClass clazz = getHaxeClass();
-    return HaxeClassResolveResult.create(clazz, getGenericResolver().getSpecialization(clazz));
+    return HaxeResolveResult.create(clazz, getGenericResolver().getSpecialization(clazz));
   }
 }

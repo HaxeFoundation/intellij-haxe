@@ -22,7 +22,6 @@ import com.intellij.codeInsight.completion.JavaCompletionUtil;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
@@ -37,7 +36,6 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NO_COMPLETION;
-import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.appendMethodGenericResolver;
 import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getResolverSkipAbstractNullScope;
 
 /**
@@ -45,10 +43,10 @@ import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.getRe
  */
 public class HaxeLookupElement extends LookupElement {
   private final HaxeComponentName myComponentName;
-  private final HaxeClassResolveResult leftReference;
+  private final HaxeResolveResult leftReference;
   private final HaxeMethodContext context;
 
-  public static Collection<HaxeLookupElement> convert(HaxeClassResolveResult leftReferenceResolveResult,
+  public static Collection<HaxeLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
                                                       @NotNull Collection<HaxeComponentName> componentNames,
                                                       @NotNull Collection<HaxeComponentName> componentNamesExtension) {
     final List<HaxeLookupElement> result = new ArrayList<>(componentNames.size());
@@ -76,7 +74,7 @@ public class HaxeLookupElement extends LookupElement {
     return result;
   }
 
-  public HaxeLookupElement(HaxeClassResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context) {
+  public HaxeLookupElement(HaxeResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context) {
     this.leftReference = leftReference;
     this.myComponentName = name;
     this.context = context;

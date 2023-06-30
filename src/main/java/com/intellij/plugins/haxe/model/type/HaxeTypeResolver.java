@@ -31,7 +31,6 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -464,7 +463,7 @@ public class HaxeTypeResolver {
       // First, try to resolve it to a class -- this deals with field-level specializations.
       // This calls the old resolver which doesn't deal with expressions.
       ResultHolder resultHolder = null;
-      HaxeClassResolveResult result = expression.resolveHaxeClass();
+      HaxeResolveResult result = expression.resolveHaxeClass();
       HaxeClass haxeClass = result.getHaxeClass();
       if (haxeClass instanceof HaxeSpecificFunction) {
         resultHolder = new ResultHolder(SpecificFunctionReference.create((HaxeSpecificFunction)haxeClass));

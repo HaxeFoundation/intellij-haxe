@@ -20,7 +20,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 
@@ -103,7 +102,7 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
 
   @NotNull
   @Override
-  public HaxeClassResolveResult resolveHaxeClass() {
+  public HaxeResolveResult resolveHaxeClass() {
     log.trace("Resolving " + getText());
     final HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(this, HaxeFunctionType.class);
     HaxeTypeOrAnonymous typeOrAnonymous = PsiTreeUtil.getChildOfType(this, HaxeTypeOrAnonymous.class);
@@ -114,6 +113,6 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
       }
     }
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : PsiTreeUtil.getChildOfType(this, HaxeType.class);
-    return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
+    return HaxeResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
   }
 }
