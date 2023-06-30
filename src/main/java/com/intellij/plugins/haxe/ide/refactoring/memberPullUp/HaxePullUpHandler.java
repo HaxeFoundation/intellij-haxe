@@ -164,7 +164,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
 
     List<PsiClass> psiClasses = new ArrayList<PsiClass>();
 
-    HaxeClassResolveResult result;
+    HaxeResolveResult result;
     HaxeClass haxeClass;
     for (HaxeType type : extendsList) {
       result = type.getReferenceExpression().resolveHaxeClass();

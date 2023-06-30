@@ -372,7 +372,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     String identifier =
       reference instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)reference).getIdentifier().getText() : reference.getText();
-    final HaxeClassResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
+    final HaxeResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
     if (leftExpression.getHaxeClass() != null) {
       HaxeMemberModel member = leftExpression.getHaxeClass().getModel().getMember(identifier, leftExpression.getGenericResolver());
       if (member != null) {
@@ -466,7 +466,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       componentName = componentDeclaration == null ? null : componentDeclaration.getComponentName();
     } else {
       // try to find component at abstract forwarding underlying class
-      HaxeClassResolveResult resolveResult = leftReference.resolveHaxeClass();
+      HaxeResolveResult resolveResult = leftReference.resolveHaxeClass();
       leftResultClass = resolveResult.getHaxeClass();
       if (log.isTraceEnabled()) {
         String resultClassName = leftResultClass != null ? leftResultClass.getText() : null;
@@ -477,7 +477,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
         if(model.isTypedef()) {
           // Resolve to the underlying type.
-          HaxeClassResolveResult result = fullyResolveTypedef(leftResultClass, resolveResult.getSpecialization());
+          HaxeResolveResult result = fullyResolveTypedef(leftResultClass, resolveResult.getSpecialization());
           if (null != result.getHaxeClass()) {
             model = result.getHaxeClass().getModel();
           }
@@ -510,12 +510,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @NotNull
-  private static HaxeClassResolveResult fullyResolveTypedef(@Nullable HaxeClass typedef, @Nullable HaxeGenericSpecialization specialization) {
-    if (null == typedef) return HaxeClassResolveResult.EMPTY;
+  private static HaxeResolveResult fullyResolveTypedef(@Nullable HaxeClass typedef, @Nullable HaxeGenericSpecialization specialization) {
+    if (null == typedef) return HaxeResolveResult.EMPTY;
 
     HashSet<String> recursionGuard = new HashSet<>(); // Track which typedefs we've already resolved so we don't end up in an infinite loop.
 
-    HaxeClassResolveResult result = HaxeClassResolveResult.EMPTY;
+    HaxeResolveResult result = HaxeResolveResult.EMPTY;
     HaxeClassModel model = typedef.getModel();
     while (null != model && model.isTypedef() && !recursionGuard.contains(model.getName())) {
       recursionGuard.add(model.getName());
@@ -524,16 +524,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeType type = toa.getType();
       if (null == type) {
         // Anonymous structure
-        result = HaxeClassResolveResult.create(toa.getAnonymousType(), specialization);
+        result = HaxeResolveResult.create(toa.getAnonymousType(), specialization);
         break;
       }
 
       // If the reference is to a type parameter, resolve that instead.
-      HaxeClassResolveResult nakedResult = specialization.get(type, type.getReferenceExpression().getIdentifier().getText());
+      HaxeResolveResult nakedResult = specialization.get(type, type.getReferenceExpression().getIdentifier().getText());
       if (null == nakedResult) {
         nakedResult = type.getReferenceExpression().resolveHaxeClass();
       }
-      result = HaxeClassResolveResult.create(nakedResult.getHaxeClass(), specialization);
+      result = HaxeResolveResult.create(nakedResult.getHaxeClass(), specialization);
       model = null != result.getHaxeClass() ? result.getHaxeClass().getModel() : null;
     }
     return result;
@@ -579,7 +579,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<? extends PsiElement> result = EMPTY_LIST;
       for (HaxeType sup : superclasses) {
         HaxeReference superReference = sup.getReferenceExpression();
-        HaxeClassResolveResult superClassResult = superReference.resolveHaxeClass();
+        HaxeResolveResult superClassResult = superReference.resolveHaxeClass();
         SpecificHaxeClassReference superClass = superClassResult.getSpecificClassReference(leftClass, resolver);
         result = resolveByClassAndSymbol(superClass.getHaxeClass(), superClass.getGenericResolver(), reference);
         if (null != result && !result.isEmpty()) {
@@ -590,7 +590,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
   }
 
-  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClassResolveResult resolveResult,
+  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeResolveResult resolveResult,
                                                                     @NotNull HaxeReference reference) {
     if (resolveResult == null) {
       if (log.isDebugEnabled()) LogResolution(null, "(resolveByClassAndSymbol)");

@@ -35,6 +35,7 @@ public class HaxeClassReference {
   @NotNull
   public final PsiElement elementContext;
   public final HaxeClassModel classModel;
+  private final boolean isTypeParameter;
 
   public HaxeClass clazz;
 
@@ -44,12 +45,20 @@ public class HaxeClassReference {
     this.name = getClassName(classModel);
     this.elementContext = elementContext;
     this.classModel = classModel;
+    this.isTypeParameter = false;
   }
 
   public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
     this.classModel = null;
+    this.isTypeParameter = false;
+  }
+  public HaxeClassReference(String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
+    this.name = name;
+    this.elementContext = elementContext;
+    this.classModel = null;
+    this.isTypeParameter = isTypeParameter;
   }
 
   private String getClassName(HaxeClassModel clazz) {
@@ -93,6 +102,10 @@ public class HaxeClassReference {
       //}
     }
     return clazz;
+  }
+
+  public boolean isTypeParameter() {
+    return isTypeParameter;
   }
 
   @Nullable

@@ -40,7 +40,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     super(node);
   }
 
-  public HaxeClassResolveResult getTargetClass() {
+  public HaxeResolveResult getTargetClass() {
     return getTargetClass(new HaxeGenericSpecialization());
   }
 
@@ -61,14 +61,14 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     return SpecificHaxeClassReference.propagateGenericsToType(haxeTypeOrAnonymous.getType(), genericResolver);
   }
 
-  public HaxeClassResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
+  public HaxeResolveResult getTargetClass(HaxeGenericSpecialization specialization) {
     final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
-      return HaxeClassResolveResult.create(null);
+      return HaxeResolveResult.createEmpty();
     }
     if (haxeTypeOrAnonymous.getAnonymousType() != null) {
-      return HaxeClassResolveResult.create(haxeTypeOrAnonymous.getAnonymousType(), specialization);
+      return HaxeResolveResult.create(haxeTypeOrAnonymous.getAnonymousType(), specialization);
     }
     return HaxeResolveUtil.getHaxeClassResolveResult(haxeTypeOrAnonymous.getType(), specialization);
   }

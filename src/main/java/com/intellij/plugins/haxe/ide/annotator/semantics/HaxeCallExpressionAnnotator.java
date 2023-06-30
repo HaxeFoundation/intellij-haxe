@@ -156,22 +156,15 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
           HaxeParameterModel parameterModel = parameters.get(parameterIndex);
 
-          //TODO mlo: figure out the best  way to resolve parameter generics from owner method and class
-          // experimental
-          HaxeGenericSpecialization specialization1 = specialization.getInnerSpecialization(parameterModel.getParameterPsi());
-          HaxeGenericResolver resolver1 = specialization1.toGenericResolver(parameterModel.getParameterPsi());
-          resolver.addAll(resolver1);
-          ///  experimental end
-
           // add constraints from method
           resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 
-          ResultHolder parameterType = parameterModel.getType(resolver);
+          ResultHolder parameterType = parameterModel.getType(resolver.withoutUnknowns());
 
           ResultHolder expressionType = null;
 
           if (expression instanceof HaxeReferenceExpression) {
-            HaxeClassResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
+            HaxeResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
             if (resolveHaxeClass.getHaxeClass() instanceof HaxeSpecificFunction) {
               SpecificHaxeClassReference parameterClassType = parameterType.getClassType();
               if (parameterClassType != null) {
@@ -186,7 +179,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                     expressionType = type.createHolder();
 
                     // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
-                    if (parameterClassType.getHaxeClass().getModel().isTypedef()) {
+                    HaxeClass aClass = parameterClassType.getHaxeClass();
+                    if (aClass != null && aClass.getModel().isTypedef()) {
                       SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
                       if (functionReference != null) {
                         parameterType = functionReference.createHolder();
@@ -282,7 +276,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
     if (type != null && type.length > 0) {
       HaxeReference expression = type[0];
-      HaxeClassResolveResult resolveResult = expression.resolveHaxeClass();
+      HaxeResolveResult resolveResult = expression.resolveHaxeClass();
       SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
       SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
       return finalReference.getGenericResolver();

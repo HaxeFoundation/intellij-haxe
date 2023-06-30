@@ -26,11 +26,11 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-
+@CustomLog
 public abstract class SpecificTypeReference {
   public static final String VOID = "Void";
   public static final String BOOL = "Bool";
@@ -290,6 +290,12 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
+  final public boolean isFromTypeParameter() {
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      return specificHaxeClassReference.getHaxeClassReference().isTypeParameter();
+    }
+    return false;
+  }
 
   final public boolean isEnumValue() {
     return (this instanceof SpecificEnumValueReference)
@@ -417,4 +423,47 @@ public abstract class SpecificTypeReference {
   public boolean isLiteralMap() {
     return ( isMap() &&  context instanceof  HaxeMapLiteral);
   }
+
+
+  public static SpecificTypeReference propagateGenericsToType(@Nullable HaxeType type,
+                                                              HaxeGenericResolver genericResolver) {
+    if (type == null) return null;
+    SpecificHaxeClassReference classType = HaxeTypeResolver.getTypeFromType(type, genericResolver).getClassType();
+    return propagateGenericsToType(classType, genericResolver);
+  }
+
+  public static SpecificTypeReference propagateGenericsToType(@Nullable SpecificTypeReference originalType,
+                                                              @Nullable HaxeGenericResolver genericResolver) {
+    SpecificTypeReference type = originalType;
+    if (type == null) return null;
+    if (genericResolver == null) return type;
+
+    if (type.canBeTypeVariable() && type instanceof  SpecificHaxeClassReference classReference) {
+      String typeVariableName = classReference.getHaxeClassReference().name;
+      ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
+      if (possibleValue != null) {
+        SpecificTypeReference possibleType = possibleValue.getType();
+        if (possibleType != null) {
+          type = possibleType;
+        }
+      }
+    }
+    if (type instanceof  SpecificHaxeClassReference classReference) {
+      for (ResultHolder specific : classReference.getSpecifics()) {
+        // recursive guard
+        if (specific.getClassType() != originalType) {
+          final SpecificTypeReference typeReference = propagateGenericsToType(specific.getClassType(), genericResolver);
+          if (null != typeReference) {
+            specific.setType(typeReference);
+          }
+        }
+        else {
+          log.warn("can not propagate Generics To Type, type and specific is the same type");
+        }
+      }
+    }
+    return type;
+  }
+
+
 }

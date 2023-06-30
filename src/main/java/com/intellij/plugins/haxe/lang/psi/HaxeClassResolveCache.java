@@ -18,7 +18,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.impl.AnyPsiChangeListener;
@@ -34,7 +33,7 @@ import java.util.concurrent.ConcurrentMap;
  * @author: Fedor.Korotkov
  */
 public class HaxeClassResolveCache {
-  private final ConcurrentMap<HaxeClass, HaxeClassResolveResult> myMap = ContainerUtil.createConcurrentWeakMap();
+  private final ConcurrentMap<HaxeClass, HaxeResolveResult> myMap = ContainerUtil.createConcurrentWeakMap();
 
   public static HaxeClassResolveCache getInstance(Project project) {
     ProgressIndicatorProvider.checkCanceled(); // We hope this method is being called often enough to cancel daemon processes smoothly
@@ -54,12 +53,12 @@ public class HaxeClassResolveCache {
     });
   }
 
-  public void put(@NotNull HaxeClass haxeClass, @NotNull HaxeClassResolveResult result) {
+  public void put(@NotNull HaxeClass haxeClass, @NotNull HaxeResolveResult result) {
     myMap.put(haxeClass, result);
   }
 
   @Nullable
-  public HaxeClassResolveResult get(HaxeClass haxeClass) {
+  public HaxeResolveResult get(HaxeClass haxeClass) {
     return myMap.get(haxeClass);
   }
 }

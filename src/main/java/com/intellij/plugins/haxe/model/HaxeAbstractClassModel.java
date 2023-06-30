@@ -68,7 +68,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
       HaxeReferenceExpression referenceExpression = underlyingType.getReferenceExpression();
-      final HaxeClassResolveResult result = referenceExpression.resolveHaxeClass();
+      final HaxeResolveResult result = referenceExpression.resolveHaxeClass();
       HaxeClass resultClass = result.getHaxeClass();
       return null != resultClass ? resultClass : resolveGeneric(referenceExpression.getIdentifier().getText(), resolver);
     }

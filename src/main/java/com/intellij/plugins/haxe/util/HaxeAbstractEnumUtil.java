@@ -55,7 +55,7 @@ public class HaxeAbstractEnumUtil {
   }
 
   @Nullable
-  public static HaxeClassResolveResult resolveFieldType(@Nullable PsiElement element, HaxeGenericSpecialization specialization) {
+  public static HaxeResolveResult resolveFieldType(@Nullable PsiElement element, HaxeGenericSpecialization specialization) {
     final HaxeGenericResolver resolver = null == specialization ? null : specialization.toGenericResolver(element);
     final SpecificHaxeClassReference cls = getFieldClass(element, resolver);
     return cls != null ? cls.asResolveResult() : null;
@@ -119,7 +119,7 @@ public class HaxeAbstractEnumUtil {
           return SpecificHaxeClassReference.propagateGenericsToType(specificRef, resolver);
         }
         HaxeGenericSpecialization specialization = resolver != null ? resolver.getSpecialization(element) : HaxeGenericSpecialization.EMPTY;
-        HaxeClassResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, specialization);
+        HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, specialization);
         return result.getSpecificClassReference(element, resolver);  // Propagates generics internally.
       }
     }

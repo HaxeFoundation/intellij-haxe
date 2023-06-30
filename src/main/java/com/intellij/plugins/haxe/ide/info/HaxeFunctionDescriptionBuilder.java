@@ -35,7 +35,7 @@ class HaxeFunctionDescriptionBuilder {
 
     if (target instanceof HaxeMethod) {
       final HaxeClass haxeClass = (HaxeClass)((HaxeMethod)target).getContainingClass();
-      final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
+      final HaxeResolveResult resolveResult = HaxeResolveResult.create(haxeClass, specialization);
       return build((HaxeMethod)target, resolveResult, isStaticExtension);
     }
     return null;
@@ -50,7 +50,7 @@ class HaxeFunctionDescriptionBuilder {
       final HaxeClass haxeClass = (HaxeClass)resolved;
       final PsiMethod[] constructors = haxeClass.getConstructors();
       if (constructors.length > 0) {
-        final HaxeClassResolveResult resolveResult = HaxeClassResolveResult.create(haxeClass, specialization);
+        final HaxeResolveResult resolveResult = HaxeResolveResult.create(haxeClass, specialization);
 
         final HaxeMethod constructor = (HaxeMethod)constructors[0];
         return build(constructor, resolveResult, false);
@@ -61,7 +61,7 @@ class HaxeFunctionDescriptionBuilder {
   }
 
   private static HaxeFunctionDescription build(HaxeMethod method,
-                                               HaxeClassResolveResult resolveResult,
+                                               HaxeResolveResult resolveResult,
                                                boolean isExtension) {
 
     HaxeParameterDescription[] parameterDescriptions = null;

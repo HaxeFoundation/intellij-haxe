@@ -42,7 +42,7 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 @CustomLog
-public class HaxeClassResolveResult implements Cloneable {
+public class HaxeResolveResult implements Cloneable {
 
 
   //static {      // Take this out when finished debugging.
@@ -52,29 +52,66 @@ public class HaxeClassResolveResult implements Cloneable {
   private static ThreadLocalCounter debugNestCountForCreate = new ThreadLocalCounter("debugNestCountForCreate");
   private static ThreadLocal<HashSet<HaxeClass>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<HaxeClass>());
 
-  public static final HaxeClassResolveResult EMPTY = new HaxeClassResolveResult(null);
+  public static final HaxeResolveResult EMPTY = new HaxeResolveResult(null);
   @Nullable
   private final HaxeClass haxeClass;
+  @Nullable
+  private final HaxeFunctionType functionType;
   private final HaxeGenericSpecialization specialization;
-  private final List<HaxeClassResolveResult> functionTypes = new ArrayList<>();
 
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass) {
+  private HaxeResolveResult(@Nullable HaxeClass aClass) {
     this(aClass, new HaxeGenericSpecialization());
   }
 
-  private HaxeClassResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
-    haxeClass = aClass;
+  private HaxeResolveResult(@Nullable HaxeFunctionType functionType, @NotNull HaxeGenericSpecialization specialization) {
+    this.haxeClass = null;
+    this.functionType = functionType;
+    this.specialization = specialization;
+  }
+  private HaxeResolveResult(@Nullable HaxeClass aClass, @NotNull HaxeGenericSpecialization specialization) {
+    this.haxeClass = aClass;
+    this.functionType = null;
     this.specialization = specialization;
   }
 
   @Override
-  protected HaxeClassResolveResult clone() {
-    return new HaxeClassResolveResult(haxeClass, specialization.clone());
+  protected HaxeResolveResult clone() {
+    if (isFunctionType()) {
+      return new HaxeResolveResult(functionType, specialization.clone());
+    }else {
+      return new HaxeResolveResult(haxeClass, specialization.clone());
+    }
   }
 
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeClass aClass) {
+  public static HaxeResolveResult create(@Nullable HaxeFunctionType functionType) {
+    return create(functionType, new HaxeGenericSpecialization());
+  }
+
+  @NotNull
+  public static HaxeResolveResult create(@Nullable HaxeClass aClass) {
     return create(aClass, new HaxeGenericSpecialization());
+  }
+  @NotNull
+  public static HaxeResolveResult createEmpty() {
+    return create((HaxeClass)null, new HaxeGenericSpecialization());
+  }
+
+  @NotNull
+  private static HaxeResolveResult createEmpty(HaxeGenericSpecialization specialization) {
+    return create((HaxeClass)null, specialization);
+  }
+
+  @NotNull
+  public static HaxeResolveResult create(@Nullable HaxeFunctionType functionType, HaxeGenericSpecialization specialization) {
+    if (functionType  == null) {
+      return new HaxeResolveResult(null);
+    }
+    if (specialization == null) {
+      specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
+    }
+    //TODO implement specialization?
+    return new HaxeResolveResult(functionType, specialization);
   }
 
   /**
@@ -86,16 +123,16 @@ public class HaxeClassResolveResult implements Cloneable {
    * @return A HaxeClassResolveResult for the class, with parameters fully typed, if possible.
    */
   @NotNull
-  public static HaxeClassResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
+  public static HaxeResolveResult create(@Nullable HaxeClass aClass, HaxeGenericSpecialization specialization) {
     if (aClass == null) {
-      return new HaxeClassResolveResult(null);
+      return new HaxeResolveResult(null);
     }
     if (specialization == null) {
       specialization = new HaxeGenericSpecialization(); // Better than chasing @NotNull all over the code base.
     }
     try {
       if (resolvesInProcess.get().contains(aClass)) {
-        return HaxeClassResolveResult.EMPTY;
+        return HaxeResolveResult.EMPTY;
       }
       resolvesInProcess.get().add(aClass);
 
@@ -107,7 +144,7 @@ public class HaxeClassResolveResult implements Cloneable {
                   " using specialization " +
                   specialization.debugDump("  "));
       }
-      HaxeClassResolveResult resolveResult = getResult(aClass, specialization);
+      HaxeResolveResult resolveResult = getResult(aClass, specialization);
 
       // Load the specialization with sub-class parameters.
       try {
@@ -120,7 +157,7 @@ public class HaxeClassResolveResult implements Cloneable {
           // The purpose here is to create a specialization with the mapping of names to real types before going down
           // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
           final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
-          final HaxeClassResolveResult superResult = new HaxeClassResolveResult(superclass, innerSpecialization);
+          final HaxeResolveResult superResult = new HaxeResolveResult(superclass, innerSpecialization);
           superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
 
           // Now keep only the specializations that weren't inner.
@@ -128,7 +165,7 @@ public class HaxeClassResolveResult implements Cloneable {
 
           // Now that we have a specialization with real types, we can let the superclass be resolved.
           if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass,aClass)) {
-            final HaxeClassResolveResult result = create(superclass, filteredSpecialization);
+            final HaxeResolveResult result = create(superclass, filteredSpecialization);
             result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
             if (log.isDebugEnabled()) {
               log.debug(debugNestCountForCreate +
@@ -156,18 +193,18 @@ public class HaxeClassResolveResult implements Cloneable {
     }
   }
 
-  private static HaxeClassResolveResult getResult(@NotNull HaxeClass aClass, HaxeGenericSpecialization specialization) {
-    HaxeClassResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
+  private static HaxeResolveResult getResult(@NotNull HaxeClass aClass, HaxeGenericSpecialization specialization) {
+    HaxeResolveResult resolveResult = HaxeClassResolveCache.getInstance(aClass.getProject()).get(aClass);
 
     if (resolveResult == null) {
-      resolveResult = new HaxeClassResolveResult(aClass);
+      resolveResult = new HaxeResolveResult(aClass);
       loadResultWithConstraints(resolveResult, aClass, specialization);
       HaxeClassResolveCache.getInstance(aClass.getProject()).put(aClass, resolveResult);
     }
     return resolveResult.clone();
   }
 
-  private static void loadResultWithConstraints(HaxeClassResolveResult resolveResult,
+  private static void loadResultWithConstraints(HaxeResolveResult resolveResult,
                                                 @Nullable HaxeClass aClass,
                                                 HaxeGenericSpecialization specialization) {
     // This block of code loads the specialization with the type _constraint_, not the target types.
@@ -188,7 +225,7 @@ public class HaxeClassResolveResult implements Cloneable {
           lazyGenericReferences.add(genericListPart);
           continue;
         }
-        HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
+        HaxeResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(constrainedType, specialization);
         if (log.isDebugEnabled()) {
           log.debug(debugNestCountForCreate.toString() +
                     "  Adding constraint for " +
@@ -219,9 +256,9 @@ public class HaxeClassResolveResult implements Cloneable {
         final HaxeType specializedType = getTypeOfGenericListPart(genericListPart);
         if(specializedType != null) {
           String referencedGenericName = specializedType.getReferenceExpression().getText();
-          HaxeClassResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
+          HaxeResolveResult referencedSpecialization = resolveResult.specialization.get(aClass, referencedGenericName);
           if(referencedSpecialization == null) {
-            referencedSpecialization = HaxeClassResolveResult.create(null, specialization);
+            referencedSpecialization = HaxeResolveResult.createEmpty(specialization);
           }
           resolveResult.specialization.put(aClass, componentName.getName(), referencedSpecialization);
         }
@@ -238,7 +275,7 @@ public class HaxeClassResolveResult implements Cloneable {
 
   @Nullable
   private static PsiElement getTypeOfTypeListPart(HaxeTypeListPart typeListPart) {
-    if (typeListPart.getFunctionType() != null) return null;
+    if (typeListPart.getFunctionType() != null) return typeListPart.getFunctionType();
     final HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
     if(typeOrAnonymous != null) {
       if(typeOrAnonymous.getType() != null) {
@@ -251,9 +288,6 @@ public class HaxeClassResolveResult implements Cloneable {
     return null;
   }
 
-  public List<HaxeClassResolveResult> getFunctionTypes() {
-    return functionTypes;
-  }
 
   private void merge(HaxeGenericSpecialization otherSpecializations) {
     for (String key : otherSpecializations.map.keySet()) {
@@ -273,6 +307,10 @@ public class HaxeClassResolveResult implements Cloneable {
   public HaxeClass getHaxeClass() {
     return haxeClass;
   }
+  @Nullable
+  public HaxeFunctionType getFunctionType() {
+    return functionType;
+  }
 
   @NotNull
   public HaxeGenericSpecialization getSpecialization() {
@@ -286,17 +324,60 @@ public class HaxeClassResolveResult implements Cloneable {
 
   @NotNull
   public SpecificHaxeClassReference getSpecificClassReference(@NotNull PsiElement context, @Nullable HaxeGenericResolver resolver) {
-    HaxeClassModel clazz = null != haxeClass ? haxeClass.getModel()
-                                             : SpecificHaxeClassReference.getUnknown(context).getHaxeClassModel();
-    HaxeClassReference classReference = null != clazz ? new HaxeClassReference(clazz, context)
-                                        : new HaxeClassReference(SpecificHaxeClassReference.UNKNOWN, context);
-    HaxeClass clazzPsi = null != clazz ? clazz.getPsi() : null;
-    softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
-    if(classReference.getHaxeClass().isGeneric()) {
-      HaxeGenericResolver newResolver = getGenericResolver();
-      return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
+      HaxeClassModel clazz = null != haxeClass ? haxeClass.getModel() : SpecificHaxeClassReference.getUnknown(context).getHaxeClassModel();
+      HaxeClassReference classReference =
+        null != clazz ? new HaxeClassReference(clazz, context) : new HaxeClassReference(SpecificHaxeClassReference.UNKNOWN, context);
+      HaxeClass clazzPsi = null != clazz ? clazz.getPsi() : null;
+      softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
+      if (classReference.getHaxeClass().isGeneric()) {
+        HaxeGenericResolver newResolver = getGenericResolver();
+        return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
+      }
+      else {
+        return SpecificHaxeClassReference.withoutGenerics(classReference);
+      }
+  }
+  @NotNull
+  public SpecificTypeReference getSpecificFunctionReference(@NotNull PsiElement context, @Nullable HaxeGenericResolver resolver) {
+    if (functionType == null) return SpecificHaxeClassReference.getUnknown(context);
+
+    List<HaxeFunctionArgument> argumentList = functionType.getFunctionArgumentList();
+    HaxeFunctionReturnType functionReturnType = functionType.getFunctionReturnType();
+    ResultHolder returnType;
+
+    if (functionReturnType != null) {
+      returnType = convertReturnType(functionReturnType);
     }else {
-      return SpecificHaxeClassReference.withoutGenerics(classReference);
+      returnType = SpecificHaxeClassReference.getUnknown(context).createHolder();
+    }
+
+    int i = 0;
+    List<SpecificFunctionReference.Argument> argList = new ArrayList<>();
+    for (HaxeFunctionArgument argument : argumentList) {
+      argList.add(convertToArgument(argument, i++));
+    }
+    // TODO use resolver ?
+
+    return new SpecificFunctionReference(argList, returnType, null, functionType);
+  }
+
+  private SpecificFunctionReference.Argument convertToArgument(HaxeFunctionArgument argument, int index) {
+    ResultHolder type;
+    if (argument.getTypeOrAnonymous() != null) {
+        type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(argument.getTypeOrAnonymous());
+    }else {
+       type = HaxeTypeResolver.getTypeFromFunctionType(argument.getFunctionType());
+    }
+    boolean optional = argument.getOptionalMark() != null;
+    return new SpecificFunctionReference.Argument(index, optional, type, null);
+  }
+
+  @NotNull
+  private static ResultHolder convertReturnType(HaxeFunctionReturnType functionReturnType) {
+    if (functionReturnType.getTypeOrAnonymous() != null) {
+      return HaxeTypeResolver.getTypeFromTypeOrAnonymous(functionReturnType.getTypeOrAnonymous());
+    }else {
+     return HaxeTypeResolver.getTypeFromFunctionType(functionReturnType.getFunctionType());
     }
   }
 
@@ -330,7 +411,7 @@ public class HaxeClassResolveResult implements Cloneable {
       final PsiElement type = getTypeOfTypeListPart(part);
       final String name = type != null ? type.getText() : null;
 
-      HaxeClassResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
+      HaxeResolveResult resolvedParam = name != null ? innerSpecialization.get(null, name) : null;
       HaxeClass resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
       if (null == resolvedClass) {
         resolvedParam = HaxeResolveUtil.getHaxeClassResolveResult(type); // No specialization??
@@ -370,8 +451,11 @@ public class HaxeClassResolveResult implements Cloneable {
 
       if (genericParamName == null) continue;
 
-      final HaxeClassResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
+      final HaxeResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       if(specializedTypeResult.getHaxeClass() != null) {
+        specialization.put(haxeClass, genericParamName, specializedTypeResult);
+      }
+      if(specializedTypeResult.getFunctionType() != null) {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }
     }
@@ -392,7 +476,10 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   public boolean isFunctionType() {
-    return !functionTypes.isEmpty();
+    return functionType != null;
+  }
+  public boolean isHaxeClass() {
+    return haxeClass != null;
   }
 
 
@@ -406,22 +493,30 @@ public class HaxeClassResolveResult implements Cloneable {
     if (linePrefix == null) {
       linePrefix="";
     }
+
     builder.append(linePrefix);
-    builder.append(null == haxeClass ? "<null haxeClass>"
-                                     : null == haxeClass.getName() ? "<anonymous haxeClass>" : haxeClass.getName());
+    if (functionType != null) {
+      builder.append(functionType.getName() == null ? "<anonymous haxeFunctionType>" : functionType.getName());
+    }else if (haxeClass != null) {
+      builder.append(haxeClass.getName() == null ? "<anonymous haxeClass>" : haxeClass.getName());
+    }else {
+      builder.append("<null haxeClass/HaxeFunctionType>");
+    }
     builder.append(":\n");
     String prefix = linePrefix + "  ";
     builder.append(null == specialization ? "<null specialization>" : specialization.debugDump(prefix));
-    for(HaxeClassResolveResult result : functionTypes) {
-      result.debugDump(prefix + "  ");
-    }
     return builder.toString();
   }
 
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    builder.append(null == haxeClass ? "<null haxeClass>"
-                                     : null == haxeClass.getName() ? "<anonymous haxeClass>" : haxeClass.getName());
+    if (functionType != null) {
+      builder.append(functionType.getName() == null ? "<anonymous haxeFunctionType>" : functionType.getName());
+    }else if (haxeClass != null) {
+      builder.append(haxeClass.getName() == null ? "<anonymous haxeClass>" : haxeClass.getName());
+    }else {
+      builder.append("<null haxeClass/HaxeFunctionType>");
+    }
     if (null != haxeClass && haxeClass.isGeneric() && null != specialization) {
       ResultHolder specifics[] = HaxeTypeResolver.resolveDeclarationParametersToTypes(haxeClass, specialization.toGenericResolver(haxeClass), false);
       builder.append('<');
@@ -432,8 +527,14 @@ public class HaxeClassResolveResult implements Cloneable {
         } else {
           first = false;
         }
-        SpecificHaxeClassReference ref = holder.getClassType();
-        builder.append(ref == null ? "'unknown'" : ref.toStringWithConstant());
+
+        if (holder.isFunctionType()) {
+          SpecificFunctionReference ref = holder.getFunctionType();
+          builder.append(ref == null ? "'unknown'" : ref.toStringWithConstant());
+        }else {
+          SpecificHaxeClassReference ref = holder.getClassType();
+          builder.append(ref == null ? "'unknown'" : ref.toStringWithConstant());
+        }
       }
       builder.append('>');
     }
@@ -445,8 +546,8 @@ public class HaxeClassResolveResult implements Cloneable {
   }
 
   private static class JavaResult implements JavaResolveResult {
-    private HaxeClassResolveResult originalResult = null;
-    public JavaResult(HaxeClassResolveResult result) { originalResult = result; }
+    private HaxeResolveResult originalResult = null;
+    public JavaResult(HaxeResolveResult result) { originalResult = result; }
     @Override public PsiElement getElement() { return (originalResult != null ? originalResult.getHaxeClass() : null); }
     @NotNull
     @Override public PsiSubstitutor getSubstitutor() { return PsiSubstitutor.EMPTY; }

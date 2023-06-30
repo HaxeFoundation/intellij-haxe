@@ -125,7 +125,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
         haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
       }
-      final HaxeClassResolveResult result = HaxeClassResolveResult.create(haxeClass);
+      final HaxeResolveResult result = HaxeResolveResult.create(haxeClass);
       result.specializeByParameters(newExpression.getType().getTypeParam());
       return result.getSpecialization();
     }
@@ -133,8 +133,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // The specialization for a reference comes from either the type of the left-hand side of the
     // expression, or failing that, from the class in which the reference appears, which is
     // exactly what tryGetLeftResolveResult() gives us.
-    final HaxeClassResolveResult result = tryGetLeftResolveResult(expression);
-    return result != HaxeClassResolveResult.EMPTY ? result.getSpecialization() : null;
+    final HaxeResolveResult result = tryGetLeftResolveResult(expression);
+    return result != HaxeResolveResult.EMPTY ? result.getSpecialization() : null;
   }
 
   @Override
@@ -295,9 +295,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @NotNull
   @Override
-  public HaxeClassResolveResult resolveHaxeClass() {
+  public HaxeResolveResult resolveHaxeClass() {
     if (log.isTraceEnabled()) log.trace(traceMsg("Begin resolving Haxe class:" + this.getText()));
-    HaxeClassResolveResult result = resolveHaxeClassInternal();
+    HaxeResolveResult result = resolveHaxeClassInternal();
     if (log.isTraceEnabled()) log.trace(traceMsg("Finished resolving Haxe class " + this.getText() + " as " + result.debugDump()));
     return result;
   }
@@ -325,7 +325,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private HaxeClassResolveResult resolveHaxeClassInternal() {
+  private HaxeResolveResult resolveHaxeClassInternal() {
     ProgressIndicatorProvider.checkCanceled();
 
     if (isType(HaxeThisExpression.class)) {
@@ -334,26 +334,26 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (clazz != null && clazz.getModel().isAbstract()) {
         HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingType();
         if (type != null) {
-          return HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
+          return HaxeResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
         }
       }
-      return HaxeClassResolveResult.create(clazz);
+      return HaxeResolveResult.create(clazz);
     }
 
     if (isType(HaxeSuperExpression.class)) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       assert haxeClass != null;
       if (haxeClass.getHaxeExtendsList().isEmpty()) {
-        return HaxeClassResolveResult.create(null);
+        return HaxeResolveResult.createEmpty();
       }
       final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
-      final HaxeClassResolveResult superClassResolveResult = ((HaxeReference)superExpression).resolveHaxeClass();
+      final HaxeResolveResult superClassResolveResult = ((HaxeReference)superExpression).resolveHaxeClass();
       superClassResolveResult.specializeByParameters(haxeClass.getHaxeExtendsList().get(0).getTypeParam());
       return superClassResolveResult;
     }
 
     if (isType(HaxeStringLiteralExpression.class)) {
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this));
+      return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName("String", this));
     }
 
     if (isType(HaxeLiteralExpression.class)) {
@@ -361,10 +361,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (firstChild instanceof LeafPsiElement) {
         final LeafPsiElement child = (LeafPsiElement)getFirstChild();
         final IElementType childTokenType = child == null ? null : child.getElementType();
-        return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
+        return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
       }
       // Else, it's a block statement and not a named literal.
-      return HaxeClassResolveResult.create(null);
+      return HaxeResolveResult.createEmpty();
     }
 
     if (isType(HaxeMapLiteral.class)) {
@@ -385,7 +385,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       HaxeExpressionEvaluator.evaluate(haxeMapLiteral, context, HaxeGenericResolverUtil.generateResolverFromScopeParents(this));
 
       SpecificHaxeClassReference mapClass = context.result.getClassType();
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(mapClass.getClassName(), this));
+      return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(mapClass.getClassName(), this));
     }
 
     if (isType(HaxeArrayLiteral.class)) {
@@ -417,8 +417,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
             HaxeClass haxeClassResolveResultHaxeClass = null;
             if (haxeReference != null) {
-              HaxeClassResolveResult haxeClassResolveResult = haxeReference.resolveHaxeClass();
-              haxeClassResolveResultHaxeClass = haxeClassResolveResult.getHaxeClass();
+              HaxeResolveResult haxeResolveResult = haxeReference.resolveHaxeClass();
+              haxeClassResolveResultHaxeClass = haxeResolveResult.getHaxeClass();
               if (haxeClassResolveResultHaxeClass != null) {
                 if (haxeClass == null) {
                   haxeClass = haxeClassResolveResultHaxeClass;
@@ -443,8 +443,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
       }
-      HaxeClassResolveResult resolveResult =
-        HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
+      HaxeResolveResult resolveResult =
+        HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(getTokenType()), this));
 
       HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
 
@@ -452,19 +452,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (resolveResultHaxeClass != null &&
           specialization.get(resolveResultHaxeClass, "T") == null) {  // TODO: 'T' should not be hard-coded.
         if (isString) {
-          specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
+          specialization.put(resolveResultHaxeClass, "T", HaxeResolveResult.create(HaxeResolveUtil.findClassByQName("String", this)));
         } else if (sameClass) {
           specialization.put(resolveResultHaxeClass, "T",
-                             HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
+                             HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(haxeClass.getQualifiedName(), this)));
         } else if (implementOrExtendSameClass) {
           HaxeReferenceExpression haxeReferenceExpression = commonTypeList.get(commonTypeList.size() - 1).getReferenceExpression();
-          HaxeClassResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
+          HaxeResolveResult resolveHaxeClass = haxeReferenceExpression.resolveHaxeClass();
 
-          if (resolveHaxeClass != HaxeClassResolveResult.EMPTY) {
+          if (resolveHaxeClass != HaxeResolveResult.EMPTY) {
             HaxeClass resolveHaxeClassHaxeClass = resolveHaxeClass.getHaxeClass();
 
             if (resolveHaxeClassHaxeClass != null) {
-              specialization.put(resolveResultHaxeClass, "T", HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(
+              specialization.put(resolveResultHaxeClass, "T", HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(
                 resolveHaxeClassHaxeClass.getQualifiedName(), this)));
             }
           }
@@ -475,7 +475,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     } // end (this instanceof HaxeArrayLiteral)
 
     if (isType(HaxeNewExpression.class)) {
-      final HaxeClassResolveResult result = HaxeClassResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(
+      final HaxeResolveResult result = HaxeResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(
         ((HaxeNewExpression)this).getType()));
       result.specialize(this);
       return result;
@@ -483,7 +483,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isType(HaxeCallExpression.class)) {
       final HaxeExpression expression = ((HaxeCallExpression)this).getExpression();
-      final HaxeClassResolveResult leftResult = tryGetLeftResolveResult(expression);
+      final HaxeResolveResult leftResult = tryGetLeftResolveResult(expression);
       if (expression instanceof HaxeReference) {
         // creating a resolver that combines parent(leftExpression) current(expression) and children (parameterExpressions)
         HaxeGenericResolver resolver = new HaxeGenericResolver();
@@ -506,7 +506,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             int parameterNumber = 0;
             for(HaxeExpression exp:  parameterExpressions) {
               if (exp instanceof HaxeReference reference) {
-                HaxeClassResolveResult parameterResult = reference.resolveHaxeClass();
+                HaxeResolveResult parameterResult = reference.resolveHaxeClass();
                 modelResolver.addAll(parameterResult.getGenericResolver());
                 // hackish way to see if argument is name of class and should be considered Class<?>
                 if (exp instanceof HaxeReferenceExpression referenceExpression && parameterResult.getHaxeClass() != null) {
@@ -525,7 +525,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         //TODO mlo: Not sure if the concept of merging specializations is a good idea, but we need to keep all generics information
         // from both the left part of the expression and from the method call. (soft merge lets the left side take precedence)
         HaxeGenericSpecialization mergedSpecialization = leftResult.getSpecialization().softMerge(resolver.getSpecialization(null));
-        HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, mergedSpecialization);
+        HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, mergedSpecialization);
 
         //final HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
 
@@ -538,14 +538,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // wrong generation. see HaxeCallExpression
       final HaxeReference reference = PsiTreeUtil.getChildOfType(this, HaxeReference.class);
       if (reference != null) {
-        final HaxeClassResolveResult resolveResult = reference.resolveHaxeClass();
+        final HaxeResolveResult resolveResult = reference.resolveHaxeClass();
         final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
         if (resolveResultHaxeClass == null) {
           return resolveResult;
         }
         // std Array
         if ("Array".equals(resolveResultHaxeClass.getQualifiedName())) {
-          HaxeClassResolveResult arrayResolveResult = resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
+          HaxeResolveResult arrayResolveResult = resolveResult.getSpecialization().get(resolveResultHaxeClass, "T");
 
           if (arrayResolveResult != null) {
             return arrayResolveResult;
@@ -563,7 +563,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiElement resolve = resolve();
     if (isType(resolve, PsiPackage.class)) {
       // Packages don't ever resolve to classes. (And they don't have children!)
-      return HaxeClassResolveResult.EMPTY;
+      return HaxeResolveResult.EMPTY;
     }
     if (isType(resolve, HaxeAnonymousTypeField.class)) {
       HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
@@ -572,7 +572,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
           if (typeOrAnonymous.getAnonymousType() != null) {
-            return HaxeClassResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization());
+            return HaxeResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization());
           } else {
             HaxeType type = typeOrAnonymous.getType();
             if (type != null) {
@@ -582,20 +582,20 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                 final HaxeGenericSpecialization specialization = getSpecialization();
                 if(specialization != null && componentName != null) {
                   String genericName = componentName.getText();
-                  final HaxeClassResolveResult result = specialization.get(resolve, genericName);
+                  final HaxeResolveResult result = specialization.get(resolve, genericName);
                   if (result != null) {
                     return result;
                   }
                 }
               }
               if (resolvedType instanceof HaxeClass) {
-                return HaxeClassResolveResult.create((HaxeClass)resolvedType, getSpecialization());
+                return HaxeResolveResult.create((HaxeClass)resolvedType, getSpecialization());
               }
             }
           }
         }
       }
-      return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+      return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
     }
 
     if (isType(resolve, HaxeGenericListPart.class)) {
@@ -604,7 +604,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeGenericSpecialization innerSpecialization =
           tryGetLeftResolveResult(this).getSpecialization();
         String genericName = componentName.getText();
-        final HaxeClassResolveResult result = innerSpecialization.get(resolve, genericName);
+        final HaxeResolveResult result = innerSpecialization.get(resolve, genericName);
         if (result != null) {
           return result;
         }
@@ -613,13 +613,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isType(resolve, HaxeEnumValueDeclaration.class)) {
       final HaxeEnumDeclaration enumDeclaration = UsefulPsiTreeUtil.getParentOfType(resolve, HaxeEnumDeclaration.class);
-      return HaxeClassResolveResult.create(enumDeclaration, getSpecialization());
+      return HaxeResolveResult.create(enumDeclaration, getSpecialization());
     }
 
     if (isType(resolve, HaxeClass.class) || isType(resolve, HaxeFunctionLiteral.class)) {
       // Classes (particularly typedefs) that are already resolved should not be
       // re-resolved to their component parts.
-      return HaxeClassResolveResult.create((HaxeClass)resolve, getSpecialization());
+      return HaxeResolveResult.create((HaxeClass)resolve, getSpecialization());
     }
 
     if (isType(resolve, HaxeMethod.class)) {
@@ -634,7 +634,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
 
         final HaxeClass fn = new HaxeSpecificFunction((HaxeMethod)resolve, specialization);
-        return HaxeClassResolveResult.create(fn, specialization);
+        return HaxeResolveResult.create(fn, specialization);
       }
     }
     // RestParameter can have a normal typeTag but the argument is treated as an array, so we have to wrap it in an array
@@ -675,7 +675,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               }
 
               HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
-              return HaxeClassResolveResult.create(constraint);
+              return HaxeResolveResult.create(constraint);
             }
           }
         }else{
@@ -689,14 +689,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (log.isTraceEnabled()) log.trace(traceMsg("Trying class resolve by fully qualified name."));
 
-    return HaxeClassResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+    return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
   }
 
   /*
     Another "hack" to get the correct return type from generics arguments
     while the method  may set constraints for generics  the final type value is what is passed as argument
    */
-  private static HaxeGenericResolver parameterOverrideGenericConstraints(HaxeParameterModel  parameterModel, HaxeClassResolveResult result) {
+  private static HaxeGenericResolver parameterOverrideGenericConstraints(HaxeParameterModel  parameterModel, HaxeResolveResult result) {
     HaxeGenericResolver genericResolver  = new HaxeGenericResolver();
     ResultHolder type = parameterModel.getType();
     if(type.isClassType()) {
@@ -865,13 +865,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     // if not first in chain
     // foo.bar.baz
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
-    HaxeClassResolveResult result = null;
+    HaxeResolveResult result = null;
     HaxeClass haxeClass = null;
     String name = null;
     HaxeGenericResolver resolver = null;
     if (leftReference != null) {
       result = leftReference.resolveHaxeClass();
-      if (result != HaxeClassResolveResult.EMPTY) {
+      if (result != HaxeResolveResult.EMPTY) {
         haxeClass = result.getHaxeClass();
         if (haxeClass != null) {
           name = haxeClass.getName();
@@ -958,11 +958,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @NotNull
-  private static HaxeClassResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
+  private static HaxeResolveResult tryGetLeftResolveResult(HaxeExpression expression) {
     final HaxeReference leftReference = PsiTreeUtil.getChildOfType(expression, HaxeReference.class);
     return leftReference != null
            ? leftReference.resolveHaxeClass()
-           : HaxeClassResolveResult.create(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
+           : HaxeResolveResult.create(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
   }
 
   @Nullable

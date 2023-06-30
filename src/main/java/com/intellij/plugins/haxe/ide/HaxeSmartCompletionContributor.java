@@ -53,7 +53,7 @@ public class HaxeSmartCompletionContributor extends CompletionContributor {
   private static void tryAddVariantsForEnums(CompletionResultSet result, @NotNull PsiElement element) {
     final HaxeVarInit varInit = PsiTreeUtil.getParentOfType(element, HaxeVarInit.class);
     assert varInit != null;
-    final HaxeClassResolveResult resolveResult =
+    final HaxeResolveResult resolveResult =
       HaxeResolveUtil.tryResolveClassByTypeTag(varInit.getParent(), HaxeGenericResolverUtil.generateResolverFromScopeParents(element).getSpecialization(element));
     final HaxeClass haxeClass = resolveResult.getHaxeClass();
     if (haxeClass instanceof HaxeEnumDeclaration) {
