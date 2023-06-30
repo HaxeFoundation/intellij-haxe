@@ -179,7 +179,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                     expressionType = type.createHolder();
 
                     // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
-                    if (parameterClassType.getHaxeClass().getModel().isTypedef()) {
+                    HaxeClass aClass = parameterClassType.getHaxeClass();
+                    if (aClass != null && aClass.getModel().isTypedef()) {
                       SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
                       if (functionReference != null) {
                         parameterType = functionReference.createHolder();
