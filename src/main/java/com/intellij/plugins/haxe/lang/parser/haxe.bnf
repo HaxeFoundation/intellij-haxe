@@ -781,11 +781,14 @@ private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private newExpressionOrCall ::= newExpression qualifiedReferenceTail?
+private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
 
 private callFunctionLiteral ::= functionLiteral callExpression
-private callOrArrayAccess ::= (referenceExpression | thisExpression | superExpression | abstractExpression | parenthesizedExpression) (callExpression | arrayAccessExpression | qualifiedNullSafeReferenceExpression)*
+private callOrArrayAccess ::=  (callAccess | arrayAccess )
+private callOrArrayTail ::= (referenceExpression | thisExpression | superExpression | abstractExpression | parenthesizedExpression)
+private callAccess ::=  'inline'? callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? callExpression
+private arrayAccess ::=  callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? arrayAccessExpression
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 left callExpression ::= '(' expressionList? ')'
@@ -807,7 +810,7 @@ componentName ::= identifier
 //private newCallExpression ::= '(' expressionList? ')'
 //newExpression ::= 'new' type newCallExpression
 private newExpressionArgumentsList ::= '(' [!')' expression (',' expression)*] ')' {pin(".*")=1}
-newExpression ::= 'new' type newExpressionArgumentsList
+newExpression ::= 'inline'? 'new' type newExpressionArgumentsList
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
