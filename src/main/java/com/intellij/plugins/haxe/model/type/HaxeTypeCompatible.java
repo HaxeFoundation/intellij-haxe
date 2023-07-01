@@ -24,6 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -274,6 +275,32 @@ public class HaxeTypeCompatible {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
+          }else  if (type.getTypeOrAnonymous() != null){
+            // check if typeDef that needs to be resolved
+            HaxeTypeOrAnonymous anonymous = type.getTypeOrAnonymous();
+              HaxeType haxeType = anonymous.getType();
+            if (haxeType != null) {
+                HaxeGenericResolver resolver = classReference.getGenericResolver();
+                PsiElement element = type.getOriginalElement();
+                HaxeResolveResult result = HaxeResolveUtil.tryResolveType(haxeType, element, resolver.getSpecialization(element));
+              if (result.isFunctionType()) {
+                HaxeSpecificFunction specificFunction =
+                  new HaxeSpecificFunction(result.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+                list.add(SpecificFunctionReference.create(specificFunction));
+              }else if (result.isHaxeClass()) {
+                HaxeClass aClass = result.getHaxeClass();
+                if(aClass instanceof  HaxeTypedefDeclaration typedef) {
+                  // TODO should we traverse typedefs or do some kind of resolve type ?
+                  // current code only checks first level
+                  if (typedef.getFunctionType() != null) {
+                    HaxeSpecificFunction specificFunction =
+                      new HaxeSpecificFunction(typedef.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+                    list.add(SpecificFunctionReference.create(specificFunction));
+                  }
+
+                }
+              }
+            }
           }
         }
       }
