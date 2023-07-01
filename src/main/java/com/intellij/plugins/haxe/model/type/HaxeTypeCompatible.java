@@ -24,6 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -93,8 +94,17 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
-    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref);
+    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref) || isAbstractAssignableToFunction(ref);
   }
+
+  private static boolean isAbstractAssignableToFunction(SpecificTypeReference ref) {
+    if (ref instanceof  SpecificHaxeClassReference classReference) {
+      Set<SpecificHaxeClassReference> types = classReference.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
+      return types.stream().anyMatch(SpecificTypeReference::isFunction);
+    }
+    return false;
+  }
+
   static private boolean isTypeDefFunction(SpecificTypeReference ref ) {
     if (ref instanceof  SpecificHaxeClassReference) {
       SpecificHaxeClassReference classReference = (SpecificHaxeClassReference) ref;
@@ -167,9 +177,15 @@ public class HaxeTypeCompatible {
     }
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
-      SpecificFunctionReference toRef = asFunctionReference(to);
-      SpecificFunctionReference fromRef = asFunctionReference(from);
-      return canAssignToFromFunction(toRef, fromRef, holder);
+      // if assignable to Function(Dynamic) class (@:callable) any function pointer should be allowed
+      // TODO mlo: figure out the best way to handle classReferences with @:callable
+      if (isAbstractAssignableToFunction(to)) {
+        return true;
+      }else {
+        SpecificFunctionReference toRef = asFunctionReference(to);
+        SpecificFunctionReference fromRef = asFunctionReference(from);
+        return canAssignToFromFunction(toRef, fromRef, holder);
+      }
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
@@ -259,6 +275,32 @@ public class HaxeTypeCompatible {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
+          }else  if (type.getTypeOrAnonymous() != null){
+            // check if typeDef that needs to be resolved
+            HaxeTypeOrAnonymous anonymous = type.getTypeOrAnonymous();
+              HaxeType haxeType = anonymous.getType();
+            if (haxeType != null) {
+                HaxeGenericResolver resolver = classReference.getGenericResolver();
+                PsiElement element = type.getOriginalElement();
+                HaxeResolveResult result = HaxeResolveUtil.tryResolveType(haxeType, element, resolver.getSpecialization(element));
+              if (result.isFunctionType()) {
+                HaxeSpecificFunction specificFunction =
+                  new HaxeSpecificFunction(result.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+                list.add(SpecificFunctionReference.create(specificFunction));
+              }else if (result.isHaxeClass()) {
+                HaxeClass aClass = result.getHaxeClass();
+                if(aClass instanceof  HaxeTypedefDeclaration typedef) {
+                  // TODO should we traverse typedefs or do some kind of resolve type ?
+                  // current code only checks first level
+                  if (typedef.getFunctionType() != null) {
+                    HaxeSpecificFunction specificFunction =
+                      new HaxeSpecificFunction(typedef.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
+                    list.add(SpecificFunctionReference.create(specificFunction));
+                  }
+
+                }
+              }
+            }
           }
         }
       }
@@ -304,6 +346,7 @@ public class HaxeTypeCompatible {
     if(to.isTypeDefOfClass())to = to.resolveTypeDefClass();
     if(from.isTypeDefOfClass())from = from.resolveTypeDefClass();
 
+    if (to == null || from == null) return false;
     // check if type is one of the core types that needs custom logic
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
       String toName = to.getHaxeClass().getName();

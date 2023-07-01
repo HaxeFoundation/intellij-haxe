@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
  * @author: Fedor.Korotkov
  */
 public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceElement {
-  @NotNull
+  @NotNull // TODO mlo: rename to ResolveType or something like that
   HaxeResolveResult resolveHaxeClass();
 
   @Nullable

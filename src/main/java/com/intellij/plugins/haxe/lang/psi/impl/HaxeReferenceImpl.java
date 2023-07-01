@@ -54,6 +54,7 @@ import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 @CustomLog
@@ -558,6 +559,25 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);
       }
     }
+    if (isType(HaxeReferenceExpression.class)) {
+      // check if its a type reference (ex. its just class name no chaining or access, ust the name of the class)
+      // if this is the case threat as "class reference" Class<theClass>
+      //HaxeResolveResult resolveResult = resolveHaxeClass();
+      PsiElement resolve = resolve();
+      if (resolve instanceof HaxeClassDeclaration declaration) {
+        String className = declaration.getComponentName().getName();
+
+
+        boolean isPure = isPureClassReferenceOf(className);
+
+        if (isPure) {
+          // wrap in Class<>
+          SpecificHaxeClassReference reference = SpecificHaxeClassReference.withoutGenerics(declaration.getModel().getReference());
+          SpecificHaxeClassReference aClass = SpecificHaxeClassReference.getStdClass(CLASS, this, new ResultHolder[]{ new ResultHolder(reference)});
+          return aClass.asResolveResult();
+        }
+      }
+    }
 
     if (log.isTraceEnabled()) log.trace(traceMsg("Calling resolve()"));
     PsiElement resolve = resolve();
@@ -690,6 +710,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (log.isTraceEnabled()) log.trace(traceMsg("Trying class resolve by fully qualified name."));
 
     return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+  }
+
+  public boolean isPureClassReferenceOf(@NotNull String className) {
+    PsiElement resolve = resolve();
+    return getParent() instanceof HaxeExpressionList
+            && resolve instanceof  HaxeClass haxeClass
+           && className.equalsIgnoreCase(haxeClass.getName()) ;// identical classname and elementText
   }
 
   /*
