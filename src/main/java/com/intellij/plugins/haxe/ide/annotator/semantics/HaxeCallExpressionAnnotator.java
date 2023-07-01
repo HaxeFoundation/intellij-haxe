@@ -202,11 +202,15 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           if (parameterType.getType() instanceof SpecificHaxeClassReference classReference  ) {
             boolean containsTypeParameter = containsTypeParameter(parameterType, typeParamMap);
             if (containsTypeParameter) {
-            String className = classReference.getClassName();
-            //if (typeParamNames.contains(className)) {
-
-
-              //ResultHolder constraint =  typeParamMap.get(className);
+              HaxeGenericResolver inherit =  findTypeParametersToInherit(parameterType.getType(), expressionType.getType(), resolver, typeParamMap);
+              resolver.addAll(inherit);
+              // parameter is a typeParameter type, we can just add it to resolver
+              if(parameterType.getClassType().isFromTypeParameter()) {
+                String className = parameterType.getClassType().getClassName();
+                resolver.add(className, expressionType);
+                  typeParamMap.put(className, expressionType);
+              }
+   ;
               Optional<ResultHolder> optionalConstraint = findConstraintForTypeParameter(parameterType, typeParamMap);
               if (optionalConstraint.isPresent()) {
                 ResultHolder constraint = optionalConstraint.get();
@@ -214,15 +218,10 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                   annotateTypeMismatch(holder, constraint, expressionType, expression);
                 }
               }else {
-                // checks if we have used a unconstrained generic type, and then apply that type to any other arguments with that value
-                ResultHolder resolved = resolver.resolve(className);
-                if(resolved == null) {
-                    resolver.add(className, expressionType);
-                    typeParamMap.put(className, expressionType);
-                }else {
-                  if (!canAssignToFrom(resolved, expressionType)) {
-                    annotateTypeMismatch(holder, resolved, expressionType, expression);
-                  }
+                ResultHolder resolve = HaxeTypeResolver.resolveParameterizedType(parameterType, resolver);
+
+                if (!canAssignToFrom(resolve, expressionType)) {
+                  annotateTypeMismatch(holder, parameterType, expressionType, expression);
                 }
               }
             }else {
@@ -242,7 +241,33 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     }
   }
 
+  private static HaxeGenericResolver findTypeParametersToInherit(SpecificTypeReference parameter,
+                                                                 SpecificTypeReference argument,
+                                                                 HaxeGenericResolver resolver, Map<String, ResultHolder> map) {
 
+    HaxeGenericResolver inheritResolver = new HaxeGenericResolver();
+    if (parameter instanceof  SpecificHaxeClassReference parameterReference && argument instanceof  SpecificHaxeClassReference argumentReference) {
+      HaxeGenericResolver paramResolver = parameterReference.getGenericResolver().addAll(resolver);
+      HaxeGenericResolver argResolver = argumentReference.getGenericResolver().addAll(resolver);
+      for (String name : paramResolver.names()) {
+        ResultHolder resolve = paramResolver.resolve(name);
+        if (resolve != null && resolve.isClassType()) {
+          String className = resolve.getClassType().getClassName();
+
+          if (className!= null && map.containsKey(className)) {
+            ResultHolder argResolved = argResolver.resolve(className);
+            if (argResolved != null) {
+              resolver.add(className, argResolved);
+            }
+          }
+        }
+      }
+    }
+
+
+
+    return inheritResolver;
+  }
 
 
   private static void annotateTypeMismatch(AnnotationHolder holder, ResultHolder expected, ResultHolder got, HaxeExpression expression) {

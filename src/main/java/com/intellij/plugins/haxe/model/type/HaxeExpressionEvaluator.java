@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
@@ -53,6 +54,7 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 
 @CustomLog
 public class HaxeExpressionEvaluator {
@@ -442,9 +444,21 @@ public class HaxeExpressionEvaluator {
         PsiReference reference = element.getReference();
         if (reference != null) {
           PsiElement subelement = reference.resolve();
-          if (subelement instanceof HaxeClass) {
-            typeHolder = SpecificHaxeClassReference.withGenerics(
-              new HaxeClassReference(((HaxeClass)subelement).getModel(), element), resolver.getSpecifics()).createHolder();
+          if (subelement instanceof HaxeClass haxeClass) {
+
+            HaxeClassReference classReference = new HaxeClassReference((haxeClass).getModel(), element);
+            typeHolder = SpecificHaxeClassReference.withGenerics(classReference, resolver.getSpecifics()).createHolder();
+
+            // check if pure Class Reference
+            if (reference instanceof  HaxeReferenceExpressionImpl expression) {
+              if (expression.isPureClassReferenceOf(haxeClass.getName())) {
+                // wrap in Class<>
+                SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(haxeClass.getModel().getReference());
+                SpecificHaxeClassReference wrappedClass = SpecificHaxeClassReference.getStdClass(CLASS, element, new ResultHolder[]{ new ResultHolder(originalClass)});
+                typeHolder = wrappedClass.createHolder();
+              }
+            }
+
           }
           else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
             SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);

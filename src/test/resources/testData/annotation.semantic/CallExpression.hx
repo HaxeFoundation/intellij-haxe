@@ -19,7 +19,9 @@ class CallExpressionTest {
     function classInheritArgs(arg1:A) {}
     function interfaceInheritArgs(arg1:C) {}
     function genericArgs<T>(arg1:T, Arg2:T):T {}
+    function genericClassArgs<T>(arg1:Class<T>):T {}
     function genericConstraintsArgs<T:String>(arg1:T):T {}
+    function genericClassConstraintsArgs<T:A>(arg1:Class<T>):T {}
     function genericComplexConstraintsArgs<T:String>(arg1:Array<T>) {}
 
 
@@ -82,6 +84,23 @@ class CallExpressionTest {
         var myMap:Map<String, Int> = new Map();
         myMap.set("", 1); //CORRECT :  argument types matches Type parameters
         myMap.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>); //WRONG : argument types does not match Type parameters
+
+
+        var typeVar:Class<String> = null;
+        var resultA = genericClassArgs(String); // CORRECT (type passed to var)
+        var resultB:String = genericClassArgs(String); // CORRECT (variable and return type matches)
+        var resultC:String = genericClassArgs(typeVar); // CORRECT (variable and return type matches)
+
+        genericClassArgs(<error descr="Type mismatch (Expected: 'Class<T>' got: 'Int')">1</error>);  // WRONG parameter type  (should be Class)
+        genericClassArgs(<error descr="Type mismatch (Expected: 'Class<T>' got: 'String')">resultC</error>);  // WRONG parameter type (should be Class)
+        var resultD:Int = genericClassArgs(<error descr="Type mismatch (Expected: 'Class<T>' got: 'Int')">1</error>);  // WRONG ( parameter should be Class)
+        var <error descr="Incompatible type: String should be Int">resultE:Int = genericClassArgs(String)</error>;  // WRONG variable type and return type missmatch
+
+        genericClassConstraintsArgs(A); // CORRECT (matches constraints)
+        genericClassConstraintsArgs(B); // CORRECT since B extends A
+
+        genericClassConstraintsArgs(<error descr="Type mismatch (Expected: 'Class<A>' got: 'Class<C>')">C</error>); // WRONG  type does not match constraint
+        genericClassConstraintsArgs(<error descr="Type mismatch (Expected: 'Class<A>' got: 'Int')">1</error>); // WRONG  type does not match constraint
 
     }
 

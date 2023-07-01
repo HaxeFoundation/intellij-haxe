@@ -145,7 +145,7 @@ public class HaxeGenericResolverUtil {
                 paramSpecifics = paramType.getClassType().getSpecifics();
               }
 
-              ResultHolder resolverType = methodResolver.resolve(paramType);
+              ResultHolder resolverType = methodResolver.resolve(paramName);
               // if NULL == resolverType, then the type name isn't in the resolver -- but it might have generic args that need typing.
               // if NULL != resolverType and !isUnknown, then the type is already set.
               // if NULL != resolverType and isUnknown, then poke the type from the call site.
@@ -183,13 +183,19 @@ public class HaxeGenericResolverUtil {
                       String paramSpecificName = paramSpecifics[i].getType().toStringWithoutConstant();
                       resolverType = methodResolver.resolve(paramSpecificName);
                       if (null != resolverType) {
+                        ResultHolder resolvedSpecific = resolvedSpecifics[i];
+                        if (result.getType().isPureClassReference()) {
+                          // HACKISH workaround  for wrapped  pure Class references.
+                          // unwrap Class<T>
+                          resolvedSpecific = result.getClassType().getSpecifics()[0];
+                        }
                         if (resolverType.isUnknown()) {
-                          methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                          methodResolver.add(paramSpecificName, resolvedSpecific);
 
                           // replacing current type with resolved  parameter if it can be assigned to the type
                           // ex. you got an interface and the parameter passed is a type that implements that interface
-                        }else if (resolverType.canAssign(resolvedSpecifics[i])) {
-                          methodResolver.add(paramSpecificName, resolvedSpecifics[i]);
+                        }else if (resolverType.canAssign(resolvedSpecific)) {
+                          methodResolver.add(paramSpecificName, resolvedSpecific);
                         }else {
                           //TODO mlo: try to add some kind of warning, parameter does not match constraints
                         }

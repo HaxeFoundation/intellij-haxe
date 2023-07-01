@@ -65,7 +65,7 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolve(ResultHolder resultHolder) {
     if (null == resultHolder ) return null;
-    return resolve(resultHolder.getType().toStringWithoutConstant());
+    return HaxeTypeResolver.resolveParameterizedType(resultHolder, this);
   }
 
   /**

@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
@@ -293,6 +294,14 @@ public abstract class SpecificTypeReference {
   final public boolean isFromTypeParameter() {
     if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
       return specificHaxeClassReference.getHaxeClassReference().isTypeParameter();
+    }
+    return false;
+  }
+  final public boolean isPureClassReference() {
+    if (context instanceof HaxeReferenceImpl reference && this instanceof  SpecificHaxeClassReference classReference) {
+      @NotNull ResultHolder[] specifics = classReference.getSpecifics();
+      if (specifics.length != 1) return false;
+      return reference.isPureClassReferenceOf(specifics[0].getClassType().getClassName());
     }
     return false;
   }
