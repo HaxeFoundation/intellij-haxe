@@ -93,8 +93,17 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
-    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref);
+    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref) || isAbstractAssignableToFunction(ref);
   }
+
+  private static boolean isAbstractAssignableToFunction(SpecificTypeReference ref) {
+    if (ref instanceof  SpecificHaxeClassReference classReference) {
+      Set<SpecificHaxeClassReference> types = classReference.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
+      return types.stream().anyMatch(SpecificTypeReference::isFunction);
+    }
+    return false;
+  }
+
   static private boolean isTypeDefFunction(SpecificTypeReference ref ) {
     if (ref instanceof  SpecificHaxeClassReference) {
       SpecificHaxeClassReference classReference = (SpecificHaxeClassReference) ref;
@@ -167,9 +176,15 @@ public class HaxeTypeCompatible {
     }
 
     if (isFunctionTypeOrReference(to) && isFunctionTypeOrReference(from)) {
-      SpecificFunctionReference toRef = asFunctionReference(to);
-      SpecificFunctionReference fromRef = asFunctionReference(from);
-      return canAssignToFromFunction(toRef, fromRef, holder);
+      // if assignable to Function(Dynamic) class (@:callable) any function pointer should be allowed
+      // TODO mlo: figure out the best way to handle classReferences with @:callable
+      if (isAbstractAssignableToFunction(to)) {
+        return true;
+      }else {
+        SpecificFunctionReference toRef = asFunctionReference(to);
+        SpecificFunctionReference fromRef = asFunctionReference(from);
+        return canAssignToFromFunction(toRef, fromRef, holder);
+      }
     }
 
     if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
@@ -304,6 +319,7 @@ public class HaxeTypeCompatible {
     if(to.isTypeDefOfClass())to = to.resolveTypeDefClass();
     if(from.isTypeDefOfClass())from = from.resolveTypeDefClass();
 
+    if (to == null || from == null) return false;
     // check if type is one of the core types that needs custom logic
     if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
       String toName = to.getHaxeClass().getName();
