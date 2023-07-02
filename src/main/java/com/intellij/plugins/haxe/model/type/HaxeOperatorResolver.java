@@ -32,13 +32,17 @@ public class HaxeOperatorResolver {
     String operator,
     HaxeExpressionEvaluatorContext context
   ) {
-    if (!HaxeTypeCompatible.canApplyBinaryOperator(left, right, operator)) {
-      context.addError(
-        elementContext,
-        "Can't apply operator " + operator + " for types " + left + " and " + right
-      );
-    }
+
     SpecificTypeReference result = SpecificHaxeClassReference.getUnknown(elementContext);
+
+    // while normal abstracts should not be resolved to underlying type, there's an exception for Null<T>
+    // in this case we just "unwrap"  without trying to resolve
+    if (left.isNullType()) {
+      left = ((SpecificHaxeClassReference)left).getSpecifics()[0].getType();
+    }
+    if (right.isNullType()) {
+      right = ((SpecificHaxeClassReference)right).getSpecifics()[0].getType();
+    }
 
     if (left.isNumeric() && right.isNumeric()) {
       result = HaxeTypeUnifier.unify(left, right, context.root);

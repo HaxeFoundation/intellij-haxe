@@ -36,25 +36,6 @@ import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getDyna
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 public class HaxeTypeCompatible {
-  static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
-    if (left == null || right == null) return false;
-    // primitives
-    if (left.isInt() || left.isFloat() || left.isBool() ) {
-       return true;
-    }
-
-    // check classes/abstracts for operator
-    if (left instanceof  SpecificHaxeClassReference classReference) {
-      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
-      return !overloads.isEmpty();
-    }
-
-    if (left.isFunction() && right.isFunction()) {
-     return true;
-    }
-
-    return false;
-  }
 
   static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from) {
     if (null == to || null == from) return false;

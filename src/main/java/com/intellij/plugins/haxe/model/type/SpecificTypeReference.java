@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 @CustomLog
 public abstract class SpecificTypeReference {
+  public static final String NULL = "Null";
   public static final String VOID = "Void";
   public static final String BOOL = "Bool";
   public static final String INT = "Int";
@@ -275,6 +276,9 @@ public abstract class SpecificTypeReference {
 
   final public boolean isFunction() {
     return isNamedType(FUNCTION);
+  }
+  public boolean isNullType() {
+    return isNamedType(NULL);
   }
 
   /** Tell whether the class is the Enum<type> abstract class. */

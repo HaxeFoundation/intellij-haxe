@@ -501,21 +501,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           HaxeMethod method = (HaxeMethod)resolvedExpression;
           HaxeGenericResolver modelResolver = method.getModel().getGenericResolver(leftResult.getGenericResolver());
 
-          HaxeExpressionList list = ((HaxeCallExpression)this).getExpressionList();
-          if(list != null) {
-            List<HaxeExpression> parameterExpressions = list.getExpressionList();
+          HaxeExpressionList argumentList = ((HaxeCallExpression)this).getExpressionList();
+          if(argumentList != null) {
+            List<HaxeExpression> ArgumentExpressions = argumentList.getExpressionList();
             int parameterNumber = 0;
-            for(HaxeExpression exp:  parameterExpressions) {
+            for(HaxeExpression exp:  ArgumentExpressions) {
               if (exp instanceof HaxeReference reference) {
-                HaxeResolveResult parameterResult = reference.resolveHaxeClass();
-                modelResolver.addAll(parameterResult.getGenericResolver());
-                // hackish way to see if argument is name of class and should be considered Class<?>
-                if (exp instanceof HaxeReferenceExpression referenceExpression && parameterResult.getHaxeClass() != null) {
-                  String name = parameterResult.getHaxeClass().getName();
-                  if (name!= null && referenceExpression.getIdentifier().textMatches(name)) {
+                HaxeResolveResult ArgumentResult = reference.resolveHaxeClass();
+                modelResolver.addAll(ArgumentResult.getGenericResolver());
+                if (exp instanceof HaxeReferenceExpression && ArgumentResult.getHaxeClass() != null) {
                     HaxeParameterModel model = method.getModel().getParameters().get(parameterNumber++);
-                    modelResolver.addAll(parameterOverrideGenericConstraints(model, parameterResult));
-                  }
+                    modelResolver.addAll(parameterOverrideGenericConstraints(model, ArgumentResult));
                 }
 
               }
@@ -523,12 +519,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             resolver.addAll(modelResolver);
           }
         }
-        //TODO mlo: Not sure if the concept of merging specializations is a good idea, but we need to keep all generics information
-        // from both the left part of the expression and from the method call. (soft merge lets the left side take precedence)
-        HaxeGenericSpecialization mergedSpecialization = leftResult.getSpecialization().softMerge(resolver.getSpecialization(null));
-        HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, mergedSpecialization);
 
-        //final HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
+        final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
 
         result.specialize(this);
         return result;
@@ -725,18 +717,27 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
    */
   private static HaxeGenericResolver parameterOverrideGenericConstraints(HaxeParameterModel  parameterModel, HaxeResolveResult result) {
     HaxeGenericResolver genericResolver  = new HaxeGenericResolver();
-    ResultHolder type = parameterModel.getType();
-    if(type.isClassType()) {
-      ResultHolder[] specifics = type.getClassType().getSpecifics();
-      if (specifics.length > 0) {
-        HaxeClass haxeClass = result.getHaxeClass();
-        if (specifics[0].missingClassModel() && haxeClass != null) {
-          // consider  generic parameter ?
-          String name = specifics[0].getType().getElementContext().getText();
-          genericResolver.add(name, haxeClass.getModel().getInstanceType());
-        }
+    ResultHolder parameterType = parameterModel.getType();
+    if (!parameterType.isClassType()) return genericResolver;
+      // get all  parameters from  model
+    HaxeGenericResolver paramsResolver = parameterType.getClassType().getGenericResolver();
+    // get all  parameters from  result
+    HaxeGenericResolver resultsResolver = result.getGenericResolver();
+    // substitute
+    @NotNull String[] names = paramsResolver.names();
+    @NotNull ResultHolder[] paramSpecifics = paramsResolver.getSpecifics();
+    @NotNull ResultHolder[] resultSpecifics = resultsResolver.getSpecifics();
+    for (int i = 0; i < names.length; i++) {
+      String name = names[i];
+      genericResolver.add(name, resultSpecifics[i]);
+      // if parameter specific is from a TypeParameter replace with specific from argument
+      SpecificHaxeClassReference type = paramSpecifics[i].getClassType();
+      if (type != null && type.isFromTypeParameter()) {
+        String className = type.getClassName();
+        genericResolver.add(className, resultSpecifics[i]);
       }
     }
+
     return genericResolver;
   }
 
