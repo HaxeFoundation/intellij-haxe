@@ -17,7 +17,12 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
+
+import java.util.List;
 
 public class HaxeOperatorResolver {
   static public SpecificTypeReference getBinaryOperatorResult(
@@ -33,9 +38,12 @@ public class HaxeOperatorResolver {
         "Can't apply operator " + operator + " for types " + left + " and " + right
       );
     }
+    SpecificTypeReference result = SpecificHaxeClassReference.getUnknown(elementContext);
 
-    SpecificTypeReference result = HaxeTypeUnifier.unify(left, right, context.root);
-    if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
+    if (left.isNumeric() && right.isNumeric()) {
+      result = HaxeTypeUnifier.unify(left, right, context.root);
+      if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
+    }
 
     if (operator.equals("+")) {
       if (left.toStringWithoutConstant().equals("String") || right.toStringWithoutConstant().equals("String")) {
@@ -48,9 +56,29 @@ public class HaxeOperatorResolver {
       operator.equals("<") || operator.equals("<=") ||
       operator.equals(">") || operator.equals(">=")
       ) {
-      result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
     }
-    // @TODO: Check operator overloading
+
+    if (operator.equals("&&") || operator.equals("||")) {
+      if (left.isBool() && right.isBool()) {
+        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+      }
+    }
+
+
+    if (left instanceof  SpecificHaxeClassReference classReference) {
+      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
+      for (HaxeMethodModel overload : overloads) {
+        if (overload.getParameters().size() == 1) {
+          HaxeParameterModel param = overload.getParameters().get(0);
+          boolean rightMatches = param.getType().canAssign(right.createHolder());
+          if (rightMatches) {
+            result =  overload.getReturnType(null).getType();
+          }
+        }
+      }
+    }
+
     if (left.getConstant() != null && right.getConstant() != null) {
       result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }

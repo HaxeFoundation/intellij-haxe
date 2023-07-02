@@ -113,7 +113,8 @@ public class HaxeTypeUnifier {
       return a;
     }else {
       // @TODO: Do a proper unification
-      return SpecificTypeReference.getDynamic(a.getElementContext());
+      //return SpecificTypeReference.getDynamic(a.getElementContext());
+      return SpecificTypeReference.getUnknown(a.getElementContext());
     }
   }
 

@@ -24,6 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -36,8 +37,23 @@ import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdC
 
 public class HaxeTypeCompatible {
   static public boolean canApplyBinaryOperator(SpecificTypeReference left, SpecificTypeReference right, String operator) {
-    // @TODO: Stub. Implement.
-    return true;
+    if (left == null || right == null) return false;
+    // primitives
+    if (left.isInt() || left.isFloat() || left.isBool() ) {
+       return true;
+    }
+
+    // check classes/abstracts for operator
+    if (left instanceof  SpecificHaxeClassReference classReference) {
+      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
+      return !overloads.isEmpty();
+    }
+
+    if (left.isFunction() && right.isFunction()) {
+     return true;
+    }
+
+    return false;
   }
 
   static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from) {

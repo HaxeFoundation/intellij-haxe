@@ -35,10 +35,7 @@ import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
-import com.intellij.plugins.haxe.util.HaxeDebugUtil;
-import com.intellij.plugins.haxe.util.HaxeJavaUtil;
-import com.intellij.plugins.haxe.util.HaxeStringUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
@@ -480,6 +477,25 @@ public class HaxeExpressionEvaluator {
               HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
               typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
           }
+          else if (subelement instanceof HaxeForStatement forStatement) {
+            // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
+            final HaxeComponentName name = forStatement.getComponentName();
+            final HaxeIterable iterable = forStatement.getIterable();
+            // if element text matches  for loops  iterator  i guess we can consider it a match?
+            if (name != null && element.textMatches(name)) {
+              if (iterable != null) {
+                ResultHolder iterator = handle(iterable, context, resolver);
+                // get specific from iterator as thats the type for our variable
+                typeHolder = iterator.getClassType().getSpecifics()[0];
+              }
+            }
+          }
+          else if (subelement instanceof HaxeIteratorkey || subelement instanceof HaxeIteratorValue) {
+            HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(subelement);
+            SpecificHaxeClassReference classReference = result.getSpecificClassReference(element, resolver);
+            typeHolder = new ResultHolder(classReference);
+          }
+
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
           }
@@ -896,6 +912,9 @@ public class HaxeExpressionEvaluator {
         return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
       }
       return typeHolder;
+    }
+    if (element instanceof  HaxeIsTypeExpression) {
+      return SpecificHaxeClassReference.primitive("Bool", element, null).createHolder();
     }
 
     if (

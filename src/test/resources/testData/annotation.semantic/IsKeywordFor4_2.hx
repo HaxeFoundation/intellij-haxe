@@ -115,6 +115,8 @@ class IsOperator extends Base {
 
     public static function twoArgs<T>(i:T, j:T):T {return j;}
 
+    public static function call():Bool {}
+
 }
 
 class Base {

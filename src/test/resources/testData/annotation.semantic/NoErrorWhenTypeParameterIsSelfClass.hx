@@ -5,7 +5,7 @@ interface Comparable<T> {
 }
 
 class Node implements Comparable<Node> {
-  public var myVal:Int;
+  public var id:Int;
   public function new(id:Int) {
     this.id = id;
   }

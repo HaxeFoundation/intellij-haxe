@@ -25,9 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
-import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -576,5 +574,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public HaxeResolveResult asResolveResult() {
     HaxeClass clazz = getHaxeClass();
     return HaxeResolveResult.create(clazz, getGenericResolver().getSpecialization(clazz));
+  }
+
+
+  public List<HaxeMethodModel> getOperatorOverloads(String operator) {
+    if (classReference.classModel == null) return List.of();
+    List<HaxeMethodModel> members = classReference.classModel.getMembers(null).stream()
+      .filter( model -> model instanceof HaxeMethodModel)
+      .map( model -> (HaxeMethodModel) model)
+      .toList();
+
+    List<HaxeMethodModel> list = members.stream().filter(HaxeMemberModel::hasOperatorMeta).toList();
+    return list.stream().filter(model -> model.isOperator(operator)).toList();
   }
 }

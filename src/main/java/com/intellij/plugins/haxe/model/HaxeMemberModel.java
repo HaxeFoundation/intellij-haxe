@@ -19,17 +19,23 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeBinaryExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OP;
 
 abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
@@ -60,6 +66,23 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
   public boolean isOverload() {
     return hasModifier(OVERLOAD);
+  }
+  public boolean hasOperatorMeta() {
+    return getNamedComponentPsi().hasCompileTimeMetadata(OP);
+  }
+  public boolean isOperator(String operator) {
+    HaxeMetadataList list = getNamedComponentPsi().getMetadataList(HaxeMetadataCompileTimeMeta.class);
+    return list.getCompileTimeMeta().stream()
+      .filter(meta -> meta.isType(OP))
+      .anyMatch(meta ->  hasOperatorMeta(meta.getContent(), operator));
+
+  }
+
+  private boolean hasOperatorMeta(HaxeMetadataContent content, String operator) {
+    HaxeBinaryExpression binaryExpression = PsiTreeUtil.findChildOfType(content, HaxeBinaryExpression.class);
+    @NotNull PsiElement[] children = binaryExpression.getChildren();
+    if (children.length < 2) return false;
+    return children[1].textMatches(operator);
   }
 
   private boolean isOverriddenPublicMethod() {
