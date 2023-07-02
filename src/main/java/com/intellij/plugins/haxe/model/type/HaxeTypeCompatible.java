@@ -263,6 +263,15 @@ public class HaxeTypeCompatible {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
+          }else {
+            // check if typdef or abstracts can resolve to function type
+            if (type.getTypeOrAnonymous()!= null) {
+              ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(type.getTypeOrAnonymous());
+              ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(resultHolder, classReference.getGenericResolver());
+              if (holder.isFunctionType()) {
+                list.add(holder.getFunctionType());
+              }
+            }
           }
         }
       }
