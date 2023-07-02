@@ -684,14 +684,14 @@ expression ::= assignExpression
              { extraRoot=true recoverWhile=expression_recover }
 
 assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
-isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="/expression[0]" operator="isOperator"] }
+isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="expression[0]" operator="isOperator"] }
 iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
 coalescingExpression ::= expression coalescingOperator expression             { extends=binaryExpression }
 ternaryExpression ::= expression questionOperator expression colonOperator expression
   { rightAssociative=true
-    methods=[ guardExpression="/expression[0]"
-              guardedExpression="/expression[1]"
-              elseExpression="/expression[2]"]
+    methods=[ guardExpression="expression[0]"
+              guardedExpression="expression[1]"
+              elseExpression="expression[2]"]
   }
 logicOrExpression ::= expression logicOrOperator expression                   { extends=binaryExpression }
 logicAndExpression ::= expression logicAndOperator expression                 { extends=binaryExpression }
@@ -710,11 +710,11 @@ valueExpression ::= value
 
 // These fake rules won't be in the parser, but the PSI will contain a HaxeBinaryExpression class
 // which will be the superclass of the extending classes in the PSI.
-fake binaryExpression ::= expression* operator+ {
-  methods=[leftExpression="/expression[0]" rightExpression="/expression[1]" operator="/operator[0]"]
+fake binaryExpression ::= expression* operator {
+  methods=[leftExpression="expression[0]" rightExpression="expression[1]" operator="operator"]
 }
-fake unaryExpression ::= expression* operator+ {
-  methods=[expression="/expression[0]" operator="/operator[0]"]
+fake unaryExpression ::= expression* operator {
+  methods=[expression="expression[0]" operator="operator"]
 }
 // might not be the best solution to add  (| thisExpression | superExpression | abstractExpression) here but it solves issues with postfix stuff (like "this.size++;")
 private assignableValueExpression ::= (referenceExpression | thisExpression | superExpression | abstractExpression) (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
