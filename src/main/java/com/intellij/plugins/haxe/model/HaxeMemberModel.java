@@ -80,6 +80,8 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   private boolean hasOperatorMeta(HaxeMetadataContent content, String operator) {
     HaxeBinaryExpression binaryExpression = PsiTreeUtil.findChildOfType(content, HaxeBinaryExpression.class);
+    if (binaryExpression == null) return false;
+
     @NotNull PsiElement[] children = binaryExpression.getChildren();
     if (children.length < 2) return false;
     return children[1].textMatches(operator);

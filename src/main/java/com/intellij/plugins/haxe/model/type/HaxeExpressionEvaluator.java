@@ -919,6 +919,7 @@ public class HaxeExpressionEvaluator {
 
     if (
       (element instanceof HaxeAdditiveExpression) ||
+      (element instanceof HaxeModuloExpression) ||
       (element instanceof HaxeBitwiseExpression) ||
       (element instanceof HaxeShiftExpression) ||
       (element instanceof HaxeLogicAndExpression) ||
