@@ -44,11 +44,24 @@ public class HaxeOperatorResolver {
       right = ((SpecificHaxeClassReference)right).getSpecifics()[0].getType();
     }
 
-    boolean canAssignLeftToInt = HaxeTypeCompatible.canAssignToFrom(left, SpecificHaxeClassReference.getInt(left.context));
-    boolean canAssignRightToInt = HaxeTypeCompatible.canAssignToFrom(right, SpecificHaxeClassReference.getInt(right.context));
+    SpecificHaxeClassReference intRef = SpecificHaxeClassReference.getInt(elementContext);
+    SpecificHaxeClassReference boolRef = SpecificHaxeClassReference.getBool(elementContext);
 
-    if (left.isNumeric() && right.isNumeric()) {
-      result = HaxeTypeUnifier.unify(left, right, context.root);
+    boolean canAssignLeftToInt = HaxeTypeCompatible.canAssignToFrom(intRef, left);
+    boolean canAssignRightToInt = HaxeTypeCompatible.canAssignToFrom(intRef, right);
+
+    boolean canAssignLeftToBool = HaxeTypeCompatible.canAssignToFrom(boolRef, left);
+    boolean canAssignRightToBool = HaxeTypeCompatible.canAssignToFrom(boolRef, right);
+
+    if (left.isNumeric() || right.isNumeric()) {
+      if (operator.equals("+")
+          || operator.equals("-")
+          || operator.equals("*")
+          || operator.equals("%")) {
+        // unify should handle any abstracts with to/from  if combined with number
+        result = HaxeTypeUnifier.unify(left, right, context.root);
+      }
+
       if (operator.equals("/")) result = SpecificHaxeClassReference.getFloat( elementContext);
     }
 
@@ -68,17 +81,24 @@ public class HaxeOperatorResolver {
       }
     }
 
-    if (
-      operator.equals("==") || operator.equals("!=") ||
-      operator.equals("<") || operator.equals("<=") ||
-      operator.equals(">") || operator.equals(">=")
-      ) {
+    if (operator.equals("==") || operator.equals("!=")) {
         result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
     }
 
-    if (operator.equals("&&") || operator.equals("||")) {
-      if (left.isBool() && right.isBool()) {
+    if (operator.equals("<") || operator.equals("<=") ||
+      operator.equals(">") || operator.equals(">=")) {
+      if (left.isNumeric() && right.isNumeric()) {
         result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+      }else {
+        result = SpecificHaxeClassReference.getUnknown(elementContext);
+      }
+    }
+
+    if (operator.equals("&&") || operator.equals("||")) {
+      if (canAssignLeftToBool && canAssignRightToBool) {
+        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+      }else {
+        result = SpecificHaxeClassReference.getUnknown(elementContext);
       }
     }
 

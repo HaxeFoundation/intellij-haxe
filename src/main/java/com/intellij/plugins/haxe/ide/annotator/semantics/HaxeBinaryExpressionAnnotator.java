@@ -15,7 +15,7 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
     //TODO mlo:  Disable for now, to many false positive due to the lack of  @:forward support
     //return ;
 
-    if (element instanceof HaxeAssignExpression || element instanceof HaxeCompareExpression) {
+    if (element instanceof HaxeAssignExpression) {
       // HaxeAssignExpression -> assign is handle by localVarAnnotator etc.
       //HaxeCompareExpression : problem with Class<myClass> being detected as compare  (X < Y)
       return;

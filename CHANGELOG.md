@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.4
+* Bugfix for operator semantics (+ Tests)
+* Bugfix (Nullpointer fix)
+* Using java 11 as target for JPS module
+
 ## 1.4.3
 * Added custom syntax color for type-parameters 
 * Bugfix callExpression annotator did not check against declaring class type-parameters 

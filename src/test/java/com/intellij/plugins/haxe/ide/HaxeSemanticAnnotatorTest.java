@@ -809,4 +809,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testMethodRestArguments() throws Throwable {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testOperatorPrimitiveTest() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+  @Test
+  public void testOperatorAbstractTest() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 }
