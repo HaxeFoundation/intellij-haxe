@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.*;
@@ -134,7 +135,20 @@ public class HaxeExpressionEvaluator {
          handle(child, context, resolver);
       }
     }
-    if (element instanceof HaxeIterable) {
+    if (element instanceof HaxeIterable iterable) {
+      ResultHolder iteratorParent = handle(iterable.getExpression(), context, resolver);
+      SpecificTypeReference type = iteratorParent.getType();
+      if (!type.isNumeric()) {
+        if (iteratorParent.isClassType()) {
+          SpecificHaxeClassReference haxeClassReference = iteratorParent.getClassType();
+          HaxeGenericResolver localResolver = haxeClassReference.getGenericResolver();
+          HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
+          if (iterator instanceof HaxeMethodModel methodModel) {
+            return methodModel.getReturnType(localResolver);
+          }
+        }
+      }
+
       return handle(((HaxeIterable)element).getExpression(), context, resolver);
     }
 
@@ -708,6 +722,10 @@ public class HaxeExpressionEvaluator {
             allConstants = false;
           } else {
             constants.add(type.getConstant());
+          }
+          // Convert enum Value types to Enum class  (you cant have an Array of EnumValue types)
+          if (type instanceof  SpecificEnumValueReference enumValueReference) {
+            type = enumValueReference.getEnumClass();
           }
           references.add(type);
         }

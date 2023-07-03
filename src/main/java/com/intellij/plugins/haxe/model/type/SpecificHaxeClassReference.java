@@ -183,6 +183,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return toStringWithConstant();
   }
 
+  @NotNull
   public HaxeGenericResolver getGenericResolver() {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     HaxeClassModel model = getHaxeClassModel();
