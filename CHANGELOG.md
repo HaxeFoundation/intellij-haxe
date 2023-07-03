@@ -1,12 +1,14 @@
 # Changelog
 
-## Unreleased
+## 1.4.3
 * Added custom syntax color for type-parameters 
 * Bugfix callExpression annotator did not check against declaring class type-parameters 
 * support for inline constructor and function calls
 * Improved return type detection for methods without return type specified
 * Improved typechecking for functions when `Function` abstract is used.
+* improved type resolving for loops
 * initial support for `@:op` meta
+
 
 ## 1.4.2
 * Bugfix for haxelib libraries with dots in name
