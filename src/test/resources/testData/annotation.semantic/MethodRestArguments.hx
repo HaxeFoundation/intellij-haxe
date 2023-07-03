@@ -23,7 +23,7 @@ class RestArgumentsTest {
         var chainResult:String = restArray[0].charAt(0); //CORRECT
 
         var <error descr="Incompatible type: String should be Int">wrongElement:Int = restArray[0]</error>; //WRONG (type missmatch)
-        var wrongChainResult:Int = <error descr="Can't apply operator * for types String and Int = 2">restArray[0] * 2</error>; //WRONG (type missmatch)
+        var wrongChainResult:Int = <error descr="Unable to apply operator * for types String and Int = 2">restArray[0] * 2</error>; //WRONG (type missmatch)
 
     }
 

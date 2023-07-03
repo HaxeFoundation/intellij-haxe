@@ -621,10 +621,10 @@ switchExtractorExpression ::= switchCaseExtractor (bitOperation switchCaseExtrac
 switchCaseExtractor ::= '('switchCaseExtractorPure')' | switchCaseExtractorPure | switchCaseObjectExtractor | switchCaseVariableCapture {extends="expression"}
 //TODO mlo: clean up and bind to classes
 switchExtractorExpressionArrayLiteral ::= '[' (switchCaseObjectExtractorArgumentList ','?)? ']'
-private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | identifier)
+private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | componentName)
 switchCaseObjectExtractorArgumentList ::= ( switchExtractorExpressionArgument) (',' (switchExtractorExpressionArgument))*
 
-switchCaseObjectExtractor ::= identifier '(' switchCaseObjectExtractorArgumentList ')'   {extends="expression"}
+switchCaseObjectExtractor ::= componentName '(' switchCaseObjectExtractorArgumentList ')'   {extends="expression"}
 switchCaseVariableCapture ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.

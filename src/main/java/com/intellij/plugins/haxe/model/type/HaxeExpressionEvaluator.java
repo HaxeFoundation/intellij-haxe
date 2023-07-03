@@ -497,16 +497,48 @@ public class HaxeExpressionEvaluator {
             typeHolder = new ResultHolder(classReference);
           }
 
-          else if (subelement instanceof AbstractHaxeNamedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
-          }
-          else  if(subelement  instanceof HaxeSwitchCaseExpr caseExpr) {
-            HaxeSwitchStatement type = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
-            if (type.getExpression() != null) {
-              typeHolder = handle(type.getExpression(), context, resolver);
+
+          else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
+            if (switchStatement.getExpression() != null) {
+              typeHolder = handle(switchStatement.getExpression(), context, resolver);
             }
           }
-        }
+
+          else if (subelement instanceof HaxeSwitchCaseObjectExtractorArgumentList argumentList) {
+            HaxeSwitchCaseExpr caseExpr = PsiTreeUtil.getParentOfType(subelement, HaxeSwitchCaseExpr.class);
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
+            if (switchStatement != null && switchStatement.getExpression() != null) {
+              typeHolder = handle(switchStatement.getExpression(), context, resolver);
+            }
+            if (caseExpr.getExpression() instanceof HaxeSwitchCaseObjectExtractor extractor) {
+              int argumentIndex = findRefrenceInArgumentList(element, argumentList);
+              HaxeComponentName extractorComponentName = extractor.getComponentName();
+              SpecificHaxeClassReference type = typeHolder.getClassType();
+
+              if (type!= null &&  type.getHaxeClass() != null && extractorComponentName.getName() != null) {
+                HaxeNamedComponent extractorType =
+                  HaxeResolveUtil.findNamedSubComponent(type.getHaxeClass(), extractorComponentName.getName(), resolver);
+
+                if (extractorType instanceof HaxeEnumValueDeclaration valueDeclaration) {
+                  HaxeParameterList list = valueDeclaration.getParameterList();
+                  if (list != null) {
+                    HaxeGenericSpecialization specialization = type.getGenericResolver().getSpecialization(null);
+                    HaxeParameter parameter = list.getParameterList().get(argumentIndex);
+                    HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, specialization);
+                    if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
+                      typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), null));
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+            else if (subelement instanceof AbstractHaxeNamedComponent) {
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
+            }
+          }
       }
 
       return (typeHolder != null) ? typeHolder : SpecificTypeReference.getDynamic(element).createHolder();
@@ -977,6 +1009,17 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  private static int findRefrenceInArgumentList(PsiElement element, HaxeSwitchCaseObjectExtractorArgumentList argumentList) {
+    List<HaxeComponentName> componentNameList = argumentList.getComponentNameList();
+    for (int i = 0; i < componentNameList.size(); i++) {
+      HaxeComponentName componentName = componentNameList.get(i);
+      if (componentName.textMatches(element.getText())) {
+        return  i;
+      }
+    }
+    return -1;
   }
 
   static private void checkParameters(

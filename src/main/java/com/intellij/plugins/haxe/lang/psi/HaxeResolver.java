@@ -706,11 +706,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }else if (expression instanceof  HaxeSwitchCaseObjectExtractor extractor) {
           HaxeSwitchCaseObjectExtractorArgumentList argumentList = extractor.getSwitchCaseObjectExtractorArgumentList();
-          List<HaxeIdentifier> list = argumentList.getIdentifierList();
-          for (HaxeIdentifier identifier : list) {
-            if(name.equals(identifier.getText())) {
+          List<HaxeComponentName> list = argumentList.getComponentNameList();
+          for (HaxeComponentName componentName : list) {
+            if(name.equals(componentName.getText())) {
               //TODO mlo: figure out of non HaxeComponentName elements are OK in Result list
-              result.add(expr);
+              result.add(componentName);
               return false;
             }
           }

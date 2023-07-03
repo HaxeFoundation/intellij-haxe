@@ -55,7 +55,12 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
         ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(LeftChild, binaryExpression, lhsResolver);
         ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
 
-        String error = "Can't apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
+        // ignore  unknown and dynamic for now
+        if (lhsType.isUnknown()  || lhsType.isDynamic() || rhsType.isUnknown() || rhsType.isDynamic() ) {
+          return;
+        }
+
+        String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
         holder.newAnnotation(HighlightSeverity.ERROR, error)
           .range(binaryExpression)
           .create();

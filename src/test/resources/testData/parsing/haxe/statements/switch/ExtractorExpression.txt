@@ -113,8 +113,9 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           SWITCH_CASE_OBJECT_EXTRACTOR
-                            IDENTIFIER
-                              HaxePsiToken:ID('TString')
+                            COMPONENT_NAME
+                              IDENTIFIER
+                                HaxePsiToken:ID('TString')
                             HaxePsiToken:(('(')
                             SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
                               SWITCH_CASE_EXTRACTOR

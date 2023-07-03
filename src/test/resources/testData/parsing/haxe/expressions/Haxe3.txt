@@ -450,12 +450,14 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           SWITCH_CASE_OBJECT_EXTRACTOR
-                            IDENTIFIER
-                              HaxePsiToken:ID('Leaf')
+                            COMPONENT_NAME
+                              IDENTIFIER
+                                HaxePsiToken:ID('Leaf')
                             HaxePsiToken:(('(')
                             SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
-                              IDENTIFIER
-                                HaxePsiToken:ID('s')
+                              COMPONENT_NAME
+                                IDENTIFIER
+                                  HaxePsiToken:ID('s')
                             HaxePsiToken:)(')')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
@@ -467,21 +469,25 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           SWITCH_CASE_OBJECT_EXTRACTOR
-                            IDENTIFIER
-                              HaxePsiToken:ID('Node')
+                            COMPONENT_NAME
+                              IDENTIFIER
+                                HaxePsiToken:ID('Node')
                             HaxePsiToken:(('(')
                             SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
                               SWITCH_CASE_OBJECT_EXTRACTOR
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Leaf')
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('Leaf')
                                 HaxePsiToken:(('(')
                                 SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('s')
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('s')
                                 HaxePsiToken:)(')')
                               HaxePsiToken:,(',')
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                              COMPONENT_NAME
+                                IDENTIFIER
+                                  HaxePsiToken:ID('_')
                             HaxePsiToken:)(')')
                         HaxePsiToken::(':')
                         SWITCH_CASE_BLOCK
