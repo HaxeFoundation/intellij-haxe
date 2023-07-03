@@ -41,6 +41,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
@@ -498,6 +499,12 @@ public class HaxeExpressionEvaluator {
 
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);
+          }
+          else  if(subelement  instanceof HaxeSwitchCaseExpr caseExpr) {
+            HaxeSwitchStatement type = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
+            if (type.getExpression() != null) {
+              typeHolder = handle(type.getExpression(), context, resolver);
+            }
           }
         }
       }

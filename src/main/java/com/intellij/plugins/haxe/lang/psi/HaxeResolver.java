@@ -678,10 +678,43 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         componentName = ((HaxeNamedComponent)element).getComponentName();
       } else if (element instanceof HaxeOpenParameterList) {
         componentName = ((HaxeOpenParameterList)element).getComponentName();
+      } else if (element instanceof HaxeSwitchCaseExpr expr) {
+        if (!executeForSwitchCase(expr)) return false;
       }
+
       if (componentName != null && name.equals(componentName.getText())) {
         result.add(componentName);
         return false;
+      }
+      return true;
+    }
+
+    private boolean executeForSwitchCase(HaxeSwitchCaseExpr expr) {
+      if (expr.getSwitchCaseCaptureVar() != null) {
+        HaxeComponentName componentName = expr.getSwitchCaseCaptureVar().getComponentName();
+        if (name.equals(componentName.getText())) {
+          result.add(componentName);
+          return false;
+        }
+      } else {
+        HaxeExpression expression = expr.getExpression();
+        if (expression instanceof  HaxeReference reference) {
+          if(name.equals(reference.getText())) {
+            //TODO mlo: figure out of non HaxeComponentName elements are OK in Result list
+            result.add(expr);
+            return false;
+          }
+        }else if (expression instanceof  HaxeSwitchCaseObjectExtractor extractor) {
+          HaxeSwitchCaseObjectExtractorArgumentList argumentList = extractor.getSwitchCaseObjectExtractorArgumentList();
+          List<HaxeIdentifier> list = argumentList.getIdentifierList();
+          for (HaxeIdentifier identifier : list) {
+            if(name.equals(identifier.getText())) {
+              //TODO mlo: figure out of non HaxeComponentName elements are OK in Result list
+              result.add(expr);
+              return false;
+            }
+          }
+        }
       }
       return true;
     }

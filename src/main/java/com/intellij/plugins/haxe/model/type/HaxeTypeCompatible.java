@@ -24,7 +24,6 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -317,7 +316,7 @@ public class HaxeTypeCompatible {
 
 
   static public SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
-    if (ref.isAbstract() && "Null".equals(ref.getClassName())) {
+    if (ref.isAbstract() && ref.isNullType()) {
       SpecificHaxeClassReference underlying = ref.getHaxeClassModel().getUnderlyingClassReference(ref.getGenericResolver());
       if (null != underlying) {
         ref = underlying;
@@ -451,10 +450,16 @@ public class HaxeTypeCompatible {
     SpecificHaxeClassReference typeParameterFrom = specificsFrom[0].getClassType();
     return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }
-
   static public boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
+  ) {
+    return canAssignToFromSpecificType(to, from, null);
+  }
+  static private boolean canAssignToFromSpecificType(
+    @NotNull SpecificHaxeClassReference to,
+    @NotNull SpecificHaxeClassReference from,
+    @Nullable List<SpecificHaxeClassReference> recursionGuard
   ) {
     if (to.isDynamic() || from.isDynamic()) {
       return true;
@@ -505,6 +510,16 @@ public class HaxeTypeCompatible {
       // issue #388: allow `public var m:Map<String, String> = new Map();`
       else if (from.getSpecifics().length == 0) {
         return true;
+      }
+    }
+    if (to.getHaxeClass() != null && to.getHaxeClass().isInterface()) {
+      Set<SpecificHaxeClassReference> fromInferTypes = from.getInferTypes();
+      for (SpecificHaxeClassReference fromInterface : fromInferTypes) {
+        if (recursionGuard == null) recursionGuard = new ArrayList<>();
+        if (!recursionGuard.contains(fromInterface)) {
+            recursionGuard.add(fromInterface);
+          if (canAssignToFromSpecificType(to, fromInterface, recursionGuard)) return true;
+        }
       }
     }
     return false;

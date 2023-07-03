@@ -160,6 +160,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         result.add(this);
       }
     }
+    if (this instanceof  HaxeSwitchCase switchCase) {
+      result.addAll(switchCase.getSwitchCaseExprList());
+    }
 
     if (this instanceof HaxeCatchStatement) {
       final HaxeParameter catchParameter = PsiTreeUtil.getChildOfType(this, HaxeParameter.class);
