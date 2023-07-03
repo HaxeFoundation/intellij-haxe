@@ -475,6 +475,10 @@ public class HaxeResolveResult implements Cloneable {
     }
   }
 
+  public void specializeByParent(@NotNull HaxeGenericResolver parentResolver) {
+    softMerge(HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
+  }
+
   public boolean isFunctionType() {
     return functionType != null;
   }

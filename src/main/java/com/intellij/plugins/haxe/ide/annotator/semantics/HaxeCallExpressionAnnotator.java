@@ -167,18 +167,22 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             HaxeResolveResult resolveHaxeClass = ((HaxeReferenceExpression)expression).resolveHaxeClass();
             if (resolveHaxeClass.getHaxeClass() instanceof HaxeSpecificFunction) {
               SpecificHaxeClassReference parameterClassType = parameterType.getClassType();
-              if (parameterClassType != null) {
-                if (parameterClassType.isFunction()) {
+
+                if (parameterClassType != null && parameterClassType.isFunction()) {
                   // parameter type `Function` accepts all functions
                   continue;
-                }
-                else {
+                } else {
                   PsiElement resolvedExpression = ((HaxeReferenceExpression)expression).resolve();
-                  if (resolvedExpression instanceof HaxeMethodDeclaration resolve) {
-                    SpecificFunctionReference type = resolve.getModel().getFunctionType(null);
+                  if (resolvedExpression instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
+                    SpecificFunctionReference type = functionDeclaration.getModel().getFunctionType(null);
                     expressionType = type.createHolder();
-
-                    // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
+                  }
+                  else if (resolvedExpression instanceof HaxeMethodDeclaration methodDeclaration) {
+                    SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(null);
+                    expressionType = type.createHolder();
+                  }
+                  // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
+                  if (parameterClassType != null) {
                     HaxeClass aClass = parameterClassType.getHaxeClass();
                     if (aClass != null && aClass.getModel().isTypedef()) {
                       SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
@@ -187,7 +191,6 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                       }
                     }
                   }
-                }
               }
             }
           }

@@ -487,7 +487,10 @@ public class HaxeExpressionEvaluator {
               if (iterable != null) {
                 ResultHolder iterator = handle(iterable, context, resolver);
                 // get specific from iterator as thats the type for our variable
-                typeHolder = iterator.getClassType().getSpecifics()[0];
+                ResultHolder[] specifics = iterator.getClassType().getSpecifics();
+                if (specifics.length > 0) {
+                  typeHolder = specifics[0];
+                }
               }
             }
           }

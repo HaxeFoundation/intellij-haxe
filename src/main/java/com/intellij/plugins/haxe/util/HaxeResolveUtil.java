@@ -793,6 +793,7 @@ public class HaxeResolveUtil {
     if (haxeClass == null && type != null && specialization.containsKey(specializationContext, type.getText())) {
       HaxeResolveResult result = specialization.get(specializationContext, type.getText());
       if(result.getHaxeClass() instanceof  HaxeAnonymousType) {
+        result.specializeByParent(specialization.toGenericResolver(null));
         result.specializeByTypeInference(type);
       }
       return result;

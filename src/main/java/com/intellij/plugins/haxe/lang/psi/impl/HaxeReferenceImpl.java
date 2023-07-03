@@ -329,6 +329,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   private HaxeResolveResult resolveHaxeClassInternal() {
     ProgressIndicatorProvider.checkCanceled();
 
+    PsiElement resolve = null;
+
     if (isType(HaxeThisExpression.class)) {
       HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       // this has different semantics on abstracts
@@ -520,7 +522,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
 
-        final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
+        //final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
+        final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(null));
 
         result.specialize(this);
         return result;
@@ -555,7 +558,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // check if its a type reference (ex. its just class name no chaining or access, ust the name of the class)
       // if this is the case threat as "class reference" Class<theClass>
       //HaxeResolveResult resolveResult = resolveHaxeClass();
-      PsiElement resolve = resolve();
+      resolve = resolve();
       if (resolve instanceof HaxeClassDeclaration declaration) {
         String className = declaration.getComponentName().getName();
 
@@ -572,7 +575,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     if (log.isTraceEnabled()) log.trace(traceMsg("Calling resolve()"));
-    PsiElement resolve = resolve();
+    if (resolve == null) {
+       resolve =  resolve();
+    }
     if (isType(resolve, PsiPackage.class)) {
       // Packages don't ever resolve to classes. (And they don't have children!)
       return HaxeResolveResult.EMPTY;
@@ -728,13 +733,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     @NotNull ResultHolder[] paramSpecifics = paramsResolver.getSpecifics();
     @NotNull ResultHolder[] resultSpecifics = resultsResolver.getSpecifics();
     for (int i = 0; i < names.length; i++) {
-      String name = names[i];
-      genericResolver.add(name, resultSpecifics[i]);
-      // if parameter specific is from a TypeParameter replace with specific from argument
-      SpecificHaxeClassReference type = paramSpecifics[i].getClassType();
-      if (type != null && type.isFromTypeParameter()) {
-        String className = type.getClassName();
-        genericResolver.add(className, resultSpecifics[i]);
+      if (i < resultSpecifics.length) {
+        String name = names[i];
+        genericResolver.add(name, resultSpecifics[i]);
+        // if parameter specific is from a TypeParameter replace with specific from argument
+        SpecificHaxeClassReference type = paramSpecifics[i].getClassType();
+        if (type != null && type.isFromTypeParameter()) {
+          String className = type.getClassName();
+          genericResolver.add(className, resultSpecifics[i]);
+        }
       }
     }
 
