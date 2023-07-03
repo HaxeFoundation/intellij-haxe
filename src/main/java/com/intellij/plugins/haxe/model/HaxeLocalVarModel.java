@@ -91,6 +91,6 @@ public class HaxeLocalVarModel extends HaxeMemberModel {
 
   @Override
   public boolean isFinal() {
-    return FINAL.equals(getMutabilityModifier().getText()) || super.isFinal();
+    return super.isFinal() || (getMutabilityModifier()!= null && FINAL.equals(getMutabilityModifier().getText()));
   }
 }

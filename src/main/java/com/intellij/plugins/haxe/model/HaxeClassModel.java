@@ -117,6 +117,9 @@ public class HaxeClassModel implements HaxeExposableModel {
   public boolean isAbstract() {
     return haxeClass instanceof HaxeAbstractClassDeclaration;
   }
+  public boolean isAnonymous() {
+    return haxeClass instanceof HaxeAnonymousType;
+  }
 
   public boolean isCoreType() {
     return hasCompileTimeMeta(HaxeMeta.CORE_TYPE);

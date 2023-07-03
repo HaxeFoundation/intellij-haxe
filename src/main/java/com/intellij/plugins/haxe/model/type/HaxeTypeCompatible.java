@@ -24,6 +24,8 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -364,6 +366,10 @@ public class HaxeTypeCompatible {
           return handleEnumType(to,from);
       }
     }
+    if (to.getHaxeClassModel() != null && to.getHaxeClassModel().isAnonymous()) {
+      // compare members (Anonymous stucts can be "used" as interface)
+      if (containsAllMembers(to, from)) return true;
+    }
 
     if (canAssignToFromSpecificType(to, from)) return true;
 
@@ -391,6 +397,28 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  private static boolean containsAllMembers(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getMembers(to.getGenericResolver());
+    List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getMembers(to.getGenericResolver());
+    for (HaxeMemberModel member : toMembers) {
+      HaxeComponentName psi = member.getNamePsi();
+      // TODO  type check
+      boolean memberExists;
+      if (member instanceof HaxeMethodModel methodModel){
+        memberExists = fromMembers.stream().filter(model -> model instanceof HaxeMethodModel)
+          .map(model -> (HaxeMethodModel) model)
+          .filter(mm -> methodModel.getParameters().size() == mm.getParameters().size())
+          .anyMatch(model -> model.getNamePsi().textMatches(psi.getText()));
+      }else {
+        memberExists = fromMembers.stream().anyMatch(model -> model.getNamePsi().textMatches(psi.getText()));
+      }
+      if (!memberExists) return false;
+    }
+
+
+    return true;
   }
 
   private static boolean handleEnumValue(SpecificHaxeClassReference to, SpecificHaxeClassReference from, @Nullable PsiElement fromOrigin) {
