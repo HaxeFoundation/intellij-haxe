@@ -355,15 +355,21 @@ public class HaxeTypeCompatible {
 
     if (to == null || from == null) return false;
     // check if type is one of the core types that needs custom logic
-    if(to.isCoreType() || from.isCoreType() && to.getHaxeClass() != null) {
-      String toName = to.getHaxeClass().getName();
-      switch (toName) {
-        case SpecificTypeReference.ENUM_VALUE:
-          return handleEnumValue(to,from, fromOrigin);
-        case SpecificTypeReference.CLASS:
-          return handleClassType(to,from);
-        case SpecificTypeReference.ENUM:
-          return handleEnumType(to,from);
+    if(to.isCoreType() || from.isCoreType()) {
+      HaxeClass haxeClass = to.getHaxeClass();
+      if (haxeClass != null && haxeClass.getName() != null) {
+        String toName = haxeClass.getName();
+        switch (toName) {
+          case SpecificTypeReference.ENUM_VALUE -> {
+            return handleEnumValue(to, from, fromOrigin);
+          }
+          case SpecificTypeReference.CLASS -> {
+            return handleClassType(to, from);
+          }
+          case SpecificTypeReference.ENUM -> {
+            return handleEnumType(to, from);
+          }
+        }
       }
     }
     if (to.getHaxeClassModel() != null && to.getHaxeClassModel().isAnonymous()) {

@@ -33,7 +33,7 @@ public class HaxeOperatorResolver {
     HaxeExpressionEvaluatorContext context
   ) {
 
-    SpecificTypeReference result = SpecificHaxeClassReference.getUnknown(elementContext);
+    SpecificTypeReference result = null;
 
     // while normal abstracts should not be resolved to underlying type, there's an exception for Null<T>
     // in this case we just "unwrap"  without trying to resolve
@@ -44,9 +44,22 @@ public class HaxeOperatorResolver {
       right = ((SpecificHaxeClassReference)right).getSpecifics()[0].getType();
     }
 
+    boolean canAssignLeftToInt = HaxeTypeCompatible.canAssignToFrom(left, SpecificHaxeClassReference.getInt(left.context));
+    boolean canAssignRightToInt = HaxeTypeCompatible.canAssignToFrom(right, SpecificHaxeClassReference.getInt(right.context));
+
     if (left.isNumeric() && right.isNumeric()) {
       result = HaxeTypeUnifier.unify(left, right, context.root);
-      if (operator.equals("/")) result = SpecificHaxeClassReference.primitive("Float", elementContext, null);
+      if (operator.equals("/")) result = SpecificHaxeClassReference.getFloat( elementContext);
+    }
+
+
+    if (canAssignLeftToInt && canAssignRightToInt) {
+      if (operator.equals("<<")
+      || operator.equals(">>")
+      || operator.equals("&")
+      || operator.equals("|")) {
+        result =  SpecificHaxeClassReference.getInt(elementContext);
+      }
     }
 
     if (operator.equals("+")) {
@@ -70,22 +83,48 @@ public class HaxeOperatorResolver {
     }
 
 
-    if (left instanceof  SpecificHaxeClassReference classReference) {
-      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
-      for (HaxeMethodModel overload : overloads) {
-        if (overload.getParameters().size() == 1) {
-          HaxeParameterModel param = overload.getParameters().get(0);
-          boolean rightMatches = param.getType().canAssign(right.createHolder());
-          if (rightMatches) {
-            result =  overload.getReturnType(null).getType();
-          }
-        }
-      }
+    // check overloads for left argument
+    SpecificTypeReference overloadResult = checkOverloads(left, right, operator);
+    if (overloadResult == null) {
+      // if no match for left,  check for overloads in right argument
+      overloadResult = checkOverloads(right, left, operator);
     }
+    // if overload matched use result
+    if (overloadResult != null) {
+      result = overloadResult;
+    }
+
 
     if (left.getConstant() != null && right.getConstant() != null) {
       result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }
-    return result;
+
+    return result != null ? result : SpecificHaxeClassReference.getUnknown(elementContext);
+  }
+
+  private static SpecificTypeReference checkOverloads(SpecificTypeReference type1,
+                                                    SpecificTypeReference type2,
+                                                      String operator) {
+    if (type1 instanceof  SpecificHaxeClassReference classReference) {
+      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
+      for (HaxeMethodModel overload : overloads) {
+        // non-static methods takes 1 arg "this" is left, parameter is right
+        if (overload.getParameters().size() == 1) {
+          HaxeParameterModel param = overload.getParameters().get(0);
+          boolean rightMatches = param.getType().canAssign(type2.createHolder());
+          if (rightMatches) {
+            return overload.getReturnType(null).getType();
+          }
+          // static methods takes 2 args (Left  operator Right)
+        }else if (overload.getParameters().size() == 2){
+          HaxeParameterModel param = overload.getParameters().get(1);
+          boolean rightMatches = param.getType().canAssign(type2.createHolder());
+          if (rightMatches) {
+            return  overload.getReturnType(null).getType();
+          }
+        }
+      }
+    }
+    return null;
   }
 }

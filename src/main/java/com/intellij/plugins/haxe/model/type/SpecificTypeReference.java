@@ -159,6 +159,9 @@ public abstract class SpecificTypeReference {
   public static SpecificHaxeClassReference getInt(@NotNull PsiElement context) {
     return primitive(INT, context);
   }
+  public static SpecificHaxeClassReference getFloat(@NotNull PsiElement context) {
+    return primitive(FLOAT, context);
+  }
 
   public static SpecificHaxeClassReference getInt(@NotNull PsiElement context, int value) {
     return primitive(INT, context, value);
