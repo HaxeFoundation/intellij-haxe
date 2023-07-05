@@ -309,7 +309,13 @@ private externClassModifier ::= classModifier | externKeyWord
 // The semantic annotator takes care of warning about duplicate extern keywords.
 externClassModifierList ::= classModifier* externKeyWord externClassModifier* {extends=classModifierList}
 
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' typeWrapper ';'?
+// typedefs can "merge" anonymous structures ( not classes, interfaces etc)
+// in order to allow merge with other typdefs of anonymous structures we need to have compositeType
+// typdef combo = {a:Int} & {b:Int} & SomeOthertypeDefOfStruct
+private compositeType ::= componentName | typeOrAnonymous
+compositeTypeList ::= compositeType ('&' compositeType)+
+
+typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' (compositeTypeList | typeWrapper ) ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= externClassModifierList 'class' componentName genericParam? inheritList? externClassDeclarationBody
