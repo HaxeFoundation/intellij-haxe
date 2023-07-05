@@ -55,6 +55,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 /**
@@ -1148,9 +1149,21 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {
-    final PsiElement candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element, true);
-    if (candidate instanceof PsiComment) {
-      return (PsiComment)candidate;
+    PsiElement candidate =  UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element, true);;
+    // we search backwards for comments, and skipping metas etc
+    while (candidate != null) {
+      // if we find other named components while searching we abort as whatever
+      // doc we might find would belong to that named component and not ours.
+      if (candidate instanceof  HaxeNamedComponent) {
+        return null;
+      }
+      if (candidate instanceof  PsiComment psiComment) {
+        IElementType type = psiComment.getTokenType();
+        if (type == DOC_COMMENT ||  type == MML_COMMENT) { //  ignoring single line as simple comments appears as doc (type == MSL_COMMENT)
+          return psiComment;
+        }
+      }
+      candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(candidate, true);
     }
     return null;
   }

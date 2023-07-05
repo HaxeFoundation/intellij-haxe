@@ -162,14 +162,17 @@ public class HaxeExpressionEvaluator {
 
         try {
           final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
-          SpecificTypeReference type = iterableValue.getIterableElementType(iterableValue).getType();
+          SpecificTypeReference type = iterableValue.getIterableElementType(resolver).getType();
+          if (type != null) {
+            return new ResultHolder(type);
+          }
           if (iterableValue.isConstant()) {
             final Object constant = iterableValue.getConstant();
             if (constant instanceof HaxeRange) {
               type = type.withRangeConstraint((HaxeRange)constant);
             }
           }
-          if (name != null) {
+          if (name != null && type != null) {
             context.setLocal(name.getText(), new ResultHolder(type));
           } else if (keyValueIterator != null) {
               context.setLocal(keyValueIterator.getIteratorkey().getComponentName().getText(), new ResultHolder(type));
@@ -274,6 +277,22 @@ public class HaxeExpressionEvaluator {
       return holder;
     }
 
+    if (element instanceof HaxeParameter parameter) {
+      HaxeTypeTag typeTag = parameter.getTypeTag();
+      if (typeTag!= null) {
+        return HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
+      }
+    }
+    if (element instanceof HaxeFieldDeclaration declaration) {
+      HaxeTypeTag typeTag = declaration.getTypeTag();
+      HaxeVarInit init = declaration.getVarInit();
+      if (typeTag!= null) {
+        return HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
+      }else if (init != null) {
+        return handle(init.getExpression(), context, resolver);
+      }
+    }
+
     if (element instanceof HaxeCastExpression) {
       handle(((HaxeCastExpression)element).getExpression(), context, resolver);
       HaxeTypeOrAnonymous anonymous = ((HaxeCastExpression)element).getTypeOrAnonymous();
@@ -367,10 +386,10 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
-    if (element instanceof HaxeLocalVarDeclaration) {
-      final HaxeComponentName name = ((HaxeLocalVarDeclaration)element).getComponentName();
-      final HaxeVarInit init = ((HaxeLocalVarDeclaration)element).getVarInit();
-      final HaxeTypeTag typeTag = ((HaxeLocalVarDeclaration)element).getTypeTag();
+    if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
+      final HaxeComponentName name = varDeclaration.getComponentName();
+      final HaxeVarInit init = varDeclaration.getVarInit();
+      final HaxeTypeTag typeTag = varDeclaration.getTypeTag();
       final ResultHolder unknownResult = SpecificHaxeClassReference.getUnknown(element).createHolder();
       final ResultHolder initResult = init != null
                                       ? handle(init, context, resolver)

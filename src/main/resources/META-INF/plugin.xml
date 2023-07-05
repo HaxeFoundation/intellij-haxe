@@ -220,6 +220,8 @@
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
 
+    <projectService serviceImplementation="com.intellij.plugins.haxe.ide.HaxeDocumentationRenderer"/>
+
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"

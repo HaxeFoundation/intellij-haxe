@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
@@ -340,12 +341,24 @@ public abstract class SpecificTypeReference {
     return getUnknown(context).createHolder();
   }
 
-  final public ResultHolder getIterableElementType(SpecificTypeReference iterable) {
+  final public ResultHolder getIterableElementType(HaxeGenericResolver parentResolver) {
     if (isArray()) {
       return getArrayElementType();
     }
-    // @TODO: Must implement it (it is not int always)
-    return getInt(iterable.getElementContext()).createHolder();
+
+    if (this instanceof  SpecificHaxeClassReference classReference) {
+      HaxeGenericResolver resolver = classReference.getGenericResolver();
+      resolver.addAll(parentResolver);
+
+      HaxeClassModel model = classReference.getHaxeClassModel();
+        HaxeMemberModel hasNext = model.getMember("hasNext", resolver);
+        HaxeMemberModel next = model.getMember("next", resolver);
+        if (hasNext != null  && next != null) {
+          return next.getResultType(resolver);
+        }
+
+    }
+    return null;
   }
 
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
