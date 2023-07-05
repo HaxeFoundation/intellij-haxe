@@ -87,7 +87,8 @@ public class HaxeOperatorResolver {
 
     if (operator.equals("<") || operator.equals("<=") ||
       operator.equals(">") || operator.equals(">=")) {
-      if (left.isNumeric() && right.isNumeric()) {
+      if ((left.isNumeric() && right.isNumeric() )
+          || left.isString() && right.isString()) {
         result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
       }else {
         result = SpecificHaxeClassReference.getUnknown(elementContext);

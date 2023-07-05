@@ -121,10 +121,10 @@ class OperatorTest {
         toBool = s == t;
         toBool = s != t;
 
-        toBool = <error descr="Unable to apply operator < for types String and String">s <  t</error>; // WRONG,  not operator for String
-        toBool = <error descr="Unable to apply operator <= for types String and String">s <= t</error>; // WRONG,  not operator for String
-        toBool = <error descr="Unable to apply operator > for types String and String">s >  t</error>; // WRONG,  not operator for String
-        toBool = <error descr="Unable to apply operator >= for types String and String">s >= t</error>; // WRONG,  not operator for String
+        toBool = s <  t;
+        toBool = s <= t;
+        toBool = s >  t;
+        toBool = s >= t;
 
         toBool = (a is String);
 

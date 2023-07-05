@@ -55,7 +55,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   @Override
   public String generateDoc(PsiElement element, PsiElement originalElement) {
-    if (element instanceof  HaxeTypeListPart part) {
+    if (element instanceof HaxeTypeListPart part) {
       if (part.getTypeOrAnonymous() != null) {
         HaxeType type = part.getTypeOrAnonymous().getType();
         if (type != null) {
@@ -66,13 +66,13 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
         }
       }
     }
-    if (!(element instanceof HaxeComponentName) && !(element instanceof HaxeNamedComponent)) {
+
+    HaxeNamedComponent namedComponent = getNamedComponent(element);
+    if (namedComponent == null) {
       return null;
     }
     HtmlBuilder mainBuilder = new HtmlBuilder();
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
-    HaxeNamedComponent namedComponent = (HaxeNamedComponent)(element instanceof HaxeNamedComponent ? element : element.getParent());
-
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     HtmlBuilder definitionBuilder = new HtmlBuilder();
     switch (type) {
@@ -91,8 +91,18 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     return mainBuilder.toString();
   }
 
+  private static HaxeNamedComponent getNamedComponent(PsiElement element) {
+    if (element instanceof HaxeNamedComponent namedComponent) {
+      return namedComponent;
+    }
+    else if (element.getParent() instanceof HaxeNamedComponent namedComponent) {
+      return namedComponent;
+    }
+    return null;
+  }
+
   private void processTypeParameter(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
-    if (component instanceof  HaxeGenericListPart genericListPart) {
+    if (component instanceof HaxeGenericListPart genericListPart) {
       String signature = genericListPart.getText();
       builder.br()
         .appendRaw(renderer.languageHighlighting(signature))
@@ -115,7 +125,6 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
         addTypeSignature(builder, haxeClass, renderer);
       }
     }
-
   }
 
   private void processType(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
@@ -209,8 +218,8 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   }
 
   private static void appendMethodInfo(HtmlBuilder builder,
-                                HaxeDocumentationRenderer renderer,
-                                HaxeMethodModel methodModel) {
+                                       HaxeDocumentationRenderer renderer,
+                                       HaxeMethodModel methodModel) {
     StringBuilder stringBuilder = new StringBuilder();
 
     @NotNull PsiElement[] children = methodModel.getBasePsi().getChildren();
@@ -219,23 +228,26 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     for (PsiElement child : children) {
       if (child instanceof HaxeComponentName) {
         stringBuilder.append("function ").append(child.getText());
-      }else if (child instanceof HaxeParameterList parameterList){
+      }
+      else if (child instanceof HaxeParameterList parameterList) {
         stringBuilder.append("(");
         @NotNull List<HaxeParameter> list = parameterList.getParameterList();
         for (int i = 0; i < list.size(); i++) {
           HaxeParameter parameter = list.get(i);
           gotParameters = true;
           stringBuilder.append("\n").append("\t").append(parameter.getText());
-          if (i < list.size() -1) stringBuilder.append(",");
+          if (i < list.size() - 1) stringBuilder.append(",");
         }
         if (gotParameters) stringBuilder.append("\n");
         stringBuilder.append(")");
-
-      }else if (child instanceof  HaxeMethodModifier){
+      }
+      else if (child instanceof HaxeMethodModifier) {
         stringBuilder.append(child.getText()).append(" ");
-      }else if (child instanceof HaxeGenericParam){
+      }
+      else if (child instanceof HaxeGenericParam) {
         stringBuilder.append(child.getText());
-      }else if (child instanceof HaxeTypeTag){
+      }
+      else if (child instanceof HaxeTypeTag) {
         if (gotParameters) stringBuilder.append("\n");
         stringBuilder.append(child.getText());
       }
@@ -329,9 +341,9 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if (component instanceof HaxeForStatement forStatement) {
       HaxeIterable iterable = forStatement.getIterable();
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(forStatement, null);
-      HaxeExpressionEvaluator.evaluate(forStatement , context, null);
+      HaxeExpressionEvaluator.evaluate(forStatement, context, null);
 
-      makeHeader(builder,  context.result);
+      makeHeader(builder, context.result);
     }
   }
 
@@ -346,7 +358,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if (result != null && !result.isUnknown()) {
       Color color = DefaultLanguageHighlighterColors.CONSTANT.getDefaultAttributes().getForegroundColor();
       HtmlChunk.Element element = new HtmlBuilder().append("(Type: " + result.getType().withoutConstantValue() + ")")
-        .wrapWith(HtmlChunk.Element.tag("code").attr("color", "#"+colorToHex(color))).wrapWith(HtmlChunk.Element.tag("i"));
+        .wrapWith(HtmlChunk.Element.tag("code").attr("color", "#" + colorToHex(color))).wrapWith(HtmlChunk.Element.tag("i"));
 
       builder.append(element).br();
     }
