@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+* Improving HaxeDoc rendering and displaying resolved type
+* bugfix: wrong logic for comparing operators for strings.
+* bugfix: typedefs did not resolve  function types in some cases.
+* bugfix: Map and Array literals was showing incorrect type mismatch when assigned to variable with a super type type-parameter.  
+
 ## 1.4.4
 * Bugfix for operator semantics (+ Tests)
 * Bugfix (Nullpointer fix)
