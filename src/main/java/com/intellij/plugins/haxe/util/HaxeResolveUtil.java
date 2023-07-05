@@ -639,7 +639,11 @@ public class HaxeResolveUtil {
     }
     if (element instanceof AbstractHaxeTypeDefImpl) {
       final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
-      return typeDef.getTargetClass(specialization);
+      if (typeDef.getFunctionType() != null) {
+        return HaxeResolveResult.create(typeDef.getFunctionType());
+      }else{
+        return typeDef.getTargetClass(specialization);
+      }
     }
     if (element instanceof HaxeClass haxeClass) {
       return HaxeResolveResult.create(haxeClass, specialization);
