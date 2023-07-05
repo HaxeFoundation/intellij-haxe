@@ -5,12 +5,11 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.psi.HaxeArrayLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeAssignExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeMapLiteral;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +36,22 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
 
     HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(lhs);
     HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rhs);
+
     ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
     ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
+
+    // Allow Literal Maps and arrays to be assigned to any specifics they have in common with assigned variable.
+    if ((rhs instanceof HaxeMapLiteral || rhs instanceof HaxeArrayLiteral) && lhsType.isClassType() && rhsType.isClassType()) {
+      ResultHolder[] lhsSpecifics = lhsType.getClassType().getSpecifics();
+      ResultHolder[] rhsSpecifics = rhsType.getClassType().getSpecifics();
+      for (int i = 0; i < lhsSpecifics.length; i++) {
+        ResultHolder unified = HaxeTypeUnifier.unify(lhsSpecifics[i], rhsSpecifics[i]);
+        if(!unified.isUnknown()) {
+          rhsSpecifics[i] = unified;
+        }
+      }
+    }
+
 
     if (!lhsType.canAssignAnnotateWarnings(rhsType, holder)) {
       List<HaxeExpressionConversionFixer> fixers =
