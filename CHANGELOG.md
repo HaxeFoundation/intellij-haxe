@@ -1,7 +1,8 @@
 # Changelog
 
 ## Unreleased
-* Improving HaxeDoc rendering and displaying resolved type
+* Improved HaxeDoc rendering and displaying resolved type
+* Improved switch-case extractor type resolving
 * bugfix: wrong logic for comparing operators for strings.
 * bugfix: typedefs did not resolve  function types in some cases.
 * bugfix: Map and Array literals was showing incorrect type mismatch when assigned to variable with a super type type-parameter.  

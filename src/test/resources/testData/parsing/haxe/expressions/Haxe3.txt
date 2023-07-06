@@ -450,9 +450,10 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           SWITCH_CASE_OBJECT_EXTRACTOR
-                            COMPONENT_NAME
-                              IDENTIFIER
-                                HaxePsiToken:ID('Leaf')
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('Leaf')
                             HaxePsiToken:(('(')
                             SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
                               COMPONENT_NAME
@@ -469,15 +470,17 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           SWITCH_CASE_OBJECT_EXTRACTOR
-                            COMPONENT_NAME
-                              IDENTIFIER
-                                HaxePsiToken:ID('Node')
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('Node')
                             HaxePsiToken:(('(')
                             SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
                               SWITCH_CASE_OBJECT_EXTRACTOR
-                                COMPONENT_NAME
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('Leaf')
+                                TYPE
+                                  REFERENCE_EXPRESSION
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('Leaf')
                                 HaxePsiToken:(('(')
                                 SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
                                   COMPONENT_NAME
