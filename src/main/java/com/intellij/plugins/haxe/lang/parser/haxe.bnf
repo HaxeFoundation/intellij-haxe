@@ -313,9 +313,9 @@ externClassModifierList ::= classModifier* externKeyWord externClassModifier* {e
 // in order to allow merge with other typdefs of anonymous structures we need to have compositeType
 // typdef combo = {a:Int} & {b:Int} & SomeOthertypeDefOfStruct
 private compositeType ::= componentName | typeOrAnonymous
-compositeTypeList ::= compositeType ('&' compositeType)+
+typedefExtensionList ::=  ('&' compositeType)+
 
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '=' (compositeTypeList | typeWrapper ) ';'?
+typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '='  typeWrapper  typedefExtensionList? ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= externClassModifierList 'class' componentName genericParam? inheritList? externClassDeclarationBody
