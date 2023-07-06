@@ -549,21 +549,26 @@ public class HaxeExpressionEvaluator {
             }
             if (caseExpr.getExpression() instanceof HaxeSwitchCaseObjectExtractor extractor) {
               int argumentIndex = findRefrenceInArgumentList(element, argumentList);
-              HaxeComponentName extractorComponentName = extractor.getComponentName();
-              SpecificHaxeClassReference type = typeHolder.getClassType();
+              HaxeResolveResult extractorResolveResult = HaxeResolveUtil.tryResolveType(extractor.getType(), extractor, new HaxeGenericSpecialization());
+              //  should normally never be null, but if type is not defined anywhere this would cause problems
+              if (extractorResolveResult.getHaxeClass() != null) {
+                HaxeComponentName extractorComponentName = extractorResolveResult.getHaxeClass().getComponentName();
+                //HaxeComponentName extractorComponentName = extractor.getType();
+                SpecificHaxeClassReference type = typeHolder.getClassType();
 
-              if (type!= null &&  type.getHaxeClass() != null && extractorComponentName.getName() != null) {
-                HaxeNamedComponent extractorType =
-                  HaxeResolveUtil.findNamedSubComponent(type.getHaxeClass(), extractorComponentName.getName(), resolver);
+                if (type != null && type.getHaxeClass() != null && extractorComponentName.getName() != null) {
+                  HaxeNamedComponent extractorType =
+                    HaxeResolveUtil.findNamedSubComponent(type.getHaxeClass(), extractorComponentName.getName(), resolver);
 
-                if (extractorType instanceof HaxeEnumValueDeclaration valueDeclaration) {
-                  HaxeParameterList list = valueDeclaration.getParameterList();
-                  if (list != null) {
-                    HaxeGenericSpecialization specialization = type.getGenericResolver().getSpecialization(null);
-                    HaxeParameter parameter = list.getParameterList().get(argumentIndex);
-                    HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, specialization);
-                    if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
-                      typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), null));
+                  if (extractorType instanceof HaxeEnumValueDeclaration valueDeclaration) {
+                    HaxeParameterList list = valueDeclaration.getParameterList();
+                    if (list != null) {
+                      HaxeGenericSpecialization specialization = type.getGenericResolver().getSpecialization(null);
+                      HaxeParameter parameter = list.getParameterList().get(argumentIndex);
+                      HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, specialization);
+                      if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
+                        typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), null));
+                      }
                     }
                   }
                 }

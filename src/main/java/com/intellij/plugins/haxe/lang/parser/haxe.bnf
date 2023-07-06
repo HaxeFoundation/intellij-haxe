@@ -630,7 +630,7 @@ switchExtractorExpressionArrayLiteral ::= '[' (switchCaseObjectExtractorArgument
 private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | componentName)
 switchCaseObjectExtractorArgumentList ::= ( switchExtractorExpressionArgument) (',' (switchExtractorExpressionArgument))*
 
-switchCaseObjectExtractor ::= componentName '(' switchCaseObjectExtractorArgumentList ')'   {extends="expression"}
+switchCaseObjectExtractor ::= type '(' switchCaseObjectExtractorArgumentList ')'   {extends="expression"}
 switchCaseVariableCapture ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
