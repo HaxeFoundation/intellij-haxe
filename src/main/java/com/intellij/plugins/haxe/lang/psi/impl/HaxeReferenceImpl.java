@@ -559,6 +559,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // if this is the case threat as "class reference" Class<theClass>
       //HaxeResolveResult resolveResult = resolveHaxeClass();
       resolve = resolve();
+      // Note: this is a bit of a hack for switch extractor arguments that are not named components but a reference to a reference
+      if (resolve instanceof  HaxeReferenceExpression referenceExpression) {
+        PsiElement second = referenceExpression.resolve();
+        if (second instanceof  HaxeReference reference) {
+          return reference.resolveHaxeClass();
+        }
+      }
       if (resolve instanceof HaxeClassDeclaration declaration) {
         String className = declaration.getComponentName().getName();
 
@@ -654,6 +661,28 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         return HaxeResolveResult.create(fn, specialization);
       }
     }
+    if(isType(resolve, HaxeEnumExtractedValue.class)) {
+      HaxeEnumExtractedValue extractedValue = (HaxeEnumExtractedValue)resolve;
+      HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
+      if (extractor != null) {
+        int index = -1;
+        @NotNull PsiElement[] children = extractor.getEnumExtractorArgumentList().getChildren();
+        for (int i = 0; i < children.length; i++) {
+          if ( children[i] == resolve){
+            index = i;
+            break;
+          }
+        }
+
+        HaxeType enumValue = extractor.getType();
+        PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
+        if(enumValueDeclaration instanceof  HaxeEnumValueDeclaration  declaration) {
+          HaxeParameter parameter = declaration.getParameterList().getParameterList().get(index);
+          return HaxeResolveUtil.tryResolveClassByTypeTag(parameter, new HaxeGenericSpecialization());
+        }
+      }
+    }
+
     // RestParameter can have a normal typeTag but the argument is treated as an array, so we have to wrap it in an array
     if(isType(resolve, HaxeRestParameter.class)) {
       HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();

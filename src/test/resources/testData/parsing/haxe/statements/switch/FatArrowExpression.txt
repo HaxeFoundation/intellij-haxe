@@ -70,7 +70,7 @@ Haxe File
               SWITCH_CASE
                 HaxePsiToken:case('case')
                 SWITCH_CASE_EXPR
-                  SWITCH_CASE_EXTRACTOR
+                  EXTRACTOR_MATCH_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
@@ -97,14 +97,15 @@ Haxe File
                 SWITCH_CASE_EXPR
                   SWITCH_CASE_EXTRACTOR
                     HaxePsiToken:(('(')
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('b')
-                    HaxePsiToken:=>('=>')
-                    SWITCH_CASE_EXPR
+                    EXTRACTOR_MATCH_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          HaxePsiToken:ID('_')
+                          HaxePsiToken:ID('b')
+                      HaxePsiToken:=>('=>')
+                      SWITCH_CASE_EXPR
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('_')
                     HaxePsiToken:)(')')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
@@ -125,27 +126,29 @@ Haxe File
                   SWITCH_EXTRACTOR_EXPRESSION
                     SWITCH_CASE_EXTRACTOR
                       HaxePsiToken:(('(')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('b')
-                      HaxePsiToken:=>('=>')
-                      SWITCH_CASE_EXPR
+                      EXTRACTOR_MATCH_EXPRESSION
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            HaxePsiToken:ID('_')
+                            HaxePsiToken:ID('b')
+                        HaxePsiToken:=>('=>')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                       HaxePsiToken:)(')')
                     BIT_OPERATION
                       HaxePsiToken:|('|')
                     SWITCH_CASE_EXTRACTOR
                       HaxePsiToken:(('(')
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('b')
-                      HaxePsiToken:=>('=>')
-                      SWITCH_CASE_EXPR
+                      EXTRACTOR_MATCH_EXPRESSION
                         REFERENCE_EXPRESSION
                           IDENTIFIER
-                            HaxePsiToken:ID('_')
+                            HaxePsiToken:ID('b')
+                        HaxePsiToken:=>('=>')
+                        SWITCH_CASE_EXPR
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('_')
                       HaxePsiToken:)(')')
                 HaxePsiToken::(':')
                 SWITCH_CASE_BLOCK
@@ -163,13 +166,13 @@ Haxe File
               SWITCH_CASE
                 HaxePsiToken:case('case')
                 SWITCH_CASE_EXPR
-                  SWITCH_CASE_EXTRACTOR
+                  EXTRACTOR_MATCH_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('b')
                     HaxePsiToken:=>('=>')
                     SWITCH_CASE_EXPR
-                      SWITCH_CASE_EXTRACTOR
+                      EXTRACTOR_MATCH_EXPRESSION
                         BITWISE_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER

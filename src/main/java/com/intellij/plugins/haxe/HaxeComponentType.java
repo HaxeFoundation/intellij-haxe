@@ -179,7 +179,8 @@ public enum HaxeComponentType {
       return FIELD;
     }
     if (element instanceof HaxeLocalVarDeclaration ||
-        element instanceof HaxeForStatement) {
+        element instanceof HaxeForStatement ||
+        element instanceof HaxeEnumExtractedValue) {
       return VARIABLE;
     }
     if (element instanceof HaxeParameter) {

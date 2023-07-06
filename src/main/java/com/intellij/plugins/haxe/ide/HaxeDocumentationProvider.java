@@ -55,6 +55,8 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   @Override
   public String generateDoc(PsiElement element, PsiElement originalElement) {
+    HtmlBuilder mainBuilder = new HtmlBuilder();
+
     if (element instanceof HaxeTypeListPart part) {
       if (part.getTypeOrAnonymous() != null) {
         HaxeType type = part.getTypeOrAnonymous().getType();
@@ -69,9 +71,17 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
     HaxeNamedComponent namedComponent = getNamedComponent(element);
     if (namedComponent == null) {
-      return null;
+
+      if (element instanceof HaxeLiteralExpression) {
+        return null; // no need to  show docs for literal expressions
+      }else {
+        HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element, null);
+        HaxeExpressionEvaluator.evaluate(element, context, null);
+        makeHeader(mainBuilder, context.result);
+      }
+      return mainBuilder.toString();
     }
-    HtmlBuilder mainBuilder = new HtmlBuilder();
+
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     HtmlBuilder definitionBuilder = new HtmlBuilder();
@@ -338,10 +348,15 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       String highlighting = renderer.languageHighlighting(signature);
       builder.appendRaw(highlighting);
     }
-    if (component instanceof HaxeForStatement forStatement) {
-      HaxeIterable iterable = forStatement.getIterable();
+    else if (component instanceof HaxeForStatement forStatement) {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(forStatement, null);
       HaxeExpressionEvaluator.evaluate(forStatement, context, null);
+
+      makeHeader(builder, context.result);
+    }
+    else if (component instanceof HaxeEnumExtractedValue extractedValue) {
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue, null);
+      HaxeExpressionEvaluator.evaluate(extractedValue, context, null);
 
       makeHeader(builder, context.result);
     }

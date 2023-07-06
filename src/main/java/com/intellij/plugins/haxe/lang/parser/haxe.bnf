@@ -621,17 +621,22 @@ switchCaseBlock ::= (literalExpression <<semicolonUnlessPrecededByStatement>>) |
 switchCase ::= 'case' switchCaseExpr ((','|'|') switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureVar) {pin=1} // Should NOT be named Expression, because it should not be an expression.
 
-private switchCaseExtractorPure ::= expression '=>' switchCaseExpr {extends="expression"}
+ExtractorMatchExpression ::= expression '=>' switchCaseExpr {extends="expression"}
 
 switchExtractorExpression ::= switchCaseExtractor (bitOperation switchCaseExtractor)* {extends="expression"}
-switchCaseExtractor ::= '('switchCaseExtractorPure')' | switchCaseExtractorPure | switchCaseObjectExtractor | switchCaseVariableCapture {extends="expression"}
+switchCaseExtractor ::= '('ExtractorMatchExpression')' | ExtractorMatchExpression | enumArgumentExtractor | variableCaptureExpression {extends="expression"}
 //TODO mlo: clean up and bind to classes
-switchExtractorExpressionArrayLiteral ::= '[' (switchCaseObjectExtractorArgumentList ','?)? ']'
-private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | componentName)
-switchCaseObjectExtractorArgumentList ::= ( switchExtractorExpressionArgument) (',' (switchExtractorExpressionArgument))*
+switchExtractorExpressionArrayLiteral ::= '[' (enumExtractorArgumentList ','?)? ']'
 
-switchCaseObjectExtractor ::= type '(' switchCaseObjectExtractorArgumentList ')'   {extends="expression"}
-switchCaseVariableCapture ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
+enumExtractedValue::=componentName
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+
+private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | enumExtractedValue)
+
+enumExtractorArgumentList ::= ( switchExtractorExpressionArgument) (',' (switchExtractorExpressionArgument))*
+enumArgumentExtractor ::= type '(' enumExtractorArgumentList ')'   {extends="expression"}
+
+variableCaptureExpression ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.
 switchCaseCaptureVar ::= mutabilityModifier+ componentName varInit? {extends="localVarDeclaration"}

@@ -112,14 +112,14 @@ Haxe File
                       SWITCH_CASE
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
-                          SWITCH_CASE_OBJECT_EXTRACTOR
+                          ENUM_ARGUMENT_EXTRACTOR
                             TYPE
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
                                   HaxePsiToken:ID('TString')
                             HaxePsiToken:(('(')
-                            SWITCH_CASE_OBJECT_EXTRACTOR_ARGUMENT_LIST
-                              SWITCH_CASE_EXTRACTOR
+                            ENUM_EXTRACTOR_ARGUMENT_LIST
+                              EXTRACTOR_MATCH_EXPRESSION
                                 CALL_EXPRESSION
                                   REFERENCE_EXPRESSION
                                     REFERENCE_EXPRESSION

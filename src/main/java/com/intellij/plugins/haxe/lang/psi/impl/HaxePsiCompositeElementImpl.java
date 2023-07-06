@@ -161,7 +161,26 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       }
     }
     if (this instanceof  HaxeSwitchCase switchCase) {
-      result.addAll(switchCase.getSwitchCaseExprList());
+      for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
+        HaxeSwitchCaseCaptureVar captureVar = expr.getSwitchCaseCaptureVar();
+        if (captureVar!= null) {
+          result.add(captureVar.getComponentName());
+        }
+        HaxeExpression expression = expr.getExpression();
+        if (expression instanceof HaxeEnumArgumentExtractor extractor) {
+          List<HaxeComponentName> list = extractor.getEnumExtractorArgumentList().getEnumExtractedValueList().stream()
+            .map(HaxeEnumExtractedValue::getComponentName).toList();
+          result.addAll(list);
+
+        }
+      }
+    }
+
+    if (this instanceof HaxeSwitchCaseCaptureVar captureVar) {
+      result.add(captureVar.getComponentName());
+    }
+    if (this instanceof HaxeEnumExtractedValue extractedValue) {
+      result.add(extractedValue.getComponentName());
     }
 
     if (this instanceof HaxeCatchStatement) {
