@@ -651,6 +651,20 @@ public class HaxeResolveUtil {
     if (element instanceof  HaxeFunctionType functionType) {
       return HaxeResolveResult.create(functionType, specialization);
     }
+    if (element instanceof  HaxeSwitchCaseCaptureVar captureVar) {
+      HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(captureVar, HaxeSwitchStatement.class);
+      if(switchStatement != null && switchStatement.getExpression() != null){
+        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(switchStatement);
+        ResultHolder type = HaxeTypeResolver.getPsiElementType(switchStatement.getExpression(), resolver);
+        SpecificHaxeClassReference classType = type.getClassType();
+        if(classType != null) {
+          return classType.asResolveResult();
+        }else {
+          //TODO add support for function in  ResolveResult
+        }
+      }
+
+    }
     if (element instanceof HaxeIteratorkey || element instanceof HaxeIteratorValue) {
         final HaxeForStatement forStatement = getParentForStatement(element);
         final HaxeIterable iterable = forStatement.getIterable();

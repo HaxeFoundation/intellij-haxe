@@ -418,7 +418,15 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
-    if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
+    if (element instanceof HaxeSwitchCaseCaptureVar captureVar) {
+      HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(captureVar, resolver.getSpecialization(null));
+      if (result.isHaxeClass()) {
+        return result.getSpecificClassReference(result.getHaxeClass(), resolver).createHolder();
+      }else if (result.isFunctionType()) {
+        return result.getSpecificClassReference(result.getFunctionType(), resolver).createHolder();
+      }
+    }
+    else if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
       final HaxeComponentName name = varDeclaration.getComponentName();
       final HaxeVarInit init = varDeclaration.getVarInit();
       final HaxeTypeTag typeTag = varDeclaration.getTypeTag();

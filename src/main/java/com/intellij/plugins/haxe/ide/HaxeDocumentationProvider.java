@@ -338,8 +338,12 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   }
 
   private void processVariable(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
-    if (component instanceof HaxeLocalVarDeclaration varDeclaration) {
-      resolveTypeAndMakeHeader(builder, component);
+    if (component instanceof HaxeSwitchCaseCaptureVar captureVar) {
+      resolveTypeAndMakeHeader(builder, captureVar);
+      builder.br();
+    }
+    else if (component instanceof HaxeLocalVarDeclaration varDeclaration) {
+      resolveTypeAndMakeHeader(builder, varDeclaration);
       builder.br();
 
       String modifier = ((HaxeLocalVarDeclarationList)component.getParent()).getMutabilityModifier().getText();

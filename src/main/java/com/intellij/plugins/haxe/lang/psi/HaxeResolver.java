@@ -299,7 +299,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // NOTE: this one has to come before  `checkIfSwitchCaseDefaultValue`
     // check if default name in match expression (ex  `case TString(_ => captureVar)`)
-    if (result == null) result = checkIfDefauktValueInMatchExpression(reference, switchCaseExpr);
+    if (result == null) result = checkIfDefaultValueInMatchExpression(reference, switchCaseExpr);
 
     // check if matches default name ( ex. `case _:`)
     if (result == null) result = checkIfSwitchCaseDefaultValue(reference);
@@ -358,7 +358,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
-  private List<HaxeParameter> checkIfDefauktValueInMatchExpression(HaxeReference reference, HaxeSwitchCaseExpr switchCaseExpr) {
+  private List<HaxeParameter> checkIfDefaultValueInMatchExpression(HaxeReference reference, HaxeSwitchCaseExpr switchCaseExpr) {
     HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(reference, HaxeExtractorMatchExpression.class);
 
     if (matchExpression != null) {
