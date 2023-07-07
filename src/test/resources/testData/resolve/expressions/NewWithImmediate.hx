@@ -1,8 +1,8 @@
 package;
 
-class <text_attr descr="null">Test</text_attr> {
-  function <text_attr descr="null">demo4</text_attr>() {
+class <info descr="null">Test</info> {
+  function <info descr="null">demo4</info>() {
     //(new haxe.Timer(1000)).run();  // <- run was unresolved
-    (<text_attr descr="null">new</text_attr> <text_attr descr="null">Map</text_attr><<text_attr descr="null">String</text_attr>,<text_attr descr="null">String</text_attr>>()).<text_attr descr="null">keys</text_attr>();  // No Timer in test Std, so use Map.
+    (<info descr="null">new</info> <info descr="null">Map</info><<info descr="null">String</info>,<info descr="null">String</info>>()).<info descr="null">keys</info>();  // No Timer in test Std, so use Map.
   }
 }

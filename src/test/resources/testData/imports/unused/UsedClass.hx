@@ -1,5 +1,5 @@
-import <text_attr descr="null">helper.Bar</text_attr>;
+import <info descr="null">helper.Bar</info>;
 
-class <text_attr descr="null">Used</text_attr> {
-  var <text_attr descr="null">bar</text_attr>:<text_attr descr="null">Bar</text_attr>;
+class <info descr="null">Used</info> {
+  var <info descr="null">bar</info>:<info descr="null">Bar</info>;
 }

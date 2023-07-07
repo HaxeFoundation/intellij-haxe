@@ -1,5 +1,5 @@
-class <text_attr descr="null">Property</text_attr> {
-  public function <text_attr descr="null">test</text_attr>():Void {
-    <text_attr descr="null">new</text_attr> <text_attr descr="null">Deprecated</text_attr>().<warning descr="Deprecated symbol"><text_attr descr="null">property</text_attr></warning>;
+class <info descr="null">Property</info> {
+  public function <info descr="null">test</info>():Void {
+    <info descr="null">new</info> <info descr="null">Deprecated</info>().<warning descr="Deprecated symbol"><info descr="null">property</info></warning>;
   }
 }

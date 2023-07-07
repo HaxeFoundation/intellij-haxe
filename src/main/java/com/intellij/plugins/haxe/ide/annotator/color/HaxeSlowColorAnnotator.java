@@ -61,7 +61,7 @@ public class HaxeSlowColorAnnotator implements Annotator {
         if (attribute != null) {
           element = reference.getReferenceNameElement();
           if (element != null) node = element;
-          holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node).textAttributes(attribute).create();
+          holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(attribute).create();
         }
       }
     }
@@ -73,7 +73,7 @@ public class HaxeSlowColorAnnotator implements Annotator {
     if (resultClass != null) {
       final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
       if (attribute != null) {
-        holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).textAttributes(attribute).create();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
       }
       return true;
     }

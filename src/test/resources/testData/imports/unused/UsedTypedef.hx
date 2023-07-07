@@ -1,5 +1,5 @@
-import <text_attr descr="null"><text_attr descr="null">helper.Typedefs</text_attr>.RegularTypedef</text_attr>;
+import <info descr="null"><info descr="null">helper.Typedefs</info>.RegularTypedef</info>;
 
-class <text_attr descr="null">Used</text_attr> {
-  var <text_attr descr="null">regularTypedef</text_attr>:<text_attr descr="null">RegularTypedef</text_attr>;
+class <info descr="null">Used</info> {
+  var <info descr="null">regularTypedef</info>:<info descr="null">RegularTypedef</info>;
 }

@@ -14,20 +14,20 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeColorAnnotatorUtil {
 
   public static void annotate(AnnotationHolder holder, PsiElement node, TextAttributesKey textAttributesKey) {
-    holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES)
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
       .textAttributes(textAttributesKey)
       .range(node)
       .create();
   }
   public static void annotate(AnnotationHolder holder, PsiElement node, TextAttributesKey textAttributesKey, String text) {
-    holder.newAnnotation(HighlightSeverity.TEXT_ATTRIBUTES, text)
+    holder.newAnnotation(HighlightSeverity.INFORMATION, text)
       .textAttributes(textAttributesKey)
       .range(node)
       .create();
   }
 
   public static @NotNull AnnotationBuilder annotationBuilder(AnnotationHolder holder, TextRange range, TextAttributesKey textAttributesKey) {
-    return holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES)
+    return holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
       .textAttributes(textAttributesKey)
       .range(range);
 
@@ -35,7 +35,7 @@ public class HaxeColorAnnotatorUtil {
 
   public static void colorizeKeyword(AnnotationHolder holder, PsiElement element) {
     TextAttributesKey attributesKey = TextAttributesKey.find(HaxeSyntaxHighlighterColors.HAXE_KEYWORD);
-    holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(element).textAttributes(attributesKey).create();
+    holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(attributesKey).create();
   }
 
   @Nullable

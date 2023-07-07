@@ -1,10 +1,10 @@
 package ;
-using <text_attr descr="null">Std</text_attr>;
+using <info descr="null">Std</info>;
 
-class <text_attr descr="null">TestIssue964_StaticExtensionsUnresolved</text_attr> {
-    var <text_attr descr="null">m</text_attr>:<text_attr descr="null">Map</text_attr><<text_attr descr="null">String</text_attr>,<text_attr descr="null">String</text_attr>> = <text_attr descr="null">new</text_attr> <text_attr descr="null">Map</text_attr>();
-    public function <text_attr descr="null">new</text_attr>() {
-        <text_attr descr="null">m</text_attr>.<text_attr descr="null">get</text_attr>("someString").<text_attr descr="null">parseInt</text_attr>();   // <<---- parseInt() marked as unresolved.
-        <text_attr descr="null">m</text_attr>.<text_attr descr="null">is</text_attr>(<text_attr descr="null">Map</text_attr>);
+class <info descr="null">TestIssue964_StaticExtensionsUnresolved</info> {
+    var <info descr="null">m</info>:<info descr="null">Map</info><<info descr="null">String</info>,<info descr="null">String</info>> = <info descr="null">new</info> <info descr="null">Map</info>();
+    public function <info descr="null">new</info>() {
+        <info descr="null">m</info>.<info descr="null">get</info>("someString").<info descr="null">parseInt</info>();   // <<---- parseInt() marked as unresolved.
+        <info descr="null">m</info>.<info descr="null">is</info>(<info descr="null">Map</info>);
     }
 }

@@ -1,14 +1,14 @@
 package;
-using <text_attr descr="null">StringTools</text_attr>;
+using <info descr="null">StringTools</info>;
 
-class <text_attr descr="null">Demo</text_attr> {
-  function <text_attr descr="null">demo</text_attr>() {
-    var <text_attr descr="null">lines</text_attr> = "--+--+--".<text_attr descr="null">split</text_attr>("+");
-    for(<text_attr descr="null">i</text_attr> <text_attr descr="null">in</text_attr> 0...<text_attr descr="null">lines</text_attr>.<text_attr descr="null">length</text_attr>)
-        if((<text_attr descr="null">lines</text_attr>[<text_attr descr="null">i</text_attr>] = <text_attr descr="null">lines</text_attr>[<text_attr descr="null">i</text_attr>].<text_attr descr="null">rtrim</text_attr>()).<text_attr descr="null">length</text_attr> > 0) {  // <-- rtrim and length remain unresolved -- Fixed!!
-            trace(<text_attr descr="null">lines</text_attr>[<text_attr descr="null">i</text_attr>]);
-            <text_attr descr="null">lines</text_attr>[<text_attr descr="null">i</text_attr>].<text_attr descr="null">rtrim</text_attr>();
-            <text_attr descr="null">StringTools</text_attr>.<text_attr descr="null">rtrim</text_attr>(<text_attr descr="null">lines</text_attr>[<text_attr descr="null">i</text_attr>]);  // <--rtrim is unresolved  -- Fixed!!
+class <info descr="null">Demo</info> {
+  function <info descr="null">demo</info>() {
+    var <info descr="null">lines</info> = "--+--+--".<info descr="null">split</info>("+");
+    for(<info descr="null">i</info> <info descr="null">in</info> 0...<info descr="null">lines</info>.<info descr="null">length</info>)
+        if((<info descr="null">lines</info>[<info descr="null">i</info>] = <info descr="null">lines</info>[<info descr="null">i</info>].<info descr="null">rtrim</info>()).<info descr="null">length</info> > 0) {  // <-- rtrim and length remain unresolved -- Fixed!!
+            trace(<info descr="null">lines</info>[<info descr="null">i</info>]);
+            <info descr="null">lines</info>[<info descr="null">i</info>].<info descr="null">rtrim</info>();
+            <info descr="null">StringTools</info>.<info descr="null">rtrim</info>(<info descr="null">lines</info>[<info descr="null">i</info>]);  // <--rtrim is unresolved  -- Fixed!!
         }
   }
 }

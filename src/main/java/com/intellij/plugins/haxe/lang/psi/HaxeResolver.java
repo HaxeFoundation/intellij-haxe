@@ -166,15 +166,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       resolves.incrementAndGet();
     }
 
-    // TODO: Optimization for literals needs vetting before making it available.
-    // Shortcut for literals -- optimization.
-    //if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
-    //  if (!(reference instanceof HaxeRegularExpression
-    //        || reference instanceof HaxeRegularExpressionLiteral
-    //        || reference instanceof HaxeStringLiteralExpression)) {
-    //    return EMPTY_LIST;
-    //  }
-    //}
+    if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
+      if (!(reference instanceof HaxeRegularExpression || reference instanceof HaxeStringLiteralExpression)) {
+        return EMPTY_LIST;
+      }
+    }
 
     List<? extends PsiElement> result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);

@@ -69,11 +69,11 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
       annotateCompilationExpression(node, holder);
     }
     else if (tt == HaxeTokenTypeSets.PPBODY) {
-      holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node)
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
         .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();
     }
     else if (tt == GeneratedParserUtilBase.DUMMY_BLOCK) {
-      holder.newAnnotation(HighlightSeverity.TEXT_ATTRIBUTES, "Unparseable data").range(node)
+      holder.newAnnotation(HighlightSeverity.INFORMATION, "Unparseable data").range(node)
         .textAttributes(HaxeSyntaxHighlighterColors.UNPARSEABLE_DATA).create();
     }
   }
@@ -148,7 +148,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
         element = reference.getReferenceNameElement();
         if (element instanceof HaxeComponentName name) node = name;
       }
-      holder.newSilentAnnotation(HighlightSeverity.TEXT_ATTRIBUTES).range(node).textAttributes(attribute).create();
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(attribute).create();
     }
   }
 }

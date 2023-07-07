@@ -1,7 +1,7 @@
 package ;
-class <text_attr descr="null">GenericTest</text_attr> {
-    public var <text_attr descr="null">arr</text_attr>:<text_attr descr="null">Array</text_attr><<error descr="Unresolved type">TArray</error>>;
+class <info descr="null">GenericTest</info> {
+    public var <info descr="null">arr</info>:<info descr="null">Array</info><<error descr="Unresolved type">TArray</error>>;
 
-    public function <text_attr descr="null">new</text_attr>() {
+    public function <info descr="null">new</info>() {
     }
 }

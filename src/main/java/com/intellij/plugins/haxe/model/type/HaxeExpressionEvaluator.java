@@ -894,19 +894,26 @@ public class HaxeExpressionEvaluator {
         if (left.isArray()) {
           Object constant = null;
           if (left.isConstant()) {
-            List array = (List)left.getConstant();
-            final HaxeRange constraint = right.getRangeConstraint();
-            HaxeRange arrayBounds = new HaxeRange(0, array.size());
-            if (right.isConstant()) {
-              final int index = HaxeTypeUtils.getIntValue(right.getConstant());
-              if (arrayBounds.contains(index)) {
-                constant = array.get(index);
-              } else {
-                context.addWarning(element, "Out of bounds " + index + " not inside " + arrayBounds);
+            if (left.getConstant() instanceof List array) {
+              //List array = (List)left.getConstant();
+              // TODO got class cast exception here due to constant being "HaxeAbstractClassDeclarationImpl
+              //  possible expression causing issue: ("this[x + 1]  in  abstractType(Array<Float>)" ?)
+
+              final HaxeRange constraint = right.getRangeConstraint();
+              HaxeRange arrayBounds = new HaxeRange(0, array.size());
+              if (right.isConstant()) {
+                final int index = HaxeTypeUtils.getIntValue(right.getConstant());
+                if (arrayBounds.contains(index)) {
+                  constant = array.get(index);
+                }
+                else {
+                  context.addWarning(element, "Out of bounds " + index + " not inside " + arrayBounds);
+                }
               }
-            } else if (constraint != null) {
-              if (!arrayBounds.contains(constraint)) {
-                context.addWarning(element, "Out of bounds " + constraint + " not inside " + arrayBounds);
+              else if (constraint != null) {
+                if (!arrayBounds.contains(constraint)) {
+                  context.addWarning(element, "Out of bounds " + constraint + " not inside " + arrayBounds);
+                }
               }
             }
           }
