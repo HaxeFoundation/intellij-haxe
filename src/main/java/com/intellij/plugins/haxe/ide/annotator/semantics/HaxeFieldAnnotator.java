@@ -69,14 +69,21 @@ public class HaxeFieldAnnotator implements Annotator {
     if (FIELD_REDEFINITION.isEnabled(var)) {
       HashSet<HaxeClassModel> classSet = new HashSet<>();
       HaxeClassModel fieldDeclaringClass = field.getDeclaringClass();
+      if (fieldDeclaringClass.isInterface() || fieldDeclaringClass.isAnonymous()) {
+        return;
+      }
       classSet.add(fieldDeclaringClass);
-      while (fieldDeclaringClass != null) {
+      while (fieldDeclaringClass != null ) {
         fieldDeclaringClass = fieldDeclaringClass.getParentClass();
         if (classSet.contains(fieldDeclaringClass)) {
           break;
         }
         else {
-          classSet.add(fieldDeclaringClass);
+          if (fieldDeclaringClass != null) {
+            if (!fieldDeclaringClass.isInterface() && !fieldDeclaringClass.isAnonymous()) {
+              classSet.add(fieldDeclaringClass);
+            }
+          }
         }
         if (fieldDeclaringClass != null) {
           for (HaxeFieldModel parentField : fieldDeclaringClass.getFields()) {

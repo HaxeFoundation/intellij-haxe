@@ -179,7 +179,9 @@ public class HaxeMethodAnnotator implements Annotator {
           .create();
       }
       else {
-        requiredOverride = true;
+        if (!currentClass.isInterface() && !currentClass.isAnonymous()) {
+          requiredOverride = true;
+        }
 
         if (parentModifiers.hasAnyModifier(OVERRIDE_FORBIDDEN_MODIFIERS)) {
           AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, "Can't override static, inline or final methods")
