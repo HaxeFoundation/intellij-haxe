@@ -367,6 +367,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "!"                                       { return emitToken( ONOT); }
 "~" / [^"/"]                              { return emitToken( OCOMPLEMENT); }
 
+"??"                                      { return emitToken( OQUEST_QUEST);}
 "?"                                       { return emitToken( OQUEST);}
 
 "++"                                      { return emitToken( OPLUS_PLUS); }

@@ -1,4 +1,8 @@
+
 # Changelog
+
+## [Unreleased]
+* Coalescing operator support
 
 ## 1.4.5
 * Improved HaxeDoc rendering and displaying resolved type

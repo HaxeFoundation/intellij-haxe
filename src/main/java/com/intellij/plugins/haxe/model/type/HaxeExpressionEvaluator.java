@@ -1061,6 +1061,7 @@ public class HaxeExpressionEvaluator {
       (element instanceof HaxeLogicAndExpression) ||
       (element instanceof HaxeLogicOrExpression) ||
       (element instanceof HaxeCompareExpression) ||
+      (element instanceof HaxeCoalescingExpression) ||
       (element instanceof HaxeMultiplicativeExpression)
       ) {
       PsiElement[] children = element.getChildren();

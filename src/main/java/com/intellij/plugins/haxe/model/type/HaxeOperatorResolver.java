@@ -103,6 +103,9 @@ public class HaxeOperatorResolver {
       }
     }
 
+    if (operator.equals("??")) {
+      result = HaxeTypeUnifier.unify(left, right, context.root);
+    }
 
     // check overloads for left argument
     SpecificTypeReference overloadResult = checkOverloads(left, right, operator);
