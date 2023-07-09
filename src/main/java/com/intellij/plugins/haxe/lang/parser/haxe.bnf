@@ -340,7 +340,7 @@ classDeclaration ::= classModifierList? 'class' componentName genericParam? inhe
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 
-abstractClassDeclaration ::= privateKeyWord? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
+abstractClassDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractClassType ::= 'enum'? 'abstract'
 underlyingType ::= '(' typeWrapper ')'
