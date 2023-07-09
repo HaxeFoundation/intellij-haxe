@@ -60,7 +60,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('map')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   FUNCTION_LITERAL
                     HaxePsiToken:(('(')
                     PARAMETER_LIST
@@ -79,7 +79,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('charCodeAt')
                       HaxePsiToken:(('(')
-                      EXPRESSION_LIST
+                      CALL_EXPRESSION_LIST
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('0')
                       HaxePsiToken:)(')')
@@ -88,7 +88,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('sort')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               FUNCTION_LITERAL
                 HaxePsiToken:(('(')
                 PARAMETER_LIST

@@ -47,7 +47,7 @@ Haxe File
                 HaxePsiToken:@('@')
                 TYPE
                   HaxePsiToken:META_TYPE('meta')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               STRING_LITERAL_EXPRESSION
                 HaxePsiToken:OPEN_QUOTE('"')
                 HaxePsiToken:REGULAR_STRING_PART('Haxe is great!')

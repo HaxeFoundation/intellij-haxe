@@ -668,7 +668,11 @@ mapInitializerExpressionList ::= mapInitializerExpression (',' mapInitializerExp
 mapInitializerExpression ::= expression fatArrowOperator expression {pin=2}
 private fatArrowOperator ::= '=>'
 
-expressionList ::= forStatement | whileStatement | (expression (',' expression)*) ','? {recoverWhile="expression_list_recover"}
+// spread operator/expression should only be allowed for call expressions and only as last argument
+callExpressionList ::= forStatement | whileStatement | spreadExpression | (expression (',' expression)* (',' spreadExpression)?)  ','?
+{recoverWhile="expression_list_recover" extends=expressionList  methods= [spreadExpression="spreadExpression[0]"]}
+
+expressionList ::= forStatement | whileStatement | (expression (',' expression)*)  ','? {recoverWhile="expression_list_recover"}
 private expression_list_recover ::= !(')' | ']')
 
 private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>') !metaKeyWord
@@ -802,9 +806,11 @@ private callOrArrayTail ::= (referenceExpression | thisExpression | superExpress
 private callAccess ::=  'inline'? callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? callExpression
 private arrayAccess ::=  callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? arrayAccessExpression
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
+// spread operator only allowed  as last  last argument in calls expressions
+spreadExpression ::= (iteratorOperator componentName) { extends = unaryExpression}
 
-left callExpression ::= '(' expressionList? ')'
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}
+left callExpression ::= '(' callExpressionList? ')'
+{ methods=[expressionList="callExpressionList"] mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}
 left arrayAccessExpression ::= '[' expression ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="array access"}
 

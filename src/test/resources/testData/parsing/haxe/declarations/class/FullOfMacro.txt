@@ -56,7 +56,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('Event')
               HaxePsiToken:(('(')
-              EXPRESSION_LIST
+              CALL_EXPRESSION_LIST
                 ASSIGN_EXPRESSION
                   REFERENCE_EXPRESSION
                     IDENTIFIER
@@ -384,7 +384,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('build')
               HaxePsiToken:(('(')
-              EXPRESSION_LIST
+              CALL_EXPRESSION_LIST
                 ARRAY_LITERAL
                   HaxePsiToken:[('[')
                   HaxePsiToken:](']')

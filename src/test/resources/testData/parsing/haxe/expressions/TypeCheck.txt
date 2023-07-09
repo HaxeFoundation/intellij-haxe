@@ -48,7 +48,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('foo')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               LITERAL_EXPRESSION
                 HaxePsiToken:null('null')
             HaxePsiToken:)(')')

@@ -17,6 +17,17 @@ class RestArgumentsTest {
 
     }
 
+        static function restArgsForward(...restArray:String)
+        {
+            var x = "Str";
+            stringRestArgs(...restArray); // CORRECT
+            stringRestArgs(x, ...restArray); // CORRECT
+            stringRestArgs(...restArray<error descr="',' unexpected">,</error> x); // WRONG spread operator argument has to be the last argument
+            //TODO type checking
+            functionRestArgs(...restArray); // WRONG  type mismatch
+
+        }
+
     static function stringRestArgs(...restArray:String)
     {
         var element:String = restArray[0]; //CORRECT

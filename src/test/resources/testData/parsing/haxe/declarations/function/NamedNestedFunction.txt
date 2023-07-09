@@ -37,7 +37,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('fields')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('mJson')
@@ -52,7 +52,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('sort')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               FUNCTION_LITERAL
                 HaxePsiToken:function('function')
                 COMPONENT_NAME

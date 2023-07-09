@@ -167,7 +167,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('equals')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('v')
@@ -242,7 +242,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('floatEquals')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('v')
@@ -344,7 +344,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('same')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('expected')
@@ -400,7 +400,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('isTrue')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('v')
@@ -452,7 +452,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('isFalse')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('v')
@@ -513,7 +513,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('fail')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('message')
@@ -577,7 +577,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('raises')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('f')
@@ -725,7 +725,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('contains')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('v')
@@ -772,7 +772,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               LITERAL_EXPRESSION
                 HaxePsiToken:true('true')
               HaxePsiToken:,(',')
@@ -848,7 +848,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -858,7 +858,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('has')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -868,7 +868,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('getInstanceFields')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('c')
@@ -951,7 +951,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -961,7 +961,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('has')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -971,7 +971,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('getInstanceFields')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('c')
@@ -1054,7 +1054,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -1064,7 +1064,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('has')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -1074,7 +1074,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('getClassFields')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('c')
@@ -1157,7 +1157,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -1167,7 +1167,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('has')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   CALL_EXPRESSION
                     REFERENCE_EXPRESSION
                       REFERENCE_EXPRESSION
@@ -1177,7 +1177,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('getClassFields')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('c')

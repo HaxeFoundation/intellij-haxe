@@ -42,7 +42,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('trace')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ARRAY_ACCESS_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')

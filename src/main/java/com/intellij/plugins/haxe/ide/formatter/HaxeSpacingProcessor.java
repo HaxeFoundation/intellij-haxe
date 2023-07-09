@@ -404,7 +404,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(1, 1, mySettings.SPECIAL_ELSE_IF_TREATMENT ? 0 : 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (type1 == OCOMMA && (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) &&
+    if (type1 == OCOMMA && (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST || elementType == CALL_EXPRESSION_LIST) &&
         (parentType == CALL_EXPRESSION ||
          parentType == NEW_EXPRESSION ||
          FUNCTION_DEFINITION.contains(parentType))) {

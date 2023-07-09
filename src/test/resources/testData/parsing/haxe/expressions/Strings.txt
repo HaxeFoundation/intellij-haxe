@@ -45,7 +45,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('charAt')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('0')
             HaxePsiToken:)(')')
@@ -120,7 +120,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('getVal')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   STRING_LITERAL_EXPRESSION
                     HaxePsiToken:OPEN_QUOTE('"')
                     HaxePsiToken:REGULAR_STRING_PART(''')

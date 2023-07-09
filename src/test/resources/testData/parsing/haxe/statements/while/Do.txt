@@ -46,7 +46,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('trace')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     PREFIX_EXPRESSION
                       ASSIGNABLE_OPERATOR
                         HaxePsiToken:++('++')

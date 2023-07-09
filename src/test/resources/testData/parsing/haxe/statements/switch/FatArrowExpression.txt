@@ -86,7 +86,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('trace')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')
@@ -114,7 +114,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('trace')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')
@@ -157,7 +157,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('trace')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')
@@ -194,7 +194,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('trace')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')

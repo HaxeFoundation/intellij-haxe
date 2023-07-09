@@ -245,7 +245,7 @@ Haxe File
                 IDENTIFIER
                   HaxePsiToken:ID('macro')
               HaxePsiToken:(('(')
-              EXPRESSION_LIST
+              CALL_EXPRESSION_LIST
                 VALUE_EXPRESSION
                   MACRO_EXPRESSION_REIFICATION
                     MACRO_FIELD_REIFICATION

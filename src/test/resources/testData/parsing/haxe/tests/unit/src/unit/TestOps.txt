@@ -37,7 +37,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 ADDITIVE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -63,7 +63,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -92,7 +92,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
@@ -121,7 +121,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 ADDITIVE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -147,7 +147,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -177,7 +177,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 BITWISE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -200,7 +200,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -226,7 +226,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('4')
@@ -252,7 +252,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 BITWISE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -275,7 +275,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -301,7 +301,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               BITWISE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('4')
@@ -327,7 +327,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 PREFIX_EXPRESSION
                   PREFIX_OPERATOR
@@ -351,7 +351,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               PREFIX_EXPRESSION
                 PREFIX_OPERATOR
                   HaxePsiToken:-('-')
@@ -378,7 +378,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 SHIFT_EXPRESSION
                   LITERAL_EXPRESSION
@@ -399,7 +399,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -423,7 +423,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('20')
@@ -444,7 +444,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('20')
@@ -468,7 +468,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 MODULO_EXPRESSION
                   LITERAL_EXPRESSION
@@ -491,7 +491,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -517,7 +517,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('5')
@@ -543,7 +543,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 MULTIPLICATIVE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -566,7 +566,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -592,7 +592,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('20')
@@ -618,7 +618,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               SHIFT_EXPRESSION
                 SHIFT_EXPRESSION
                   LITERAL_EXPRESSION
@@ -643,7 +643,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               SHIFT_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -671,7 +671,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               SHIFT_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('2')
@@ -699,7 +699,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               SHIFT_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -734,7 +734,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -757,7 +757,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 BITWISE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -777,7 +777,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('0')
@@ -800,7 +800,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               COMPARE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('0')
@@ -820,7 +820,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('5')
@@ -843,7 +843,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('5')
@@ -869,7 +869,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -895,7 +895,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 MODULO_EXPRESSION
                   LITERAL_EXPRESSION
@@ -918,7 +918,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -944,7 +944,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('10')
@@ -970,7 +970,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('100')
@@ -988,7 +988,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 PREFIX_EXPRESSION
                   PREFIX_OPERATOR
@@ -1009,7 +1009,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITFLOAT('101.5')
@@ -1027,7 +1027,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MODULO_EXPRESSION
                 PREFIX_EXPRESSION
                   PREFIX_OPERATOR
@@ -1072,7 +1072,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('x')
@@ -1086,7 +1086,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -1096,7 +1096,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('isNaN')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   MODULO_EXPRESSION
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITFLOAT('5.0')
@@ -1112,7 +1112,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   REFERENCE_EXPRESSION
@@ -1122,7 +1122,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('isNaN')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   ASSIGN_EXPRESSION
                     REFERENCE_EXPRESSION
                       IDENTIFIER
@@ -1187,7 +1187,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ARRAY_ACCESS_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
@@ -1209,7 +1209,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:true('true')
@@ -1236,7 +1236,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:false('false')
@@ -1263,7 +1263,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -1293,7 +1293,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               MULTIPLICATIVE_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -1323,7 +1323,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
@@ -1358,7 +1358,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 COMPARE_EXPRESSION
                   ADDITIVE_EXPRESSION
@@ -1390,7 +1390,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 COMPARE_EXPRESSION
                   PREFIX_EXPRESSION
@@ -1420,7 +1420,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 PREFIX_EXPRESSION
                   PREFIX_OPERATOR
@@ -1454,7 +1454,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ASSIGN_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
@@ -1479,7 +1479,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('k')
@@ -1490,7 +1490,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('f')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               TERNARY_EXPRESSION
                 PARENTHESIZED_EXPRESSION
                   HaxePsiToken:(('(')
@@ -1518,7 +1518,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('k')
@@ -1529,7 +1529,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('t')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               LOGIC_OR_EXPRESSION
                 LITERAL_EXPRESSION
                   HaxePsiToken:true('true')
@@ -1561,7 +1561,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               PREFIX_EXPRESSION
                 PREFIX_OPERATOR
                   HaxePsiToken:-('-')
@@ -1584,7 +1584,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               PREFIX_EXPRESSION
                 PREFIX_OPERATOR
                   HaxePsiToken:-('-')
@@ -1607,7 +1607,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               CALL_EXPRESSION
                 REFERENCE_EXPRESSION
                   PARENTHESIZED_EXPRESSION
@@ -1628,7 +1628,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('indexOf')
                 HaxePsiToken:(('(')
-                EXPRESSION_LIST
+                CALL_EXPRESSION_LIST
                   STRING_LITERAL_EXPRESSION
                     HaxePsiToken:OPEN_QUOTE('"')
                     HaxePsiToken:REGULAR_STRING_PART('x')
@@ -1644,7 +1644,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 MULTIPLICATIVE_EXPRESSION
                   LITERAL_EXPRESSION
@@ -1672,7 +1672,7 @@ Haxe File
               IDENTIFIER
                 HaxePsiToken:ID('eq')
             HaxePsiToken:(('(')
-            EXPRESSION_LIST
+            CALL_EXPRESSION_LIST
               ADDITIVE_EXPRESSION
                 MULTIPLICATIVE_EXPRESSION
                   LITERAL_EXPRESSION

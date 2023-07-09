@@ -34,7 +34,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('build')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       STRING_LITERAL_EXPRESSION
                         HaxePsiToken:OPEN_QUOTE('"')
                         HaxePsiToken:REGULAR_STRING_PART('DeviceRegistration.schema')

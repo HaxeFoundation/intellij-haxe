@@ -56,7 +56,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('delay')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     CALL_EXPRESSION
                       FUNCTION_LITERAL
                         HaxePsiToken:function('function')
@@ -86,7 +86,7 @@ Haxe File
                                       IDENTIFIER
                                         HaxePsiToken:ID('trace')
                                     HaxePsiToken:(('(')
-                                    EXPRESSION_LIST
+                                    CALL_EXPRESSION_LIST
                                       STRING_LITERAL_EXPRESSION
                                         HaxePsiToken:OPEN_QUOTE('"')
                                         HaxePsiToken:REGULAR_STRING_PART('Haxe is great!')
@@ -102,7 +102,7 @@ Haxe File
                             HaxePsiToken:;(';')
                           HaxePsiToken:}('}')
                       HaxePsiToken:(('(')
-                      EXPRESSION_LIST
+                      CALL_EXPRESSION_LIST
                         LITERAL_EXPRESSION
                           HaxePsiToken:LITINT('3')
                       HaxePsiToken:)(')')

@@ -51,7 +51,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('trace')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
                       HaxePsiToken:OPEN_QUOTE('"')
                       HaxePsiToken:REGULAR_STRING_PART('String')
@@ -81,7 +81,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('trace')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
                       HaxePsiToken:OPEN_QUOTE('"')
                       HaxePsiToken:REGULAR_STRING_PART('Error')
@@ -111,7 +111,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('trace')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     STRING_LITERAL_EXPRESSION
                       HaxePsiToken:OPEN_QUOTE('"')
                       HaxePsiToken:REGULAR_STRING_PART('Dynamic')

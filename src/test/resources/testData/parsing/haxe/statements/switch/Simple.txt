@@ -49,7 +49,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('foo')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('1')
                     HaxePsiToken:)(')')

@@ -40,7 +40,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('add')
                       HaxePsiToken:(('(')
-                      EXPRESSION_LIST
+                      CALL_EXPRESSION_LIST
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('_')
@@ -56,7 +56,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('mul')
                           HaxePsiToken:(('(')
-                          EXPRESSION_LIST
+                          CALL_EXPRESSION_LIST
                             REFERENCE_EXPRESSION
                               IDENTIFIER
                                 HaxePsiToken:ID('_')
@@ -76,7 +76,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('trace')
                     HaxePsiToken:(('(')
-                    EXPRESSION_LIST
+                    CALL_EXPRESSION_LIST
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('a')

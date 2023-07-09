@@ -14,6 +14,7 @@ class OperatorTest {
     var s = "ABC";
     var t = "ZYX";
 
+    var toDyn:Dynamic;
     var toInt:Int;
     var toFloat:Float;
     var toBool:Bool;
@@ -42,6 +43,7 @@ class OperatorTest {
         toBool = i >= j;
 
         toBool = (i is Int);
+        toDyn = i ?? j;
 
         toInt =  <error descr="Incompatible type: Float should be Int">i / j</error> ; // WRONG,  result is float
         toBool = <error descr="Unable to apply operator && for types Int and Int">i && j</error>; // WRONG,  no operator for int
@@ -70,8 +72,8 @@ class OperatorTest {
         toBool = f >  k;
         toBool = f >= k;
 
-        toBool = (i is Float);
-
+        toBool = (f is Float);
+        toDyn = f ?? k;
 
         toBool = <error descr="Unable to apply operator && for types Float and Float">f && k</error>; // WRONG,  not operator for float
         toBool = <error descr="Unable to apply operator || for types Float and Float">f || k</error>; // WRONG,  not operator for float
@@ -99,9 +101,12 @@ class OperatorTest {
         toBool = <error descr="Unable to apply operator >= for types Bool = true and Bool = false">a >= b</error>; // WRONG,  not operator for float
 
         toBool = (a is Bool);
+        toDyn = a ?? b;
 
         toBool = a && b;
         toBool = a || b;
+
+
     }
 
     public function TestString() {
@@ -127,8 +132,24 @@ class OperatorTest {
         toBool = s >= t;
 
         toBool = (a is String);
+        toDyn = s ?? t;
 
         toBool = <error descr="Unable to apply operator && for types String and String">s && t</error>; // WRONG,  not operator for String
         toBool = <error descr="Unable to apply operator || for types String and String">s || t</error>; // WRONG,  not operator for String
+    }
+
+    public function mixedTest() {
+        toDyn = null ?? t;
+        toDyn = t ?? null;
+
+        toDyn = null ?? null;
+
+        toDyn = s.toLowerCase().length ?? i;
+        toDyn = s?.toLowerCase()?.length ?? i;
+
+        toDyn = <error descr="Unable to apply operator ?? for types String and Int">s?.toLowerCase()?.charAt(i) ?? i</error>; // WRONG, can not unify types
+
+        toDyn = <error descr="Unable to apply operator ?? for types String and Bool = false">t ?? b</error>; // WRONG, can not unify types
+        toDyn = <error descr="Unable to apply operator ?? for types String and Int">s ?? i</error>; // WRONG, can not unify types
     }
 }

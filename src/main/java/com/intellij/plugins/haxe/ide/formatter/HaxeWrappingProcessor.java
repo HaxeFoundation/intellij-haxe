@@ -49,7 +49,7 @@ public class HaxeWrappingProcessor {
     //
     // Function definition/call
     //
-    if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) {
+    if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST || elementType == CALL_EXPRESSION_LIST) {
       final ASTNode parent = myNode.getTreeParent();
       if (parent == null) {
         return defaultWrap;

@@ -34,7 +34,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('isPrime')
                   HaxePsiToken:(('(')
-                  EXPRESSION_LIST
+                  CALL_EXPRESSION_LIST
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('239')
                   HaxePsiToken:)(')')

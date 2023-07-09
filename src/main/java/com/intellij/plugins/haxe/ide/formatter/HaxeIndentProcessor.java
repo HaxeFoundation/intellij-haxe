@@ -93,7 +93,7 @@ public class HaxeIndentProcessor {
       return Indent.getNormalIndent();
     }
     if (FUNCTION_DEFINITION.contains(parentType) || parentType == CALL_EXPRESSION) {
-      if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) {
+      if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST || elementType == CALL_EXPRESSION_LIST) {
         return Indent.getNormalIndent();
       }
     }

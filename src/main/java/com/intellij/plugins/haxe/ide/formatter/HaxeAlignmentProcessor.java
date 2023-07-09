@@ -56,7 +56,7 @@ public class HaxeAlignmentProcessor {
       return myBaseAlignment;
     }
 
-    if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST) {
+    if (elementType == PARAMETER_LIST || elementType == EXPRESSION_LIST || elementType == CALL_EXPRESSION_LIST) {
       boolean doAlign = false;
       if (FUNCTION_DEFINITION.contains(parentType)) {
         doAlign = mySettings.ALIGN_MULTILINE_PARAMETERS;

@@ -91,7 +91,7 @@ Haxe File
             IDENTIFIER
               HaxePsiToken:ID('deliver')
           HaxePsiToken:(('(')
-          EXPRESSION_LIST
+          CALL_EXPRESSION_LIST
             REFERENCE_EXPRESSION
               IDENTIFIER
                 HaxePsiToken:ID('value')
