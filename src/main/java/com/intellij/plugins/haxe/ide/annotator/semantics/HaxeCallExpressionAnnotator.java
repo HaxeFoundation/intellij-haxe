@@ -144,6 +144,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
 
         //TODO handle required after optionals
+        ResultHolder restParameterType = null;
+        ResultHolder parameterType = null;
         for (int i = 0; i < expressionArgList.size(); i++) {
           HaxeExpression expression = expressionArgList.get(i);
 
@@ -152,14 +154,30 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
           int parameterIndex = i + (isStaticExtension ? 1 : 0);// skip one if static extension (first arg is caller
           // var args accept all types so no need to do any more validation
-          if (parameterIndex >= parameters.size() || isVarArg(parameters.get(parameterIndex))) return;
+          if (parameterIndex >= parameters.size() && restParameterType== null ) return;
 
-          HaxeParameterModel parameterModel = parameters.get(parameterIndex);
+          if (restParameterType != null) {
+            parameterType = restParameterType;
+          }else {
+            HaxeParameterModel parameterModel = parameters.get(parameterIndex);
 
-          // add constraints from method
-          resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 
-          ResultHolder parameterType = parameterModel.getType(resolver.withoutUnknowns());
+            // add constraints from method
+            resolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
+
+            parameterType = restParameterType != null ? restParameterType : parameterModel.getType(resolver.withoutUnknowns());
+
+            if (isVarArg(parameterModel)) {
+              if (parameterModel.getBasePsi() instanceof HaxeRestParameter) {
+                restParameterType = parameterModel.getType(resolver);
+                parameterType = restParameterType;
+              }
+              else {
+                // Try to check type for the other types of varArgs ( Array<Expr> and Rest<>)
+                return;
+              }
+            }
+          }
 
           ResultHolder expressionType = null;
 
@@ -172,30 +190,13 @@ public class HaxeCallExpressionAnnotator implements Annotator {
                   // parameter type `Function` accepts all functions
                   continue;
                 } else {
-                  PsiElement resolvedExpression = ((HaxeReferenceExpression)expression).resolve();
-                  if (resolvedExpression instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
-                    SpecificFunctionReference type = functionDeclaration.getModel().getFunctionType(null);
-                    expressionType = type.createHolder();
-                  }
-                  else if (resolvedExpression instanceof HaxeMethodDeclaration methodDeclaration) {
-                    SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(null);
-                    expressionType = type.createHolder();
-                  }
                   // make sure that if  parameter type is typedef  try to convert to function so we can compare with argument
-                  if (parameterClassType != null) {
-                    HaxeClass aClass = parameterClassType.getHaxeClass();
-                    if (aClass != null && aClass.getModel().isTypedef()) {
-                      SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
-                      if (functionReference != null) {
-                        parameterType = functionReference.createHolder();
-                      }
-                    }
-                  }
-              }
+                  parameterType = resolveParameterType(parameterType, parameterClassType);
+                }
             }
           }
 
-          expressionType = expressionType != null ? expressionType : findExpressionType(expression);
+          expressionType = getReferenceExpressionType(expression, expressionType);
 
           // if expression is enumValue we need to resolve the underlying enumType type to test assignment
           if (expressionType.getType() instanceof SpecificEnumValueReference type) {
@@ -242,6 +243,34 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
       }
     }
+  }
+
+  private static ResultHolder resolveParameterType(ResultHolder parameterType, SpecificHaxeClassReference parameterClassType) {
+    if (parameterClassType != null) {
+      HaxeClass aClass = parameterClassType.getHaxeClass();
+      if (aClass != null && aClass.getModel().isTypedef()) {
+        SpecificFunctionReference functionReference = parameterClassType.resolveTypeDefFunction();
+        if (functionReference != null) {
+          parameterType = functionReference.createHolder();
+        }
+      }
+    }
+    return parameterType;
+  }
+
+  private static ResultHolder getReferenceExpressionType(HaxeExpression expression, ResultHolder expressionType) {
+    if (expression instanceof  HaxeReferenceExpression referenceExpression) {
+      PsiElement resolvedExpression = referenceExpression.resolve();
+      if (resolvedExpression instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
+        SpecificFunctionReference type = functionDeclaration.getModel().getFunctionType(null);
+        expressionType = type.createHolder();
+      }
+      else if (resolvedExpression instanceof HaxeMethodDeclaration methodDeclaration) {
+        SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(null);
+        expressionType = type.createHolder();
+      }
+    }
+    return expressionType != null ? expressionType : findExpressionType(expression);
   }
 
   private static HaxeGenericResolver findTypeParametersToInherit(SpecificTypeReference parameter,

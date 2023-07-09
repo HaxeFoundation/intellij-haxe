@@ -4,29 +4,33 @@ class RestArgumentsTest {
     static function main() {
         var no:Int;
         var str:String;
-        var fn:Int->Void;
+        var fn:Int->String;
         var ano:{i:Int};
 
         stringRestArgs(str, str, str);
         functionRestArgs( fn, fn, fn );
         anonymousRestArgs(ano, ano,ano);
 
-        //TODO type checking
-        stringRestArgs(no, no, no); // WRONG
-        //...
+
+        stringRestArgs(<error descr="Type mismatch (Expected: 'String' got: 'Int')">no</error>, <error descr="Type mismatch (Expected: 'String' got: 'Int')">no</error>, <error descr="Type mismatch (Expected: 'String' got: 'Int')">no</error>); // WRONG type
+
 
     }
 
-        static function restArgsForward(...restArray:String)
-        {
-            var x = "Str";
-            stringRestArgs(...restArray); // CORRECT
-            stringRestArgs(x, ...restArray); // CORRECT
-            stringRestArgs(...restArray<error descr="',' unexpected">,</error> x); // WRONG spread operator argument has to be the last argument
-            //TODO type checking
-            functionRestArgs(...restArray); // WRONG  type mismatch
+      static function restArgsForward(...restArray:String)
+      {
+          var x = "Str";
+          var arr:Array<String> = ["argA", "ArgB"];
 
-        }
+          stringRestArgs(...restArray); // CORRECT
+          stringRestArgs(x, ...restArray); // CORRECT
+          stringRestArgs(x, ...arr); // CORRECT
+          stringRestArgs(x, ...["arg1", "arg2"]); // CORRECT
+
+          stringRestArgs(...restArray<error descr="',' unexpected">,</error> x); // WRONG spread operator argument has to be the last argument
+          functionRestArgs(<error descr="Type mismatch (Expected: 'Int->String' got: 'String')">...restArray</error>); // WRONG  type mismatch
+
+      }
 
     static function stringRestArgs(...restArray:String)
     {

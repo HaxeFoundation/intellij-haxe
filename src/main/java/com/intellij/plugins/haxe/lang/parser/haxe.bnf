@@ -807,7 +807,7 @@ private callAccess ::=  'inline'? callOrArrayTail ( callExpression |  arrayAcces
 private arrayAccess ::=  callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? arrayAccessExpression
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 // spread operator only allowed  as last  last argument in calls expressions
-spreadExpression ::= (iteratorOperator componentName) { extends = unaryExpression}
+spreadExpression ::= (iteratorOperator (referenceExpression | arrayLiteral)) { extends = unaryExpression}
 
 left callExpression ::= '(' callExpressionList? ')'
 { methods=[expressionList="callExpressionList"] mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}

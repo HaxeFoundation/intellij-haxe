@@ -315,6 +315,28 @@ public class HaxeExpressionEvaluator {
         return HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
       }
     }
+    if (element instanceof HaxeSpreadExpression spreadExpression) {
+      HaxeExpression expression = spreadExpression.getExpression();
+      // we treat restParameters as arrays, so we need to "unwrap" the array to get the correct type.
+      // (currently restParameters and Arrays are the only types you can spread afaik. and only in method calls)
+      if (expression instanceof HaxeReferenceExpression referenceExpression) {
+        ResultHolder type = HaxeTypeResolver.getPsiElementType(referenceExpression, resolver);
+        if (type.isClassType()) {
+          ResultHolder[] specifics = type.getClassType().getSpecifics();
+          if (specifics.length == 1) {
+            return specifics[0];
+          }
+        }
+      }
+      else if (expression instanceof HaxeArrayLiteral arrayLiteral) {
+        HaxeResolveResult result = arrayLiteral.resolveHaxeClass();
+        SpecificHaxeClassReference reference = result.getSpecificClassReference(expression, resolver);
+        @NotNull ResultHolder[] specifics = reference.getSpecifics();
+        if (specifics.length == 1) {
+          return specifics[0];
+        }
+      }
+    }
     if (element instanceof HaxeFieldDeclaration declaration) {
       HaxeTypeTag typeTag = declaration.getTypeTag();
       HaxeVarInit init = declaration.getVarInit();
