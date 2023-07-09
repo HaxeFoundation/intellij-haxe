@@ -668,7 +668,7 @@ mapInitializerExpressionList ::= mapInitializerExpression (',' mapInitializerExp
 mapInitializerExpression ::= expression fatArrowOperator expression {pin=2}
 private fatArrowOperator ::= '=>'
 
-// spread operator/expression should only be allowed for call expressions and only as last argument
+// spread operator/expression should only be allowed for call expressions (and constructors) and only as last argument
 callExpressionList ::= forStatement | whileStatement | spreadExpression | (expression (',' expression)* (',' spreadExpression)?)  ','?
 {recoverWhile="expression_list_recover" extends=expressionList  methods= [spreadExpression="spreadExpression[0]"]}
 
@@ -827,7 +827,7 @@ componentName ::= identifier
 //       but that affects a lot of code and is best not attempted just before a release...
 //private newCallExpression ::= '(' expressionList? ')'
 //newExpression ::= 'new' type newCallExpression
-private newExpressionArgumentsList ::= '(' [!')' expression (',' expression)*] ')' {pin(".*")=1}
+private newExpressionArgumentsList ::= '(' [!')' (spreadExpression | (expression (',' expression)* (',' spreadExpression)?))] ')' {pin(".*")=1}
 newExpression ::= 'inline'? 'new' type newExpressionArgumentsList
 {pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
