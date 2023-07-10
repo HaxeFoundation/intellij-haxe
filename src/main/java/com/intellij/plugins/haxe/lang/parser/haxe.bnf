@@ -474,14 +474,14 @@ private typeWrapper ::= functionType | typeOrAnonymous
 
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
-functionArgument ::= optionalFunctionTypeWithoutName | namedFunctionType | namedTypeOrAnonymous
-private namedTypeOrAnonymous ::= [optionalMark] [componentName ':'] typeOrAnonymous
+functionArgument ::=  optionalFunctionTypeWithoutName  | namedFunctionType | namedTypeOrAnonymous
+private namedTypeOrAnonymous ::= ([optionalMark] [componentName ':'] (restArgumentType | typeOrAnonymous  ))
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
-private optionalFunctionTypeWithoutName ::= optionalMark '(' functionType ')' {pin=3}
-
+private optionalFunctionTypeWithoutName ::= [optionalMark] '(' functionType ')' {pin=3}
+restArgumentType ::= '...' typeWrapper
 private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
-oldFunctionTypeArgument ::= optionalMark? ('(' functionType ')' | typeOrAnonymous) {elementType="functionArgument" pin(".*")=3}
+oldFunctionTypeArgument ::=   (optionalMark? ('(' functionType ')' |  typeOrAnonymous )) {elementType="functionArgument" pin(".*")=3}
 
 // /////////////////////////////////////////////////////////////////////////////////////////
 /*

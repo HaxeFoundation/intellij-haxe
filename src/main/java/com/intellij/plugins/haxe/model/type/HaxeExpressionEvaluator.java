@@ -540,8 +540,10 @@ public class HaxeExpressionEvaluator {
           if (subelement instanceof  HaxeReferenceExpression referenceExpression) {
             PsiElement resolve = referenceExpression.resolve();
             if (resolve != null) {
-              // TODO some kind of recursion guard maybe?
-              typeHolder = handle(resolve, context, resolver);
+              // small attempt at recursion guard
+              if (resolve !=element) {
+                typeHolder = handle(resolve, context, resolver);
+              }
             }
           }
           if (subelement instanceof HaxeClass haxeClass) {
@@ -622,16 +624,17 @@ public class HaxeExpressionEvaluator {
                   break;
                 }
               }
-
-              HaxeType enumValue = extractor.getType();
-              PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
-              if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
-                HaxeParameterList parameterList = declaration.getParameterList();
-                if (parameterList != null && parameterList.getParameterList().size() >= index) {
-                  HaxeParameter parameter = parameterList.getParameterList().get(index);
-                  HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, new HaxeGenericSpecialization());
-                  if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
-                    typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
+              if (index > -1) {
+                HaxeType enumValue = extractor.getType();
+                PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
+                if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
+                  HaxeParameterList parameterList = declaration.getParameterList();
+                  if (parameterList != null && parameterList.getParameterList().size() >= index) {
+                    HaxeParameter parameter = parameterList.getParameterList().get(index);
+                    HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, new HaxeGenericSpecialization());
+                    if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
+                      typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
+                    }
                   }
                 }
               }

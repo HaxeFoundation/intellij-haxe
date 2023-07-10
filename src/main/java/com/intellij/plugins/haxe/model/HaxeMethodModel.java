@@ -50,6 +50,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public PsiElement getBasePsi() {
     return haxeMethod;
   }
+  public HaxeMethod getMethod() {
+    return haxeMethod;
+  }
 
   public HaxeMethodPsiMixin getMethodPsi() {
     return haxeMethod;

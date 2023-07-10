@@ -575,7 +575,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       if (resolve instanceof HaxeReferenceExpression referenceExpression) {
         PsiElement second = referenceExpression.resolve();
         if (second instanceof HaxeReference reference) {
-          return reference.resolveHaxeClass();
+          // small attempt at guarding against recursive loop
+          if (reference != this) {
+            return reference.resolveHaxeClass();
+          }
         }
       }
       if (resolve instanceof HaxeClassDeclaration declaration) {
