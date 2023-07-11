@@ -70,6 +70,7 @@ public class HaxeOperatorResolver {
     if (canAssignLeftToInt && canAssignRightToInt) {
       if (operator.equals("<<")
       || operator.equals(">>")
+      || operator.equals(">>>")
       || operator.equals("&")
       || operator.equals("|")) {
         result =  SpecificHaxeClassReference.getInt(elementContext);
