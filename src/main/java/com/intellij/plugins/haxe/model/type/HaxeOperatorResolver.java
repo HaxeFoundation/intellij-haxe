@@ -17,12 +17,12 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class HaxeOperatorResolver {
@@ -133,6 +133,9 @@ public class HaxeOperatorResolver {
     if (type2 instanceof  SpecificHaxeClassReference classReference) {
       overloads.addAll(classReference.getOperatorOverloads(operator));
     }
+    // TODO we can have multiple overloads that are applicable but we neeed to chose the one that is the most specific
+    // ex. int can be cast to float and used as a float arg, but if we have  both a float and int overload we should pick int.
+    overloads = sortByMostSpecificType(overloads, type1, type2);
       for (HaxeMethodModel overload : overloads) {
         // non-static methods takes 1 arg "this" is left, parameter is right
         if (overload.getParameters().size() == 1) {
@@ -141,15 +144,45 @@ public class HaxeOperatorResolver {
           if (rightMatches) {
             return overload.getReturnType(null).getType();
           }
-          // static methods takes 2 args (Left  operator Right)
+          // static methods takes 2 args (Left operator Right)
         }else if (overload.getParameters().size() == 2){
-          HaxeParameterModel param = overload.getParameters().get(1);
-          boolean rightMatches = param.getType().canAssign(type2.createHolder());
-          if (rightMatches) {
+          HaxeParameterModel leftParam = overload.getParameters().get(0);
+          HaxeParameterModel rightParam = overload.getParameters().get(1);
+          boolean leftMatches = leftParam.getType().canAssign(type1.createHolder());
+          boolean rightMatches = rightParam.getType().canAssign(type2.createHolder());
+          if (leftMatches && rightMatches) {
             return  overload.getReturnType(null).getType();
           }
         }
       }
     return null;
+  }
+
+  private static List<HaxeMethodModel> sortByMostSpecificType(List<HaxeMethodModel> overloads,
+                                                              SpecificTypeReference type1,
+                                                              SpecificTypeReference type2) {
+    //TODO mlo: implement properly
+    //This is not really sorted by Most Specific type, it just looks for exact type match and move those to top of list.
+    //hopefully this will work in most cases
+    return overloads.stream().sorted(compareParam(type1, 0).thenComparing(compareParam(type2, 1))).toList();
+  }
+
+  private static  Comparator<HaxeMethodModel> compareParam(SpecificTypeReference param, int paramIndex) {
+    return  (modelA, modelB) -> {
+      ResultHolder typeA = modelA.getParameters().get(paramIndex).getType();
+      ResultHolder typeB = modelB.getParameters().get(paramIndex).getType();
+
+      // if model A matches but model B  does not, move A upwards
+      if (typeA.getType().isSameType(param) && !typeB.getType().isSameType(param)) {
+        return -1;
+      }
+      // if model A does not matches while model B  does, move B upwards
+      else if (!typeA.getType().isSameType(param) && typeB.getType().isSameType(param)) {
+        return 1;
+      }else {
+        // both either matches or both does not match param
+        return 0;
+      }
+    };
   }
 }

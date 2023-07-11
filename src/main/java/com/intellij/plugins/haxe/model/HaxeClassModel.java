@@ -47,6 +47,9 @@ public class HaxeClassModel implements HaxeExposableModel {
   private List<HaxeMethodModel> castToMethods;
   private List<HaxeMethodModel> castFromMethods;
 
+  //for caching purposes
+  private FullyQualifiedInfo myQualifiedInfo;
+
   public HaxeClassModel(@NotNull HaxeClass haxeClass) {
     this.haxeClass = haxeClass;
   }
@@ -467,15 +470,16 @@ public class HaxeClassModel implements HaxeExposableModel {
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    HaxeExposableModel exhibitor = getExhibitor();
-    if (exhibitor != null) {
-      FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
-      if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, getName(), null);
+    if (myQualifiedInfo == null) {
+      HaxeExposableModel exhibitor = getExhibitor();
+      if (exhibitor != null) {
+        FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
+        if (containerInfo != null) {
+          myQualifiedInfo = new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, getName(), null);
+        }
       }
     }
-
-    return null;
+    return myQualifiedInfo;
   }
 
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {

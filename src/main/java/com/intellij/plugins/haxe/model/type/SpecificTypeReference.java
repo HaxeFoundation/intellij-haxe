@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
@@ -499,4 +500,25 @@ public abstract class SpecificTypeReference {
   }
 
 
+  public boolean isSameType(@NotNull SpecificTypeReference other) {
+    if(!this.getClass().equals(other.getClass())) {
+      return false;
+    }
+    if (this instanceof  SpecificHaxeClassReference thisReference && other instanceof SpecificHaxeClassReference otherReference) {
+      FullyQualifiedInfo thisInfo = thisReference.getHaxeClassModel().getQualifiedInfo();
+      FullyQualifiedInfo otherInfo = otherReference.getHaxeClassModel().getQualifiedInfo();
+      if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
+        return  true;
+      }
+    }
+    if (this instanceof  SpecificEnumValueReference thisReference && other instanceof SpecificEnumValueReference otherReference) {
+      //TODO mlo: implement
+      log.warn("isSameType NOT IMPLEMENTED for SpecificEnumValueReference");
+    }
+    if (this instanceof  SpecificFunctionReference thisReference && other instanceof SpecificEnumValueReference SpecificFunctionReference) {
+      //TODO mlo: implement
+      log.warn("isSameType NOT IMPLEMENTED for SpecificFunctionReference");
+    }
+    return false;
+  }
 }
