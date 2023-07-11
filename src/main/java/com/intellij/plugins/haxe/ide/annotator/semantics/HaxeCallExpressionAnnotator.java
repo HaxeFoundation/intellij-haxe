@@ -296,7 +296,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
       }
       else {
-        ResultHolder resolvedParameterType = HaxeTypeResolver.resolveParameterizedType(parameterType, resolver);
+        ResultHolder resolvedParameterType = HaxeTypeResolver.resolveParameterizedType(parameterType, resolver.withoutUnknowns());
         if (!canAssignToFrom(resolvedParameterType, argumentType)) {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
@@ -459,7 +459,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
       }
       else {
-        ResultHolder resolvedParameterType = HaxeTypeResolver.resolveParameterizedType(parameterType, resolver);
+        ResultHolder resolvedParameterType = HaxeTypeResolver.resolveParameterizedType(parameterType, resolver.withoutUnknowns());
         if (!canAssignToFrom(resolvedParameterType, argumentType)) {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
@@ -815,8 +815,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     HaxeGenericResolver inheritResolver = new HaxeGenericResolver();
     if (parameter instanceof SpecificHaxeClassReference parameterReference &&
         argument instanceof SpecificHaxeClassReference argumentReference) {
-      HaxeGenericResolver paramResolver = parameterReference.getGenericResolver().addAll(resolver);
-      HaxeGenericResolver argResolver = argumentReference.getGenericResolver().addAll(resolver);
+      HaxeGenericResolver paramResolver = parameterReference.getGenericResolver().addAll(resolver.withoutUnknowns());
+      HaxeGenericResolver argResolver = argumentReference.getGenericResolver().addAll(resolver.withoutUnknowns());
       for (String name : paramResolver.names()) {
         ResultHolder resolve = paramResolver.resolve(name);
         if (resolve != null && resolve.isClassType()) {
