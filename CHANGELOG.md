@@ -1,8 +1,13 @@
-
 # Changelog
 
-## [Unreleased]
+## 1.4.6
 * Coalescing operator support
+* support for spread operator in method calls
+* Added missing support for unsigned shift right operator
+* Reworked type checking for method calls
+* Reworked switch-case extractor internals
+* Improving operator overload handling
+* Misc type resolving fixes
 
 ## 1.4.5
 * Improved HaxeDoc rendering and displaying resolved type
