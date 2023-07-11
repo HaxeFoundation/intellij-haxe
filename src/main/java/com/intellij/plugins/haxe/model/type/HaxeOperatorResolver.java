@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HaxeOperatorResolver {
@@ -107,12 +108,8 @@ public class HaxeOperatorResolver {
       result = HaxeTypeUnifier.unify(left, right, context.root);
     }
 
-    // check overloads for left argument
+    // check overloads
     SpecificTypeReference overloadResult = checkOverloads(left, right, operator);
-    if (overloadResult == null) {
-      // if no match for left,  check for overloads in right argument
-      overloadResult = checkOverloads(right, left, operator);
-    }
     // if overload matched use result
     if (overloadResult != null) {
       result = overloadResult;
@@ -129,8 +126,13 @@ public class HaxeOperatorResolver {
   private static SpecificTypeReference checkOverloads(SpecificTypeReference type1,
                                                     SpecificTypeReference type2,
                                                       String operator) {
+    List<HaxeMethodModel> overloads = new ArrayList<>();
     if (type1 instanceof  SpecificHaxeClassReference classReference) {
-      List<HaxeMethodModel> overloads = classReference.getOperatorOverloads(operator);
+      overloads.addAll(classReference.getOperatorOverloads(operator));
+    }
+    if (type2 instanceof  SpecificHaxeClassReference classReference) {
+      overloads.addAll(classReference.getOperatorOverloads(operator));
+    }
       for (HaxeMethodModel overload : overloads) {
         // non-static methods takes 1 arg "this" is left, parameter is right
         if (overload.getParameters().size() == 1) {
@@ -148,7 +150,6 @@ public class HaxeOperatorResolver {
           }
         }
       }
-    }
     return null;
   }
 }
