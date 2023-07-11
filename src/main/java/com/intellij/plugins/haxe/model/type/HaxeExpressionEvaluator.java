@@ -154,6 +154,7 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeForStatement) {
       HaxeForStatement forStatement = (HaxeForStatement)element;
+        final HaxeExpression forStatementExpression = forStatement.getExpression();
         final HaxeKeyValueIterator keyValueIterator = forStatement.getKeyValueIterator();
         final HaxeComponentName name = forStatement.getComponentName();
         final HaxeIterable iterable = forStatement.getIterable();
@@ -165,6 +166,12 @@ public class HaxeExpressionEvaluator {
           ResultHolder iteratorResult = iterableValue.getIterableElementType(resolver);
           SpecificTypeReference type = iteratorResult != null ? iteratorResult.getType() : null;
           if (type != null) {
+            if (forStatementExpression != null) {
+              ResultHolder handle = handle(forStatementExpression, context, resolver);
+              if (handle.getType() != null) {
+                return handle.getType().createHolder();
+              }
+            }
             return new ResultHolder(type);
           }
           if (iterableValue.isConstant()) {
@@ -602,6 +609,10 @@ public class HaxeExpressionEvaluator {
             if (name != null && element.textMatches(name)) {
               if (iterable != null) {
                 ResultHolder iterator = handle(iterable, context, resolver);
+                // "unwrap" null type  if Null<T>
+                if(iterator.getClassType().isNullType()) {
+                  iterator = iterator.getClassType().getSpecifics()[0];
+                }
                 // get specific from iterator as thats the type for our variable
                 ResultHolder[] specifics = iterator.getClassType().getSpecifics();
                 if (specifics.length > 0) {
