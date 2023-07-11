@@ -145,22 +145,10 @@ public class HaxeTypeCompatible {
   }
 
   private static SpecificFunctionReference createEnumConstructorFunction(SpecificTypeReference ref) {
-    //TODO create enumConstructor method ?
     if (ref instanceof SpecificEnumValueReference enumValueReference) {
-      HaxeEnumValueModel model = enumValueReference.getModel();
-      List<SpecificFunctionReference.Argument> arguments = model.getConstructorParameters().getParameterList().stream().map(parameter -> mapToArgument(parameter)).toList();
-      ResultHolder resultHolder = model.getDeclaringClass().getInstanceType();
-      return new SpecificFunctionReference(arguments, resultHolder, null, ref.context, null);
+      return enumValueReference.getConstructor();
     }
     return null;
-  }
-
-  private static SpecificFunctionReference.Argument mapToArgument(HaxeParameter parameter) {
-    // TODO fix index ?
-    boolean optional = parameter.getOptionalMark() != null;
-    String name = parameter.getComponentName().getName();
-    ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
-    return new SpecificFunctionReference.Argument(0, optional,type, name);
   }
 
   private static boolean isEnumValueConstructor(SpecificTypeReference ref) {

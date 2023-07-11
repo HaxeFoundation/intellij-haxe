@@ -17,12 +17,16 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.model.HaxeEnumModelImpl;
 import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SpecificEnumValueReference extends SpecificTypeReference {
 
@@ -31,6 +35,8 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   HaxeGenericResolver resolver;
   Object constantValue;
   HaxeEnumValueModel model;
+
+  SpecificFunctionReference constructor;
 
   // TODO: Need the parameter values???
 
@@ -65,7 +71,10 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
 
   @NotNull
   public HaxeEnumValueModel getModel() {
-    return new HaxeEnumValueModel(declaration);
+    if (model == null) {
+      model = new HaxeEnumValueModel(declaration);
+    }
+    return model;
   }
 
   @NotNull
@@ -74,7 +83,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     ResultHolder type = model.getResultType(resolver);
 
     // When there is no type hint/tag on the enum, the resolver returns another reference, so we need to return the EnumValue class.
-    if (null == type  || type.getType() instanceof SpecificEnumValueReference) {
+    if (null == type || type.getType() instanceof SpecificEnumValueReference) {
       type = SpecificHaxeClassReference.getEnumValue(context).createHolder();
     }
 
@@ -102,7 +111,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
 
   public String toShortPresentationString() {
     StringBuilder out = new StringBuilder(this.declaration.getName());
-    ResultHolder [] specifics = resolver.getSpecifics();
+    ResultHolder[] specifics = resolver.getSpecifics();
     if (specifics.length > 0) {
       out.append("<");
       for (int n = 0; n < specifics.length; n++) {
@@ -134,5 +143,37 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   @Override
   public boolean canBeTypeVariable() {
     return false;
+  }
+
+  @Nullable
+  public SpecificFunctionReference getConstructor() {
+    if(model.getConstructorParameters() == null) {
+      // should not happen, no arg constructors are not a thing and enum should be considered a field
+      return null;
+    }
+    if (constructor == null){
+      HaxeEnumValueModel model = getModel();
+      ResultHolder resultHolder = model.getDeclaringClass().getInstanceType();
+      List<SpecificFunctionReference.Argument> arguments = convertParameterList(model);
+      constructor = new SpecificFunctionReference(arguments, resultHolder, null, context, null);
+    }
+    return constructor;
+  }
+
+  private static List<SpecificFunctionReference.Argument> convertParameterList(HaxeEnumValueModel model) {
+    List<SpecificFunctionReference.Argument> arguments = new ArrayList<>();
+    @NotNull List<HaxeParameter> list = model.getConstructorParameters().getParameterList();
+    for (int i = 0; i < list.size(); i++) {
+      HaxeParameter parameter = list.get(i);
+      arguments.add(mapToArgument(parameter, i));
+    }
+    return arguments;
+  }
+
+  private static SpecificFunctionReference.Argument mapToArgument(HaxeParameter parameter, int index) {
+    boolean optional = parameter.getOptionalMark() != null;
+    String name = parameter.getComponentName().getName();
+    ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
+    return new SpecificFunctionReference.Argument(index, optional, type, name);
   }
 }
