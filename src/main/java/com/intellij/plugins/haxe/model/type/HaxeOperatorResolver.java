@@ -120,12 +120,13 @@ public class HaxeOperatorResolver {
     if (left.getConstant() != null && right.getConstant() != null) {
       if (operator.equals("&&")) {
         if(left.getConstant() instanceof  HaxeNull) {
-          result.withConstantValue(left.getConstant());
+          result = result.withConstantValue(right.getConstant());
         }else {
-          result.withConstantValue(right.getConstant());
+          result = result.withConstantValue(left.getConstant());
         }
+      }else {
+        result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
       }
-      result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }
 
     return result != null ? result : SpecificHaxeClassReference.getUnknown(elementContext);

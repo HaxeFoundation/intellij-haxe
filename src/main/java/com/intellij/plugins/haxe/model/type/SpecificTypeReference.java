@@ -501,17 +501,22 @@ public abstract class SpecificTypeReference {
 
 
   public boolean isSameType(@NotNull SpecificTypeReference other) {
-    if(!this.getClass().equals(other.getClass())) {
+    if (!this.getClass().equals(other.getClass())) {
       return false;
     }
-    if (this instanceof  SpecificHaxeClassReference thisReference && other instanceof SpecificHaxeClassReference otherReference) {
-      FullyQualifiedInfo thisInfo = thisReference.getHaxeClassModel().getQualifiedInfo();
-      FullyQualifiedInfo otherInfo = otherReference.getHaxeClassModel().getQualifiedInfo();
-      if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
-        return  true;
+    if (this instanceof SpecificHaxeClassReference thisReference && other instanceof SpecificHaxeClassReference otherReference) {
+      HaxeClassModel thisModel = thisReference.getHaxeClassModel();
+      HaxeClassModel otherModel = otherReference.getHaxeClassModel();
+      if (thisModel != null && otherModel != null) {
+        FullyQualifiedInfo thisInfo = thisModel.getQualifiedInfo();
+        FullyQualifiedInfo otherInfo = otherModel.getQualifiedInfo();
+        if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
+          return true;
+        }
       }
+      return false;// one or more unknown models,  need a different way to compare
     }
-    if (this instanceof  SpecificEnumValueReference thisReference && other instanceof SpecificEnumValueReference otherReference) {
+    if (this instanceof SpecificEnumValueReference thisReference && other instanceof SpecificEnumValueReference otherReference) {
       //TODO mlo: implement
       log.warn("isSameType NOT IMPLEMENTED for SpecificEnumValueReference");
     }
