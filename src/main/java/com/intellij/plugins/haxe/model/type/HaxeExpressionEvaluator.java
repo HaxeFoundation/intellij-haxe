@@ -229,22 +229,23 @@ public class HaxeExpressionEvaluator {
             break;
           }
         }
-
-        HaxeType enumValue = extractor.getType();
-        PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
-        if(enumValueDeclaration instanceof  HaxeEnumValueDeclaration  declaration) {
-          HaxeParameter parameter = declaration.getParameterList().getParameterList().get(index);
-          HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
-          // attempt at getting type parameter from expression args
-          if (switchStatement != null) {
-            HaxeExpressionEvaluatorContext evaluate = evaluate(switchStatement.getExpression(), context, resolver);
-            if (evaluate.result.isClassType()) {
-              resolver.addAll(evaluate.result.getClassType().getGenericResolver());
+        if( index != -1) {
+          HaxeType enumValue = extractor.getType();
+          PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
+          if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
+            HaxeParameter parameter = declaration.getParameterList().getParameterList().get(index);
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
+            // attempt at getting type parameter from expression args
+            if (switchStatement != null) {
+              HaxeExpressionEvaluatorContext evaluate = evaluate(switchStatement.getExpression(), context, resolver);
+              if (evaluate.result.isClassType()) {
+                resolver.addAll(evaluate.result.getClassType().getGenericResolver());
+              }
             }
-          }
-          HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, resolver.getSpecialization(null));
-          if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
-            return new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
+            HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, resolver.getSpecialization(null));
+            if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
+              return new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
+            }
           }
         }
       }
@@ -614,31 +615,8 @@ public class HaxeExpressionEvaluator {
           }
 
           else if (subelement instanceof HaxeEnumExtractedValue extractedValue) {
-            HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
-            if (extractor != null) {
-              int index = -1;
-              PsiElement[] extractorArguments = extractor.getEnumExtractorArgumentList().getChildren();
-              for (int i = 0; i < extractorArguments.length; i++) {
-                if (extractorArguments[i] == element) {
-                  index = i;
-                  break;
-                }
-              }
-              if (index > -1) {
-                HaxeType enumValue = extractor.getType();
-                PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
-                if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
-                  HaxeParameterList parameterList = declaration.getParameterList();
-                  if (parameterList != null && parameterList.getParameterList().size() >= index) {
-                    HaxeParameter parameter = parameterList.getParameterList().get(index);
-                    HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, new HaxeGenericSpecialization());
-                    if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
-                      typeHolder = new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
-                    }
-                  }
-                }
-              }
-            }
+            //we  can handle HaxeEnumExtractedValue with  "handle", probably no need to duplicate code here
+            typeHolder = handle(subelement, context, resolver);
           }
           else if (subelement instanceof AbstractHaxeNamedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, resolver);

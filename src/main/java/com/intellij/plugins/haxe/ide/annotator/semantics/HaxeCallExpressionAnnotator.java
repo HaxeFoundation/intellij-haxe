@@ -6,10 +6,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeFunctionTypeModel;
-import com.intellij.plugins.haxe.model.HaxeFunctionTypeParameterModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -502,6 +499,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       else if (resolvedExpression instanceof HaxeMethodDeclaration methodDeclaration) {
         SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(null);
         expressionType = type.createHolder();
+      }else if (resolvedExpression instanceof HaxeEnumValueDeclaration valueDeclaration) {
+        return  HaxeTypeResolver.getEnumReturnType(valueDeclaration, referenceExpression.resolveHaxeClass().getGenericResolver());
       }
     }
     // anything else is resolved here (literals etc.)
@@ -509,7 +508,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument, null);
       HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(argument);
       genericResolver.addAll(resolver); // TODO verify if this is ok
-      expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver).result;
+      expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver.withoutUnknowns()).result;
     }
 
     // if expression is enumValue we need to resolve the underlying enumType type to test assignment

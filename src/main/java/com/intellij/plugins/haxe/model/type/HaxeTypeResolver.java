@@ -90,7 +90,7 @@ public class HaxeTypeResolver {
   }
 
   @Nullable
-  private static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp, HaxeGenericResolver resolver) {
+  public static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp, HaxeGenericResolver resolver) {
     ResultHolder result = getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
     if (result.isUnknown()) {
       result = new SpecificEnumValueReference(comp, comp.getParent(), resolver).createHolder();

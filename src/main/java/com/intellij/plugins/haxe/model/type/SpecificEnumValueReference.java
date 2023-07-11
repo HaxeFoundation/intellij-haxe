@@ -42,7 +42,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   }
 
   public SpecificEnumValueReference(@NotNull HaxeEnumValueDeclaration enumValue, @NotNull PsiElement context,
-                                    @Nullable HaxeGenericResolver resolver, @Nullable Object constantValue) {
+                                    @NotNull HaxeGenericResolver resolver, @Nullable Object constantValue) {
     super(context);
     HaxeEnumDeclaration enumElement =
       UsefulPsiTreeUtil.getParentOfType(enumValue, HaxeEnumDeclaration.class);

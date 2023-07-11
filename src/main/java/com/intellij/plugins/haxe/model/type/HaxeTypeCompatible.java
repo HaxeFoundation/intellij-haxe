@@ -24,6 +24,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -92,7 +93,14 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
-    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref) || isAbstractAssignableToFunction(ref);
+    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref) || isAbstractAssignableToFunction(ref) || enumValueWithConstructor(ref);
+  }
+
+  private static boolean enumValueWithConstructor(SpecificTypeReference ref) {
+    if (ref instanceof  SpecificEnumValueReference enumValueReference) {
+      return enumValueReference.getModel().hasConstructor();
+    }
+    return false;
   }
 
   private static boolean isAbstractAssignableToFunction(SpecificTypeReference ref) {
@@ -129,7 +137,37 @@ public class HaxeTypeCompatible {
         SpecificHaxeClassReference classReference = (SpecificHaxeClassReference) ref;
         if(classReference.isTypeDefOfFunction())  return classReference.resolveTypeDefFunction();
     }
+    if(isEnumValueConstructor(ref)) {
+      return createEnumConstructorFunction(ref);
+    }
+
     return null;  // XXX: Should throw exception instead??
+  }
+
+  private static SpecificFunctionReference createEnumConstructorFunction(SpecificTypeReference ref) {
+    //TODO create enumConstructor method ?
+    if (ref instanceof SpecificEnumValueReference enumValueReference) {
+      HaxeEnumValueModel model = enumValueReference.getModel();
+      List<SpecificFunctionReference.Argument> arguments = model.getConstructorParameters().getParameterList().stream().map(parameter -> mapToArgument(parameter)).toList();
+      ResultHolder resultHolder = model.getDeclaringClass().getInstanceType();
+      return new SpecificFunctionReference(arguments, resultHolder, null, ref.context, null);
+    }
+    return null;
+  }
+
+  private static SpecificFunctionReference.Argument mapToArgument(HaxeParameter parameter) {
+    // TODO fix index ?
+    boolean optional = parameter.getOptionalMark() != null;
+    String name = parameter.getComponentName().getName();
+    ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
+    return new SpecificFunctionReference.Argument(0, optional,type, name);
+  }
+
+  private static boolean isEnumValueConstructor(SpecificTypeReference ref) {
+    if (ref instanceof SpecificEnumValueReference enumValueReference) {
+      return enumValueReference.getModel().hasConstructor();
+    }
+    return false;
   }
 
   static public boolean canAssignToFrom(
@@ -183,6 +221,13 @@ public class HaxeTypeCompatible {
         SpecificFunctionReference toRef = asFunctionReference(to);
         SpecificFunctionReference fromRef = asFunctionReference(from);
         return canAssignToFromFunction(toRef, fromRef, holder);
+      }
+    }
+    // check if we try to assign enum value to a reference with (it's) enum class as type
+    if (to instanceof SpecificHaxeClassReference classReference && (classReference.isEnumType() || classReference.isEnumValueClass())){
+      if (from instanceof  SpecificEnumValueReference  valueReference) {
+        if (classReference.isEnumValueClass()) return true; // all enum values can be assigned to EnumValueClass type;
+        return canAssignToFromType( classReference, valueReference.getEnumClass());
       }
     }
 
@@ -406,6 +451,7 @@ public class HaxeTypeCompatible {
   }
 
   private static boolean containsAllMembers(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
+    if (to.isFromTypeParameter() || from.isFromTypeParameter() ) return false; // unable to evaluate members when type is not resolved
     List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getMembers(to.getGenericResolver());
     List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getMembers(to.getGenericResolver());
     for (HaxeMemberModel member : toMembers) {

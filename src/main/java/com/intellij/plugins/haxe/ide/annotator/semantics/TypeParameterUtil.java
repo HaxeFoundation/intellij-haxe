@@ -73,6 +73,7 @@ public class TypeParameterUtil {
     if (specifics.length == 0) return Stream.of(holder);
     return Arrays.stream(specifics)
       .filter(ResultHolder::isClassType)
+      .filter(h -> !h.equals(holder) )// avoid recursive loop (classes can have itself as type parameter)
       .flatMap(TypeParameterUtil::getSpecificsIfClass);
   }
 }

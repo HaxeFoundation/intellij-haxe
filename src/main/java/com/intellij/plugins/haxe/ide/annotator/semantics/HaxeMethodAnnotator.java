@@ -29,6 +29,8 @@ import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignT
 @CustomLog
 public class HaxeMethodAnnotator implements Annotator {
 
+  public static final String DEFAULT_ARG_NAME = "_";
+
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
       if (element instanceof HaxeMethod haxeMethod) {
@@ -119,7 +121,7 @@ public class HaxeMethodAnnotator implements Annotator {
       }
 
       if (checkRepeatedParameterName) {
-        if (argumentNames.containsKey(paramName)) {
+        if (argumentNames.containsKey(paramName) && !paramName.equals(DEFAULT_ARG_NAME)) {
           // @TODO: Move to bundle
           holder.newAnnotation(HighlightSeverity.WARNING,"Repeated argument name '" + paramName + "'").range(param.getNamePsi()).create();
           holder.newAnnotation(HighlightSeverity.WARNING, "Repeated argument name '" + paramName + "'").range(argumentNames.get(paramName)).create();
