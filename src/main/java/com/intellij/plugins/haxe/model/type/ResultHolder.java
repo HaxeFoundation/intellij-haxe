@@ -73,6 +73,10 @@ public class ResultHolder {
   public boolean isTypeDef() {
     return (type instanceof SpecificHaxeClassReference classReference) && classReference.isTypeDef();
   }
+  @Nullable
+  public boolean isEnum() {
+    return (type instanceof SpecificHaxeClassReference classReference) && classReference.isEnumType();
+  }
 
   public boolean isEnumValueType() {
     return (type instanceof SpecificEnumValueReference);

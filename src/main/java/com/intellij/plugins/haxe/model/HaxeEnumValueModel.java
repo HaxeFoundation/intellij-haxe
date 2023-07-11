@@ -17,6 +17,8 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -72,6 +74,22 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
   public boolean hasConstructor() {
     return hasConstructor;
+  }
+
+  @Override
+  public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
+    PsiClass aClass = getMemberPsi().getContainingClass();
+    if (aClass instanceof HaxeClass haxeClass) {
+
+      HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
+      SpecificHaxeClassReference reference =
+        SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
+
+      ResultHolder holder = reference.createHolder();
+      return holder;
+
+    }
+    return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
   }
 
   @Nullable

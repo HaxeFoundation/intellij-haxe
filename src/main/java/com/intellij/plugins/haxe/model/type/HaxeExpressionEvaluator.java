@@ -238,24 +238,20 @@ public class HaxeExpressionEvaluator {
           }
         }
         if (index != -1) {
-          HaxeType enumValue = extractor.getType();
-          PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
-          if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
+          SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
+          HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
+
+          if (declaration != null) {
             List<HaxeParameter> list = declaration.getParameterList().getParameterList();
             if (index < list.size()) {
               HaxeParameter parameter = list.get(index);
-              HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
-              // attempt at getting type parameter from expression args
-              if (switchStatement != null) {
-                HaxeExpressionEvaluatorContext evaluate = evaluate(switchStatement.getExpression(), context, resolver);
-                if (evaluate.result.isClassType()) {
-                  resolver.addAll(evaluate.result.getClassType().getGenericResolver());
-                }
-              }
-              HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(parameter, resolver.getSpecialization(null));
-              if (result.getHaxeClass() != null && result.getHaxeClass().getContext() != null) {
-                return new ResultHolder(result.getSpecificClassReference(result.getHaxeClass().getContext(), resolver));
-              }
+              resolver.addAll(enumClass.getGenericResolver());
+
+
+              ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
+              ResultHolder resolve = resolver.resolve(type);
+              return resolve;
+
             }else {
               log.warn("encountered Enum extractor with more argument than enum constructor");
             }
@@ -534,10 +530,11 @@ public class HaxeExpressionEvaluator {
             if (children.length == 1) {
               context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType(),
                                new HaxeCreateLocalVariableFixer(accessName, element));
-            } else {
+            }
+            else {
               context.addError(children[n], "Can't resolve '" + accessName + "' in " + typeHolder.getType(),
-              new HaxeCreateMethodFixer(accessName, element),
-              new HaxeCreateFieldFixer(accessName, element));
+                               new HaxeCreateMethodFixer(accessName, element),
+                               new HaxeCreateFieldFixer(accessName, element));
             }
 
           }

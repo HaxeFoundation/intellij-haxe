@@ -635,7 +635,8 @@ enumExtractedValue::=componentName
 private switchExtractorExpressionArgument ::= (switchExtractorExpressionArrayLiteral | switchExtractorExpression | enumExtractedValue)
 
 enumExtractorArgumentList ::= ( switchExtractorExpressionArgument) (',' (switchExtractorExpressionArgument))*
-enumArgumentExtractor ::= type '(' enumExtractorArgumentList ')'   {extends="expression"}
+enumValueReference ::= referenceExpression
+enumArgumentExtractor ::= enumValueReference '(' enumExtractorArgumentList ')'   {extends="expression"}
 
 variableCaptureExpression ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 

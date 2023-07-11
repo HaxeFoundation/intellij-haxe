@@ -690,12 +690,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             break;
           }
         }
-
-        HaxeType enumValue = extractor.getType();
-        PsiElement enumValueDeclaration = enumValue.getReferenceExpression().resolve();
-        if (enumValueDeclaration instanceof HaxeEnumValueDeclaration declaration) {
-          HaxeParameter parameter = declaration.getParameterList().getParameterList().get(index);
-          return HaxeResolveUtil.tryResolveClassByTypeTag(parameter, new HaxeGenericSpecialization());
+        SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
+        HaxeEnumValueDeclaration enumValueDeclaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
+        if (enumValueDeclaration  != null) {
+          HaxeParameter parameter = enumValueDeclaration.getParameterList().getParameterList().get(index);
+          HaxeGenericResolver resolver = enumClass.getGenericResolver();
+          ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
+          ResultHolder resultHolder = resolver.resolve(type);
+          if(resultHolder != null && resultHolder.getClassType()!= null) {
+            return resultHolder.getClassType().asResolveResult();
+          }
         }
       }
     }
@@ -726,8 +730,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
           if (listPart != null) {
             HaxeTypeList list = listPart.getTypeList();
+            HaxeTypeListPart typeListPart = listPart.getTypeListPart();
             if (list != null) {
-              list.getTypeListPartList();
               List<HaxeType> classReferences = new ArrayList<>();
               for (HaxeTypeListPart part : list.getTypeListPartList()) {
                 HaxeType type = part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType();
@@ -737,6 +741,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               }
 
               HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
+              return HaxeResolveResult.create(constraint);
+            }else if (typeListPart != null) {
+              HaxeType type = typeListPart.getTypeOrAnonymous() == null ? null : typeListPart.getTypeOrAnonymous().getType();
+              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), List.of(type));
               return HaxeResolveResult.create(constraint);
             }
           }

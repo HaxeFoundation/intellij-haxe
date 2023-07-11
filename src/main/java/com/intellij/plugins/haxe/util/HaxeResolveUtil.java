@@ -46,7 +46,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import lombok.CustomLog;
-
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +54,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MML_COMMENT;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 /**
@@ -1225,5 +1225,33 @@ public class HaxeResolveUtil {
       }
     }
     return outClasses;
+  }
+
+  public static SpecificHaxeClassReference resolveExtractorEnum(HaxeEnumArgumentExtractor extractor) {
+    HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractor, HaxeSwitchStatement.class);
+    if (switchStatement != null) {
+      HaxeExpression expression = switchStatement.getExpression();
+      if (expression == null) return null;
+      if (expression instanceof  HaxeParenthesizedExpression parenthesizedExpression){
+        expression = parenthesizedExpression.getExpression();
+      }
+      HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
+      ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null), resolver).result;
+      if (result.isEnum() && result.getClassType() != null) {
+        return result.getClassType();
+      }
+    }
+    return null;
+  }
+
+  public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
+    if (enumClass != null) {
+      String memberName = extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText();
+      HaxeMemberModel member = enumClass.getHaxeClassModel().getMember(memberName, enumClass.getGenericResolver());
+      if (member instanceof HaxeEnumValueModel enumValueModel) {
+        return enumValueModel.getEnumValuePsi();
+      }
+    }
+    return null;
   }
 }

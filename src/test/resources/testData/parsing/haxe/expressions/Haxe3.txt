@@ -450,7 +450,7 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           ENUM_ARGUMENT_EXTRACTOR
-                            TYPE
+                            ENUM_VALUE_REFERENCE
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
                                   HaxePsiToken:ID('Leaf')
@@ -471,14 +471,14 @@ Haxe File
                         HaxePsiToken:case('case')
                         SWITCH_CASE_EXPR
                           ENUM_ARGUMENT_EXTRACTOR
-                            TYPE
+                            ENUM_VALUE_REFERENCE
                               REFERENCE_EXPRESSION
                                 IDENTIFIER
                                   HaxePsiToken:ID('Node')
                             HaxePsiToken:(('(')
                             ENUM_EXTRACTOR_ARGUMENT_LIST
                               ENUM_ARGUMENT_EXTRACTOR
-                                TYPE
+                                ENUM_VALUE_REFERENCE
                                   REFERENCE_EXPRESSION
                                     IDENTIFIER
                                       HaxePsiToken:ID('Leaf')

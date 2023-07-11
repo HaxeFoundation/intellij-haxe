@@ -182,6 +182,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
+    if (result == null) result = checkEnumExtractor(reference);
     if (result == null) {
       // try super field
       List<? extends PsiElement> superElements =
@@ -220,6 +221,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkEnumExtractor(HaxeReference reference) {
+    if (reference.getParent() instanceof  HaxeEnumValueReference) {
+      HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(reference, HaxeEnumArgumentExtractor.class);
+      SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
+      if (classReference != null) {
+        HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
+        if (declaration!= null) return List.of(declaration);
+      }
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkCaptureVarReference(HaxeReference reference) {
@@ -360,12 +373,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (matchExpression != null) {
       HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(reference, HaxeEnumArgumentExtractor.class);
       if (argumentExtractor!= null) {
-        ResultHolder type = HaxeTypeResolver.getTypeFromType(argumentExtractor.getType());
-        if (type.isClassType()) {
-          SpecificHaxeClassReference classType = type.getClassType();
-          HaxeClassModel model = classType== null ? null : classType.getHaxeClassModel();
+        SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
+        if (enumClass != null) {
+          HaxeClassModel model = enumClass.getHaxeClassModel();
           if (model != null) {
-            HaxeMemberModel enumValue = model.getMember(argumentExtractor.getType().getText(), null);
+            HaxeMemberModel enumValue = model.getMember(argumentExtractor.getEnumValueReference().getText(), null);
             if (enumValue instanceof  HaxeEnumValueModel enumValueModel) {
               int argumentIndex = findExtractorIndex(switchCaseExpr.getChildren(), argumentExtractor);
               if (argumentIndex > -1) {

@@ -117,6 +117,13 @@ public class HaxeOperatorResolver {
 
 
     if (left.getConstant() != null && right.getConstant() != null) {
+      if (operator.equals("&&")) {
+        if(left.getConstant() instanceof  HaxeNull) {
+          result.withConstantValue(left.getConstant());
+        }else {
+          result.withConstantValue(right.getConstant());
+        }
+      }
       result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
     }
 
@@ -169,6 +176,17 @@ public class HaxeOperatorResolver {
 
   private static  Comparator<HaxeMethodModel> compareParam(SpecificTypeReference param, int paramIndex) {
     return  (modelA, modelB) -> {
+
+      boolean singleArgA = modelA.getParameters().size() == 1;
+      boolean singleArgB = modelB.getParameters().size() == 1;
+      if (singleArgA && singleArgB) {
+        return 0;// both have 1 argument overloads, so "first" argument is "this" and therefore the correct type.
+      }else if (singleArgA) {
+        return -1;
+      }else if (singleArgB) {
+        return 1;
+      }
+
       ResultHolder typeA = modelA.getParameters().get(paramIndex).getType();
       ResultHolder typeB = modelB.getParameters().get(paramIndex).getType();
 
