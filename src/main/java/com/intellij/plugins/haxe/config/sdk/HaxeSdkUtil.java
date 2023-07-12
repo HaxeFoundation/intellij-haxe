@@ -43,6 +43,8 @@ import java.util.regex.Pattern;
 @CustomLog
 public class HaxeSdkUtil extends HaxeSdkUtilBase {
   private static final Pattern VERSION_MATCHER = Pattern.compile("(\\d+(\\.\\d+)+)");
+  private static final String DEFAULT_STD_LINUX_PATH = "/usr/share/haxe/std";
+  private static final String DEFAULT_STD_MAC_PATH = "/usr/local/lib/haxe/std";
 
   @Nullable
   public static HaxeSdkData testHaxeSdk(String path) {
@@ -102,6 +104,13 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     else {
       stdRoot = sdkRoot.findChild("std");
     }
+    // if standard lib not found and not on windows check default install path for linux and macOS
+    if (stdRoot == null && SystemInfo.isLinux) {
+      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + DEFAULT_STD_LINUX_PATH);
+    }
+    if (stdRoot == null && SystemInfo.isMac) {
+      stdRoot = VirtualFileManager.getInstance().findFileByUrl("file://" + DEFAULT_STD_MAC_PATH);
+    }
     if (stdRoot != null) {
       modificator.addRoot(stdRoot, OrderRootType.SOURCES);
       modificator.addRoot(stdRoot, OrderRootType.CLASSES);
@@ -160,10 +169,7 @@ public class HaxeSdkUtil extends HaxeSdkUtilBase {
     //Try to locate SDK path relative to the compiler executable.
     String compilerPath = locateExecutable("haxe");
     if(compilerPath != null) {
-      String presumedSdkPath = new File(compilerPath).getParent();
-      if(new File(presumedSdkPath, "std/Array.hx").exists()) {
-        return presumedSdkPath;
-      }
+      return new File(compilerPath).getParent();
     }
 
     return null;
