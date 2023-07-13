@@ -420,12 +420,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
 
           if (sameClass || implementOrExtendSameClass) {
-            HaxeReferenceExpression haxeReference = null;
+            HaxeReference haxeReference = null;
             if (expression instanceof HaxeNewExpression || expression instanceof HaxeCallExpression) {
               haxeReference = PsiTreeUtil.findChildOfType(expression, HaxeReferenceExpression.class);
             }
-            if (expression instanceof HaxeReferenceExpression) {
-              haxeReference = (HaxeReferenceExpression)expression;
+            if (expression instanceof HaxeReference reference) {
+              haxeReference = reference;
             }
 
             HaxeClass haxeClassResolveResultHaxeClass = null;
