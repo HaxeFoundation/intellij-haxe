@@ -1,5 +1,9 @@
 # Changelog
 
+## [Unreleased]
+* Resolved conflict between Maven and Lime project files
+* Improved haxeSDK detection for linux and Mac OS
+
 ## 1.4.6
 * Coalescing operator support
 * support for spread operator in method calls
