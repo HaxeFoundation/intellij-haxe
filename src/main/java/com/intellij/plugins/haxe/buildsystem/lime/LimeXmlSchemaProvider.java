@@ -34,6 +34,6 @@ public class LimeXmlSchemaProvider extends XmlSchemaProvider {
         XmlTag rootTag = document.getRootTag();
         if (rootTag == null) return false;
 
-        return "project".equalsIgnoreCase(rootTag.getName());
+        return LimeOpenFlUtil.looksLikeALimeProjectFile(rootTag);
     }
 }
