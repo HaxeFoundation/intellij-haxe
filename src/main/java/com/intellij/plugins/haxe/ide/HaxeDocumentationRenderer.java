@@ -16,6 +16,7 @@ import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.NodeRenderer;
 import org.commonmark.renderer.html.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -48,13 +49,28 @@ public class HaxeDocumentationRenderer {
 
   public String renderDocs(String docs) {
     // docs are usually divided into multiple lines to fit the screen, but we dont want this when rendering the docs in a resizable window
+    // we also dont want unnecessary many tabs in the middle of a line so we try to strip out indents
+    String[] split = docs.split("\n");
+    String secondLine = split[1];
+    int before = secondLine.length();
+    int after = secondLine.stripLeading().length();
+    int estimatedIdents = before - after ;
+
     String trimmedDocs = Arrays.stream(docs.trim().split("\n"))
-      .map(String::trim)
+      .map(s -> trimIdents(s, estimatedIdents))
       .map(s -> s.isEmpty() ? "\n" : s)
       .collect(Collectors.joining("\n"));
 
     Node document = parser.parse(trimmedDocs);
     return renderer.render(document);
+  }
+
+  @NotNull
+  private static String trimIdents(String s, int estimatedIdents) {
+    for (int i = 0; i < estimatedIdents; i++) {
+      s = s.replaceFirst("^(\s|\t)", "");
+    }
+    return s;
   }
 
   private static class languageHighlighter implements HtmlNodeRendererFactory {
@@ -91,6 +107,7 @@ public class HaxeDocumentationRenderer {
 
 
             Optional<Language> optionalLanguage = Language.getRegisteredLanguages().stream()
+              .filter(l -> !l.getID().isEmpty())
               .filter(l -> l.getID().toLowerCase().equalsIgnoreCase(languageString))
               .findFirst();
 
