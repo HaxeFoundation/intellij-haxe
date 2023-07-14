@@ -1367,10 +1367,11 @@ public class HaxelibProjectUpdater {
 
     @Override
     public void dispose() {
-      ExternalSystemProjectTracker.getInstance(getProject()).remove(HaxelibAutoImport.mySystemProjectId);
       Collection<Module> modules = ModuleUtil.getModulesOfType(getProject(), HaxeModuleType.getInstance());
       modules.forEach(HaxelibCacheManager::removeInstance);
       modules.forEach(myLibraryCacheManager::removeInstance);
+
+      ExternalSystemProjectTracker.getInstance(getProject()).remove(HaxelibAutoImport.mySystemProjectId);
     }
 
     public void moduleRemoved(Module module) {

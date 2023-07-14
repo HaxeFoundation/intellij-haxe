@@ -8,6 +8,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.buildsystem.lime.LimeOpenFlUtil;
 import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
+import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,7 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
+    HaxelibUtil.clearCache();
     HaxelibProjectUpdater instance = HaxelibProjectUpdater.INSTANCE;
     Project project = getProject(e);
     HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);

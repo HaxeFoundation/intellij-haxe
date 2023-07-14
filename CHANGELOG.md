@@ -1,6 +1,8 @@
 # Changelog
 
 ## [Unreleased]
+* Fixed rendering bugs for haxeDoc
+* Cache repository path response from Haxelib to avoid unnecessary calls 
 * Resolved conflict between Maven and Lime project files
 * Improved haxeSDK detection for linux and Mac OS
 

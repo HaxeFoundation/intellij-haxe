@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.buildsystem.lime.LimeOpenFlUtil;
 import com.intellij.plugins.haxe.haxelib.HaxelibCacheManager;
 import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
+import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +33,7 @@ public class UpdateHaxeLibCacheAction extends AnAction implements DumbAware {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent event) {
+    HaxelibUtil.clearCache();
     Project project = event.getProject();
 
     Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
