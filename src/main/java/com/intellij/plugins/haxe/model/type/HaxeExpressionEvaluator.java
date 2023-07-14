@@ -1141,7 +1141,12 @@ public class HaxeExpressionEvaluator {
 
   private static SpecificTypeReference resolveAnyTypeDefs(SpecificTypeReference reference) {
     if (reference instanceof SpecificHaxeClassReference classReference && classReference.isTypeDef()) {
-      return resolveAnyTypeDefs(classReference.resolveTypeDefClass());
+      if(classReference.isTypeDefOfFunction()) {
+        return classReference.resolveTypeDefFunction();
+      }else {
+        SpecificHaxeClassReference resolvedClass = classReference.resolveTypeDefClass();
+        return resolveAnyTypeDefs(resolvedClass);
+      }
     }
     return reference;
   }

@@ -56,6 +56,7 @@ public class HaxeGenericUtil {
 
 
   public static ResultHolder[] applyConstraintsToSpecifics(HaxeMethodModel model, ResultHolder[] specifics) {
+    ResultHolder[] newSpecifics = new ResultHolder[specifics.length];
     List<HaxeGenericParamModel> genericParams = model.getGenericParams();
     if (nonNull(genericParams)) {
 
@@ -66,22 +67,17 @@ public class HaxeGenericUtil {
         boolean nameFound = genericParams.stream().anyMatch(m -> m.getName().equals(name));
         if (nameFound) {
           if (nameAndConstraints.containsKey(name)) {
-            specifics[i] = nameAndConstraints.get(name);
-
-            // TODO hack to avoid EnumValue issues
-            //  The EnumValue type does not have any implicit cast methods and is not an Enum type yet the compiler  in some cases treats it as if it did.
-            //  We get around this issue by  replacing it with Enum<Dynamic> for now.
-            if (specifics[i].getClassType().isEnumValueClass()) {
-              ResultHolder dynamicType = SpecificTypeReference.getDynamic(model.getMethodPsi()).createHolder();
-              specifics[i] = wrapType(dynamicType, specifics[i].getElementContext(), true).createHolder();
-            }
-            continue;
+            newSpecifics[i] = nameAndConstraints.get(name);
+          }else {
+            newSpecifics[i] = SpecificTypeReference.getDynamic(model.getMethodPsi()).createHolder();
           }
-          specifics[i] = SpecificTypeReference.getDynamic(model.getMethodPsi()).createHolder();
+        }else {
+          // not found, just copy original
+          newSpecifics[i] = specifics[i];
         }
       }
     }
-    return specifics;
+    return newSpecifics;
   }
 
   public static SpecificHaxeClassReference replaceTypeIfGenericParameterName(HaxeMethodModel model, SpecificHaxeClassReference parameter) {
