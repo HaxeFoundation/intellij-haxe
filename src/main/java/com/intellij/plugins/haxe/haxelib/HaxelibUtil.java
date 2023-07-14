@@ -54,6 +54,11 @@ import java.util.*;
 public class HaxelibUtil {
   static public final String LOCAL_REPO = ".haxelib";
 
+  static private  Map<String,String> libBasePathCache = new HashMap<>();
+  public static void clearCache() {
+    libBasePathCache.clear();
+  }
+
   static {      // Take this out when finished debugging.
     log.setLevel(LogLevel.DEBUG);
   }
@@ -67,11 +72,30 @@ public class HaxelibUtil {
 
   /**
    * Get the base path that haxelib uses to store libraries.
+   *
+   * note: We attempt to cache results as libBasePath is more or less haxelib repo dir (global or local)
+   *
    * @param sdk
    * @return
    */
   @Nullable
   public static VirtualFile getLibraryBasePath(@NotNull final Sdk sdk, VirtualFile workDir) {
+    String workDirPath = workDir.getCanonicalPath();
+    VirtualFile file = null;
+    if (libBasePathCache.containsKey(workDirPath)) {
+      String libBasePath = libBasePathCache.get(workDirPath);
+      file = LocalFileSystem.getInstance().findFileByPath(libBasePath);
+    }else{
+      file = _getLibraryBasePath(sdk, workDir);
+      if(file!= null) {
+        String path = file.getCanonicalPath();
+        libBasePathCache.put(workDirPath, path);
+      }
+    }
+    return file;
+  }
+  @Nullable
+  private static VirtualFile _getLibraryBasePath(@NotNull final Sdk sdk, VirtualFile workDir) {
       List<String> output = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir, "config");
       for (String s : output) {
         if (s.isEmpty()) continue;
@@ -79,7 +103,7 @@ public class HaxelibUtil {
         if (null != file) {
           return file;
         }
-    }
+      }
     return null;
   }
 

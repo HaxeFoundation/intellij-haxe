@@ -1280,6 +1280,7 @@ public class HaxelibProjectUpdater {
           //      the project settings really changed, and act accordingly.
           myCache.clear();
           myLibraryCacheManager.clear();
+          HaxelibUtil.clearCache();
         }
       }
       return ret;
