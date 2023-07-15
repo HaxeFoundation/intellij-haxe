@@ -61,7 +61,7 @@ Haxe File
               HaxePsiToken:ID('arg3')
           HaxePsiToken:)(')')
       PsiComment(MSL_COMMENT)('// Should be an error on this line.')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

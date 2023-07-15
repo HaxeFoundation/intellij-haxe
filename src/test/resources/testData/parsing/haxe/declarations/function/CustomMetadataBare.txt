@@ -11,7 +11,7 @@ Haxe File
           HaxePsiToken:@('@')
           TYPE
             HaxePsiToken:META_TYPE('CustomMacro')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

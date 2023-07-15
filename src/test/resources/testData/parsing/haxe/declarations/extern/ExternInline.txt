@@ -147,7 +147,7 @@ Haxe File
               HaxePsiToken:ID('myVal')
           HaxePsiToken:;(';')
           HaxePsiToken:}('}')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

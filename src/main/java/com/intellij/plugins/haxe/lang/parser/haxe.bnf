@@ -426,7 +426,8 @@ methodDeclaration ::= methodModifier* methodHeader 'untyped'? functionCommonBody
 private methodHeader ::= 'function' methodDeclarator typeTag?
 private methodDeclarator ::= componentName genericParam? parenthesizedParameterList
 
-constructorDeclaration ::= methodModifier* constructorHeader 'untyped'? functionCommonBody {pin=2 elementType="methodDeclaration"}
+constructorDeclaration ::= methodModifier* constructorHeader 'untyped'? functionCommonBody
+{pin=2 extends="methodDeclaration" implements="com.intellij.plugins.haxe.lang.psi.HaxeConstructor"}
 private constructorHeader ::= 'function' constructorDeclarator typeTag? {elementType="methodHeader"}
 private constructorDeclarator ::= constructorName genericParam? parenthesizedParameterList {elementType="methodDeclarator"}
 constructorId ::= 'new' {elementType="identifier"}

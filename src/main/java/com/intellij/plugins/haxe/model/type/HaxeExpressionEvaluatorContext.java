@@ -42,6 +42,10 @@ public class HaxeExpressionEvaluatorContext {
   private HaxeScope<ResultHolder> scope = new HaxeScope<ResultHolder>();
   public final PsiElement root;
 
+  public HaxeExpressionEvaluatorContext(@NotNull PsiElement body) {
+    this.root = body;
+    this.holder = null;
+  }
   public HaxeExpressionEvaluatorContext(@NotNull PsiElement body, @Nullable AnnotationHolder holder) {
     this.root = body;
     this.holder = holder;

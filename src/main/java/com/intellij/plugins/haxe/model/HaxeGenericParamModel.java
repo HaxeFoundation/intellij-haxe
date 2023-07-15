@@ -62,7 +62,7 @@ public class HaxeGenericParamModel {
         if (null != reference) {
 
           ResultHolder result =
-            HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part, null), resolver).result;
+            HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part), resolver).result;
           return result;
         }
         else {

@@ -240,6 +240,7 @@
     <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="last"/>
 
 
+
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeLocalVarAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeFieldAnnotator"/>
@@ -252,6 +253,8 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxePackageAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeTypeCheckExprAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeBinaryExpressionAnnotator"/>
+
+    <annotator language="Haxe" id="body" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodBodyAnnotator" order="last"/>
 
     <highlightRangeExtension implementation="com.intellij.plugins.haxe.ide.annotator.HaxeHighlightRangeExtension"/>
 

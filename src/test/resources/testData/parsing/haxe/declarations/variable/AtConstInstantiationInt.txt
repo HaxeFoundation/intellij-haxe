@@ -104,7 +104,7 @@ Haxe File
             HaxePsiToken:;(';')
           PsiComment(MSL_COMMENT)('// <---- Original errors on '<' and ';'')
           HaxePsiToken:}('}')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

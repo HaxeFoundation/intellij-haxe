@@ -31,7 +31,7 @@ Haxe File
         PsiErrorElement:Missing semicolon.
           <empty list>
       PsiComment(MSL_COMMENT)('// <--- Missing semicolon should cause an error.')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

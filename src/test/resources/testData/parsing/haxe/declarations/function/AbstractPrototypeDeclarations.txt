@@ -32,7 +32,7 @@ Haxe File
       HaxePsiToken:)(')')
     ABSTRACT_BODY
       HaxePsiToken:{('{')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

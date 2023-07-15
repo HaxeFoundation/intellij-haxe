@@ -466,7 +466,7 @@ public class HaxeResolveResult implements Cloneable {
 
   public void specializeByTypeInference(PsiElement element) {
     HaxeGenericResolver resolver = specialization != null ? specialization.toGenericResolver(element) : new HaxeGenericResolver();
-    HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(this.getHaxeClass(), null), resolver);
+    HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(this.getHaxeClass()), resolver);
     if (null != evaluated.result) {
       SpecificHaxeClassReference classType = evaluated.result.getClassType();
       if (null != classType) {

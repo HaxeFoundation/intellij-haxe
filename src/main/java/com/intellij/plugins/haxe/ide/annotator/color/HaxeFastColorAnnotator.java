@@ -58,6 +58,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
     }else if (node instanceof HaxeComponentName componentName) {
       checkComponentName(componentName, holder);
     }
+
   }
 
   private static void ppelements(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {

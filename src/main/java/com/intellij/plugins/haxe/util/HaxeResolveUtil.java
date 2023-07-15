@@ -1236,7 +1236,7 @@ public class HaxeResolveUtil {
         expression = parenthesizedExpression.getExpression();
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
-      ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null), resolver).result;
+      ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
       if (result.isEnum() && result.getClassType() != null) {
         return result.getClassType();
       }

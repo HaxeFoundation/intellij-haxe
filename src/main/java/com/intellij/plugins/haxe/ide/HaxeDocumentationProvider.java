@@ -75,7 +75,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       if (element instanceof HaxeLiteralExpression) {
         return null; // no need to  show docs for literal expressions
       }else {
-        HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element, null);
+        HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
         HaxeExpressionEvaluator.evaluate(element, context, null);
         makeHeader(mainBuilder, context.result);
       }
@@ -353,13 +353,13 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       builder.appendRaw(highlighting);
     }
     else if (component instanceof HaxeForStatement forStatement) {
-      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(forStatement, null);
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(forStatement);
       HaxeExpressionEvaluator.evaluate(forStatement, context, null);
 
       makeHeader(builder, context.result);
     }
     else if (component instanceof HaxeEnumExtractedValue extractedValue) {
-      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue, null);
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
       HaxeExpressionEvaluator.evaluate(extractedValue, context, null);
 
       makeHeader(builder, context.result);
@@ -367,7 +367,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   }
 
   private static void resolveTypeAndMakeHeader(HtmlBuilder builder, HaxeNamedComponent component) {
-    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(component, null);
+    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(component);
     HaxeExpressionEvaluator.evaluate(component, context, null);
 
     makeHeader(builder, context.result);

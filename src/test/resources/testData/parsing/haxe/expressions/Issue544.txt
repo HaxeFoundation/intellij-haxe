@@ -22,7 +22,7 @@ Haxe File
         HaxePsiToken:ID('TestIssue544')
     CLASS_BODY
       HaxePsiToken:{('{')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

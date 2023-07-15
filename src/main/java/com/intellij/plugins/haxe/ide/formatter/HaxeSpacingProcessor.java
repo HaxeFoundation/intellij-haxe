@@ -171,11 +171,11 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (isMethodDeclaration(type1) && isMethodDeclaration(type2)) {
+    if (isMethodDeclarationOrConstructorDeclaration(type1) && isMethodDeclarationOrConstructorDeclaration(type2)) {
       return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (isMethodDeclaration(type1) && isFieldDeclaration(type2)) {
+    if (isMethodDeclarationOrConstructorDeclaration(type1) && isFieldDeclaration(type2)) {
       return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -183,7 +183,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_FIELD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (isFieldDeclaration(type1)&& isMethodDeclaration(type2)) {
+    if (isFieldDeclaration(type1) && isMethodDeclarationOrConstructorDeclaration(type2)) {
       return Spacing.createSpacing(0, 0, 1 + mySettings.BLANK_LINES_AROUND_METHOD, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -191,7 +191,7 @@ public class HaxeSpacingProcessor {
       return Spacing.createSpacing(0,0,1,false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
-    if (ONLY_COMMENTS.contains(type1) && (isMethodDeclaration(type2) || isFieldDeclaration(type2))) { // prevent excess linefeed between doctype and function
+    if (ONLY_COMMENTS.contains(type1) && (isMethodDeclarationOrConstructorDeclaration(type2) || isFieldDeclaration(type2))) { // prevent excess linefeed between doctype and function
       return Spacing.createSpacing(0, 0, 1, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
@@ -498,7 +498,7 @@ public class HaxeSpacingProcessor {
         || type == LOCAL_VAR_DECLARATION_LIST;
   }
 
-  private boolean isMethodDeclaration(IElementType type) {
-    return type == METHOD_DECLARATION;
+  private boolean isMethodDeclarationOrConstructorDeclaration(IElementType type) {
+    return type == METHOD_DECLARATION || type == CONSTRUCTOR_DECLARATION;
   }
 }

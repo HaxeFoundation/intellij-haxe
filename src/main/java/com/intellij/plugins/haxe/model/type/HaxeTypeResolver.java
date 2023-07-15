@@ -256,7 +256,15 @@ public class HaxeTypeResolver {
         return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
       }
     }
-    if (comp instanceof HaxeMethod) {
+    if (comp instanceof HaxeConstructor constructor) {
+      // TODO constrcutors should return their declaringClass type
+      HaxeClassModel declaringClass = constructor.getModel().getDeclaringClass();
+      ResultHolder type = declaringClass.getInstanceType();
+      if (resolver!= null) {
+        type = resolver.withoutUnknowns().resolve(type);;
+      }
+      return type;
+    } else if (comp instanceof HaxeMethod) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), (AnnotationHolder)null, resolver);
       return resolveParameterizedType(context.getReturnType(), resolver);
     } else if (comp instanceof HaxeFunctionLiteral) {

@@ -394,7 +394,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // Also, maps can be created via comprehensions, so if the expression is anything other than a FAT_ARROW,
       // we will have to get the type of the statement.
       HaxeMapLiteral haxeMapLiteral = (HaxeMapLiteral)this;
-      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(this, null);
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(this);
       HaxeExpressionEvaluator.evaluate(haxeMapLiteral, context, HaxeGenericResolverUtil.generateResolverFromScopeParents(this));
 
       SpecificHaxeClassReference mapClass = context.result.getClassType();

@@ -46,7 +46,7 @@ Haxe File
                 HaxePsiToken:{('{')
                 HaxePsiToken:}('}')
         HaxePsiToken:;(';')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

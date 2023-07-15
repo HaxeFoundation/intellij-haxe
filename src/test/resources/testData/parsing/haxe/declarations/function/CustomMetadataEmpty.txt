@@ -13,7 +13,7 @@ Haxe File
             HaxePsiToken:META_TYPE('Ignore')
           HaxePsiToken:(('(')
           HaxePsiToken:)(')')
-      METHOD_DECLARATION
+      CONSTRUCTOR_DECLARATION
         METHOD_MODIFIER
           HaxePsiToken:public('public')
         HaxePsiToken:function('function')

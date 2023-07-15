@@ -12,8 +12,6 @@ import org.jetbrains.annotations.NotNull;
 public class HaxeBinaryExpressionAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-    //TODO mlo:  Disable for now, to many false positive due to the lack of  @:forward support
-    //return ;
 
     if (element instanceof HaxeAssignExpression) {
       // HaxeAssignExpression -> assign is handle by localVarAnnotator etc.
@@ -39,7 +37,7 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
     PsiElement[] children = binaryExpression.getChildren();
     if (children.length == 3) {
 
-      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(binaryExpression, null);
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(binaryExpression);
       HaxeExpressionEvaluator.evaluate(binaryExpression, context, null);
 
       ResultHolder result = context.result;

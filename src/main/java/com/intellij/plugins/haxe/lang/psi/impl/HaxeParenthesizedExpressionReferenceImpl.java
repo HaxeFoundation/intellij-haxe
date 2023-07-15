@@ -56,7 +56,7 @@ public class HaxeParenthesizedExpressionReferenceImpl extends HaxeReferenceImpl 
   @NotNull
   public HaxeResolveResult getResolvedType() {
     HaxeExpressionEvaluatorContext context =
-      HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
+      HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression),
                                        HaxeGenericResolverUtil.generateResolverFromScopeParents(expression));
 
     ResultHolder result = context.result;

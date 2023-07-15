@@ -505,7 +505,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     }
     // anything else is resolved here (literals etc.)
     if (expressionType == null) {
-      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument, null);
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument);
       HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(argument);
       genericResolver.addAll(resolver); // TODO verify if this is ok
       expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver.withoutUnknowns()).result;
@@ -623,13 +623,6 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     return null;
   }
 
-
-  @NotNull
-  private static ResultHolder findExpressionType(HaxeExpression expression) {
-    return HaxeExpressionEvaluator
-      .evaluate(expression, new HaxeExpressionEvaluatorContext(expression, null),
-                HaxeGenericResolverUtil.generateResolverFromScopeParents(expression)).result;
-  }
 
   private static long countRequiredArguments(List<HaxeParameterModel> parametersList) {
     return parametersList.stream()

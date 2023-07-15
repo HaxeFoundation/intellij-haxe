@@ -42,10 +42,6 @@ public class HaxeMethodAnnotator implements Annotator {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
-    if (HaxeSemanticAnnotatorConfig.ENABLE_EXPERIMENTAL_BODY_CHECK) {
-      checkBody(methodPsi, holder);
-    }
-    //currentMethod.getBodyPsi()
   }
 
   private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
@@ -429,25 +425,5 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder prototypeResult = prototype.getResultType();
 
     return !currentResult.canAssign(prototypeResult);
-  }
-
-
-  public static void checkBody(HaxeMethod psi, AnnotationHolder holder) {
-    final HaxeMethodModel method = psi.getModel();
-    // Note: getPsiElementType runs a number of checks while determining the type.
-    HaxeTypeResolver.getPsiElementType(method.getBodyPsi(), holder, generateConstraintResolver(method));
-  }
-
-  @NotNull
-  private static HaxeGenericResolver generateConstraintResolver(HaxeMethodModel method) {
-    HaxeGenericResolver resolver = new HaxeGenericResolver();
-    for (HaxeGenericParamModel param : method.getGenericParams()) {
-      ResultHolder constraint = param.getConstraint(resolver);
-      if (null == constraint) {
-        constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
-      }
-      resolver.add(param.getName(), constraint);
-    }
-    return resolver;
   }
 }

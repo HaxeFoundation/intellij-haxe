@@ -161,6 +161,7 @@ public interface HaxeTokenTypeSets {
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(
+    CONSTRUCTOR_DECLARATION,
     METHOD_DECLARATION,
     LOCAL_FUNCTION_DECLARATION,
     FUNCTION_LITERAL

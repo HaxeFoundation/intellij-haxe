@@ -83,9 +83,16 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return getParameterPsi().getTypeTag();
   }
 
+  private ResultHolder resolvedType;
   @NotNull
   public ResultHolder getType() {
-    return HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
+    // experimental caching
+    // Theory is that while this model is valid only type parameters will change so we might keep the resolved  result
+    // and let the overriding method getType(resolver)  relace any type parameters as needed
+    if (resolvedType == null) {
+      resolvedType = HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
+    }
+    return resolvedType.duplicate();
   }
 
   @NotNull

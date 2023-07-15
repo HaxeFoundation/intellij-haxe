@@ -152,7 +152,7 @@ public class HaxeGenericResolverUtil {
               if ((null != resolverType && resolverType.isUnknown()) || paramSpecifics.length > 0) {
                 HaxeExpression expression = expressionList.get(n);
 
-                HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call, null);
+                HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call);
                 HaxeExpressionEvaluator.evaluate(expression, evaluatorContext, resolver);
                 ResultHolder result = evaluatorContext.result;
                 if (null != resolverType && resolverType.isUnknown()) {
