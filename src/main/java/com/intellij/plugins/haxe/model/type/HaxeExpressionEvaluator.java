@@ -142,6 +142,7 @@ public class HaxeExpressionEvaluator {
         if (iteratorParent.isClassType()) {
           SpecificHaxeClassReference haxeClassReference = iteratorParent.getClassType();
           HaxeGenericResolver localResolver = haxeClassReference.getGenericResolver();
+          localResolver.addAll(resolver);
           HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
           if (iterator instanceof HaxeMethodModel methodModel) {
             return methodModel.getReturnType(localResolver);
@@ -170,6 +171,17 @@ public class HaxeExpressionEvaluator {
               ResultHolder handle = handle(forStatementExpression, context, resolver);
               if (handle.getType() != null) {
                 return handle.getType().createHolder();
+              }
+            }
+            if (type.isFromTypeParameter()) {
+              if (iterable.getExpression() instanceof  HaxeReference reference) {
+                HaxeResolveResult result = reference.resolveHaxeClass();
+                HaxeGenericResolver classResolver = result.getGenericResolver();
+                ResultHolder holder = type.createHolder();
+                ResultHolder resolved = classResolver.resolve(holder);
+                if (!resolved.isUnknown()) {
+                  return resolved;
+                }
               }
             }
             return new ResultHolder(type);
@@ -249,8 +261,7 @@ public class HaxeExpressionEvaluator {
 
 
               ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
-              ResultHolder resolve = resolver.resolve(type);
-              return resolve;
+              return resolver.resolve(type);
 
             }else {
               log.warn("encountered Enum extractor with more argument than enum constructor");
