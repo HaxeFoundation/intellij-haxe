@@ -141,8 +141,9 @@ public class HaxeExpressionEvaluator {
       if (!type.isNumeric()) {
         if (iteratorParent.isClassType()) {
           SpecificHaxeClassReference haxeClassReference = iteratorParent.getClassType();
-          HaxeGenericResolver localResolver = haxeClassReference.getGenericResolver();
+          HaxeGenericResolver localResolver =  new HaxeGenericResolver();
           localResolver.addAll(resolver);
+          localResolver.addAll(haxeClassReference.getGenericResolver());// replace parent/old resolver values with newer from class reference
           HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
           if (iterator instanceof HaxeMethodModel methodModel) {
             return methodModel.getReturnType(localResolver);
