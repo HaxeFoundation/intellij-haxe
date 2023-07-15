@@ -295,7 +295,7 @@ public class HaxeMethodAnnotator implements Annotator {
           })).create();
       }
 
-      if (currentParam.isOptional() != parentParam.hasOptionalPsi()) {
+      if (currentParam.isOptional() != parentParam.isOptional()) {
         final boolean removeOptional = currentParam.hasOptionalPsi();
 
         String errorMessage;
