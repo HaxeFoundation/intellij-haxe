@@ -53,12 +53,12 @@ public class ResultHolder {
 
   @Nullable
   public SpecificFunctionReference getFunctionType() {
-    return (type instanceof SpecificFunctionReference) ? (SpecificFunctionReference)type : null;
+    return (type instanceof SpecificFunctionReference functionType) ? functionType : null;
   }
 
   @Nullable
   public SpecificHaxeClassReference getClassType() {
-    return (type instanceof SpecificHaxeClassReference) ? (SpecificHaxeClassReference)type : null;
+    return (type instanceof SpecificHaxeClassReference classReference) ? classReference : null;
   }
 
   @Nullable

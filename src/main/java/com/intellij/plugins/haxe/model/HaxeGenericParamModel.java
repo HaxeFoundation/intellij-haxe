@@ -63,7 +63,13 @@ public class HaxeGenericParamModel {
 
           ResultHolder result =
             HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part), resolver).result;
-          return result;
+          if (!result.isUnknown()) {
+            return result;
+          }else {
+            if(HaxeTypeResolver.isTypeParameter(reference)) {
+              return HaxeTypeResolver.getTypeFromTypeOrAnonymous(toa);
+            }
+          }
         }
         else {
 

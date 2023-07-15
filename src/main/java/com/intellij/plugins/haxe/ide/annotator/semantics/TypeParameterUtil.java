@@ -23,7 +23,9 @@ public class TypeParameterUtil {
       List<HaxeGenericParamModel> params = methodModel.getGenericParams();
       for (HaxeGenericParamModel model : params) {
         ResultHolder constraint = model.getConstraint(resolver);
-        typeParamMap.put(model.getName(), constraint);
+        if (constraint != null && constraint.isUnknown()) {
+          typeParamMap.put(model.getName(), constraint);
+        }
       }
       HaxeClassModel declaringClass = methodModel.getDeclaringClass();
       if (declaringClass != null) {
@@ -38,7 +40,9 @@ public class TypeParameterUtil {
   }
 
   public static boolean containsTypeParameter(@NotNull ResultHolder parameterType, @NotNull Map<String, ResultHolder> typeParamMap) {
-    if (!parameterType.isClassType()) return false;
+    if (parameterType.getClassType() == null) return false;
+    if (parameterType.getClassType().isFromTypeParameter()) return true;
+
 
     ResultHolder[] specifics = parameterType.getClassType().getSpecifics();
     if (specifics.length == 0){
@@ -59,7 +63,7 @@ public class TypeParameterUtil {
       String className = parameterType.getClassType().getClassName();
       return typeParamMap.containsKey(className) ? Optional.ofNullable(typeParamMap.get(className)) : Optional.empty();
     }
-    HaxeGenericResolver resolver = parameterType.getClassType().getGenericResolver();
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
 
     Arrays.stream(specifics)
       .filter(ResultHolder::isClassType)
