@@ -698,6 +698,15 @@ public class HaxeExpressionEvaluator {
         HaxeExpressionEvaluator.checkParameters(callExpression, ftype, parameterExpressions, context, resolver);
 
         ResultHolder returnType = ftype.getReturnType();
+
+        HaxeGenericResolver functionResolver = new HaxeGenericResolver();
+        functionResolver.addAll(resolver);
+        HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
+
+        ResultHolder resolved = functionResolver.resolve(returnType);
+        if (resolved != null && !resolved.isUnknown()) {
+          returnType = resolved;
+        }
         if(returnType.isUnknown() || returnType.isDynamic() || returnType.isVoid()) {
           return returnType.duplicate();
         }
@@ -1143,6 +1152,16 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  private static void createResolverForFunction(HaxeCallExpression callExpression,
+                                                SpecificFunctionReference functionReference,
+                                                List<HaxeExpression> parameterExpressions,
+                                                HaxeExpressionEvaluatorContext context,
+                                                HaxeGenericResolver resolver) {
+
+    HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+    int i = 0;
   }
 
   private static SpecificTypeReference resolveAnyTypeDefs(SpecificTypeReference reference) {

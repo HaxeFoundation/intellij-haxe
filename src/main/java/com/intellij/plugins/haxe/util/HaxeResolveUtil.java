@@ -1177,7 +1177,7 @@ public class HaxeResolveUtil {
       }
       if (candidate instanceof  PsiComment psiComment) {
         IElementType type = psiComment.getTokenType();
-        if (type == DOC_COMMENT ||  type == MML_COMMENT) { //  ignoring single line as simple comments appears as doc (type == MSL_COMMENT)
+        if (type == DOC_COMMENT) {
           return psiComment;
         }
       }
@@ -1237,6 +1237,10 @@ public class HaxeResolveUtil {
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
       ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+      // null type "hack" : if nullType unwrap to real type
+      if(result.getType().isNullType()) {
+        result = result.getClassType().getSpecifics()[0];
+      }
       if (result.isEnum() && result.getClassType() != null) {
         return result.getClassType();
       }

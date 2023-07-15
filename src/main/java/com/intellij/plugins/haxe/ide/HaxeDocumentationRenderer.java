@@ -51,18 +51,23 @@ public class HaxeDocumentationRenderer {
     // docs are usually divided into multiple lines to fit the screen, but we dont want this when rendering the docs in a resizable window
     // we also dont want unnecessary many tabs in the middle of a line so we try to strip out indents
     String[] split = docs.split("\n");
-    String secondLine = split[1];
-    int before = secondLine.length();
-    int after = secondLine.stripLeading().length();
-    int estimatedIdents = before - after ;
+    if (split.length>1) {
+      String secondLine = split[1];
+      int before = secondLine.length();
+      int after = secondLine.stripLeading().length();
+      int estimatedIdents = before - after;
 
-    String trimmedDocs = Arrays.stream(docs.trim().split("\n"))
-      .map(s -> trimIdents(s, estimatedIdents))
-      .map(s -> s.isEmpty() ? "\n" : s)
-      .collect(Collectors.joining("\n"));
+      String trimmedDocs = Arrays.stream(docs.trim().split("\n"))
+        .map(s -> trimIdents(s, estimatedIdents))
+        .map(s -> s.isEmpty() ? "\n" : s)
+        .collect(Collectors.joining("\n"));
 
-    Node document = parser.parse(trimmedDocs);
-    return renderer.render(document);
+      Node document = parser.parse(trimmedDocs);
+      return renderer.render(document);
+    }else {
+      Node document = parser.parse(docs);
+      return renderer.render(document);
+    }
   }
 
   @NotNull

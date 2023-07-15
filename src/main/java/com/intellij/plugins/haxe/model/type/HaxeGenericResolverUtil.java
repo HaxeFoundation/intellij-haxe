@@ -106,7 +106,7 @@ public class HaxeGenericResolverUtil {
     return resolver;
   }
 
-  @NotNull static HaxeGenericResolver appendCallExpressionGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
+  @NotNull public static HaxeGenericResolver appendCallExpressionGenericResolver(@Nullable PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
 
     if (element instanceof HaxeCallExpression) {

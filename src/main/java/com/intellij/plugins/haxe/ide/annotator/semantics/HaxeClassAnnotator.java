@@ -29,6 +29,11 @@ import static java.util.stream.Collectors.toList;
 
 public class HaxeClassAnnotator implements Annotator {
 
+  private static final String ACCESSOR_DEFAULT = HaxeAccessorType.DEFAULT.text;
+  private static final String ACCESSOR_NEVER = HaxeAccessorType.NEVER.text;
+  private static final String ACCESSOR_NULL =HaxeAccessorType.NULL.text;
+  private static final String ACCESSOR_DYNAMIC =HaxeAccessorType.DYNAMIC.text;
+
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof HaxeClass haxeClass) {
@@ -252,17 +257,19 @@ public class HaxeClassAnnotator implements Annotator {
 
               if (propertyDeclaration == null) {
                 // some combinations are compatible with normal variables
-                if (intGetter.textMatches("default") && (intSetter.textMatches("never") || intSetter.textMatches("null"))) {
+                if (intGetter.textMatches(ACCESSOR_DEFAULT) && (intSetter.textMatches(ACCESSOR_NEVER) || intSetter.textMatches(
+                  ACCESSOR_NULL))) {
                   continue;
                 }
-                if (intGetter.textMatches("never") && (intSetter.textMatches("null"))) {
+                if (intGetter.textMatches(ACCESSOR_NEVER) && (intSetter.textMatches(ACCESSOR_NULL))) {
                   continue;
                 }
 
-                // @TODO: Move error messages to  bundle
-                holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
-                                                              + " has different property access than in  "
-                                                              + intReference.getHaxeClass().getName())
+                String message = HaxeBundle.message("haxe.semantic.field.different.access",
+                                                    fieldDeclaration.getName(),
+                                                    intReference.getHaxeClass().getName());
+
+                holder.newAnnotation(HighlightSeverity.ERROR, message)
                   .range(fieldDeclaration.getOriginalElement())
                   .create();
               }
@@ -272,22 +279,37 @@ public class HaxeClassAnnotator implements Annotator {
 
 
                 if (intGetter != null && getter != null) {
+                  // never is just restricting visibility for interface (class may use different access)
+                  // null only specifies access allowed from within the defining class (class may use different access)
+                  // dynamic: Like get/set access, but does not verify the existence of the accessor field.
+                  if (!intGetter.textMatches(ACCESSOR_NEVER) && !intGetter.textMatches(ACCESSOR_NULL) && intGetter.textMatches(ACCESSOR_DYNAMIC)) {
+
                   if (!intGetter.getText().equals(getter.getText())) {
-                    holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
-                                                                  + " has different property access than in  "
-                                                                  + intReference.getHaxeClass().getName())
+                    String message = HaxeBundle.message("haxe.semantic.field.different.access",
+                                                        fieldDeclaration.getName(),
+                                                        intReference.getHaxeClass().getName());
+
+                    holder.newAnnotation(HighlightSeverity.ERROR, message)
                       .range(getter.getElement())
                       .create();
+                  }
                   }
                 }
 
                 if (intSetter != null && setter != null) {
-                  if (!intSetter.getText().equals(setter.getText())) {
-                    holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
-                                                                  + " has different property access than in  "
-                                                                  + intReference.getHaxeClass().getName())
-                      .range(setter.getElement())
-                      .create();
+                  // never is just restricting visibility for interface (class may use different access)
+                  // null only specifies access allowed from within the defining class (class may use different access )
+                  // dynamic: Like get/set access, but does not verify the existence of the accessor field.
+                  if (!intSetter.textMatches(ACCESSOR_NEVER) && !intSetter.textMatches(ACCESSOR_NULL) && !intSetter.textMatches(ACCESSOR_DYNAMIC)) {
+                    if (!intSetter.getText().equals(setter.getText())) {
+                      String message = HaxeBundle.message("haxe.semantic.field.different.access",
+                                                          fieldDeclaration.getName(),
+                                                          intReference.getHaxeClass().getName());
+
+                      holder.newAnnotation(HighlightSeverity.ERROR, message)
+                        .range(setter.getElement())
+                        .create();
+                    }
                   }
                 }
               }
@@ -298,9 +320,12 @@ public class HaxeClassAnnotator implements Annotator {
 
             HaxeMutabilityModifier mutabilityModifier = fieldDeclaration.getMutabilityModifier();
             if (!modifier.getText().equals(mutabilityModifier.getText())) {
-              holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
-                                                            + " has different mutability than in  "
-                                                            + intReference.getHaxeClass().getName())
+
+              String message = HaxeBundle.message("haxe.semantic.field.different.mutability",
+                                                  fieldDeclaration.getName(),
+                                                  intReference.getHaxeClass().getName());
+
+              holder.newAnnotation(HighlightSeverity.ERROR, message)
                 .range(fieldDeclaration.getNode())
                 .create();
             }
