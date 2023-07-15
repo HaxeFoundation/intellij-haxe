@@ -19,16 +19,18 @@ public class TypeParameterUtil {
     Map<String, ResultHolder> typeParamMap = new HashMap<>();
 
     HaxeMethodModel methodModel = method.getModel();
-    if (methodModel!= null) {
+    if (methodModel != null) {
       List<HaxeGenericParamModel> params = methodModel.getGenericParams();
       for (HaxeGenericParamModel model : params) {
-        typeParamMap.put(model.getName(), model.getConstraint(resolver));
+        ResultHolder constraint = model.getConstraint(resolver);
+        typeParamMap.put(model.getName(), constraint);
       }
       HaxeClassModel declaringClass = methodModel.getDeclaringClass();
       if (declaringClass != null) {
         List<HaxeGenericParamModel> classParams = declaringClass.getGenericParams();
         for (HaxeGenericParamModel model : classParams) {
-          typeParamMap.put(model.getName(), model.getConstraint(resolver));
+          ResultHolder constraint = model.getConstraint(resolver);
+          typeParamMap.put(model.getName(), constraint);
         }
       }
     }
@@ -57,15 +59,19 @@ public class TypeParameterUtil {
       String className = parameterType.getClassType().getClassName();
       return typeParamMap.containsKey(className) ? Optional.ofNullable(typeParamMap.get(className)) : Optional.empty();
     }
+    HaxeGenericResolver resolver = parameterType.getClassType().getGenericResolver();
 
-    return Arrays.stream(specifics)
+    Arrays.stream(specifics)
       .filter(ResultHolder::isClassType)
       .flatMap(TypeParameterUtil::getSpecificsIfClass)
       .map( holder ->  holder.getClassType().getClassName())
       .filter(typeParamMap::containsKey)
-      .map(typeParamMap::get)
-      .filter(Objects::nonNull)
-      .findFirst();
+      .filter( s ->  typeParamMap.get(s) != null)
+      .forEach( s ->  resolver.add(s, typeParamMap.get(s)));
+
+
+    return Optional.ofNullable(resolver.resolve(parameterType));
+
   }
 
   private static Stream<ResultHolder> getSpecificsIfClass(@NotNull ResultHolder holder) {

@@ -485,7 +485,12 @@ public abstract class SpecificTypeReference {
           //Note to self:  this one caused stackoverflow due to recursion alternating between 2 types
           //final SpecificTypeReference typeReference = propagateGenericsToType(specific.getClassType(), genericResolver);
           if (specific.getClassType() != null) {
-            final SpecificTypeReference typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver());
+            SpecificTypeReference typeReference;
+            if (!specific.getClassType().isFromTypeParameter()) {
+              typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver());
+            }else {
+              typeReference = genericResolver.resolve(specific).getType();
+            }
             if (null != typeReference) {
               specific.setType(typeReference);
             }
