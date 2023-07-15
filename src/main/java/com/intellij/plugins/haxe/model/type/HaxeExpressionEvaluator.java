@@ -574,8 +574,13 @@ public class HaxeExpressionEvaluator {
           }
           if (subelement instanceof HaxeClass haxeClass) {
 
-            HaxeClassReference classReference = new HaxeClassReference((haxeClass).getModel(), element);
-            typeHolder = SpecificHaxeClassReference.withGenerics(classReference, resolver.getSpecifics()).createHolder();
+            HaxeClassReference classReference = new HaxeClassReference(haxeClass.getModel(), element);
+            if(haxeClass.isGeneric()) {
+              @NotNull ResultHolder[] specifics = resolver.getSpecificsFor(classReference);
+              typeHolder = SpecificHaxeClassReference.withGenerics(classReference, specifics).createHolder();
+            } else {
+              typeHolder = SpecificHaxeClassReference.withoutGenerics(classReference).createHolder();
+            }
 
             // check if pure Class Reference
             if (reference instanceof HaxeReferenceExpressionImpl expression) {

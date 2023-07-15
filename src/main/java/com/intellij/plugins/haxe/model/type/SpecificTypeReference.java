@@ -33,6 +33,8 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 @CustomLog
 public abstract class SpecificTypeReference {
   public static final String NULL = "Null";
@@ -512,22 +514,35 @@ public abstract class SpecificTypeReference {
     if (this instanceof SpecificHaxeClassReference thisReference && other instanceof SpecificHaxeClassReference otherReference) {
       HaxeClassModel thisModel = thisReference.getHaxeClassModel();
       HaxeClassModel otherModel = otherReference.getHaxeClassModel();
-      if (thisModel != null && otherModel != null) {
-        FullyQualifiedInfo thisInfo = thisModel.getQualifiedInfo();
-        FullyQualifiedInfo otherInfo = otherModel.getQualifiedInfo();
-        if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
-          return true;
-        }
+      if (hasSameQualifiedInfo(thisModel, otherModel)) {
+        return true;
       }
       return false;// one or more unknown models,  need a different way to compare
     }
     if (this instanceof SpecificEnumValueReference thisReference && other instanceof SpecificEnumValueReference otherReference) {
-      //TODO mlo: implement
-      log.warn("isSameType NOT IMPLEMENTED for SpecificEnumValueReference");
+      HaxeClassModel thisModel = thisReference.getEnumClass().getHaxeClassModel();
+      HaxeClassModel otherModel = otherReference.getEnumClass().getHaxeClassModel();
+      if (hasSameQualifiedInfo(thisModel, otherModel)) {
+        String thisName = thisReference.getModel().getName();
+        String otherName = otherReference.getModel().getName();
+        return Objects.equals(thisName, otherName);
+      }
+
     }
     if (this instanceof  SpecificFunctionReference thisReference && other instanceof SpecificEnumValueReference SpecificFunctionReference) {
       //TODO mlo: implement
       log.warn("isSameType NOT IMPLEMENTED for SpecificFunctionReference");
+    }
+    return false;
+  }
+
+  private static boolean hasSameQualifiedInfo(HaxeClassModel thisModel, HaxeClassModel otherModel) {
+    if (thisModel != null && otherModel != null) {
+      FullyQualifiedInfo thisInfo = thisModel.getQualifiedInfo();
+      FullyQualifiedInfo otherInfo = otherModel.getQualifiedInfo();
+      if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
+        return true;
+      }
     }
     return false;
   }

@@ -222,6 +222,11 @@ public class HaxeTypeCompatible {
       return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, includeImplicitCast, toOrigin, fromOrigin) ;
     }
 
+    if (to instanceof SpecificEnumValueReference toReference && from instanceof SpecificEnumValueReference fromReference) {
+      return toReference.isSameType(fromReference);
+    }
+
+
     return false;
   }
 

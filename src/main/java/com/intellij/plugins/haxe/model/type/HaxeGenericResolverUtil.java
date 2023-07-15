@@ -141,7 +141,10 @@ public class HaxeGenericResolverUtil {
               ResultHolder paramType = methodParameters.get(n).getType();
               String paramName = paramType.getType().toStringWithoutConstant();
               ResultHolder[] paramSpecifics = {};
+              //HACK, NullValue type should not inherit specifics, but be replaced by resolved type
+              boolean fromNullType = false;
               if (null != paramType.getClassType()) {
+                fromNullType = paramType.getClassType().isNullType();
                 paramSpecifics = paramType.getClassType().getSpecifics();
               }
 
@@ -162,7 +165,11 @@ public class HaxeGenericResolverUtil {
                 if (paramSpecifics.length > 0) {
                   ResultHolder[] resolvedSpecifics = null;
                   if (result.isClassType()) {
-                     resolvedSpecifics = result.getClassType().getSpecifics();
+                    if (fromNullType) {
+                      resolvedSpecifics = new ResultHolder[] {new ResultHolder(result.getClassType())};
+                    }else {
+                      resolvedSpecifics = result.getClassType().getSpecifics();
+                    }
                      // if the paramType  is a Class<?> and the expression is a type declaration, then that class should be used in the resolver
                     if(paramType.isClassType() && expression instanceof HaxeReferenceExpression referenceExpression) {
                       PsiElement resolve = referenceExpression.resolve();
