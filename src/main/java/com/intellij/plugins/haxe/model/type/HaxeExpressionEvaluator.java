@@ -309,7 +309,7 @@ public class HaxeExpressionEvaluator {
       HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(element, HaxeClass.class);
       if (ancestor == null) return SpecificTypeReference.getDynamic(element).createHolder();
       HaxeClassModel model = ancestor.getModel();
-      if (model.isAbstract()) {
+      if (model.isAbstractType()) {
         SpecificHaxeClassReference reference = model.getUnderlyingClassReference(resolver);
         if (null != reference) {
           return reference.createHolder();

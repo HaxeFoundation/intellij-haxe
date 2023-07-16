@@ -286,7 +286,7 @@ private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
                               | externClassDeclaration
                               | externInterfaceDeclaration
-                              | abstractClassDeclaration
+                              | abstractTypeDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 {name="Top Level Declaration (class, interface, abstract, enum, or typedef)"}
@@ -332,7 +332,7 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 //moduleDeclaration ::= moduleBody{pin=1}
 
 moduleBody ::= moduleBodyPart+  {pin=1}
-private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractClassDeclaration))
+private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractTypeDeclaration))
 private moduleBodyPart ::= localVarDeclarationList | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
 
 
@@ -340,7 +340,7 @@ classDeclaration ::= classModifierList? 'class' componentName genericParam? inhe
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 
-abstractClassDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
+abstractTypeDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractClassType ::= 'enum'? 'abstract'
 underlyingType ::= '(' typeWrapper ')'

@@ -1,5 +1,5 @@
 Haxe File
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME

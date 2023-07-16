@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeAbstractClassDeclarationImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeAbstractTypeDeclarationImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeFunctionArgumentImpl;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl implements HaxeFunctionType {
+public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implements HaxeFunctionType {
 
   public static class Argument extends HaxeFunctionArgumentImpl {
     final private HaxeParameter parameter;
@@ -76,11 +76,11 @@ public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl imple
   }
 
   final private HaxeGenericSpecialization specialization;
-  final private HaxeAbstractClassDeclaration psiClass;
+  final private HaxeAbstractTypeDeclaration psiClass;
   final private HaxeFunctionType functionType;
   final private HaxeMethod method;
 
-  private HaxeSpecificFunction(@NotNull HaxeAbstractClassDeclaration psiClass,
+  private HaxeSpecificFunction(@NotNull HaxeAbstractTypeDeclaration psiClass,
                                @Nullable HaxeMethod method,
                                @Nullable HaxeFunctionType functionType,
                                @NotNull HaxeGenericSpecialization specialization) {
@@ -91,11 +91,11 @@ public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl imple
     this.method = method;
   }
 
-  public HaxeSpecificFunction(@NotNull HaxeAbstractClassDeclaration psiClass, @NotNull HaxeMethod method, @NotNull HaxeGenericSpecialization specialization) {
+  public HaxeSpecificFunction(@NotNull HaxeAbstractTypeDeclaration psiClass, @NotNull HaxeMethod method, @NotNull HaxeGenericSpecialization specialization) {
     this(psiClass, method, null, specialization);
   }
 
-  public HaxeSpecificFunction(@NotNull HaxeAbstractClassDeclaration psiClass, @NotNull HaxeFunctionType functionType, @NotNull HaxeGenericSpecialization specialization) {
+  public HaxeSpecificFunction(@NotNull HaxeAbstractTypeDeclaration psiClass, @NotNull HaxeFunctionType functionType, @NotNull HaxeGenericSpecialization specialization) {
     this(psiClass, null, functionType, specialization);
   }
 
@@ -107,8 +107,8 @@ public class HaxeSpecificFunction extends HaxeAbstractClassDeclarationImpl imple
     this(getFunctionClass(method), method, specialization);
   }
 
-  private static HaxeAbstractClassDeclaration getFunctionClass(PsiElement context) {
-    return (HaxeAbstractClassDeclaration)SpecificHaxeClassReference.getFunction(context).getHaxeClass();
+  private static HaxeAbstractTypeDeclaration getFunctionClass(PsiElement context) {
+    return (HaxeAbstractTypeDeclaration)SpecificHaxeClassReference.getFunction(context).getHaxeClass();
   }
 
   public HaxeGenericSpecialization getSpecialization() {

@@ -37,7 +37,7 @@ public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
-    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstract() && clazz.isEnum();
+    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstractType() && clazz.isEnum();
   }
 
   /**
@@ -108,8 +108,8 @@ public class HaxeAbstractEnumUtil {
     final HaxeFieldDeclaration varDecl = (element instanceof HaxeFieldDeclaration) ?
                                        (HaxeFieldDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
-      final HaxeAbstractClassDeclaration abstractEnumClass =
-        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractClassDeclaration.class);
+      final HaxeAbstractTypeDeclaration abstractEnumClass =
+        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractTypeDeclaration.class);
       SpecificHaxeClassReference specificRef;
       if (isAbstractEnum(abstractEnumClass)) {
         if (varDecl.getTypeTag() == null) {

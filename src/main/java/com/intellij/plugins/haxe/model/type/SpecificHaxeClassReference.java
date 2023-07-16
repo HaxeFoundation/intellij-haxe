@@ -318,7 +318,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     literalCollectionAssignment(direction, list);
     emptyCollectionAssignment(direction, list);
 
-    if (!model.isAbstract()) {
+    if (!model.isAbstractType()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
         if (type != null) {
@@ -490,7 +490,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (stack.contains(model.haxeClass)) return list;
     stack.push(model.haxeClass);
 
-    if (!model.isAbstract()) {
+    if (!model.isAbstractType()) {
       if (model.haxeClass instanceof HaxeTypedefDeclaration) {
         SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
         if (type != null) {

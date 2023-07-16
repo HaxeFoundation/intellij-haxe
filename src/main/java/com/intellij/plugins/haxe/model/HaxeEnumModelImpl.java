@@ -126,7 +126,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   @Override
   public HaxeMemberModel getMember(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
     HaxeMemberModel value = getValue(name);
-    if (!isAbstract() && value == null) value = getEnumValueMember(name, resolver);
+    if (!isAbstractType() && value == null) value = getEnumValueMember(name, resolver);
     return  value;
   }
 
@@ -140,7 +140,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   @Override
   public List<HaxeMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMemberModel> members = getValuesStream().collect(Collectors.toList());
-    if (!isAbstract()) {
+    if (!isAbstractType()) {
       members.addAll(HaxeEnumValueUtil.getEnumValueClassMembers(this.getPsi(), resolver));
     }
     return members;

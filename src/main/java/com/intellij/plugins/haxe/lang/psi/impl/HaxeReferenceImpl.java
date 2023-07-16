@@ -344,7 +344,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (isType(HaxeThisExpression.class)) {
       HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       // this has different semantics on abstracts
-      if (clazz != null && clazz.getModel().isAbstract()) {
+      if (clazz != null && clazz.getModel().isAbstractType()) {
         HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingType();
         if (type != null) {
           return HaxeResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
@@ -982,7 +982,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (leftReference != null && name != null &&
         HaxeResolveUtil.splitQName(leftReference.getText()).getSecond().equals(name)) {
 
-      if (!isInUsingStatement() && !(isInImportStatement() && (haxeClass.isEnum() || haxeClass instanceof HaxeAbstractClassDeclaration))) {
+      if (!isInUsingStatement() && !(isInImportStatement() && (haxeClass.isEnum() || haxeClass instanceof HaxeAbstractTypeDeclaration))) {
         addClassStaticMembersVariants(suggestedVariants, haxeClass, !(isThis));
       }
 
@@ -1128,7 +1128,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   private static void addAbstractUnderlyingClassVariants(Set<HaxeComponentName> suggestedVariants,
                                                          @Nullable HaxeClass haxeClass, @Nullable HaxeGenericResolver resolver) {
-    if (haxeClass == null || !haxeClass.isAbstract()) return;
+    if (haxeClass == null || !haxeClass.isAbstractType()) return;
 
     final HaxeAbstractClassModel model = (HaxeAbstractClassModel)haxeClass.getModel();
     final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
@@ -1163,8 +1163,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeClassModel classModel = haxeClass.getModel();
 
     boolean extern = haxeClass.isExtern();
-    boolean isAbstractEnum = haxeClass.isAbstract() && haxeClass.isEnum();
-    boolean isAbstractForward = haxeClass.isAbstract() && ((HaxeAbstractClassModel)classModel).hasForwards();
+    boolean isAbstractEnum = haxeClass.isAbstractType() && haxeClass.isEnum();
+    boolean isAbstractForward = haxeClass.isAbstractType() && ((HaxeAbstractClassModel)classModel).hasForwards();
 
     if (isAbstractForward) {
       final List<HaxeNamedComponent> forwardingHaxeNamedComponents =

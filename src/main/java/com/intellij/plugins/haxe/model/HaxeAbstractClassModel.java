@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 public class HaxeAbstractClassModel extends HaxeClassModel {
   private static final Logger LOG = Logger.getLogger("#HaxeAbstractClassModel");
 
-  public HaxeAbstractClassModel(@NotNull HaxeAbstractClassDeclaration haxeClass) {
+  public HaxeAbstractClassModel(@NotNull HaxeAbstractTypeDeclaration haxeClass) {
     super(haxeClass);
   }
 
@@ -85,8 +85,8 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return underlyingClass;
   }
 
-  public HaxeAbstractClassDeclaration getAbstractClass() {
-    return (HaxeAbstractClassDeclaration)getBasePsi();
+  public HaxeAbstractTypeDeclaration getAbstractClass() {
+    return (HaxeAbstractTypeDeclaration)getBasePsi();
   }
 
   protected HaxeAbstractBody getAbstractClassBody() {

@@ -55,7 +55,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MML_COMMENT;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 /**
@@ -325,7 +324,7 @@ public class HaxeResolveUtil {
       if (haxeClass == null) continue;
 
       addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
-      if (haxeClass.isAbstract()) {
+      if (haxeClass.isAbstractType()) {
         if (null == resolver) {
           resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
         }
@@ -337,7 +336,7 @@ public class HaxeResolveUtil {
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
       List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
-      if (haxeClass.isEnum() && !haxeClass.isAbstract() && haxeClass.getContext() != null) {
+      if (haxeClass.isEnum() && !haxeClass.isAbstractType() && haxeClass.getContext() != null) {
         //Enums should provide the same methods as EnumValue
         baseClasses.add(HaxeEnumValueUtil.getEnumValueClass(haxeClass.getContext()).getHaxeClass());
       }
@@ -856,8 +855,8 @@ public class HaxeResolveUtil {
     if (typeTag != null) {
       final HaxeFunctionType fnType = typeTag.getFunctionType();
       final HaxeClass psiClass = HaxeResolveUtil.findClassByQName("haxe.Constraints.Function", element);
-      if (null != fnType && psiClass instanceof HaxeAbstractClassDeclaration) {
-        final HaxeClass fn = new HaxeSpecificFunction((HaxeAbstractClassDeclaration)psiClass,
+      if (null != fnType && psiClass instanceof HaxeAbstractTypeDeclaration) {
+        final HaxeClass fn = new HaxeSpecificFunction((HaxeAbstractTypeDeclaration)psiClass,
                                                       fnType, specialization);
         return HaxeResolveResult.create(fn, specialization);
       }

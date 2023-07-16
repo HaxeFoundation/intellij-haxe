@@ -33,7 +33,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getDynamic;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 public class HaxeTypeCompatible {
@@ -276,8 +275,8 @@ public class HaxeTypeCompatible {
   private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean castFrom) {
     if (reference instanceof SpecificHaxeClassReference) {
       HaxeClass haxeClass = ((SpecificHaxeClassReference)reference).getHaxeClass();
-      if (haxeClass instanceof HaxeAbstractClassDeclaration) {
-        HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)haxeClass;
+      if (haxeClass instanceof HaxeAbstractTypeDeclaration) {
+        HaxeAbstractTypeDeclaration abstractClass = (HaxeAbstractTypeDeclaration)haxeClass;
         if (castFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) return true;
         if (!castFrom && !abstractClass.getAbstractToTypeList().isEmpty()) return true;
       }
@@ -287,8 +286,8 @@ public class HaxeTypeCompatible {
 
   @NotNull
   private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificHaxeClassReference classReference, boolean getCastFrom) {
-    if (!(classReference.getHaxeClass() instanceof HaxeAbstractClassDeclaration))  return Collections.emptyList();
-    HaxeAbstractClassDeclaration abstractClass = (HaxeAbstractClassDeclaration)classReference.getHaxeClass();
+    if (!(classReference.getHaxeClass() instanceof HaxeAbstractTypeDeclaration))  return Collections.emptyList();
+    HaxeAbstractTypeDeclaration abstractClass = (HaxeAbstractTypeDeclaration)classReference.getHaxeClass();
     List<SpecificFunctionReference> list = new ArrayList<>();
     if (abstractClass != null) {
       if (getCastFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) {
@@ -351,7 +350,7 @@ public class HaxeTypeCompatible {
 
 
   static public SpecificHaxeClassReference getUnderlyingClassIfAbstractNull(SpecificHaxeClassReference ref) {
-    if (ref.isAbstract() && ref.isNullType()) {
+    if (ref.isAbstractType() && ref.isNullType()) {
       SpecificHaxeClassReference underlying = ref.getHaxeClassModel().getUnderlyingClassReference(ref.getGenericResolver());
       if (null != underlying) {
         ref = underlying;
@@ -413,13 +412,13 @@ public class HaxeTypeCompatible {
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-    if (to.isAbstract() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastTypesList(to));
+    if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastTypesList(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    if (from.isAbstract() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getCastableToTypesList(from));
+    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getCastableToTypesList(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }

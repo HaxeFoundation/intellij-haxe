@@ -1147,7 +1147,7 @@ Haxe File
       HaxePsiToken:@:('@:')
       TYPE
         HaxePsiToken:META_TYPE('coreType')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1237,7 +1237,7 @@ Haxe File
           PsiComment(MSL_COMMENT)('// Kilometer should be Int')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1247,7 +1247,7 @@ Haxe File
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type with no relations')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1264,7 +1264,7 @@ Haxe File
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value type which implicit casts to Float')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1288,7 +1288,7 @@ Haxe File
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// value types which auto-casts to and from Int')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1320,7 +1320,7 @@ Haxe File
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on Int')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1355,7 +1355,7 @@ Haxe File
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
   PsiComment(MSL_COMMENT)('// opaque type based on VectorData<T>')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME
@@ -1480,7 +1480,7 @@ Haxe File
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')
       HaxePsiToken:}('}')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     ABSTRACT_CLASS_TYPE
       HaxePsiToken:abstract('abstract')
     COMPONENT_NAME

@@ -113,8 +113,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         _model = new HaxeEnumModelImpl((HaxeEnumDeclaration)this);
       } else if (this instanceof HaxeExternClassDeclaration) {
         _model = new HaxeExternClassModel((HaxeExternClassDeclaration)this);
-      } else if (this instanceof HaxeAbstractClassDeclaration) {
-        HaxeAbstractClassDeclaration abstractDeclaration = (HaxeAbstractClassDeclaration)this;
+      } else if (this instanceof HaxeAbstractTypeDeclaration) {
+        HaxeAbstractTypeDeclaration abstractDeclaration = (HaxeAbstractTypeDeclaration)this;
         if (abstractDeclaration.isEnum()) {
           _model = new HaxeAbstractEnumModel(abstractDeclaration);
         } else {
@@ -148,8 +148,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
-  public boolean isAbstract() {
-    return (this instanceof HaxeAbstractClassDeclaration);
+  public boolean isAbstractType() {
+    return (this instanceof HaxeAbstractTypeDeclaration);
   }
 
   @Override
@@ -270,8 +270,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public boolean isEnum() {
     if (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM) return true;
-    if (isAbstract()) {
-      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractClassDeclaration)this).getAbstractClassType().getFirstChild().getText().equals("enum");
+    if (isAbstractType()) {
+      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().getText().equals("enum");
     }
     return false;
   }
@@ -512,8 +512,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       HaxePrivateKeyWord privateKeyWord = null;
       if (this instanceof HaxeClassDeclaration) { // concrete class
         privateKeyWord = getPrivateKeyWord(((HaxeClassDeclaration)this).getClassModifierList());
-      } else if (this instanceof HaxeAbstractClassDeclaration) { // abstract class
-        privateKeyWord = ((HaxeAbstractClassDeclaration)this).getPrivateKeyWord();
+      } else if (this instanceof HaxeAbstractTypeDeclaration) { // abstract class
+        privateKeyWord = ((HaxeAbstractTypeDeclaration)this).getPrivateKeyWord();
       } else if (this instanceof HaxeExternClassDeclaration) { // extern class
         privateKeyWord = getPrivateKeyWord(((HaxeExternClassDeclaration)this).getExternClassModifierList());
       } else if (this instanceof HaxeTypedefDeclaration) { // typedef
@@ -562,7 +562,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       list.setModifierProperty(HaxePsiModifier.PRIVATE, true);
     }
 
-    if (this instanceof HaxeAbstractClassDeclaration) { // is abstract class
+    if (this instanceof HaxeAbstractTypeDeclaration) { // is abstract class
       list.setModifierProperty(HaxePsiModifier.ABSTRACT, true);
     }
 

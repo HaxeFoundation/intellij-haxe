@@ -26,7 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.plugins.haxe.util.HaxePresentableUtil.getPresentableParameterList;
 
 public class HaxeEnumValueModel extends HaxeMemberModel {
-  private final boolean isAbstract;
+  private final boolean isAbstractType;
   private final boolean hasConstructor;
   private final boolean hasReturnType;
 
@@ -35,13 +35,13 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
     hasConstructor = declaration.getParameterList() != null;
     hasReturnType = declaration.getReturnType() != null;
-    isAbstract = false;
+    isAbstractType = false;
   }
 
   public HaxeEnumValueModel(@NotNull HaxeFieldDeclaration declaration) {
     super(declaration);
 
-    isAbstract = true;
+    isAbstractType = true;
     hasConstructor = false;
     hasReturnType = true;
   }
@@ -53,11 +53,11 @@ public class HaxeEnumValueModel extends HaxeMemberModel {
 
   @Override
   public boolean isPublic() {
-    return !isAbstract() || !hasModifier(HaxePsiModifier.PRIVATE);
+    return !isAbstractType() || !hasModifier(HaxePsiModifier.PRIVATE);
   }
 
-  public boolean isAbstract() {
-    return this.isAbstract;
+  public boolean isAbstractType() {
+    return this.isAbstractType;
   }
 
   @Nullable

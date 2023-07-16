@@ -153,7 +153,7 @@ public enum HaxeComponentType {
   public static HaxeComponentType typeOf(PsiElement element) {
     if (element instanceof HaxeClassDeclaration ||
         element instanceof HaxeExternClassDeclaration ||
-        element instanceof HaxeAbstractClassDeclaration) {
+        element instanceof HaxeAbstractTypeDeclaration) {
       return CLASS;
     }
     if (element instanceof HaxeEnumDeclaration) {

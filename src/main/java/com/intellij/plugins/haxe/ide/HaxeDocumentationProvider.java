@@ -158,7 +158,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       String signature = getExternClassSignature(declaration);
       builder.br().appendRaw(renderer.languageHighlighting(signature));
     }
-    if (component instanceof HaxeAbstractClassDeclaration declaration) {
+    if (component instanceof HaxeAbstractTypeDeclaration declaration) {
       String signature = getAbstractSignature(declaration);
       builder.br().appendRaw(renderer.languageHighlighting(signature));
     }

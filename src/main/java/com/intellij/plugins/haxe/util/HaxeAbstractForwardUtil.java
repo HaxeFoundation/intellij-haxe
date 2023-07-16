@@ -19,7 +19,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeAbstractClassDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeAbstractTypeDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
@@ -53,7 +53,7 @@ public class HaxeAbstractForwardUtil {
   @Nullable
   public static List<HaxeNamedComponent> findAbstractForwardingNamedSubComponents(@Nullable HaxeClass clazz, @Nullable HaxeGenericResolver resolver) {
     final List<String> forwardingFieldsNames = getAbstractForwardingFieldsNames(clazz);
-    if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractClassDeclaration) {
+    if (forwardingFieldsNames != null && clazz instanceof HaxeAbstractTypeDeclaration) {
       final HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)clazz.getModel();
       final HaxeClass underlyingClass = abstractClassModel.getUnderlyingClass(resolver);
       if (underlyingClass != null) {

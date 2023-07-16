@@ -64,7 +64,7 @@ public class HaxeDocumentationSignatureUtil {
 
 
   @NotNull
-  public static String getAbstractSignature(HaxeAbstractClassDeclaration declaration) {
+  public static String getAbstractSignature(HaxeAbstractTypeDeclaration declaration) {
     return getPsiText(declaration.getPrivateKeyWord()) +
            getPsiText(declaration.getAbstractClassType()) +
            getPsiText(declaration.getComponentName()) +
