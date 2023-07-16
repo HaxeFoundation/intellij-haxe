@@ -1,12 +1,12 @@
 # Changelog
 
-## [Unreleased]
+## 1.4.7
 * Fixed rendering bugs for haxeDoc
 * Fixed bug where type parameters where not propagating properly
 * Experimental caching of resolved Parameter type 
 * Cache repository path response from Haxelib to avoid unnecessary calls 
 * Resolved conflict between Maven and Lime project files
-* Improved haxeSDK detection for linux and Mac OS
+* Improved haxeSDK detection for linux and MacOS
 
 ## 1.4.6
 * Coalescing operator support
