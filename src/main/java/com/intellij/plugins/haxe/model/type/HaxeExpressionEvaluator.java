@@ -1190,16 +1190,6 @@ public class HaxeExpressionEvaluator {
     return null;
   }
 
-  private static void createResolverForFunction(HaxeCallExpression callExpression,
-                                                SpecificFunctionReference functionReference,
-                                                List<HaxeExpression> parameterExpressions,
-                                                HaxeExpressionEvaluatorContext context,
-                                                HaxeGenericResolver resolver) {
-
-    HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
-    int i = 0;
-  }
-
   private static SpecificTypeReference resolveAnyTypeDefs(SpecificTypeReference reference) {
     if (reference instanceof SpecificHaxeClassReference classReference && classReference.isTypeDef()) {
       if(classReference.isTypeDefOfFunction()) {
