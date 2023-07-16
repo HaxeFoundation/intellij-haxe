@@ -278,6 +278,10 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       // if TO has optional argument and  FROM does not then the assignment should fail.
       return (argument.isOptional() || this.isOptional() == argument.isOptional()) && type.canAssign(argument.type);
     }
+
+    public Argument changeType(ResultHolder newType) {
+      return new Argument(this.index, this.optional, newType, this.name);
+    }
   }
 }
 

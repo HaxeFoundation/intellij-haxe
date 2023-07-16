@@ -82,7 +82,7 @@ public class ConvertQuotesIntention extends BaseIntentionAction {
   }
 
   private boolean isWrappedWithDoubleQuotes(HaxeStringLiteralExpression expression) {
-    if (expression.getFirstChild() == null) return  false;
+    if (expression== null || expression.getFirstChild() == null) return  false;
     return expression.getFirstChild().textMatches(DOUBLE_QUOTES);
   }
 }

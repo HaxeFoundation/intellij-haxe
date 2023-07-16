@@ -207,4 +207,10 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   public FullyQualifiedInfo getQualifiedInfo() {
     return null;
   }
+
+  public HaxeParameterModel replaceType(ResultHolder type) {
+    HaxeParameterModel model = new HaxeParameterModel(getParameterPsi());
+    model.resolvedType = type;
+    return model;
+  }
 }

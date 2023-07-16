@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+* Experimental macro type conversion when resolving types (parameter and return types)
+
 ## 1.4.7
 * Fixed rendering bugs for haxeDoc
 * Fixed bug where type parameters where not propagating properly

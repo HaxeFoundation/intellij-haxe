@@ -34,6 +34,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
+
 @CustomLog
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
@@ -215,6 +217,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name, resolver);
     if (method != null) {
       if (context.root == method) return null;
+      if (isMacroMethod(method)) {
+        // if macro method replace Expr / ExprOf types
+        ResultHolder functionType = HaxeTypeResolver.getMethodFunctionType(method, resolver.withoutUnknowns());
+        return HaxeMacroUtil.resolveMacroTypesForFunction(functionType);
+      }
       return HaxeTypeResolver.getMethodFunctionType(method, resolver);
     }
     AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name, resolver);

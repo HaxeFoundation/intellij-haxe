@@ -51,10 +51,6 @@ public class HaxeTypeCompatible {
     else if (from.isUnknown()) {
       from.setType(to.getType().withoutConstantValue());
     }
-    //TODO mlo, hack to allow macro expressions to assign to anything
-    if (isMacroExpression(from)) {
-      from.setType(getDynamic(from.getElementContext()));
-    }
 
     return canAssignToFrom(to.getType(), from.getType(), true, holder, to.getOrigin(), from.getOrigin());
   }

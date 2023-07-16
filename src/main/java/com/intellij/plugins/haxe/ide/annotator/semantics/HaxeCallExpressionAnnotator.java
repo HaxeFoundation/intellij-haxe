@@ -6,6 +6,7 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodDeclarationImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -323,6 +324,12 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
     HaxeCallExpressionList callExpressionList = callExpression.getExpressionList();
     List<HaxeParameterModel> parameterList = method.getModel().getParameters();
+    if (method instanceof  HaxeMethodDeclarationImpl methodDeclaration) {
+
+      if (HaxeMacroUtil.isMacroMethod(methodDeclaration)) {
+        parameterList = parameterList.stream().map(this::resolveMacroTypes).toList();
+      }
+    }
     List<HaxeExpression> argumentList = Optional.ofNullable(callExpressionList)
       .map(HaxeExpressionList::getExpressionList)
       .orElse(List.of());
@@ -470,6 +477,12 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
       }
     }
+  }
+
+  private HaxeParameterModel resolveMacroTypes(HaxeParameterModel parameterModel) {
+    ResultHolder type = parameterModel.getType(null);
+    ResultHolder resolved = HaxeMacroUtil.resolveMacroType(type);
+    return parameterModel.replaceType(resolved);
   }
 
   private void inheritTypeParametersFromArgument(ResultHolder parameterType,
