@@ -308,6 +308,18 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
+
+  public boolean isAnonymousType() {
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      if(specificHaxeClassReference.getHaxeClassReference().getHaxeClass() instanceof  HaxeTypedefDeclaration typedefDeclaration) {
+        if (typedefDeclaration.getTypeOrAnonymous() != null ) {
+          return typedefDeclaration.getTypeOrAnonymous().getAnonymousType() != null;
+        }
+      }
+    }
+    return false;
+  }
+
   final public boolean isPureClassReference() {
     if (context instanceof HaxeReferenceImpl reference && this instanceof  SpecificHaxeClassReference classReference) {
       @NotNull ResultHolder[] specifics = classReference.getSpecifics();
@@ -546,4 +558,6 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
+
+
 }

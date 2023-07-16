@@ -444,6 +444,13 @@ public class HaxeTypeCompatible {
 
   private static boolean containsAllMembers(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if (to.isFromTypeParameter() || from.isFromTypeParameter() ) return false; // unable to evaluate members when type is not resolved
+
+    // if one of the types is a Class<T>  its was probably wrapped so we unwrap to T
+    if (to.isClass() && to.getSpecifics().length == 1) to = to.getSpecifics()[0].getClassType();
+    if (from.isClass()&& from.getSpecifics().length == 1) from = from.getSpecifics()[0].getClassType();
+
+    if (to == null || from == null) return false;
+
     List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getMembers(to.getGenericResolver());
     List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getMembers(to.getGenericResolver());
     for (HaxeMemberModel member : toMembers) {

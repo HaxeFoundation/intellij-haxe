@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +38,10 @@ public class HaxeTypeUnifier {
 
   @NotNull
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context) {
+    return unify(a,b, context, null);
+  }
+  @NotNull
+  static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context, @Nullable  SpecificTypeReference suggestedType) {
     if (a == null && b == null) return SpecificTypeReference.getUnknown(context);
     if (a == null) return b;
     if (b == null) return a;
@@ -47,9 +52,18 @@ public class HaxeTypeUnifier {
     }
 
     if (a instanceof SpecificHaxeClassReference && b instanceof SpecificHaxeClassReference) {
+
+      if (suggestedType  instanceof SpecificHaxeClassReference suggestedClassReference) {
+        SpecificTypeReference reference = unifyTypes(suggestedClassReference, (SpecificHaxeClassReference)a, context);
+        reference = unifyTypes((SpecificHaxeClassReference)reference, (SpecificHaxeClassReference)b, context);
+        if (!reference.isUnknown()) {
+          return reference;
+        }
+      }
       return unifyTypes((SpecificHaxeClassReference)a, (SpecificHaxeClassReference)b, context);
     }
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
+      // TODO suggested type support for functions
       return unifyFunctions((SpecificFunctionReference)a, (SpecificFunctionReference)b, context);
     }
     if (a.isEnumValue() && b.isEnumValue()) {
@@ -94,15 +108,32 @@ public class HaxeTypeUnifier {
     if (b.isDynamic()) return b.withoutConstantValue();
     if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
     if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
+
+    @NotNull ResultHolder[] specificsA = a.getSpecifics();
+    @NotNull ResultHolder[] specificsB = b.getSpecifics();
+    if (a.isSameType(b)) {
+      if (specificsA.length == 0 && specificsB.length == 0) {
+        return a;
+      }
+    }
+
+    SpecificHaxeClassReference unifiedAnonymousType = unifyIfContainsAnnonymousType(a, b);
+    if (unifiedAnonymousType != null) {
+      return unifiedAnonymousType;
+    }
+
     final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
     final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
     // @TODO: this could be really slow, hotspot for optimizing
+
     for (HaxeClassModel type : atypes) {
       if (btypes.contains(type)) {
         // @TODO: generics
-        return SpecificHaxeClassReference.withoutGenerics(
-          new HaxeClassReference(type, context)
-        );
+        if (specificsA.length == 0 && specificsB.length == 0) {
+          return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type, context));
+        }else{
+          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(type, context), unifySpecifics(specificsA, specificsB, context));
+        }
       }
     }
     // hack to get around recursive methods
@@ -116,6 +147,45 @@ public class HaxeTypeUnifier {
       //return SpecificTypeReference.getDynamic(a.getElementContext());
       return SpecificTypeReference.getUnknown(a.getElementContext());
     }
+  }
+
+  @Nullable
+  private static SpecificHaxeClassReference unifyIfContainsAnnonymousType(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+    if (a.isAnonymousType()) {
+      if (a.canAssign(b)) {
+        return a;
+      }
+    }
+    if (b.isAnonymousType()) {
+      if (b.canAssign(a)) {
+        return b;
+      }
+    }
+    return null;
+  }
+
+  private static ResultHolder[] unifySpecifics(@NotNull  ResultHolder[] specificsForA, @NotNull  ResultHolder[] specificsForB,  @NotNull PsiElement context) {
+    // TODO might have to resolve typedefs to get correct amount here
+    int size = Math.min(specificsForA.length, specificsForB.length);
+    ResultHolder[] unified = new ResultHolder[size];
+    for (int i = 0; i < size; i++) {
+      ResultHolder holderA = specificsForA[i];
+      ResultHolder holderB = specificsForB[i];
+      if (holderA.getClassType() != null && holderB.getClassType() != null) {
+        SpecificTypeReference type = unifyTypes(holderA.getClassType(), holderB.getClassType(), context);
+        // if we cant unify specifics then Dynamic should be used
+        if (type.isUnknown()) type = SpecificTypeReference.getDynamic(context);
+        unified[i] = new ResultHolder(type);
+      } else if (holderA.getFunctionType() != null && holderB.getFunctionType() != null) {
+        // TODO compare  functions and see if they are the same signature
+        unified[i] = new ResultHolder(SpecificTypeReference.getDynamic(context));
+      }else {
+        // use dynamic if we can match in any way
+        unified[i] = new ResultHolder(SpecificTypeReference.getDynamic(context));
+      }
+    }
+
+    return unified;
   }
 
   @NotNull
@@ -152,12 +222,16 @@ public class HaxeTypeUnifier {
 
   @NotNull
   static public SpecificTypeReference unify(List<SpecificTypeReference> types, @NotNull PsiElement context) {
+    return unify(types, context, null);
+  }
+  @NotNull
+  static public SpecificTypeReference unify(List<SpecificTypeReference> types, @NotNull PsiElement context, @Nullable  SpecificTypeReference suggestedType) {
     if (types.size() == 0) {
       return SpecificTypeReference.getUnknown(context);
     }
     SpecificTypeReference type = types.get(0);
     for (int n = 1; n < types.size(); n++) {
-      type = unify(type, types.get(n), context);
+      type = unify(type, types.get(n), context, suggestedType);
     }
     return type;
   }

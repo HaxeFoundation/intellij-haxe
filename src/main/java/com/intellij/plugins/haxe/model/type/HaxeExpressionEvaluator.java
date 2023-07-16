@@ -45,6 +45,7 @@ import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -848,10 +849,22 @@ public class HaxeExpressionEvaluator {
           references.add(type);
         }
       }
+      // an attempt at suggesting what to unify  types into (useful for when typeTag is an anonymous structure as those would never be used in normal unify)
+      SpecificTypeReference suggestedType = null;
+      ResultHolder  typeTagType = findInitTypeForUnify(element);
+      if (typeTagType!= null) {
+        // we expect Array<T> or collection type with type parameter (might not work properly if type is implicit cast)
+        if (typeTagType.getClassType() != null) {
+          @NotNull ResultHolder[] specifics = typeTagType.getClassType().getSpecifics();
+          if (specifics.length == 1) {
+            suggestedType = specifics[0].getType();
+          }
+        }
+      }
 
       ResultHolder elementTypeHolder = references.isEmpty()
                                        ? SpecificTypeReference.getUnknown(element).createHolder()
-                                       : HaxeTypeUnifier.unify(references, element).withoutConstantValue().createHolder();
+                                       : HaxeTypeUnifier.unify(references, element, suggestedType).withoutConstantValue().createHolder();
 
       SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder, element);
       if (allConstants) result = result.withConstantValue(constants);
@@ -1157,6 +1170,24 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  @Nullable
+  private static ResultHolder findInitTypeForUnify(@NotNull PsiElement element) {
+    HaxeVarInit varInit = PsiTreeUtil.getParentOfType(element, HaxeVarInit.class);
+    if (varInit != null) {
+      HaxeFieldDeclaration type = PsiTreeUtil.getParentOfType(varInit, HaxeFieldDeclaration.class);
+      if (type!= null) {
+        HaxeTypeTag tag = type.getTypeTag();
+        if (tag != null) {
+          ResultHolder typeTag = HaxeTypeResolver.getTypeFromTypeTag(tag, element);
+          if (!typeTag.isUnknown()) {
+            return typeTag;
+          }
+        }
+      }
+    }
+    return null;
   }
 
   private static void createResolverForFunction(HaxeCallExpression callExpression,
