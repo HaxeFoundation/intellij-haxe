@@ -331,6 +331,13 @@ public class HaxeResolveUtil {
         List<HaxeNamedComponent> subComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, resolver);
         addNotNullComponents(unfilteredResult, subComponents);
       }
+      if (haxeClass.isTypeDef()) {
+        if (null == resolver) {
+          resolver = haxeClass.getMemberResolver(null);
+        }else {
+          resolver.addAll(haxeClass.getMemberResolver(null));
+        }
+      }
 
       List<HaxeType> baseTypes = new ArrayList<>();
       baseTypes.addAll(haxeClass.getHaxeExtendsList());

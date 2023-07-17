@@ -195,14 +195,18 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     if (argumentList.size() < minArgRequired) {
       String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", minArgRequired, argumentList.size());
       if (argumentList.isEmpty()) {
-        PsiElement first = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(resolvedNewExpression);
-        PsiElement second = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(first);
-        TextRange range = TextRange.create(first.getTextOffset(), second.getTextOffset() + 1);
-        holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create();
+        @NotNull PsiElement[] children = resolvedNewExpression.getChildren();
+        if (children.length > 0) {
+          PsiElement first = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(children[0]);
+          if (first != null) {
+            PsiElement second = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(first);
+            TextRange range = TextRange.create(first.getTextOffset(), second.getTextOffset() + 1);
+            holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create();
+            return;
+        }
+        }
       }
-      else {
-        holder.newAnnotation(HighlightSeverity.ERROR, message).range(resolvedNewExpression).create();
-      }
+      holder.newAnnotation(HighlightSeverity.ERROR, message).range(resolvedNewExpression).create();
       return;
     }
     //max arg check

@@ -552,9 +552,8 @@ public abstract class SpecificTypeReference {
     if (thisModel != null && otherModel != null) {
       FullyQualifiedInfo thisInfo = thisModel.getQualifiedInfo();
       FullyQualifiedInfo otherInfo = otherModel.getQualifiedInfo();
-      if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
-        return true;
-      }
+      if (thisInfo == null || otherInfo == null) return false;
+      return thisInfo.getClassPath().equals(otherInfo.getClassPath());
     }
     return false;
   }

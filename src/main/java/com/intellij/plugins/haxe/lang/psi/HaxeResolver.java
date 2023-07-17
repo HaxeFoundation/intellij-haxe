@@ -172,7 +172,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
-    List<? extends PsiElement> result = checkIsType(reference);
+    List<? extends PsiElement> result = checkIsTypeParameter(reference);
+    if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkIsClassName(reference);
@@ -221,6 +222,49 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkIsTypeParameter(HaxeReference reference) {
+    HaxeTypeTag typeTag = PsiTreeUtil.getParentOfType(reference, HaxeTypeTag.class);
+    if (typeTag != null) {
+      // TODO fields ?
+
+      HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeMethodDeclaration.class);
+      if (methodDeclaration != null) {
+        List<HaxeGenericParamModel> methodParams = methodDeclaration.getModel().getGenericParams();
+        List<HaxeGenericListPart> methodTypeParameter = findTypeParameterPsi(reference, methodParams);
+        if (methodTypeParameter != null) {
+          return methodTypeParameter;
+        }
+        HaxeClassModel declaringClass = methodDeclaration.getModel().getDeclaringClass();
+        List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+        return findTypeParameterPsi(reference, params);
+      }
+
+      HaxeConstructorDeclaration constructorDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeConstructorDeclaration.class);
+      if (constructorDeclaration != null) {
+        // reference is a type tag in constructor, we should check  owning class type parameters
+        // so we won't resolve this to a type outside the class if its a type parameter
+        HaxeClassModel declaringClass = constructorDeclaration.getModel().getDeclaringClass();
+        List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+        return findTypeParameterPsi(reference, params);
+
+      }
+
+    }
+    return null;
+  }
+
+  @Nullable
+  private static List<HaxeGenericListPart> findTypeParameterPsi(HaxeReference reference, List<HaxeGenericParamModel> params) {
+    Optional<HaxeGenericListPart> first = params.stream()
+      .filter(p -> p.getName().equals(reference.getText()))
+      .map(HaxeGenericParamModel::getPsi)
+      .findFirst();
+    if (first.isPresent()) {
+      return List.of(first.get());
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkEnumExtractor(HaxeReference reference) {
