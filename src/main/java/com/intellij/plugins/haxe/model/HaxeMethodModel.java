@@ -61,7 +61,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public PsiElement getBodyPsi() {
     PsiElement[] children = haxeMethod.getChildren();
     if (children.length == 0) return null;
-    return children[children.length - 1];
+    PsiElement child = children[children.length - 1];
+    // if we dont have any real body (as with abstract classes) last psi item will be part of the method declaration,
+    // so we make sure return null if parameter list or the optional typeTag.
+    if (child instanceof  HaxeParameterList) return null;
+    if (child instanceof  HaxeTypeTag) return null;
+    return child;
   }
 
   public List<HaxeParameterModel> getParameters() {
@@ -160,6 +165,10 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public HaxeMethodModel getParentMethod(@Nullable HaxeGenericResolver resolver) {
     final HaxeClassModel aClass = getDeclaringClass().getParentClass();
     return (aClass != null) ? aClass.getMethod(this.getName(), resolver) : null;
+  }
+
+  public boolean isAbstract() {
+    return hasModifier(HaxePsiModifier.ABSTRACT);
   }
 
   @Override

@@ -63,7 +63,8 @@ public class HaxeClassAnnotator implements Annotator {
   static private void checkModifiers(final HaxeClassModel clazz, final AnnotationHolder holder) {
     if (!DUPLICATE_CLASS_MODIFIERS.isEnabled(clazz.getBasePsi())) return;
 
-    HaxeClassModifierList modifiers = clazz.getModifiers();
+    HaxeClassModifierList modifiers = clazz.getModifiersList();
+
     if (null != modifiers) {
       List<HaxeClassModifier> list = modifiers.getClassModifierList();
       checkForDuplicateModifier(holder, "private",

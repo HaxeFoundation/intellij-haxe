@@ -47,6 +47,8 @@ public class HaxeClassModel implements HaxeExposableModel {
   private List<HaxeMethodModel> castToMethods;
   private List<HaxeMethodModel> castFromMethods;
 
+  private HaxeModifiersModel _modifiers;
+
   //for caching purposes
   private FullyQualifiedInfo myQualifiedInfo;
 
@@ -132,8 +134,22 @@ public class HaxeClassModel implements HaxeExposableModel {
     return haxeClass.hasCompileTimeMeta(name);
   }
 
+  @NotNull
+  public HaxeModifiersModel getModifiers() {
+
+    if (haxeClass instanceof HaxeClassDeclaration classDeclaration) {
+      // haxe declaration might be without any modifier
+      HaxeClassModifierList list = classDeclaration.getClassModifierList();
+      _modifiers = new HaxeModifiersModel(list != null ? list : classDeclaration);
+    }
+    if (haxeClass instanceof HaxeExternClassDeclaration  externClassDeclaration) {
+      _modifiers = new HaxeModifiersModel(externClassDeclaration.getExternClassModifierList());
+    }
+    return _modifiers;
+  }
+
   @Nullable
-  public HaxeClassModifierList getModifiers() {
+  public HaxeClassModifierList getModifiersList() {
     // TODO: This should really be returning a HaxeModifiersModel, and that class needs to be updated
     //       to use HaxeClassModifierLists.  Right now, it's using the PsiModifiers from the IntelliJ Java implementation.
 
@@ -661,5 +677,13 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public boolean isPublic() {
     return haxeClass.isPublic();
+  }
+
+  public boolean isAbstractClass() {
+    return getModifiers().hasModifier(HaxePsiModifier.ABSTRACT);
+  }
+
+  public boolean isFinal() {
+    return getModifiers().hasModifier(HaxePsiModifier.FINAL);
   }
 }

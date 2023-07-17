@@ -304,7 +304,7 @@ private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
 private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
 private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
-classModifier ::= abstractKeyword | privateKeyWord | finalKeyWord
+classModifier ::= abstractKeyword | privateKeyWord | finalKeyWord {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 classModifierList ::= classModifier+
 private externClassModifier ::= classModifier | externKeyWord
 // This is intentionally vague (allowing multiple 'extern's), so that the following class parses.
