@@ -65,14 +65,14 @@ public class HaxeAbstractClassAnnotator implements Annotator {
       if (methodModel.isAbstract()) {
         if (methodModel.getReturnTypeTagPsi() == null) {
           // TODO move to bundle
-          String message = "Abstract method must define return type";
+          String message = "Type required for abstract functions";
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(methodModel.getBasePsi())
             .create();
         }
         if (methodModel.getBodyPsi() != null) {
           // TODO move to bundle
-          String message = "Abstract method should not have implementation";
+          String message = "Abstract methods may not have an expression";
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .withFix(new HaxeModifierRemoveFixer(methodModel.getModifiers(), HaxePsiModifier.ABSTRACT))
             .range(methodModel.getBodyPsi())

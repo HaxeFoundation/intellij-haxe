@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
@@ -134,7 +135,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return haxeClass.hasCompileTimeMeta(name);
   }
 
-  @NotNull
+  @Nullable
   public HaxeModifiersModel getModifiers() {
 
     if (haxeClass instanceof HaxeClassDeclaration classDeclaration) {
@@ -142,6 +143,22 @@ public class HaxeClassModel implements HaxeExposableModel {
       HaxeClassModifierList list = classDeclaration.getClassModifierList();
       _modifiers = new HaxeModifiersModel(list != null ? list : classDeclaration);
     }
+
+    if (haxeClass instanceof HaxeEnumDeclaration enumDeclaration) {
+      PsiModifierList list = enumDeclaration.getModifierList();
+      _modifiers = new HaxeModifiersModel(list != null ? list : enumDeclaration);
+    }
+
+    if (haxeClass instanceof HaxeInterfaceDeclaration  interfaceDeclaration) {
+      PsiModifierList list = interfaceDeclaration.getModifierList();
+      _modifiers = new HaxeModifiersModel(list != null ? list : interfaceDeclaration);
+    }
+
+    if (haxeClass instanceof HaxeExternInterfaceDeclaration  interfaceDeclaration) {
+      PsiModifierList list = interfaceDeclaration.getModifierList();
+      _modifiers = new HaxeModifiersModel(list != null ? list : interfaceDeclaration);
+    }
+
     if (haxeClass instanceof HaxeExternClassDeclaration  externClassDeclaration) {
       _modifiers = new HaxeModifiersModel(externClassDeclaration.getExternClassModifierList());
     }
@@ -680,10 +697,14 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean isAbstractClass() {
-    return getModifiers().hasModifier(HaxePsiModifier.ABSTRACT);
+    HaxeModifiersModel modifiers = getModifiers();
+    if (modifiers == null) return false;
+    return modifiers.hasModifier(HaxePsiModifier.ABSTRACT);
   }
 
   public boolean isFinal() {
-    return getModifiers().hasModifier(HaxePsiModifier.FINAL);
+    HaxeModifiersModel modifiers = getModifiers();
+    if (modifiers == null) return false;
+    return modifiers.hasModifier(HaxePsiModifier.FINAL);
   }
 }
