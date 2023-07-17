@@ -41,9 +41,15 @@ import java.util.*;
  */
 public class HaxeRefactoringUtil {
   public static Set<String> collectUsedNames(HaxePsiCompositeElement context) {
-    final Set<HaxeComponentName> usedComponentNames = new HashSet<HaxeComponentName>();
+    final Set<HaxeComponentName> usedComponentNames = new HashSet<>();
     PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(usedComponentNames), context, null, new ResolveState());
-    return new HashSet<String>(ContainerUtil.map(usedComponentNames, new Function<HaxeComponentName, String>() {
+
+    // if we are inside a method we should include variable names to the list of used names
+    HaxeMethodDeclaration possibleMethod = PsiTreeUtil.getParentOfType(context, HaxeMethodDeclaration.class);
+    if (possibleMethod != null && possibleMethod.getBody() != null) {
+      PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(usedComponentNames), possibleMethod.getBody(), null, new ResolveState());
+    }
+    return new HashSet<>(ContainerUtil.map(usedComponentNames, new Function<>() {
       @Nullable
       @Override
       public String fun(HaxeComponentName componentName) {
@@ -53,9 +59,9 @@ public class HaxeRefactoringUtil {
   }
 
   public static Set<String> collectKeywords() {
-    Set<String> words = new HashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), (IElementType k)->k.toString()));
-    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.SOFT_KEYWORDS.getTypes(), (IElementType k)->k.toString()));
-    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.KEYWORD_CONSTANTS.getTypes(), (IElementType k)->k.toString()));
+    Set<String> words = new HashSet<>(ContainerUtil.map(HaxeTokenTypeSets.KEYWORDS.getTypes(), IElementType::toString));
+    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.SOFT_KEYWORDS.getTypes(), IElementType::toString));
+    words.addAll(ContainerUtil.map(HaxeTokenTypeSets.KEYWORD_CONSTANTS.getTypes(), IElementType::toString));
     return words;
   }
 

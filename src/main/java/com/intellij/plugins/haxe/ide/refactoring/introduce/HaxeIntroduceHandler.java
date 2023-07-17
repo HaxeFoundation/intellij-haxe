@@ -135,7 +135,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     if (selectionModel.hasSelection()) {
       element1 = file.findElementAt(selectionModel.getSelectionStart());
       element2 = file.findElementAt(selectionModel.getSelectionEnd() - 1);
-      if (element2 == null || element2.textMatches(";")) {
+      if (element2 == null || elementIsSemicolon(element2)) {
         element2 = file.findElementAt(selectionModel.getSelectionEnd() - 2);
       }
     }
