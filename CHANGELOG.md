@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+* parser support for abstract classes
 * Experimental macro type conversion when resolving types (parameter and return types)
 
 ## 1.4.7
