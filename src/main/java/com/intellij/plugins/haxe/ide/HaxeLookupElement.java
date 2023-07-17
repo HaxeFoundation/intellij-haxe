@@ -46,9 +46,12 @@ public class HaxeLookupElement extends LookupElement {
   private final HaxeResolveResult leftReference;
   private final HaxeMethodContext context;
 
+  private final HaxeGenericResolver resolver;
+
   public static Collection<HaxeLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
                                                       @NotNull Collection<HaxeComponentName> componentNames,
-                                                      @NotNull Collection<HaxeComponentName> componentNamesExtension) {
+                                                      @NotNull Collection<HaxeComponentName> componentNamesExtension,
+                                                      HaxeGenericResolver resolver) {
     final List<HaxeLookupElement> result = new ArrayList<>(componentNames.size());
     for (HaxeComponentName componentName : componentNames) {
       HaxeMethodContext context = null;
@@ -68,16 +71,17 @@ public class HaxeLookupElement extends LookupElement {
         shouldBeIgnored = methodDeclaration.hasCompileTimeMetadata(NO_COMPLETION) ;
       }
       if (!shouldBeIgnored) {
-        result.add(new HaxeLookupElement(leftReferenceResolveResult, componentName, context));
+        result.add(new HaxeLookupElement(leftReferenceResolveResult, componentName, context, resolver));
       }
     }
     return result;
   }
 
-  public HaxeLookupElement(HaxeResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context) {
+  public HaxeLookupElement(HaxeResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context, HaxeGenericResolver resolver) {
     this.leftReference = leftReference;
     this.myComponentName = name;
     this.context = context;
+    this.resolver = resolver;
   }
 
   @NotNull
@@ -93,15 +97,6 @@ public class HaxeLookupElement extends LookupElement {
       presentation.setItemText(getLookupString());
       return;
     }
-
-    HaxeGenericResolver resolver =  null;
-    if(leftReference != null && leftReference.getHaxeClass() != null) {
-      resolver = leftReference.getSpecialization().toGenericResolver(myComponentName);
-      resolver = getResolverSkipAbstractNullScope(leftReference.getHaxeClass().getModel(), resolver);
-    }
-
-
-
 
     // Check for members: methods and fields
     HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(myComponentName);

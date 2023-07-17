@@ -71,7 +71,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   @NotNull
   List<HaxeType> getHaxeImplementsList();
 
-  boolean isAbstract();
+  boolean isAbstractType();
 
   boolean isExtern();
 

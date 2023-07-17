@@ -27,7 +27,7 @@ Haxe File
     ENUM_BODY
       HaxePsiToken:{('{')
       HaxePsiToken:}('}')
-  ABSTRACT_CLASS_DECLARATION
+  ABSTRACT_TYPE_DECLARATION
     PRIVATE_KEY_WORD
       HaxePsiToken:private('private')
     ABSTRACT_CLASS_TYPE

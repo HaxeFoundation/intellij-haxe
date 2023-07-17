@@ -286,11 +286,12 @@ private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
                               | externClassDeclaration
                               | externInterfaceDeclaration
-                              | abstractClassDeclaration
+                              | abstractTypeDeclaration
                               | enumDeclaration
                               | typedefDeclaration
 {name="Top Level Declaration (class, interface, abstract, enum, or typedef)"}
 
+abstractKeyword ::= 'abstract'
 privateKeyWord ::= 'private'
 externKeyWord ::= 'extern'
 finalKeyWord ::= 'final'
@@ -303,7 +304,7 @@ private externAndMaybePrivate1 ::= privateKeyWord? externKeyWord
 private externAndMaybePrivate2 ::= externKeyWord privateKeyWord?
 private externAndMaybePrivate ::= externAndMaybePrivate2 | externAndMaybePrivate1
 
-classModifier ::= privateKeyWord | finalKeyWord
+classModifier ::= abstractKeyword | privateKeyWord | finalKeyWord
 classModifierList ::= classModifier+
 private externClassModifier ::= classModifier | externKeyWord
 // This is intentionally vague (allowing multiple 'extern's), so that the following class parses.
@@ -332,7 +333,7 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 //moduleDeclaration ::= moduleBody{pin=1}
 
 moduleBody ::= moduleBodyPart+  {pin=1}
-private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractClassDeclaration))
+private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractTypeDeclaration))
 private moduleBodyPart ::= localVarDeclarationList | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
 
 
@@ -340,7 +341,7 @@ classDeclaration ::= classModifierList? 'class' componentName genericParam? inhe
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 
-abstractClassDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
+abstractTypeDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 abstractClassType ::= 'enum'? 'abstract'
 underlyingType ::= '(' typeWrapper ')'
@@ -370,7 +371,7 @@ enumBody ::= '{' enumValueDeclaration* '}'
  *  declarations
  */
 
-methodModifier ::= 'extern' | 'final' | 'static' | 'inline' | 'dynamic' | 'override' | 'overload' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
+methodModifier ::= 'abstract' | 'extern' | 'final' | 'static' | 'inline' | 'dynamic' | 'override' | 'overload' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 fieldModifier ::= 'extern' | 'static' | 'inline' | 'dynamic' | 'override' | 'macro' | 'public' | 'private' {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 mutabilityModifier ::= 'final' | 'var'
 

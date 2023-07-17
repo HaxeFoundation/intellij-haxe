@@ -295,10 +295,10 @@ public abstract class SpecificTypeReference {
   final public boolean isClass() {
     return isNamedType(CLASS);
   }
-  final public boolean isAbstract() {
+  final public boolean isAbstractType() {
     if (this instanceof SpecificHaxeClassReference) {
       final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      return reference.getHaxeClass() instanceof  HaxeAbstractClassDeclaration;
+      return reference.getHaxeClass() instanceof HaxeAbstractTypeDeclaration;
     }
     return false;
   }
@@ -552,9 +552,8 @@ public abstract class SpecificTypeReference {
     if (thisModel != null && otherModel != null) {
       FullyQualifiedInfo thisInfo = thisModel.getQualifiedInfo();
       FullyQualifiedInfo otherInfo = otherModel.getQualifiedInfo();
-      if (thisInfo.getClassPath().equals(otherInfo.getClassPath())) {
-        return true;
-      }
+      if (thisInfo == null || otherInfo == null) return false;
+      return thisInfo.getClassPath().equals(otherInfo.getClassPath());
     }
     return false;
   }

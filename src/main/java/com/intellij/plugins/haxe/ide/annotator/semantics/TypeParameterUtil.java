@@ -27,6 +27,16 @@ public class TypeParameterUtil {
           typeParamMap.put(model.getName(), constraint);
         }
       }
+      if(method.isConstructor()) {
+        params = method.getModel().getDeclaringClass().getGenericParams();
+        for (HaxeGenericParamModel model : params) {
+          ResultHolder constraint = model.getConstraint(resolver);
+          if (constraint != null && constraint.isUnknown()) {
+            typeParamMap.put(model.getName(), constraint);
+          }
+        }
+      }
+
       HaxeClassModel declaringClass = methodModel.getDeclaringClass();
       if (declaringClass != null) {
         List<HaxeGenericParamModel> classParams = declaringClass.getGenericParams();
