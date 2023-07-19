@@ -71,7 +71,7 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
     assertTrue(items.length > 0);
     MockParameterInfoUIContext context = new MockParameterInfoUIContext<PsiElement>(elt);
     parameterInfoHandler.updateUI((HaxeFunctionDescription)items[0], context);
-    assertEquals(infoText, parameterInfoHandler.myParametersListPresentableText);
+    assertEquals(infoText, context.getText());
 
     // index check
     MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(getEditor(), getFile());
@@ -137,7 +137,7 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
 
   @Test
   public void testParamInfo10() throws Throwable {
-    doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:Node = null", 3);
+    doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
   }
 
   // Disabled - Tests issue #615.

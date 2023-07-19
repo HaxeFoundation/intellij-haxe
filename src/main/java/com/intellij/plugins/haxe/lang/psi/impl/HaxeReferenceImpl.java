@@ -118,20 +118,21 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (this instanceof HaxeCallExpression) {
       expression = ((HaxeCallExpression)this).getExpression();
     }
-    else if (this instanceof HaxeNewExpression) {
-      HaxeNewExpression newExpression = (HaxeNewExpression)this;
-      PsiElement resolved = newExpression.getType().getReferenceExpression().resolve();
-      HaxeClass haxeClass;
-      if (resolved instanceof HaxeClass) {
-        haxeClass = (HaxeClass)resolved;
+    else if (this instanceof HaxeNewExpression newExpression) {
+      if (newExpression.getType() != null) {
+        PsiElement resolved = newExpression.getType().getReferenceExpression().resolve();
+        HaxeClass haxeClass;
+        if (resolved instanceof HaxeClass resolvedAsClass) {
+          haxeClass = resolvedAsClass;
+        }
+        else {
+          SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
+          haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
+        }
+        final HaxeResolveResult result = HaxeResolveResult.create(haxeClass);
+        result.specializeByParameters(newExpression.getType().getTypeParam());
+        return result.getSpecialization();
       }
-      else {
-        SpecificHaxeClassReference typeReference = SpecificTypeReference.getUnknown(newExpression);
-        haxeClass = null != typeReference ? typeReference.getHaxeClass() : null;
-      }
-      final HaxeResolveResult result = HaxeResolveResult.create(haxeClass);
-      result.specializeByParameters(newExpression.getType().getTypeParam());
-      return result.getSpecialization();
     }
 
     // The specialization for a reference comes from either the type of the left-hand side of the

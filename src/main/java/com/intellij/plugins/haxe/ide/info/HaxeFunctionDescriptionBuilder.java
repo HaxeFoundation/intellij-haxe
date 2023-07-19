@@ -17,6 +17,7 @@
 package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -43,14 +44,24 @@ class HaxeFunctionDescriptionBuilder {
 
   @Nullable
   static HaxeFunctionDescription buildForConstructor(final HaxeNewExpression expression) {
-    final HaxeGenericSpecialization specialization = expression.getSpecialization();
-    final PsiElement resolved = (HaxeClass)expression.getType().getReferenceExpression().resolve();
+    HaxeType type = expression.getType();
+    if (type == null) return null;
 
-    if (resolved instanceof HaxeClass) {
-      final HaxeClass haxeClass = (HaxeClass)resolved;
+
+    HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
+    HaxeResolveResult result = referenceExpression.resolveHaxeClass();
+    HaxeClass haxeClass = result.getHaxeClass();
+
+    if (haxeClass!= null && haxeClass.isTypeDef()) {
+      if (haxeClass instanceof AbstractHaxeTypeDefImpl typeDef){
+        result = typeDef.getTargetClass(result.getSpecialization());
+      }
+    }
+
+    if (haxeClass != null) {
       final PsiMethod[] constructors = haxeClass.getConstructors();
       if (constructors.length > 0) {
-        final HaxeResolveResult resolveResult = HaxeResolveResult.create(haxeClass, specialization);
+        final HaxeResolveResult resolveResult = HaxeResolveResult.create(result.getHaxeClass(), result.getSpecialization());
 
         final HaxeMethod constructor = (HaxeMethod)constructors[0];
         return build(constructor, resolveResult, false);

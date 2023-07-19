@@ -38,23 +38,27 @@ import java.util.List;
  * @author: Fedor.Korotkov
  */
 public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement, HaxeFunctionDescription> {
-  private int currentParameterIndex = -1;
-  String myParametersListPresentableText = "";
 
   @Override
   public PsiElement findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
-    return findCallOrNewExpressionUnderCaret(context);
+    final PsiElement selectedElement = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    final HaxeReference method = PsiTreeUtil.getParentOfType(selectedElement, HaxeCallExpression.class, HaxeNewExpression.class);
+    if (selectedElement != null && method != null) {
+      return method;
+    }
+    return null;
   }
 
   @Override
   public PsiElement findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
-    return context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
-  }
-
-  @Nullable
-  private PsiElement findCallOrNewExpressionUnderCaret(@NotNull ParameterInfoContext context) {
-    final PsiElement place = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
-    return PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class);
+    final PsiElement selectedElement = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    final HaxeReference method = PsiTreeUtil.getParentOfType(selectedElement, HaxeCallExpression.class, HaxeNewExpression.class);
+    if (selectedElement != null && method != null) {
+      int parameterIndex = getArgumentIndex(method, selectedElement);
+      context.setCurrentParameter(parameterIndex);
+      return method;
+    }
+    return null;
   }
 
   @Override
@@ -69,11 +73,11 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Nullable
   private HaxeFunctionDescription getParametersDescriptions(PsiElement element) {
-    if (element instanceof HaxeCallExpression) {
-      return HaxeFunctionDescriptionBuilder.buildForMethod((HaxeCallExpression)element);
+    if (element instanceof HaxeCallExpression callExpression) {
+      return HaxeFunctionDescriptionBuilder.buildForMethod(callExpression);
     }
-    else if (element instanceof HaxeNewExpression) {
-      return HaxeFunctionDescriptionBuilder.buildForConstructor((HaxeNewExpression)element);
+    else if (element instanceof HaxeNewExpression newExpression) {
+      return HaxeFunctionDescriptionBuilder.buildForConstructor(newExpression);
     }
 
     return null;
@@ -83,19 +87,13 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   public void updateParameterInfo(@NotNull PsiElement place, @NotNull UpdateParameterInfoContext context) {
     PsiElement owner = context.getParameterOwner();
 
-    if (owner != PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class)) {
-      context.removeHint();
-      return;
+    if (place instanceof HaxeCallExpression || place instanceof HaxeNewExpression) {
+      context.setParameterOwner(place);
+    }else {
+      if (owner != PsiTreeUtil.getParentOfType(place, HaxeCallExpression.class, HaxeNewExpression.class)) {
+        context.removeHint();
+      }
     }
-
-    final Object[] objects = context.getObjectsToView();
-
-    for (int i = 0; i < objects.length; i++) {
-      context.setUIComponentEnabled(i, true);
-    }
-
-    currentParameterIndex = getArgumentIndex(context.getParameterOwner(), place);
-    context.setCurrentParameter(currentParameterIndex);
   }
 
   private int getArgumentIndex(@NotNull PsiElement owner, @NotNull PsiElement place) {
@@ -111,9 +109,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
     if (argumentsList != null) {
       final int listSize = argumentsList.size();
-
       if (listSize == 0) return listSize;
-
       argumentIndex = getArgumentIndexUnderCaret(place, argumentsList);
     }
 
@@ -146,13 +142,10 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   }
 
   private HaxeExpression getExpressionAtPlace(@NotNull PsiElement place, final List<HaxeExpression> expressionList) {
-    return (HaxeExpression)PsiTreeUtil.findFirstParent(place, new Condition<PsiElement>() {
-      @Override
-      public boolean value(PsiElement element) {
-        return element instanceof HaxeExpression && expressionList.indexOf(element) >= 0;
-      }
-    });
+    return (HaxeExpression)PsiTreeUtil.findFirstParent(place, getContainsCondition(expressionList));
   }
+
+
 
   private int getExpressionIndexAtPlace(PsiElement place, List<HaxeExpression> list) {
     final int listSize = list.size();
@@ -176,13 +169,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   private int getExpressionIndexBeforeRightParen(List<HaxeExpression> list) {
     final int listSize = list.size();
-    final PsiElement commaExpression = (UsefulPsiTreeUtil.getNextSiblingSkippingCondition(list.get(listSize-1), new Condition<PsiElement>() {
-      @Override
-      public boolean value(PsiElement element) {
-        return !(element instanceof HaxePsiToken && element.getText().equals(HaxeTokenTypes.OCOMMA.toString()));
-      }
-    }, false));
-
+    final PsiElement commaExpression = UsefulPsiTreeUtil.getNextSiblingSkippingCondition(list.get(listSize-1), getNotCommaCondition(), false);
     if (commaExpression != null) {
       return listSize;
     }
@@ -191,6 +178,8 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     }
   }
 
+
+
   private int interpolateArgumentIndexToParameterIndex(List<HaxeExpression> arguments,
                                                        HaxeParameterDescription[] parameters,
                                                        int currentArgumentIndex) {
@@ -198,7 +187,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
     int argumentIndex = 0;
     int recoverParameterIndex = 0;
 
-    if (arguments == null || arguments.size() == 0) return argumentIndex;
+    if (arguments == null || arguments.isEmpty()) return argumentIndex;
 
     final int parameterCount = parameters.length;
     final int argumentsCount = arguments.size();
@@ -234,11 +223,11 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
   }
 
   private List<HaxeExpression> getArgumentsList(@NotNull PsiElement element) {
-    if (element instanceof HaxeNewExpression) {
-      return ((HaxeNewExpression)element).getExpressionList();
+    if (element instanceof HaxeNewExpression newExpression) {
+      return newExpression.getExpressionList();
     }
-    else if (element instanceof HaxeCallExpression) {
-      HaxeExpressionList expressionList = ((HaxeCallExpression)element).getExpressionList();
+    else if (element instanceof HaxeCallExpression expression) {
+      HaxeExpressionList expressionList = expression.getExpressionList();
       if (expressionList != null) {
         return expressionList.getExpressionList();
       }
@@ -254,17 +243,26 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       return;
     }
 
-    myParametersListPresentableText = description.toString();
+    int index = context.getCurrentParameterIndex();
+
     context.setupUIComponentPresentation(
-      myParametersListPresentableText,
-
-      description.getParameterRange(currentParameterIndex).getStartOffset(),
-      description.getParameterRange(currentParameterIndex).getEndOffset(),
-
+      description.toString(),
+      description.getParameterRange(index).getStartOffset(),
+      description.getParameterRange(index).getEndOffset(),
       !context.isUIComponentEnabled(),
       false,
       false,
       context.getDefaultParameterColor()
     );
+  }
+
+
+  @NotNull
+  private static Condition<PsiElement> getContainsCondition(List<HaxeExpression> expressionList) {
+    return element -> element instanceof HaxeExpression && expressionList.contains(element);
+  }
+  @NotNull
+  private static Condition<PsiElement> getNotCommaCondition() {
+    return element -> !(element instanceof HaxePsiToken && element.getText().equals(HaxeTokenTypes.OCOMMA.toString()));
   }
 }
