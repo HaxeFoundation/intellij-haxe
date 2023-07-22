@@ -282,25 +282,28 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeNewExpression expression) {
-      ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(expression.getType());
-      if (typeHolder.getType() instanceof SpecificHaxeClassReference classReference) {
-        final HaxeClassModel clazz = classReference.getHaxeClassModel();
-        if (clazz != null) {
-          HaxeMethodModel constructor = clazz.getConstructor(resolver);
-          if (constructor == null) {
-            context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
-              @Override
-              public void run() {
-                // @TODO: Check arguments
-                clazz.addMethod("new");
-              }
-            });
-          } else {
-            checkParameters(element, constructor, expression.getExpressionList(), context, resolver);
+      HaxeType type = expression.getType();
+      if (type != null) {
+        ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type);
+        if (typeHolder.getType() instanceof SpecificHaxeClassReference classReference) {
+          final HaxeClassModel clazz = classReference.getHaxeClassModel();
+          if (clazz != null) {
+            HaxeMethodModel constructor = clazz.getConstructor(resolver);
+            if (constructor == null) {
+              context.addError(element, "Class " + clazz.getName() + " doesn't have a constructor", new HaxeFixer("Create constructor") {
+                @Override
+                public void run() {
+                  // @TODO: Check arguments
+                  clazz.addMethod("new");
+                }
+              });
+            } else {
+              checkParameters(element, constructor, expression.getExpressionList(), context, resolver);
+            }
           }
         }
+        return typeHolder.duplicate();
       }
-      return typeHolder.duplicate();
     }
 
     if (element instanceof HaxeThisExpression) {

@@ -60,6 +60,10 @@ public class ResultHolder {
   public SpecificHaxeClassReference getClassType() {
     return (type instanceof SpecificHaxeClassReference classReference) ? classReference : null;
   }
+  @Nullable
+  public SpecificEnumValueReference getEnumValueType() {
+    return (type instanceof SpecificEnumValueReference enumValueReference) ? enumValueReference : null;
+  }
 
   @Nullable
   public boolean isFunctionType() {

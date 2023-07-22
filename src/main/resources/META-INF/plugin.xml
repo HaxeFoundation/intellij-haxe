@@ -158,6 +158,47 @@
     <codeInsight.overrideMethod language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeOverrideMethodHandler"/>
     <codeInsight.implementMethod language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.generation.HaxeImplementMethodHandler"/>
     <codeInsight.parameterInfo language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.info.HaxeParameterInfoHandler"/>
+    <codeInsight.parameterNameHints language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.hint.parameters.HaxeInlayParameterHintsProvider"/>
+
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayEnumExtractorHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.enum.extractor"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.enum.extractor.hint.name"
+                                          descriptionKey="haxe.enum.extractor.hint.description"/>
+
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayFieldHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.field.type"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.field.hint.name"
+                                          descriptionKey="haxe.field.hint.description"/>
+
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.local.variable"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.local.variable.hint.name"
+                                          descriptionKey="haxe.local.variable.hint.description"/>
+
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayReturnTypeHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.return.type"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.return.type.hint.name"
+                                          descriptionKey="haxe.return.type.hint.description"/>
+
+
+
+    <colorProvider implementation="com.intellij.plugins.haxe.ide.editor.HaxeColorProvider" />
 
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HaxeColorSettingsPage"/>
 
