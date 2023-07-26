@@ -89,7 +89,7 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
     @NotNull
     private static Function1<PresentationTreeBuilder, Unit> appendTypeTextToBuilder(ResultHolder type) {
       return builder -> {
-        builder.text( type.toPresentationString(), null);
+        builder.text( ":"+type.toPresentationString(), null);
         return null;
       };
     }
