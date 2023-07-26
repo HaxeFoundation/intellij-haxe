@@ -69,6 +69,9 @@ public class HaxeTypeUnifier {
     if (a.isEnumValue() && b.isEnumValue()) {
       return unifyEnumValues(a, b);
     }
+    if (a.isEnumType() && b.isEnumValue()) {
+      return unifyEnumValues(a, b);
+    }
 
     return SpecificTypeReference.getUnknown(a.getElementContext());
   }
@@ -196,6 +199,11 @@ public class HaxeTypeUnifier {
       }
       else if (b instanceof SpecificEnumValueReference) {
         return ((SpecificEnumValueReference)b).clone();
+      }
+    }
+    else if (a instanceof SpecificHaxeClassReference && b instanceof SpecificEnumValueReference bReference) {
+      if(a.isSameType(bReference.getEnumClass())) {
+        return a;
       }
     }
     else if (a instanceof SpecificEnumValueReference) {

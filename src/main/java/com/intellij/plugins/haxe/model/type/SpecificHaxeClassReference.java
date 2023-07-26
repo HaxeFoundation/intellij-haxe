@@ -92,10 +92,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return clazz;
   }
 
-  public boolean isEnumType() {
-    return (this.getHaxeClass() instanceof  HaxeEnumDeclaration);
-  }
-
 
   public HaxeClassModel getHaxeClassModel() {
     final HaxeClass aClass = getHaxeClass();

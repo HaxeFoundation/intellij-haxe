@@ -288,6 +288,13 @@ public abstract class SpecificTypeReference {
     return isNamedType(NULL);
   }
 
+  public boolean isEnumType() {
+    if (this instanceof  SpecificHaxeClassReference classReference) {
+      return (classReference.getHaxeClass() instanceof HaxeEnumDeclaration);
+    }
+    return false;
+  }
+
   /** Tell whether the class is the Enum<type> abstract class. */
   final public boolean isEnumClass() {
     return isNamedType(ENUM);

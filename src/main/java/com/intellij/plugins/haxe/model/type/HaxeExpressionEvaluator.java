@@ -218,7 +218,7 @@ public class HaxeExpressionEvaluator {
 
     if (element instanceof HaxeSwitchStatement switchStatement) {
       // TODO: Evaluating result of switch statement should properly implemented
-      List<SpecificTypeReference> switchReturnTypes = new LinkedList<>();
+      List<SpecificTypeReference> typeList = new LinkedList<>();
       SpecificTypeReference bestGuess = null;
 
       if(switchStatement.getSwitchBlock() != null) {
@@ -226,18 +226,19 @@ public class HaxeExpressionEvaluator {
 
         for (HaxeSwitchCase switchCase : caseList) {
           HaxeSwitchCaseBlock block = switchCase.getSwitchCaseBlock();
-          if(block != null) {
+          if (block != null) {
             ResultHolder handle = handle(block, context, resolver);
-            switchReturnTypes.add(handle.getType());
+            typeList.add(handle.getType());
           }
         }
 
-        for (SpecificTypeReference returnType : switchReturnTypes) {
+        for (SpecificTypeReference typeReference : typeList) {
+          if (typeReference.isVoid()) continue;
           if (bestGuess == null) {
-            bestGuess = returnType;
+            bestGuess = typeReference;
             continue;
           }
-          bestGuess = HaxeTypeUnifier.unify(bestGuess, returnType, element);
+          bestGuess = HaxeTypeUnifier.unify(bestGuess, typeReference, element);
         }
       }
 
@@ -284,14 +285,15 @@ public class HaxeExpressionEvaluator {
     if (element instanceof  HaxeSwitchCaseBlock caseBlock) {
       List<HaxeReturnStatement> list = caseBlock.getReturnStatementList();
       for (HaxeReturnStatement  statement : list) {
-        return handle(statement, context, resolver);
+        ResultHolder returnType = handle(statement, context, resolver);
+        context.addReturnType(returnType, statement);
       }
       List<HaxeExpression> expressions = caseBlock.getExpressionList();
       if (!expressions.isEmpty()) {
         HaxeExpression lastExpression = expressions.get(expressions.size() - 1);
         return handle(lastExpression, context, resolver);
       }
-      return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
+      return new ResultHolder(SpecificHaxeClassReference.getVoid(element));
     }
 
     if (element instanceof HaxeNewExpression expression) {
