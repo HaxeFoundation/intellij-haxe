@@ -53,6 +53,7 @@ public class HaxeFunctionTypeModel implements HaxeModel {
   }
 
   public List<HaxeFunctionTypeParameterModel> getParameters() {
+    if (functionType == null) return List.of();
     return functionType.getFunctionArgumentList().stream()
       .map(HaxeFunctionTypeParameterModel::new)
       .toList();

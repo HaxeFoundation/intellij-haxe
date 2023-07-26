@@ -494,13 +494,15 @@ public class HaxeExpressionEvaluator {
       final HaxeVarInit init = varDeclaration.getVarInit();
       final HaxeTypeTag typeTag = varDeclaration.getTypeTag();
       final ResultHolder unknownResult = SpecificHaxeClassReference.getUnknown(element).createHolder();
+      HaxeGenericResolver localResolver = new HaxeGenericResolver();
+      localResolver.addAll(resolver);
       if(init != null) {
         // find any type parameters used in init expression as the return type might be of that type
         HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init.getExpression());
-        resolver.addAll(initResolver);
+        localResolver.addAll(initResolver.withoutUnknowns());
       }
       final ResultHolder initResult = init != null
-                                      ? handle(init, context, resolver)
+                                      ? handle(init, context, localResolver)
                                       : unknownResult;
       final ResultHolder typeTagResult = typeTag != null
                                          ? HaxeTypeResolver.getTypeFromTypeTag(typeTag, element)

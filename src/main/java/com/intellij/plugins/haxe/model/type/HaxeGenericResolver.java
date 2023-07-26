@@ -20,11 +20,13 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HaxeGenericResolver {
@@ -40,6 +42,25 @@ public class HaxeGenericResolver {
     for (Map.Entry<String, ResultHolder> entry : resolvers.entrySet()) {
       if(!entry.getValue().isUnknown()) {
         resolver.resolvers.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return resolver;
+  }
+
+  /*
+     when resolving types inside a method with generic parameters we want to show the generic types and not unknown
+      this method creates a new resolver and replaces its unknowns with  GenericParams from generic params models
+   */
+  public HaxeGenericResolver withTypeParametersAsType(@NotNull List<HaxeGenericParamModel> params) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    resolver.resolvers.putAll(resolvers);
+
+    for (HaxeGenericParamModel param : params) {
+      String name = param.getName();
+      if(resolver.resolvers.containsKey(name) && resolver.resolvers.get(name).isUnknown()) {
+        HaxeClassReference classReference = new HaxeClassReference(name, param.getPsi(), true);
+        ResultHolder holder = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(classReference));
+        resolver.resolvers.put(name, holder);
       }
     }
     return resolver;

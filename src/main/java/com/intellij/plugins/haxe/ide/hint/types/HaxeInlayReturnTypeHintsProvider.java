@@ -4,6 +4,7 @@ import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -33,7 +34,9 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
       HaxeMethodModel methodModel = declaration.getModel();
 
       if (methodModel != null && methodModel.getReturnTypeTagPsi() == null && !methodModel.isConstructor()) {
-        ResultHolder returnType = methodModel.getReturnType(null);
+        HaxeGenericResolver resolver = methodModel.getGenericResolver(null);
+        resolver = resolver.withTypeParametersAsType(methodModel.getGenericParams());
+        ResultHolder returnType = methodModel.getReturnType(resolver);
         int offset = declaration.getParameterList().getNextSibling().getTextRange().getEndOffset();
         if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
           InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
