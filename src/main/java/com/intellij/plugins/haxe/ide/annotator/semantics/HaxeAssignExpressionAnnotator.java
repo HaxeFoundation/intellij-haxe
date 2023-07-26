@@ -51,7 +51,10 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
         }
       }
     }
-
+    // hack for String since its not a class with operator overloads but can have any object added to it;
+    if (lhsType.getType().isString() &&  assignOperation.textMatches("+=")) {
+      return;
+    }
 
     if (!lhsType.canAssignAnnotateWarnings(rhsType, holder)) {
       List<HaxeExpressionConversionFixer> fixers =

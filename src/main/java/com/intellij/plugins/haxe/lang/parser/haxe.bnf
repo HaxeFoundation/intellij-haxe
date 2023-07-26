@@ -744,7 +744,9 @@ private assignableValueExpression ::= (referenceExpression | thisExpression | su
 // If callOrArrayAccess comes before literalExpression, then referenceExpression (as part of callOrArrayAccess)
 // will take the first identifier and the rest will not match properly.
 private value ::= ('untyped' expression)
-                | 'macro' expression
+//                | 'macro' expression
+                // TODO mlo: macro statements can be used as "values" (ex. in method calls) and should not require ";" at the end
+                | 'macro' statement
                 | callFunctionLiteral
                 | immediateArrayAccess
                 | macroTypeReification
