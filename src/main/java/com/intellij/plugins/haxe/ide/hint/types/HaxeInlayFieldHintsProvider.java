@@ -38,7 +38,7 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
                                                     @NotNull InlayTreeSink sink,
                                                     HaxeFieldDeclaration fieldDeclaration) {
       HaxeFieldModel field = new HaxeFieldModel(fieldDeclaration);
-      if (!field.hasTypeTag() && field.hasInitializer()) {
+      if (!field.hasTypeTag() && field.getInitializerExpression() != null) {
         HaxeExpression expression = field.getInitializerExpression();
 
         HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
