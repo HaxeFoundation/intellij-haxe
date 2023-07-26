@@ -146,9 +146,17 @@ public class HaxeExpressionEvaluator {
           localResolver.addAll(resolver);
           localResolver.addAll(haxeClassReference.getGenericResolver());// replace parent/old resolver values with newer from class reference
           if (haxeClassReference != null && haxeClassReference.getHaxeClassModel() != null) {
-            HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
-            if (iterator instanceof HaxeMethodModel methodModel) {
-              return methodModel.getReturnType(localResolver);
+            HaxeForStatement parentForLoop = PsiTreeUtil.getParentOfType(iterable, HaxeForStatement.class);
+            if (parentForLoop.getKeyValueIterator() == null) {
+              HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
+              if (iterator instanceof HaxeMethodModel methodModel) {
+                return methodModel.getReturnType(localResolver);
+              }
+            }else {
+              HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("keyValueIterator", resolver);
+              if (iterator instanceof HaxeMethodModel methodModel) {
+                return methodModel.getReturnType(localResolver);
+              }
             }
           }
         }
@@ -277,6 +285,11 @@ public class HaxeExpressionEvaluator {
       List<HaxeReturnStatement> list = caseBlock.getReturnStatementList();
       for (HaxeReturnStatement  statement : list) {
         return handle(statement, context, resolver);
+      }
+      List<HaxeExpression> expressions = caseBlock.getExpressionList();
+      if (!expressions.isEmpty()) {
+        HaxeExpression lastExpression = expressions.get(expressions.size() - 1);
+        return handle(lastExpression, context, resolver);
       }
       return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
     }
@@ -517,6 +530,20 @@ public class HaxeExpressionEvaluator {
         return SpecificTypeReference.getInvalid(element).createHolder();
       }
       return handle(expression, context, resolver);
+    }
+    if (element instanceof  HaxeValueExpression valueExpression) {
+      if (valueExpression.getSwitchStatement() != null){
+        return handle(valueExpression.getSwitchStatement(), context, resolver);
+      }
+      if (valueExpression.getIfStatement() != null){
+        return handle(valueExpression.getIfStatement(), context, resolver);
+      }
+      if (valueExpression.getTryStatement() != null){
+        return handle(valueExpression.getTryStatement(), context, resolver);
+      }
+      if (valueExpression.getVarInit() != null){
+        return handle(valueExpression.getVarInit(), context, resolver);
+      }
     }
 
     if (element instanceof HaxeReferenceExpression) {

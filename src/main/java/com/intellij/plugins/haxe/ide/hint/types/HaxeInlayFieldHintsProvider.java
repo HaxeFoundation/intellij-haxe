@@ -44,11 +44,12 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
         HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
         ResultHolder type = HaxeTypeResolver.getPsiElementType(expression, element, resolver);
 
-
-        int offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
-        InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
-        );
+        if (!type.isUnknown() && !type.getType().isInvalid()) {
+          int offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
+          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
+          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
+          );
+        }
       }
     }
 

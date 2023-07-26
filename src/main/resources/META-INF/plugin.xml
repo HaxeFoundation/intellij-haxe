@@ -179,6 +179,15 @@
                                           descriptionKey="haxe.field.hint.description"/>
 
     <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayForLoopHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.loop.type"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.for.loop.type.hint.name"
+                                          descriptionKey="haxe.for.loop.type.hint.description"/>
+
+    <codeInsight.declarativeInlayProvider language="Haxe"
                                           implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayLocalVariableHintsProvider"
                                           isEnabledByDefault="true"
                                           group="TYPES_GROUP"

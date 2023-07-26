@@ -35,9 +35,10 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
       if (methodModel != null && methodModel.getReturnTypeTagPsi() == null && !methodModel.isConstructor()) {
         ResultHolder returnType = methodModel.getReturnType(null);
         int offset = declaration.getParameterList().getNextSibling().getTextRange().getEndOffset();
-
-        InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));
+        if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
+          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
+          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));
+        }
       }
     }
 

@@ -85,6 +85,8 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     HtmlBuilder definitionBuilder = new HtmlBuilder();
+    //TODO support key-value iterator "vars"
+    if (type == null) return mainBuilder.toString();
     switch (type) {
       case CLASS, INTERFACE, TYPEDEF, ENUM -> processType(definitionBuilder, namedComponent, renderer);
       case METHOD, FUNCTION -> processMethod(definitionBuilder, namedComponent, renderer);
