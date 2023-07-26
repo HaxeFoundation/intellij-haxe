@@ -1,8 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## 1.4.8
 * parser support for abstract classes
+* Inlay hints for parameter names, variable and field types, return type and for-in loops 
 * Experimental macro type conversion when resolving types (parameter and return types)
+* Experimental color selector
+* Fixed incorrect type resolve of switch case expressions  
+* Made extract to variable ignore trailing `;`
+* Fixed NPEs and type errors 
 
 ## 1.4.7
 * Fixed rendering bugs for haxeDoc
