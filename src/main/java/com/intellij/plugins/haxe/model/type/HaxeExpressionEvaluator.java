@@ -1042,7 +1042,7 @@ public class HaxeExpressionEvaluator {
             HaxeGenericResolver localResolver = classReference.getGenericResolver();
             HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
             localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
-            ResultHolder returnType = methodModel.getReturnType(methodResolver);
+            ResultHolder returnType = methodModel.getReturnType(localResolver);
             if (returnType.getType().isNullType())localResolver.resolve(returnType);
             if (returnType != null) return returnType;
           }
