@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -407,7 +408,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public  boolean isContextAType() {
     if (context instanceof HaxeType) {
-      return true;
+      HaxeParameter type = PsiTreeUtil.getParentOfType(context, HaxeParameter.class);
+      return type == null;
     }
     else if (context instanceof HaxeReferenceExpression) {
       HaxeReferenceExpression element = (HaxeReferenceExpression)context;
