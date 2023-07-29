@@ -327,7 +327,7 @@ public class HaxeTypeResolver {
       returnValue = SpecificTypeReference.getInvalid(type).createHolder();
     }
 
-    return new SpecificFunctionReference(args, returnValue, null, type).createHolder();
+    return new SpecificFunctionReference(args, returnValue, (HaxeMethodModel)null, type).createHolder();
   }
 
   static String getArgumentName(HaxeFunctionArgument argument) {

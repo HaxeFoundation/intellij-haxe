@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -92,7 +93,7 @@ public class HaxeTypeUnifier {
       arguments.add(unifiedArgument);
     }
     final ResultHolder returnValue = unify(a.getReturnType(), b.getReturnType());
-    return new SpecificFunctionReference(arguments, returnValue, null, context);
+    return new SpecificFunctionReference(arguments, returnValue, (HaxeMethodModel)null, context);
   }
 
   @NotNull

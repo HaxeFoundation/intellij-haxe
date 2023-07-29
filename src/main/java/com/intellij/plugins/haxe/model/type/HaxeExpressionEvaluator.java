@@ -564,6 +564,13 @@ public class HaxeExpressionEvaluator {
           }
         } else {
 
+
+          // unwrap Null
+          //TODO make util for unwrap/get underlying type of Null<T>? (or fix resolver ?)
+          if (typeHolder.getType().isNullType()) {
+            typeHolder = typeHolder.getClassType().getSpecifics()[0];
+          }
+
           // TODO: Yo! Eric!!  This needs to get fixed.  The resolver is coming back as Dynamic, when it should be String
 
           // Grab the types out of the original resolver (so we don't modify it), and overwrite them
@@ -628,6 +635,16 @@ public class HaxeExpressionEvaluator {
                   SpecificHaxeClassReference.getStdClass(CLASS, element, new ResultHolder[]{new ResultHolder(originalClass)});
                 typeHolder = wrappedClass.createHolder();
               }
+            }
+          }
+          else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
+            if(fieldDeclaration.getVarInit() != null) {
+              HaxeVarInit init = fieldDeclaration.getVarInit();
+              HaxeExpression initExpression = init.getExpression();
+              HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+            }else if (fieldDeclaration.getTypeTag() != null){
+              typeHolder = HaxeTypeResolver.getTypeFromTypeTag(fieldDeclaration.getTypeTag(), fieldDeclaration);
             }
           }
           else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
@@ -1016,6 +1033,19 @@ public class HaxeExpressionEvaluator {
             }
           }
           return left.getArrayElementType().getType().withConstantValue(constant).createHolder();
+        }
+        //if not native array, look up ArrayAccessGetter method and use result
+        if(left instanceof  SpecificHaxeClassReference classReference) {
+          HaxeNamedComponent getter = classReference.getHaxeClass().findArrayAccessGetter(resolver);
+          if (getter instanceof  HaxeMethodDeclaration methodDeclaration) {
+            HaxeMethodModel methodModel = methodDeclaration.getModel();
+            HaxeGenericResolver localResolver = classReference.getGenericResolver();
+            HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
+            localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
+            ResultHolder returnType = methodModel.getReturnType(methodResolver);
+            if (returnType.getType().isNullType())localResolver.resolve(returnType);
+            if (returnType != null) return returnType;
+          }
         }
       }
       return SpecificHaxeClassReference.getUnknown(element).createHolder();

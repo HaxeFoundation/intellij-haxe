@@ -101,6 +101,7 @@ public class HaxeGenericResolverUtil {
       resolver.addAll(result.getGenericResolver());
       if (result.getHaxeClass() != null) {
         resolver.addAll(getResolverSkipAbstractNullScope(result.getHaxeClass().getModel(), result.getGenericResolver()));
+        resolver.addAll(result.getHaxeClass().getMemberResolver(resolver));
       }
     }
     return resolver;

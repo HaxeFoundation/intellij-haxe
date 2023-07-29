@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+* Improved type resolving for array access expressions
+* Improved handing of null<T> return type.
+* Bugfix: CallExpression type-check used typeParameter from parent and not method.
+
+
 ## 1.4.8
 * parser support for abstract classes
 * Inlay hints for parameter names, variable and field types, return type and for-in loops 
