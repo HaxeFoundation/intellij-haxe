@@ -3,6 +3,7 @@
 ## [Unreleased]
 * Improved type resolving for array access expressions
 * Improved handing of null<T> return type.
+* Bugfix: Incorrect type-mismatch error for methods with parameter of type EnumValue.
 * Bugfix: CallExpression type-check used typeParameter from parent and not method.
 
 

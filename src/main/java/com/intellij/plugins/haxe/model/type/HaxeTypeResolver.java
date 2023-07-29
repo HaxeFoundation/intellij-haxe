@@ -252,16 +252,18 @@ public class HaxeTypeResolver {
   static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp, HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethodImpl) {
       HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
-      if (resolver!= null && typeTag != null) {
-        if (typeTag.getTypeOrAnonymous() != null) {
-          String text = typeTag.getTypeOrAnonymous().getText();
-          ResultHolder resolve = resolver.resolve(text);
-          if (resolve!= null && !resolve.isUnknown()) {
-            return resolve;
+      if (typeTag != null) {
+        if (resolver != null) {
+          if (typeTag.getTypeOrAnonymous() != null) {
+            String text = typeTag.getTypeOrAnonymous().getText();
+            ResultHolder resolve = resolver.resolve(text);
+            if (resolve != null && !resolve.isUnknown()) {
+              return resolve;
+            }
           }
         }
+        return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
       }
-      return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
     }
     if (comp instanceof HaxeConstructor constructor) {
       // TODO constrcutors should return their declaringClass type
