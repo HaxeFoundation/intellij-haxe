@@ -260,8 +260,8 @@ public class HaxeTypeResolver {
             return resolve;
           }
         }
-        return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
       }
+      return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
     }
     if (comp instanceof HaxeConstructor constructor) {
       // TODO constrcutors should return their declaringClass type
@@ -271,8 +271,11 @@ public class HaxeTypeResolver {
         type = resolver.withoutUnknowns().resolve(type);;
       }
       return type;
-    } else if (comp instanceof HaxeMethod) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), (AnnotationHolder)null, resolver);
+    } else if (comp instanceof HaxeMethod method) {
+      HaxeMethodModel methodModel = method.getModel();
+      PsiElement psi = methodModel.getBodyPsi();
+      if (psi == null) psi = methodModel.getBasePsi();
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(psi, (AnnotationHolder)null, resolver);
       return resolveParameterizedType(context.getReturnType(), resolver);
     } else if (comp instanceof HaxeFunctionLiteral) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), (AnnotationHolder)null, resolver);
