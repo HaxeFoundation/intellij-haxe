@@ -252,7 +252,14 @@ public class HaxeTypeResolver {
   static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp, HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethodImpl) {
       HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
-      if (typeTag != null) {
+      if (resolver!= null && typeTag != null) {
+        if (typeTag.getTypeOrAnonymous() != null) {
+          String text = typeTag.getTypeOrAnonymous().getText();
+          ResultHolder resolve = resolver.resolve(text);
+          if (resolve!= null && !resolve.isUnknown()) {
+            return resolve;
+          }
+        }
         return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
       }
     }
