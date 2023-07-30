@@ -227,7 +227,9 @@ public class HaxeClassModel implements HaxeExposableModel {
         if (typeParams.size() == 1) {
           HaxeGenericParamModel param = typeParams.get(0);
           ResultHolder result = resolver.resolve(param.getName());
-          return result.getClassType();
+          if (result != null) {
+            return result.getClassType();
+          }
         }
       }
     }

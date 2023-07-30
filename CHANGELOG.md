@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 1.4.9
 * Added inlay hints for capture variable (haxe 4 syntax)
 * Improved type resolving for array access expressions
 * Improved handing of null<T> return type.
