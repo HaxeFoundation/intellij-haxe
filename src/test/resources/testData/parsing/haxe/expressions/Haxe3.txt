@@ -162,7 +162,7 @@ Haxe File
               HaxePsiToken:(('(')
               REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('$cond')
+                  HaxePsiToken:MACRO_ID('$cond')
               HaxePsiToken:)(')')
               DO_WHILE_BODY
                 CALL_EXPRESSION
@@ -173,7 +173,7 @@ Haxe File
                   CALL_EXPRESSION_LIST
                     REFERENCE_EXPRESSION
                       IDENTIFIER
-                        HaxePsiToken:ID('$e')
+                        HaxePsiToken:MACRO_ID('$e')
                   HaxePsiToken:)(')')
               HaxePsiToken:;(';')
           HaxePsiToken:}('}')

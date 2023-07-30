@@ -177,8 +177,6 @@ mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
 ESCAPE_SEQUENCE=\\[^\r\n]
 
-IDENTIFIER="$"? {mLETTER} ({mDIGIT} | {mLETTER})*
-
 mMETA_PART = {mLETTER} ({mDIGIT} | {mLETTER})*
 META_ID =  {mMETA_PART} ("." {mMETA_PART})*
 COMPILE_META_PREFIX="@:"
@@ -217,12 +215,11 @@ LONELY_DOLLAR=\$
 DOUBLE_DOLLAR=\$\$
 LONG_TEMPLATE_ENTRY_START=\$\{
 
-IDENTIFIER_START_NO_DOLLAR={mLETTER}|"_"
-IDENTIFIER_START={IDENTIFIER_START_NO_DOLLAR}|"$"
-IDENTIFIER_PART_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}|{mDIGIT}
+IDENTIFIER_START={mLETTER}|"_"
 IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
-IDENTIFIER={IDENTIFIER_START}{IDENTIFIER_PART}*
-IDENTIFIER_NO_DOLLAR={IDENTIFIER_START_NO_DOLLAR}{IDENTIFIER_PART_NO_DOLLAR}*
+
+IDENTIFIER_NO_DOLLAR={IDENTIFIER_START}{IDENTIFIER_PART}*
+IDENTIFIER_WITH__DOLLAR="$"{IDENTIFIER_START}{IDENTIFIER_PART}*
 
 /*
     Compiler conditionals: e.g. "#if (js)...#else...#endif"
@@ -336,7 +333,12 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "never"                                   {  return emitToken( KNEVER);  }
 "override"                                {  return emitToken( KOVERRIDE);  }
 "inline"                                  {  return emitToken( KINLINE);  }
-"macro" ({WHITE_SPACE_CHAR}+ | {WHITE_SPACE_CHAR}* :)                  {  return emitToken( KMACRO2); }
+"macro" ({WHITE_SPACE_CHAR}+)             {  return emitToken( KMACRO2); }
+"macro:"
+                                          {
+                                            yypushback(1); // do not consume the colon (but catch the macro keyword)
+                                            return emitToken( KMACRO2);
+                                          }
 
 "untyped"                                 {  return emitToken( KUNTYPED);  }
 "typedef"                                 {  return emitToken( KTYPEDEF);  }
@@ -347,7 +349,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "catch"                                   {  return emitToken( KCATCH);  }
 
 {META}                                    {  return emitToken( META_ID); }
-{IDENTIFIER}                              {  return emitToken( ID); }
+{IDENTIFIER_WITH__DOLLAR}                       {  return emitToken( MACRO_ID); }
+{IDENTIFIER_NO_DOLLAR}                    {  return emitToken( ID); }
 
 "."                                       { return emitToken( ODOT); }
 

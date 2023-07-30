@@ -299,6 +299,9 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeNewExpression expression) {
       HaxeType type = expression.getType();
       if (type != null) {
+        if (isMacroVariable(type.getReferenceExpression().getIdentifier())){
+          return SpecificTypeReference.getDynamic(element).createHolder();
+        }
         ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type);
         if (typeHolder.getType() instanceof SpecificHaxeClassReference classReference) {
           final HaxeClassModel clazz = classReference.getHaxeClassModel();
@@ -337,7 +340,10 @@ public class HaxeExpressionEvaluator {
       return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, element), specifics).createHolder();
     }
 
-    if (element instanceof HaxeIdentifier) {
+    if (element instanceof HaxeIdentifier identifier) {
+      if (isMacroVariable(identifier)) {
+        return SpecificTypeReference.getDynamic(element).createHolder();
+      }
       // If it has already been seen, then use whatever type is already known.
       ResultHolder holder = context.get(element.getText());
 
@@ -1242,6 +1248,10 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  private static boolean isMacroVariable(HaxeIdentifier identifier) {
+    return identifier.getMacroId() != null;
   }
 
   @Nullable

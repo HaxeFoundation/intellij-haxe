@@ -155,8 +155,9 @@
       kTRY="try"
       kCATCH="catch"
       tWILDCARD=".*"
-      space="regexp:\s+"
+      MACRO_ID="regexp:\$[:alpha:]+"
       id="regexp:[:alpha:]+"
+      space="regexp:\s+"
     ]
 
     /* Name the various productions, to make cleaner error statements for the user. */
@@ -233,7 +234,7 @@ questionOperator ::= <<ternary>>      { extends=operator }
 suffixOperator ::= '!'                { extends=operator }
 
 // KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER is only used for getters/setters)
-identifier ::= ID | KFROM | KTO | KNEVER
+identifier ::= ID | MACRO_ID | KFROM | KTO | KNEVER
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
 
 thisExpression ::= 'this'
@@ -557,9 +558,12 @@ private TExtend ::= '{>' type ',' identifier ',' type '}' // TODO mlo: make a be
 private TOptional ::= '?' type
 
 //OBS make sure ordering is correct
-complexType ::= (TFunction | TAnonymous| TOptional | TParent | TExtend  | TPath)
+complexType ::= (TFunction | TAnonymous | TOptional | TParent | TExtend  | TPath)
 macroTypeReification ::= 'macro' ':' complexType {pin=2}
 
+// macro statements can be used as "values" (ex. in method calls) and should not require ";" at the end
+macroValueExpression ::= 'macro' <<disableSemicolonRule>> macroValue <<enableSemicolonRule>>
+private macroValue ::=   statement | topLevelDeclaration
 
 private statement ::= blockStatement | notBlockStatement
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
@@ -744,12 +748,10 @@ private assignableValueExpression ::= (referenceExpression | thisExpression | su
 // If callOrArrayAccess comes before literalExpression, then referenceExpression (as part of callOrArrayAccess)
 // will take the first identifier and the rest will not match properly.
 private value ::= ('untyped' expression)
-//                | 'macro' expression
-                // TODO mlo: macro statements can be used as "values" (ex. in method calls) and should not require ";" at the end
-                | 'macro' <<disableSemicolonRule>>  statement <<enableSemicolonRule>>
+                | macroTypeReification
+                | macroValueExpression
                 | callFunctionLiteral
                 | immediateArrayAccess
-                | macroTypeReification
                 | (macroExpressionReification qualifiedReferenceTail?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral

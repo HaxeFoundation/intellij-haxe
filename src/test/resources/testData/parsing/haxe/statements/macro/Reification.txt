@@ -55,7 +55,7 @@ Haxe File
               VALUE_EXPRESSION
                 MACRO_EXPRESSION_REIFICATION
                   MACRO_ARRAY_REIFICATION
-                    HaxePsiToken:ID('$a')
+                    HaxePsiToken:MACRO_ID('$a')
                     HaxePsiToken:{('{')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
@@ -106,7 +106,7 @@ Haxe File
               VALUE_EXPRESSION
                 MACRO_EXPRESSION_REIFICATION
                   MACRO_DYNAMIC_REIFICATION
-                    HaxePsiToken:ID('$v')
+                    HaxePsiToken:MACRO_ID('$v')
                     HaxePsiToken:{('{')
                     REFERENCE_EXPRESSION
                       IDENTIFIER
@@ -156,7 +156,7 @@ Haxe File
             VALUE_EXPRESSION
               MACRO_EXPRESSION_REIFICATION
                 MACRO_BLOCK_REIFICATION
-                  HaxePsiToken:ID('$b')
+                  HaxePsiToken:MACRO_ID('$b')
                   HaxePsiToken:{('{')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
@@ -195,7 +195,7 @@ Haxe File
             VALUE_EXPRESSION
               MACRO_EXPRESSION_REIFICATION
                 MACRO_IDENTIFIER_REIFICATION
-                  HaxePsiToken:ID('$i')
+                  HaxePsiToken:MACRO_ID('$i')
                   HaxePsiToken:{('{')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
@@ -249,7 +249,7 @@ Haxe File
                 VALUE_EXPRESSION
                   MACRO_EXPRESSION_REIFICATION
                     MACRO_FIELD_REIFICATION
-                      HaxePsiToken:ID('$p')
+                      HaxePsiToken:MACRO_ID('$p')
                       HaxePsiToken:{('{')
                       REFERENCE_EXPRESSION
                         IDENTIFIER
@@ -305,7 +305,7 @@ Haxe File
                   HaxePsiToken:return('return')
                   REFERENCE_EXPRESSION
                     IDENTIFIER
-                      HaxePsiToken:ID('$e')
+                      HaxePsiToken:MACRO_ID('$e')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
           HaxePsiToken:}('}')

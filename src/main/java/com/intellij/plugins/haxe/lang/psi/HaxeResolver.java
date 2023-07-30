@@ -230,10 +230,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
       HaxeFieldDeclaration fieldDeclaration = PsiTreeUtil.getParentOfType(reference, HaxeFieldDeclaration.class);
       if (fieldDeclaration != null) {
-        HaxeFieldModel fieldModel = (HaxeFieldModel)fieldDeclaration.getModel();
-        HaxeClassModel declaringClass = fieldModel.getDeclaringClass();
-        List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
-        return findTypeParameterPsi(reference, params);
+        HaxeModel model = fieldDeclaration.getModel();
+        if (model instanceof HaxeFieldModel fieldModel) {
+          HaxeClassModel declaringClass = fieldModel.getDeclaringClass();
+          List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+          return findTypeParameterPsi(reference, params);
+        }
       }
 
        HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeMethodDeclaration.class);
