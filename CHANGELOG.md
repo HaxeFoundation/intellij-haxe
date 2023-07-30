@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+* Added inlay hints for capture variable (haxe 4 syntax)
 * Improved type resolving for array access expressions
 * Improved handing of null<T> return type.
 * Bugfix: Incorrect type-mismatch error for methods with parameter of type EnumValue.

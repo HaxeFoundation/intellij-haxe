@@ -699,6 +699,12 @@ public class HaxeExpressionEvaluator {
           }
 
 
+          else if (subelement instanceof HaxeSwitchCaseCaptureVar caseCaptureVar) {
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseCaptureVar, HaxeSwitchStatement.class);
+            if (switchStatement.getExpression() != null) {
+              typeHolder = handle(switchStatement.getExpression(), context, resolver);
+            }
+          }
           else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
             HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
             if (switchStatement.getExpression() != null) {
