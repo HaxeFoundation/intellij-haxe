@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.10
+* Bugfix: macro keyword was not parsed correctly when immediately followed by a new line
+* Bugfix: type reification  was not parsed correctly when macro keyword was immediately followed by colon
+* Bugfix: macro expressions used as value (in call expressions etc.) was incorrectly showing missing semicolon warning 
+
 ## 1.4.9
 * Added inlay hints for capture variable (haxe 4 syntax)
 * Improved type resolving for array access expressions

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.parser;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.WhitespaceSkippedCallback;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.tree.IElementType;
@@ -111,8 +112,35 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     if (previousType == HaxeTokenTypes.PRCURLY || previousType == HaxeTokenTypes.OSEMI) {
       return true;
     }
+
+    /*
+      macro value expressions can be "normal" expressions but should be treated as a single value
+      so the same way an string or int argument does not need a trailing ; in a method call
+      a macro value like  `macro var c = "test"` should not have a ; at the ned either.
+     */
+    Integer macroValueExpressionLevel = builder_.getUserData(MACRO_VALUE);
+    if (macroValueExpressionLevel != null) {
+      if (macroValueExpressionLevel <= level) {
+        // we are inside a macro value expression, these should not end with semicolon
+        return true;
+      } else {
+        // if the parser does not roll back this would be cleared by the parser when finishing a macro value expression
+        // but if it does rollback  data will still be stored, this is not a guaranteed way to clear the data,
+        // but it probably would cover most use cases and if we end up skipping a few missing semicolon errors its probably not a big deal.
+        enableSemicolonRule(builder_, 0);
+      }
+    }
+
     builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));
     return false;
   }
-
+  public static boolean disableSemicolonRule(PsiBuilder builder_, int level) {
+    builder_.putUserData(MACRO_VALUE, level);
+   return true;
+  }
+  public static boolean enableSemicolonRule(PsiBuilder builder_, int level) {
+    builder_.putUserData(MACRO_VALUE, null);
+   return true;
+  }
+  private static com.intellij.openapi.util.Key<Integer> MACRO_VALUE  = new Key<>("MACRO_VALUE_LEVEL");
 }

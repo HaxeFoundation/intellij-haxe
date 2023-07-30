@@ -549,16 +549,16 @@ macroExpressionReification::=  (embeddedMeta)* (macroShorthandExpReification | m
 macroClassReification ::= 'macro' topLevelDeclaration
 
 // type Reification
-private TPath ::=  ':' simpleQualifiedReferenceExpression
-private TFunction ::=  ':' arrowFunctionLiteral
-private TAnonymous ::=  ':'  anonymousTypeBody  // TODO mlo: make a better expression
-private TParent ::=  ':' type
-private TExtend ::=  ':' '{>' type ',' identifier ',' type '}' // TODO mlo: make a better expression
-private TOptional ::=  ':' '?' type
+private TPath ::=  simpleQualifiedReferenceExpression
+private TFunction ::= arrowFunctionLiteral
+private TAnonymous ::= anonymousTypeBody  // TODO mlo: make a better expression
+private TParent ::= type
+private TExtend ::= '{>' type ',' identifier ',' type '}' // TODO mlo: make a better expression
+private TOptional ::= '?' type
 
 //OBS make sure ordering is correct
 complexType ::= (TFunction | TAnonymous| TOptional | TParent | TExtend  | TPath)
-macroTypeReification ::= 'macro' complexType
+macroTypeReification ::= 'macro' ':' complexType {pin=2}
 
 
 private statement ::= blockStatement | notBlockStatement
@@ -746,7 +746,7 @@ private assignableValueExpression ::= (referenceExpression | thisExpression | su
 private value ::= ('untyped' expression)
 //                | 'macro' expression
                 // TODO mlo: macro statements can be used as "values" (ex. in method calls) and should not require ";" at the end
-                | 'macro' statement
+                | 'macro' <<disableSemicolonRule>>  statement <<enableSemicolonRule>>
                 | callFunctionLiteral
                 | immediateArrayAccess
                 | macroTypeReification
@@ -766,7 +766,7 @@ private value ::= ('untyped' expression)
                 | thisExpression
                 | superExpression
                 | abstractExpression
-{pin=1}
+{pin=1 }
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | regularExpressionLiteral

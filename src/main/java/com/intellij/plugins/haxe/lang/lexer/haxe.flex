@@ -336,7 +336,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "never"                                   {  return emitToken( KNEVER);  }
 "override"                                {  return emitToken( KOVERRIDE);  }
 "inline"                                  {  return emitToken( KINLINE);  }
-"macro" [\ ]+                             {  return emitToken( KMACRO2); }
+"macro" ({WHITE_SPACE_CHAR}+ | {WHITE_SPACE_CHAR}* :)                  {  return emitToken( KMACRO2); }
 
 "untyped"                                 {  return emitToken( KUNTYPED);  }
 "typedef"                                 {  return emitToken( KTYPEDEF);  }
