@@ -44,7 +44,7 @@ public class HaxeTypeResolver {
 
   // @TODO: Check if cache works
   @NotNull
-  static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
+  static public ResultHolder getFieldOrMethodReturnType(@NotNull HaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     // @TODO: cache should check if any related type has changed, which return depends
     if (comp.getContainingFile() == null) {
       return SpecificHaxeClassReference.getUnknown(comp).createHolder();
@@ -71,7 +71,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static private ResultHolder _getFieldOrMethodReturnType(AbstractHaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
+  static private ResultHolder _getFieldOrMethodReturnType(HaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
     try {
       if (comp instanceof PsiMethod) {
         return getFunctionReturnType(comp, resolver);
@@ -99,7 +99,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static private ResultHolder getFieldType(AbstractHaxeNamedComponent comp, HaxeGenericResolver resolver) {
+  static private ResultHolder getFieldType(HaxeNamedComponent comp, HaxeGenericResolver resolver) {
     //ResultHolder type = getTypeFromTypeTag(comp);
     // Here detect assignment
     final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp, resolver);
@@ -249,7 +249,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static private ResultHolder getFunctionReturnType(AbstractHaxeNamedComponent comp, HaxeGenericResolver resolver) {
+  static private ResultHolder getFunctionReturnType(HaxeNamedComponent comp, HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethodImpl) {
       HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
       if (typeTag != null) {
@@ -405,6 +405,14 @@ public class HaxeTypeResolver {
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
+    if (resolver != null) {
+        String text = type.getText();
+        ResultHolder resolve = resolver.resolve(text);
+        if (resolve != null && !resolve.isUnknown()) {
+          return resolve;
+        }
+      }
+
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference;
     final HaxeClass resolvedHaxeClass = expression.resolveHaxeClass().getHaxeClass();

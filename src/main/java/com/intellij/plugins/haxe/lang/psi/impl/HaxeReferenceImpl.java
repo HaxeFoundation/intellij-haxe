@@ -582,15 +582,20 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
       }
-      if (resolve instanceof HaxeClassDeclaration declaration) {
-        String className = declaration.getComponentName().getName();
+      if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
+        //TODO mlo: try to make a Resolve result with method
+        //SpecificFunctionReference functionReference = SpecificFunctionReference.create(methodDeclaration.getModel());
+        //return HaxeResolveResult.create(functionReference, getSpecialization());
+      }
+      if (resolve instanceof HaxeClassDeclaration haxeClassDeclaration) {
+        String className = haxeClassDeclaration.getComponentName().getName();
 
 
         boolean isPure = isPureClassReferenceOf(className);
 
         if (isPure) {
           // wrap in Class<>
-          SpecificHaxeClassReference reference = SpecificHaxeClassReference.withoutGenerics(declaration.getModel().getReference());
+          SpecificHaxeClassReference reference = SpecificHaxeClassReference.withoutGenerics(haxeClassDeclaration.getModel().getReference());
           SpecificHaxeClassReference aClass =
             SpecificHaxeClassReference.getStdClass(CLASS, this, new ResultHolder[]{new ResultHolder(reference)});
           return aClass.asResolveResult();

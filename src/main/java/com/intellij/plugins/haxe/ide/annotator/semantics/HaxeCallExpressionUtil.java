@@ -12,6 +12,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -172,14 +173,14 @@ public class HaxeCallExpressionUtil {
       if (optionalTypeParameterConstraint.isPresent()) {
         ResultHolder constraint = optionalTypeParameterConstraint.get();
         if (canAssignToFrom(constraint, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         } else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }
           else {
             validation.errors.add(annotateTypeMismatch(constraint, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -188,14 +189,14 @@ public class HaxeCallExpressionUtil {
 
 
         if (canAssignToFrom(resolvedParameterType, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         } else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }
           else {
             validation.errors.add(annotateTypeMismatch(resolvedParameterType, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -204,17 +205,12 @@ public class HaxeCallExpressionUtil {
     return validation;
   }
 
-  public static CallExpressionValidation checkFunctionCall(HaxeCallExpression callExpression, HaxePsiField resolvedField) {
+  public static CallExpressionValidation checkFunctionCall(HaxeCallExpression callExpression, @Nullable HaxeFunctionType functionType) {
     CallExpressionValidation validation  = new CallExpressionValidation();
     validation.isFunction = true;
+    if (functionType != null) {
 
-    HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedField);
-    HaxeClass haxeClass = result.getHaxeClass();
-
-    if (haxeClass instanceof HaxeSpecificFunction specificFunction) {
-      HaxeFunctionType functionType = specificFunction.getFunctionType();
       HaxeFunctionTypeModel model = new HaxeFunctionTypeModel(functionType);
-
       HaxeExpression methodExpression = callExpression.getExpression();
 
       HaxeCallExpressionList callExpressionList = callExpression.getExpressionList();
@@ -253,13 +249,13 @@ public class HaxeCallExpressionUtil {
       }
 
       // generics and type parameter
-      HaxeGenericSpecialization specialization = specificFunction.getSpecialization();
+      //HaxeGenericSpecialization specialization = specificFunction.getSpecialization();
       HaxeGenericResolver resolver = null;
 
 
-      if (resolver == null && specialization != null) {
-        resolver = specialization.toGenericResolver(callExpression);
-      }
+      //if (resolver == null && specialization != null) {
+      //  resolver = specialization.toGenericResolver(callExpression);
+      //}
       if (resolver == null) resolver = new HaxeGenericResolver();
 
       resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
@@ -319,13 +315,13 @@ public class HaxeCallExpressionUtil {
 
 
         if (canAssignToFrom(resolvedParameterType, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         }else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           } else {
             validation.errors.add(annotateTypeMismatch(parameterType, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -481,14 +477,14 @@ public class HaxeCallExpressionUtil {
       if (optionalTypeParameterConstraint.isPresent()) {
         ResultHolder constraint = optionalTypeParameterConstraint.get();
         if (canAssignToFrom(constraint, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         } else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }
           else {
             validation.errors.add(annotateTypeMismatch(constraint, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -497,14 +493,14 @@ public class HaxeCallExpressionUtil {
 
 
         if (canAssignToFrom(resolvedParameterType, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         }
         else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }else {
             validation.errors.add(annotateTypeMismatch(parameterType, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -648,14 +644,14 @@ public class HaxeCallExpressionUtil {
       if (optionalTypeParameterConstraint.isPresent()) {
         ResultHolder constraint = optionalTypeParameterConstraint.get();
         if (canAssignToFrom(constraint, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         } else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }
           else {
             validation.errors.add(annotateTypeMismatch(constraint, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -664,14 +660,14 @@ public class HaxeCallExpressionUtil {
 
 
         if (canAssignToFrom(resolvedParameterType, argumentType)) {
-          addToIndeMap(validation, argumentCounter, parameterCounter);
+          addToIndexMap(validation, argumentCounter, parameterCounter);
         }
         else {
           if (parameter.isOptional()) {
             argumentCounter--; //retry argument with next parameter
           }else {
             validation.errors.add(annotateTypeMismatch(parameterType, argumentType, argument));
-            addToIndeMap(validation, argumentCounter, parameterCounter);
+            addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
       }
@@ -686,7 +682,7 @@ public class HaxeCallExpressionUtil {
     return parameterList.getParameterList().stream().map(HaxeParameterModel::new).toList();
   }
 
-  private static void addToIndeMap(CallExpressionValidation validation, int argumentCounter, int parameterCounter) {
+  private static void addToIndexMap(CallExpressionValidation validation, int argumentCounter, int parameterCounter) {
     validation.argumentToParameterIndex.put(argumentCounter - 1, parameterCounter - 1);
   }
 

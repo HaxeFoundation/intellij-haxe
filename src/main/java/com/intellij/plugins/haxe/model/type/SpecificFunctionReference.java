@@ -84,10 +84,10 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this.functionType = functionType;
   }
 
-  private static SpecificFunctionReference createFromMethodModel(HaxeMethodModel model) {
+  public static SpecificFunctionReference create(HaxeMethodModel model) {
     LinkedList<Argument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
-    if (parameters.size() == 0) {
+    if (parameters.isEmpty()) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((model.getMethodPsi()));
       args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
@@ -96,7 +96,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
         args.add(new Argument(i, parameterModel.isOptional(), parameterModel.getResultType(), parameterModel.getName()));
       }
     }
-    return new SpecificFunctionReference(args, model.getReturnType(null), (HaxeMethodModel)null, model.getMethodPsi());
+    return new SpecificFunctionReference(args, model.getReturnType(null), model, model.getMethodPsi());
   }
 
   // This is an adapter to deal with the function-type mismatch between the old resolver
@@ -107,7 +107,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     // this is a workaround for missing optional support (fn(arg = null))
     // this problem might go away when the todo on this method is solved?
     if (func.getMethod() != null && func.getMethod() instanceof  HaxeMethodDeclaration) {
-      return createFromMethodModel(func.getMethod().getModel());
+      return create(func.getMethod().getModel());
     }
 
     HaxeGenericSpecialization specialization = func.getSpecialization();

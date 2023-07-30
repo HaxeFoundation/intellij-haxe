@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,8 +18,30 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       if (expression.getExpression() instanceof HaxeReference reference) {
         final PsiElement resolved = reference.resolve();
         if (resolved instanceof HaxePsiField field) {
-          CallExpressionValidation validation = checkFunctionCall(expression, field);
-          createErrorAnnotations(validation, holder);
+
+          HaxeGenericResolver resolver = expression.resolveHaxeClass().getGenericResolver();
+          ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
+          SpecificFunctionReference functionType = type.getFunctionType();
+
+          if (functionType != null) {
+            if (functionType.functionType != null) {
+              CallExpressionValidation validation = checkFunctionCall(expression, functionType.functionType);
+              createErrorAnnotations(validation, holder);
+            }
+            else if (functionType.method != null) {
+              CallExpressionValidation validation = checkMethodCall(expression, functionType.method.getMethod());
+              createErrorAnnotations(validation, holder);
+            }
+          }else {
+            SpecificTypeReference typeReference = type.getType();
+            // if not enum value constructor or dynamic, show error
+            if (!type.isEnumValueType() && !type.isDynamic()) {
+              // TODO bundle
+              holder.newAnnotation(HighlightSeverity.ERROR, typeReference.toPresentationString() + " is not a callable type")
+                .range(element)
+                .create();
+            }
+          }
         }
         else if (resolved instanceof HaxeMethod method) {
           CallExpressionValidation validation = checkMethodCall(expression, method);
