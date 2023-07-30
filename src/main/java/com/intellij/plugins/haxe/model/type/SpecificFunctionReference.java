@@ -37,7 +37,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   public static class StdFunctionReference extends SpecificFunctionReference {
     public StdFunctionReference(@NotNull PsiElement context) {
-      super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), null, context);
+      super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), (HaxeMethodModel)null, context);
     }
   }
 
@@ -46,6 +46,8 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   final public ResultHolder returnValue;
 
   @Nullable final public HaxeMethodModel method;
+
+  @Nullable final public HaxeFunctionType functionType;
   @Nullable final public Object constantValue;
 
   public SpecificFunctionReference(List<Argument> arguments,
@@ -59,6 +61,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this.returnValue = returnValue;
     this.method = method;
     this.constantValue = constantValue;
+    this.functionType = null;
   }
 
   public SpecificFunctionReference(List<Argument> arguments,
@@ -66,6 +69,19 @@ public class SpecificFunctionReference extends SpecificTypeReference {
                                    @Nullable HaxeMethodModel method,
                                    @NotNull PsiElement context) {
     this(arguments, returnValue, method, context, null);
+  }
+
+  public SpecificFunctionReference(List<Argument> arguments,
+                                   ResultHolder returnValue,
+                                   @Nullable HaxeFunctionType functionType,
+                                   @NotNull PsiElement context) {
+    super(context);
+
+    this.arguments = arguments;
+    this.returnValue = returnValue;
+    this.method = null;
+    this.constantValue = null;
+    this.functionType = functionType;
   }
 
   private static SpecificFunctionReference createFromMethodModel(HaxeMethodModel model) {
@@ -80,7 +96,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
         args.add(new Argument(i, parameterModel.isOptional(), parameterModel.getResultType(), parameterModel.getName()));
       }
     }
-    return new SpecificFunctionReference(args, model.getReturnType(null), null, model.getMethodPsi());
+    return new SpecificFunctionReference(args, model.getReturnType(null), (HaxeMethodModel)null, model.getMethodPsi());
   }
 
   // This is an adapter to deal with the function-type mismatch between the old resolver
@@ -88,7 +104,6 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   // TODO: Technical debt: Need to unify the resolver and the models.
   public static SpecificFunctionReference create(HaxeSpecificFunction func) {
     if (null == func) return null;
-
     // this is a workaround for missing optional support (fn(arg = null))
     // this problem might go away when the todo on this method is solved?
     if (func.getMethod() != null && func.getMethod() instanceof  HaxeMethodDeclaration) {
@@ -117,7 +132,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
                                 ? determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous())
                                 : determineType(func, resolver, null, null);
 
-    return new SpecificFunctionReference(args, returnResult, null, func);
+    return new SpecificFunctionReference(args, returnResult, func, func);
   }
 
   private static ResultHolder determineType(PsiElement context, HaxeGenericResolver resolver, HaxeFunctionType fnType, HaxeTypeOrAnonymous toa) {

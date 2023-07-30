@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+* Added inlay hints for capture variable (haxe 4 syntax)
+* Improved type resolving for array access expressions
+* Improved handing of null<T> return type.
+* Bugfix: Incorrect type-mismatch error for methods with parameter of type EnumValue.
+* Bugfix: CallExpression type-check used typeParameter from parent and not method.
+
+
 ## 1.4.8
 * parser support for abstract classes
 * Inlay hints for parameter names, variable and field types, return type and for-in loops 

@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +17,6 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.ide.annotator.semantics.TypeParameterUtil.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
 
 public class HaxeCallExpressionUtil {
 
@@ -76,13 +76,9 @@ public class HaxeCallExpressionUtil {
     }
 
     // generics and type parameter
-    HaxeGenericSpecialization specialization = callExpression.getSpecialization();
-    HaxeGenericResolver resolver = findGenericResolverFromVariable(callExpression.getExpression());
 
-    if (resolver == null && specialization != null) {
-      resolver = specialization.toGenericResolver(callExpression);
-    }
-    if (resolver == null) resolver = new HaxeGenericResolver();
+    HaxeGenericResolver resolver =  tryGetCallieResolveResult(callExpression).getGenericResolver();
+    resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
 
@@ -116,12 +112,15 @@ public class HaxeCallExpressionUtil {
     ResultHolder parameterType = null;
     ResultHolder argumentType = null;
 
+    HaxeGenericResolver argumentResolver = resolver.withoutUnknowns();
+    // methods might have typeParameters with same name as a parent so we need to make sure we are not resolving parents type
+    // when resolving parameters
+    HaxeGenericResolver parameterResolver = resolver.withoutUnknowns();
+    resolver.addAll(method.getModel().getGenericResolver(resolver));
+
     // checking arguments is a bit complicated, rest parameters allow "infinite" arguments and optional parameters can be "skipped"
     // so we only want to break the loop once we have either exhausted the arguments or parameter list.
     while (true) {
-      HaxeGenericResolver localResolver = new HaxeGenericResolver();
-      localResolver.addAll(resolver);
-
       if (argumentList.size() > argumentCounter) {
         argument = argumentList.get(argumentCounter++);
       }
@@ -144,16 +143,17 @@ public class HaxeCallExpressionUtil {
         }
       }
 
-      localResolver.addAll(method.getModel().getGenericResolver(null).withoutUnknowns());
 
-      argumentType = resolveArgumentType(argument, localResolver);
-      parameterType = resolveParameterType(parameter, localResolver);
+      argumentType = resolveArgumentType(argument, argumentResolver);
+      // parameters might have type parameters with same name as a parent so we need to make sure we are not resolving parents type
+      //HaxeGenericResolver parameterResolver = ((HaxeMethodModel)parameter.getMemberModel()).getGenericResolver(localResolver);
+      parameterType = resolveParameterType(parameter, parameterResolver);
 
       // when methods has type-parameters we can inherit the type from arguments (note that they may contain constraints)
       if (containsTypeParameter(parameterType, typeParamMap)) {
-        inheritTypeParametersFromArgument(parameterType, argumentType, resolver, typeParamMap);
+        inheritTypeParametersFromArgument(parameterType, argumentType, argumentResolver, typeParamMap);
         // attempt re-resolve after adding inherited type parameters
-        parameterType = resolveParameterType(parameter, resolver);
+        parameterType = resolveParameterType(parameter, argumentResolver);
       }
 
       //TODO properly resolve typedefs
@@ -254,13 +254,15 @@ public class HaxeCallExpressionUtil {
 
       // generics and type parameter
       HaxeGenericSpecialization specialization = specificFunction.getSpecialization();
-      HaxeGenericResolver resolver = findGenericResolverFromVariable(callExpression.getExpression());
+      HaxeGenericResolver resolver = null;
+
 
       if (resolver == null && specialization != null) {
         resolver = specialization.toGenericResolver(callExpression);
       }
       if (resolver == null) resolver = new HaxeGenericResolver();
 
+      resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
 
       int parameterCounter = 0;
       int argumentCounter = 0;
@@ -399,12 +401,15 @@ public class HaxeCallExpressionUtil {
 
     // generics and type parameter
     HaxeGenericSpecialization specialization = newExpression.getSpecialization();
-    HaxeGenericResolver resolver = findGenericResolverFromVariable(newExpression);
+    HaxeGenericResolver resolver = null;
 
-    if (resolver == null && specialization != null) {
+
+    if (specialization != null) {
       resolver = specialization.toGenericResolver(newExpression);
     }
     if (resolver == null) resolver = new HaxeGenericResolver();
+
+    resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(newExpression, resolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(constructor.getMethod(), resolver);
 
@@ -420,12 +425,17 @@ public class HaxeCallExpressionUtil {
     ResultHolder parameterType;
     ResultHolder argumentType;
 
+    HaxeGenericResolver argumentResolver = resolver.withoutUnknowns();
+    // methods might have typeParameters with same name as a parent so we need to make sure we are not resolving parents type
+    // when resolving parameters
+    HaxeGenericResolver parameterResolver = resolver.withoutUnknowns();
+    HaxeMethod method = type.getClassType().getHaxeClassModel().getConstructor(resolver).getMethod();
+    resolver.addAll(method.getModel().getGenericResolver(resolver));
+
+
     // checking arguments is a bit complicated, rest parameters allow "infinite" arguments and optional parameters can be "skipped"
     // so we only want to break the loop once we have either exhausted the arguments or parameter list.
     while (true) {
-      HaxeGenericResolver localResolver = new HaxeGenericResolver();
-      localResolver.addAll(resolver);
-
       if (argumentList.size() > argumentCounter) {
         argument = argumentList.get(argumentCounter++);
       }
@@ -445,10 +455,8 @@ public class HaxeCallExpressionUtil {
         }
       }
 
-      localResolver.addAll(constructor.getGenericResolver(null).withoutUnknowns());
-
-      argumentType = resolveArgumentType(argument, localResolver);
-      parameterType = resolveParameterType(parameter, localResolver);
+      argumentType = resolveArgumentType(argument, argumentResolver);
+      parameterType = resolveParameterType(parameter, parameterResolver);
 
       // when methods has type-parameters we can inherit the type from arguments (note that they may contain constraints)
       if (containsTypeParameter(parameterType, typeParamMap)) {
@@ -563,12 +571,15 @@ public class HaxeCallExpressionUtil {
 
     // generics and type parameter
     HaxeGenericSpecialization specialization = expression.getSpecialization();
-    HaxeGenericResolver resolver = findGenericResolverFromVariable(expression);
+    HaxeGenericResolver resolver = null;
+
 
     if (resolver == null && specialization != null) {
       resolver = specialization.toGenericResolver(expression);
     }
     if (resolver == null) resolver = new HaxeGenericResolver();
+
+    resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(expression, resolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(declaringClass.getHaxeClassModel().getGenericParams(), resolver);
 
@@ -824,20 +835,6 @@ public class HaxeCallExpressionUtil {
   }
 
 
-  private static HaxeGenericResolver findGenericResolverFromVariable(HaxeExpression expr) {
-    HaxeReference[] type = UsefulPsiTreeUtil.getChildrenOfType(expr, HaxeReference.class, null);
-
-    if (type != null && type.length > 0) {
-      HaxeReference expression = type[0];
-      HaxeResolveResult resolveResult = expression.resolveHaxeClass();
-      SpecificHaxeClassReference reference = resolveResult.getSpecificClassReference(expression.getElement(), null);
-      SpecificHaxeClassReference finalReference = getUnderlyingClassIfAbstractNull(reference);
-      return finalReference.getGenericResolver();
-    }
-    return null;
-  }
-
-
   private static long countRequiredArguments(List<HaxeParameterModel> parametersList) {
     return parametersList.stream()
       .filter(p -> !p.isOptional() && !p.hasInit() && !isVarArg(p))
@@ -911,5 +908,25 @@ public class HaxeCallExpressionUtil {
   public record ErrorRecord (TextRange range, String message){};
 
 
+//TODO mlo move this to some kind of util (see haxeReferenceImpl)
+  @NotNull
+  private static HaxeResolveResult tryGetCallieResolveResult(HaxeCallExpression callExpression) {
+    final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
+    HaxeResolveResult result = leftReference != null
+                               ? leftReference.resolveHaxeClass()
+                               : HaxeResolveResult.create(PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
+
+    if (result.isHaxeClass()) {
+      SpecificHaxeClassReference reference =
+        result.getSpecificClassReference(callExpression, callExpression.getSpecialization().toGenericResolver(null));
+      if (reference.isNullType()) {
+        ResultHolder specific = reference.getSpecifics()[0];
+        if (specific.isClassType() && !specific.isUnknown()) {
+          return specific.getClassType().asResolveResult();
+        }
+      }
+    }
+    return result;
+  }
 
 }

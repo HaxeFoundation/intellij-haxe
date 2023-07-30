@@ -195,6 +195,14 @@
                                           bundle="messages.HaxeHintBundle"
                                           nameKey="haxe.local.variable.hint.name"
                                           descriptionKey="haxe.local.variable.hint.description"/>
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayCaptureVariableHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.capture.variable"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.capture.variable.hint.name"
+                                          descriptionKey="haxe.capture.variable.hint.description"/>
 
     <codeInsight.declarativeInlayProvider language="Haxe"
                                           implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayReturnTypeHintsProvider"

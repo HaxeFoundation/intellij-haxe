@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.ThreadLocalCounter;
@@ -358,7 +359,7 @@ public class HaxeResolveResult implements Cloneable {
     }
     // TODO use resolver ?
 
-    return new SpecificFunctionReference(argList, returnType, null, functionType);
+    return new SpecificFunctionReference(argList, returnType, (HaxeMethodModel)null, functionType);
   }
 
   private SpecificFunctionReference.Argument convertToArgument(HaxeFunctionArgument argument, int index) {
@@ -484,6 +485,9 @@ public class HaxeResolveResult implements Cloneable {
   }
   public boolean isHaxeClass() {
     return haxeClass != null;
+  }
+  public boolean isHaxeTypeDef() {
+    return haxeClass instanceof HaxeTypedefDeclaration;
   }
 
 

@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class HaxeMacroUtil {
             returnType = resolvedReturnType;
           }
         }
-        return new SpecificFunctionReference(argumentList, returnType, null, functionType.context).createHolder();
+        return new SpecificFunctionReference(argumentList, returnType, (HaxeMethodModel)null, functionType.context).createHolder();
       }
     }
     return type;

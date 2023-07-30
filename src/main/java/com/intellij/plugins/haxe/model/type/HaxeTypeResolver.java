@@ -253,6 +253,15 @@ public class HaxeTypeResolver {
     if (comp instanceof HaxeMethodImpl) {
       HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
       if (typeTag != null) {
+        if (resolver != null) {
+          if (typeTag.getTypeOrAnonymous() != null) {
+            String text = typeTag.getTypeOrAnonymous().getText();
+            ResultHolder resolve = resolver.resolve(text);
+            if (resolve != null && !resolve.isUnknown()) {
+              return resolve;
+            }
+          }
+        }
         return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
       }
     }
@@ -264,8 +273,11 @@ public class HaxeTypeResolver {
         type = resolver.withoutUnknowns().resolve(type);;
       }
       return type;
-    } else if (comp instanceof HaxeMethod) {
-      final HaxeExpressionEvaluatorContext context = getPsiElementType(((HaxeMethod)comp).getModel().getBodyPsi(), (AnnotationHolder)null, resolver);
+    } else if (comp instanceof HaxeMethod method) {
+      HaxeMethodModel methodModel = method.getModel();
+      PsiElement psi = methodModel.getBodyPsi();
+      if (psi == null) psi = methodModel.getBasePsi();
+      final HaxeExpressionEvaluatorContext context = getPsiElementType(psi, (AnnotationHolder)null, resolver);
       return resolveParameterizedType(context.getReturnType(), resolver);
     } else if (comp instanceof HaxeFunctionLiteral) {
       final HaxeExpressionEvaluatorContext context = getPsiElementType(comp.getLastChild(), (AnnotationHolder)null, resolver);
@@ -327,7 +339,7 @@ public class HaxeTypeResolver {
       returnValue = SpecificTypeReference.getInvalid(type).createHolder();
     }
 
-    return new SpecificFunctionReference(args, returnValue, null, type).createHolder();
+    return new SpecificFunctionReference(args, returnValue, (HaxeMethodModel)null, type).createHolder();
   }
 
   static String getArgumentName(HaxeFunctionArgument argument) {
