@@ -146,6 +146,8 @@
 
       kEXTERN="extern"
 
+      DOLLAR="$"
+
       // These two are dummies.  They are returned by the lexer -- thus need to be defined, --
       // but they are never (and should never be) used for matching by the parser.  They are used
       // by the Coalescing lexer to build EMBEDDED_META.
