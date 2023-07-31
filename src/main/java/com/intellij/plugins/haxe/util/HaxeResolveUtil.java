@@ -342,7 +342,7 @@ public class HaxeResolveUtil {
       List<HaxeType> baseTypes = new ArrayList<>();
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
-      List<HaxeClass> baseClasses = tyrResolveClassesByQName(baseTypes);
+      List<HaxeClass> baseClasses = tryResolveClassesByQName(baseTypes);
       if (haxeClass.isEnum() && !haxeClass.isAbstractType() && haxeClass.getContext() != null) {
         //Enums should provide the same methods as EnumValue
         baseClasses.add(HaxeEnumValueUtil.getEnumValueClass(haxeClass.getContext()).getHaxeClass());
@@ -919,7 +919,7 @@ public class HaxeResolveUtil {
   }
 
   @NotNull
-  public static List<HaxeClass> tyrResolveClassesByQName(@NotNull List<HaxeType> types) {
+  public static List<HaxeClass> tryResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     for (HaxeType haxeType : types) {
       final HaxeClass haxeClass = tryResolveClassByQName(haxeType);

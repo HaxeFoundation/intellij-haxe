@@ -117,8 +117,8 @@ public class HaxeHierarchyUtils {
     return  CachedValuesManager.getCachedValue(psiRoot, () -> {
       ArrayList<HaxeClass> classes = new ArrayList<>();
       for (PsiElement child : psiRoot.getChildren()) {
-        if (child instanceof HaxeClass) {
-          classes.add((HaxeClass)child);
+        if (child instanceof HaxeClass haxeClass) {
+          classes.add(haxeClass);
         }
       }
       return new CachedValueProvider.Result<>(classes, psiRoot);

@@ -89,10 +89,10 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
     }
     else if (myElement instanceof HaxeClass) {
       final HaxeClass haxeClass = (HaxeClass)myElement;
-      for (HaxeClass superClass : HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeExtendsList())) {
+      for (HaxeClass superClass : HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList())) {
         result.add(new HaxeStructureViewElement(superClass));
       }
-      for (HaxeClass superInterface : HaxeResolveUtil.tyrResolveClassesByQName(haxeClass.getHaxeImplementsList())) {
+      for (HaxeClass superInterface : HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList())) {
         result.add(new HaxeStructureViewElement(superInterface));
       }
       for (HaxeNamedComponent subNamedComponent : HaxeResolveUtil.getNamedSubComponentsInOrder(haxeClass)) {

@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.lang.annotation.AnnotationSession;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -70,16 +71,20 @@ public class HaxeTypeCompatible {
   }
 
   private static void annotateUnableToEvaluate(@NotNull PsiElement from, @NotNull AnnotationHolder holder) {
+    // TODO  find a better solution for this (it causes PluginException when annotation is outside initial psiElement from annotate())
 
-    // avoid other files and elements "out of scope"
-    if (from.getOriginalElement().getContainingFile().equals(holder.getCurrentAnnotationSession().getFile())) {
-      TextRange range = from.getTextRange();
-      if (holder.getCurrentAnnotationSession().getPriorityRange().containsRange(range.getStartOffset(), range.getEndOffset())) {
-        holder.newAnnotation(HighlightSeverity.WEAK_WARNING,
-                             HaxeBundle.message("haxe.inspections.assignment.type.compatibility.unable.description")).range(range)
-          .create();
-      }
-    }
+    //// avoid other files and elements "out of scope"
+    //AnnotationSession session = holder.getCurrentAnnotationSession();
+    //if (from.getOriginalElement().getContainingFile().equals(session.getFile())) {
+    //  TextRange range = from.getTextRange();
+    //
+    //  if (session.getPriorityRange().contains(range)) {
+    //    holder.newAnnotation(HighlightSeverity.WEAK_WARNING,
+    //                         HaxeBundle.message("haxe.inspections.assignment.type.compatibility.unable.description"))
+    //      .range(range)
+    //      .create();
+    //  }
+    //}
   }
 
   static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
