@@ -373,12 +373,13 @@ public abstract class SpecificTypeReference {
       resolver.addAll(parentResolver);
 
       HaxeClassModel model = classReference.getHaxeClassModel();
+      if (model != null) {
         HaxeMemberModel hasNext = model.getMember("hasNext", resolver);
         HaxeMemberModel next = model.getMember("next", resolver);
-        if (hasNext != null  && next != null) {
+        if (hasNext != null && next != null) {
           return next.getResultType(resolver);
         }
-
+      }
     }
     return null;
   }

@@ -859,6 +859,11 @@ public class HaxeResolveUtil {
       return resolvedType;
     }
 
+    if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
+      SpecificHaxeClassReference anonymousTypeReference = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous).getClassType();
+      if (anonymousTypeReference != null) return anonymousTypeReference.asResolveResult();
+    }
+
     if (typeTag != null) {
       final HaxeFunctionType fnType = typeTag.getFunctionType();
       final HaxeClass psiClass = HaxeResolveUtil.findClassByQName("haxe.Constraints.Function", element);

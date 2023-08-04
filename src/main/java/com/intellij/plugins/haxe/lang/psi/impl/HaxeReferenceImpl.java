@@ -582,6 +582,32 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
         }
       }
+      if (resolve instanceof HaxeAnonymousTypeField anonymousTypeField) {
+        HaxeTypeTag tag = anonymousTypeField.getTypeTag();
+        ResultHolder resolvedType = HaxeTypeResolver.getTypeFromTypeTag(tag, anonymousTypeField);
+        HaxeResolveResult result = null;
+        HaxeGenericSpecialization specialization = getSpecialization();
+        if (resolvedType.getClassType() != null && !resolvedType.isUnknown()) {
+          if (!resolvedType.getClassType().isFromTypeParameter()) {
+            result = resolvedType.getClassType().asResolveResult();
+            if (specialization != null) {
+              result.specializeByParent(specialization.toGenericResolver(null));
+            }
+          }else {
+            if (specialization != null) {
+              ResultHolder resolveTypeParameter = specialization.toGenericResolver(resolve).resolve(resolvedType);
+              if (resolveTypeParameter != null
+                  && !resolveTypeParameter.isUnknown()
+                  && resolveTypeParameter.getClassType() != null
+              ) {
+                result = resolveTypeParameter.getClassType().asResolveResult();
+              }
+            }
+
+          }
+          if (result != null) return result;
+        }
+      }
       if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
         //TODO mlo: try to make a Resolve result with method
         //SpecificFunctionReference functionReference = SpecificFunctionReference.create(methodDeclaration.getModel());
