@@ -177,6 +177,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkIsClassName(reference);
+    if (result == null) result = checkMemberReference(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
     if (result == null) result = checkIsSwitchVar(reference);
@@ -185,13 +186,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);
     if (result == null) {
-      // try super field
-      List<? extends PsiElement> superElements =
-        resolveBySuperClassAndSymbol(PsiTreeUtil.getParentOfType(reference, HaxeClass.class), reference);
-      if (!superElements.isEmpty()) {
-        LogResolution(reference, "via super field.");
-        return superElements;
-      }
+
 
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
       if (fileModel != null) {
@@ -222,6 +217,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkMemberReference(HaxeReference reference) {
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    // check if reference is to a member in  class or abstract
+    //   null:      it's a direct reference (not a chain, could be normal class member access)
+    //   this:      this class member access
+    //   abstract:  similar to "this" but for abstracts
+    if (leftReference == null || leftReference.textMatches("this") || leftReference.textMatches("abstract")) {
+      HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
+      List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference);
+      if (!superElements.isEmpty()) {
+        LogResolution(reference, "via super field.");
+        return superElements;
+      }
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkIsTypeParameter(HaxeReference reference) {
