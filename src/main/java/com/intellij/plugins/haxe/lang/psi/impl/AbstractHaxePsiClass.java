@@ -55,6 +55,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author: Fedor.Korotkov
@@ -253,6 +254,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     // Maybe old style getter?
     if (null == accessor) {
       accessor = findHaxeMethodByName("__get", resolver);
+    }
+    // maybe ArrayAccess interface for externs (see hackish workaround where findArrayAccessGetter is used)
+    if (null == accessor) {
+      if (this.isExtern()){
+        Optional<HaxeType> arrayAccess = this.getHaxeImplementsList().stream()
+          .filter(haxeType -> haxeType.getReferenceExpression().getQualifiedName().equals("ArrayAccess")).findFirst();
+        if(arrayAccess.isPresent()) {
+          return arrayAccess.get().getReferenceExpression().resolveHaxeClass().getHaxeClass();
+        }
+      }
     }
     return accessor;
   }

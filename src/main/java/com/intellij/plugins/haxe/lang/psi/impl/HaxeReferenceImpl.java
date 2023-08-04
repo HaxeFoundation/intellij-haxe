@@ -564,6 +564,13 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeNamedComponent arrayAccessGetter = resolveResultHaxeClass.findArrayAccessGetter(resolveResult.getGenericResolver());
         HaxeGenericResolver memberResolver = resolveResultHaxeClass.getMemberResolver(resolveResult.getGenericResolver());
         HaxeGenericSpecialization memberSpecialization = HaxeGenericSpecialization.fromGenericResolver(arrayAccessGetter, memberResolver);
+
+        // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
+        if (arrayAccessGetter instanceof  HaxeExternInterfaceDeclaration  declaration && declaration.getComponentName().textMatches("ArrayAccess")){
+          HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);
+          return result.getSpecialization().get(arrayAccessGetter, "T");
+        }
+
         return HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);
       }
     }

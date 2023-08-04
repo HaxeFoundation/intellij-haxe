@@ -1058,6 +1058,12 @@ public class HaxeExpressionEvaluator {
             if (returnType.getType().isNullType())localResolver.resolve(returnType);
             if (returnType != null) return returnType;
           }
+          // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
+          else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
+            HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
+            HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
+            return resolvedInterface.getGenericResolver().resolve("T");
+          }
         }
       }
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
