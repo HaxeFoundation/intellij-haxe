@@ -1,6 +1,74 @@
-- Rewrite haxeLib updater to conform with read/write thread mechanics & activities
+Larger tasks:
+//- Rewrite haxeLib updater to conform with read/write thread mechanics & activities
 - Fix issue with annotation/ metadata breaking refactoring (pull members up)
 - rewrite compiler/run/debug logic , do it the way jetbrains recommends.
 - rework CodeStyleSettings (get rid of INSERT_OVERRIDE_ANNOTATION)
 
+
+syntax task
+//- add support for `extern abstract` ex. `@:notNull @:runtimeValue @:coreType extern abstract Int8 to Int {}`
+//- fix joining  types   ex `typedef ClassType = BaseType & { }`
 - add support for Abstract classes (rename current abstract "class" type to avoid confusion)
+
+//- fix optional arguments support in call Expression checks
+//- fix constructor argument checking (restargs does not do type checks)
+
+misc:
+add tests for functionType as argument in methods
+add test for this/super/abstract.variable++ postfix
+- lambdas  needs some more work, see feathersUI stuff `recycler.update `
+
+create caching of common manually loaded files (stdTypes.hx, Expr.hx,Log.hx?, Context.hx?)
+-consider ExprTools, TypeTools, ComplexTypeTools ?
+
+annotators:
+- dont show 2 unresolved types as incompatible, show them as warning unknown (ex. interfaces vs class  audioManager:IAudioManager = new AudioManager();)
+
+
+usability:
+- read deprecated annotation info and display as hint/ javadoc/haxeDoc tooltip
+- abstract as a "new class" option (when creating new file)
+
+
+ther thoughs:
+member higlighting (methods) should be possible to dumb aware and faster?
+type Expr should be handle as dynamic for now
+
+//haxelib:
+//source path not found issues
+// using dot in folder name
+// show whats git/dev
+
+
+
+ Constant checking for parameters should be  disabled or make sure it wont triggero n things that are considdetred consts
+ignore repeated arg name for "_"
+
+tests:
+ - default and resolve for switch case
+ - optional parameters
+ - test wrong args for functionType calls and constructor
+ -  inline var and final as allowed consts parameter value (also check enumValue)
+ - test call enum constructors?
+ - macro type resolve for method calls
+add constructor exists annotation and  update tests
+
+
+inline value check annotator
+
+
+ case Day(n)    : getTime() + n * SECONDS_IN_DAY; fails operator stuff
+
+
+ interface :
+ null (undefined? if implemented access allowed, if not access denied/ compilation failes)
+ never (does not care if you implement it, interface just limits)
+ default(required, can not be get/set)
+ get / set means required (default not allowed)
+
+ redefine in subclasses not allowed (var(get,set))
+
+function.bind support
+"".code support
+
+"java doc" for compiler metadata (@:)

@@ -224,8 +224,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // check if reference is to a member in  class or abstract
     //   null:      it's a direct reference (not a chain, could be normal class member access)
     //   this:      this class member access
+    //   super:      super class member access (used when overriding methods and calling base method)
     //   abstract:  similar to "this" but for abstracts
-    if (leftReference == null || leftReference.textMatches("this") || leftReference.textMatches("abstract")) {
+    if (leftReference == null || leftReference.textMatches("this")  || leftReference.textMatches("super")  || leftReference.textMatches("abstract")) {
       HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
       List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference);
       if (!superElements.isEmpty()) {
