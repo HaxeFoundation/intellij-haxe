@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+* Improved support for anonymous structures (#1131)
+
 ## 1.4.10
 * Bugfix: macro keyword was not parsed correctly when immediately followed by a new line
 * Bugfix: type reification  was not parsed correctly when macro keyword was immediately followed by colon
