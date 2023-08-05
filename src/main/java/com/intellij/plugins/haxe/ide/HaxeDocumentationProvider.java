@@ -50,7 +50,28 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
        */
   @Override
   public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
-    return null;
+    HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
+    HtmlBuilder mainBuilder = new HtmlBuilder();
+
+    HaxeNamedComponent namedComponent = getNamedComponent(element);
+    final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
+    if (namedComponent != null) {
+      if (type == null) return mainBuilder.toString();
+      switch (type) {
+        case CLASS, INTERFACE, TYPEDEF, ENUM -> processType(mainBuilder, namedComponent, renderer);
+        case METHOD, FUNCTION -> processMethod(mainBuilder, namedComponent, renderer);
+        case FIELD -> processField(mainBuilder, namedComponent, renderer);
+        case VARIABLE -> processVariable(mainBuilder, namedComponent, renderer);
+        case PARAMETER -> processParameter(mainBuilder, namedComponent, renderer);
+        case TYPE_PARAMETER -> processTypeParameter(mainBuilder, namedComponent, renderer);
+      }
+    }
+    // convert to one liner
+    String result = mainBuilder.toString();
+    result = result.replaceAll("<br\\/>|<br>", " ");
+    result = result.replaceAll("&#32;", " ");
+
+    return result.isEmpty() ? null : result;
   }
 
   @Override
@@ -289,21 +310,21 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   private void processField(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
     if (component instanceof HaxeFieldDeclaration fieldDeclaration) {
       appendClassOrModuleReference(builder, fieldDeclaration);
-      resolveTypeAndMakeHeader(builder, component);
       String signature = getFieldSignature(fieldDeclaration);
       builder.br().appendRaw(renderer.languageHighlighting(signature));
+      resolveTypeAndMakeHeader(builder, component);
     }
     else if (component instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
       appendClassOrModuleReference(builder, enumValueDeclaration);
-      resolveTypeAndMakeHeader(builder, component);
       String signature = getEnumValueSignature(enumValueDeclaration);
       builder.br().appendRaw(renderer.languageHighlighting(signature));
+      resolveTypeAndMakeHeader(builder, component);
     }
     else if (component instanceof HaxeAnonymousTypeField anonymousTypeField) {
       appendClassOrModuleReference(builder, anonymousTypeField);
-      resolveTypeAndMakeHeader(builder, component);
       String signature = getAnonymousTypeFieldSignature(anonymousTypeField);
       builder.br().appendRaw(renderer.languageHighlighting(signature));
+      resolveTypeAndMakeHeader(builder, component);
     }
   }
 
@@ -320,7 +341,6 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   }
 
   private void processParameter(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
-    resolveTypeAndMakeHeader(builder, component);
     if (component instanceof HaxeParameter parameter) {
       builder.br()
         .appendRaw(renderer.languageHighlighting(parameter.getText()))
@@ -337,22 +357,24 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
         }
       }
     }
+    resolveTypeAndMakeHeader(builder, component);
   }
 
   private void processVariable(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
     if (component instanceof HaxeSwitchCaseCaptureVar captureVar) {
       resolveTypeAndMakeHeader(builder, captureVar);
-      builder.br();
+      //builder.br();
     }
     else if (component instanceof HaxeLocalVarDeclaration varDeclaration) {
-      resolveTypeAndMakeHeader(builder, varDeclaration);
-      builder.br();
+      //builder.br();
 
       String modifier = ((HaxeLocalVarDeclarationList)component.getParent()).getMutabilityModifier().getText();
       String signature = modifier + " " + varDeclaration.getText();
 
       String highlighting = renderer.languageHighlighting(signature);
       builder.appendRaw(highlighting);
+
+      resolveTypeAndMakeHeader(builder, varDeclaration);
     }
     else if (component instanceof HaxeForStatement forStatement) {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(forStatement);
@@ -377,8 +399,8 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   private static void makeHeader(HtmlBuilder builder, ResultHolder result) {
     if (result != null && !result.isUnknown()) {
-      Color color = DefaultLanguageHighlighterColors.CONSTANT.getDefaultAttributes().getForegroundColor();
-      HtmlChunk.Element element = new HtmlBuilder().append("(Type: " + result.getType().withoutConstantValue() + ")")
+      Color color = DefaultLanguageHighlighterColors.LINE_COMMENT.getDefaultAttributes().getForegroundColor();
+      HtmlChunk.Element element = new HtmlBuilder().append(" (Type: " + result.getType().withoutConstantValue() + ")")
         .wrapWith(HtmlChunk.Element.tag("code").attr("color", "#" + colorToHex(color))).wrapWith(HtmlChunk.Element.tag("i"));
 
       builder.append(element).br();
