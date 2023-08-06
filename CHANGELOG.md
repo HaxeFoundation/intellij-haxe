@@ -1,11 +1,12 @@
 # Changelog
 
-## [Unreleased]
-* Improved support for anonymous structures (#1131)
-* Fixed incorrect symbol resolve (#968)
-* Support for special interface ArrayAccess<T> (#957)
-* Added QuickNavigateInfo (ctrl+hover over symbols)
-* Prevent automatic asterisk insert for haxedoc
+## 1.4.11
+* Added: better support for anonymous structures (#1131)
+* Bugfix: Fixed incorrect symbol resolve (#968)
+* Added: Support for special interface ArrayAccess<T> (#957)
+* Added: Resolve type from ExprOf<T> when used with reification
+* Added: QuickNavigateInfo (ctrl+hover over symbols)
+* Bugfix: Prevent automatic asterisk insert for HaxeDoc
 
 
 ## 1.4.10

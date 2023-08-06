@@ -178,6 +178,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkMemberReference(reference);
+    if (result == null) result = checkMacroIdentifier(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
     if (result == null) result = checkIsSwitchVar(reference);
@@ -217,6 +218,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkMacroIdentifier(HaxeReference reference) {
+    @NotNull PsiElement[] children = reference.getChildren();
+    if (children.length == 1) {
+      if (children[0] instanceof  HaxeIdentifier identifier) {
+        PsiElement macroId = identifier.getMacroId();
+        if (macroId != null) {
+          String substring = macroId.getText().substring(1);
+          return checkByTreeWalk(reference, substring);
+        }
+      }
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkMemberReference(HaxeReference reference) {
@@ -521,6 +536,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, reference.getText()), reference, null, new ResolveState());
     if (result.isEmpty()) return null;
     LogResolution(reference, "via tree walk.");
+    return result;
+  }
+  private List<? extends PsiElement> checkByTreeWalk(HaxeReference scope, String name) {
+    final List<PsiElement> result = new ArrayList<>();
+    PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, name), scope, null, new ResolveState());
+    if (result.isEmpty()) return null;
+    LogResolution(scope, "via tree walk.");
     return result;
   }
 

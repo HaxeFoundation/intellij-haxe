@@ -338,6 +338,50 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @NotNull
   private HaxeResolveResult resolveHaxeClassInternal() {
+    HaxeResolveResult result = _resolveHaxeClassInternal();
+
+    //extract type from expression if this is a macro ExprOf before we return result
+    if (isMacroIdentifier()) {
+      HaxeResolveResult type = extractTypeFromMacro(result);
+      if (type != null) result = type;
+    }
+
+    return result;
+  }
+
+  @Nullable
+  private static HaxeResolveResult extractTypeFromMacro(HaxeResolveResult result) {
+    HaxeClass aClass = result.getHaxeClass();
+    if(aClass != null) {
+      if (aClass.getQualifiedName().equals("haxe.macro.ExprOf")
+          // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
+          || aClass.getQualifiedName().equals("haxe.macro.Expr")) {
+        HaxeGenericResolver resolver = result.getGenericResolver();
+        @NotNull ResultHolder[] specifics = resolver.getSpecifics();
+        if (specifics.length > 0) {
+          ResultHolder resolve = resolver.resolve("T");
+          if (resolve != null && !resolve.isUnknown()) {
+            SpecificHaxeClassReference type = resolve.getClassType();
+            if (type != null) return type.asResolveResult();
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private boolean isMacroIdentifier() {
+    PsiElement[] children = this.getChildren();
+    if(children.length == 1) {
+      if (children[0] instanceof HaxeIdentifier identifier) {
+        if (identifier.getMacroId() != null) return true;
+      }
+    }
+    return false;
+  }
+
+  @NotNull
+  private HaxeResolveResult _resolveHaxeClassInternal() {
     ProgressIndicatorProvider.checkCanceled();
 
     PsiElement resolve = null;
