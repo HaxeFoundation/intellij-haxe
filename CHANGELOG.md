@@ -3,7 +3,10 @@
 ## [Unreleased]
 * Improved support for anonymous structures (#1131)
 * Fixed incorrect symbol resolve (#968)
-* suport for special interface ArrayAccess<T> (#957)
+* Support for special interface ArrayAccess<T> (#957)
+* Added QuickNavigateInfo (ctrl+hover over symbols)
+* Prevent automatic asterisk insert for haxedoc
+
 
 ## 1.4.10
 * Bugfix: macro keyword was not parsed correctly when immediately followed by a new line
