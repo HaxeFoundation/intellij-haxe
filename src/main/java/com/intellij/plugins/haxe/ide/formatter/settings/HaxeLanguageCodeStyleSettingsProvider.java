@@ -20,9 +20,7 @@ package com.intellij.plugins.haxe.ide.formatter.settings;
 
 import com.intellij.lang.Language;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable;
-import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizableOptions;
-import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider;
+import com.intellij.psi.codeStyle.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -47,6 +45,41 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
     return BLANK_LINES_CODE_SAMPLE;
   }
 
+  @Override
+  public DocCommentSettings getDocCommentSettings(@NotNull CodeStyleSettings rootSettings) {
+    return new DocCommentSettings() {
+      private final JavaCodeStyleSettings mySettings = rootSettings.getCustomSettings(JavaCodeStyleSettings.class);
+
+
+      @Override
+      public boolean isDocFormattingEnabled() {
+        return mySettings.ENABLE_JAVADOC_FORMATTING;
+      }
+
+      @Override
+      public void setDocFormattingEnabled(boolean formattingEnabled) {
+        mySettings.ENABLE_JAVADOC_FORMATTING = formattingEnabled;
+      }
+
+
+      @Override
+      public boolean isLeadingAsteriskEnabled() {
+        return false; // haxe docs are markdown and we do not want it prefixed with Asterisk
+      }
+
+      @Override
+      public boolean isRemoveEmptyTags() {
+        return mySettings.JD_KEEP_EMPTY_EXCEPTION || mySettings.JD_KEEP_EMPTY_PARAMETER || mySettings.JD_KEEP_EMPTY_RETURN;
+      }
+
+      @Override
+      public void setRemoveEmptyTags(boolean removeEmptyTags) {
+        mySettings.JD_KEEP_EMPTY_RETURN = !removeEmptyTags;
+        mySettings.JD_KEEP_EMPTY_PARAMETER = !removeEmptyTags;
+        mySettings.JD_KEEP_EMPTY_EXCEPTION = !removeEmptyTags;
+      }
+    };
+  }
   @Override
   public void customizeSettings(@NotNull CodeStyleSettingsCustomizable consumer, @NotNull SettingsType settingsType) {
     if (settingsType == SettingsType.SPACING_SETTINGS) {
