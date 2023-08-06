@@ -62,10 +62,11 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     if (parent instanceof PsiParameterList) {
       return parent.getParent();
     }
-    if (parent instanceof PsiForeachStatement) {
+
+    if (parent instanceof HaxeCatchStatement) {
       return parent;
     }
-    if (parent instanceof PsiCatchSection) {
+    if (parent instanceof HaxeForStatement) {
       return parent;
     }
 
