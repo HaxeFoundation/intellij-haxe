@@ -67,19 +67,27 @@ public class HaxelibAutoImport implements ExternalSystemProjectAware, Disposable
 
   @Override
   public void reloadProject(@NotNull ExternalSystemProjectReloadContext context) {
-    myListeners.forEach(ExternalSystemProjectListener::onProjectReloadStart);
+    if(context.isExplicitReload() || settingsFilesChanged(context.getSettingsFilesContext())) {
 
-    HaxelibProjectUpdater instance = HaxelibProjectUpdater.INSTANCE;
-    HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);
-    clearHaxelibCaches();
+      myListeners.forEach(ExternalSystemProjectListener::onProjectReloadStart);
 
-    if(tracker!= null){
-      tracker.getCache().clear();
-      instance.synchronizeClasspaths(tracker);
+      HaxelibProjectUpdater instance = HaxelibProjectUpdater.INSTANCE;
+      HaxelibProjectUpdater.ProjectTracker tracker = instance.findProjectTracker(project);
+      clearHaxelibCaches();
+
+      if (tracker != null) {
+        tracker.getCache().clear();
+        instance.synchronizeClasspaths(tracker);
+      }
+
+      myListeners.forEach(l -> l.onProjectReloadFinish(ExternalSystemRefreshStatus.SUCCESS));
     }
-
-    myListeners.forEach(l-> l.onProjectReloadFinish(ExternalSystemRefreshStatus.SUCCESS));
   }
+
+  private boolean settingsFilesChanged(ExternalSystemSettingsFilesReloadContext modifications) {
+    return !(modifications.getCreated().isEmpty() && modifications.getDeleted().isEmpty() && modifications.getUpdated().isEmpty());
+  }
+
   private void clearHaxelibCaches() {
     Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
     modules.forEach(module ->  HaxelibProjectUpdater.getLibraryCache(module).reload());

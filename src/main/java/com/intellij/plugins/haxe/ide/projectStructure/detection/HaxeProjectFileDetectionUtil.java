@@ -85,6 +85,7 @@ public class HaxeProjectFileDetectionUtil {
   private static class HaxeXmlProjectParser extends NanoXmlUtil.BaseXmlBuilder {
     String currentElement = null;
     boolean hasOpenFlLib = false;
+    boolean hasLibTags = false;
     boolean hasProjectTag = false;
 
     List<String> sources = new ArrayList<>();
@@ -93,6 +94,7 @@ public class HaxeProjectFileDetectionUtil {
     public void addAttribute(String key, @Nullable String nsPrefix, @Nullable String nsSystemID, String value, String type) throws Exception {
       super.addAttribute(key, nsPrefix, nsSystemID, value, type);
       if (this.currentElement.equals("haxelib")) {
+        hasLibTags = true;
         if (key.equalsIgnoreCase("name") && value.equalsIgnoreCase("openfl")) {
           hasOpenFlLib = true;
         }
@@ -115,7 +117,7 @@ public class HaxeProjectFileDetectionUtil {
 
     public XmlProjectType getProjectType() {
       if (hasProjectTag && hasOpenFlLib) return XmlProjectType.OPENFL;
-      if (hasProjectTag) return XmlProjectType.LIME;
+      if (hasProjectTag && (hasLibTags || !sources.isEmpty())) return XmlProjectType.LIME;
       return XmlProjectType.UNKNOWN;
     }
 

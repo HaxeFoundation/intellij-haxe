@@ -2,6 +2,8 @@ package com.intellij.plugins.haxe.ide.actions.haxelib;
 
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
@@ -47,13 +49,24 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
   }
 
   protected boolean isAvailable(AnActionEvent e) {
-    return getProject(e) != null && isVisible(e);
+    Project project = getProject(e);
+    return  hasHaxeModules(project) && isVisible(e);
+  }
+
+  private boolean hasHaxeModules(Project project) {
+    if (project == null) return false;
+    Module[] modules = ModuleManager.getInstance(project).getModules();
+    for (Module module : modules) {
+      if (ModuleType.get(module) == HaxeModuleType.getInstance()) return true;
+    }
+    return false;
   }
 
   protected boolean isVisible(AnActionEvent e) {
+    Project project = getProject(e);
     return switch (e.getPlace()) {
       case "EditorPopup" -> isProjectFile(e);
-      case "ProjectViewPopup" -> true;
+      case "ProjectViewPopup" ->  hasHaxeModules(project);
       default -> false;
     };
   }

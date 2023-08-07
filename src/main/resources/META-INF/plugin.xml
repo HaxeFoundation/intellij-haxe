@@ -445,17 +445,19 @@
     </action>
 
     <action id="Haxe.project.sync-libs" class="com.intellij.plugins.haxe.ide.actions.haxelib.SyncProjectLibraryListAction"
-            text="Sync Libraries"
+            text="Reload Haxe Project"
+            description="Reloads project and imports all libraries"
             icon="AllIcons.Actions.Refresh">
     </action>
 
     <action id="Haxe.haxlib.update-cache" class="com.intellij.plugins.haxe.ide.actions.haxelib.UpdateHaxeLibCacheAction"
-            text="Update Haxelib Cache"
+            text="Purge Haxelib Cache"
+            description="Removes all cached haxelib values"
             icon="AllIcons.Actions.Refresh">
     </action>
 
 
-    <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe">
+    <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe" class="com.intellij.plugins.haxe.ide.actions.haxelib.HaxeActionGroup">
       <reference id="Haxe.project.sync-libs"/>
       <reference id="Haxe.haxlib.update-cache"/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
