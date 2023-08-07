@@ -61,9 +61,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
                       String... additionalFiles)
     throws Exception {
     myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, new HaxeUnresolvedTypeAnnotator());
     myFixture.enableInspections(getAnnotatorBasedInspection());
-    //registerInspectionsForTesting(HaxeHighlightRangeExtension.getInspectionProvider(), myFixture.getProject(), unsetInspections);
     registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);
     myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
   }

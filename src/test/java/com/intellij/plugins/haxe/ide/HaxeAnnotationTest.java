@@ -45,20 +45,8 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
     myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
     myFixture.configureByFile(getTestName(false) + ".hx");
-    final HaxeUnresolvedTypeAnnotator annotator = new HaxeUnresolvedTypeAnnotator();
-    try {
-      LanguageAnnotators.INSTANCE.addExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-      myFixture.enableInspections(getAnnotatorBasedInspection());
-      try {
-        myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
-      }
-      finally {
-        LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-      }
-    }
-    finally {
-      LanguageAnnotators.INSTANCE.removeExplicitExtension(HaxeLanguage.INSTANCE, annotator);
-    }
+    myFixture.enableInspections(getAnnotatorBasedInspection());
+    myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
 
   private void doUnresolvedSymbolTest(String... additionalPaths) throws Exception {
