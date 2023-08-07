@@ -103,32 +103,22 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   public void invoke(@NotNull final Project project, final Editor editor, PsiFile file) throws IncorrectOperationException {
     if (candidates.size() > 1) {
       NavigationUtil.getPsiElementPopup(
-        candidates.toArray(new PsiElement[0]),
-        new DefaultPsiElementCellRenderer(),
-        HaxeBundle.message("choose.class.to.import.title"),
-        new PsiElementProcessor<PsiElement>() {
-          public boolean execute(@NotNull final PsiElement element) {
-            CommandProcessor.getInstance().executeCommand(
-              project,
-              new Runnable() {
-                public void run() {
-                  doImport(editor, element);
-                }
-              },
-              getClass().getName(),
-              this
-            );
-            return false;
+          candidates.toArray(new PsiElement[0]),
+          new DefaultPsiElementCellRenderer(),
+          HaxeBundle.message("choose.class.to.import.title"),
+          element -> {
+            CommandProcessor.getInstance().executeCommand(project, () -> doImport(element), getClass().getName(), this);
+            return true;
           }
-        }
-      ).showInBestPositionFor(editor);
+        )
+        .showInBestPositionFor(editor);
     }
     else {
-      doImport(editor, candidates.iterator().next());
+      doImport(candidates.iterator().next());
     }
   }
 
-  private void doImport(final Editor editor, final PsiElement component) {
+  private void doImport(final PsiElement component) {
     WriteCommandAction.writeCommandAction(myType.getProject(), myType.getContainingFile())
       .run(() -> HaxeAddImportHelper.addImport(((HaxeClass)component).getQualifiedName(), myType.getContainingFile()));
   }

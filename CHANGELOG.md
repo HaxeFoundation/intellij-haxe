@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+* Bugfix: missing import class quickfix (#1132) 
+* Bugfix: "Find Usages" was not checking catch blocks correctly(#929)
+* Change: hiding haxe context menus in non-haxe projects
+
 ## 1.4.11
 * Added: better support for anonymous structures (#1131)
 * Bugfix: Fixed incorrect symbol resolve (#968)

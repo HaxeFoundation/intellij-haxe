@@ -295,7 +295,7 @@
 
     <annotator language="Haxe" id="fastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeFastColorAnnotator" order="first"/>
     <annotator language="Haxe" id="slowColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeSlowColorAnnotator" order="after fastColor"/>
-    <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="last"/>
+    <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
 
 
 

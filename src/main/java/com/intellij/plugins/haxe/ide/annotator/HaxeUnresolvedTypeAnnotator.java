@@ -22,6 +22,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.Key;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
@@ -39,14 +40,15 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotator {
-  private static final AnnotatorTracker ANNOTATOR_TRACKER = new AnnotatorTracker("AnnotatorTracker");
   private AnnotationHolder myHolder = null;
+  private List<TextRange> annotatedRanges = new ArrayList<>();
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -89,9 +91,8 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     if (!components.isEmpty()) {
       // operator overload metas don't have "real" references so we skip this check
       if (isCompileTimeMeta(expression, HaxeMeta.OP)) return;
-      //TODO find a better way to avoid duplicates
-      if (expression.getUserData(ANNOTATOR_TRACKER) != HighlightSeverity.ERROR) {
-        expression.putUserData(ANNOTATOR_TRACKER, HighlightSeverity.ERROR);
+      if (!annotatedRanges.contains(expression.getTextRange())) {
+        annotatedRanges.add(expression.getTextRange());
         myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
           .range(expression)
           .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
