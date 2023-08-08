@@ -1047,7 +1047,7 @@ public class HaxeExpressionEvaluator {
           return left.getArrayElementType().getType().withConstantValue(constant).createHolder();
         }
         //if not native array, look up ArrayAccessGetter method and use result
-        if(left instanceof  SpecificHaxeClassReference classReference) {
+        if(left instanceof  SpecificHaxeClassReference classReference && classReference.getHaxeClass() != null) {
           HaxeNamedComponent getter = classReference.getHaxeClass().findArrayAccessGetter(resolver);
           if (getter instanceof  HaxeMethodDeclaration methodDeclaration) {
             HaxeMethodModel methodModel = methodDeclaration.getModel();
