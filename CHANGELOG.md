@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## 1.4.12
 * Bugfix: "import class quickfix" missing in some cases (#1132) 
 * Bugfix: "Find Usages" was not checking catch blocks correctly(#929)
 * Bugfix: "Introduce Constant"  placed outside of class
