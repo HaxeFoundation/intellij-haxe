@@ -57,28 +57,25 @@ public class HaxeIntroduceConstantHandler extends HaxeIntroduceHandler {
                                                PsiElement declaration,
                                                List<PsiElement> occurrences,
                                                boolean replaceAll) {
-    //PsiElement anchor = replaceAll ? findAnchor(occurrences) : findAnchor(expression);
-    //assert anchor != null;
-    //final PsiElement parent = anchor.getParent();
-    //return parent.addBefore(declaration, anchor);
     HaxeClass haxeClass = PsiTreeUtil.getParentOfType(expression, HaxeClass.class, false);
-    if (haxeClass != null) {
-      //haxeClass.getFieldDeclarations().get(0)
-      HaxeClassBody classBody = PsiTreeUtil.getChildOfType(haxeClass, HaxeClassBody.class);
+    if (haxeClass == null) return null;
 
-      if (classBody != null) {
-        PsiElement child = classBody.getFirstChild();
+    HaxeClassBody classBody = PsiTreeUtil.getChildOfType(haxeClass, HaxeClassBody.class);
+    if (classBody == null) return null;
 
-        if (child != null) {
-          return classBody.addBefore(declaration, child);
-        }
-        else {
-          classBody.add(declaration);
-        }
-      }
+    PsiElement child = lastFieldDeclarationInList(classBody);
+
+    if (child == null) {
+      child = classBody.getFirstChild();
     }
 
-    return null;
+    return child != null ? classBody.addAfter(declaration, child) : null;
+  }
+
+  @Nullable
+  private static HaxeFieldDeclaration lastFieldDeclarationInList(HaxeClassBody classBody) {
+    List<HaxeFieldDeclaration> list = classBody.getFieldDeclarationList();
+    return list.isEmpty() ? null : list.get(list.size() - 1);
   }
 
   @Nullable

@@ -478,40 +478,43 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     final HaxeExpression expression = operation.getInitializer();
     final Project project = operation.getProject();
 
-    WriteCommandAction.writeCommandAction(project, expression.getContainingFile()).compute(() -> {
+    PsiElement result = WriteCommandAction.writeCommandAction(project, expression.getContainingFile()).compute(() -> {
 
-        final PsiElement createdDeclaration = addDeclaration(operation, declaration);
+      final PsiElement createdDeclaration = addDeclaration(operation, declaration);
 
-        if (createdDeclaration != null) {
-          modifyDeclaration(createdDeclaration);
-        }
+      if (createdDeclaration == null) return null;
 
-        PsiElement newExpression = createExpression(project, operation);
-        if (null == newExpression) {
-          Logger.getInstance(this.getClass()).warn("Could not create replaceable expression for '" + operation.getName() + "'.");
-          return createdDeclaration;
-        }
+      modifyDeclaration(createdDeclaration);
 
-        if (operation.isReplaceAll()) {
-          List<PsiElement> newOccurrences = new ArrayList<PsiElement>();
-          for (PsiElement occurrence : operation.getOccurrences()) {
-            final PsiElement replaced = replaceExpression(occurrence, newExpression, operation);
-            if (replaced != null) {
-              newOccurrences.add(replaced);
-            }
+      PsiElement newExpression = createExpression(project, operation);
+      if (null == newExpression) {
+        Logger.getInstance(this.getClass()).warn("Could not create replaceable expression for '" + operation.getName() + "'.");
+        return createdDeclaration;
+      }
+
+      if (operation.isReplaceAll()) {
+        List<PsiElement> newOccurrences = new ArrayList<PsiElement>();
+        for (PsiElement occurrence : operation.getOccurrences()) {
+          final PsiElement replaced = replaceExpression(occurrence, newExpression, operation);
+          if (replaced != null) {
+            newOccurrences.add(replaced);
           }
-          operation.setOccurrences(newOccurrences);
         }
-        else {
-          final PsiElement replaced = replaceExpression(expression, newExpression, operation);
-          operation.setOccurrences(Collections.singletonList(replaced));
-        }
+        operation.setOccurrences(newOccurrences);
+      }
+      else {
+        final PsiElement replaced = replaceExpression(expression, newExpression, operation);
+        operation.setOccurrences(Collections.singletonList(replaced));
+      }
 
-        postRefactoring(operation.getElement());
+      postRefactoring(operation.getElement());
       return createdDeclaration;
-      });
+    });
 
-
+    // if we failed to extract return null;
+    if (result == null) {
+      return null;
+    }
 
     // We have added the new declaration, but the new element gets invalidated by
     // the reformatting that is triggered at the end of the write action (the execute above).

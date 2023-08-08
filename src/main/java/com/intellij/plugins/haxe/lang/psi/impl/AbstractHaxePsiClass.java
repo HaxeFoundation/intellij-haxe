@@ -510,14 +510,32 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public PsiElement getLBrace() {
-    return findChildByRoleAsPsiElement(ChildRole.LBRACE);
+    PsiElement body = getBody();
+    return findChildByRoleAsPsiElementIn(body, ChildRole.LBRACE);
   }
 
   @Override
   public PsiElement getRBrace() {
-    return findChildByRoleAsPsiElement(ChildRole.RBRACE);
+    PsiElement body = getBody();
+    return findChildByRoleAsPsiElementIn(body, ChildRole.RBRACE);
   }
 
+  public PsiElement getBody() {
+      if (this instanceof HaxeClassDeclaration classDeclaration) {  // concrete class
+        return classDeclaration.getClassBody();
+      } else if (this instanceof HaxeAbstractTypeDeclaration typeDeclaration) {  // abstract
+        return typeDeclaration.getAbstractBody();
+      } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) { // extern class
+        return externClassDeclaration.getExternClassDeclarationBody();
+      } else if (this instanceof HaxeTypedefDeclaration typedefDeclaration) {  // typedef
+        return typedefDeclaration.getTypeOrAnonymous();
+      } else if (this instanceof HaxeInterfaceDeclaration interfaceDeclaration) { // interface
+        return interfaceDeclaration.getInterfaceBody();
+      } else if (this instanceof HaxeEnumDeclaration enumDeclaration) { // enum
+        return enumDeclaration.getEnumBody();
+      }
+    return this;
+  }
   private boolean isPrivate() {
     if(_isPrivate == null) {
       HaxePrivateKeyWord privateKeyWord = null;

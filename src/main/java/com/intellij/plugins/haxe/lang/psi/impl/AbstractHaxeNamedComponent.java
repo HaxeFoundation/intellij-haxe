@@ -269,18 +269,25 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (element == null) return null;
     return SourceTreeToPsiMap.treeElementToPsi(element);
   }
+  @Nullable
+  public final PsiElement findChildByRoleAsPsiElementIn(PsiElement body, int role) {
+    ASTNode element = findChildByRole(body.getFirstChild(), role);
+    if (element == null) return null;
+    return SourceTreeToPsiMap.treeElementToPsi(element);
+  }
 
   @Nullable
-  public ASTNode findChildByRole(int role) {
-    // assert ChildRole.isUnique(role);
-    PsiElement firstChild = getFirstChild();
-
+  public ASTNode findChildByRole(PsiElement firstChild, int role) {
     if (firstChild == null) return null;
 
     for (ASTNode child = firstChild.getNode(); child != null; child = child.getTreeNext()) {
       if (getChildRole(child) == role) return child;
     }
     return null;
+  }
+  @Nullable
+  public ASTNode findChildByRole(int role) {
+    return findChildByRole(getFirstChild(), role);
   }
 
   public int getChildRole(ASTNode child) {

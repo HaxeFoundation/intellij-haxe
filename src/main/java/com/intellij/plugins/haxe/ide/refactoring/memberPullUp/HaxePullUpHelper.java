@@ -29,6 +29,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -67,8 +68,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
   private static final Key<Boolean> PRESERVE_QUALIFIER = Key.create("PRESERVE_QUALIFIER");
 
 
-  private final PsiClass mySourceClass;
-  private final PsiClass myTargetSuperClass;
+  private final AbstractHaxePsiClass mySourceClass;
+  private final AbstractHaxePsiClass myTargetSuperClass;
   private final boolean myIsTargetInterface;
   private final DocCommentPolicy myJavaDocPolicy;
   private Set<PsiMember> myMembersAfterMove = null;
@@ -82,8 +83,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     myProject = data.getProject();
     myMembersToMove = data.getMembersToMove();
     myMembersAfterMove = data.getMovedMembers();
-    myTargetSuperClass = data.getTargetClass();
-    mySourceClass = data.getSourceClass();
+    myTargetSuperClass = (AbstractHaxePsiClass)data.getTargetClass();
+    mySourceClass = (AbstractHaxePsiClass)data.getSourceClass();
     myJavaDocPolicy = data.getDocCommentPolicy();
     myIsTargetInterface = myTargetSuperClass.isInterface();
 
@@ -209,7 +210,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     if (myIsTargetInterface) {
       PsiUtil.setModifierProperty(field, PsiModifier.PUBLIC, true);
     }
-    final PsiMember movedElement = (PsiMember)myTargetSuperClass.addBefore(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()), myTargetSuperClass.getRBrace());
+    final PsiMember movedElement = (PsiMember)myTargetSuperClass.getBody().addBefore(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()), myTargetSuperClass.getRBrace());
     myMembersAfterMove.add(movedElement);
     field.delete();
   }
@@ -239,6 +240,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     }
     boolean isOriginalMethodAbstract = method.hasModifierProperty(PsiModifier.ABSTRACT) || method.hasModifierProperty(PsiModifier.DEFAULT);
     boolean isOriginalMethodPrototype = method instanceof HaxeMethod;
+    PsiElement rightBrace = myTargetSuperClass.getRBrace();
     if (myIsTargetInterface || info.isToAbstract()) {
       ChangeContextUtil.clearContextInfo(method);
 
@@ -261,8 +263,10 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       else {
         methodCopy = HaxeElementGenerator.createMethodDeclaration(myProject, methodCopy.getText().trim() + ";");
 
+        PsiElement superClassBody = myTargetSuperClass.getBody();
         movedElement =
-          anchor != null ? (PsiMember)myTargetSuperClass.addBefore(methodCopy, anchor) : (PsiMember)myTargetSuperClass.addBefore(methodCopy, myTargetSuperClass.getRBrace());
+          anchor != null ? (PsiMember)superClassBody.addBefore(methodCopy, anchor)
+                         : (PsiMember)superClassBody.addBefore(methodCopy, rightBrace);
 
         reformat(movedElement);
       }
@@ -299,11 +303,10 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         superClassMethod.replace(convertMethodToLanguage(methodCopy, language));
       }
       else {
+        PsiElement superClassBody = myTargetSuperClass.getBody();
         final PsiMember movedElement =
-          anchor != null ? (PsiMember)myTargetSuperClass.addBefore(convertMethodToLanguage(methodCopy,
-                                                                                           language), anchor) : (PsiMember)myTargetSuperClass.addBefore(
-            convertMethodToLanguage(
-              methodCopy, language), myTargetSuperClass.getRBrace());
+          anchor != null ? (PsiMember)superClassBody.addAfter(convertMethodToLanguage(methodCopy, language), anchor)
+                         : (PsiMember)superClassBody.addBefore(convertMethodToLanguage(methodCopy, language), rightBrace);
         reformat(movedElement);
         myMembersAfterMove.add(movedElement);
       }
