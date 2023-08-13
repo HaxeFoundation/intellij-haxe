@@ -173,6 +173,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
   }
+  public @Nullable HaxeInheritList getHaxeImplementsListPsi() {
+    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+  }
 
   @Override
   public PsiElement add(@NotNull PsiElement element) throws IncorrectOperationException {

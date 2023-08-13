@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -53,8 +54,8 @@ public class HaxeClassAnnotator implements Annotator {
     checkDuplicatedFields(clazz, holder);
     checkClassName(clazz, holder);
     checkExtends(clazz, holder);
+    checkInterfaces(clazz, holder);
     if (!clazzPsi.isInterface() && !clazzPsi.isTypeDef()) {
-      checkInterfaces(clazz, holder);
       checkInterfacesMethods(clazz, holder);
       checkInterfacesFields(clazz, holder);
     }
@@ -139,34 +140,48 @@ public class HaxeClassAnnotator implements Annotator {
   private static void checkExtends(final HaxeClassModel clazz, final AnnotationHolder holder) {
     if (!SUPERCLASS_TYPE_COMPATIBILITY.isEnabled(clazz.getBasePsi())) return;
 
-    HaxeClassModel reference = clazz.getParentClass(); // Get first in extends list, not PSI parent.
-    // TODO: Need to loop over all interfaces or types.
-    if (reference != null) {
-      if (isAnonymousType(clazz)) {
-        if (!isAnonymousType(reference)) {
-          // @TODO: Move to bundle
-          holder.newAnnotation(HighlightSeverity.ERROR, "Not an anonymous type").range(clazz.haxeClass.getHaxeExtendsList().get(0))
-            .create();
-        }
-      }
-      else if (clazz.isInterface()) {
-        if (!reference.isInterface() && !reference.isTypedef()) {
-          // @TODO: Move to bundle
-          holder.newAnnotation(HighlightSeverity.ERROR, "Not an interface").range(reference.getPsi()).create();
-        }
-      }
-      else if (clazz.isClass() ) {
-         if (!reference.isClass() && !reference.isTypedef()) {
-           // @TODO: Move to bundle
-           holder.newAnnotation(HighlightSeverity.ERROR, "Not a class").range(reference.getPsi()).create();
-         }
-      }
+    //HaxeClassModel reference = clazz.getParentClass(); // Get first in extends list, not PSI parent.
+    for (HaxeType type : clazz.getExtendsList()) {
+      HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
+      PsiElement resolved = referenceExpression.resolve();
+      if (resolved instanceof HaxeClass haxeClass) {
+        HaxeClassModel extendedClassModel = haxeClass.getModel();
 
-      final String qname1 = reference.haxeClass.getQualifiedName();
-      final String qname2 = clazz.haxeClass.getQualifiedName();
-      if (qname1.equals(qname2)) {
-        // @TODO: Move to bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Cannot extend self").range(clazz.haxeClass.getHaxeExtendsList().get(0)).create();
+
+        // TODO: Need to loop over all interfaces or types.
+        if (extendedClassModel != null) {
+          if (isAnonymousType(clazz)) {
+            if (!isAnonymousType(extendedClassModel)) {
+              // @TODO: Move to bundle
+              holder.newAnnotation(HighlightSeverity.ERROR, "Not an anonymous type").range(referenceExpression)
+                .create();
+            }
+          }
+          else if (clazz.isInterface()) {
+            if (!extendedClassModel.isInterface() && !extendedClassModel.isTypedef()) {
+              // @TODO: Move to bundle
+              holder.newAnnotation(HighlightSeverity.ERROR, "Can't extend " +extendedClassModel.getName() +", it is not a interface").range(referenceExpression).create();
+            }
+          }
+          else if (clazz.isClass()) {
+            if (!extendedClassModel.isClass() && !extendedClassModel.isTypedef()) {
+              // @TODO: Move to bundle
+              AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, "Can't extend " + extendedClassModel.getName() + ", it is not a class")
+                  .range(referenceExpression);
+              if(extendedClassModel.isInterface()) {
+                builder.withFix(HaxeFixer.create("Change to implements", () -> clazz.changeToInterface(extendedClassModel.getName())));
+              }
+              builder.create();
+            }
+          }
+
+          final String qname1 = extendedClassModel.haxeClass.getQualifiedName();
+          final String qname2 = clazz.haxeClass.getQualifiedName();
+          if (qname1.equals(qname2)) {
+            // @TODO: Move to bundle
+            holder.newAnnotation(HighlightSeverity.ERROR, "Cannot extend self").range(referenceExpression).create();
+          }
+        }
       }
     }
   }
@@ -192,12 +207,26 @@ public class HaxeClassAnnotator implements Annotator {
 
     for (HaxeClassReferenceModel interfaze : clazz.getImplementingInterfaces()) {
       HaxeClassModel interfazeClass = interfaze.getHaxeClass();
-      boolean isDynamic =
-        null != interfazeClass && SpecificHaxeClassReference.withoutGenerics(interfazeClass.getReference()).isDynamic();
-      if (interfazeClass != null && !(interfazeClass.isInterface() || isDynamic)) {
-        holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.interface.error.message"))
-          .range(interfaze.getPsi())
-          .create();
+      if (interfazeClass != null  && clazz.isInterface()) {
+        AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, " Interfaces cannot implement another interface (use extends instead)")
+            .range(interfaze.getPsi());
+        if (interfazeClass.isInterface()) {
+          builder.withFix(HaxeFixer.create("Change to extends", () -> clazz.changeToExtends(interfazeClass.getName())));
+        }
+        builder.create();
+      }else {
+
+        boolean isDynamic =
+          null != interfazeClass && SpecificHaxeClassReference.withoutGenerics(interfazeClass.getReference()).isDynamic();
+        if (interfazeClass != null && !(interfazeClass.isInterface() || isDynamic)) {
+          AnnotationBuilder builder =
+            holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.interface.error.message"))
+              .range(interfaze.getPsi());
+          if (interfazeClass.isClass() || interfazeClass.isAbstractClass()) {
+            builder.withFix(HaxeFixer.create("Change to extends", () -> clazz.changeToExtends(interfazeClass.getName())));
+          }
+          builder.create();
+        }
       }
     }
   }

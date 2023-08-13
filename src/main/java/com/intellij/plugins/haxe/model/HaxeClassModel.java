@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
@@ -494,6 +495,14 @@ public class HaxeClassModel implements HaxeExposableModel {
   public PsiIdentifier getNamePsi() {
     return haxeClass.getNameIdentifier();
   }
+  @NotNull
+  public List<HaxeType> getExtendsList() {
+    return haxeClass.getHaxeExtendsList();
+  }
+  @NotNull
+  public List<HaxeType> getImplementsList() {
+    return haxeClass.getHaxeImplementsList();
+  }
 
   @NotNull
   public HaxeDocumentModel getDocument() {
@@ -645,6 +654,94 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public void addMethod(String name) {
     this.getDocument().addTextAfterElement(getBodyPsi(), "\npublic function " + name + "() {\n}\n");
+  }
+
+  public void addImplements(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+        List<HaxeImplementsDeclaration> list = implementsListPsi.getImplementsDeclarationList();
+        String insertText = " implements " + name + " ";
+        if (list.isEmpty()) {
+          this.getDocument().addTextAfterElement(implementsListPsi, insertText);
+        }else {
+          HaxeImplementsDeclaration declaration = list.get(list.size() - 1);
+          this.getDocument().addTextAfterElement(declaration, insertText);
+        }
+      }
+    }
+  }
+  public void changeToInterface(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+        List<HaxeExtendsDeclaration> list = implementsListPsi.getExtendsDeclarationList();
+        Optional<HaxeExtendsDeclaration> first = list.stream().filter(declaration -> Objects.equals(declaration.getType().getText(), name)).findFirst();
+        String replacementText = "implements " + name;
+        if (first.isPresent()) {
+          HaxeExtendsDeclaration declaration = first.get();
+          this.getDocument().replaceElementText(declaration, replacementText);
+        }
+      }
+    }
+  }
+  public void changeToExtends(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+        List<HaxeImplementsDeclaration> list = implementsListPsi.getImplementsDeclarationList();
+        Optional<HaxeImplementsDeclaration> first = list.stream().filter(declaration -> Objects.equals(declaration.getType().getText(), name)).findFirst();
+        String replacementText = "extends " + name;
+        if (first.isPresent()) {
+          HaxeImplementsDeclaration declaration = first.get();
+          this.getDocument().replaceElementText(declaration, replacementText);
+        }
+      }
+    }
+  }
+  public void addExtends(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+        List<HaxeExtendsDeclaration> list = implementsListPsi.getExtendsDeclarationList();
+        String insertText = " extends " + name + " ";
+        if (list.isEmpty()) {
+          this.getDocument().addTextAfterElement(implementsListPsi, insertText);
+        }else {
+          HaxeExtendsDeclaration declaration = list.get(list.size() - 1);
+          this.getDocument().addTextAfterElement(declaration, insertText);
+        }
+      }
+    }
+  }
+  public void removeImplements(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+
+        List<HaxeImplementsDeclaration> list = implementsListPsi.getImplementsDeclarationList();
+        Optional<HaxeImplementsDeclaration> first = list.stream().filter(declaration -> Objects.equals(declaration.getType().getText(), name)).findFirst();
+
+        if (first.isPresent()) {
+          HaxeImplementsDeclaration declaration = first.get();
+          this.getDocument().replaceElementText(declaration, "");
+        }
+      }
+    }
+  }
+  public void removeExtends(String name) {
+    if ( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeInheritList implementsListPsi = psiClass.getHaxeImplementsListPsi();
+      if (implementsListPsi != null) {
+        List<HaxeExtendsDeclaration> list = implementsListPsi.getExtendsDeclarationList();
+        Optional<HaxeExtendsDeclaration> first = list.stream().filter(declaration -> Objects.equals(declaration.getType().getText(), name)).findFirst();
+
+        if (first.isPresent()) {
+          HaxeExtendsDeclaration declaration = first.get();
+          this.getDocument().replaceElementText(declaration, "");
+        }
+      }
+    }
   }
 
   @Override
