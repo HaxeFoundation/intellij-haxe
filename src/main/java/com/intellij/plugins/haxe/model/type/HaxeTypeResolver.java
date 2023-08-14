@@ -64,7 +64,7 @@ public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getMethodFunctionType(PsiElement comp, @Nullable HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethod) {
-      return ((HaxeMethod)comp).getModel().getFunctionType(resolver).createHolder();
+      return ((HaxeMethod)comp).getModel().getFunctionType(resolver == null ? null : resolver.withoutUnknowns()).createHolder();
     }
     // @TODO: error
     return SpecificTypeReference.getInvalid(comp).createHolder();

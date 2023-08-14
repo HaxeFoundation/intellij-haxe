@@ -316,7 +316,7 @@ public class HaxeExpressionEvaluator {
                 }
               });
             } else {
-              checkParameters(element, constructor, expression.getExpressionList(), context, resolver);
+              //checkParameters(element, constructor, expression.getExpressionList(), context, resolver);
             }
           }
         }
@@ -766,13 +766,13 @@ public class HaxeExpressionEvaluator {
 
       }
       if (functionType instanceof SpecificFunctionReference ftype) {
-        HaxeExpressionEvaluator.checkParameters(callExpression, ftype, parameterExpressions, context, resolver);
+        //HaxeExpressionEvaluator.checkParameters(callExpression, ftype, parameterExpressions, context, resolver);
 
         ResultHolder returnType = ftype.getReturnType();
 
         HaxeGenericResolver functionResolver = new HaxeGenericResolver();
         functionResolver.addAll(resolver);
-        HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
+        HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, functionResolver);
 
         ResultHolder resolved = functionResolver.resolve(returnType);
         if (resolved != null && !resolved.isUnknown()) {

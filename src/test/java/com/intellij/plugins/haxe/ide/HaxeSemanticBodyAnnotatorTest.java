@@ -22,8 +22,14 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
+import org.junit.Ignore;
 import org.junit.Test;
-
+//TODO mlo:
+// This part of the semantics has been disabled for quite a while in the built version of the plugin and it looks like the code
+// causes side effects for other code inspections (static imports seems to be an issue)
+// current idea is to replace this logic with something like use "find usages" to resolve type parameters
+// when those are not part of the resolved declaration
+@Ignore
 public class HaxeSemanticBodyAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
