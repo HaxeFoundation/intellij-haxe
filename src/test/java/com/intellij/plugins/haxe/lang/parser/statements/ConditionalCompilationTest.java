@@ -29,7 +29,7 @@ public class ConditionalCompilationTest extends StatementTestBase {
   }
 
   private void setDefines(String defines) {
-    myProject.putUserData(HaxeConditionalExpression.DEFINES_KEY, defines);
+    getProject().putUserData(HaxeConditionalExpression.DEFINES_KEY, defines);
   }
 
   @Test

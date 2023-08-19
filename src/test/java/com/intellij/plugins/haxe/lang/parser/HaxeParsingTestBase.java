@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.lang.parser;
 
+import com.intellij.core.CoreInjectedLanguageManager;
 import com.intellij.lang.LanguageASTFactory;
 import com.intellij.lang.LanguageParserDefinitions;
 import com.intellij.lang.injection.InjectedLanguageManager;
@@ -61,7 +62,7 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
     // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
     // was registered, null was passed to a @NotNull function.  This affected testSimple().
-    registerExtensionPoint(getExtensionArea(myProject), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
+    registerExtensionPoint(getExtensionArea(getProject()), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
     registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME,
                            RegexLanguageInjector.class); // Might as well use the real one.
     registerInjectedLanguageManager();
@@ -69,9 +70,8 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
   }
 
   private void registerInjectedLanguageManager() {
-    InjectedLanguageManagerImpl manager = new InjectedLanguageManagerImpl(myProject);
-    myProject.registerService(DumbService.class, MockDumbService.class);
-    myProject.registerService(InjectedLanguageManager.class, manager);
+    getProject().registerService(DumbService.class, MockDumbService.class);
+    getProject().registerService(InjectedLanguageManager.class, CoreInjectedLanguageManager.class);
   }
 
   private <T> void registerMetadataParser() {
