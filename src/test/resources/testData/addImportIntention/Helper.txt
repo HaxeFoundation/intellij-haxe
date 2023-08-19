@@ -1,4 +1,9 @@
+package;
 import foo.Bar.Baz;
+
+/**
+  helper class docs
+**/
 class Helper {
   var bar:Baz;
 }

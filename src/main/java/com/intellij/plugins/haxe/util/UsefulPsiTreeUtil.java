@@ -26,9 +26,12 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeParenthesizedExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiDocComment;
 import com.intellij.plugins.haxe.lang.util.HaxeAstUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
@@ -79,7 +82,9 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getPrevSiblingSkippingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
+  public static PsiElement getPrevSiblingSkippingCondition(@Nullable PsiElement sibling,
+                                                           Condition<PsiElement> condition,
+                                                           boolean strictly) {
     if (sibling == null) return null;
     PsiElement result = strictly ? sibling.getPrevSibling() : sibling;
     while (result != null && condition.value(result)) {
@@ -89,7 +94,9 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
-  public static PsiElement getNextSiblingSkippingCondition(@Nullable PsiElement sibling, Condition<PsiElement> condition, boolean strictly) {
+  public static PsiElement getNextSiblingSkippingCondition(@Nullable PsiElement sibling,
+                                                           Condition<PsiElement> condition,
+                                                           boolean strictly) {
     if (sibling == null) return null;
     PsiElement result = strictly ? sibling.getNextSibling() : sibling;
     while (result != null && condition.value(result)) {
@@ -143,6 +150,10 @@ public class UsefulPsiTreeUtil {
   public static boolean isWhitespaceOrComment(PsiElement element) {
     return element instanceof PsiWhiteSpace || element instanceof PsiComment;
   }
+  public static boolean isWhitespaceOrCommentButNotDocs(PsiElement element) {
+    return element instanceof PsiWhiteSpace
+           || (element instanceof PsiComment comment  && comment.getTokenType() != HaxeTokenTypeSets.DOC_COMMENT);
+  }
 
   private static void populateClassesList(List<HaxeClass> classList, Project project, VirtualFile file) {
     VirtualFile[] files = file.getChildren();
@@ -170,8 +181,9 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static <T> T getParentOfType(@Nullable PsiElement element, @NotNull Class<? extends T> aClass) {
-    if (element == null || element instanceof PsiFile)
+    if (element == null || element instanceof PsiFile) {
       return null;
+    }
 
     // Don't start with the passed element.
     element = element.getParent();
@@ -187,8 +199,9 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static PsiElement getParent(@Nullable PsiElement element, @NotNull IElementType elementType) {
-    if (element == null || element instanceof PsiFile)
+    if (element == null || element instanceof PsiFile) {
       return null;
+    }
 
     element = element.getParent();
     while (element != null && !(element instanceof PsiFile)) {
@@ -288,7 +301,7 @@ public class UsefulPsiTreeUtil {
 
   static public PsiElement getToken(PsiElement element, String token) {
     for (ASTNode node : element.getNode().getChildren(null)) {
-      if (node.getText().equals(token))  return node.getPsi();
+      if (node.getText().equals(token)) return node.getPsi();
     }
     return null;
   }
