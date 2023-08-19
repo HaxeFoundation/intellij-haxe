@@ -121,7 +121,7 @@ subprojects {
 changelog {
     groups.empty()
     keepUnreleasedSection.set(false)
-    headerParserRegex.set("(\\d+\\.\\d+(\\.\\d+)*)(.*)") // old version names does not conform to standard
+    headerParserRegex.set("(\\d+\\.\\d+(\\.\\d+)*(-\\d+)?)(.*)") // old version names does not conform to standard
 //    repositoryUrl.set(properties("pluginRepositoryUrl"))
 }
 
