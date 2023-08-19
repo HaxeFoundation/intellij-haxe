@@ -1,36 +1,59 @@
 package com.intellij.plugins.haxe.ide.hint.types;
 
-import com.intellij.codeInsight.hints.declarative.*;
+import com.intellij.codeInsight.hints.InlayHintsCollector;
+import com.intellij.codeInsight.hints.InlayHintsSink;
+import com.intellij.codeInsight.hints.NoSettings;
+import com.intellij.codeInsight.hints.SettingsKey;
+import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
+public class HaxeInlayReturnTypeHintsProvider extends HaxeInlayHintProvider {
+
 
   @Nullable
   @Override
-  public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
-    return new TypeCollector();
+  public InlayHintsCollector getCollectorFor(@NotNull PsiFile file,
+                                             @NotNull Editor editor,
+                                             @NotNull NoSettings settings,
+                                             @NotNull InlayHintsSink sink) {
+    return new InlayCollector(editor);
   }
 
-  private static class TypeCollector implements SharedBypassCollector {
 
-    @Override
-    public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
-      if (element instanceof HaxeMethodDeclaration fieldDeclaration) {
-        handleMethodDeclarationHints(sink, fieldDeclaration);
-      }
+  @Nls(capitalization = Nls.Capitalization.Sentence)
+  @NotNull
+  @Override
+  public String getName() {
+    return HaxeHintBundle.message("haxe.return.type.hint.name");
+  }
+
+  private static class InlayCollector extends HaxeInlayHintsFactory {
+    public InlayCollector(@NotNull Editor editor) {
+      super(editor);
     }
 
-    private void handleMethodDeclarationHints(InlayTreeSink sink, HaxeMethodDeclaration declaration) {
+    @Override
+    public boolean collect(@NotNull PsiElement element, @NotNull Editor editor, @NotNull InlayHintsSink sink) {
+      if (element instanceof HaxeMethodDeclaration fieldDeclaration) {
+        handleMethodDeclarationHints(sink, fieldDeclaration);
+        return false;
+      }
+      return true;
+    }
+
+
+
+    private void handleMethodDeclarationHints(InlayHintsSink sink, HaxeMethodDeclaration declaration) {
       HaxeMethodModel methodModel = declaration.getModel();
 
       if (methodModel != null && methodModel.getReturnTypeTagPsi() == null && !methodModel.isConstructor()) {
@@ -39,19 +62,9 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
         ResultHolder returnType = methodModel.getReturnType(resolver);
         int offset = declaration.getParameterList().getNextSibling().getTextRange().getEndOffset();
         if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
-          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));
+          addInsert(offset, sink ,  ":" + returnType.toPresentationString());
         }
       }
-    }
-
-
-    @NotNull
-    private static Function1<PresentationTreeBuilder, Unit> appendTypeTextToBuilder(ResultHolder type) {
-      return builder -> {
-        builder.text(":" + type.toPresentationString(), null);
-        return null;
-      };
     }
   }
 }

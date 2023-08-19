@@ -1,38 +1,58 @@
 package com.intellij.plugins.haxe.ide.hint.types;
 
-import com.intellij.codeInsight.hints.declarative.*;
+import com.intellij.codeInsight.hints.InlayHintsCollector;
+import com.intellij.codeInsight.hints.InlayHintsSink;
+import com.intellij.codeInsight.hints.NoSettings;
+import com.intellij.codeInsight.hints.SettingsKey;
+import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
+public class HaxeInlayForLoopHintsProvider extends HaxeInlayHintProvider {
+
 
   @Nullable
   @Override
-  public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
-    return new TypeCollector();
+  public InlayHintsCollector getCollectorFor(@NotNull PsiFile file,
+                                             @NotNull Editor editor,
+                                             @NotNull NoSettings settings,
+                                             @NotNull InlayHintsSink sink) {
+    return new InlayCollector(editor);
   }
 
-  private static class TypeCollector implements SharedBypassCollector {
+  @Nls(capitalization = Nls.Capitalization.Sentence)
+  @NotNull
+  @Override
+  public String getName() {
+    return HaxeHintBundle.message("haxe.for.loop.type.hint.name");
+  }
+
+  private static class InlayCollector extends HaxeInlayHintsFactory {
+    public InlayCollector(@NotNull Editor editor) {
+      super(editor);
+    }
 
     @Override
-    public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
+    public boolean collect(@NotNull PsiElement element, @NotNull Editor editor, @NotNull InlayHintsSink sink) {
       if (element instanceof HaxeForStatement forStatement) {
         handleForEachHints(element, sink, forStatement);
+        return false;
       }
+      return true;
     }
 
 
-    private static void handleForEachHints(@NotNull PsiElement element,
-                                                    @NotNull InlayTreeSink sink,
-                                           HaxeForStatement forStatement) {
 
+    private void handleForEachHints(@NotNull PsiElement element,
+                                    @NotNull InlayHintsSink sink,
+                                    HaxeForStatement forStatement) {
 
 
       HaxeIterable iterable = forStatement.getIterable();
@@ -48,13 +68,12 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
         HaxeIteratorValue iteratorValue = keyValueIterator.getIteratorValue();
 
         ResultHolder keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, resolver);
-        ResultHolder keyType  = extractKeyValueType(keyValueIteratorType, true);
-        ResultHolder valueType  = extractKeyValueType(keyValueIteratorType, false);
+        ResultHolder keyType = extractKeyValueType(keyValueIteratorType, true);
+        ResultHolder valueType = extractKeyValueType(keyValueIteratorType, false);
 
         createInlayHint(iteratorKey.getComponentName(), sink, keyType);
         createInlayHint(iteratorValue.getComponentName(), sink, valueType);
       }
-
     }
 
     private static ResultHolder extractKeyValueType(ResultHolder type, boolean key) {
@@ -77,21 +96,12 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
       return type;
     }
 
-    private static void createInlayHint(@NotNull HaxeComponentName componentName,@NotNull InlayTreeSink sink, ResultHolder type ) {
+    private void createInlayHint(@NotNull HaxeComponentName componentName, @NotNull InlayHintsSink sink, ResultHolder type) {
       if (!type.isUnknown() && !type.getType().isInvalid()) {
         int offset = componentName.getTextRange().getEndOffset();
-        InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
-        );
-      }
-    }
 
-    @NotNull
-    private static Function1<PresentationTreeBuilder, Unit> appendTypeTextToBuilder(ResultHolder type) {
-      return builder -> {
-        builder.text( ":"+type.toPresentationString(), null);
-        return null;
-      };
+        addInsert(offset, sink ,  ":" + type.toPresentationString());
+      }
     }
   }
 }

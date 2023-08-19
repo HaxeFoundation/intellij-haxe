@@ -1,56 +1,66 @@
 package com.intellij.plugins.haxe.ide.hint.types;
 
-import com.intellij.codeInsight.hints.declarative.*;
+import com.intellij.codeInsight.hints.*;
+import com.intellij.codeInsight.hints.presentation.InlayPresentation;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeSwitchCaseCaptureVar;
-import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import kotlin.Unit;
-import kotlin.jvm.functions.Function1;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 
-public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider {
+public class HaxeInlayCaptureVariableHintsProvider extends HaxeInlayHintProvider {
+
 
   @Nullable
   @Override
-  public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
-    return new TypeCollector();
+  public InlayHintsCollector getCollectorFor(@NotNull PsiFile file,
+                                             @NotNull Editor editor,
+                                             @NotNull NoSettings settings,
+                                             @NotNull InlayHintsSink sink) {
+    return new TypeCollector(editor);
   }
 
-  private static class TypeCollector implements SharedBypassCollector {
+  @Nls(capitalization = Nls.Capitalization.Sentence)
+  @NotNull
+  @Override
+  public String getName() {
+    return HaxeHintBundle.message("haxe.capture.variable.hint.name");
+  }
+
+  private static class TypeCollector extends HaxeInlayHintsFactory {
+    public TypeCollector(@NotNull Editor editor) {
+      super(editor);
+    }
 
     @Override
-    public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
+    public boolean collect(@NotNull PsiElement element, @NotNull Editor editor, @NotNull InlayHintsSink sink) {
       if (element instanceof HaxeSwitchCaseCaptureVar varDeclaration) {
         handleCaptureVarDeclarationHints(element, sink, varDeclaration);
+        return false;
       }
+      return true;
     }
 
 
-    private static void handleCaptureVarDeclarationHints(@NotNull PsiElement element,
-                                                         @NotNull InlayTreeSink sink,
-                                                         HaxeSwitchCaseCaptureVar varDeclaration) {
+    private void handleCaptureVarDeclarationHints(@NotNull PsiElement element,
+                                                  @NotNull InlayHintsSink sink,
+                                                  HaxeSwitchCaseCaptureVar varDeclaration) {
       if (varDeclaration.getTypeTag() == null && varDeclaration.getVarInit() == null) {
         ResultHolder result = HaxeExpressionEvaluator.evaluate(varDeclaration, new HaxeExpressionEvaluatorContext(element), null).result;
 
         if (!result.isUnknown() && !result.getType().isInvalid()) {
           int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
-          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(result)
-          );
+          addInsert(offset, sink ,  ":" + result.toPresentationString());
         }
       }
     }
-
-    @NotNull
-    private static Function1<PresentationTreeBuilder, Unit> appendTypeTextToBuilder(ResultHolder type) {
-      return builder -> {
-        builder.text(":" + type.toPresentationString(), null);
-        return null;
-      };
-    }
   }
 }
+

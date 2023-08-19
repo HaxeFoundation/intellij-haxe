@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.4.13
+## 1.4.13-223
+* NOTE:  Builds for idea 2022.3 are no longer actively maintained
 * Added: Quick fix for incorrect extends and implements (#940)
 * Fixed: Resolving type from inline method calls (#868)
 * Fixed: Automatic import was placed after class Doc comment (#842)
