@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
+import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.evaluate;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 /**
@@ -751,7 +752,44 @@ public class HaxeResolveUtil {
       result.specialize(initExpression);
       return result;
     }
+
+    if (element instanceof  HaxeValueExpression valueExpression) {
+      result = resolveValueExpressionClass(valueExpression, specialization);
+      if (result != null) {
+        return result;
+      }
+    }
+
     return getHaxeClassResolveResult(initExpression, specialization);
+  }
+
+  private static HaxeResolveResult resolveValueExpressionClass(HaxeValueExpression valueExpression,
+                                                               @Nullable HaxeGenericSpecialization specialization) {
+
+    HaxePsiCompositeElement element = null;
+    if (valueExpression.getSwitchStatement() != null) {
+      element = valueExpression.getSwitchStatement();
+    }
+    if (valueExpression.getIfStatement() != null) {
+      element = valueExpression.getIfStatement();
+    }
+    if (valueExpression.getTryStatement() != null) {
+      element = valueExpression.getTryStatement();
+    }
+    if (valueExpression.getVarInit() != null) {
+      element = valueExpression.getVarInit();
+    }
+    if (valueExpression.getExpression() != null) {
+      element = valueExpression.getExpression();
+
+    }
+
+    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
+    ResultHolder result = evaluate(element, context, specialization.toGenericResolver(valueExpression)).result;
+    if (result.getClassType() != null) {
+      return result.getClassType().asResolveResult();
+    }
+    return null;
   }
 
   private static HaxeResolveResult searchForIterableTypeRecursively(HaxeResolveResult resolveResult,
@@ -1247,7 +1285,7 @@ public class HaxeResolveUtil {
         expression = parenthesizedExpression.getExpression();
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
-      ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+      ResultHolder result = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
       // null type "hack" : if nullType unwrap to real type
       if(result.getType().isNullType()) {
         result = result.getClassType().getSpecifics()[0];

@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.13
+* Added: Quick fix for incorrect extends and implements (#940)
+* Fixed: Resolving type from inline method calls (#868)
+
 ## 1.4.12
 * Bugfix: "import class quickfix" missing in some cases (#1132) 
 * Bugfix: "Find Usages" was not checking catch blocks correctly(#929)

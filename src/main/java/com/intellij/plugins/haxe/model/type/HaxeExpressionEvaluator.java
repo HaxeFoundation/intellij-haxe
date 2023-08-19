@@ -554,6 +554,9 @@ public class HaxeExpressionEvaluator {
       if (valueExpression.getVarInit() != null){
         return handle(valueExpression.getVarInit(), context, resolver);
       }
+      if (valueExpression.getExpression() != null){
+        return handle(valueExpression.getExpression(), context, resolver);
+      }
     }
 
     if (element instanceof HaxeReferenceExpression) {
