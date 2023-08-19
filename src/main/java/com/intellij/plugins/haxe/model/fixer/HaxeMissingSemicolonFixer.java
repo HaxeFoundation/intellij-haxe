@@ -49,7 +49,7 @@ public class HaxeMissingSemicolonFixer extends HaxeFixAndIntentionAction {
                      @NotNull PsiElement startElement,
                      @NotNull PsiElement endElement) {
 
-    HaxeDocumentModel.fromElement(startElement).addTextAfterElement(startElement, ";");
+    new HaxeDocumentModel(editor.getDocument(), file).addTextAfterElement(startElement, ";");
   }
 
   @NotNull

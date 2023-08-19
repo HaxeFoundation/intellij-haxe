@@ -165,7 +165,7 @@ public class HaxeDocumentModel {
 
       document.replaceString(range.getStartOffset(), range.getEndOffset(), text);
 
-      //PsiDocumentManager.getInstance(file.getProject()).commitDocument(document); // force update PSI.
+      PsiDocumentManager.getInstance(file.getProject()).commitDocument(document); // force update PSI.
 
       if (marker.isValid()) { // If the range wasn't reduced to zero.
         CodeStyleManager.getInstance(file.getProject()).reformatText(file, marker.getStartOffset(), marker.getEndOffset());
