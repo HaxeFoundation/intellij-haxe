@@ -26,8 +26,12 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.startup.ProjectActivity;
+import kotlin.Unit;
+import kotlin.coroutines.Continuation;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -37,8 +41,7 @@ import java.util.List;
 @Service
 @CustomLog
 //TODO  use this when adroid studio switches to 2023.x
-//public class HaxelibModuleManagerService implements ProjectManagerListener, ProjectActivity, ModuleListener,  Disposable {
-public final class HaxelibModuleManagerService implements ProjectManagerListener, ModuleListener, Disposable {
+public final class HaxelibModuleManagerService implements ProjectManagerListener, ProjectActivity, ModuleListener, Disposable {
 
   static {      // Take this out when finished debugging.
     log.setLevel(LogLevel.DEBUG);
@@ -47,26 +50,16 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
   public HaxelibModuleManagerService() {
 
   }
-  //TODO  use this when android studio switches to 2023.x
-  //@Nullable
-  //@Override
-  ////projectOpened is deprecated using ProjectActivity instead
-  //public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
-  //  log.debug("Project opened event  for " + project);
-  //
-  //  if (!ApplicationManager.getApplication().isUnitTestMode()) {
-  //    HaxelibProjectUpdater.getInstance().openProject(project);
-  //  }
-  //  return null;
-  //}
-
+  @Nullable
   @Override
-  public void projectOpened(@NotNull Project project) {
+  //projectOpened is deprecated using ProjectActivity instead
+  public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
     log.debug("Project opened event  for " + project);
 
     if (!ApplicationManager.getApplication().isUnitTestMode()) {
       HaxelibProjectUpdater.getInstance().openProject(project);
     }
+    return null;
   }
 
   @Override
@@ -78,19 +71,13 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
     }
   }
 
-  // TODO use this instead of `moduleAdded` when android studio moves to 2023.x
-  //public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
-  //  for (Module module : modules) {
-  //    log.debug("Module added event for " + module.getName());
-  //    ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
-  //  }
-  //}
-
-  @Override
-  public void moduleAdded(@NotNull Project project, @NotNull Module module) {
-    log.debug("Module added event for " + module.getName());
-    ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
+  public void modulesAdded(@NotNull Project project, @NotNull List<? extends Module> modules) {
+    for (Module module : modules) {
+      log.debug("Module added event for " + module.getName());
+      ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
+    }
   }
+
 
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull Module module) {

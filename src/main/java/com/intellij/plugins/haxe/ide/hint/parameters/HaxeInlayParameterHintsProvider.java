@@ -21,11 +21,11 @@ import java.util.Set;
 
 public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvider {
 
-  Option showHintsForConstructors = new Option("haxe.parameter.hint.constructor", HaxeHintBundle.message("haxe.parameter.hint.constructor.description"), true);
-  Option showHintsForMethodCalls = new Option("haxe.parameter.hint.method", HaxeHintBundle.message("haxe.parameter.hint.method.description"), true);
-  Option showHintsForEnumConstructors = new Option("haxe.parameter.hint.enum.constructor", HaxeHintBundle.message("haxe.parameter.hint.enum.constructor.description"), true);
+  Option showHintsForConstructors = new Option("haxe.parameter.hint.constructor", ()-> HaxeHintBundle.message("haxe.parameter.hint.constructor.description"), true);
+  Option showHintsForMethodCalls = new Option("haxe.parameter.hint.method", ()-> HaxeHintBundle.message("haxe.parameter.hint.method.description"), true);
+  Option showHintsForEnumConstructors = new Option("haxe.parameter.hint.enum.constructor", ()-> HaxeHintBundle.message("haxe.parameter.hint.enum.constructor.description"), true);
 
-  Option showHintsForAnyParameterExpressions = new Option("haxe.parameter.hint.parameter.all", HaxeHintBundle.message("haxe.parameter.hint.parameter.all.description"), false);
+  Option showHintsForAnyParameterExpressions = new Option("haxe.parameter.hint.parameter.all", ()-> HaxeHintBundle.message("haxe.parameter.hint.parameter.all.description"), false);
 
   @Override
   public @NotNull List<Option> getSupportedOptions() {

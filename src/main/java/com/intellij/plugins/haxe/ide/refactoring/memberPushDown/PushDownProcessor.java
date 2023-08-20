@@ -34,6 +34,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.MethodSignatureUtil;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -124,9 +125,9 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
   }
 
   @Override
-  @NotNull
-  protected UsageInfo[] findUsages() {
-    List<UsageInfo> usageInfos = Arrays.asList(MoveClassesOrPackagesUtil.findUsages(myClass, false, false, null));
+  protected UsageInfo @NotNull [] findUsages() {
+    GlobalSearchScope scope = GlobalSearchScope.projectScope(myClass.getProject());
+    List<UsageInfo> usageInfos = Arrays.asList(MoveClassesOrPackagesUtil.findUsages(myClass, scope,false, false, null));
     final List<UsageInfo> usages = new ArrayList<UsageInfo>();
     PsiReference reference;
     PsiClass psiClass;

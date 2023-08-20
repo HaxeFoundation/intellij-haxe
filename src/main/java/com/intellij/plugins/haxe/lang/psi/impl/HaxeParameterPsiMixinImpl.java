@@ -122,12 +122,8 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   public PsiType getType() {
     // The Haxe language variable type (int, float, etc.), not the psi token type.
     PsiTypeElement el = getTypeElement();
-    // TODO use this when Android studio switches to 2023.x
-    //PsiType type = null != el ? el.getType() :  PsiTypes.voidType();
-    //return null != type ? type : PsiTypes.voidType();
-
-    PsiType type = null != el ? el.getType() : PsiType.VOID;
-    return null != type ? type : PsiType.VOID;
+    PsiType type = null != el ? el.getType() :  PsiTypes.voidType();
+    return null != type ? type : PsiTypes.voidType();
   }
 
   @Nullable

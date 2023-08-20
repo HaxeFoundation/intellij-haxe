@@ -77,13 +77,18 @@ public class HaxeFileTemplateUtil {
     return icons.HaxeIcons.HAXE_LOGO;
   }
 
-  public static PsiElement createClass(String className, String packageName, PsiDirectory directory, String templateName, @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader)
-    throws Exception {
-    final Properties props = new Properties(FileTemplateManager.getInstance(directory.getProject()).getDefaultProperties());
+  public static PsiElement createClass(String className,
+                                       String packageName,
+                                       PsiDirectory directory,
+                                       String templateName,
+                                       @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader) throws Exception {
+
+    Project project = directory.getProject();
+    final Properties props = new Properties(FileTemplateManager.getInstance(project).getDefaultProperties());
     props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
     props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
 
-    final FileTemplate template = FileTemplateManager.getInstance().getInternalTemplate(templateName);
+    final FileTemplate template = FileTemplateManager.getInstance(project).getInternalTemplate(templateName);
 
     return FileTemplateUtil.createFromTemplate(template, className, props, directory, classLoader);
   }

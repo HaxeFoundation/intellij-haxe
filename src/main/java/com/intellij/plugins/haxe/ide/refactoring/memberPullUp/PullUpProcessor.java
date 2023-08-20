@@ -144,7 +144,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
       public void run() {
         processMethodsDuplicates();
       }
-    }, ModalityState.NON_MODAL, myProject.getDisposed());
+    }, ModalityState.nonModal(), myProject.getDisposed());
   }
 
   private void processMethodsDuplicates() {

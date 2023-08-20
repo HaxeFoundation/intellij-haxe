@@ -61,7 +61,7 @@ public class HaxeUtil {
           public void run() {
             FileContentUtil.reparseFiles(project, haxeFiles, !project.isDefault());
           }
-        }, ModalityState.NON_MODAL);
+        }, ModalityState.nonModal());
       }
     };
     ProgressManager.getInstance().run(task);

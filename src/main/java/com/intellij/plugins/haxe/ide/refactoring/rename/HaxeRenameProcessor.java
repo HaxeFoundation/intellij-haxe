@@ -77,14 +77,18 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
     return element.getLanguage().isKindOf(HaxeLanguage.INSTANCE);
   }
 
+
+
   @NotNull
   @Override
-  public Collection<PsiReference> findReferences(@NotNull PsiElement element, boolean searchInCommentsAndStrings) {
+  public Collection<PsiReference> findReferences(@NotNull PsiElement element,
+                                                 @NotNull SearchScope searchScope,
+                                                 boolean searchInCommentsAndStrings) {
     // To stop constructors from being renamed, this is the place where we would, ultimately, like to
     // prevent the inclusion of the constructor itself.  However, the RenameJavaClassProcessor *also*
     // tries to handle the rename and we can't preempt the constructor being included via that code path.
 
-    Collection<PsiReference> references = super.findReferences(element, searchInCommentsAndStrings);
+    Collection<PsiReference> references = super.findReferences(element, searchScope, searchInCommentsAndStrings);
     return references;
   }
 

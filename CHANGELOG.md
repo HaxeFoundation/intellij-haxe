@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.5.0
+* Replacing deprecated APIs and using idea 2023.2 as baseline
+
 ## 1.4.13
 * Added: Quick fix for incorrect extends and implements (#940)
 * Fixed: Resolving type from inline method calls (#868)
