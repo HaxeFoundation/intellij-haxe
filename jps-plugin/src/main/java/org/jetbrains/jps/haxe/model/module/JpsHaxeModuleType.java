@@ -51,10 +51,6 @@ public class JpsHaxeModuleType extends JpsElementTypeBase<JpsHaxeModuleSettings>
         return new JpsHaxeModuleSettingsImpl(moduleSettingsBase);
       }
 
-      @Override
-      public void saveProperties(@NotNull final JpsHaxeModuleSettings settings, @NotNull final Element componentElement) {
-        XmlSerializer.serializeInto(settings.getProperties(), componentElement);
-      }
     };
   }
 }

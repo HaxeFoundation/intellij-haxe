@@ -19,11 +19,10 @@ package com.intellij.plugins.haxe.ide.actions;
 
 import com.intellij.codeInsight.hint.HintManager;
 import com.intellij.codeInsight.hint.QuestionAction;
-import com.intellij.codeInsight.navigation.NavigationUtil;
+import com.intellij.codeInsight.navigation.PsiTargetNavigator;
 import com.intellij.codeInspection.HintAction;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.codeInspection.ProblemDescriptor;
-import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -102,15 +101,14 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
   @Override
   public void invoke(@NotNull final Project project, final Editor editor, PsiFile file) throws IncorrectOperationException {
     if (candidates.size() > 1) {
-      NavigationUtil.getPsiElementPopup(
-          candidates.toArray(new PsiElement[0]),
-          new DefaultPsiElementCellRenderer(),
-          HaxeBundle.message("choose.class.to.import.title"),
-          element -> {
-            CommandProcessor.getInstance().executeCommand(project, () -> doImport(element), getClass().getName(), this);
-            return true;
-          }
-        )
+      PsiElement[] psiElements = candidates.toArray(new PsiElement[0]);
+      PsiElementProcessor<PsiElement> processor = element -> {
+        CommandProcessor.getInstance().executeCommand(project, () -> doImport(element), getClass().getName(), this);
+        return true;
+      };
+
+      new PsiTargetNavigator<>(psiElements)
+        .createPopup(project, HaxeBundle.message("choose.class.to.import.title"), processor)
         .showInBestPositionFor(editor);
     }
     else {

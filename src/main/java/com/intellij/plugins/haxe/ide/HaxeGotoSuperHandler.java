@@ -74,7 +74,8 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
         HaxeResolveUtil.getComponentNames(supers).<NavigatablePsiElement>toArray(new NavigatablePsiElement[supers.size()]),
         DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":"),
         "Subclasses of " + namedComponent.getName(),
-        new DefaultPsiElementCellRenderer()
+        new DefaultPsiElementCellRenderer(),
+        null
       );
     }
   }
@@ -97,7 +98,9 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
         .toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
                                           DaemonBundle.message("navigation.title.super.method", methodName),
                                           null,
-                                          new DefaultPsiElementCellRenderer());
+                                          new DefaultPsiElementCellRenderer(),
+                                          null
+      );
     }
   }
 

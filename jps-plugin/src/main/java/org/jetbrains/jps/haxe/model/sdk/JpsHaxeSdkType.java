@@ -42,9 +42,6 @@ public class JpsHaxeSdkType extends JpsSdkType<JpsHaxeSdkAdditionalData> {
         return new JpsHaxeSdkAdditionalDataImpl(sdkData);
       }
 
-      public void saveProperties(@NotNull final JpsHaxeSdkAdditionalData properties, @NotNull final Element element) {
-        XmlSerializer.serializeInto(properties.getSdkData(), element);
-      }
     };
   }
 }
