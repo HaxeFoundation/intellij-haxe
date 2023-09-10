@@ -40,28 +40,16 @@ import java.util.List;
  */
 @Service
 @CustomLog
-//TODO  use this when adroid studio switches to 2023.x
-public final class HaxelibModuleManagerService implements ProjectManagerListener, ProjectActivity, ModuleListener, Disposable {
+public final class HaxelibModuleManagerService implements ProjectManagerListener, ModuleListener, Disposable {
 
   static {      // Take this out when finished debugging.
     log.setLevel(LogLevel.DEBUG);
   }
 
-  public HaxelibModuleManagerService() {
+  public HaxelibModuleManagerService() { }
 
-  }
-  @Nullable
-  @Override
-  //projectOpened is deprecated using ProjectActivity instead
-  public Object execute(@NotNull Project project, @NotNull Continuation<? super Unit> continuation) {
-    log.debug("Project opened event  for " + project);
 
-    if (!ApplicationManager.getApplication().isUnitTestMode()) {
-      HaxelibProjectUpdater.getInstance().openProject(project);
-    }
-    return null;
-  }
-
+  //For project open see HaxelibProjectStartActivity
   @Override
   public void projectClosed(@NotNull Project project) {
     log.debug("Project closed event for  " + project.getName());

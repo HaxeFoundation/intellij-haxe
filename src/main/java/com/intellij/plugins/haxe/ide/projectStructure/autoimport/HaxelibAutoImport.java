@@ -13,10 +13,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HaxelibAutoImport implements ExternalSystemProjectAware, Disposable {
@@ -43,6 +40,7 @@ public class HaxelibAutoImport implements ExternalSystemProjectAware, Disposable
     return modules.stream()
       .map(HaxeModuleSettings::getInstance)
       .map(this::getBuildConfigFile)
+      .filter(Objects::nonNull)
       .collect(Collectors.toSet());
 
   }
@@ -53,14 +51,15 @@ public class HaxelibAutoImport implements ExternalSystemProjectAware, Disposable
       case OPENFL -> settings.getOpenFLPath();
       case HXML -> settings.getHxmlPath();
       case NMML -> settings.getNmmlPath();
-      default -> "N/A";
+      default -> null;
     };
   }
 
   @Override
   public boolean isIgnoredSettingsFileEvent(@NotNull String path, @NotNull ExternalSystemSettingsFilesModificationContext context) {
-    if(context.getModificationType() != ExternalSystemModificationType.UNKNOWN) {
-      return ExternalSystemProjectAware.super.isIgnoredSettingsFileEvent(path, context);
+    Set<String> files = getSettingsFiles();
+    if(files.contains(path)){
+      return false;
     }
     return true;
   }

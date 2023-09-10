@@ -1230,6 +1230,7 @@ public class HaxelibProjectUpdater {
       Disposer.register(this, myCache);
       Disposer.register(this, myLibraryCacheManager);
       ExternalSystemProjectTracker.getInstance(project).register(new HaxelibAutoImport(project), this);
+      ExternalSystemProjectTracker.getInstance(project).activate(HaxelibAutoImport.mySystemProjectId);
 
     }
 

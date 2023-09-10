@@ -11,12 +11,14 @@ import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
 import com.intellij.plugins.haxe.buildsystem.lime.LimeOpenFlUtil;
 import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
 import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
+import com.intellij.plugins.haxe.haxelib.ModuleLibraryCache;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.Objects;
 
 public class SyncProjectLibraryListAction extends AnAction implements DumbAware {
 
@@ -45,7 +47,10 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
 
   private static void clearHaxelibCaches(Project project) {
     Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
-    modules.forEach(module -> HaxelibProjectUpdater.getLibraryCache(module).reload());
+    modules.stream()
+      .map(HaxelibProjectUpdater::getLibraryCache)
+      .filter(Objects::nonNull)
+      .forEach(ModuleLibraryCache::reload);
   }
 
   protected boolean isAvailable(AnActionEvent e) {
