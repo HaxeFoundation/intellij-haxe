@@ -868,7 +868,7 @@ private anonymousInterfaceBodyList ::= (optionalFieldDeclaration | interfaceBody
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?
 typeExtendsList ::= '>' type (',' '>' type)* {pin=1}
 
-anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* {recoverWhile="object_literal_part_recover" pin=1}
+anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* ','? {recoverWhile="object_literal_part_recover" pin=1}
 private sep ::= ',' | ';'
 anonymousTypeField ::= "?"? componentName typeTag
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}

@@ -177,7 +177,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkIsClassName(reference);
-    if (result == null) result = checkMemberReference(reference);
     if (result == null) result = checkMacroIdentifier(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
@@ -186,6 +185,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);
+    if (result == null) result = checkMemberReference(reference); // must be after resolvers that can find identifier inside a method
     if (result == null) {
 
 

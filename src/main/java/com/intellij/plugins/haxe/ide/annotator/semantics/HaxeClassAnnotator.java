@@ -49,6 +49,8 @@ public class HaxeClassAnnotator implements Annotator {
       // avoiding unnecessary extra annotations when  HaxeAnonymousType is part of other non-anonymous types like typedefs etc.
       return;
     }
+    // TODO mlo:
+    // check  abstract keyword for methods without  body in classes
 
     checkModifiers(clazz, holder);
     checkDuplicatedFields(clazz, holder);
@@ -245,6 +247,8 @@ public class HaxeClassAnnotator implements Annotator {
       checkInterfaceMethods(clazz, reference, holder, checkMissingInterfaceMethods, checkInterfaceMethodSignature,
                             checkInheritedInterfaceMethodSignature);
     }
+
+    //TODO  check abstract classes for abstract methods to implement
   }
 
   private static void checkInterfacesFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
