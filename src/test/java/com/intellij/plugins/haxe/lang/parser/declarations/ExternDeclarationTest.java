@@ -17,14 +17,49 @@
  */
 package com.intellij.plugins.haxe.lang.parser.declarations;
 
+import com.intellij.core.CoreInjectedLanguageManager;
+import com.intellij.lang.injection.InjectedLanguageManager;
+import com.intellij.mock.MockDumbService;
+import com.intellij.openapi.extensions.AreaInstance;
+import com.intellij.openapi.extensions.Extensions;
+import com.intellij.openapi.extensions.ExtensionsArea;
+import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl;
+import com.intellij.openapi.project.DumbService;
+import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.PsiClass;
+import org.jetbrains.annotations.Nullable;
+import org.junit.Before;
 import org.junit.Test;
 
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
     super("extern");
+  }
+
+  @Override
+  @Before
+  public void setUp() throws Exception {
+    super.setUp();
+    // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
+    // was registered, null was passed to a @NotNull function.  This affected testSimple().
+    registerExtensionPoint(getExtensionArea(getProject()), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
+    registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME,
+                           RegexLanguageInjector.class); // Might as well use the real one.
+    registerInjectedLanguageManager();
+    // End workaround.
+  }
+
+  private static ExtensionsAreaImpl getExtensionArea(@Nullable("null means root") AreaInstance areaInstance) {
+    ExtensionsArea area = Extensions.getArea(areaInstance);
+    assert area instanceof ExtensionsAreaImpl : "Unexpected return type from Extensions.getArea()";
+    return (ExtensionsAreaImpl)area;
+  }
+
+  private void registerInjectedLanguageManager() {
+    getProject().registerService(DumbService.class, MockDumbService.class);
+    getProject().registerService(InjectedLanguageManager.class, CoreInjectedLanguageManager.class);
   }
 
   @Test

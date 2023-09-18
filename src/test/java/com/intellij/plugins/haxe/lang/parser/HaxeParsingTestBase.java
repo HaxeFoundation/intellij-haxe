@@ -18,30 +18,19 @@
  */
 package com.intellij.plugins.haxe.lang.parser;
 
-import com.intellij.core.CoreInjectedLanguageManager;
 import com.intellij.lang.LanguageASTFactory;
 import com.intellij.lang.LanguageParserDefinitions;
-import com.intellij.lang.injection.InjectedLanguageManager;
 import com.intellij.lang.injection.MultiHostInjector;
 import com.intellij.lang.injection.MultiHostRegistrar;
-import com.intellij.mock.MockDumbService;
-import com.intellij.openapi.extensions.AreaInstance;
 import com.intellij.openapi.extensions.ExtensionPointName;
-import com.intellij.openapi.extensions.Extensions;
-import com.intellij.openapi.extensions.ExtensionsArea;
-import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataLanguage;
 import com.intellij.plugins.haxe.metadata.parser.HaxeMetadataParserDefinition;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.impl.source.tree.injected.InjectedLanguageManagerImpl;
 import com.intellij.testFramework.ParsingTestCase;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,19 +49,10 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
 
     registerMetadataParser();
 
-    // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
-    // was registered, null was passed to a @NotNull function.  This affected testSimple().
-    registerExtensionPoint(getExtensionArea(getProject()), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
-    registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME,
-                           RegexLanguageInjector.class); // Might as well use the real one.
-    registerInjectedLanguageManager();
-    // End workaround.
+
   }
 
-  private void registerInjectedLanguageManager() {
-    getProject().registerService(DumbService.class, MockDumbService.class);
-    getProject().registerService(InjectedLanguageManager.class, CoreInjectedLanguageManager.class);
-  }
+
 
   private <T> void registerMetadataParser() {
     // Get the metadata parser added because only the first language definition is added by the super.setUp call.
@@ -81,11 +61,6 @@ abstract public class HaxeParsingTestBase extends ParsingTestCase {
     addExplicitExtension(LanguageParserDefinitions.INSTANCE, HaxeMetadataLanguage.INSTANCE, metaParser);
   }
 
-  private static ExtensionsAreaImpl getExtensionArea(@Nullable("null means root") AreaInstance areaInstance) {
-    ExtensionsArea area = Extensions.getArea(areaInstance);
-    assert area instanceof ExtensionsAreaImpl : "Unexpected return type from Extensions.getArea()";
-    return (ExtensionsAreaImpl)area;
-  }
 
   private static String getPath(String... args) {
     final StringBuilder result = new StringBuilder();
