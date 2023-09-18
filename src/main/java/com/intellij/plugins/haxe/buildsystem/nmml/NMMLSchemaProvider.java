@@ -36,7 +36,7 @@ import java.net.URL;
 public class NMMLSchemaProvider extends XmlSchemaProvider {
   @Override
   public XmlFile getSchema(@NotNull @NonNls String url, @Nullable Module module, @NotNull PsiFile baseFile) {
-    final URL resource = NMMLSchemaProvider.class.getResource("/xsd/nmml/nmml.xsd");
+    final URL resource = NMMLSchemaProvider.class.getResource("/schema/nmml/nmml.xsd");
     final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
     PsiFile result = baseFile.getManager().findFile(fileByURL);
     if (result instanceof XmlFile) {
