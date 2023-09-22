@@ -365,10 +365,11 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       resolveTypeAndMakeHeader(builder, captureVar);
       //builder.br();
     }
-    else if (component instanceof HaxeLocalVarDeclaration varDeclaration) {
+    else if (component instanceof HaxeLocalVarDeclaration varDeclaration
+             && component.getParent() instanceof HaxeLocalVarDeclarationList varDeclarationList) {
       //builder.br();
 
-      String modifier = ((HaxeLocalVarDeclarationList)component.getParent()).getMutabilityModifier().getText();
+      String modifier = varDeclarationList.getMutabilityModifier().getText();
       String signature = modifier + " " + varDeclaration.getText();
 
       String highlighting = renderer.languageHighlighting(signature);

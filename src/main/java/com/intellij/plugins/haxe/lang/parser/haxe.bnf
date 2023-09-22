@@ -337,7 +337,9 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 
 moduleBody ::= moduleBodyPart+  {pin=1}
 private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractTypeDeclaration))
-private moduleBodyPart ::= localVarDeclarationList | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
+private moduleBodyPart ::= (privateKeyWord? moduleVarDeclarationList) | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
+moduleVarDeclarationList ::= ('inline' | 'private')*  mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>
+{pin=3 extends=localVarDeclarationList} // TODO this "extends" solution is probably not the best solution for this, but it works as a quick fix
 
 
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
