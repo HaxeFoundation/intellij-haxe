@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.14-beta
+* Replacing deprecated APIs and using idea 2023.2 as baseline
+* Fixed: allow module level keywords for module fields.
+* Fixed: allow trailing commas in anonymousTypeField list
+
 ## 1.4.13-231
 * NOTE:  Builds for idea 2023.1 are no longer actively maintained
 * Added: Quick fix for incorrect extends and implements (#940)
