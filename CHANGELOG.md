@@ -2,8 +2,10 @@
 
 ## Unreleased
 * Replacing deprecated APIs and using idea 2023.2 as baseline
-* Fixed: allow module level keywords for module fields.
-* Fixed: allow trailing commas in anonymousTypeField list
+* Fixed: Allow module level keywords for module fields. (#1135)
+* Fixed: Allow trailing commas in anonymousTypeField list
+* Fixed: Incorrect resolve order (local vs member)
+* Fixed: incorrect error highlighting on abstract classes with interfaces (#1136) 
 
 ## 1.4.13
 * Added: Quick fix for incorrect extends and implements (#940)

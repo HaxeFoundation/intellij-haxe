@@ -83,7 +83,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return SpecificHaxeClassReference.withoutGenerics(getReference()).createHolder();
   }
 
-  public List<HaxeClassReferenceModel> getInterfaceExtendingInterfaces() {
+  public List<HaxeClassReferenceModel> getExtendingTypes() {
     List<HaxeType> list = haxeClass.getHaxeExtendsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
     for (HaxeType type : list) {
