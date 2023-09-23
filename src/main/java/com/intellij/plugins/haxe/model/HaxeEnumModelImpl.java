@@ -43,7 +43,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @Override
-  public List<HaxeClassReferenceModel> getInterfaceExtendingInterfaces() {
+  public List<HaxeClassReferenceModel> getExtendingTypes() {
     return Collections.emptyList();
   }
 

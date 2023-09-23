@@ -109,6 +109,9 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
     return model;
   }
+  public boolean isInInterface() {
+    return getDeclaringClass().isInterface();
+  }
 
   public boolean hasModifier(@HaxePsiModifier.ModifierConstant String modifier) {
     return this.getModifiers().hasModifier(modifier);

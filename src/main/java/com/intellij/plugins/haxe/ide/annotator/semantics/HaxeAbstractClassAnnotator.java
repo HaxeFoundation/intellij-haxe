@@ -44,8 +44,8 @@ public class HaxeAbstractClassAnnotator implements Annotator {
     }
 
 
-    List<HaxeMethodModel> methods = classModel.getMethods(null);
-    boolean containsAbstractMethod = methods.stream().anyMatch(HaxeMethodModel::isAbstract);
+    List<HaxeMethodModel> currentClassMethods = classModel.getMethodsSelf(null);
+    boolean containsAbstractMethod = currentClassMethods.stream().anyMatch(HaxeMethodModel::isAbstract);
 
     if (containsAbstractMethod && !isAbstractClass) {
       PsiElement element = classModel.getNamePsi();
