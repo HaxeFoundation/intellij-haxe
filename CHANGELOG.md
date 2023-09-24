@@ -6,6 +6,7 @@
 * Fixed: Allow trailing commas in anonymousTypeField list
 * Fixed: Incorrect resolve order (local vs member)
 * Fixed: incorrect error highlighting on abstract classes with interfaces (#1136) 
+* Fixed: incorrect error highlighting on bitwise xor (#1137) 
 
 ## 1.4.13
 * Added: Quick fix for incorrect extends and implements (#940)
