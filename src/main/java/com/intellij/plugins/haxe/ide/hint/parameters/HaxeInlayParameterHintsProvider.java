@@ -187,9 +187,8 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   }
 
   static HaxeEnumValueModel getEnumValueModel(HaxeExpression expression) {
-    if (expression instanceof HaxeCallExpression callExpression) {
-
-      final HaxeReference reference = (HaxeReference)callExpression.getExpression();
+    if (expression instanceof HaxeCallExpression callExpression
+        && callExpression.getExpression() instanceof HaxeReference reference) {
       final PsiElement target = reference.resolve();
 
       if (target instanceof HaxeEnumValueDeclaration enumValueDeclaration) {

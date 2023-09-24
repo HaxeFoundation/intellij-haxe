@@ -1288,10 +1288,21 @@ public class HaxeResolveUtil {
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
       ResultHolder result = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+
       // null type "hack" : if nullType unwrap to real type
       if(result.getType().isNullType()) {
         result = result.getClassType().getSpecifics()[0];
       }
+
+      if (result.isTypeDef() && result.getClassType() != null) {
+        SpecificHaxeClassReference type = result.getClassType();
+        HaxeResolveResult resolvedTypedef = HaxeResolver.fullyResolveTypedef(type.getHaxeClass(), type.asResolveResult().getSpecialization());
+        HaxeClass haxeClass = resolvedTypedef.getHaxeClass();
+        if(haxeClass != null && haxeClass.isEnum()) {
+          return resolvedTypedef.getSpecificClassReference(haxeClass, resolvedTypedef.getGenericResolver());
+        }
+      }
+
       if (result.isEnum() && result.getClassType() != null) {
         return result.getClassType();
       }
@@ -1300,8 +1311,10 @@ public class HaxeResolveUtil {
   }
 
   public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
+    return resolveExtractorEnumValueDeclaration(enumClass, extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText());
+  }
+  public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
     if (enumClass != null) {
-      String memberName = extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText();
       HaxeMemberModel member = enumClass.getHaxeClassModel().getMember(memberName, enumClass.getGenericResolver());
       if (member instanceof HaxeEnumValueModel enumValueModel) {
         return enumValueModel.getEnumValuePsi();

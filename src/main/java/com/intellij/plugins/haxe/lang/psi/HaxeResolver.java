@@ -311,6 +311,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
         if (declaration!= null) return List.of(declaration);
       }
+    }else {
+      // Last attempt to resolve  enum value (not extractor), normally imports would solve this but  some typedefs can omit this.
+      HaxeSwitchStatement type = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
+      if (type!= null && type.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+        HaxeResolveResult result = referenceExpression.resolveHaxeClass();
+        if (result.isHaxeTypeDef()) {
+          result = result.fullyResolveTypedef();
+        }
+        HaxeClass haxeClass = result.getHaxeClass();
+        if(haxeClass != null && haxeClass.isEnum()) {
+          SpecificHaxeClassReference classReference = result.getSpecificClassReference(haxeClass, null);
+          HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, reference.getText());
+          if (declaration!= null) return List.of(declaration);
+        }
+      }
+
     }
     return null;
   }
