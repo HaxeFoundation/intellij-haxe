@@ -1,4 +1,5 @@
 package ;
+// more info at https://haxe.org/manual/expression-operators-binops.html
 class OperatorTest {
 
     // ints
@@ -28,10 +29,12 @@ class OperatorTest {
         toInt = i * j;
         toInt = i % j;
 
+        toInt = i ^  j;
         toInt = i |  j;
         toInt = i &  j;
         toInt = i << j;
         toInt = i >> j;
+        toInt = i >>> j;
 
         toFloat = i / j;
 
