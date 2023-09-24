@@ -57,5 +57,14 @@ public class HaxeMacroUtil {
       default -> returnType;
     };
   }
+  public static boolean isMacroType(ResultHolder returnType) {
+    SpecificHaxeClassReference classReference = returnType.getClassType();
+    if (classReference == null  || classReference.getHaxeClass() == null) return false;
+    String qualifiedName = classReference.getHaxeClass().getQualifiedName();
+    return  switch (qualifiedName) {
+      case "haxe.macro.Expr", "haxe.macro.Expr.ExprOf" -> true;
+      default -> false;
+    };
+  }
 
 }
