@@ -159,11 +159,11 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   static HaxeMethodModel getMethodModel(HaxeExpression expression) {
     if (expression instanceof HaxeCallExpression callExpression) {
 
-      final HaxeReference reference = (HaxeReference)callExpression.getExpression();
-      final PsiElement target = reference.resolve();
-
-      if (target instanceof HaxeMethod method) {
-        return method.getModel();
+      if (callExpression.getExpression() instanceof HaxeReference reference) {
+        final PsiElement target = reference.resolve();
+        if (target instanceof HaxeMethod method) {
+          return method.getModel();
+        }
       }
     }
     if (expression instanceof HaxeNewExpression newExpression) {

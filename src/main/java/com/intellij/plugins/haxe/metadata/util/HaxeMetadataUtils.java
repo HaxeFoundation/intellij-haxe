@@ -130,7 +130,13 @@ public class HaxeMetadataUtils {
   private static void findPrevMeta(PsiElement self, Consumer<HaxeMeta> lambda) {
     if (null == self || null == lambda) return;
     PsiElement prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(self, true);
-    if (null != prev && EMBEDDED_META == prev.getNode().getElementType()) {
+    // Workaround for getting metadata from  module members when metadata is not included in the module
+    if (null == prev && self.getParent() != null) {
+      PsiElement parent = self.getParent();
+      prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(parent, true);
+    }
+
+    if (null != prev  && prev.getNode() != null && EMBEDDED_META == prev.getNode().getElementType()) {
       findPrevMeta(prev, lambda);
       PsiElement metaElement = prev.getFirstChild();
       if (metaElement instanceof HaxeMeta) {

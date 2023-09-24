@@ -217,7 +217,8 @@ public class HaxeResolveUtil {
     if (file == null) {
       return Collections.emptyList();
     }
-    final HaxeClass[] components = PsiTreeUtil.getChildrenOfType(file, HaxeClass.class);
+    final HaxeModule HaxeModule = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+    final HaxeClass[] components = PsiTreeUtil.getChildrenOfType(HaxeModule, HaxeClass.class);
     if (components == null) {
       return Collections.emptyList();
     }
@@ -783,11 +784,12 @@ public class HaxeResolveUtil {
       element = valueExpression.getExpression();
 
     }
-
-    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
-    ResultHolder result = evaluate(element, context, specialization.toGenericResolver(valueExpression)).result;
-    if (result.getClassType() != null) {
-      return result.getClassType().asResolveResult();
+    if (element != null) {
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
+      ResultHolder result = evaluate(element, context, specialization.toGenericResolver(valueExpression)).result;
+      if (result.getClassType() != null) {
+        return result.getClassType().asResolveResult();
+      }
     }
     return null;
   }

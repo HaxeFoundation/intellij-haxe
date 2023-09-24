@@ -116,7 +116,8 @@ public class HaxeHierarchyUtils {
   public static List<HaxeClass> getClassList(@NotNull HaxeFile psiRoot) {
     return  CachedValuesManager.getCachedValue(psiRoot, () -> {
       ArrayList<HaxeClass> classes = new ArrayList<>();
-      for (PsiElement child : psiRoot.getChildren()) {
+      @NotNull PsiElement[] children = psiRoot.getModel().getModuleBodyChildren();
+      for (PsiElement child : children) {
         if (child instanceof HaxeClass haxeClass) {
           classes.add(haxeClass);
         }

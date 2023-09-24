@@ -1,5 +1,5 @@
 Haxe File
-  MODULE_BODY
+  MODULE
     MODULE_METHOD_DECLARATION
       HaxePsiToken:function('function')
       COMPONENT_NAME
