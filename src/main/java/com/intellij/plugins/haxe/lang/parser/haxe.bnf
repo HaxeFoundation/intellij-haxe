@@ -253,11 +253,8 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
-// TODO: to avoid huge rollbacks we combine module and toplevel declarations
-// TODO: the idea is : if the result contains module parts, treat as module if only toplevel treat as toplevel
-// TODO: there might be some checks that needs to be done in code (multiple public classes ?)
-private moduleOrTopLevelDeclaration ::= ((embeddedMeta* topLevelDeclaration) | moduleBody)+
-private topLevel ::= importStatement | usingStatement |  moduleOrTopLevelDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
+module ::= moduleBody
+private topLevel ::= importStatement | usingStatement |  module {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 //private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | 'final')
 
@@ -296,6 +293,7 @@ private topLevelDeclaration ::= classDeclaration
 
 abstractKeyword ::= 'abstract'
 privateKeyWord ::= 'private'
+inlineKeyWord ::= 'inline'
 externKeyWord ::= 'extern'
 finalKeyWord ::= 'final'
 
@@ -335,10 +333,15 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 //see moduleOrTopLevelDeclaration
 //moduleDeclaration ::= moduleBody{pin=1}
 
-moduleBody ::= moduleBodyPart+  {pin=1}
-private moduleTypes ::= (privateKeyWord? (classDeclaration | enumDeclaration | typedefDeclaration | abstractTypeDeclaration))
-private moduleBodyPart ::= (privateKeyWord? moduleVarDeclarationList) | moduleMethodDeclaration  | moduleTypes {recoverWhile="class_body_part_recover"}
-moduleVarDeclarationList ::= ('inline' | 'private')*  mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>
+moduleMemberModifier::= privateKeyWord | inlineKeyWord
+
+private moduleBody ::= embeddedMeta* moduleBodyPart+  {pin=2}
+private moduleBodyPart ::=  topLevelDeclaration |  moduleVarDeclarationList |  moduleMethodDeclaration  {recoverWhile="class_body_part_recover"}
+
+moduleVarDeclaration ::=  componentName typeTag? varInit?
+{pin=3 extends=localVarDeclaration} // TODO this "extends" solution is probably not the best solution for this, but it works as a quick fix
+
+moduleVarDeclarationList ::= moduleMemberModifier*  mutabilityModifier moduleVarDeclaration (',' moduleVarDeclaration)* <<semicolonUnlessPrecededByStatement>>
 {pin=3 extends=localVarDeclarationList} // TODO this "extends" solution is probably not the best solution for this, but it works as a quick fix
 
 
@@ -424,8 +427,8 @@ private lambdaBody ::= blockStatement
                        | doWhileStatement
                        | expression
 
-private localFunctionDeclarationAttribute ::= 'inline';
-moduleMethodDeclaration ::=  methodHeader 'untyped'? functionCommonBody {pin=1}
+private localFunctionDeclarationAttribute ::= inlineKeyWord;
+moduleMethodDeclaration ::= moduleMemberModifier*  methodHeader 'untyped'? functionCommonBody {pin=2}
 
 methodDeclaration ::= methodModifier* methodHeader 'untyped'? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}

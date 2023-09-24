@@ -1086,7 +1086,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         final boolean isElementInForwardMeta = HaxeAbstractForwardUtil.isElementInForwardMeta(this);
         if (isElementInForwardMeta) {
           final HaxeMeta meta = HaxeMetadataUtils.getEnclosingMeta(this);
-          final PsiElement element = HaxeMetadataUtils.getAssociatedElement(meta);
+          PsiElement element = HaxeMetadataUtils.getAssociatedElement(meta);
+          // TODO mlo : needs a fix: there's a problem with how module element and metadata is parsed som metadata is outside module.
+          if (element instanceof  HaxeModule module) {
+            element = module.getFirstChild();
+          }
           final HaxeClass clazz = element instanceof HaxeClass ? (HaxeClass)element : null;
           addAbstractUnderlyingClassVariants(suggestedVariants, clazz, resolver);
         }

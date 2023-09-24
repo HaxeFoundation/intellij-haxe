@@ -2,101 +2,75 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('FatArrowExpression')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      METHOD_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('test')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION_LIST
-            MUTABILITY_MODIFIER
-              HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('a')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                ARRAY_ACCESS_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('map1')
-                  HaxePsiToken:[('[')
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('FatArrowExpression')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        METHOD_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('test')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            LOCAL_VAR_DECLARATION_LIST
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('a')
+                VAR_INIT
+                  HaxePsiToken:=('=')
+                  ARRAY_ACCESS_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('map1')
+                    HaxePsiToken:[('[')
+                    LITERAL_EXPRESSION
+                      HaxePsiToken:LITINT('0')
+                    HaxePsiToken:](']')
+              HaxePsiToken:;(';')
+            LOCAL_VAR_DECLARATION_LIST
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('b')
+                TYPE_TAG
+                  HaxePsiToken::(':')
+                  TYPE_OR_ANONYMOUS
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('Int')
+                VAR_INIT
+                  HaxePsiToken:=('=')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('0')
-                  HaxePsiToken:](']')
-            HaxePsiToken:;(';')
-          LOCAL_VAR_DECLARATION_LIST
-            MUTABILITY_MODIFIER
-              HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION
-              COMPONENT_NAME
+              HaxePsiToken:;(';')
+            SWITCH_STATEMENT
+              HaxePsiToken:switch('switch')
+              REFERENCE_EXPRESSION
                 IDENTIFIER
-                  HaxePsiToken:ID('b')
-              TYPE_TAG
-                HaxePsiToken::(':')
-                TYPE_OR_ANONYMOUS
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Int')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('0')
-            HaxePsiToken:;(';')
-          SWITCH_STATEMENT
-            HaxePsiToken:switch('switch')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('a')
-            SWITCH_BLOCK
-              HaxePsiToken:{('{')
-              PsiComment(MSL_COMMENT)('// This should parse as a fatArrowExpression.')
-              SWITCH_CASE
-                HaxePsiToken:case('case')
-                SWITCH_CASE_EXPR
-                  EXTRACTOR_MATCH_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('b')
-                    HaxePsiToken:=>('=>')
-                    SWITCH_CASE_EXPR
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('_')
-                HaxePsiToken::(':')
-                SWITCH_CASE_BLOCK
-                  CALL_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('trace')
-                    HaxePsiToken:(('(')
-                    CALL_EXPRESSION_LIST
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('b')
-                    HaxePsiToken:)(')')
-                  HaxePsiToken:;(';')
-              SWITCH_CASE
-                HaxePsiToken:case('case')
-                SWITCH_CASE_EXPR
-                  SWITCH_CASE_EXTRACTOR
-                    HaxePsiToken:(('(')
+                  HaxePsiToken:ID('a')
+              SWITCH_BLOCK
+                HaxePsiToken:{('{')
+                PsiComment(MSL_COMMENT)('// This should parse as a fatArrowExpression.')
+                SWITCH_CASE
+                  HaxePsiToken:case('case')
+                  SWITCH_CASE_EXPR
                     EXTRACTOR_MATCH_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
@@ -106,24 +80,22 @@ Haxe File
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('_')
-                    HaxePsiToken:)(')')
-                HaxePsiToken::(':')
-                SWITCH_CASE_BLOCK
-                  CALL_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('trace')
-                    HaxePsiToken:(('(')
-                    CALL_EXPRESSION_LIST
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    CALL_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
-                          HaxePsiToken:ID('b')
-                    HaxePsiToken:)(')')
-                  HaxePsiToken:;(';')
-              SWITCH_CASE
-                HaxePsiToken:case('case')
-                SWITCH_CASE_EXPR
-                  SWITCH_EXTRACTOR_EXPRESSION
+                          HaxePsiToken:ID('trace')
+                      HaxePsiToken:(('(')
+                      CALL_EXPRESSION_LIST
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('b')
+                      HaxePsiToken:)(')')
+                    HaxePsiToken:;(';')
+                SWITCH_CASE
+                  HaxePsiToken:case('case')
+                  SWITCH_CASE_EXPR
                     SWITCH_CASE_EXTRACTOR
                       HaxePsiToken:(('(')
                       EXTRACTOR_MATCH_EXPRESSION
@@ -136,70 +108,99 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('_')
                       HaxePsiToken:)(')')
-                    BIT_OPERATION
-                      HaxePsiToken:|('|')
-                    SWITCH_CASE_EXTRACTOR
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    CALL_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('trace')
                       HaxePsiToken:(('(')
-                      EXTRACTOR_MATCH_EXPRESSION
+                      CALL_EXPRESSION_LIST
                         REFERENCE_EXPRESSION
                           IDENTIFIER
                             HaxePsiToken:ID('b')
-                        HaxePsiToken:=>('=>')
-                        SWITCH_CASE_EXPR
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('_')
                       HaxePsiToken:)(')')
-                HaxePsiToken::(':')
-                SWITCH_CASE_BLOCK
-                  CALL_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('trace')
-                    HaxePsiToken:(('(')
-                    CALL_EXPRESSION_LIST
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('b')
-                    HaxePsiToken:)(')')
-                  HaxePsiToken:;(';')
-              SWITCH_CASE
-                HaxePsiToken:case('case')
-                SWITCH_CASE_EXPR
-                  EXTRACTOR_MATCH_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('b')
-                    HaxePsiToken:=>('=>')
-                    SWITCH_CASE_EXPR
-                      EXTRACTOR_MATCH_EXPRESSION
-                        BITWISE_EXPRESSION
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('_')
-                          BIT_OPERATION
-                            HaxePsiToken:|('|')
+                    HaxePsiToken:;(';')
+                SWITCH_CASE
+                  HaxePsiToken:case('case')
+                  SWITCH_CASE_EXPR
+                    SWITCH_EXTRACTOR_EXPRESSION
+                      SWITCH_CASE_EXTRACTOR
+                        HaxePsiToken:(('(')
+                        EXTRACTOR_MATCH_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER
                               HaxePsiToken:ID('b')
-                        HaxePsiToken:=>('=>')
-                        SWITCH_CASE_EXPR
+                          HaxePsiToken:=>('=>')
+                          SWITCH_CASE_EXPR
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('_')
+                        HaxePsiToken:)(')')
+                      BIT_OPERATION
+                        HaxePsiToken:|('|')
+                      SWITCH_CASE_EXTRACTOR
+                        HaxePsiToken:(('(')
+                        EXTRACTOR_MATCH_EXPRESSION
                           REFERENCE_EXPRESSION
                             IDENTIFIER
-                              HaxePsiToken:ID('_')
-                HaxePsiToken::(':')
-                SWITCH_CASE_BLOCK
-                  CALL_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('trace')
-                    HaxePsiToken:(('(')
-                    CALL_EXPRESSION_LIST
+                              HaxePsiToken:ID('b')
+                          HaxePsiToken:=>('=>')
+                          SWITCH_CASE_EXPR
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('_')
+                        HaxePsiToken:)(')')
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    CALL_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('trace')
+                      HaxePsiToken:(('(')
+                      CALL_EXPRESSION_LIST
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('b')
+                      HaxePsiToken:)(')')
+                    HaxePsiToken:;(';')
+                SWITCH_CASE
+                  HaxePsiToken:case('case')
+                  SWITCH_CASE_EXPR
+                    EXTRACTOR_MATCH_EXPRESSION
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('b')
-                    HaxePsiToken:)(')')
-                  HaxePsiToken:;(';')
-              HaxePsiToken:}('}')
-          HaxePsiToken:}('}')
-      HaxePsiToken:}('}')
+                      HaxePsiToken:=>('=>')
+                      SWITCH_CASE_EXPR
+                        EXTRACTOR_MATCH_EXPRESSION
+                          BITWISE_EXPRESSION
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('_')
+                            BIT_OPERATION
+                              HaxePsiToken:|('|')
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('b')
+                          HaxePsiToken:=>('=>')
+                          SWITCH_CASE_EXPR
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('_')
+                  HaxePsiToken::(':')
+                  SWITCH_CASE_BLOCK
+                    CALL_EXPRESSION
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('trace')
+                      HaxePsiToken:(('(')
+                      CALL_EXPRESSION_LIST
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('b')
+                      HaxePsiToken:)(')')
+                    HaxePsiToken:;(';')
+                HaxePsiToken:}('}')
+            HaxePsiToken:}('}')
+        HaxePsiToken:}('}')

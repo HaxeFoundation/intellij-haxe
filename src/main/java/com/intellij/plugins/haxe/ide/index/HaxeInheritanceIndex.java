@@ -20,11 +20,13 @@ package com.intellij.plugins.haxe.ide.index;
 import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
 import com.intellij.util.indexing.*;
@@ -86,8 +88,9 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
     @NotNull
     public Map<String, List<HaxeClassInfo>> map(final FileContent inputData) {
       final PsiFile psiFile = inputData.getPsiFile();
-      final PsiElement[] fileChildren = psiFile.getChildren();
-      final List<HaxeClass> classes = ContainerUtil.map(ContainerUtil.filter(fileChildren, new Condition<PsiElement>() {
+      HaxeModule haxeModule = PsiTreeUtil.getChildOfType(psiFile, HaxeModule.class);
+      @NotNull PsiElement[] moduleChildren = Optional.ofNullable(haxeModule).map(PsiElement::getChildren).orElse(PsiElement.EMPTY_ARRAY);
+      final List<HaxeClass> classes = ContainerUtil.map(ContainerUtil.filter(moduleChildren, new Condition<PsiElement>() {
         @Override
         public boolean value(PsiElement element) {
           return element instanceof HaxeClass && !(element instanceof AbstractHaxeTypeDefImpl);
@@ -110,7 +113,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
           final String classNameCandidate = haxeType.getText();
           final String key = classNameCandidate.indexOf('.') != -1 ?
                              classNameCandidate :
-                             getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+                             getQNameAndCache(qNameCache, moduleChildren, classNameCandidate);
           put(result, key, value);
         }
         for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
@@ -118,7 +121,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
           final String classNameCandidate = haxeType.getText();
           final String key = classNameCandidate.indexOf('.') != -1 ?
                              classNameCandidate :
-                             getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+                             getQNameAndCache(qNameCache, moduleChildren, classNameCandidate);
           put(result, key, value);
         }
       }

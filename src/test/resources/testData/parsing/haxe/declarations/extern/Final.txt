@@ -2,31 +2,32 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  EXTERN_CLASS_DECLARATION
-    EXTERN_CLASS_MODIFIER_LIST
-      CLASS_MODIFIER
-        FINAL_KEY_WORD
-          HaxePsiToken:final('final')
-      EXTERN_KEY_WORD
-        HaxePsiToken:extern('extern ')
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    EXTERN_CLASS_DECLARATION_BODY
-      HaxePsiToken:{('{')
-      HaxePsiToken:}('}')
-  EXTERN_CLASS_DECLARATION
-    EXTERN_CLASS_MODIFIER_LIST
-      EXTERN_KEY_WORD
-        HaxePsiToken:extern('extern ')
-      CLASS_MODIFIER
-        FINAL_KEY_WORD
-          HaxePsiToken:final('final')
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test2')
-    EXTERN_CLASS_DECLARATION_BODY
-      HaxePsiToken:{('{')
-      HaxePsiToken:}('}')
+  MODULE
+    EXTERN_CLASS_DECLARATION
+      EXTERN_CLASS_MODIFIER_LIST
+        CLASS_MODIFIER
+          FINAL_KEY_WORD
+            HaxePsiToken:final('final')
+        EXTERN_KEY_WORD
+          HaxePsiToken:extern('extern ')
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      EXTERN_CLASS_DECLARATION_BODY
+        HaxePsiToken:{('{')
+        HaxePsiToken:}('}')
+    EXTERN_CLASS_DECLARATION
+      EXTERN_CLASS_MODIFIER_LIST
+        EXTERN_KEY_WORD
+          HaxePsiToken:extern('extern ')
+        CLASS_MODIFIER
+          FINAL_KEY_WORD
+            HaxePsiToken:final('final')
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test2')
+      EXTERN_CLASS_DECLARATION_BODY
+        HaxePsiToken:{('{')
+        HaxePsiToken:}('}')
