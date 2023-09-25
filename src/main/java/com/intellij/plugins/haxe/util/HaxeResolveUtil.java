@@ -217,7 +217,8 @@ public class HaxeResolveUtil {
     if (file == null) {
       return Collections.emptyList();
     }
-    final HaxeClass[] components = PsiTreeUtil.getChildrenOfType(file, HaxeClass.class);
+    final HaxeModule HaxeModule = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+    final HaxeClass[] components = PsiTreeUtil.getChildrenOfType(HaxeModule, HaxeClass.class);
     if (components == null) {
       return Collections.emptyList();
     }
@@ -783,11 +784,12 @@ public class HaxeResolveUtil {
       element = valueExpression.getExpression();
 
     }
-
-    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
-    ResultHolder result = evaluate(element, context, specialization.toGenericResolver(valueExpression)).result;
-    if (result.getClassType() != null) {
-      return result.getClassType().asResolveResult();
+    if (element != null) {
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
+      ResultHolder result = evaluate(element, context, specialization.toGenericResolver(valueExpression)).result;
+      if (result.getClassType() != null) {
+        return result.getClassType().asResolveResult();
+      }
     }
     return null;
   }
@@ -1060,7 +1062,25 @@ public class HaxeResolveUtil {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
       if (fileModel != null) {
         result = searchInSameFile(fileModel, className);
-        if (result == null) result = searchInImports(fileModel, className);
+        if (result == null) {
+          List<PsiElement> matchesInImport = searchInImports(fileModel, className);
+          if(!matchesInImport.isEmpty()) {
+            // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
+            if(matchesInImport.size()> 1 &&  type.getParent() instanceof  HaxeCallExpression callExpression) {
+              int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+              for (PsiElement element : matchesInImport) {
+                if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
+                  int currentSize = Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p ->  p.getParameterList().size()).orElse(0);
+                  if (expectedSize == currentSize) {
+                    result = element;
+                    break;
+                  }
+                }
+              }
+            }
+            if (result == null) result = matchesInImport.get(0);
+          }
+        }
         if (result == null) result = searchInSamePackage(fileModel, className);
       }
     } else {
@@ -1088,24 +1108,32 @@ public class HaxeResolveUtil {
     return result != null ? result.getBasePsi() : null;
   }
 
-  @Nullable
-  public static PsiElement searchInImports(HaxeFileModel file, String name) {
-    PsiElement found = searchInSpecifiedImports(file, name);
-    if (null == found) found = searchInDirectoryImports(file, name);
-    return found;
+  @NotNull
+  public static List<PsiElement> searchInImports(HaxeFileModel file, String name) {
+    List<PsiElement> results = new ArrayList<>();
+    results.addAll(searchInSpecifiedImports(file, name));
+    results.addAll(searchInDirectoryImports(file, name));
+    return results;
   }
 
-  @Nullable
-  public static PsiElement searchInSpecifiedImports(HaxeFileModel file, String name) {
+  @NotNull
+  public static List<PsiElement> searchInSpecifiedImports(HaxeFileModel file, String name) {
+    List<PsiElement> results = new ArrayList<>();
     List<HaxeImportableModel> models = file.getOrderedImportAndUsingModels();
     for (int i = models.size() - 1; i >= 0; i--) {
       HaxeImportableModel model = models.get(i);
-      PsiElement element = model.exposeByName(name);
-      if(element != null) {
-        return element;
+
+      if (model instanceof HaxeImportModel importModel) {
+        List<PsiElement> elements = importModel.exposeAllByName(name);
+        results.addAll(elements);
+      } else {
+        PsiElement element = model.exposeByName(name);
+        if (element != null) {
+          results.add(element);
+        }
       }
     }
-    return null;
+    return results;
   }
 
   /**
@@ -1114,17 +1142,20 @@ public class HaxeResolveUtil {
    *
    * @param file The file that has import statements to match.
    * @param name The name of the Type that we are searching for.
-   * @return The PSI element for the Type, if found; null, otherwise.
+   * @return List of PSI element for the Type, if found; empty list, otherwise.
    */
-  @Nullable
-  private static PsiElement searchInDirectoryImports(HaxeFileModel file, String name) {
-
-    final PsiElement[] found = new PsiElement[1];
+  @NotNull
+  private static List<PsiElement> searchInDirectoryImports(HaxeFileModel file, String name) {
+    List<PsiElement> results = new ArrayList<>();
     walkDirectoryImports(file, (importModel) -> {
-      found[0] = searchInSpecifiedImports(importModel, name);
-      return (null == found[0]);
+      List<PsiElement> elements = searchInSpecifiedImports(importModel, name);
+      if (!elements.isEmpty()) {
+        results.addAll(elements);
+        return false;
+      }
+      return true;
     });
-    return found[0];
+    return results;
   }
 
   /**
@@ -1286,10 +1317,21 @@ public class HaxeResolveUtil {
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
       ResultHolder result = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+
       // null type "hack" : if nullType unwrap to real type
       if(result.getType().isNullType()) {
         result = result.getClassType().getSpecifics()[0];
       }
+
+      if (result.isTypeDef() && result.getClassType() != null) {
+        SpecificHaxeClassReference type = result.getClassType();
+        HaxeResolveResult resolvedTypedef = HaxeResolver.fullyResolveTypedef(type.getHaxeClass(), type.asResolveResult().getSpecialization());
+        HaxeClass haxeClass = resolvedTypedef.getHaxeClass();
+        if(haxeClass != null && haxeClass.isEnum()) {
+          return resolvedTypedef.getSpecificClassReference(haxeClass, resolvedTypedef.getGenericResolver());
+        }
+      }
+
       if (result.isEnum() && result.getClassType() != null) {
         return result.getClassType();
       }
@@ -1298,8 +1340,10 @@ public class HaxeResolveUtil {
   }
 
   public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
+    return resolveExtractorEnumValueDeclaration(enumClass, extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText());
+  }
+  public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
     if (enumClass != null) {
-      String memberName = extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText();
       HaxeMemberModel member = enumClass.getHaxeClassModel().getMember(memberName, enumClass.getGenericResolver());
       if (member instanceof HaxeEnumValueModel enumValueModel) {
         return enumValueModel.getEnumValuePsi();

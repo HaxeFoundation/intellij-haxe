@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.*;
@@ -418,7 +419,11 @@ public class HaxeResolveResult implements Cloneable {
         resolvedParam = HaxeResolveUtil.getHaxeClassResolveResult(type); // No specialization??
         resolvedClass = null != resolvedParam ? resolvedParam.getHaxeClass() : null;
       }
-      instantiationParams.add(resolvedClass);
+      if (resolvedClass != null) {
+        instantiationParams.add(resolvedClass);
+      }else {
+        instantiationParams.add(type);
+      }
     }
     return instantiationParams;
   }
@@ -456,9 +461,15 @@ public class HaxeResolveResult implements Cloneable {
       if(specializedTypeResult.getHaxeClass() != null) {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }
-      if(specializedTypeResult.getFunctionType() != null) {
+      else if(specializedTypeResult.getFunctionType() != null) {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
+      }else {
+        //TODO: Experimental (adding fake haxeClass for generic types that are not connected to nay type yet)
+        HaxeClassWrapperForTypeParameter aClass = new HaxeClassWrapperForTypeParameter(specializedType.getNode(), List.of());
+        HaxeResolveResult result = HaxeResolveResult.create(aClass, new HaxeGenericSpecialization());
+        specialization.put(haxeClass, genericParamName, result);
       }
+
     }
     if (log.isDebugEnabled()) {
       log.debug(specialization.debugDump());
@@ -488,6 +499,13 @@ public class HaxeResolveResult implements Cloneable {
   }
   public boolean isHaxeTypeDef() {
     return haxeClass instanceof HaxeTypedefDeclaration;
+  }
+
+  public @Nullable HaxeResolveResult fullyResolveTypedef() {
+    if(haxeClass instanceof HaxeTypedefDeclaration typedefDeclaration) {
+      return HaxeResolver.fullyResolveTypedef(this.getHaxeClass(), this.getSpecialization());
+    }
+    return null;
   }
 
 

@@ -24,9 +24,11 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiDirectoryImpl;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.refactoring.MultiFileTestCase;
 import com.intellij.refactoring.PackageWrapper;
@@ -134,7 +136,8 @@ public class HaxeMoveTest extends MultiFileTestCase {
 
       PsiElement file = myPsiManager.findFile(src);
       assertNotNull("Psi for " + testHx + " not found", file);
-      PsiElement cls = file.getNode().getPsi(HaxeFile.class).findChildByClass(HaxeClassDeclaration.class);
+      HaxeModule haxeModule = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+      PsiElement cls = PsiTreeUtil.getChildOfType(haxeModule, HaxeClassDeclaration.class);
 
       PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
       VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);

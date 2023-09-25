@@ -177,7 +177,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkIsClassName(reference);
-    if (result == null) result = checkMemberReference(reference);
     if (result == null) result = checkMacroIdentifier(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
@@ -186,6 +185,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);
+    if (result == null) result = checkMemberReference(reference); // must be after resolvers that can find identifier inside a method
     if (result == null) {
 
 
@@ -194,7 +194,24 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         String className = reference.getText();
 
         PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
-        if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
+        if (target == null) {
+          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, className);
+          if (!matchesInImport.isEmpty()) {
+            // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
+            if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
+              int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+              for (PsiElement element : matchesInImport) {
+                if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
+                  int currentSize = Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p ->  p.getParameterList().size()).orElse(0);
+                  if (expectedSize == currentSize) {
+                    return List.of(element);
+                  }
+                }
+              }
+            }
+            return matchesInImport;
+          }
+        }
         if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
 
         if (target != null) {
@@ -311,6 +328,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
         if (declaration!= null) return List.of(declaration);
       }
+    }else {
+      // Last attempt to resolve  enum value (not extractor), normally imports would solve this but  some typedefs can omit this.
+      HaxeSwitchStatement type = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
+      if (type!= null && type.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+        HaxeResolveResult result = referenceExpression.resolveHaxeClass();
+        if (result.isHaxeTypeDef()) {
+          result = result.fullyResolveTypedef();
+        }
+        HaxeClass haxeClass = result.getHaxeClass();
+        if(haxeClass != null && haxeClass.isEnum()) {
+          SpecificHaxeClassReference classReference = result.getSpecificClassReference(haxeClass, null);
+          HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, reference.getText());
+          if (declaration!= null) return List.of(declaration);
+        }
+      }
+
     }
     return null;
   }

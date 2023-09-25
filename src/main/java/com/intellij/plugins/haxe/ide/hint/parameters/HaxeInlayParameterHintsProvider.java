@@ -159,11 +159,11 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   static HaxeMethodModel getMethodModel(HaxeExpression expression) {
     if (expression instanceof HaxeCallExpression callExpression) {
 
-      final HaxeReference reference = (HaxeReference)callExpression.getExpression();
-      final PsiElement target = reference.resolve();
-
-      if (target instanceof HaxeMethod method) {
-        return method.getModel();
+      if (callExpression.getExpression() instanceof HaxeReference reference) {
+        final PsiElement target = reference.resolve();
+        if (target instanceof HaxeMethod method) {
+          return method.getModel();
+        }
       }
     }
     if (expression instanceof HaxeNewExpression newExpression) {
@@ -187,9 +187,8 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   }
 
   static HaxeEnumValueModel getEnumValueModel(HaxeExpression expression) {
-    if (expression instanceof HaxeCallExpression callExpression) {
-
-      final HaxeReference reference = (HaxeReference)callExpression.getExpression();
+    if (expression instanceof HaxeCallExpression callExpression
+        && callExpression.getExpression() instanceof HaxeReference reference) {
       final PsiElement target = reference.resolve();
 
       if (target instanceof HaxeEnumValueDeclaration enumValueDeclaration) {

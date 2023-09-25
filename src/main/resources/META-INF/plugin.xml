@@ -39,6 +39,10 @@
     <extensionPoint dynamic="true" name="haxeMethodsSearch" interface="com.intellij.util.QueryExecutor"/>
   </extensionPoints>
 
+  <extensions defaultExtensionNs="JavaScript">
+    <JsonSchema.ProviderFactory implementation="com.intellij.plugins.haxe.buildsystem.haxelib.HaxelibJsonSchemaProviderFactory" />
+  </extensions>>
+
   <extensions defaultExtensionNs="com.intellij">
     <compileServer.plugin  classpath="jps-plugin.jar;common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
@@ -83,6 +87,15 @@
         fieldName="INSTANCE"
         language="HXML"
         extensions="hxml"/>
+
+
+    <fileType
+        name="Haxelib.json"
+        implementationClass="com.intellij.plugins.haxe.buildsystem.haxelib.HaxelibJsonFileType"
+        fieldName="INSTANCE"
+        language="JSON"
+        fileNames="haxelib.json"/>
+
 
     <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileDescription" rootTagName="project"/>
     <dom.fileMetaData implementation="com.intellij.plugins.haxe.buildsystem.lime.LimeXmlFileDescription" rootTagName="project"/>

@@ -177,7 +177,10 @@ public class HaxeMethodAnnotator implements Annotator {
           .create();
       }
       else {
-        if (!currentClass.isInterface() && !currentClass.isAnonymous()) {
+        if (!currentClass.isInterface()
+            && !currentClass.isAnonymous()
+            && !parentMethod.isAbstract()
+            && !parentMethod.getDeclaringClass().isInterface()) {
           requiredOverride = true;
         }
 

@@ -7,15 +7,16 @@ Haxe File
       HaxePsiToken:@:('@:')
       TYPE
         HaxePsiToken:META_TYPE('noDebug')
-  CLASS_DECLARATION
-    CLASS_MODIFIER_LIST
-      CLASS_MODIFIER
-        FINAL_KEY_WORD
-          HaxePsiToken:final('final')
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      HaxePsiToken:}('}')
+  MODULE
+    CLASS_DECLARATION
+      CLASS_MODIFIER_LIST
+        CLASS_MODIFIER
+          FINAL_KEY_WORD
+            HaxePsiToken:final('final')
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        HaxePsiToken:}('}')

@@ -91,7 +91,7 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
 
     myFixture.setTestDataPath(getTestDataPath());
     myFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(getProject()).setLanguageLevel(LanguageLevel.JDK_1_6);
+    LanguageLevelProjectExtension.getInstance(getProject()).setLanguageLevel(LanguageLevel.JDK_1_8);
   }
 
   protected boolean toAddSourceRoot() {

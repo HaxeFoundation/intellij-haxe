@@ -35,6 +35,8 @@ public class HaxeIcons {
   public static final Icon Field = load("/icons/field.svg");
 
 
+  public static final Icon HAXELIB_JSON = load("/icons/file.svg");
+
   public static final Icon HAXE_LOGO = load("/icons/Haxe_logo.svg");
   public static final Icon NMML_LOGO = load("/icons/buildsystem/nme.svg");
   public static final Icon LIME_LOGO = load("/icons/buildsystem/lime.svg");

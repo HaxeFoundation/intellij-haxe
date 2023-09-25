@@ -1,12 +1,13 @@
 Haxe File
-  EXTERN_CLASS_DECLARATION
-    EXTERN_CLASS_MODIFIER_LIST
-      EXTERN_KEY_WORD
-        HaxePsiToken:extern('extern ')
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Simple')
-    EXTERN_CLASS_DECLARATION_BODY
-      HaxePsiToken:{('{')
-      HaxePsiToken:}('}')
+  MODULE
+    EXTERN_CLASS_DECLARATION
+      EXTERN_CLASS_MODIFIER_LIST
+        EXTERN_KEY_WORD
+          HaxePsiToken:extern('extern ')
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Simple')
+      EXTERN_CLASS_DECLARATION_BODY
+        HaxePsiToken:{('{')
+        HaxePsiToken:}('}')

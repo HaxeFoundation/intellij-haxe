@@ -1,11 +1,12 @@
 Haxe File
-  EXTERN_INTERFACE_DECLARATION
-    EXTERN_KEY_WORD
-      HaxePsiToken:extern('extern ')
-    HaxePsiToken:interface('interface')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Simple')
-    INTERFACE_BODY
-      HaxePsiToken:{('{')
-      HaxePsiToken:}('}')
+  MODULE
+    EXTERN_INTERFACE_DECLARATION
+      EXTERN_KEY_WORD
+        HaxePsiToken:extern('extern ')
+      HaxePsiToken:interface('interface')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Simple')
+      INTERFACE_BODY
+        HaxePsiToken:{('{')
+        HaxePsiToken:}('}')

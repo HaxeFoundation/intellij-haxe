@@ -1,7 +1,17 @@
 # Changelog
 
+## 1.4.14-223
+* NOTE:  Builds for idea 2022.3 are no longer actively maintained (consider upgrading)
+* Fixed: Allow module level keywords for module fields. (#1135)
+* Fixed: Allow trailing commas in anonymousTypeField list
+* Fixed: Incorrect resolve order (defined in function vs inherited class member)
+* Fixed: incorrect error highlighting on abstract classes with interfaces (#1136)
+* Fixed: incorrect error highlighting on bitwise xor (#1137)
+* Fixed: Regular expressions where incorrectly shown as dynamic in inlays
+* Change: Regex rules changed from Java to JS to better match Haxe rules.
+* Reworked resolving logic to better support modules and EnumValues.
+
 ## 1.4.13-223
-* NOTE:  Builds for idea 2022.3 are no longer actively maintained
 * Added: Quick fix for incorrect extends and implements (#940)
 * Fixed: Resolving type from inline method calls (#868)
 * Fixed: Automatic import was placed after class Doc comment (#842)

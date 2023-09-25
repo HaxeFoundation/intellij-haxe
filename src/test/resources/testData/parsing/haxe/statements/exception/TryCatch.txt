@@ -1,71 +1,72 @@
 Haxe File
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('TryCatch')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      METHOD_DECLARATION
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('foo')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          TRY_STATEMENT
-            HaxePsiToken:try('try')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              THROW_STATEMENT
-                HaxePsiToken:throw('throw')
-                NEW_EXPRESSION
-                  HaxePsiToken:new('new')
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Error')
-                  HaxePsiToken:(('(')
-                  STRING_LITERAL_EXPRESSION
-                    HaxePsiToken:OPEN_QUOTE('"')
-                    HaxePsiToken:REGULAR_STRING_PART('invalid foo')
-                    HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:)(')')
-                HaxePsiToken:;(';')
-              HaxePsiToken:}('}')
-            CATCH_STATEMENT
-              HaxePsiToken:catch('catch')
-              HaxePsiToken:(('(')
-              PARAMETER
-                COMPONENT_NAME
-                  IDENTIFIER
-                    HaxePsiToken:ID('e')
-                TYPE_TAG
-                  HaxePsiToken::(':')
-                  TYPE_OR_ANONYMOUS
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('TryCatch')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        METHOD_DECLARATION
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('foo')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            TRY_STATEMENT
+              HaxePsiToken:try('try')
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                THROW_STATEMENT
+                  HaxePsiToken:throw('throw')
+                  NEW_EXPRESSION
+                    HaxePsiToken:new('new')
                     TYPE
                       REFERENCE_EXPRESSION
                         IDENTIFIER
                           HaxePsiToken:ID('Error')
-              HaxePsiToken:)(')')
-              BLOCK_STATEMENT
-                HaxePsiToken:{('{')
-                CALL_EXPRESSION
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('trace')
-                  HaxePsiToken:(('(')
-                  CALL_EXPRESSION_LIST
+                    HaxePsiToken:(('(')
                     STRING_LITERAL_EXPRESSION
                       HaxePsiToken:OPEN_QUOTE('"')
-                      HaxePsiToken:REGULAR_STRING_PART('error')
+                      HaxePsiToken:REGULAR_STRING_PART('invalid foo')
                       HaxePsiToken:CLOSING_QUOTE('"')
-                  HaxePsiToken:)(')')
-                HaxePsiToken:;(';')
+                    HaxePsiToken:)(')')
+                  HaxePsiToken:;(';')
                 HaxePsiToken:}('}')
-          HaxePsiToken:}('}')
-      HaxePsiToken:}('}')
+              CATCH_STATEMENT
+                HaxePsiToken:catch('catch')
+                HaxePsiToken:(('(')
+                PARAMETER
+                  COMPONENT_NAME
+                    IDENTIFIER
+                      HaxePsiToken:ID('e')
+                  TYPE_TAG
+                    HaxePsiToken::(':')
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Error')
+                HaxePsiToken:)(')')
+                BLOCK_STATEMENT
+                  HaxePsiToken:{('{')
+                  CALL_EXPRESSION
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('trace')
+                    HaxePsiToken:(('(')
+                    CALL_EXPRESSION_LIST
+                      STRING_LITERAL_EXPRESSION
+                        HaxePsiToken:OPEN_QUOTE('"')
+                        HaxePsiToken:REGULAR_STRING_PART('error')
+                        HaxePsiToken:CLOSING_QUOTE('"')
+                    HaxePsiToken:)(')')
+                  HaxePsiToken:;(';')
+                  HaxePsiToken:}('}')
+            HaxePsiToken:}('}')
+        HaxePsiToken:}('}')

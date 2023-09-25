@@ -53,8 +53,10 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
         ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(LeftChild, binaryExpression, lhsResolver);
         ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
 
+        // ignoring macro values as we dont always know the type
+        boolean containsMacroExpression = HaxeMacroUtil.isMacroType(lhsType) | HaxeMacroUtil.isMacroType(rhsType);
         // ignore  unknown and dynamic for now
-        if (lhsType.isUnknown()  || lhsType.isDynamic() || rhsType.isUnknown() || rhsType.isDynamic() ) {
+        if (lhsType.isUnknown()  || lhsType.isDynamic() || rhsType.isUnknown() || rhsType.isDynamic()  || containsMacroExpression) {
           return;
         }
 

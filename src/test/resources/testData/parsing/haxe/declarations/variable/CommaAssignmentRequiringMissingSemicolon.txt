@@ -2,54 +2,55 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      METHOD_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('a')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION_LIST
-            MUTABILITY_MODIFIER
-              HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('b')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                OBJECT_LITERAL
-                  HaxePsiToken:{('{')
-                  OBJECT_LITERAL_ELEMENT
-                    IDENTIFIER
-                      HaxePsiToken:ID('i')
-                    HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
-                      HaxePsiToken:LITINT('32')
-                  HaxePsiToken:}('}')
-            HaxePsiToken:,(',')
-            LOCAL_VAR_DECLARATION
-              COMPONENT_NAME
-                IDENTIFIER
-                  HaxePsiToken:ID('a')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                LITERAL_EXPRESSION
-                  HaxePsiToken:LITINT('2')
-            PsiErrorElement:Missing semicolon.
-              <empty list>
-          HaxePsiToken:}('}')
-      HaxePsiToken:}('}')
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        METHOD_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('a')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            LOCAL_VAR_DECLARATION_LIST
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('b')
+                VAR_INIT
+                  HaxePsiToken:=('=')
+                  OBJECT_LITERAL
+                    HaxePsiToken:{('{')
+                    OBJECT_LITERAL_ELEMENT
+                      IDENTIFIER
+                        HaxePsiToken:ID('i')
+                      HaxePsiToken::(':')
+                      LITERAL_EXPRESSION
+                        HaxePsiToken:LITINT('32')
+                    HaxePsiToken:}('}')
+              HaxePsiToken:,(',')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('a')
+                VAR_INIT
+                  HaxePsiToken:=('=')
+                  LITERAL_EXPRESSION
+                    HaxePsiToken:LITINT('2')
+              PsiErrorElement:Missing semicolon.
+                <empty list>
+            HaxePsiToken:}('}')
+        HaxePsiToken:}('}')

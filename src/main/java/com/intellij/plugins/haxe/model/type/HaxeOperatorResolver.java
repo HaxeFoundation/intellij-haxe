@@ -72,7 +72,8 @@ public class HaxeOperatorResolver {
       || operator.equals(">>")
       || operator.equals(">>>")
       || operator.equals("&")
-      || operator.equals("|")) {
+      || operator.equals("|")
+      || operator.equals("^")) {
         result =  SpecificHaxeClassReference.getInt(elementContext);
       }
     }
