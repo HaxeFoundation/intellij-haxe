@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.4.14-231
-* Replacing deprecated APIs and using idea 2023.2 as baseline
+* NOTE:  Builds for idea 2023.1 are no longer actively maintained (consider upgrading)
 * Fixed: Allow module level keywords for module fields. (#1135)
 * Fixed: Allow trailing commas in anonymousTypeField list
 * Fixed: Incorrect resolve order (defined in function vs inherited class member)
@@ -12,7 +12,6 @@
 * Reworked resolving logic to better support modules and EnumValues.
 
 ## 1.4.13-231
-* NOTE:  Builds for idea 2023.1 are no longer actively maintained
 * Added: Quick fix for incorrect extends and implements (#940)
 * Fixed: Resolving type from inline method calls (#868)
 * Fixed: Automatic import was placed after class Doc comment (#842)
