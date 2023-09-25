@@ -1156,7 +1156,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   @Nullable
-  private static String getLiteralClassName(IElementType type) {
+  public static String getLiteralClassName(IElementType type) {
     if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
       return "String";
     }
