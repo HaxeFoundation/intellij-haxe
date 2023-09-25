@@ -2,40 +2,41 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('FinalMetaOnProperty')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      PsiElement(EMBEDDED_META)
-        COMPILE_TIME_META
-          HaxePsiToken:@:('@:')
-          TYPE
-            HaxePsiToken:META_TYPE('final')
-      FIELD_DECLARATION
-        FIELD_MODIFIER
-          HaxePsiToken:public('public')
-        FIELD_MODIFIER
-          HaxePsiToken:static('static')
-        MUTABILITY_MODIFIER
-          HaxePsiToken:var('var')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('SOME_STRING')
-        TYPE_TAG
-          HaxePsiToken::(':')
-          TYPE_OR_ANONYMOUS
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('FinalMetaOnProperty')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        PsiElement(EMBEDDED_META)
+          COMPILE_TIME_META
+            HaxePsiToken:@:('@:')
             TYPE
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('String')
-        VAR_INIT
-          HaxePsiToken:=('=')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('some string')
-            HaxePsiToken:CLOSING_QUOTE('"')
-        HaxePsiToken:;(';')
-      HaxePsiToken:}('}')
+              HaxePsiToken:META_TYPE('final')
+        FIELD_DECLARATION
+          FIELD_MODIFIER
+            HaxePsiToken:public('public')
+          FIELD_MODIFIER
+            HaxePsiToken:static('static')
+          MUTABILITY_MODIFIER
+            HaxePsiToken:var('var')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('SOME_STRING')
+          TYPE_TAG
+            HaxePsiToken::(':')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('String')
+          VAR_INIT
+            HaxePsiToken:=('=')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('some string')
+              HaxePsiToken:CLOSING_QUOTE('"')
+          HaxePsiToken:;(';')
+        HaxePsiToken:}('}')

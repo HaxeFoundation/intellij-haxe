@@ -2,163 +2,165 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      FIELD_DECLARATION
-        FIELD_MODIFIER
-          HaxePsiToken:extern('extern ')
-        FIELD_MODIFIER
-          HaxePsiToken:inline('inline')
-        MUTABILITY_MODIFIER
-          HaxePsiToken:var('var')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('myVal')
-        PROPERTY_DECLARATION
-          HaxePsiToken:(('(')
-          PROPERTY_ACCESSOR
-            HaxePsiToken:ID('get')
-          HaxePsiToken:,(',')
-          PROPERTY_ACCESSOR
-            HaxePsiToken:null('null')
-          HaxePsiToken:)(')')
-        VAR_INIT
-          HaxePsiToken:=('=')
-          LITERAL_EXPRESSION
-            HaxePsiToken:LITFLOAT('3.14')
-        HaxePsiToken:;(';')
-      METHOD_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:extern('extern ')
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        METHOD_MODIFIER
-          HaxePsiToken:inline('inline')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('doSomething')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          LOCAL_FUNCTION_DECLARATION
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        FIELD_DECLARATION
+          FIELD_MODIFIER
+            HaxePsiToken:extern('extern ')
+          FIELD_MODIFIER
             HaxePsiToken:inline('inline')
-            HaxePsiToken:function('function')
-            COMPONENT_NAME
-              IDENTIFIER
-                HaxePsiToken:ID('internal')
+          MUTABILITY_MODIFIER
+            HaxePsiToken:var('var')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('myVal')
+          PROPERTY_DECLARATION
             HaxePsiToken:(('(')
-            PARAMETER_LIST
-              <empty list>
+            PROPERTY_ACCESSOR
+              HaxePsiToken:ID('get')
+            HaxePsiToken:,(',')
+            PROPERTY_ACCESSOR
+              HaxePsiToken:null('null')
             HaxePsiToken:)(')')
-            BLOCK_STATEMENT
-              HaxePsiToken:{('{')
-              HaxePsiToken:}('}')
-          CALL_EXPRESSION
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('internal')
-            HaxePsiToken:(('(')
-            HaxePsiToken:)(')')
+          VAR_INIT
+            HaxePsiToken:=('=')
+            LITERAL_EXPRESSION
+              HaxePsiToken:LITFLOAT('3.14')
           HaxePsiToken:;(';')
-          HaxePsiToken:}('}')
-      METHOD_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:inline('inline')
-        METHOD_MODIFIER
-          HaxePsiToken:extern('extern ')
-        METHOD_MODIFIER
-          HaxePsiToken:private('private')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('get_myVal')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          RETURN_STATEMENT
-            HaxePsiToken:return('return')
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('myVal')
-            HaxePsiToken:;(';')
-          HaxePsiToken:}('}')
-      METHOD_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        METHOD_MODIFIER
-          HaxePsiToken:static('static')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('main')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          LOCAL_VAR_DECLARATION_LIST
-            MUTABILITY_MODIFIER
-              HaxePsiToken:var('var')
-            LOCAL_VAR_DECLARATION
+        METHOD_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:extern('extern ')
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          METHOD_MODIFIER
+            HaxePsiToken:inline('inline')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('doSomething')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            LOCAL_FUNCTION_DECLARATION
+              INLINE_KEY_WORD
+                HaxePsiToken:inline('inline')
+              HaxePsiToken:function('function')
               COMPONENT_NAME
                 IDENTIFIER
-                  HaxePsiToken:ID('a')
-              VAR_INIT
-                HaxePsiToken:=('=')
-                NEW_EXPRESSION
-                  HaxePsiToken:new('new')
-                  TYPE
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
-                        HaxePsiToken:ID('Test')
-                  HaxePsiToken:(('(')
-                  HaxePsiToken:)(')')
+                  HaxePsiToken:ID('internal')
+              HaxePsiToken:(('(')
+              PARAMETER_LIST
+                <empty list>
+              HaxePsiToken:)(')')
+              BLOCK_STATEMENT
+                HaxePsiToken:{('{')
+                HaxePsiToken:}('}')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('internal')
+              HaxePsiToken:(('(')
+              HaxePsiToken:)(')')
             HaxePsiToken:;(';')
-          CALL_EXPRESSION
+            HaxePsiToken:}('}')
+        METHOD_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:inline('inline')
+          METHOD_MODIFIER
+            HaxePsiToken:extern('extern ')
+          METHOD_MODIFIER
+            HaxePsiToken:private('private')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('get_myVal')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            RETURN_STATEMENT
+              HaxePsiToken:return('return')
+              REFERENCE_EXPRESSION
+                IDENTIFIER
+                  HaxePsiToken:ID('myVal')
+              HaxePsiToken:;(';')
+            HaxePsiToken:}('}')
+        METHOD_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          METHOD_MODIFIER
+            HaxePsiToken:static('static')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('main')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            LOCAL_VAR_DECLARATION_LIST
+              MUTABILITY_MODIFIER
+                HaxePsiToken:var('var')
+              LOCAL_VAR_DECLARATION
+                COMPONENT_NAME
+                  IDENTIFIER
+                    HaxePsiToken:ID('a')
+                VAR_INIT
+                  HaxePsiToken:=('=')
+                  NEW_EXPRESSION
+                    HaxePsiToken:new('new')
+                    TYPE
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('Test')
+                    HaxePsiToken:(('(')
+                    HaxePsiToken:)(')')
+              HaxePsiToken:;(';')
+            CALL_EXPRESSION
+              REFERENCE_EXPRESSION
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('a')
+                HaxePsiToken:.('.')
+                IDENTIFIER
+                  HaxePsiToken:ID('doSomething')
+              HaxePsiToken:(('(')
+              HaxePsiToken:)(')')
+            HaxePsiToken:;(';')
             REFERENCE_EXPRESSION
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('a')
               HaxePsiToken:.('.')
               IDENTIFIER
-                HaxePsiToken:ID('doSomething')
-            HaxePsiToken:(('(')
-            HaxePsiToken:)(')')
-          HaxePsiToken:;(';')
-          REFERENCE_EXPRESSION
-            REFERENCE_EXPRESSION
-              IDENTIFIER
-                HaxePsiToken:ID('a')
-            HaxePsiToken:.('.')
+                HaxePsiToken:ID('myVal')
+            HaxePsiToken:;(';')
+            HaxePsiToken:}('}')
+        CONSTRUCTOR_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
             IDENTIFIER
-              HaxePsiToken:ID('myVal')
-          HaxePsiToken:;(';')
-          HaxePsiToken:}('}')
-      CONSTRUCTOR_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:new('new')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          HaxePsiToken:}('}')
-      HaxePsiToken:}('}')
+              HaxePsiToken:new('new')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            HaxePsiToken:}('}')
+        HaxePsiToken:}('}')

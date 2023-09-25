@@ -21,11 +21,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkIfMethodSignatureDiffers;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkMethodsSignatureCompatibility;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 
 public class HaxeClassAnnotator implements Annotator {
@@ -49,6 +52,8 @@ public class HaxeClassAnnotator implements Annotator {
       // avoiding unnecessary extra annotations when  HaxeAnonymousType is part of other non-anonymous types like typedefs etc.
       return;
     }
+    // TODO mlo:
+    // check  abstract keyword for methods without  body in classes
 
     checkModifiers(clazz, holder);
     checkDuplicatedFields(clazz, holder);
@@ -56,9 +61,10 @@ public class HaxeClassAnnotator implements Annotator {
     checkExtends(clazz, holder);
     checkInterfaces(clazz, holder);
     if (!clazzPsi.isInterface() && !clazzPsi.isTypeDef()) {
-      checkInterfacesMethods(clazz, holder);
+      checkInterfacesAndAbstractMethods(clazz, holder);
       checkInterfacesFields(clazz, holder);
     }
+
   }
 
   static private void checkModifiers(final HaxeClassModel clazz, final AnnotationHolder holder) {
@@ -231,7 +237,7 @@ public class HaxeClassAnnotator implements Annotator {
     }
   }
 
-  private static void checkInterfacesMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
+  private static void checkInterfacesAndAbstractMethods(final HaxeClassModel clazz, final AnnotationHolder holder) {
     PsiElement clazzPsi = clazz.getPsi();
     boolean checkMissingInterfaceMethods = MISSING_INTERFACE_METHODS.isEnabled(clazzPsi);
     boolean checkInterfaceMethodSignature = INTERFACE_METHOD_SIGNATURE.isEnabled(clazzPsi);
@@ -240,11 +246,72 @@ public class HaxeClassAnnotator implements Annotator {
     if (!checkMissingInterfaceMethods && !checkInterfaceMethodSignature && !checkInheritedInterfaceMethodSignature) {
       return;
     }
-
-    for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
-      checkInterfaceMethods(clazz, reference, holder, checkMissingInterfaceMethods, checkInterfaceMethodSignature,
-                            checkInheritedInterfaceMethodSignature);
+    if (clazz.isClass() && !clazz.isAbstractClass()) {
+      // check inferfaces
+      for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
+        checkInterfaceMethods(clazz, reference, holder, checkMissingInterfaceMethods, checkInterfaceMethodSignature,
+                              checkInheritedInterfaceMethodSignature);
+      }
     }
+    // check abstract class methods
+    List<HaxeClassReferenceModel> types = clazz.getExtendingTypes();
+    // for classes its only  allowed to extend one sub-class so we can look for frist element
+    if (!types.isEmpty()) {
+      HaxeClassReferenceModel model = types.get(0);
+      if (model.getHaxeClass() != null && model.getHaxeClass().isAbstractClass()) {
+        checkAbstractMethods(clazz, model, holder);
+      }
+    }
+  }
+
+  private static void checkAbstractMethods(HaxeClassModel clazz, HaxeClassReferenceModel abstractClass, AnnotationHolder holder) {
+    final List<HaxeMethodModel> missingMethods = new ArrayList<>();
+    final List<String> missingMethodsNames = new ArrayList<String>();
+
+
+
+    List<HaxeMethod> allMethodList = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
+    List<HaxeMethod> extendedClassMethodList = abstractClass.getHaxeClass().haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
+
+    Map<String, HaxeMethodModel> abstractMethods = extendedClassMethodList.stream()
+      .map(HaxeMethodPsiMixin::getModel)
+      .filter(m ->  m.isAbstract() || m.isInInterface())
+      .collect(Collectors.toMap(m -> m.getMethod().getName(), Function.identity(), (m1, m2) -> m1));
+
+    Map<String, HaxeMethodModel> nonAbstractMethods = allMethodList.stream()
+      .map(HaxeMethodPsiMixin::getModel)
+      .filter(not(HaxeMethodModel::isAbstract))
+      .filter(not(HaxeMethodModel::isInInterface))
+      .collect(Collectors.toMap(m -> m.getMethod().getName(), Function.identity(), (m1, m2) -> m1));
+
+    for (String name : abstractMethods.keySet()) {
+      if (!nonAbstractMethods.containsKey(name)) {
+        missingMethods.add(abstractMethods.get(name));
+        missingMethodsNames.add(name);
+      }
+    }
+
+    if (!missingMethods.isEmpty()) {
+      // @TODO: Move to bundle
+      holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
+        .range(abstractClass.getPsi())
+        .withFix(new HaxeFixer("Implement methods") {
+          @Override
+          public void run() {
+            OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
+            for (HaxeMethodModel mm : missingMethods) {
+              fix.addElementToProcess(mm.getMethodPsi());
+            }
+
+            PsiElement basePsi = clazz.getBasePsi();
+            Project p = basePsi.getProject();
+            fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
+          }
+        })
+        .create();
+    }
+
+  //TODO  check abstract classes for abstract methods to implement
   }
 
   private static void checkInterfacesFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
@@ -415,6 +482,7 @@ public class HaxeClassAnnotator implements Annotator {
     if (intReference.getHaxeClass() != null) {
       List<HaxeMethodModel> methods = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
         .map(HaxeMethodPsiMixin::getModel)
+        .filter(not(HaxeMethodModel::isAbstract))
         .toList();
 
       for (HaxeMethodModel intMethod : intReference.getHaxeClass().getMethods(null)) {

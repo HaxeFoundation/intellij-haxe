@@ -2,34 +2,35 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      PsiComment(MML_COMMENT)('/* Multi-line expressions are allowed. */')
-      PsiComment(#if)('#if')
-      PsiComment(PPEXPRESSION)(' ')
-      PsiComment(PPEXPRESSION)('(')
-      PsiComment(PPEXPRESSION)('cpp')
-      PsiComment(PPEXPRESSION)('\n     ')
-      PsiComment(PPEXPRESSION)('||')
-      PsiComment(PPEXPRESSION)('\n     ')
-      PsiComment(PPEXPRESSION)('js')
-      PsiComment(PPEXPRESSION)(')')
-      METHOD_DECLARATION
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('bar')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          HaxePsiToken:}('}')
-      PsiComment(#end)('#end')
-      HaxePsiToken:}('}')
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        PsiComment(MML_COMMENT)('/* Multi-line expressions are allowed. */')
+        PsiComment(#if)('#if')
+        PsiComment(PPEXPRESSION)(' ')
+        PsiComment(PPEXPRESSION)('(')
+        PsiComment(PPEXPRESSION)('cpp')
+        PsiComment(PPEXPRESSION)('\n     ')
+        PsiComment(PPEXPRESSION)('||')
+        PsiComment(PPEXPRESSION)('\n     ')
+        PsiComment(PPEXPRESSION)('js')
+        PsiComment(PPEXPRESSION)(')')
+        METHOD_DECLARATION
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('bar')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            HaxePsiToken:}('}')
+        PsiComment(#end)('#end')
+        HaxePsiToken:}('}')

@@ -28,7 +28,9 @@ import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.util.Function;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author: Fedor.Korotkov
@@ -53,14 +55,14 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     if (addOverride) {
       result.append("override ");
     }
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
-    if (declarationAttributeList != null) {
-      result.append(StringUtil.join(declarationAttributeList, new Function<HaxePsiModifier, String>() {
-        @Override
-        public String fun(HaxePsiModifier attribute) {
-          return attribute.getText();
-        }
-      }, " "));
+    final HaxePsiModifier[] declarationAttributeArray = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
+
+    if (declarationAttributeArray != null) {
+      List<HaxePsiModifier> declarationAttributeList =  Arrays.stream(declarationAttributeArray)
+        .filter(modifier -> !modifier.textMatches("abstract"))// keep all modifiers except abstract
+        .toList();
+
+      result.append(StringUtil.join(declarationAttributeList, attribute -> attribute.getText(), " "));
       result.append(" ");
     }
     if (isInterfaceElement && !result.toString().contains("public")) {

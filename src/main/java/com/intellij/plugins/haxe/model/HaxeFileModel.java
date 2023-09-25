@@ -98,12 +98,30 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   @Nullable
   public HaxeClassModel getClassModel(String name) {
-    HaxeClass haxeClass = (HaxeClass)Arrays.stream(file.getChildren())
-      .filter(element -> element instanceof HaxeClass && Objects.equals(name, ((HaxeClass)element).getName()))
-      .findFirst()
-      .orElse(null);
+    Optional<HaxeModule> module = getModuleBody();
 
-    return haxeClass != null ? haxeClass.getModel() : null;
+    if (module.isPresent()) {
+      HaxeClass haxeClass = (HaxeClass)Arrays.stream(module.get().getChildren())
+        .filter(element -> element instanceof HaxeClass && Objects.equals(name, ((HaxeClass)element).getName()))
+        .findFirst()
+        .orElse(null);
+
+      return haxeClass != null ? haxeClass.getModel() : null;
+
+    }
+    return null;
+  }
+
+  @NotNull
+  public Optional<HaxeModule> getModuleBody() {
+    return Arrays.stream(file.getChildren())
+      .filter(element -> (element instanceof HaxeModule))
+      .map(element -> (HaxeModule)element)
+      .findFirst();
+  }
+  @NotNull
+  public PsiElement[] getModuleBodyChildren() {
+    return getModuleBody().map(PsiElement::getChildren).orElseGet(() ->PsiElement.EMPTY_ARRAY);
   }
 
   @NotNull
@@ -158,7 +176,7 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public Stream<HaxeClassModel> getClassModelsStream() {
-    return Arrays.stream(file.getChildren())
+    return Arrays.stream(getModuleBodyChildren())
       .filter(element -> element instanceof HaxeClass)
       .map(element -> ((HaxeClass)element).getModel());
   }

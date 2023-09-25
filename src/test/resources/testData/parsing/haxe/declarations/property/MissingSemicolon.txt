@@ -2,47 +2,48 @@ Haxe File
   PACKAGE_STATEMENT
     HaxePsiToken:package('package')
     HaxePsiToken:;(';')
-  CLASS_DECLARATION
-    HaxePsiToken:class('class')
-    COMPONENT_NAME
-      IDENTIFIER
-        HaxePsiToken:ID('Test')
-    CLASS_BODY
-      HaxePsiToken:{('{')
-      FIELD_DECLARATION
-        MUTABILITY_MODIFIER
-          HaxePsiToken:var('var')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:ID('a')
-        TYPE_TAG
-          HaxePsiToken::(':')
-          TYPE_OR_ANONYMOUS
-            TYPE
-              REFERENCE_EXPRESSION
-                IDENTIFIER
-                  HaxePsiToken:ID('String')
-        VAR_INIT
-          HaxePsiToken:=('=')
-          STRING_LITERAL_EXPRESSION
-            HaxePsiToken:OPEN_QUOTE('"')
-            HaxePsiToken:REGULAR_STRING_PART('asdf')
-            HaxePsiToken:CLOSING_QUOTE('"')
-        PsiErrorElement:Missing semicolon.
-          <empty list>
-      PsiComment(MSL_COMMENT)('// <--- Missing semicolon should cause an error.')
-      CONSTRUCTOR_DECLARATION
-        METHOD_MODIFIER
-          HaxePsiToken:public('public')
-        HaxePsiToken:function('function')
-        COMPONENT_NAME
-          IDENTIFIER
-            HaxePsiToken:new('new')
-        HaxePsiToken:(('(')
-        PARAMETER_LIST
-          <empty list>
-        HaxePsiToken:)(')')
-        BLOCK_STATEMENT
-          HaxePsiToken:{('{')
-          HaxePsiToken:}('}')
-      HaxePsiToken:}('}')
+  MODULE
+    CLASS_DECLARATION
+      HaxePsiToken:class('class')
+      COMPONENT_NAME
+        IDENTIFIER
+          HaxePsiToken:ID('Test')
+      CLASS_BODY
+        HaxePsiToken:{('{')
+        FIELD_DECLARATION
+          MUTABILITY_MODIFIER
+            HaxePsiToken:var('var')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('a')
+          TYPE_TAG
+            HaxePsiToken::(':')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('String')
+          VAR_INIT
+            HaxePsiToken:=('=')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:REGULAR_STRING_PART('asdf')
+              HaxePsiToken:CLOSING_QUOTE('"')
+          PsiErrorElement:Missing semicolon.
+            <empty list>
+        PsiComment(MSL_COMMENT)('// <--- Missing semicolon should cause an error.')
+        CONSTRUCTOR_DECLARATION
+          METHOD_MODIFIER
+            HaxePsiToken:public('public')
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:new('new')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            <empty list>
+          HaxePsiToken:)(')')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            HaxePsiToken:}('}')
+        HaxePsiToken:}('}')

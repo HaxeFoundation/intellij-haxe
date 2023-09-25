@@ -21,10 +21,7 @@ package com.intellij.plugins.haxe.editor.smartEnter;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassBody;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -41,7 +38,7 @@ public class MissingClassBodyFixer implements Fixer {
 
   @Override
   public void apply(Editor editor, HaxeSmartEnterProcessor processor, PsiElement psiElement) throws IncorrectOperationException {
-    if (isTopLevel(psiElement)) {
+    if (isModuleComponent(psiElement)) {
       if (psiElement instanceof HaxeClass) {
         fixMissingBody(editor, (HaxeClass)psiElement);
       }
@@ -51,8 +48,8 @@ public class MissingClassBodyFixer implements Fixer {
     }
   }
 
-  private boolean isTopLevel(@NotNull PsiElement element) {
-    return element.getParent() instanceof HaxeFile;
+  private boolean isModuleComponent(@NotNull PsiElement element) {
+    return element.getParent() instanceof HaxeModule;
   }
 
   private boolean isMissingBody(@NotNull HaxeClass haxeClass) {

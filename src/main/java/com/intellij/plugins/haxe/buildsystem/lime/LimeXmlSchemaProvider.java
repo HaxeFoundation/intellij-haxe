@@ -17,7 +17,7 @@ import java.net.URL;
 public class LimeXmlSchemaProvider extends XmlSchemaProvider {
     @Override
     public XmlFile getSchema(@NotNull @NonNls String url, @Nullable Module module, @NotNull PsiFile baseFile) {
-        final URL resource = LimeXmlSchemaProvider.class.getResource("/xsd/lime/lime-project.xsd");
+        final URL resource = LimeXmlSchemaProvider.class.getResource("/schema/lime/lime-project.xsd");
         final VirtualFile fileByURL = VfsUtil.findFileByURL(resource);
         PsiFile result = baseFile.getManager().findFile(fileByURL);
         if (result instanceof XmlFile) {
