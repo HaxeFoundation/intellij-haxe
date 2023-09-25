@@ -23,6 +23,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -120,6 +121,27 @@ public class HaxeImportModel extends HaxeImportableModel {
     }
 
     return null;
+  }
+
+  /**
+   *  In the case of HaxeEnumValueModel elements, there might be multiple with the sname name but in different enums
+   *  this method  handles this by returning all matches
+   */
+  @NotNull
+  public List<PsiElement> exposeAllByName(String name) {
+    if (name == null) return List.of();
+    List<PsiElement> results = new ArrayList<>();
+      for (HaxeModel exposedMember : getExposedMembers()) {
+        if (Objects.equals(exposedMember.getName(), name) || (equalsToAlias(name))) {
+          if (!(exposedMember instanceof HaxeEnumValueModel)) {
+            return List.of(exposedMember.getBasePsi());
+          }else {
+            results.add(exposedMember.getBasePsi());
+          }
+        }
+      }
+
+    return results;
   }
 
   private boolean equalsToAlias(String name) {

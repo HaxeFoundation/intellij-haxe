@@ -52,6 +52,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
@@ -540,6 +541,12 @@ public class HaxeExpressionEvaluator {
         return SpecificTypeReference.getInvalid(element).createHolder();
       }
       return handle(expression, context, resolver);
+    }
+    if (element instanceof  HaxeRegularExpressionLiteral) {
+      HaxeClass regexClass = HaxeResolveUtil.findClassByQName(getLiteralClassName(HaxeTokenTypes.REG_EXP), element);
+      if (regexClass != null) {
+        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(regexClass.getModel(),element)).createHolder();
+      }
     }
     if (element instanceof  HaxeValueExpression valueExpression) {
       if (valueExpression.getSwitchStatement() != null){

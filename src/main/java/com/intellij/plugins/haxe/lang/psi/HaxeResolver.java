@@ -194,7 +194,24 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         String className = reference.getText();
 
         PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
-        if (target == null) target = HaxeResolveUtil.searchInImports(fileModel, className);
+        if (target == null) {
+          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, className);
+          if (!matchesInImport.isEmpty()) {
+            // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
+            if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
+              int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+              for (PsiElement element : matchesInImport) {
+                if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
+                  int currentSize = Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p ->  p.getParameterList().size()).orElse(0);
+                  if (expectedSize == currentSize) {
+                    return List.of(element);
+                  }
+                }
+              }
+            }
+            return matchesInImport;
+          }
+        }
         if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
 
         if (target != null) {
