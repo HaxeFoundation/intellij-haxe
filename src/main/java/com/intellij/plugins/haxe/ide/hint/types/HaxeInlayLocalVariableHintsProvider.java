@@ -36,18 +36,22 @@ public class HaxeInlayLocalVariableHintsProvider implements InlayHintsProvider {
     private static void handleLocalVarDeclarationHints(@NotNull PsiElement element,
                                                        @NotNull InlayTreeSink sink,
                                                        HaxeLocalVarDeclaration varDeclaration) {
+
+      ResultHolder type;
       if (varDeclaration.getTypeTag() == null && varDeclaration.getVarInit() != null) {
 
         HaxeVarInit init = varDeclaration.getVarInit();
         HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init);
-        ResultHolder type = HaxeTypeResolver.getPsiElementType(init, element, resolver);
+        type = HaxeTypeResolver.getPsiElementType(init, element, resolver);
 
-        if (!type.isUnknown() && !type.getType().isInvalid()) {
-          int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
-          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
-          );
-        }
+      } else {
+        type = HaxeTypeResolver.getPsiElementType(element, null);
+      }
+
+      if (!type.isUnknown() && !type.getType().isInvalid()) {
+        int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
+        InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
+        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
       }
     }
 
