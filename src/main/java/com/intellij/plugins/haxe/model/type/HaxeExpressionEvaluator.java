@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
+import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -39,7 +40,11 @@ import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.PsiSearchHelper;
+import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -47,11 +52,9 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
+import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil.checkMethodCall;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
@@ -303,7 +306,7 @@ public class HaxeExpressionEvaluator {
         if (isMacroVariable(type.getReferenceExpression().getIdentifier())){
           return SpecificTypeReference.getDynamic(element).createHolder();
         }
-        ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type);
+        ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type, resolver);
         if (typeHolder.getType() instanceof SpecificHaxeClassReference classReference) {
           final HaxeClassModel clazz = classReference.getHaxeClassModel();
           if (clazz != null) {
@@ -517,6 +520,11 @@ public class HaxeExpressionEvaluator {
 
       ResultHolder result = typeTag != null ? typeTagResult : initResult;
 
+      if (init == null && typeTag == null) {
+        // search for usage to determine type
+        return searchReferencesForType(varDeclaration, context, resolver);
+      }
+
       if (init != null && typeTag != null) {
         if (context.holder != null) {
           if (!typeTagResult.canAssign(initResult)) {
@@ -682,11 +690,15 @@ public class HaxeExpressionEvaluator {
               }
             }
           }
-          else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration && varDeclaration.getVarInit() != null) {
-            HaxeVarInit init = varDeclaration.getVarInit();
-            HaxeExpression initExpression = init.getExpression();
-            HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+          else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration) {
+            if ( varDeclaration.getVarInit() != null) {
+              HaxeVarInit init = varDeclaration.getVarInit();
+              HaxeExpression initExpression = init.getExpression();
+              HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+            }else {
+              typeHolder =  handle(subelement, context,resolver);
+            }
           }
           else if (subelement instanceof HaxeForStatement forStatement) {
             // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
@@ -1266,19 +1278,53 @@ public class HaxeExpressionEvaluator {
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
+  @Nullable
+  public static ResultHolder searchReferencesForType(final HaxePsiField field,
+                                                     final HaxeExpressionEvaluatorContext context,
+                                                     final HaxeGenericResolver resolver) {
+    HaxeComponentName componentName = field.getComponentName();
+    SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getUseScope(componentName);
+
+
+    int offset = componentName.getIdentifier().getTextRange().getEndOffset();
+    List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll()).stream()
+      .sorted((r1, r2) -> {
+        int i1 = getDistance(r1, offset);
+        int i2 = getDistance(r2, offset);
+        return  i1 -i2;
+      } ).toList();
+
+    for (PsiReference reference : references) {
+      if (reference instanceof HaxeExpression expression) {
+        if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
+          HaxeExpression rightExpression = assignExpression.getRightExpression();
+          ResultHolder result = handle(rightExpression, context, resolver);
+          if (!result.isUnknown()) {
+            return result;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static int getDistance(PsiReference reference, int offset) {
+    return reference.getAbsoluteRange().getStartOffset() - offset;
+  }
+
   private static boolean isMacroVariable(HaxeIdentifier identifier) {
     return identifier.getMacroId() != null;
   }
 
   @Nullable
-  private static ResultHolder findInitTypeForUnify(@NotNull PsiElement element) {
-    HaxeVarInit varInit = PsiTreeUtil.getParentOfType(element, HaxeVarInit.class);
+  private static ResultHolder findInitTypeForUnify(@NotNull PsiElement field) {
+    HaxeVarInit varInit = PsiTreeUtil.getParentOfType(field, HaxeVarInit.class);
     if (varInit != null) {
       HaxeFieldDeclaration type = PsiTreeUtil.getParentOfType(varInit, HaxeFieldDeclaration.class);
       if (type!= null) {
         HaxeTypeTag tag = type.getTypeTag();
         if (tag != null) {
-          ResultHolder typeTag = HaxeTypeResolver.getTypeFromTypeTag(tag, element);
+          ResultHolder typeTag = HaxeTypeResolver.getTypeFromTypeTag(tag, field);
           if (!typeTag.isUnknown()) {
             return typeTag;
           }
@@ -1350,8 +1396,8 @@ public class HaxeExpressionEvaluator {
     }
   }
 
-  static private String getOperator(PsiElement element, TokenSet set) {
-    ASTNode operatorNode = element.getNode().findChildByType(set);
+  static private String getOperator(PsiElement field, TokenSet set) {
+    ASTNode operatorNode = field.getNode().findChildByType(set);
     if (operatorNode == null) return "";
     return operatorNode.getText();
   }

@@ -746,20 +746,32 @@ public class HaxeResolveUtil {
     if (specialization.containsKey(null, element.getText())) {
       return specialization.get(null, element.getText());
     }
-    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
-    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
-    if (initExpression instanceof HaxeReference) {
-      result = ((HaxeReference)initExpression).resolveHaxeClass();
-      result.specialize(initExpression);
-      return result;
+    if (element instanceof  HaxePsiField psiField) {
+      // if we dont have a type search references
+      if (psiField.getVarInit() == null && psiField.getTypeTag() == null) {
+        ResultHolder holder = HaxeExpressionEvaluator.searchReferencesForType(psiField, new HaxeExpressionEvaluatorContext(psiField), null);
+        if (holder != null && !holder.isUnknown()) {
+          return holder.getClassType().asResolveResult();
+        }
+      }
     }
-
     if (element instanceof  HaxeValueExpression valueExpression) {
       result = resolveValueExpressionClass(valueExpression, specialization);
       if (result != null) {
         return result;
       }
     }
+
+    final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
+    final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
+    if (initExpression instanceof HaxeReference reference) {
+      result = reference.resolveHaxeClass();
+      // TODO MLO: check for missing Type parameter
+      //  (var x = new Map() is allowed and typeParameters can be resolved from usage)
+      result.specialize(initExpression);
+      return result;
+    }
+
 
     return getHaxeClassResolveResult(initExpression, specialization);
   }
