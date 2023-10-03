@@ -1,7 +1,13 @@
 # Changelog
 
+
+## 1.4.15-223
+* Bugfix: module layer in psi broke type hierarchy resolving. 
+* Improvement: Resolving same package types across libraries 
+
 ## 1.4.14-223
 * NOTE:  Builds for idea 2022.3 are no longer actively maintained (consider upgrading)
+* Replacing deprecated APIs and using idea 2023.2 as baseline
 * Fixed: Allow module level keywords for module fields. (#1135)
 * Fixed: Allow trailing commas in anonymousTypeField list
 * Fixed: Incorrect resolve order (defined in function vs inherited class member)
