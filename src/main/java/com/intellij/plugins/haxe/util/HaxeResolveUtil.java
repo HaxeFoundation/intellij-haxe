@@ -1214,20 +1214,24 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static String getQName(PsiElement[] fileChildren, final String result, boolean searchInSamePackage) {
+  public static String getQName(PsiFile file, final String result, boolean searchInSamePackage) {
 
-    HaxeClass classForType = null;
-    for(PsiElement child: fileChildren) {
-      if( child instanceof HaxeClass && result.equals(((HaxeClass)child).getName())){
-        classForType = (HaxeClass)child;
-        break;
+    HaxeModule module = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+    if (module != null) {
+      @NotNull PsiElement[] moduleChildren = module.getChildren();
+      HaxeClass classForType = null;
+      for (PsiElement child : moduleChildren) {
+        if (child instanceof HaxeClass && result.equals(((HaxeClass)child).getName())) {
+          classForType = (HaxeClass)child;
+          break;
+        }
+      }
+
+      if (classForType != null) {
+        return classForType.getQualifiedName();
       }
     }
-
-    if (classForType != null) {
-      return classForType.getQualifiedName();
-    }
-
+    @NotNull PsiElement[] fileChildren = file.getChildren();
     final HaxeImportStatement importStatement =
       (HaxeImportStatement)(StreamUtil.reverse(Arrays.stream(fileChildren))
                               .filter(element ->

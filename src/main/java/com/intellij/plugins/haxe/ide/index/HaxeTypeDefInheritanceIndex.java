@@ -118,7 +118,7 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
                 final String classNameCandidate = haxeType.getText();
                 final String key = classNameCandidate.indexOf('.') != -1 ?
                                    classNameCandidate :
-                                   getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+                                   getQNameAndCache(qNameCache, psiFile, classNameCandidate);
                 put(result, key, value);
               }
             }
@@ -128,17 +128,17 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
           final String classNameCandidate = type.getText();
           final String qName = classNameCandidate.indexOf('.') != -1 ?
                                classNameCandidate :
-                               getQNameAndCache(qNameCache, fileChildren, classNameCandidate);
+                               getQNameAndCache(qNameCache, psiFile, classNameCandidate);
           put(result, qName, value);
         }
       }
       return result;
     }
 
-    private static String getQNameAndCache(Map<String, String> qNameCache, PsiElement[] fileChildren, String classNameCandidate) {
+    private static String getQNameAndCache(Map<String, String> qNameCache, PsiFile psiFile, String classNameCandidate) {
       String result = qNameCache.get(classNameCandidate);
       if (result == null) {
-        result = HaxeResolveUtil.getQName(fileChildren, classNameCandidate, true);
+        result = HaxeResolveUtil.getQName(psiFile, classNameCandidate, true);
         qNameCache.put(classNameCandidate, result);
       }
       return result;

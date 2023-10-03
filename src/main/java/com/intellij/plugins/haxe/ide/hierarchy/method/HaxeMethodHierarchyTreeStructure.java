@@ -53,7 +53,7 @@ public class HaxeMethodHierarchyTreeStructure extends HierarchyTreeStructure {
 
   // This is really the only thing we were overriding from MethodHierarchyTreeStructure.
   public static List<HaxeClass> getSubclasses(HaxeClass theClass) {
-    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(theClass);
+    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQNameIncludingSubChildren(theClass);
     return subClasses;
   }
 

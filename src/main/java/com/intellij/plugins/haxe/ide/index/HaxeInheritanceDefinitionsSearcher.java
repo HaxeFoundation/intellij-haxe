@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.DefinitionsScopedSearch;
@@ -42,7 +43,18 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
   }
 
 
-  public static List<HaxeClass> getItemsByQName(final HaxeClass haxeClass) {
+  public static Collection<HaxeClass> getItemsByQNameFirstLevelChildrenOnly(final HaxeClass haxeClass) {
+    GlobalSearchScope scope = GlobalSearchScope.projectScope(haxeClass.getProject());
+
+    return DefinitionsScopedSearch.search(haxeClass, scope, false)
+        .allowParallelProcessing()
+        .filtering(element -> element instanceof HaxeClass)
+        .mapping( element -> (HaxeClass) element)
+        .filtering(element ->
+            Arrays.stream(element.getSuperTypes()).map(PsiClassType::resolve).anyMatch(psiClass -> psiClass == haxeClass)
+      ).findAll();
+  }
+  public static List<HaxeClass> getItemsByQNameIncludingSubChildren(final HaxeClass haxeClass) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
     DefinitionsScopedSearch.search(haxeClass).allowParallelProcessing().forEach(element -> {
       if (element instanceof HaxeClass) {
