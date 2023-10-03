@@ -136,6 +136,21 @@ public class HaxePackageModel implements HaxeExposableModel {
           return (HaxeFile)file;
         }
       }
+
+      // scan all source roots (some libs share package names across libs)
+      if (project != null) {
+        List<HaxeSourceRootModel> roots = project.getRoots();
+        for (HaxeSourceRootModel rootModel : roots) {
+          directory = rootModel.access(accessPath);
+
+          if (directory != null && directory.isValid()) {
+            PsiFile file = directory.findFile(fname + ".hx");
+            if (file != null && file.isValid() && file instanceof HaxeFile) {
+              return (HaxeFile)file;
+            }
+          }
+        }
+      }
     }
 
     return null;

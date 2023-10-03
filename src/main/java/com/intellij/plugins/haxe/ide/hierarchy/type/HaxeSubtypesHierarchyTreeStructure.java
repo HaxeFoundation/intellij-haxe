@@ -32,6 +32,7 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,7 +80,8 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
     // Get the list of subtypes from the file-based indices.  Stub-based would
     // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
-    subTypeList.addAll(getSubTypes(theHaxeClass));
+    Collection<HaxeClass> children = HaxeInheritanceDefinitionsSearcher.getItemsByQNameFirstLevelChildrenOnly(theHaxeClass);
+    subTypeList.addAll(children);
 
     return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
   }
@@ -136,10 +138,5 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
       theClass = superType;
     }
     return allSuperClasses;
-  }
-
-  private static List<HaxeClass> getSubTypes(HaxeClass theClass) {
-    final List<HaxeClass> subClasses = HaxeInheritanceDefinitionsSearcher.getItemsByQName(theClass);
-    return subClasses;
   }
 }

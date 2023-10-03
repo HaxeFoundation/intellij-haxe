@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.15
+* Bugfix: module layer in psi broke type hierarchy resolving. 
+* Improvement: Resolving same package types across libraries 
+
 ## 1.4.14
 * Replacing deprecated APIs and using idea 2023.2 as baseline
 * Fixed: Allow module level keywords for module fields. (#1135)
