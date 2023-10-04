@@ -43,6 +43,8 @@ import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import com.intellij.util.containers.ContainerUtil;
@@ -110,12 +112,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   public HaxeClassModel getModel() {
     if (_model == null) {
-      if (this instanceof HaxeEnumDeclaration) {
-        _model = new HaxeEnumModelImpl((HaxeEnumDeclaration)this);
-      } else if (this instanceof HaxeExternClassDeclaration) {
-        _model = new HaxeExternClassModel((HaxeExternClassDeclaration)this);
-      } else if (this instanceof HaxeAbstractTypeDeclaration) {
-        HaxeAbstractTypeDeclaration abstractDeclaration = (HaxeAbstractTypeDeclaration)this;
+      if (this instanceof HaxeEnumDeclaration enumDeclaration) {
+        _model = new HaxeEnumModelImpl(enumDeclaration);
+      } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) {
+        _model = new HaxeExternClassModel(externClassDeclaration);
+      } else if (this instanceof HaxeAbstractTypeDeclaration abstractDeclaration) {
         if (abstractDeclaration.isEnum()) {
           _model = new HaxeAbstractEnumModel(abstractDeclaration);
         } else {
@@ -183,8 +184,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  @Override
-  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
+
+  private List<HaxeMethod> _getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
     // XXX: This implementation is equivalent to getAllMethods().  That
     //      may not be what we want.
     final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(resolver, this);
@@ -198,9 +199,36 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
+    // cache Methods when no resolver values
+    if (resolver == null || resolver.isEmpty()) {
+      return CachedValuesManager.getCachedValue(this, () -> {
+        List<HaxeMethod> methods = _getHaxeMethods(null);
+        return new CachedValueProvider.Result<>(methods, this);
+      });
+    }
+    return _getHaxeMethods(resolver);
+
+  }
+
+
+  @NotNull
+  private List<HaxeNamedComponent> _getHaxeFields(@Nullable HaxeGenericResolver resolver) {
     final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(resolver, this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
+  }
+  @NotNull
+  @Override
+  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+    // cache Methods when no resolver values
+    if (resolver == null || resolver.isEmpty()) {
+      return CachedValuesManager.getCachedValue(this, () -> {
+        List<HaxeNamedComponent> components = _getHaxeFields(null);
+        return new CachedValueProvider.Result<>(components, this);
+      });
+    }
+    return _getHaxeFields(resolver);
+
   }
 
   @NotNull
@@ -403,10 +431,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return haxeFields.toArray(psiFields);
   }
 
+  @NotNull
+  private PsiField[] _getAllFields() {
+    return PsiClassImplUtil.getAllFields(this);
+  }
   @Override
   @NotNull
   public PsiField[] getAllFields() {
-    return PsiClassImplUtil.getAllFields(this);
+      return CachedValuesManager.getCachedValue(this, () -> {
+        @NotNull PsiField[] fields = _getAllFields();
+        return new CachedValueProvider.Result<>(fields, this);
+      });
   }
 
   @Override
@@ -415,12 +450,19 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return PsiClassImplUtil.findFieldByName(this, name, checkBases);
   }
 
-  @Override
   @NotNull
-  public PsiMethod[] getMethods() {
+  private PsiMethod[] _getMethods() {
     final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.getNamedSubComponents(this);
     final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
     return methods.toArray(PsiMethod.EMPTY_ARRAY); // size is irrelevant
+  }
+  @Override
+  @NotNull
+  public PsiMethod[] getMethods() {
+      return CachedValuesManager.getCachedValue(this, () -> {
+        @NotNull PsiMethod[] methods1 = _getMethods();
+        return new CachedValueProvider.Result<>(methods1, this);
+      });
   }
 
   @Override

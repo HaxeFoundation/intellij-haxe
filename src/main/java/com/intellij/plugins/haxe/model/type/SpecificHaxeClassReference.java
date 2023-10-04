@@ -41,7 +41,8 @@ import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<String> CACHE_NAME_KEY = new Key<>("HAXE_CACHE_NAME_KEY");
-  private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_KEY = new Key<>("HAXE_COMPATIBLE_TYPES");
+  private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
+  private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
 
@@ -208,11 +209,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (name == null) {
       return null;
     }
+
     HaxeClass aClass = this.getHaxeClassReference().getHaxeClass();
     if (aClass == null) {
       return null;
     }
-    AbstractHaxeNamedComponent method = (AbstractHaxeNamedComponent)aClass.findHaxeMethodByName(name, resolver);
+
+    HaxeNamedComponent method = aClass.findHaxeMethodByName(name, resolver);
     if (method != null) {
       if (context.root == method) return null;
       if (isMacroMethod(method)) {
@@ -222,7 +225,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
       return HaxeTypeResolver.getMethodFunctionType(method, resolver);
     }
-    AbstractHaxeNamedComponent field = (AbstractHaxeNamedComponent)aClass.findHaxeFieldByName(name, resolver);
+
+    HaxeNamedComponent field = aClass.findHaxeFieldByName(name, resolver);
     if (field != null) {
       if (context.root == field) return null;
       return HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
@@ -254,12 +258,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       //      y = this; // <<< ERROR SomethingElse should be Null<SomethingElse>.
       //    }
       //  }
-      Set<SpecificHaxeClassReference> result = context.getUserData(COMPATIBLE_TYPES_KEY);
+      Key<Set<SpecificHaxeClassReference>> key = direction == Compatibility.ASSIGNABLE_TO
+                                                 ? COMPATIBLE_TYPES_TO_KEY
+                                                 : COMPATIBLE_TYPES_FROM_KEY;
+
+      Set<SpecificHaxeClassReference> result = context.getUserData(key);
+
       if (result == null) {
         processedElements.get().clear();
         result = getCompatibleTypesInternal(direction);
         result.add(this);
-        context.putUserData(COMPATIBLE_TYPES_KEY, result);
+        context.putUserData(key, result);
       }
       return result;
     } else {
@@ -294,8 +303,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (model == null) return;
     String name = model.getName();
     String cacheName = this.context.getUserData(CACHE_NAME_KEY);
-    if(true || !name.equals(cacheName)) {
-      context.putUserData(COMPATIBLE_TYPES_KEY, null);
+    //if(true || !name.equals(cacheName)) {
+    if(cacheName != null && !name.equals(cacheName)) {
+      context.putUserData(COMPATIBLE_TYPES_TO_KEY, null);
+      context.putUserData(COMPATIBLE_TYPES_FROM_KEY, null);
       context.putUserData(INFER_TYPES_KEY, null);
       context.putUserData(CACHE_NAME_KEY, name);
     }
@@ -317,14 +328,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     emptyCollectionAssignment(direction, list);
 
     if (!model.isAbstractType()) {
-      if (model.haxeClass instanceof HaxeTypedefDeclaration) {
-        SpecificHaxeClassReference type = ((AbstractHaxeTypeDefImpl)model.haxeClass).getTargetClass(genericResolver);
+      if (model.haxeClass instanceof AbstractHaxeTypeDefImpl typedefDeclaration) {
+        SpecificHaxeClassReference type = typedefDeclaration.getTargetClass(genericResolver);
         if (type != null) {
           list.add(type);
           list.addAll(type.getCompatibleTypesInternal(direction));
         }
-      } else
-      for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
+      } else for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
           if (model.isInterface()) list.add(type);
@@ -534,7 +544,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
                                                                    @Nullable HaxeGenericResolver genericResolver) {
     SpecificHaxeClassReference type = originalType;
     if (type == null) return null;
-    if (genericResolver == null) return type;
+    if (genericResolver == null || genericResolver.isEmpty()) return type;
 
     if (type.canBeTypeVariable()) {
       String typeVariableName = type.getHaxeClassReference().name;
@@ -586,12 +596,27 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public List<HaxeMethodModel> getOperatorOverloads(String operator) {
     if (classReference.classModel == null) return List.of();
-    List<HaxeMethodModel> members = classReference.classModel.getMembers(null).stream()
-      .filter( model -> model instanceof HaxeMethodModel)
-      .map( model -> (HaxeMethodModel) model)
-      .toList();
+    List<HaxeMethodModel> members = new ArrayList<>();
+    for (HaxeMemberModel memberModel : classReference.classModel.getMembers(null)) {
+      if (memberModel instanceof HaxeMethodModel methodModel) {
+        members.add(methodModel);
+      }
+    }
 
-    List<HaxeMethodModel> list = members.stream().filter(HaxeMemberModel::hasOperatorMeta).toList();
-    return list.stream().filter(model -> model.isOperator(operator)).toList();
+    List<HaxeMethodModel> list = new ArrayList<>();
+    for (HaxeMethodModel member : members) {
+      if (member.hasOperatorMeta()) {
+        list.add(member);
+      }
+    }
+
+    List<HaxeMethodModel> result = new ArrayList<>();
+    for (HaxeMethodModel model : list) {
+      if (model.isOperator(operator)) {
+        result.add(model);
+      }
+    }
+    
+    return result;
   }
 }

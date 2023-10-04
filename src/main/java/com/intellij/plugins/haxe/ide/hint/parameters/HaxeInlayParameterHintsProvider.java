@@ -90,25 +90,26 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   }
 
   private void handleEnumValueCOnstructor(HaxeCallExpression callExpression, HaxeEnumValueModel enumValueModel, List<InlayInfo> infoList) {
-    List<HaxeExpression> expressionList =
-      callExpression.getExpressionList() == null ? List.of() : callExpression.getExpressionList().getExpressionList();
-    HaxeCallExpressionUtil.CallExpressionValidation validation =
-      HaxeCallExpressionUtil.checkEnumConstructor(callExpression, enumValueModel);
+    HaxeCallExpressionList expressionList = callExpression.getExpressionList();
+    List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
+
+    HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkEnumConstructor(callExpression, enumValueModel);
+
     if (enumValueModel.getConstructorParameters() != null) {
       List<HaxeParameterModel> parameters = MapParametersToModel(enumValueModel.getConstructorParameters());
-      processArguments(validation.getArgumentToParameterIndex(), expressionList, parameters, infoList);
+      processArguments(validation.getArgumentToParameterIndex(), expressions, parameters, infoList);
     }
   }
 
   private void handleMethodHints(HaxeCallExpression callExpression, HaxeMethodModel model, List<InlayInfo> infoList) {
-    List<HaxeExpression> expressionList =
-      callExpression.getExpressionList() == null ? List.of() : callExpression.getExpressionList().getExpressionList();
-    HaxeCallExpressionUtil.CallExpressionValidation validation =
-      HaxeCallExpressionUtil.checkMethodCall(callExpression, model.getMethod());
+    HaxeCallExpressionList expressionList = callExpression.getExpressionList();
+    List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
+
+    HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, model.getMethod());
 
     if (validation.isCompleted()) {
       List<HaxeParameterModel> parameters = model.getParameters();
-      processArguments(validation.getArgumentToParameterIndex(), expressionList, parameters, infoList);
+      processArguments(validation.getArgumentToParameterIndex(), expressions, parameters, infoList);
     }
   }
 

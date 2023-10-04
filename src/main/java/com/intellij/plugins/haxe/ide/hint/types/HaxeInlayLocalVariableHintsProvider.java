@@ -28,30 +28,30 @@ public class HaxeInlayLocalVariableHintsProvider implements InlayHintsProvider {
     @Override
     public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
       if (element instanceof HaxeLocalVarDeclaration varDeclaration) {
-        handleLocalVarDeclarationHints(element, sink, varDeclaration);
+        handleLocalVarDeclarationHints(sink, varDeclaration);
       }
     }
 
 
-    private static void handleLocalVarDeclarationHints(@NotNull PsiElement element,
-                                                       @NotNull InlayTreeSink sink,
-                                                       HaxeLocalVarDeclaration varDeclaration) {
+    private static void handleLocalVarDeclarationHints(@NotNull InlayTreeSink sink, @NotNull HaxeLocalVarDeclaration varDeclaration) {
 
-      ResultHolder type;
-      if (varDeclaration.getTypeTag() == null && varDeclaration.getVarInit() != null) {
-
+      HaxeTypeTag tag = varDeclaration.getTypeTag();
+      if (tag == null) {
+        ResultHolder type;
         HaxeVarInit init = varDeclaration.getVarInit();
-        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init);
-        type = HaxeTypeResolver.getPsiElementType(init, element, resolver);
+        if (init != null) {
+          HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init);
+          type = HaxeTypeResolver.getPsiElementType(init, varDeclaration, resolver);
+        } else {
+          // attempts to resolve type from usage
+          type = HaxeTypeResolver.getPsiElementType(varDeclaration, null);
+        }
 
-      } else {
-        type = HaxeTypeResolver.getPsiElementType(element, null);
-      }
-
-      if (!type.isUnknown() && !type.getType().isInvalid()) {
-        int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
-        InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
+        if (!type.isUnknown() && !type.getType().isInvalid()) {
+          int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
+          InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
+          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
+        }
       }
     }
 

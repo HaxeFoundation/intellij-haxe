@@ -63,8 +63,9 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getMethodFunctionType(PsiElement comp, @Nullable HaxeGenericResolver resolver) {
-    if (comp instanceof HaxeMethod) {
-      return ((HaxeMethod)comp).getModel().getFunctionType(resolver == null ? null : resolver.withoutUnknowns()).createHolder();
+    if (comp instanceof HaxeMethod method) {
+      resolver = resolver == null ? null : resolver.withoutUnknowns();
+      return method.getModel().getFunctionType(resolver).createHolder();
     }
     // @TODO: error
     return SpecificTypeReference.getInvalid(comp).createHolder();
@@ -77,8 +78,8 @@ public class HaxeTypeResolver {
         return getFunctionReturnType(comp, resolver);
       } else if (comp instanceof HaxeFunctionLiteral) {
         return getFunctionReturnType(comp, resolver);
-      } else if (comp instanceof HaxeEnumValueDeclaration) {
-        return getEnumReturnType((HaxeEnumValueDeclaration)comp, resolver);
+      } else if (comp instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
+        return getEnumReturnType(enumValueDeclaration, resolver);
       } else {
         return getFieldType(comp, resolver);
       }
@@ -89,7 +90,7 @@ public class HaxeTypeResolver {
     }
   }
 
-  @Nullable
+  @NotNull
   public static ResultHolder getEnumReturnType(HaxeEnumValueDeclaration comp, HaxeGenericResolver resolver) {
     ResultHolder result = getTypeFromTypeTag(comp.getReturnType(), comp.getParent());
     if (result.isUnknown()) {
@@ -107,19 +108,18 @@ public class HaxeTypeResolver {
       return abstractEnumType;
     }
 
-    if (comp instanceof HaxePsiField) {
+    if (comp instanceof HaxePsiField psiField) {
       ResultHolder result = null;
 
-      HaxePsiField decl = (HaxePsiField)comp;
-      HaxeVarInit init = decl.getVarInit();
+      HaxeVarInit init = psiField.getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
         final ResultHolder initType = HaxeTypeResolver.getPsiElementType(child, resolver);
-        boolean isConstant = decl.hasModifierProperty(HaxePsiModifier.INLINE) && decl.isStatic();
+        boolean isConstant = psiField.hasModifierProperty(HaxePsiModifier.INLINE) && psiField.isStatic();
         result = isConstant ? initType : initType.withConstantValue(null);
       }
 
-      HaxeTypeTag typeTag = decl.getTypeTag();
+      HaxeTypeTag typeTag = psiField.getTypeTag();
       if (typeTag != null) {
         ResultHolder typeFromTag = getTypeFromTypeTag(typeTag, comp);
         if(resolver != null) {
@@ -131,7 +131,10 @@ public class HaxeTypeResolver {
           result = typeFromTag.withConstantValue(initConstant);
         }
       }
-
+      // look for usage (only relevant for  localVars)
+      if (init == null && typeTag == null) {
+        HaxeTypeResolver.getPsiElementType(psiField, null);
+      }
       if (result != null) {
         return result;
       }
@@ -231,8 +234,8 @@ public class HaxeTypeResolver {
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver) {
     SpecificTypeReference typeReference = result.getType();
     if (resolver != null) {
-      if (typeReference instanceof SpecificHaxeClassReference && typeReference.canBeTypeVariable()) {
-        ResultHolder resolved = resolver.resolve(((SpecificHaxeClassReference)typeReference).getClassName());
+      if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.canBeTypeVariable()) {
+        ResultHolder resolved = resolver.resolve(haxeClassReference.getClassName());
         if (null != resolved) {
           result = resolved;
         }
@@ -250,12 +253,13 @@ public class HaxeTypeResolver {
 
   @NotNull
   static private ResultHolder getFunctionReturnType(HaxeNamedComponent comp, HaxeGenericResolver resolver) {
-    if (comp instanceof HaxeMethodImpl) {
-      HaxeTypeTag typeTag = ((HaxeMethodImpl)comp).getTypeTag();
+    if (comp instanceof HaxeMethodImpl method) {
+      HaxeTypeTag typeTag = method.getTypeTag();
       if (typeTag != null) {
         if (resolver != null) {
-          if (typeTag.getTypeOrAnonymous() != null) {
-            String text = typeTag.getTypeOrAnonymous().getText();
+          HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+          if (typeOrAnonymous != null) {
+            String text = typeOrAnonymous.getText();
             ResultHolder resolve = resolver.resolve(text);
             if (resolve != null && !resolve.isUnknown()) {
               return resolve;
@@ -270,13 +274,20 @@ public class HaxeTypeResolver {
       HaxeClassModel declaringClass = constructor.getModel().getDeclaringClass();
       ResultHolder type = declaringClass.getInstanceType();
       if (resolver!= null) {
-        type = resolver.withoutUnknowns().resolve(type);;
+        type = resolver.withoutUnknowns().resolve(type);
       }
       return type;
     } else if (comp instanceof HaxeMethod method) {
       HaxeMethodModel methodModel = method.getModel();
       PsiElement psi = methodModel.getBodyPsi();
       if (psi == null) psi = methodModel.getBasePsi();
+
+      //Performance tweak avoiding  full body evaluation if it does not contain any return statements (no returns = void)
+      HaxeReturnStatement returnStatement = findReturnStatement(psi);
+      if (returnStatement == null ||  isVoidReturn(returnStatement)) {
+        return SpecificHaxeClassReference.getVoid(psi).createHolder();
+      }
+
       final HaxeExpressionEvaluatorContext context = getPsiElementType(psi, (AnnotationHolder)null, resolver);
       return resolveParameterizedType(context.getReturnType(), resolver);
     } else if (comp instanceof HaxeFunctionLiteral) {
@@ -287,19 +298,37 @@ public class HaxeTypeResolver {
     }
   }
 
+  @Nullable
+  private static HaxeReturnStatement findReturnStatement(PsiElement psi) {
+    if (psi instanceof  HaxeReturnStatement statement){ return statement;
+    } else {
+       return PsiTreeUtil.findChildOfType(psi, HaxeReturnStatement.class);
+    }
+  }
+
+  private static boolean isVoidReturn(HaxeReturnStatement statement) {
+    //instead of checking all possible types that a return statement might have
+    // we just check if its only child is ";" to determine if its a void return
+    PsiElement child = statement.getFirstChild();
+    if (child == null || child.getNextSibling() == null || child.getNextSibling().textMatches(";"))
+      return true;
+    return false;
+  }
+
   @NotNull
   static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
     if (typeTag != null) {
-      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
-      final HaxeFunctionType functionType = typeTag.getFunctionType();
 
+      final HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
       if (typeOrAnonymous != null) {
         return getTypeFromTypeOrAnonymous(typeOrAnonymous);
       }
 
+      final HaxeFunctionType functionType = typeTag.getFunctionType();
       if (functionType != null) {
         return getTypeFromFunctionType(functionType);
       }
+
     }
 
     return SpecificTypeReference.getUnknown(context).createHolder();
@@ -328,10 +357,14 @@ public class HaxeTypeResolver {
     ResultHolder returnValue = null;
     HaxeFunctionReturnType returnType = type.getFunctionReturnType();
     if (returnType != null) {
-      if (returnType.getFunctionType() != null) {
-        returnValue = getTypeFromFunctionType(returnType.getFunctionType());
-      } else if (returnType.getTypeOrAnonymous() != null) {
-        returnValue = getTypeFromTypeOrAnonymous(returnType.getTypeOrAnonymous());
+      HaxeFunctionType functionType = returnType.getFunctionType();
+      if (functionType != null) {
+        returnValue = getTypeFromFunctionType(functionType);
+      } else {
+        HaxeTypeOrAnonymous typeOrAnonymous = returnType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null) {
+          returnValue = getTypeFromTypeOrAnonymous(typeOrAnonymous);
+        }
       }
     }
 
@@ -353,11 +386,12 @@ public class HaxeTypeResolver {
   }
 
   public static ResultHolder getTypeFromFunctionArgument(HaxeFunctionArgument argument) {
-    if (argument.getFunctionType() != null) {
-      return getTypeFromFunctionType(argument.getFunctionType());
-    } else if (argument.getTypeOrAnonymous() != null) {
-      return getTypeFromTypeOrAnonymous(argument.getTypeOrAnonymous());
-    }
+    HaxeFunctionType functionType = argument.getFunctionType();
+    if (functionType != null) return getTypeFromFunctionType(functionType);
+
+     HaxeTypeOrAnonymous typeOrAnonymous = argument.getTypeOrAnonymous();
+    if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+
     return SpecificTypeReference.getUnknown(argument).createHolder();
   }
 
@@ -493,15 +527,16 @@ public class HaxeTypeResolver {
       ResultHolder resultHolder = null;
       HaxeResolveResult result = expression.resolveHaxeClass();
       HaxeClass haxeClass = result.getHaxeClass();
-      if (haxeClass instanceof HaxeSpecificFunction) {
-        resultHolder = new ResultHolder(SpecificFunctionReference.create((HaxeSpecificFunction)haxeClass));
+      if (haxeClass instanceof HaxeSpecificFunction specificFunction) {
+        resultHolder = new ResultHolder(SpecificFunctionReference.create(specificFunction));
       } else if (null != haxeClass) {
         resultHolder = new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
         // if class reference (not chain) wrap as Class<T>
         // ex: var myTypeVar:Class<MyClass> = MyClass;
+        String className = haxeClass.getName();
         if(element.getParent() instanceof  HaxeVarInit // is init expression
-           && haxeClass.getName() != null // must have name (filtering out anonymous types)
-           && element.textMatches(haxeClass.getName())  // identical classname and elementText
+           && className != null // must have name (filtering out anonymous types)
+           && element.textMatches(className)  // identical classname and elementText
            && element.getNextSibling() == null) { // not part of a expression chain (MyClass.someMember)
           resultHolder = HaxeTypeCompatible.wrapType(resultHolder, element, haxeClass.isEnum()).createHolder();
         }

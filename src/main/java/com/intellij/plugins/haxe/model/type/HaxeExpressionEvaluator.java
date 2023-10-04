@@ -390,11 +390,14 @@ public class HaxeExpressionEvaluator {
     }
     if (element instanceof HaxeFieldDeclaration declaration) {
       HaxeTypeTag typeTag = declaration.getTypeTag();
-      HaxeVarInit init = declaration.getVarInit();
+
       if (typeTag!= null) {
         return HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-      }else if (init != null) {
-        return handle(init.getExpression(), context, resolver);
+      }else {
+        HaxeVarInit init = declaration.getVarInit();
+        if (init != null) {
+          return handle(init.getExpression(), context, resolver);
+        }
       }
     }
 
@@ -580,9 +583,10 @@ public class HaxeExpressionEvaluator {
       boolean resolved = !typeHolder.getType().isUnknown();
       for (int n = 1; n < children.length; n++) {
         PsiElement child = children[n];
-        if (typeHolder.getType().isString() && typeHolder.getType().isConstant() && child.textMatches("code")) {
-          String str = (String)typeHolder.getType().getConstant();
-          typeHolder = SpecificTypeReference.getInt(element, (str != null && str.length() >= 1) ? str.charAt(0) : -1).createHolder();
+        SpecificTypeReference typeReference = typeHolder.getType();
+        if (typeReference.isString() && typeReference.isConstant() && child.textMatches("code")) {
+          String str = (String)typeReference.getConstant();
+          typeHolder = SpecificTypeReference.getInt(element, (str != null && !str.isEmpty()) ? str.charAt(0) : -1).createHolder();
           if (str == null || str.length() != 1) {
             context.addError(element, "String must be a single UTF8 char");
           }
@@ -591,7 +595,7 @@ public class HaxeExpressionEvaluator {
 
           // unwrap Null
           //TODO make util for unwrap/get underlying type of Null<T>? (or fix resolver ?)
-          if (typeHolder.getType().isNullType()) {
+          if (typeReference.isNullType()) {
             typeHolder = typeHolder.getClassType().getSpecifics()[0];
           }
 
@@ -602,8 +606,10 @@ public class HaxeExpressionEvaluator {
           // any parameters provided/set in the class will override any from the calling context.
           HaxeGenericResolver localResolver = new HaxeGenericResolver();
           localResolver.addAll(resolver);
-          if (null != typeHolder.getClassType()) {
-            localResolver.addAll(typeHolder.getClassType().getGenericResolver());
+
+          SpecificHaxeClassReference classType = typeHolder.getClassType();
+          if (null != classType) {
+            localResolver.addAll(classType.getGenericResolver());
           }
           String accessName = child.getText();
           ResultHolder access = typeHolder.getType().access(accessName, context, localResolver);
@@ -635,14 +641,16 @@ public class HaxeExpressionEvaluator {
             PsiElement resolve = referenceExpression.resolve();
             if (resolve != null) {
               // small attempt at recursion guard
-              if (resolve !=element) {
+              if (resolve != element) {
                 typeHolder = handle(resolve, context, resolver);
               }
             }
           }
           if (subelement instanceof HaxeClass haxeClass) {
 
-            HaxeClassReference classReference = new HaxeClassReference(haxeClass.getModel(), element);
+            HaxeClassModel model = haxeClass.getModel();
+            HaxeClassReference classReference = new HaxeClassReference(model, element);
+
             if(haxeClass.isGeneric()) {
               @NotNull ResultHolder[] specifics = resolver.getSpecificsFor(classReference);
               typeHolder = SpecificHaxeClassReference.withGenerics(classReference, specifics).createHolder();
@@ -654,7 +662,7 @@ public class HaxeExpressionEvaluator {
             if (reference instanceof HaxeReferenceExpressionImpl expression) {
               if (expression.isPureClassReferenceOf(haxeClass.getName())) {
                 // wrap in Class<>
-                SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(haxeClass.getModel().getReference());
+                SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
                 SpecificHaxeClassReference wrappedClass =
                   SpecificHaxeClassReference.getStdClass(CLASS, element, new ResultHolder[]{new ResultHolder(originalClass)});
                 typeHolder = wrappedClass.createHolder();
@@ -662,13 +670,16 @@ public class HaxeExpressionEvaluator {
             }
           }
           else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
-            if(fieldDeclaration.getVarInit() != null) {
-              HaxeVarInit init = fieldDeclaration.getVarInit();
+            HaxeVarInit init = fieldDeclaration.getVarInit();
+            if(init != null) {
               HaxeExpression initExpression = init.getExpression();
               HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
               typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
-            }else if (fieldDeclaration.getTypeTag() != null){
-              typeHolder = HaxeTypeResolver.getTypeFromTypeTag(fieldDeclaration.getTypeTag(), fieldDeclaration);
+            }else {
+              HaxeTypeTag tag = fieldDeclaration.getTypeTag();
+              if (tag != null){
+                typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, fieldDeclaration);
+              }
             }
           }
           else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
@@ -691,8 +702,8 @@ public class HaxeExpressionEvaluator {
             }
           }
           else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration) {
-            if ( varDeclaration.getVarInit() != null) {
-              HaxeVarInit init = varDeclaration.getVarInit();
+            HaxeVarInit init = varDeclaration.getVarInit();
+            if (init != null) {
               HaxeExpression initExpression = init.getExpression();
               HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
               typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
@@ -703,9 +714,9 @@ public class HaxeExpressionEvaluator {
           else if (subelement instanceof HaxeForStatement forStatement) {
             // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
             final HaxeComponentName name = forStatement.getComponentName();
-            final HaxeIterable iterable = forStatement.getIterable();
             // if element text matches  for loops  iterator  i guess we can consider it a match?
             if (name != null && element.textMatches(name)) {
+              final HaxeIterable iterable = forStatement.getIterable();
               if (iterable != null) {
                 ResultHolder iterator = handle(iterable, context, resolver);
                 // "unwrap" null type  if Null<T>
@@ -754,7 +765,7 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeCallExpression callExpression) {
-      HaxeExpression callLeft = ((HaxeCallExpression)element).getExpression();
+      HaxeExpression callLeft = callExpression.getExpression();
       SpecificTypeReference functionType = handle(callLeft, context, resolver).getType();
 
       // @TODO: this should be innecessary when code is working right!
@@ -909,8 +920,8 @@ public class HaxeExpressionEvaluator {
 
       // Check if it's a comprehension.
       if (list != null) {
-        final List<HaxeExpression> list1 = list.getExpressionList();
-        if (list1.isEmpty()) {
+        final List<HaxeExpression> expressionList = list.getExpressionList();
+        if (expressionList.isEmpty()) {
           final PsiElement child = list.getFirstChild();
           if ((child instanceof HaxeForStatement) || (child instanceof HaxeWhileStatement)) {
             return SpecificTypeReference.createArray(handle(child, context, resolver), element).createHolder();
@@ -1069,22 +1080,25 @@ public class HaxeExpressionEvaluator {
           return left.getArrayElementType().getType().withConstantValue(constant).createHolder();
         }
         //if not native array, look up ArrayAccessGetter method and use result
-        if(left instanceof  SpecificHaxeClassReference classReference && classReference.getHaxeClass() != null) {
-          HaxeNamedComponent getter = classReference.getHaxeClass().findArrayAccessGetter(resolver);
-          if (getter instanceof  HaxeMethodDeclaration methodDeclaration) {
-            HaxeMethodModel methodModel = methodDeclaration.getModel();
-            HaxeGenericResolver localResolver = classReference.getGenericResolver();
-            HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
-            localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
-            ResultHolder returnType = methodModel.getReturnType(localResolver);
-            if (returnType.getType().isNullType())localResolver.resolve(returnType);
-            if (returnType != null) return returnType;
-          }
-          // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
-          else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
-            HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
-            HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
-            return resolvedInterface.getGenericResolver().resolve("T");
+        if(left instanceof SpecificHaxeClassReference classReference) {
+          HaxeClass haxeClass = classReference.getHaxeClass();
+          if (haxeClass != null) {
+            HaxeNamedComponent getter = haxeClass.findArrayAccessGetter(resolver);
+            if (getter instanceof HaxeMethodDeclaration methodDeclaration) {
+              HaxeMethodModel methodModel = methodDeclaration.getModel();
+              HaxeGenericResolver localResolver = classReference.getGenericResolver();
+              HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
+              localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
+              ResultHolder returnType = methodModel.getReturnType(localResolver);
+              if (returnType.getType().isNullType()) localResolver.resolve(returnType);
+              if (returnType != null) return returnType;
+            }
+            // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
+            else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
+              HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
+              HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
+              return resolvedInterface.getGenericResolver().resolve("T");
+            }
           }
         }
       }
@@ -1138,6 +1152,7 @@ public class HaxeExpressionEvaluator {
             for (PsiElement statement : possibleStatements) {
               if (null != statement) {
                 returnType = handle(statement, context, resolver);
+                break;
               }
             }
           }
@@ -1248,13 +1263,13 @@ public class HaxeExpressionEvaluator {
       }
     }
 
-    if (element instanceof HaxeTypeCheckExpr) {
+    if (element instanceof HaxeTypeCheckExpr typeCheckExpr) {
       PsiElement[] children = element.getChildren();
       if (children.length == 2) {
         SpecificTypeReference statementType = handle(children[0], context, resolver).getType();
         SpecificTypeReference assertedType = SpecificTypeReference.getUnknown(children[1]);
         if (children[1] instanceof HaxeTypeOrAnonymous) {
-          HaxeTypeOrAnonymous toa = ((HaxeTypeCheckExpr)element).getTypeOrAnonymous();
+          HaxeTypeOrAnonymous toa = typeCheckExpr.getTypeOrAnonymous();
           if (toa != null ) {
             assertedType = HaxeTypeResolver.getTypeFromTypeOrAnonymous(toa).getType();
           }
@@ -1366,7 +1381,11 @@ public class HaxeExpressionEvaluator {
     if (!context.isReportingErrors()) return;
 
     List<Argument> parameterTypes = ftype.getArguments();
-    int len = Math.min(parameterTypes.size(), parameterExpressions.size());
+
+    int parameterTypesSize = parameterTypes.size();
+    int parameterExpressionsSize = parameterExpressions.size();
+    int len = Math.min(parameterTypesSize, parameterExpressionsSize);
+
     for (int n = 0; n < len; n++) {
       ResultHolder type = HaxeTypeResolver.resolveParameterizedType(parameterTypes.get(n).getType(), resolver);
       HaxeExpression expression = parameterExpressions.get(n);
@@ -1385,13 +1404,13 @@ public class HaxeExpressionEvaluator {
 
     //log.debug(ftype.getDebugString());
     // More parameters than expected
-    if (parameterExpressions.size() > parameterTypes.size()) {
-      for (int n = parameterTypes.size(); n < parameterExpressions.size(); n++) {
+    if (parameterExpressionsSize > parameterTypesSize) {
+      for (int n = parameterTypesSize; n < parameterExpressionsSize; n++) {
         context.addError(parameterExpressions.get(n), "Unexpected argument");
       }
     }
     // Less parameters than expected
-    else if (parameterExpressions.size() < ftype.getNonOptionalArgumentsCount()) {
+    else if (parameterExpressionsSize < ftype.getNonOptionalArgumentsCount()) {
       context.addError(callelement, "Less arguments than expected");
     }
   }

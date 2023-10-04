@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,7 @@ import java.util.List;
 
 public class HaxeMacroUtil {
 
-  public static boolean isMacroMethod(AbstractHaxeNamedComponent method) {
+  public static boolean isMacroMethod(HaxeNamedComponent method) {
     if(method instanceof  HaxeMethodDeclaration methodDeclaration) {
       // todo make a better solution to check if macro
       return methodDeclaration.getMethodModifierList().stream().anyMatch(modifier -> modifier.getText().trim().equals("macro"));
