@@ -357,8 +357,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
           || aClass.getQualifiedName().equals("haxe.macro.Expr")) {
         HaxeGenericResolver resolver = result.getGenericResolver();
-        @NotNull ResultHolder[] specifics = resolver.getSpecifics();
-        if (specifics.length > 0) {
+        if (resolver.isEmpty()) {
           ResultHolder resolve = resolver.resolve("T");
           if (resolve != null && !resolve.isUnknown()) {
             SpecificHaxeClassReference type = resolve.getClassType();
@@ -401,12 +400,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (isType(HaxeSuperExpression.class)) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
       assert haxeClass != null;
-      if (haxeClass.getHaxeExtendsList().isEmpty()) {
+      List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
+      if (extendsList.isEmpty()) {
         return HaxeResolveResult.createEmpty();
       }
-      final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
-      final HaxeResolveResult superClassResolveResult = ((HaxeReference)superExpression).resolveHaxeClass();
-      superClassResolveResult.specializeByParameters(haxeClass.getHaxeExtendsList().get(0).getTypeParam());
+      HaxeType first = extendsList.get(0);
+      final HaxeReference superExpression = first.getReferenceExpression();
+      final HaxeResolveResult superClassResolveResult = superExpression.resolveHaxeClass();
+      superClassResolveResult.specializeByParameters(first.getTypeParam());
       return superClassResolveResult;
     }
 
@@ -416,9 +417,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isType(HaxeLiteralExpression.class)) {
       final PsiElement firstChild = getFirstChild();
-      if (firstChild instanceof LeafPsiElement) {
-        final LeafPsiElement child = (LeafPsiElement)getFirstChild();
-        final IElementType childTokenType = child == null ? null : child.getElementType();
+      if (firstChild instanceof LeafPsiElement child) {
+        final IElementType childTokenType = child.getElementType();
         return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getLiteralClassName(childTokenType), this));
       }
       // Else, it's a block statement and not a named literal.
@@ -691,7 +691,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (isType(resolve, HaxeAnonymousTypeField.class)) {
       HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
       HaxeTypeTag typeTag = field.getTypeTag();
-      if (null != typeTag && typeTag.getTypeOrAnonymous() != null) {
+      if (typeTag.getTypeOrAnonymous() != null) {
         HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
           if (typeOrAnonymous.getAnonymousType() != null) {
@@ -701,8 +701,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             HaxeType type = typeOrAnonymous.getType();
             if (type != null) {
               PsiElement resolvedType = type.getReferenceExpression().resolve();
-              if (resolvedType instanceof HaxeGenericListPart) {
-                final HaxeComponentName componentName = ((HaxeGenericListPart)resolvedType).getComponentName();
+              if (resolvedType instanceof HaxeGenericListPart genericListPart) {
+                final HaxeComponentName componentName = genericListPart.getComponentName();
                 final HaxeGenericSpecialization specialization = getSpecialization();
                 if (specialization != null && componentName != null) {
                   String genericName = componentName.getText();

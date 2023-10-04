@@ -92,7 +92,11 @@ public class HaxeTypeCompatible {
   }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
-    return ref instanceof SpecificFunctionReference || ref.isFunction() || isTypeDefFunction(ref) || isAbstractAssignableToFunction(ref) || enumValueWithConstructor(ref);
+    return ref instanceof SpecificFunctionReference
+           || ref.isFunction()
+           || isTypeDefFunction(ref)
+           || isAbstractAssignableToFunction(ref)
+           || enumValueWithConstructor(ref);
   }
 
   private static boolean enumValueWithConstructor(SpecificTypeReference ref) {
@@ -104,8 +108,14 @@ public class HaxeTypeCompatible {
 
   private static boolean isAbstractAssignableToFunction(SpecificTypeReference ref) {
     if (ref instanceof  SpecificHaxeClassReference classReference) {
-      Set<SpecificHaxeClassReference> types = classReference.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-      return types.stream().anyMatch(SpecificTypeReference::isFunction);
+      if (classReference.isAbstractType()) {
+        Set<SpecificHaxeClassReference> types = classReference.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
+        for (SpecificHaxeClassReference type : types) {
+          if (type.isFunction()) {
+            return true;
+          }
+        }
+      }
     }
     return false;
   }
@@ -120,13 +130,11 @@ public class HaxeTypeCompatible {
 
   @NotNull
   static private SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
-    if (ref instanceof SpecificFunctionReference)
-      return (SpecificFunctionReference)ref;
+    if (ref instanceof SpecificFunctionReference functionReference) return functionReference;
 
     if (ref.isFunction()) {
       HaxeClass classReference = ((SpecificHaxeClassReference)ref).getHaxeClass();
-      if (classReference instanceof HaxeSpecificFunction) {
-        HaxeSpecificFunction func = (HaxeSpecificFunction)classReference;
+      if (classReference instanceof HaxeSpecificFunction func) {
         return SpecificFunctionReference.create(func);
       }
       // The Function class unifies with (can be assigned to by) any function.

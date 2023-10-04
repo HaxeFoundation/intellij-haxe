@@ -691,8 +691,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
     // TODO: Merge with resolveByClassAndSymbol()??  It is very similar to this method.
 
-    String identifier =
-      reference instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)reference).getIdentifier().getText() : reference.getText();
+    String identifier = reference instanceof HaxeReferenceExpression referenceExpression ? referenceExpression.getIdentifier().getText() : reference.getText();
     final HaxeResolveResult leftExpression = lefthandExpression.resolveHaxeClass();
     if (leftExpression.getHaxeClass() != null) {
       HaxeMemberModel member = leftExpression.getHaxeClass().getModel().getMember(identifier, leftExpression.getGenericResolver());

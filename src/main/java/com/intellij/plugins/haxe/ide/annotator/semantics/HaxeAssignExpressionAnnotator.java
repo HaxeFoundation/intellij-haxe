@@ -44,7 +44,8 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     if ((rhs instanceof HaxeMapLiteral || rhs instanceof HaxeArrayLiteral) && lhsType.isClassType() && rhsType.isClassType()) {
       ResultHolder[] lhsSpecifics = lhsType.getClassType().getSpecifics();
       ResultHolder[] rhsSpecifics = rhsType.getClassType().getSpecifics();
-      for (int i = 0; i < lhsSpecifics.length; i++) {
+      int minSpecifics = Math.min(lhsSpecifics.length, rhsSpecifics.length);
+      for (int i = 0; i < minSpecifics; i++) {
         ResultHolder unified = HaxeTypeUnifier.unify(lhsSpecifics[i], rhsSpecifics[i]);
         if(!unified.isUnknown()) {
           rhsSpecifics[i] = unified;

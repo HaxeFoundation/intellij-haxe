@@ -148,44 +148,59 @@ public class HaxeResolveResult implements Cloneable {
       }
       HaxeResolveResult resolveResult = getResult(aClass, specialization);
 
-      // Load the specialization with sub-class parameters.
-      try {
-        List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
-        superclasses.addAll(aClass.getHaxeImplementsList());
+        try {
+          List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
+          superclasses.addAll(aClass.getHaxeImplementsList());
 
-        final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
-        for (HaxeType haxeType : superclasses) {
-          // For each of our superclasses, resolve the specialization *WITHOUT* resolving all of their superclasses.
-          // The purpose here is to create a specialization with the mapping of names to real types before going down
-          // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
-          final HaxeClass superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
-          final HaxeResolveResult superResult = new HaxeResolveResult(superclass, innerSpecialization);
-          superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+          final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
+          for (HaxeType haxeType : superclasses) {
+            // For each of our superclasses, resolve the specialization *WITHOUT* resolving all of their superclasses.
+            // The purpose here is to create a specialization with the mapping of names to real types before going down
+            // the superclass chain.  (e.g. turn 'extends<T>' into 'extends<String>')
 
-          // Now keep only the specializations that weren't inner.
-          HaxeGenericSpecialization filteredSpecialization = superResult.specialization.filterInnerKeys();
-
-          // Now that we have a specialization with real types, we can let the superclass be resolved.
-          if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass,aClass)) {
-            final HaxeResolveResult result = create(superclass, filteredSpecialization);
-            result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
-            if (log.isDebugEnabled()) {
-              log.debug(debugNestCountForCreate +
-                        "  Adding superclass specialization for " +
-                        aClass.getName() +
-                        "<" +
-                        haxeType.getName() +
-                        "> -> " +
-                        result.getSpecialization().debugDump("    "));
+            // NOTE: mlo: resolving class by reference seems  be slightly faster here when working with larger projects
+            // could be due to cache for Psi resolve while it looks like  resolve by QName does not and searches file tree.
+            HaxeClass superclass = null;
+            PsiElement resolve = haxeType.getReferenceExpression().resolve();
+            if (resolve instanceof HaxeClassDeclaration classDeclaration) {
+              superclass = classDeclaration.getModel().haxeClass;
             }
-            resolveResult.merge(result.getSpecialization());
+
+            if (superclass == null) {
+              // if reference resolve fails do QName resolve as fallback
+              superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
+            }
+            // hopefully it won't be necessary to traverse the entire type hierarchy and we only need to check classes and interfaces that are generic
+            // any method we try to override or implement in out main class should  end up resolving super class and any specifics it might have.
+            if (superclass != null && !superclass.isGeneric()) continue;
+
+            final HaxeResolveResult superResult = new HaxeResolveResult(superclass, innerSpecialization);
+            superResult.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+
+            // Now keep only the specializations that weren't inner.
+            HaxeGenericSpecialization filteredSpecialization = superResult.specialization.filterInnerKeys();
+
+            // Now that we have a specialization with real types, we can let the superclass be resolved.
+            if (!PsiManager.getInstance(aClass.getProject()).areElementsEquivalent(superclass, aClass)) {
+              final HaxeResolveResult result = create(superclass, filteredSpecialization);
+              result.specializeByParameters(generateParameterList(haxeType.getTypeParam(), innerSpecialization));
+              if (log.isDebugEnabled()) {
+                log.debug(debugNestCountForCreate +
+                          "  Adding superclass specialization for " +
+                          aClass.getName() +
+                          "<" +
+                          haxeType.getName() +
+                          "> -> " +
+                          result.getSpecialization().debugDump("    "));
+              }
+              resolveResult.merge(result.getSpecialization());
+            }
           }
         }
-      }
-      catch (StackOverflowError e) {
-        log.error("Stack Overflow trying to resolve " + aClass.getName());
-        throw e;
-      }
+        catch (StackOverflowError e) {
+          log.error("Stack Overflow trying to resolve " + aClass.getName());
+          throw e;
+        }
 
       resolveResult.softMerge(specialization);
       return resolveResult;
