@@ -1,12 +1,7 @@
 package com.intellij.plugins.haxe.ide.hint.types;
 
-import com.intellij.codeInsight.hints.InlayHintsCollector;
-import com.intellij.codeInsight.hints.InlayHintsSink;
-import com.intellij.codeInsight.hints.NoSettings;
-import com.intellij.codeInsight.hints.SettingsKey;
-import com.intellij.codeInsight.hints.presentation.InlayPresentation;
+import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
@@ -16,66 +11,65 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import org.jetbrains.annotations.Nls;
+import kotlin.Unit;
+import kotlin.jvm.functions.Function1;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeInlayFieldHintsProvider extends HaxeInlayHintProvider {
+public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
 
   @Nullable
   @Override
-  public InlayHintsCollector getCollectorFor(@NotNull PsiFile file,
-                                             @NotNull Editor editor,
-                                             @NotNull NoSettings settings,
-                                             @NotNull InlayHintsSink sink) {
-    return new InlayCollector(editor);
+  public InlayHintsCollector createCollector(@NotNull PsiFile file, @NotNull Editor editor) {
+    return new TypeCollector();
   }
 
-  @Nls(capitalization = Nls.Capitalization.Sentence)
-  @NotNull
-  @Override
-  public String getName() {
-    return HaxeHintBundle.message("haxe.field.hint.name");
-  }
-
-  private static class InlayCollector extends HaxeInlayHintsFactory {
-    public InlayCollector(@NotNull Editor editor) {
-      super(editor);
-    }
+  private static class TypeCollector implements SharedBypassCollector {
 
     @Override
-    public boolean collect(@NotNull PsiElement element, @NotNull Editor editor, @NotNull InlayHintsSink sink) {
+    public void collectFromElement(@NotNull PsiElement element, @NotNull InlayTreeSink sink) {
       if (element instanceof HaxeFieldDeclaration fieldDeclaration) {
         handleFieldDeclarationHints(element, sink, fieldDeclaration);
-        return false;
       }
-      return true;
     }
 
 
-
-    private void handleFieldDeclarationHints(@NotNull PsiElement element,
-                                             @NotNull InlayHintsSink sink,
-                                             HaxeFieldDeclaration fieldDeclaration) {
+    private static void handleFieldDeclarationHints(@NotNull PsiElement element,
+                                                    @NotNull InlayTreeSink sink,
+                                                    HaxeFieldDeclaration fieldDeclaration) {
       HaxeFieldModel field = new HaxeFieldModel(fieldDeclaration);
-      if (!field.hasTypeTag() && field.getInitializerExpression() != null) {
+
+      if (!field.hasTypeTag()) {
+
         HaxeExpression expression = field.getInitializerExpression();
+        if (expression != null) {
 
-        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
-        ResultHolder type = HaxeTypeResolver.getPsiElementType(expression, element, resolver);
+          HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
+          ResultHolder type = HaxeTypeResolver.getPsiElementType(expression, element, resolver);
 
-        if (!type.isUnknown() && !type.getType().isInvalid()) {
-          int offset = -1;
-          if (fieldDeclaration.getPropertyDeclaration() != null) {
-            offset = fieldDeclaration.getPropertyDeclaration().getTextRange().getEndOffset();
+          if (!type.isUnknown() && !type.getType().isInvalid()) {
+            int offset;
+            if (fieldDeclaration.getPropertyDeclaration() != null) {
+              offset = fieldDeclaration.getPropertyDeclaration().getTextRange().getEndOffset();
+            }
+            else {
+              offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
+            }
+            InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
+            sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
+            );
           }
-          else {
-            offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
-          }
-
-          addInsert(offset, sink ,  ":" + type.toPresentationString());
         }
       }
+    }
+
+
+    @NotNull
+    private static Function1<PresentationTreeBuilder, Unit> appendTypeTextToBuilder(ResultHolder type) {
+      return builder -> {
+        builder.text(":" + type.toPresentationString(), null);
+        return null;
+      };
     }
   }
 }
