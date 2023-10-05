@@ -243,7 +243,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeClassModel model = getHaxeClassModel();
 
     boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
-    validateCache(model, context);
+
 
     if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
@@ -258,18 +258,27 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       //      y = this; // <<< ERROR SomethingElse should be Null<SomethingElse>.
       //    }
       //  }
+
+      validateCache(model, context);
       Key<Set<SpecificHaxeClassReference>> key = direction == Compatibility.ASSIGNABLE_TO
                                                  ? COMPATIBLE_TYPES_TO_KEY
                                                  : COMPATIBLE_TYPES_FROM_KEY;
 
       Set<SpecificHaxeClassReference> result = context.getUserData(key);
 
+
       if (result == null) {
         processedElements.get().clear();
         result = getCompatibleTypesInternal(direction);
         result.add(this);
-        context.putUserData(key, result);
+
+        if(model != null) {
+          String name = model.getName();
+          context.putUserData(key, result);
+          context.putUserData(CACHE_NAME_KEY, name);
+        }
       }
+
       return result;
     } else {
       processedElements.get().clear();
@@ -302,13 +311,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private void validateCache(HaxeClassModel model, PsiElement context) {
     if (model == null) return;
     String name = model.getName();
+    if (name == null) return;
+
     String cacheName = this.context.getUserData(CACHE_NAME_KEY);
-    //if(true || !name.equals(cacheName)) {
     if(cacheName != null && !name.equals(cacheName)) {
       context.putUserData(COMPATIBLE_TYPES_TO_KEY, null);
       context.putUserData(COMPATIBLE_TYPES_FROM_KEY, null);
       context.putUserData(INFER_TYPES_KEY, null);
-      context.putUserData(CACHE_NAME_KEY, name);
+      context.putUserData(CACHE_NAME_KEY, null);
     }
   }
 
