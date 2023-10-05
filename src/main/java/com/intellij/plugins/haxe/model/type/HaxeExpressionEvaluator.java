@@ -694,10 +694,21 @@ public class HaxeExpressionEvaluator {
               typeHolder = new ResultHolder(SpecificTypeReference.getStdClass(ARRAY, subelement, new ResultHolder[]{type}));
             }
             else {
-              typeHolder = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter);
-              ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(typeHolder, resolver);
-              if (!holder.isUnknown()) {
-                typeHolder = holder;
+              HaxeTypeTag tag = parameter.getTypeTag();
+              if (tag != null) {
+                typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, parameter);
+                ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(typeHolder, resolver);
+                if (!holder.isUnknown()) {
+                  typeHolder = holder;
+                }
+              }else {
+                HaxeVarInit init = parameter.getVarInit();
+                if (init != null) {
+                  ResultHolder holder = handle(init, context, resolver);
+                  if (!holder.isUnknown()) {
+                    typeHolder = holder;
+                  }
+                }
               }
             }
           }
@@ -1232,7 +1243,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof  HaxeIsTypeExpression) {
       return SpecificHaxeClassReference.primitive("Bool", element, null).createHolder();
     }
-
+    //TODO check if common parent of the next if
     if (
       (element instanceof HaxeAdditiveExpression) ||
       (element instanceof HaxeModuloExpression) ||
