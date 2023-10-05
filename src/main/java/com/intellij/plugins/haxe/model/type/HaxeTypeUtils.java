@@ -44,6 +44,8 @@ public class HaxeTypeUtils {
   }
 
   static public Object applyBinOperator(Object left, Object right, String operator) {
+    if (operator.equals("??")) return left == null ? right : left;
+
     double leftv = getDoubleValue(left);
     double rightv = getDoubleValue(right);
     if (operator.equals("+")) return leftv + rightv;

@@ -23,7 +23,10 @@ class OperatorTest {
 
     public function new() {}
 
-    public function TestInt() {
+    public function TestInt(parameterA:Int, ParameterB = 0) {
+        toInt = parameterA + ParameterB;
+        toBool = <error descr="Unable to apply operator && for types Int and Int" textAttributesKey="ERRORS_ATTRIBUTES">parameterA && ParameterB</error>;
+
         toInt = i + j;
         toInt = i - j;
         toInt = i * j;
@@ -49,13 +52,16 @@ class OperatorTest {
         toDyn = i ?? j;
 
         toInt =  <error descr="Incompatible type: Float should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i / j</error> ; // WRONG,  result is float
-        toBool = i && j; // WRONG,  no operator for int
-        toBool = i || j; // WRONG,  no operator for int
+        toBool = <error descr="Unable to apply operator && for types Int and Int" textAttributesKey="ERRORS_ATTRIBUTES">i && j</error>; // WRONG,  no operator for int
+        toBool = <error descr="Unable to apply operator || for types Int and Int" textAttributesKey="ERRORS_ATTRIBUTES">i || j</error>; // WRONG,  no operator for int
 
-        toInt = <error descr="Incompatible type: Bool should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i && j</error>; // WRONG,  no operator for int
-        toInt = <error descr="Incompatible type: Bool should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i || j</error>; // WRONG,  no operator for int
+        toInt = <error descr="Unable to apply operator && for types Int and Int" textAttributesKey="ERRORS_ATTRIBUTES">i && j</error>; // WRONG,  no operator for int
+        toInt = <error descr="Unable to apply operator || for types Int and Int" textAttributesKey="ERRORS_ATTRIBUTES">i || j</error>; // WRONG,  no operator for int
     }
-    public function TestFloat() {
+    public function TestFloat(parameterA:Int, ParameterB = 0.0) {
+        toFloat = parameterA + ParameterB;
+        toBool = <error descr="Unable to apply operator && for types Int and Float" textAttributesKey="ERRORS_ATTRIBUTES">parameterA && ParameterB</error>;
+
         toFloat = f + k + i;
         toFloat = f - k - i;
         toFloat = f * k * i;
