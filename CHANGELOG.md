@@ -1,6 +1,7 @@
 # Changelog
 
-## 1.4.15
+## 1.4.15-231
+* NOTE:  Builds for idea 2023.1 are no longer actively maintained (consider upgrading to 2023.2)
 * Improvement: Large performance improvement for projects with  complex type inheritance graphs
 * Improvement: Resolving same package types across libraries
 * Added: support for resolve variable type from usage
@@ -8,8 +9,6 @@
 * Bugfix: Fixed type resolve for parameters with only default value
 * Bugfix: Fixed incorrect error on fields defined by interfaces
 
-## 1.4.14
-* Replacing deprecated APIs and using idea 2023.2 as baseline
 ## 1.4.14-231
 * NOTE:  Builds for idea 2023.1 are no longer actively maintained (consider upgrading)
 * Fixed: Allow module level keywords for module fields. (#1135)
