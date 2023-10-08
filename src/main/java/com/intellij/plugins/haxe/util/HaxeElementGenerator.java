@@ -58,7 +58,7 @@ public class HaxeElementGenerator {
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     final HaxeMethodDeclaration mainMethod =
-      (HaxeMethodDeclaration)haxeClass.getHaxeMethods(null).iterator().next();
+      (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
     final HaxeBlockStatement statement = mainMethod.getBlockStatement();
     assert statement != null;
     return statement.getChildren()[0];
@@ -68,7 +68,7 @@ public class HaxeElementGenerator {
     final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
-    return haxeClass.getFieldDeclarations(null).iterator().next();
+    return haxeClass.getFieldSelf(null).iterator().next();
   }
 
   // XXX: Eventually, this ordering should come from the class order in
@@ -161,6 +161,6 @@ public class HaxeElementGenerator {
     final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
-    return (HaxeMethodDeclaration)haxeClass.getHaxeMethods(null).iterator().next();
+    return (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
   }
 }

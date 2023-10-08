@@ -389,10 +389,10 @@ public class HaxeResolveUtil {
     List<HaxeComponentType> types = Arrays.asList(fromTypes);
 
     components.addAll(Stream.of(haxeClass.getSupers())
-                        .filter(superComponent -> types.contains(HaxeComponentType.typeOf(superComponent)))
+                        .filter(superComponent -> types.isEmpty() || types.contains(HaxeComponentType.typeOf(superComponent)))
                         .map(superComponent -> getAllNamedSubComponentsFromClassType((HaxeClass)superComponent, fromTypes))
                         .flatMap(Collection::stream)
-                        .collect(Collectors.toList()));
+                        .toList());
 
     if (types.contains(HaxeComponentType.typeOf(haxeClass))) {
       components.addAll(getNamedSubComponents(haxeClass));
