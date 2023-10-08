@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil.*;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingFunctionIfAbstractNull;
 
 public class HaxeCallExpressionAnnotator implements Annotator {
   @Override
@@ -22,6 +23,16 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           HaxeGenericResolver resolver = expression.resolveHaxeClass().getGenericResolver();
           ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
           SpecificFunctionReference functionType = type.getFunctionType();
+
+          // handle Null<FunctionType>
+          if (type.getClassType() != null) {
+            if (type.getClassType().isNullType()) {
+              SpecificFunctionReference functionReference = getUnderlyingFunctionIfAbstractNull(type.getClassType());
+              if (functionReference != null) {
+                functionType = functionReference;
+              }
+            }
+          }
 
           if (functionType != null) {
             if (functionType.functionType != null) {
