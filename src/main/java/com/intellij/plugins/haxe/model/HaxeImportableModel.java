@@ -16,7 +16,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -83,6 +83,50 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     if (members.isEmpty()) return null;
     for (HaxeModel model : members) {
       if (name.equals(model.getName())) {
+        return model;
+      }
+    }
+    // if not found with normal  name-search try to search typedefs and enums
+    for (HaxeModel model : members) {
+      if (model instanceof HaxeEnumModel enumModel) {
+        HaxeModel memberFromEnum = getExposedMemberFromEnum(name, model, enumModel);
+        if (memberFromEnum != null) return memberFromEnum;
+      }
+
+      else if (model instanceof HaxeClassModel classModel) {
+        if (classModel.haxeClass instanceof HaxeTypedefDeclaration typedefDeclaration) {
+          HaxeModel memberFromEnum = getExposedMemberFromTypeDefReference(name, model, typedefDeclaration);
+          if (memberFromEnum != null) return memberFromEnum;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  //TODO mlo consider making typdefs some sort of HaxeImportableModel when its a type reference
+  @Nullable
+  private static HaxeModel getExposedMemberFromTypeDefReference(String name, HaxeModel model, HaxeTypedefDeclaration typedefDeclaration) {
+    HaxeTypeOrAnonymous typeOrAnonymous = typedefDeclaration.getTypeOrAnonymous();
+    if (typeOrAnonymous != null) {
+      HaxeType type = typeOrAnonymous.getType();
+      if (type != null) {
+        PsiElement resolve = type.getReferenceExpression().resolve();
+        if (resolve instanceof  HaxeEnumDeclaration enumDeclaration) {
+          if (enumDeclaration.getModel() instanceof  HaxeEnumModel enumModel) {
+            HaxeModel memberFromEnum = getExposedMemberFromEnum(name, model, enumModel);
+            if (memberFromEnum != null) return memberFromEnum;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static HaxeModel getExposedMemberFromEnum(String name, HaxeModel model, HaxeEnumModel enumModel) {
+    for (HaxeEnumValueModel enumModelValue : enumModel.getValues()) {
+      if (name.equals(enumModelValue.getName())) {
         return model;
       }
     }
