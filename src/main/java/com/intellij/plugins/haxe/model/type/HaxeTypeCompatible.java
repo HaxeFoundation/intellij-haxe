@@ -20,11 +20,8 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.AnnotationSession;
-import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -286,12 +283,13 @@ public class HaxeTypeCompatible {
   }
 
   private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean castFrom) {
-    if (reference instanceof SpecificHaxeClassReference) {
-      HaxeClass haxeClass = ((SpecificHaxeClassReference)reference).getHaxeClass();
-      if (haxeClass instanceof HaxeAbstractTypeDeclaration) {
-        HaxeAbstractTypeDeclaration abstractClass = (HaxeAbstractTypeDeclaration)haxeClass;
-        if (castFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) return true;
-        if (!castFrom && !abstractClass.getAbstractToTypeList().isEmpty()) return true;
+    if (reference instanceof SpecificHaxeClassReference haxeClassReference) {
+      HaxeClass haxeClass = haxeClassReference.getHaxeClass();
+
+      if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractTypeDeclaration) {
+        if (castFrom && !abstractTypeDeclaration.getAbstractFromTypeList().isEmpty()) return true;
+        if (!castFrom && !abstractTypeDeclaration.getAbstractToTypeList().isEmpty()) return true;
+
       }
     }
     return false;
@@ -299,19 +297,20 @@ public class HaxeTypeCompatible {
 
   @NotNull
   private static List<SpecificFunctionReference> getAbstractFunctionTypes(SpecificHaxeClassReference classReference, boolean getCastFrom) {
-    if (!(classReference.getHaxeClass() instanceof HaxeAbstractTypeDeclaration))  return Collections.emptyList();
-    HaxeAbstractTypeDeclaration abstractClass = (HaxeAbstractTypeDeclaration)classReference.getHaxeClass();
+    if (!(classReference.getHaxeClass() instanceof HaxeAbstractTypeDeclaration abstractClass))  return Collections.emptyList();
+    HaxeClassModel model = abstractClass.getModel();
     List<SpecificFunctionReference> list = new ArrayList<>();
-    if (abstractClass != null) {
-      if (getCastFrom && !abstractClass.getAbstractFromTypeList().isEmpty()) {
-        for(HaxeAbstractFromType type : abstractClass.getAbstractFromTypeList()) {
-          if(type.getFunctionType() != null) {
+    if(getCastFrom) {
+      if (!abstractClass.getAbstractFromTypeList().isEmpty()) {
+        for (HaxeAbstractFromType type : abstractClass.getAbstractFromTypeList()) {
+          if (type.getFunctionType() != null) {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
-          }else {
+          }
+          else {
             // check if typdef or abstracts can resolve to function type
-            if (type.getTypeOrAnonymous()!= null) {
+            if (type.getTypeOrAnonymous() != null) {
               ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(type.getTypeOrAnonymous());
               ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(resultHolder, classReference.getGenericResolver());
               if (holder.isFunctionType()) {
@@ -321,27 +320,30 @@ public class HaxeTypeCompatible {
           }
         }
       }
-      if (!getCastFrom && !abstractClass.getAbstractToTypeList().isEmpty()){
+    }else {
+      if (!abstractClass.getAbstractToTypeList().isEmpty()){
         for(HaxeAbstractToType type : abstractClass.getAbstractToTypeList()) {
           if (type.getFunctionType() != null) {
             HaxeSpecificFunction specificFunction =
               new HaxeSpecificFunction(type.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
             list.add(SpecificFunctionReference.create(specificFunction));
-          }else  if (type.getTypeOrAnonymous() != null){
+          }
+          else if (type.getTypeOrAnonymous() != null) {
             // check if typeDef that needs to be resolved
             HaxeTypeOrAnonymous anonymous = type.getTypeOrAnonymous();
-              HaxeType haxeType = anonymous.getType();
+            HaxeType haxeType = anonymous.getType();
             if (haxeType != null) {
-                HaxeGenericResolver resolver = classReference.getGenericResolver();
-                PsiElement element = type.getOriginalElement();
-                HaxeResolveResult result = HaxeResolveUtil.tryResolveType(haxeType, element, resolver.getSpecialization(element));
+              HaxeGenericResolver resolver = classReference.getGenericResolver();
+              PsiElement element = type.getOriginalElement();
+              HaxeResolveResult result = HaxeResolveUtil.tryResolveType(haxeType, element, resolver.getSpecialization(element));
               if (result.isFunctionType()) {
                 HaxeSpecificFunction specificFunction =
                   new HaxeSpecificFunction(result.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
                 list.add(SpecificFunctionReference.create(specificFunction));
-              }else if (result.isHaxeClass()) {
+              }
+              else if (result.isHaxeClass()) {
                 HaxeClass aClass = result.getHaxeClass();
-                if(aClass instanceof  HaxeTypedefDeclaration typedef) {
+                if (aClass instanceof HaxeTypedefDeclaration typedef) {
                   // TODO should we traverse typedefs or do some kind of resolve type ?
                   // current code only checks first level
                   if (typedef.getFunctionType() != null) {
@@ -349,7 +351,6 @@ public class HaxeTypeCompatible {
                       new HaxeSpecificFunction(typedef.getFunctionType(), classReference.getGenericResolver().getSpecialization(null));
                     list.add(SpecificFunctionReference.create(specificFunction));
                   }
-
                 }
               }
             }
@@ -370,6 +371,15 @@ public class HaxeTypeCompatible {
       }
     }
     return ref;
+  }
+  static public SpecificFunctionReference getUnderlyingFunctionIfAbstractNull(SpecificHaxeClassReference ref) {
+    if (ref.isAbstractType() && ref.isNullType()) {
+      SpecificFunctionReference underlying = ref.getHaxeClassModel().getUnderlyingFunctionReference(ref.getGenericResolver());
+      if (null != underlying) {
+        return underlying;
+      }
+    }
+    return null;
   }
 
   static private boolean canAssignToFromType(
@@ -425,13 +435,13 @@ public class HaxeTypeCompatible {
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-    if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastTypesList(to));
+    if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastFromTypesList(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getCastableToTypesList(from));
+    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getImplicitCastToTypesList(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
