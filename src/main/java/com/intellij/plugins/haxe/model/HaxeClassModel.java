@@ -39,6 +39,7 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.HaxeComponentType.*;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
 import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
 import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
 
@@ -236,6 +237,28 @@ public class HaxeClassModel implements HaxeExposableModel {
     }
     return null;
   }
+  @Nullable
+  public SpecificFunctionReference getUnderlyingFunctionReference(HaxeGenericResolver resolver) {
+    if (!isAbstractType() && !isTypedef()) return null;
+    PsiElement element = getBasePsi();
+    HaxeTypeOrAnonymous typeOrAnon = getUnderlyingType();
+    if (typeOrAnon != null) {
+      // TODO mlo handle abstracts with functions as type ?
+    } else {
+      // No typeOrAnon.  This must be Null<T>?
+      if ("Null".equals(getName())) {
+        List<HaxeGenericParamModel> typeParams = getGenericParams();
+        if (typeParams.size() == 1) {
+          HaxeGenericParamModel param = typeParams.get(0);
+          ResultHolder result = resolver.resolve(param.getName());
+          if (result != null) {
+            return result.getFunctionType();
+          }
+        }
+      }
+    }
+    return null;
+  }
 
   public List<HaxeType> getAbstractToList() {
     if (!isAbstractType() ) return Collections.emptyList();
@@ -251,7 +274,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return types;
   }
 
-  public List<SpecificHaxeClassReference> getCastableToTypesList(SpecificHaxeClassReference sourceType) {
+  public List<SpecificHaxeClassReference> getImplicitCastToTypesList(SpecificHaxeClassReference sourceType) {
     if (!isAbstractType()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
 
@@ -261,6 +284,11 @@ public class HaxeClassModel implements HaxeExposableModel {
         SpecificHaxeClassReference reference = setSpecificsConstraints(methodModel, getReturnType(methodModel),
                                                                        sourceType.getGenericResolver());
         list.add(reference);
+
+        if (reference.isNullType()) {
+          SpecificHaxeClassReference underlyingClass = getUnderlyingClassIfAbstractNull(reference);
+          list.add(underlyingClass);
+        }
       }
     }
     return list;
@@ -282,7 +310,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return canAssignToFrom(parameterWithRealRealSpecifics, reference, false, null,null, null);
   }
 
-  public List<SpecificHaxeClassReference> getImplicitCastTypesList(SpecificHaxeClassReference targetType) {
+  public List<SpecificHaxeClassReference> getImplicitCastFromTypesList(SpecificHaxeClassReference targetType) {
     if (!isAbstractType()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
 
