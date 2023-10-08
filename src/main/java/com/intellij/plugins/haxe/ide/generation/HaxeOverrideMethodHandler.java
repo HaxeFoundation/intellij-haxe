@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import lombok.CustomLog;
@@ -49,7 +50,14 @@ public class HaxeOverrideMethodHandler extends BaseHaxeGenerateHandler {
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
     HaxeClassModel clazz = haxeClass.getModel();
 
-    for (HaxeMethodModel method : clazz.getAncestorMethods(null)) {
+    List<HaxeMethodModel> implemented = clazz.getMethodsSelf(null);
+    List<String> implementedNameList = implemented.stream().map(HaxeBaseMemberModel::getName).toList();
+
+    List<HaxeMethodModel> ancestorMethods = clazz.getAncestorMethods(null);
+    List<String> ancestorMethodsNames = ancestorMethods.stream().map(HaxeBaseMemberModel::getName).toList();
+
+    for (HaxeMethodModel method : ancestorMethods) {
+      if (implementedNameList.contains(method.getName()))continue; // skip implemented
       // Only add methods that doesn't have @:final or static modifiers and also that are not constructors
       if (
         !method.getModifiers().hasAnyModifier(

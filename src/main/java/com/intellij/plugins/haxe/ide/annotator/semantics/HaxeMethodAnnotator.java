@@ -136,8 +136,8 @@ public class HaxeMethodAnnotator implements Annotator {
     final HaxeClassModel currentClass = currentMethod.getDeclaringClass();
     final HaxeModifiersModel currentModifiers = currentMethod.getModifiers();
 
-    final HaxeClassModel parentClass = (currentClass != null) ? currentClass.getParentClass() : null;
-    final HaxeMethodModel parentMethod = parentClass != null ? parentClass.getMethod(currentMethod.getName(), null) : null;
+    final HaxeMethodModel parentMethod = currentClass != null ? currentClass.getAncestorMethod(currentMethod.getName(), null) : null;
+    final HaxeClassModel parentClass = parentMethod != null ? parentMethod.getDeclaringClass() : null;
     final HaxeModifiersModel parentModifiers = (parentMethod != null) ? parentMethod.getModifiers() : null;
 
     if (!METHOD_OVERRIDE_CHECK.isEnabled(methodPsi)) { // TODO: This check is not granular enough.
@@ -180,11 +180,11 @@ public class HaxeMethodAnnotator implements Annotator {
         if (!currentClass.isInterface()
             && !currentClass.isAnonymous()
             && !parentMethod.isAbstract()
-            && !parentMethod.getDeclaringClass().isInterface()) {
+            && !parentClass.isInterface()) {
           requiredOverride = true;
         }
 
-        if (parentModifiers.hasAnyModifier(OVERRIDE_FORBIDDEN_MODIFIERS)) {
+        if (parentModifiers.hasAnyModifier(OVERRIDE_FORBIDDEN_MODIFIERS) && !parentClass.isInterface()) {
           AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, "Can't override static, inline or final methods")
            .range(currentMethod.getNameOrBasePsi());
 

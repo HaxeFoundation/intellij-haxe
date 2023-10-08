@@ -270,8 +270,8 @@ public class HaxeClassAnnotator implements Annotator {
 
 
 
-    List<HaxeMethod> allMethodList = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
-    List<HaxeMethod> extendedClassMethodList = abstractClass.getHaxeClass().haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
+    List<HaxeMethod> allMethodList = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
+    List<HaxeMethod> extendedClassMethodList = abstractClass.getHaxeClass().haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
 
     Map<String, HaxeMethodModel> abstractMethods = extendedClassMethodList.stream()
       .map(HaxeMethodPsiMixin::getModel)
@@ -331,8 +331,8 @@ public class HaxeClassAnnotator implements Annotator {
     final List<String> missingFieldNames = new ArrayList<>();
 
     if (intReference.getHaxeClass() != null) {
-      List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldDeclarations(clazz.getGenericResolver(null));
-      List<HaxeFieldDeclaration> allFields = clazz.haxeClass.getAllHaxeFields(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
+      List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldSelf(clazz.getGenericResolver(null));
+      List<HaxeFieldDeclaration> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
       for (HaxeFieldModel intField : intReference.getHaxeClass().getFields()) {
         if (!intField.isStatic()) {
 
@@ -485,7 +485,7 @@ public class HaxeClassAnnotator implements Annotator {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClass() != null) {
-      List<HaxeMethodModel> methods = clazz.haxeClass.getAllHaxeMethods(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
+      List<HaxeMethodModel> methods = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
         .map(HaxeMethodPsiMixin::getModel)
         .filter(not(HaxeMethodModel::isAbstract))
         .toList();
