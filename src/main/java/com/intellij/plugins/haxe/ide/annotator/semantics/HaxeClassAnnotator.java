@@ -331,21 +331,26 @@ public class HaxeClassAnnotator implements Annotator {
     final List<String> missingFieldNames = new ArrayList<>();
 
     if (intReference.getHaxeClass() != null) {
-      List<HaxeFieldDeclaration> fields = clazz.haxeClass.getAllHaxeFields(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
+      List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldDeclarations(clazz.getGenericResolver(null));
+      List<HaxeFieldDeclaration> allFields = clazz.haxeClass.getAllHaxeFields(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
       for (HaxeFieldModel intField : intReference.getHaxeClass().getFields()) {
         if (!intField.isStatic()) {
 
 
-          Optional<HaxeFieldDeclaration> fieldResult = fields.stream()
-            .filter(method -> intField.getName().equals(method.getName()))
+          String interfaceFieldName = intField.getName();
+          Optional<HaxeFieldDeclaration> fieldResultAll = allFields.stream()
+            .filter(method -> interfaceFieldName.equals(method.getName()))
+            .findFirst();
+          Optional<HaxeFieldDeclaration> fieldResultClassOnly = fieldsInThisClass.stream()
+            .filter(method -> interfaceFieldName.equals(method.getName()))
             .findFirst();
 
-          if (fieldResult.isEmpty()) {
+          if (fieldResultAll.isEmpty()) {
             missingFields.add(intField);
-            missingFieldNames.add(intField.getName());
+            missingFieldNames.add(interfaceFieldName);
           }
-          else {
-            final HaxeFieldDeclaration fieldDeclaration = fieldResult.get();
+          else  if (fieldResultClassOnly.isPresent()){
+            final HaxeFieldDeclaration fieldDeclaration = fieldResultClassOnly.get();
 
             if (intField.getPropertyDeclarationPsi() != null) {
               HaxePropertyAccessor intGetter = intField.getGetterPsi();
@@ -367,7 +372,7 @@ public class HaxeClassAnnotator implements Annotator {
                                                     intReference.getHaxeClass().getName());
 
                 holder.newAnnotation(HighlightSeverity.ERROR, message)
-                  .range(fieldDeclaration.getOriginalElement())
+                  .range(fieldDeclaration.getTextRange())
                   .create();
               }
               else {
@@ -445,7 +450,7 @@ public class HaxeClassAnnotator implements Annotator {
         }
       }
 
-      if (missingFields.size() > 0) {
+      if (!missingFields.isEmpty()) {
         // @TODO: Move to bundle
         holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented fields: " + StringUtils.join(missingFieldNames, ", "))
           .range(intReference.getPsi())
