@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.4.15
-* Improvement: Large performance improvement for projects with  complex type inheritance graphs
+* Improvement: Large performance improvement for projects with complex type inheritance graphs
 * Improvement: Resolving same package types across libraries
 * Added: support for resolve variable type from usage
 * Bugfix: Module layer in psi broke type hierarchy resolving.
