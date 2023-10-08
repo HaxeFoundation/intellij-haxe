@@ -54,10 +54,7 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -184,12 +181,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-
-  private List<HaxeMethod> _getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
-    // XXX: This implementation is equivalent to getAllMethods().  That
-    //      may not be what we want.
-    final List<HaxeNamedComponent> alltypes = HaxeResolveUtil.findNamedSubComponents(resolver, this);
-    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+  private List<HaxeMethod> _getHaxeMethodsSelf(@Nullable HaxeGenericResolver resolver) {
+    final List<HaxeNamedComponent> classMembers =  HaxeResolveUtil.getNamedSubComponents(this);
+    final List<HaxeNamedComponent> methods = HaxeResolveUtil.filterNamedComponentsByType(classMembers, HaxeComponentType.METHOD);
     final List<HaxeMethod> result = new ArrayList<>();
     for (HaxeNamedComponent method : methods) {
       result.add((HaxeMethod)method);
@@ -199,63 +193,54 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @NotNull
   @Override
-  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeMethod> getHaxeMethodsSelf(@Nullable HaxeGenericResolver resolver) {
     // cache Methods when no resolver values
     if (resolver == null || resolver.isEmpty()) {
       return CachedValuesManager.getCachedValue(this, () -> {
-        List<HaxeMethod> methods = _getHaxeMethods(null);
+        List<HaxeMethod> methods = _getHaxeMethodsSelf(null);
         return new CachedValueProvider.Result<>(methods, this);
       });
     }
-    return _getHaxeMethods(resolver);
+    return _getHaxeMethodsSelf(resolver);
 
   }
 
 
+
   @NotNull
-  private List<HaxeNamedComponent> _getHaxeFields(@Nullable HaxeGenericResolver resolver) {
-    final List<HaxeNamedComponent> result = HaxeResolveUtil.findNamedSubComponents(resolver, this);
+  private List<HaxeNamedComponent> _getHaxeFieldsSelf(@Nullable HaxeGenericResolver resolver) {
+    final List<HaxeNamedComponent> result = HaxeResolveUtil.getNamedSubComponents(this);
     return HaxeResolveUtil.filterNamedComponentsByType(result, HaxeComponentType.FIELD);
   }
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeNamedComponent> getHaxeFieldsSelf(@Nullable HaxeGenericResolver resolver) {
     // cache Methods when no resolver values
     if (resolver == null || resolver.isEmpty()) {
       return CachedValuesManager.getCachedValue(this, () -> {
-        List<HaxeNamedComponent> components = _getHaxeFields(null);
+        List<HaxeNamedComponent> components = _getHaxeFieldsSelf(null);
         return new CachedValueProvider.Result<>(components, this);
       });
     }
-    return _getHaxeFields(resolver);
+    return _getHaxeFieldsSelf(resolver);
 
   }
 
   @NotNull
   @Override
-  public List<HaxeFieldDeclaration> getFieldDeclarations(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeFieldDeclaration> getFieldSelf(@Nullable HaxeGenericResolver resolver) {
     return HaxeResolveUtil.getClassVarDeclarations(this);
   }
 
   @Nullable
   @Override
   public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
-    return ContainerUtil.find(getHaxeFields(resolver), new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        return name.equals(component.getName());
-      }
-    });
+    return ContainerUtil.find(getHaxeFieldsSelf(resolver), component -> name.equals(component.getName()));
   }
 
   @Override
   public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
-    return ContainerUtil.find(getHaxeMethods(resolver), new Condition<HaxeNamedComponent>() {
-      @Override
-      public boolean value(HaxeNamedComponent component) {
-        return name.equals(component.getName());
-      }
-    });
+    return ContainerUtil.find(getHaxeMethodsSelf(resolver), (Condition<HaxeNamedComponent>)component -> name.equals(component.getName()));
   }
 
   /** Optimized path to replace findHaxeMethod and findHaxeField when used together. */
@@ -272,7 +257,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Nullable
   @Override
   public HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver) {
-    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethods(resolver), new Condition<HaxeNamedComponent>() {
+    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethodsSelf(resolver), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
         if (component instanceof HaxeMethod) {
@@ -426,7 +411,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @NotNull
   public HaxePsiField[] getFields() {
-    List<HaxeNamedComponent> haxeFields = getHaxeFields(null);
+    List<HaxeNamedComponent> haxeFields = getHaxeFieldsSelf(null);
     HaxePsiField[] psiFields = new HaxePsiField[haxeFields.size()];
     return haxeFields.toArray(psiFields);
   }
@@ -472,8 +457,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  public List<HaxeMethod>getAllHaxeMethods(HaxeComponentType... fromTypes) {
-    List<HaxeNamedComponent> methods = getAllHaxeNamedComponents(HaxeComponentType.METHOD, fromTypes);
+  public List<HaxeMethod> getHaxeMethodsAll(HaxeComponentType... fromTypesFilter) {
+    List<HaxeNamedComponent> methods = getAllHaxeNamedComponents(HaxeComponentType.METHOD, fromTypesFilter);
+    final List<HaxeMethod> result = new ArrayList<>();
+    for (HaxeNamedComponent method : methods) {
+      result.add((HaxeMethod)method);
+    }
+    return result;
+  }
+  @NotNull
+  public List<HaxeMethod> getHaxeMethodsAncestor(boolean unique) {
+    List<HaxeNamedComponent> methods = getAncestorHaxeNamedComponents(HaxeComponentType.METHOD, unique);
     final List<HaxeMethod> result = new ArrayList<>();
     for (HaxeNamedComponent method : methods) {
       result.add((HaxeMethod)method);
@@ -482,8 +476,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  public List<HaxeFieldDeclaration>getAllHaxeFields(HaxeComponentType... fromTypes) {
-    List<HaxeNamedComponent> fields = getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypes);
+  public List<HaxeFieldDeclaration> getHaxeFieldAll(HaxeComponentType... fromTypesFilter) {
+    List<HaxeNamedComponent> fields = getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypesFilter);
     final List<HaxeFieldDeclaration> result = new ArrayList<>();
     for (HaxeNamedComponent field : fields) {
       result.add((HaxeFieldDeclaration)field);
@@ -492,10 +486,23 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  public List<HaxeNamedComponent>getAllHaxeNamedComponents(HaxeComponentType componentType, HaxeComponentType... fromTypes) {
-    final List<HaxeNamedComponent> allNamedComponents = HaxeResolveUtil.getAllNamedSubComponentsFromClassType(this, fromTypes);
+  public List<HaxeNamedComponent>getAllHaxeNamedComponents(HaxeComponentType componentType, HaxeComponentType... fromTypesFilter) {
+    final List<HaxeNamedComponent> allNamedComponents = HaxeResolveUtil.getAllNamedSubComponentsFromClassType(this, fromTypesFilter);
     return HaxeResolveUtil.filterNamedComponentsByType(allNamedComponents, componentType);
+  }
+  @NotNull
+  public List<HaxeNamedComponent>getAncestorHaxeNamedComponents(HaxeComponentType componentType, boolean unique) {
+    List<HaxeClass> supers = new ArrayList<>();
+    for (PsiClass superType : this.getSupers()) {
+      if (superType instanceof HaxeClass superClass) {
+        supers.add(superClass);
+      }
+    }
 
+    HaxeClass[] supersArray = supers.toArray(HaxeClass.EMPTY_ARRAY);
+
+    List<HaxeNamedComponent> allNamedComponents  = HaxeResolveUtil.findNamedSubComponents(unique, null, supersArray);
+    return HaxeResolveUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
 
 

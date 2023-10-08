@@ -116,22 +116,22 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @NotNull
   @Override
-  public List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeMethod> getHaxeMethodsSelf(@Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getHaxeMethods(resolver);
+      return targetHaxeClass.getHaxeMethodsSelf(resolver);
     }
-    return super.getHaxeMethods(resolver);
+    return super.getHaxeMethodsSelf(resolver);
   }
 
   @NotNull
   @Override
-  public List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver) {
+  public List<HaxeNamedComponent> getHaxeFieldsSelf(@Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
-      return targetHaxeClass.getHaxeFields(resolver);
+      return targetHaxeClass.getHaxeFieldsSelf(resolver);
     }
-    return super.getHaxeFields(resolver);
+    return super.getHaxeFieldsSelf(resolver);
   }
 
   @Override

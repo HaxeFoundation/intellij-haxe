@@ -79,20 +79,58 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   boolean isTypeDef();
 
+  /**
+   * Retrieves list of Methods defined in current class
+   * excluding methods defined or implemented in inherited classes
+   *
+   * @param resolver
+   * @return list of Methods defined in current class
+   */
   @NotNull
-  List<HaxeMethod> getHaxeMethods(@Nullable HaxeGenericResolver resolver);
+  List<HaxeMethod> getHaxeMethodsSelf(@Nullable HaxeGenericResolver resolver);
+
 
   @NotNull
-  List<HaxeMethod> getAllHaxeMethods(HaxeComponentType... fromTypes);
+  List<HaxeFieldDeclaration> getFieldSelf(@Nullable HaxeGenericResolver resolver);
 
+  /**
+   * Retrieves list of Methods defined both in current class and inherited classes that matches filter arguments
+   *
+   * @param fromTypesFilter list of super types to traverse
+   * @return list of Methods
+   */
   @NotNull
-  List<HaxeFieldDeclaration> getAllHaxeFields(HaxeComponentType... fromTypes);
+  List<HaxeMethod> getHaxeMethodsAll(HaxeComponentType... fromTypesFilter);
 
-  @NotNull
-  List<HaxeNamedComponent> getHaxeFields(@Nullable HaxeGenericResolver resolver);
+  /**
+   * Retrieves list of Methods defined in superclasses of current class
+   * none of the current class members are included
+   *
+   * @param  unique flag indicating that we want to deduplicate when a method is defined in multiple classes
+   * @return list of Methods
+   */
+  List<HaxeMethod> getHaxeMethodsAncestor(boolean unique);
 
+
+  /**
+   * Retrieves list of Fields defined in current class
+   * excluding Fields defined or implemented in inherited classes
+   *
+   * @param resolver
+   * @return list of Fields defined in current class
+   */
   @NotNull
-  List<HaxeFieldDeclaration> getFieldDeclarations(@Nullable HaxeGenericResolver resolver);
+  List<HaxeNamedComponent> getHaxeFieldsSelf(@Nullable HaxeGenericResolver resolver);
+
+
+  /**
+   * Retrieves list of FieldDeclarations in both current class and inherited classes that matches filter arguments
+   *
+   * @param fromTypesFilter list of super types to traverse
+   * @return list of FieldDeclaration
+   */
+  @NotNull
+  List<HaxeFieldDeclaration> getHaxeFieldAll(HaxeComponentType... fromTypesFilter);
 
   @Nullable
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);

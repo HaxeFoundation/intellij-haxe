@@ -487,7 +487,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public List<HaxeMethodModel> getMethods(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
-    for (HaxeMethod method : haxeClass.getHaxeMethods(resolver)) {
+    for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(resolver)) {
       models.add(method.getModel());
     }
     return models;
@@ -495,7 +495,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public List<HaxeMethodModel> getMethodsSelf(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
-    for (HaxeMethod method : haxeClass.getHaxeMethods(resolver)) {
+    for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(resolver)) {
       if (method.getContainingClass() == this.haxeClass) models.add(method.getModel());
     }
     return models;
@@ -503,10 +503,18 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public List<HaxeMethodModel> getAncestorMethods(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
-    for (HaxeMethod method : haxeClass.getHaxeMethods(resolver)) {
-      if (method.getContainingClass() != this.haxeClass) models.add(method.getModel());
+    for (HaxeMethod method : haxeClass.getHaxeMethodsAncestor(true)) {
+        models.add(method.getModel());
     }
     return models;
+  }
+  public HaxeMethodModel getAncestorMethod(String name, @Nullable HaxeGenericResolver resolver) {
+    List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
+    for (HaxeMethod method : haxeClass.getHaxeMethodsAncestor(true)) {
+          HaxeMethodModel methodModel = method.getModel();
+          if (name.equals(methodModel.getName())) return  methodModel;
+        }
+    return null;
   }
 
   @NotNull
