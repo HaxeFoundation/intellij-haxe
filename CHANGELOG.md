@@ -1,8 +1,12 @@
 # Changelog
 
 ## 1.4.15
-* Bugfix: module layer in psi broke type hierarchy resolving. 
-* Improvement: Resolving same package types across libraries 
+* Improvement: Large performance improvement for projects with  complex type inheritance graphs
+* Improvement: Resolving same package types across libraries
+* Added: support for resolve variable type from usage
+* Bugfix: Module layer in psi broke type hierarchy resolving.
+* Bugfix: Fixed type resolve for parameters with only default value
+* Bugfix: Fixed incorrect error on fields defined by interfaces
 
 ## 1.4.14
 * Replacing deprecated APIs and using idea 2023.2 as baseline
