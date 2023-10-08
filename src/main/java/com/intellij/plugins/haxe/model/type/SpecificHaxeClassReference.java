@@ -240,10 +240,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
+      Set<SpecificHaxeClassReference>result = getCompatibleTypesIInternalCached(direction);
+      result.add(this); // adding this only for the type that is being checked (we don't want this done recursively)
+      return result;
+  }
+ private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
     HaxeClassModel model = getHaxeClassModel();
 
-    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
-
+    boolean skipCachingForDebug =  HaxeDebugUtil.isCachingDisabled();
 
     if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
       // If we want to cache all results, then we need a better caching mechanism.
@@ -266,25 +270,22 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
       Set<SpecificHaxeClassReference> result = context.getUserData(key);
 
-
       if (result == null) {
-        processedElements.get().clear();
         result = getCompatibleTypesInternal(direction);
-        result.add(this);
-
         if(model != null) {
           String name = model.getName();
           context.putUserData(key, result);
           context.putUserData(CACHE_NAME_KEY, name);
         }
       }
-
-      return result;
-    } else {
       processedElements.get().clear();
+      // create a new set to avoid  other code to tamper with the cached values
+      return  new HashSet<>(result);
+    } else {
       Set<SpecificHaxeClassReference>result = getCompatibleTypesInternal(direction);
-      result.add(this);
-      return result;
+      processedElements.get().clear();
+      // create a new set to avoid  other code to tamper with the cached values
+      return new HashSet<>(result);
     }
   }
 
@@ -342,13 +343,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = typedefDeclaration.getTargetClass(genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypesInternal(direction));
+          list.addAll(type.getCompatibleTypesIInternalCached(direction));
         }
-      } else for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
+      } else
+        for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
-          if (model.isInterface()) list.add(type);
-          list.addAll(type.getCompatibleTypesInternal(direction));
+          if(direction == Compatibility.ASSIGNABLE_TO)  list.add(type);
+          list.addAll(type.getCompatibleTypesIInternalCached(direction));
         }
       }
       // var myVar:MyClass can not be assigned any object with the same interface,
@@ -359,7 +361,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           SpecificHaxeClassReference type = propagateGenericsToType(interfaceReference.getPsi(), genericResolver);
           if (type != null) {
             list.add(type);
-            list.addAll(type.getCompatibleTypesInternal(direction));
+            list.addAll(type.getCompatibleTypesIInternalCached(direction));
           }
         }
       }
@@ -370,7 +372,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
           list.add(type);
-          list.addAll(type.getCompatibleTypesInternal(direction));
+          list.addAll(type.getCompatibleTypesIInternalCached(direction));
         }
       }
     }
