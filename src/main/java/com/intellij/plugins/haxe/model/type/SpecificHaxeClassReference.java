@@ -246,10 +246,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
-    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    // Disabling cache for now as its potentially creating memory leaks
+    // Exception : SpecificHaxeClassReference is retaining PSI, causing memory leaks and possible invalid element access.
+    boolean cachingDisabled =  true;
     HaxeClassModel model = getHaxeClassModel();
 
-    if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
+    if (!cachingDisabled && (null == model || !model.hasGenericParams())) {
 
       Key<CachedValue<Set<SpecificHaxeClassReference>>> key = direction == Compatibility.ASSIGNABLE_TO
                                                  ? COMPATIBLE_TYPES_TO_KEY
@@ -259,7 +261,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       // tracking all classes sub-classes interfaces or anything else that might change type compatibility would be very complex
       Set<SpecificHaxeClassReference> cache = CachedValuesManager.getCachedValue(context, key, () -> {
         Set<SpecificHaxeClassReference> result = getCompatibleTypesInternal(direction);
-        return new CachedValueProvider.Result<>(Set.copyOf(result), PsiModificationTracker.MODIFICATION_COUNT);
+        return CachedValueProvider.Result.create(Set.copyOf(result), PsiModificationTracker.MODIFICATION_COUNT);
       });
 
       processedElements.get().clear();
