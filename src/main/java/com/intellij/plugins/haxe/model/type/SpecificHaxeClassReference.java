@@ -268,8 +268,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       // create a new set to avoid  other code to tamper with the cached values
       return new HashSet<>(cache);
     } else {
+      Set<SpecificHaxeClassReference> compatibleTypes = getCompatibleTypesInternal(direction);
       processedElements.get().clear();
-      return getCompatibleTypesInternal(direction);
+      return compatibleTypes;
     }
   }
 
