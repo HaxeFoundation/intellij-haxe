@@ -19,8 +19,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       if (expression.getExpression() instanceof HaxeReference reference) {
         final PsiElement resolved = reference.resolve();
         if (resolved instanceof HaxePsiField field) {
-
-          HaxeGenericResolver resolver = expression.resolveHaxeClass().getGenericResolver();
+          HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(reference);
           ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
           SpecificFunctionReference functionType = type.getFunctionType();
 
