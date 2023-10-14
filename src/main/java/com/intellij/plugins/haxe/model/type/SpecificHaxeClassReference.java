@@ -21,15 +21,15 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.*;
 import lombok.CustomLog;
+import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,11 +38,11 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 
 @CustomLog
+@EqualsAndHashCode
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
-  private static final Key<String> CACHE_NAME_KEY = new Key<>("HAXE_CACHE_NAME_KEY");
-  private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
-  private static final Key<Set<SpecificHaxeClassReference>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
+  private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
+  private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
 
@@ -244,48 +244,30 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       result.add(this); // adding this only for the type that is being checked (we don't want this done recursively)
       return result;
   }
- private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
+
+  private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
+    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
     HaxeClassModel model = getHaxeClassModel();
 
-    boolean skipCachingForDebug =  HaxeDebugUtil.isCachingDisabled();
-
     if (!skipCachingForDebug && (null == model || !model.hasGenericParams())) {
-      // If we want to cache all results, then we need a better caching mechanism.
-      // This breaks for generic types.  The first check of the generic sets up
-      // the compatible types, and then all other instances are checked against that set.
-      // So, this fails because the cached types for Null<T> are Null<String> and String:
-      //  class Test{
-      //    var x:Null<String> = null;
-      //    var y:Null<Test> = null;
-      //    function new() {
-      //      x = "New String";
-      //      y = this; // <<< ERROR SomethingElse should be Null<SomethingElse>.
-      //    }
-      //  }
 
-      validateCache(model, context);
-      Key<Set<SpecificHaxeClassReference>> key = direction == Compatibility.ASSIGNABLE_TO
+      Key<CachedValue<Set<SpecificHaxeClassReference>>> key = direction == Compatibility.ASSIGNABLE_TO
                                                  ? COMPATIBLE_TYPES_TO_KEY
                                                  : COMPATIBLE_TYPES_FROM_KEY;
 
-      Set<SpecificHaxeClassReference> result = context.getUserData(key);
+      // caching that only cache values until any psi element changes, might speed up annotators etc while no code changes are made
+      // tracking all classes sub-classes interfaces or anything else that might change type compatibility would be very complex
+      Set<SpecificHaxeClassReference> cache = CachedValuesManager.getCachedValue(context, key, () -> {
+        Set<SpecificHaxeClassReference> result = getCompatibleTypesInternal(direction);
+        return new CachedValueProvider.Result<>(Set.copyOf(result), PsiModificationTracker.MODIFICATION_COUNT);
+      });
 
-      if (result == null) {
-        result = getCompatibleTypesInternal(direction);
-        if(model != null) {
-          String name = model.getName();
-          context.putUserData(key, result);
-          context.putUserData(CACHE_NAME_KEY, name);
-        }
-      }
       processedElements.get().clear();
       // create a new set to avoid  other code to tamper with the cached values
-      return  new HashSet<>(result);
+      return new HashSet<>(cache);
     } else {
-      Set<SpecificHaxeClassReference>result = getCompatibleTypesInternal(direction);
       processedElements.get().clear();
-      // create a new set to avoid  other code to tamper with the cached values
-      return new HashSet<>(result);
+      return getCompatibleTypesInternal(direction);
     }
   }
 
@@ -306,22 +288,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
   }
 
-  //TODO : in some strange cases the cache does not seem to be invalidated when a type changes for a field
-  // causing interface comparability to fail, this is a cheap workaround for thins problem that invalidates
-  // the cache if the type name changes.
-  private void validateCache(HaxeClassModel model, PsiElement context) {
-    if (model == null) return;
-    String name = model.getName();
-    if (name == null) return;
-
-    String cacheName = this.context.getUserData(CACHE_NAME_KEY);
-    if(cacheName != null && !name.equals(cacheName)) {
-      context.putUserData(COMPATIBLE_TYPES_TO_KEY, null);
-      context.putUserData(COMPATIBLE_TYPES_FROM_KEY, null);
-      context.putUserData(INFER_TYPES_KEY, null);
-      context.putUserData(CACHE_NAME_KEY, null);
-    }
-  }
 
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesInternal(Compatibility direction) {
