@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
+import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +36,7 @@ import static com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference.pr
 /**
  * HaxeParameterModels (parameter) appear in method and catch parameters -- not type parameters.
  */
+@EqualsAndHashCode
 public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel {
   private static final Key<HaxeMemberModel> PARAMETER_MEMBER_MODEL_KEY = new Key<>("HAXE_PARAMETER_MEMBER_MODEL");
 

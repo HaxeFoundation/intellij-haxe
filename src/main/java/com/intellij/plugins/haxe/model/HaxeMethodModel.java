@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
@@ -29,6 +30,10 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValue;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
+import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +41,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+@EqualsAndHashCode
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
+
+  private static final Key<CachedValue<ResultHolder>> RETURN_TYPE = new Key<>("RETURN_TYPE");
+
   private HaxeMethod haxeMethod;
   private String name;
 
@@ -149,7 +158,17 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), resolver);
+    // attempt at caching
+    if (resolver == null || resolver.isEmpty()) {
+      return CachedValuesManager.getCachedValue(haxeMethod, RETURN_TYPE, this::getReturnTypeCacheProvider);
+    }else {
+      return  HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), resolver);
+    }
+  }
+
+  private CachedValueProvider.Result<ResultHolder> getReturnTypeCacheProvider() {
+    ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), null);
+    return new CachedValueProvider.Result<>(type, this.getBasePsi());
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {

@@ -87,7 +87,7 @@ public class HaxeSemanticsUtil {
     }
 
     @NotNull
-    private static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init) {
+    public static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init) {
       HaxeExpression initExpression = init.getExpression();
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
 
