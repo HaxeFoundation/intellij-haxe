@@ -274,19 +274,35 @@ public class HaxeClassModel implements HaxeExposableModel {
     return types;
   }
 
-  public List<SpecificHaxeClassReference> getImplicitCastToTypesList(SpecificHaxeClassReference sourceType) {
+  public List<SpecificHaxeClassReference> getImplicitCastToTypesListClassOnly(SpecificHaxeClassReference sourceType ) {
+    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    for (SpecificTypeReference reference : getImplicitCastToTypesList(sourceType)) {
+      if (reference instanceof SpecificHaxeClassReference classReference) {
+        list.add(classReference);
+      }
+    }
+    return list;
+
+  }
+  public List<SpecificTypeReference> getImplicitCastToTypesList(SpecificHaxeClassReference sourceType ) {
     if (!isAbstractType()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
 
-    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    List<SpecificTypeReference> list = new ArrayList<>();
     for (HaxeMethodModel methodModel : methodsWithMetadata) {
       if (castMethodAcceptsSource(sourceType, methodModel)) {
-        SpecificHaxeClassReference reference = setSpecificsConstraints(methodModel, getReturnType(methodModel),
-                                                                       sourceType.getGenericResolver());
+        SpecificTypeReference returnType = getReturnType(methodModel);
+        if (returnType.canBeTypeVariable()) {
+          ResultHolder resolve = sourceType.getGenericResolver().resolve(((SpecificHaxeClassReference)returnType).getClassName());
+          if (resolve!= null && !resolve.isUnknown()) {
+            returnType = resolve.getType();
+          }
+        }
+        SpecificTypeReference reference = setSpecificsConstraints(methodModel, returnType, sourceType.getGenericResolver());
         list.add(reference);
 
         if (reference.isNullType()) {
-          SpecificHaxeClassReference underlyingClass = getUnderlyingClassIfAbstractNull(reference);
+          SpecificHaxeClassReference underlyingClass = getUnderlyingClassIfAbstractNull((SpecificHaxeClassReference)reference);
           list.add(underlyingClass);
         }
       }
@@ -300,7 +316,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     //implicit cast methods seems to accept both parameter-less methods and single parameter methods
     if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
     HaxeGenericResolver resolver = reference.getGenericResolver().withoutUnknowns();
-    SpecificHaxeClassReference parameterWithRealRealSpecifics = setSpecificsConstraints(methodModel, parameter, resolver);
+    SpecificTypeReference parameterWithRealRealSpecifics = setSpecificsConstraints(methodModel, parameter, resolver);
 
     if(reference.isAbstractType()) {
       SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
@@ -310,16 +326,28 @@ public class HaxeClassModel implements HaxeExposableModel {
     return canAssignToFrom(parameterWithRealRealSpecifics, reference, false, null,null, null);
   }
 
-  public List<SpecificHaxeClassReference> getImplicitCastFromTypesList(SpecificHaxeClassReference targetType) {
+  public List<SpecificHaxeClassReference> getImplicitCastFromTypesListClassOnly(SpecificHaxeClassReference targetType) {
+    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    for (SpecificTypeReference reference : getImplicitCastFromTypesList(targetType)) {
+      if (reference instanceof SpecificHaxeClassReference classReference) {
+        list.add(classReference);
+      }
+    }
+    return list;
+  }
+
+  public List<SpecificTypeReference> getImplicitCastFromTypesList(SpecificHaxeClassReference targetType) {
     if (!isAbstractType()) return Collections.emptyList();
     List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
 
+    HaxeGenericResolver resolver = this.getGenericResolver(null);
+
     // if return types can not be assign to target then skip this castMethod
-    List<SpecificHaxeClassReference> list = new ArrayList<>();
+    List<SpecificTypeReference> list = new ArrayList<>();
     for (HaxeMethodModel m : methodsWithMetadata) {
       // TODO consider applying generics from targetType to be more strict about what methods are supported ?
       if (canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m), targetType.getGenericResolver().withoutUnknowns()), false, null, null, null)) {
-        SpecificHaxeClassReference type = getImplicitCastFromType(m);
+        SpecificTypeReference type = getImplicitCastFromType(m, resolver);
         if (type != null) {
           list.add(type);
         }
@@ -329,30 +357,34 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  private SpecificHaxeClassReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel) {
+  private SpecificTypeReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel, @Nullable HaxeGenericResolver resolver) {
     SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
-    return setSpecificsConstraints(methodModel, parameter, null);
+    return setSpecificsConstraints(methodModel, parameter, resolver);
   }
 
   @NotNull
-  private SpecificHaxeClassReference setSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificHaxeClassReference classReference,
+  private SpecificTypeReference setSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificTypeReference classReference,
                                                              @Nullable HaxeGenericResolver resolver) {
-    ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
-    ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
+    if (classReference instanceof  SpecificHaxeClassReference haxeClassReference) {
+      ResultHolder[] specifics = haxeClassReference.getGenericResolver().getSpecifics();
+      ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
 
-    SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, classReference);
+      SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, haxeClassReference);
 
-    if (resolver!= null) {
-      for (int i = 0; i < specifics.length; i++) {
-        ResultHolder specific = specifics[i];
-        ResultHolder resolved = resolver.resolve(specific);
-        if (!resolved.isUnknown() && canAssignToFrom(newSpecifics[i],resolved )) {
-          newSpecifics[i] = resolved;
+      if (resolver != null) {
+        for (int i = 0; i < specifics.length; i++) {
+          ResultHolder specific = specifics[i];
+          ResultHolder resolved = resolver.resolve(specific);
+          if (!resolved.isUnknown() && canAssignToFrom(newSpecifics[i], resolved)) {
+            newSpecifics[i] = resolved;
+          }
         }
       }
+      return SpecificHaxeClassReference.withGenerics(reference.getHaxeClassReference(), newSpecifics);
+    }else {
+      return classReference;
     }
-    return SpecificHaxeClassReference.withGenerics(reference.getHaxeClassReference(), newSpecifics);
   }
 
   //caching  implicit cast  method lookup results
