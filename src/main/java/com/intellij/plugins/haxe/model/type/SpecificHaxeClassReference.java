@@ -38,7 +38,6 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 
 @CustomLog
-@EqualsAndHashCode
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
@@ -314,8 +313,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           list.add(type);
           list.addAll(type.getCompatibleTypesIInternalCached(direction));
         }
-      } else
-        for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
+      } else for (HaxeType extendsType : model.haxeClass.getHaxeExtendsList()) {
         SpecificHaxeClassReference type = propagateGenericsToType(extendsType, genericResolver);
         if (type != null) {
           if(direction == Compatibility.ASSIGNABLE_TO)  list.add(type);
