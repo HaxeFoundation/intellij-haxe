@@ -189,18 +189,39 @@ public class HaxeTypeCompatible {
     if (to.isDynamic() || from.isDynamic()) return true;
 
     // if abstract of function is being compared to a function we map the abstract to its underlying function
-    if (hasAbstractFunctionTypeCast(to, true) && isFunctionTypeOrReference(from)) {
-      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)to, true);
+    if (isFunctionTypeOrReference(from) && to.isAbstractType()) {
       SpecificFunctionReference fromFunctionType = asFunctionReference(from);
-      for(SpecificFunctionReference functionType  : functionTypes) {
-        if(canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
+      if (hasAbstractFunctionTypeCast(to, true)) {
+        List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)to, true);
+        for (SpecificFunctionReference functionType : functionTypes) {
+          if (canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
+        }
       }
+      if (to instanceof  SpecificHaxeClassReference classReference) {
+        List<SpecificTypeReference> list = getImplicitCast(classReference, true);
+        for (SpecificTypeReference reference : list) {
+          if (reference instanceof SpecificFunctionReference functionType) {
+            if (canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
+          }
+        }
+      }
+
     }
-    if (isFunctionTypeOrReference(to) && hasAbstractFunctionTypeCast(from, false)) {
-      List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
+    if (isFunctionTypeOrReference(to) && from.isAbstractType()) {
       SpecificFunctionReference toFunctionType = asFunctionReference(to);
-      for(SpecificFunctionReference functionType  : functionTypes) {
-        if(canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
+      if (hasAbstractFunctionTypeCast(from, false)) {
+        List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
+        for (SpecificFunctionReference functionType : functionTypes) {
+          if (canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
+        }
+      }
+      if (from instanceof  SpecificHaxeClassReference classReference) {
+        List<SpecificTypeReference> list = getImplicitCast(classReference, false);
+        for (SpecificTypeReference reference : list) {
+          if (reference instanceof  SpecificFunctionReference functionType) {
+            if (canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
+          }
+        }
       }
     }
 
@@ -233,6 +254,18 @@ public class HaxeTypeCompatible {
 
 
     return false;
+  }
+
+  private static List<SpecificTypeReference> getImplicitCast(@NotNull SpecificHaxeClassReference classReference, boolean from) {
+
+      HaxeAbstractTypeDeclaration abstractType = (HaxeAbstractTypeDeclaration)classReference.getHaxeClass();
+      if (abstractType != null && abstractType.getModel() != null) {
+        HaxeClassModel model = abstractType.getModel();
+        return from
+               ? model.getImplicitCastFromTypesList(classReference)
+               : model.getImplicitCastToTypesList(classReference);
+      }
+    return List.of();
   }
 
   static private boolean canAssignToFromFunction(
@@ -435,13 +468,13 @@ public class HaxeTypeCompatible {
     if (canAssignToFromSpecificType(to, from)) return true;
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
-    if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastFromTypesList(to));
+    if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastFromTypesListClassOnly(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(compatibleType, from)) return true;
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getImplicitCastToTypesList(from));
+    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getImplicitCastToTypesListClassOnly(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
