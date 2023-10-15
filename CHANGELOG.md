@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.16-231
+* NOTE: Builds for idea 2023.1 are no longer actively maintained (consider upgrading to 2023.2)
+* Hotfix: Disabling broken caching that broke assign checks and could lead to memory leaks.
+* Improvement: Resolve typeParameter for function types
+* Improvement: Handle implicit cast of function types
+* bugfix: Fixed issue where type parameters in some cases where treated as real types.
+* bugfix: Allow subclass of T to be assigned to Class<T>
+* Added: show error when variable without type is assigned to Void expression
+
 ## 1.4.15-231
 * NOTE:  Builds for idea 2023.1 are no longer actively maintained (consider upgrading to 2023.2)
 * Improvement: Large performance improvement for projects with  complex type inheritance graphs
