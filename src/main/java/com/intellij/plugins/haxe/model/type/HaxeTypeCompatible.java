@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -561,6 +562,22 @@ public class HaxeTypeCompatible {
 
     if (from.isEnumClass()) return false;
     if(!from.isContextAType()) return false;
+    // if from is literal class name
+    if (to.isClass() && from.context.getText().equals(from.getHaxeClass().getName())){
+      SpecificHaxeClassReference expectedType = to.getSpecifics()[0].getClassType();
+      boolean sameClass = canAssignToFromSpecificType(expectedType, from);
+      if (sameClass) {
+        return true;
+      } else {
+        // check if "from" class extends "to" class
+        PsiClass[] supers = from.getHaxeClass().getSupers();
+        for (PsiClass haxeType : supers) {
+          if (haxeType instanceof  HaxeClass haxeClass) {
+            if (expectedType.getHaxeClass() == haxeClass) return true;
+          }
+        }
+      }
+    }
 
     if(specificsTo.length !=  specificsFrom.length) return false;
     if(specificsTo.length == 0) return false;
