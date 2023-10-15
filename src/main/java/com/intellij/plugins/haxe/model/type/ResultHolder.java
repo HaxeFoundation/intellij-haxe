@@ -104,6 +104,12 @@ public class ResultHolder {
   public boolean canBeTypeVariable() {
     return type.canBeTypeVariable();
   }
+  public boolean isTypeParameter() {
+    if(type instanceof  SpecificHaxeClassReference classReference) {
+      return classReference.getHaxeClassReference().isTypeParameter();
+    }
+    return false;
+  }
 
   public ResultHolder setType(@Nullable SpecificTypeReference type) {
     if (type == null) {

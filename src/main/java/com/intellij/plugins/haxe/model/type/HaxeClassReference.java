@@ -24,6 +24,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -45,14 +46,14 @@ public class HaxeClassReference {
     this.name = getClassName(classModel);
     this.elementContext = elementContext;
     this.classModel = classModel;
-    this.isTypeParameter = false;
+    this.isTypeParameter =  elementContext instanceof HaxeClassWrapperForTypeParameter;
   }
 
   public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
     this.classModel = null;
-    this.isTypeParameter = false;
+    this.isTypeParameter =  elementContext instanceof HaxeClassWrapperForTypeParameter;
   }
   public HaxeClassReference(String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
     this.name = name;
