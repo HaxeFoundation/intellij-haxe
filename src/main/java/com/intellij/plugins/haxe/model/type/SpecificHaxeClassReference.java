@@ -44,7 +44,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
-  private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
+  private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
   private static final ThreadLocal<SpecificHaxeClassReference> currentProcessingElement = new ThreadLocal<>();
 
@@ -249,7 +249,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
     /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
-    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+    boolean skipCachingForDebug =  true; //HaxeDebugUtil.isCachingDisabled();
     HaxeClassModel model = getHaxeClassModel();
 
     if (!skipCachingForDebug &&  null != model && !model.hasGenericParams()) {
@@ -321,19 +321,24 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   Set<SpecificHaxeClassReference> getInferTypes() {
     HaxeClassModel model = getHaxeClassModel();
-    if (null == model || !model.hasGenericParams()) {
-      // Breaks on generics.  See note on getCompatibleTypes.
-      Set<SpecificHaxeClassReference> result = context.getUserData(INFER_TYPES_KEY);
-      if (result == null) {
-        processedElements.get().clear();
-        result = getInferTypesInternal();
-        context.putUserData(INFER_TYPES_KEY, result);
-      }
-      return result;
+    if (null != model && !model.hasGenericParams()) {
+
+      currentProcessingElement.set(this);
+      Set<SpecificHaxeClassReference> result = CachedValuesManager.getCachedValue(model.haxeClass, INFER_TYPES_KEY, SpecificHaxeClassReference::inferTypesProvider);
+      currentProcessingElement.remove();
+
+      processedElements.get().clear();
+
+      return  new HashSet<>(result);
     } else {
       processedElements.get().clear();
       return getInferTypesInternal();
     }
+  }
+  private static  CachedValueProvider.Result<Set<SpecificHaxeClassReference>> inferTypesProvider() {
+    SpecificHaxeClassReference reference = currentProcessingElement.get();
+    Set<SpecificHaxeClassReference> result = reference.getInferTypesInternal();
+    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
   }
 
 
