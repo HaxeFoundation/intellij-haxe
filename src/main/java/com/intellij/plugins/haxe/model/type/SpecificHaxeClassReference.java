@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -38,12 +39,14 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 
 @CustomLog
+@EqualsAndHashCode
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
   private static final Key<Set<SpecificHaxeClassReference>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
+  private static final ThreadLocal<SpecificHaxeClassReference> currentProcessingElement = new ThreadLocal<>();
 
   @NotNull private final HaxeClassReference classReference;
   @NotNull private final ResultHolder[] specifics;
@@ -245,23 +248,33 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
-    // Disabling cache for now as its potentially creating memory leaks
-    // Exception : SpecificHaxeClassReference is retaining PSI, causing memory leaks and possible invalid element access.
-    boolean cachingDisabled =  true;
+    /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
+    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
     HaxeClassModel model = getHaxeClassModel();
 
-    if (!cachingDisabled && (null == model || !model.hasGenericParams())) {
+    if (!skipCachingForDebug &&  null != model && !model.hasGenericParams()) {
 
       Key<CachedValue<Set<SpecificHaxeClassReference>>> key = direction == Compatibility.ASSIGNABLE_TO
                                                  ? COMPATIBLE_TYPES_TO_KEY
                                                  : COMPATIBLE_TYPES_FROM_KEY;
 
+      final Stack<HaxeClass> stack = processedElements.get();
+      if (stack.contains(model.haxeClass)) return  new HashSet<>();// recursion guard
+
+      Set<SpecificHaxeClassReference> cache;
       // caching that only cache values until any psi element changes, might speed up annotators etc while no code changes are made
       // tracking all classes sub-classes interfaces or anything else that might change type compatibility would be very complex
-      Set<SpecificHaxeClassReference> cache = CachedValuesManager.getCachedValue(context, key, () -> {
-        Set<SpecificHaxeClassReference> result = getCompatibleTypesInternal(direction);
-        return CachedValueProvider.Result.create(Set.copyOf(result), PsiModificationTracker.MODIFICATION_COUNT);
-      });
+
+      // in order to use CachedValuesManager our CachedValueProvider can not be a lambda or method as part of a class instance
+      // that contains PSI elements as the lambda/method reference would indirectly keep that psi elementand cause memory leaks
+      // or access to an invalid PSI
+      currentProcessingElement.set(this);
+      if ( direction == Compatibility.ASSIGNABLE_TO) {
+        cache = CachedValuesManager.getCachedValue(model.haxeClass, key, SpecificHaxeClassReference::toCachedValueProvider);
+      }else {
+        cache = CachedValuesManager.getCachedValue(model.haxeClass, key, SpecificHaxeClassReference::fromCachedValueProvider);
+      }
+      currentProcessingElement.remove();
 
       processedElements.get().clear();
       // create a new set to avoid  other code to tamper with the cached values
@@ -271,6 +284,39 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       processedElements.get().clear();
       return compatibleTypes;
     }
+  }
+
+  private static CachedValueProvider.Result<Set<SpecificHaxeClassReference>> toCachedValueProvider() {
+    SpecificHaxeClassReference reference = currentProcessingElement.get();
+    Set<SpecificHaxeClassReference> result = reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_TO);
+    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
+  }
+  private static  CachedValueProvider.Result<Set<SpecificHaxeClassReference>> fromCachedValueProvider() {
+    SpecificHaxeClassReference reference = currentProcessingElement.get();
+    Set<SpecificHaxeClassReference> result = reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_FROM);
+    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
+  }
+  /*
+    We want to minimize the amount of work when checking compatibility and we dont want to check the same type multiple times
+   (interfaces can be repeated as many times as they are implemented by classes,a common repated use is EventListener interfaces)
+   so we do a quick and dirty filtering based on the haxeClass declaration and only keep one instance
+   (we ignore specifics as they are also ignored in the caching logic)
+   */
+  private static Set<SpecificHaxeClassReference> simpleRemoveDuplicates(Set<SpecificHaxeClassReference> set) {
+    List<HaxeClass> haxeDeclarations = new ArrayList<>();
+    Set<SpecificHaxeClassReference> newSet = new HashSet<>();
+    for (SpecificHaxeClassReference reference : set) {
+      HaxeClass haxeClass = reference.getHaxeClass();
+      if(haxeClass== null) {
+        newSet.add(reference);
+        continue;
+      }
+      if (!haxeDeclarations.contains(haxeClass)) {
+        haxeDeclarations.add(haxeClass);
+        newSet.add(reference);
+      }
+    }
+    return newSet;
   }
 
   Set<SpecificHaxeClassReference> getInferTypes() {
@@ -343,7 +389,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         }
       }
     }
-
     return list;
   }
 
@@ -445,7 +490,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public boolean isCoreType() {
     HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());
-    return list.stream().anyMatch(meta -> meta.isCompileTimeMeta() &&  meta.isType("coreType"));
+    for (HaxeMeta meta : list) {
+      if (meta.isCompileTimeMeta() && meta.isType("coreType")) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private String getTypeName(PsiElement context) {
