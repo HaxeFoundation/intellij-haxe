@@ -30,6 +30,8 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang.NotImplementedException;
 import org.jetbrains.annotations.NotNull;
@@ -45,10 +47,6 @@ import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMeta
 
 public class HaxeClassModel implements HaxeExposableModel {
   public final HaxeClass haxeClass;
-
-  // cache casting method results
-  private List<HaxeMethodModel> castToMethods;
-  private List<HaxeMethodModel> castFromMethods;
 
   private HaxeModifiersModel _modifiers;
 
@@ -391,16 +389,22 @@ public class HaxeClassModel implements HaxeExposableModel {
   //caching  implicit cast  method lookup results
   @NotNull
   private List<HaxeMethodModel> getCastToMethods() {
-    if (castToMethods != null) return castToMethods;
-    castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
-    return castToMethods;
+    return  CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getCastToMethodsCached).getValue();
   }
+
+  private static CachedValueProvider.Result<List<HaxeMethodModel>> getCastToMethodsCached(@NotNull HaxeClass haxeClass) {
+    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
+    return  CachedValueProvider.Result.create(castToMethods, haxeClass);
+  }
+
   //caching implicit cast method lookup  results
   @NotNull
   private List<HaxeMethodModel> getCastFromMethods() {
-    if (castFromMethods != null) return castFromMethods;
-    castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
-    return castFromMethods;
+    return  CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getCastFromMethodsCached).getValue();
+  }
+  private static CachedValueProvider.Result<List<HaxeMethodModel>> getCastFromMethodsCached(@NotNull HaxeClass haxeClass) {
+    List<HaxeMethodModel> castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
+    return  CachedValueProvider.Result.create(castFromMethods, haxeClass);
   }
 
   @NotNull
