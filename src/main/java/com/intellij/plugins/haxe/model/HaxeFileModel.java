@@ -214,11 +214,11 @@ public class HaxeFileModel implements HaxeExposableModel {
     List<HaxeImportableModel>  result = new ArrayList<>();
     for(PsiElement child : children) {
 
-      if(child instanceof HaxeUsingStatement) {
-        result.add(((HaxeUsingStatement)child).getModel());
+       if(child instanceof HaxeImportStatement importStatement) {
+        result.add(importStatement.getModel());
       }
-      if(child instanceof HaxeImportStatement) {
-        result.add(((HaxeImportStatement)child).getModel());
+      else if(child instanceof HaxeUsingStatement usingStatement) {
+        result.add(usingStatement.getModel());
       }
 
     }
@@ -241,8 +241,8 @@ public class HaxeFileModel implements HaxeExposableModel {
 
     if (result != null) {
       HaxeModel model = result.resolve(getFullyQualifiedInfo().toPackageQualifiedName());
-      if (model instanceof HaxePackageModel) {
-        return (HaxePackageModel)model;
+      if (model instanceof HaxePackageModel packageModel) {
+        return packageModel;
       }
     }
 

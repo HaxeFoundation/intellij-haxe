@@ -44,7 +44,6 @@ import java.util.List;
 @EqualsAndHashCode
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
 
-  private static final Key<CachedValue<ResultHolder>> RETURN_TYPE = new Key<>("RETURN_TYPE");
 
   private HaxeMethod haxeMethod;
   private String name;
@@ -158,17 +157,16 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    // attempt at caching
     if (resolver == null || resolver.isEmpty()) {
-      return CachedValuesManager.getCachedValue(haxeMethod, RETURN_TYPE, this::getReturnTypeCacheProvider);
+      return CachedValuesManager.getProjectPsiDependentCache(haxeMethod,  HaxeMethodModel::getReturnTypeCacheProvider).getValue();
     }else {
-      return  HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), resolver);
+      return  HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
     }
   }
 
-  private CachedValueProvider.Result<ResultHolder> getReturnTypeCacheProvider() {
-    ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.getBasePsi(), null);
-    return new CachedValueProvider.Result<>(type, this.getBasePsi());
+  private static CachedValueProvider.Result<ResultHolder> getReturnTypeCacheProvider(HaxeMethod haxeMethod) {
+    ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, null);
+    return new CachedValueProvider.Result<>(type, haxeMethod);
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {

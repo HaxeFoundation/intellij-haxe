@@ -1304,7 +1304,7 @@ public class HaxeExpressionEvaluator {
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
-  @Nullable
+  @NotNull
   public static ResultHolder searchReferencesForType(final HaxePsiField field,
                                                      final HaxeExpressionEvaluatorContext context,
                                                      final HaxeGenericResolver resolver) {
@@ -1331,7 +1331,7 @@ public class HaxeExpressionEvaluator {
         }
       }
     }
-    return null;
+    return  SpecificHaxeClassReference.getUnknown(field).createHolder();
   }
 
   private static int getDistance(PsiReference reference, int offset) {
