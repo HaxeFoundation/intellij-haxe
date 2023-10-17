@@ -249,7 +249,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesIInternalCached(Compatibility direction) {
     /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
-    boolean skipCachingForDebug =  true; //HaxeDebugUtil.isCachingDisabled();
+    boolean skipCachingForDebug =  HaxeDebugUtil.isCachingDisabled();
     HaxeClassModel model = getHaxeClassModel();
 
     if (!skipCachingForDebug &&  null != model && !model.hasGenericParams()) {
@@ -288,13 +288,24 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   private static CachedValueProvider.Result<Set<SpecificHaxeClassReference>> toCachedValueProvider() {
     SpecificHaxeClassReference reference = currentProcessingElement.get();
-    Set<SpecificHaxeClassReference> result = reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_TO);
-    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
+    Set<SpecificHaxeClassReference> result = simpleRemoveDuplicates(reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_TO));
+    List<HaxeClass> nonGenericClasses = findNonGenericTypes(result);
+    boolean onlyNonGeneric = result.size() == nonGenericClasses.size();
+    return new CachedValueProvider.Result<>(Set.copyOf(result), onlyNonGeneric
+                                                                ? nonGenericClasses.toArray()
+                                                                : PsiModificationTracker.MODIFICATION_COUNT);
+
   }
   private static  CachedValueProvider.Result<Set<SpecificHaxeClassReference>> fromCachedValueProvider() {
     SpecificHaxeClassReference reference = currentProcessingElement.get();
-    Set<SpecificHaxeClassReference> result = reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_FROM);
-    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
+    Set<SpecificHaxeClassReference> result = simpleRemoveDuplicates(reference.getCompatibleTypesInternal(Compatibility.ASSIGNABLE_FROM));
+
+    List<HaxeClass> nonGenericClasses = findNonGenericTypes(result);
+    boolean onlyNonGeneric = result.size() == nonGenericClasses.size();
+    return new CachedValueProvider.Result<>(Set.copyOf(result), onlyNonGeneric
+                                                                ? nonGenericClasses.toArray()
+                                                                : PsiModificationTracker.MODIFICATION_COUNT);
+
   }
   /*
     We want to minimize the amount of work when checking compatibility and we dont want to check the same type multiple times
@@ -337,10 +348,28 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
   private static  CachedValueProvider.Result<Set<SpecificHaxeClassReference>> inferTypesProvider() {
     SpecificHaxeClassReference reference = currentProcessingElement.get();
-    Set<SpecificHaxeClassReference> result = reference.getInferTypesInternal();
-    return new CachedValueProvider.Result<>(Set.copyOf(simpleRemoveDuplicates(result)), PsiModificationTracker.MODIFICATION_COUNT);
+    Set<SpecificHaxeClassReference> result = simpleRemoveDuplicates(reference.getInferTypesInternal());
+
+    List<HaxeClass> nonGenericClasses = findNonGenericTypes(result);
+    boolean onlyNonGeneric = result.size() == nonGenericClasses.size();
+    return new CachedValueProvider.Result<>(Set.copyOf(result), onlyNonGeneric
+                                                                ? nonGenericClasses.toArray()
+                                                                : PsiModificationTracker.MODIFICATION_COUNT);
   }
 
+  @NotNull
+  private static List<HaxeClass> findNonGenericTypes(Set<SpecificHaxeClassReference> result) {
+    List<HaxeClass> nonGenericClasses = new ArrayList<>();
+    for (SpecificHaxeClassReference haxeClassReference : result) {
+      HaxeClass aClass = haxeClassReference.getHaxeClass();
+      if (aClass != null) {
+        if (aClass.isGeneric()) {
+          nonGenericClasses.add(aClass);
+        }
+      }
+    }
+    return nonGenericClasses;
+  }
 
 
   private Set<SpecificHaxeClassReference> getCompatibleTypesInternal(Compatibility direction) {
