@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashSet;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
+import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.IS_VAR;
 
 public class HaxeFieldAnnotator implements Annotator {
@@ -96,10 +97,19 @@ public class HaxeFieldAnnotator implements Annotator {
                   .create();
               }
               else {
-                message = HaxeBundle.message("haxe.semantic.variable.redefinition", field.getName(), fieldDeclaringClass.getName());
-                holder.newAnnotation(HighlightSeverity.ERROR, message)
-                  .range(field.getBasePsi())
-                  .create();
+                if (hasMacroForCodeGeneration(field.getDeclaringClass())) {
+                  message = HaxeBundle.message("haxe.semantic.variable.redefinition.possibly", field.getName(), fieldDeclaringClass.getName());
+                  message += HaxeBundle.message("haxe.semantic.macro.generated");
+                  holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
+                    .range(field.getBasePsi())
+                    .create();
+                }
+                else {
+                  message = HaxeBundle.message("haxe.semantic.variable.redefinition", field.getName(), fieldDeclaringClass.getName());
+                  holder.newAnnotation(HighlightSeverity.ERROR, message)
+                    .range(field.getBasePsi())
+                    .create();
+                }
               }
               break;
             }
