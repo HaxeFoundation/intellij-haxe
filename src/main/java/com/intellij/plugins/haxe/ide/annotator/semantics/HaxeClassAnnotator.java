@@ -10,6 +10,8 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.generation.OverrideImplementMethodFix;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -25,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
+import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkIfMethodSignatureDiffers;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkMethodsSignatureCompatibility;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
@@ -293,26 +296,43 @@ public class HaxeClassAnnotator implements Annotator {
 
     if (!missingMethods.isEmpty()) {
       // @TODO: Move to bundle
-      holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
+      boolean macroWarning = hasMacroForCodeGeneration(clazz);
+      if (macroWarning) {
+        String message = "Method implementations might be missing: " + StringUtils.join(missingMethodsNames, ", ");
+        message += HaxeBundle.message("haxe.semantic.macro.generated");
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
+          .range(abstractClass.getPsi())
+          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .create();
+      }
+    }else {
+      String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
+      holder.newAnnotation(HighlightSeverity.ERROR, message)
         .range(abstractClass.getPsi())
-        .withFix(new HaxeFixer("Implement methods") {
-          @Override
-          public void run() {
-            OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
-            for (HaxeMethodModel mm : missingMethods) {
-              fix.addElementToProcess(mm.getMethodPsi());
-            }
-
-            PsiElement basePsi = clazz.getBasePsi();
-            Project p = basePsi.getProject();
-            fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
-          }
-        })
+        .withFix(implementMissingMethodsFix(clazz, missingMethods))
         .create();
     }
 
   //TODO  check abstract classes for abstract methods to implement
   }
+
+  @NotNull
+  private static HaxeFixer implementMissingMethodsFix(HaxeClassModel clazz, List<HaxeMethodModel> missingMethods) {
+    return new HaxeFixer("Implement methods") {
+      @Override
+      public void run() {
+        OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
+        for (HaxeMethodModel mm : missingMethods) {
+          fix.addElementToProcess(mm.getMethodPsi());
+        }
+
+        PsiElement basePsi = clazz.getBasePsi();
+        Project p = basePsi.getProject();
+        fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
+      }
+    };
+  }
+
 
   private static void checkInterfacesFields(final HaxeClassModel clazz, final AnnotationHolder holder) {
     //TODO add settings for this feature
@@ -539,24 +559,28 @@ public class HaxeClassAnnotator implements Annotator {
       }
     }
 
-    if (missingMethods.size() > 0) {
+    if (!missingMethods.isEmpty()) {
       // @TODO: Move to bundle
-      holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
-        .range(intReference.getPsi())
-        .withFix(new HaxeFixer("Implement methods") {
-          @Override
-          public void run() {
-            OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
-            for (HaxeMethodModel mm : missingMethods) {
-              fix.addElementToProcess(mm.getMethodPsi());
-            }
+      //holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
+      //  .range(intReference.getPsi())
+      //  .withFix(implementMissingMethodsFix(clazz, missingMethods))
+      //  .create();
 
-            PsiElement basePsi = clazz.getBasePsi();
-            Project p = basePsi.getProject();
-            fix.invoke(p, FileEditorManager.getInstance(p).getSelectedTextEditor(), basePsi.getContainingFile());
-          }
-        })
-        .create();
+      boolean macroWarning = hasMacroForCodeGeneration(clazz);
+      if (macroWarning) {
+        String message = "Method implementations might be missing: " + StringUtils.join(missingMethodsNames, ", ");
+        message += HaxeBundle.message("haxe.semantic.macro.generated");
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
+          .range(intReference.getPsi())
+          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .create();
+      }else {
+        String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
+        holder.newAnnotation(HighlightSeverity.ERROR, message)
+          .range(intReference.getPsi())
+          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .create();
+      }
     }
   }
 }

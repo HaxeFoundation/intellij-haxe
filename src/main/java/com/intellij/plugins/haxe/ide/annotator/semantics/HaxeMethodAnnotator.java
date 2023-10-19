@@ -22,6 +22,7 @@ import java.util.List;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.returnTypeMismatch;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
+import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.OVERRIDE;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
@@ -214,16 +215,26 @@ public class HaxeMethodAnnotator implements Annotator {
 
     //System.out.println(aClass);
     if (currentModifiers.hasModifier(OVERRIDE) && !requiredOverride) {
-      holder.newAnnotation(HighlightSeverity.ERROR, "Overriding nothing").range(currentModifiers.getModifierPsi(OVERRIDE))
-        .withFix(new HaxeModifierRemoveFixer(currentModifiers, OVERRIDE))
-        .create();
+      if (!hasMacroForCodeGeneration(currentMethod.getDeclaringClass())) {
+        holder.newAnnotation(HighlightSeverity.ERROR, "Overriding nothing").range(currentModifiers.getModifierPsi(OVERRIDE))
+          .withFix(new HaxeModifierRemoveFixer(currentModifiers, OVERRIDE))
+          .create();
+      }
     }
     else if (requiredOverride) {
       if (!currentModifiers.hasModifier(OVERRIDE)) {
-        holder.newAnnotation(HighlightSeverity.ERROR, "Must override").range(currentMethod.getNameOrBasePsi())
-          .withFix(new HaxeModifierAddFixer(currentModifiers, OVERRIDE))
-          .create();
+        if (hasMacroForCodeGeneration(currentMethod.getDeclaringClass())) {
+          holder.newAnnotation(HighlightSeverity.WEAK_WARNING, "Positionally missing override")
+            .range(currentMethod.getNameOrBasePsi())
+            .withFix(new HaxeModifierAddFixer(currentModifiers, OVERRIDE))
+            .create();
+        } else {
+          holder.newAnnotation(HighlightSeverity.ERROR, "Must override").range(currentMethod.getNameOrBasePsi())
+            .withFix(new HaxeModifierAddFixer(currentModifiers, OVERRIDE))
+            .create();
+        }
       }
+
       else {
         // It is rightly overriden. Now check the signature.
         checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder);
