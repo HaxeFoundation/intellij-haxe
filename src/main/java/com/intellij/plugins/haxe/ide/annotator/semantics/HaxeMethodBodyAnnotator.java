@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +48,7 @@ public class HaxeMethodBodyAnnotator implements Annotator {
       if (null == constraint) {
         constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
       }
-      resolver.add(param.getName(), constraint);
+      resolver.addConstraint(param.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
     }
     return resolver;
   }

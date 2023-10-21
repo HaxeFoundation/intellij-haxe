@@ -872,6 +872,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     for (int i = 0; i < names.length; i++) {
       if (i < resultSpecifics.length) {
         String name = names[i];
+        //TODO should not need to override once generic resolver can keep track of origin and chose correct value
         genericResolver.add(name, resultSpecifics[i]);
         // if parameter specific is from a TypeParameter replace with specific from argument
         SpecificHaxeClassReference type = paramSpecifics[i].getClassType();

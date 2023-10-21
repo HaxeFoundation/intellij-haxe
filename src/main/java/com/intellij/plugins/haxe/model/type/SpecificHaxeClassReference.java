@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.*;
@@ -196,7 +197,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
         if(specific == null)  specific = getUnknown(context).createHolder();// null safety
-        resolver.add(paramModel.getName(), specific);
+        //TODO check constraints
+        resolver.add(paramModel.getName(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
       }
     }
     return resolver;
@@ -603,15 +605,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return propagateGenericsToType(classType, genericResolver);
   }
 
+  public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference originalType, @Nullable HaxeGenericResolver genericResolver) {
+    return propagateGenericsToType(originalType, genericResolver, false);
+  }
   public static SpecificHaxeClassReference propagateGenericsToType(@Nullable SpecificHaxeClassReference originalType,
-                                                                   @Nullable HaxeGenericResolver genericResolver) {
+                                                                   @Nullable HaxeGenericResolver genericResolver, boolean isReturnType) {
     SpecificHaxeClassReference type = originalType;
     if (type == null) return null;
     if (genericResolver == null || genericResolver.isEmpty()) return type;
 
     if (type.canBeTypeVariable()) {
       String typeVariableName = type.getHaxeClassReference().name;
-      ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
+      ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(type) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
         SpecificTypeReference possibleType = possibleValue.getType();
         if (possibleType instanceof SpecificHaxeClassReference classReference) {
@@ -622,7 +627,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard
       if (specific.getClassType() != originalType) {
-        final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver);
+        final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver, isReturnType);
         if (null != typeReference) {
           specific.setType(typeReference);
         }

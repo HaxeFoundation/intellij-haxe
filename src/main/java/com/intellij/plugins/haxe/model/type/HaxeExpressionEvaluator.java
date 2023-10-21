@@ -818,7 +818,7 @@ public class HaxeExpressionEvaluator {
         functionResolver.addAll(resolver);
         HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, functionResolver);
 
-        ResultHolder resolved = functionResolver.resolve(returnType);
+        ResultHolder resolved = functionResolver.resolveReturnType(returnType);
         if (resolved != null && !resolved.isUnknown()) {
           returnType = resolved;
         }

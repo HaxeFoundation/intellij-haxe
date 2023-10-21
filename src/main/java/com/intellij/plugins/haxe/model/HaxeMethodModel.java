@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValue;
@@ -157,7 +158,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    if (resolver == null || resolver.isEmpty()) {
+    if (this.getGenericParams().isEmpty() && (resolver == null || resolver.isEmpty())) {
       return CachedValuesManager.getProjectPsiDependentCache(haxeMethod,  HaxeMethodModel::getReturnTypeCacheProvider).getValue();
     }else {
       return  HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
@@ -238,7 +239,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.add(model.getName(), constraint );
+        resolver.addConstraint(model.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
       }
     }
     return resolver;

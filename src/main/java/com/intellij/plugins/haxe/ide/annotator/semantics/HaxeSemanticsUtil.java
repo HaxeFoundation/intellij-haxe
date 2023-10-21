@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +30,7 @@ public class HaxeSemanticsUtil {
       final AnnotationHolder holder
     ) {
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
-      final ResultHolder initType = getTypeFromVarInit(initExpression);
+      final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
 
       if (!varType.canAssign(initType)) {
 
@@ -87,13 +88,16 @@ public class HaxeSemanticsUtil {
     }
 
     @NotNull
-    public static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init) {
+    public static ResultHolder getTypeFromVarInit(@NotNull HaxeVarInit init, ResultHolder assignType) {
       HaxeExpression initExpression = init.getExpression();
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
 
       final ResultHolder abstractEnumFieldInitType = HaxeAbstractEnumUtil.getStaticMemberExpression(initExpression, resolver);
       if (abstractEnumFieldInitType != null) {
         return abstractEnumFieldInitType;
+      }
+      if (assignType != null) {
+        resolver.add("", assignType, ResolveSource.ASSIGN_TYPE);
       }
 
       // fallback to simple init expression
