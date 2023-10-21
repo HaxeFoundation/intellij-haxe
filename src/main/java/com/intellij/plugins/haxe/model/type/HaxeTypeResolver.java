@@ -232,10 +232,15 @@ public class HaxeTypeResolver {
    */
   @NotNull
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver) {
+    return resolveParameterizedType(result, resolver, false);
+  }
+  @NotNull
+  static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver, boolean returnType) {
     SpecificTypeReference typeReference = result.getType();
     if (resolver != null) {
       if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.canBeTypeVariable()) {
-        ResultHolder resolved = resolver.resolve(haxeClassReference.getClassName());
+        String className = haxeClassReference.getClassName();
+        ResultHolder resolved = returnType ? resolver.resolveReturnType(haxeClassReference) : resolver.resolve(className);
         if (null != resolved) {
           result = resolved;
         }
@@ -245,7 +250,7 @@ public class HaxeTypeResolver {
     // Resolve any generics on the resolved type as well.
     typeReference = result.getType();
     if (typeReference instanceof SpecificHaxeClassReference classReference) {
-      SpecificHaxeClassReference.propagateGenericsToType(classReference, resolver);
+      SpecificHaxeClassReference.propagateGenericsToType(classReference, resolver, returnType);
     }
 
     return result;
@@ -259,14 +264,17 @@ public class HaxeTypeResolver {
         if (resolver != null) {
           HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
           if (typeOrAnonymous != null) {
-            String text = typeOrAnonymous.getText();
-            ResultHolder resolve = resolver.resolve(text);
-            if (resolve != null && !resolve.isUnknown()) {
-              return resolve;
+            //TODO resolve for anonymous types ?
+            if (typeOrAnonymous.getType() != null) {
+              ResultHolder type = HaxeTypeResolver.getTypeFromType(typeOrAnonymous.getType());
+              ResultHolder resolve = resolver.resolveReturnType(type);
+              if (resolve != null && !resolve.isUnknown()) {
+                return resolve;
+              }
             }
           }
         }
-        return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver);
+        return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver, true);
       }
     }
     if (comp instanceof HaxeConstructor constructor) {

@@ -486,13 +486,19 @@ public abstract class SpecificTypeReference {
 
   public static SpecificTypeReference propagateGenericsToType(@Nullable SpecificTypeReference originalType,
                                                               @Nullable HaxeGenericResolver genericResolver) {
+    return propagateGenericsToType(originalType, genericResolver , false);
+  }
+  public static SpecificTypeReference propagateGenericsToType(@Nullable SpecificTypeReference originalType,
+                                                              @Nullable HaxeGenericResolver genericResolver,
+                                                              boolean isReturnType
+  ) {
     SpecificTypeReference type = originalType;
     if (type == null) return null;
     if (genericResolver == null) return type;
 
     if (type.canBeTypeVariable() && type instanceof  SpecificHaxeClassReference classReference) {
       String typeVariableName = classReference.getHaxeClassReference().name;
-      ResultHolder possibleValue = genericResolver.resolve(typeVariableName);
+      ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(classReference) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
         SpecificTypeReference possibleType = possibleValue.getType();
         if (possibleType != null) {
@@ -509,9 +515,9 @@ public abstract class SpecificTypeReference {
           if (specific.getClassType() != null) {
             SpecificTypeReference typeReference;
             if (!specific.getClassType().isFromTypeParameter()) {
-              typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver());
+              typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver(), isReturnType);
             }else {
-              typeReference = genericResolver.resolve(specific).getType();
+              typeReference = isReturnType ? genericResolver.resolveReturnType(specific).getType() : genericResolver.resolve(specific).getType();
             }
             if (null != typeReference) {
               specific.setType(typeReference);

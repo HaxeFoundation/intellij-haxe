@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.lang.annotation.*;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorConfig;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
@@ -10,6 +9,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -385,7 +385,12 @@ public class HaxeMethodAnnotator implements Annotator {
       List<HaxeGenericParamModel> params = methodModel.getGenericParams();
       for(HaxeGenericParamModel paramModel : params) {
         ResultHolder constraint = paramModel.getConstraint(null);
-        resolver.add(paramModel.getName(), constraint == null ? new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi())) :  constraint);
+        if (constraint == null) {
+          ResultHolder resultHolder = new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi()));
+          resolver.add(paramModel.getName(), resultHolder, ResolveSource.METHOD_TYPE_PARAMETER);
+        }else {
+          resolver.addConstraint(paramModel.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+        }
       }
     }
     return resolver;

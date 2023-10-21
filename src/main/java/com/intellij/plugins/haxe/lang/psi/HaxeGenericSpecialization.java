@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -114,7 +115,7 @@ public class HaxeGenericSpecialization implements Cloneable {
         resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
       }
 
-      resolver.add(key, resultHolder);
+      resolver.add(key, resultHolder, ResolveSource.CLASS_TYPE_PARAMETER);
     }
     return resolver;
   }
