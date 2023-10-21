@@ -252,6 +252,8 @@ public class HaxeTypeCompatible {
     if (to instanceof SpecificEnumValueReference toReference && from instanceof SpecificEnumValueReference fromReference) {
       return toReference.isSameType(fromReference);
     }
+    // if value is type parameter and we have reached this point without resolving its type we just accept it as it would be the same as unknown
+    if (to.isFromTypeParameter()) return true;
 
 
     return false;

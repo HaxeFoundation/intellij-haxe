@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodDeclarationImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -77,9 +78,8 @@ public class HaxeCallExpressionUtil {
     }
 
     // generics and type parameter
-
-    HaxeGenericResolver resolver =  tryGetCallieResolveResult(callExpression).getGenericResolver();
-    resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, resolver);
+    HaxeGenericResolver classTypeResolver =  tryGetCallieResolveResult(callExpression).getGenericResolver();
+    HaxeGenericResolver resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, classTypeResolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
 
@@ -703,7 +703,7 @@ public class HaxeCallExpressionUtil {
     // parameter is a typeParameter type, we can just add it to resolver
     if (parameterType.getClassType().isFromTypeParameter()) {
       String className = parameterType.getClassType().getClassName();
-      resolver.add(className, argumentType);
+      resolver.add(className, argumentType, ResolveSource.ARGUMENT_TYPE);
       typeParamMap.put(className, argumentType);
     }
   }
@@ -728,7 +728,6 @@ public class HaxeCallExpressionUtil {
     if (expressionType == null) {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument);
       HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(argument);
-      genericResolver.addAll(resolver); // TODO verify if this is ok
       expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver.withoutUnknowns()).result;
     }
 

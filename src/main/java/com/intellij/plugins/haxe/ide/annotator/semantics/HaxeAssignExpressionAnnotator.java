@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeAssignExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMapLiteral;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +39,8 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rhs);
 
     ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
+    rhsResolver.add("", lhsType, ResolveSource.ASSIGN_TYPE);
+
     ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
 
     // Allow Literal Maps and arrays to be assigned to any specifics they have in common with assigned variable.

@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -94,7 +95,7 @@ public class TypeParameterUtil {
       .map( holder ->  holder.getClassType().getClassName())
       .filter(typeParamMap::containsKey)
       .filter( s ->  typeParamMap.get(s) != null)
-      .forEach( s ->  resolver.add(s, typeParamMap.get(s)));
+      .forEach( s ->  resolver.addConstraint(s, typeParamMap.get(s), ResolveSource.CLASS_TYPE_PARAMETER));
 
 
     return Optional.ofNullable(resolver.resolve(parameterType));

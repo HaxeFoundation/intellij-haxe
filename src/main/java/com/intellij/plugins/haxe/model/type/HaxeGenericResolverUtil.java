@@ -20,6 +20,7 @@ import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
@@ -28,6 +29,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
+
+import static com.intellij.plugins.haxe.model.type.HaxeParameterUtil.mapArgumentsToParameters;
 
 public class HaxeGenericResolverUtil {
 
@@ -110,7 +114,9 @@ public class HaxeGenericResolverUtil {
   @NotNull public static HaxeGenericResolver appendCallExpressionGenericResolver(@Nullable PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
 
-    if (element instanceof HaxeCallExpression) {
+    Map<Integer, HaxeParameterUtil.ParameterToArgumentAndResolver> parameterArgumentMap = null;
+
+    if (element instanceof HaxeCallExpression callExpression2) {
       HaxeCallExpression call = (HaxeCallExpression)element;
       HaxeExpression callExpression = call.getExpression();
       PsiElement callTarget = callExpression instanceof HaxeReferenceExpression ? ((HaxeReferenceExpression)callExpression).resolve() : null;
@@ -136,10 +142,15 @@ public class HaxeGenericResolverUtil {
           HaxeExpressionList parameterList = call.getExpressionList();
           List<HaxeExpression> expressionList = null != parameterList ? parameterList.getExpressionList() : null;
           if (null != expressionList) {
-            int len = Math.min(expressionList.size(), methodParameters.size());
-            for (int n = 0; n < len; n++) {
 
-              ResultHolder paramType = methodParameters.get(n).getType();
+
+            parameterArgumentMap = mapArgumentsToParameters(callExpression2, methodParameters, expressionList, false, resolver);
+
+            for (Map.Entry<Integer, HaxeParameterUtil.ParameterToArgumentAndResolver> entry : parameterArgumentMap.entrySet()) {
+
+
+              ResultHolder paramType = entry.getValue().parameter().getType();
+
               String paramName = paramType.getType().toStringWithoutConstant();
               ResultHolder[] paramSpecifics = {};
               //HACK, NullValue type should not inherit specifics, but be replaced by resolved type
@@ -154,34 +165,39 @@ public class HaxeGenericResolverUtil {
               // if NULL != resolverType and !isUnknown, then the type is already set.
               // if NULL != resolverType and isUnknown, then poke the type from the call site.
               if ((null != resolverType && resolverType.isUnknown()) || paramSpecifics.length > 0) {
-                HaxeExpression expression = expressionList.get(n);
+                //HaxeExpression expression = expressionList.get(n);
 
-                HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call);
-                HaxeExpressionEvaluator.evaluate(expression, evaluatorContext, resolver);
-                ResultHolder result = evaluatorContext.result;
+                //HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(call);
+                //HaxeExpressionEvaluator.evaluate(expression, evaluatorContext, resolver);
+                //ResultHolder result = evaluatorContext.result;
+
+                HaxeExpression argumentExpression = entry.getValue().argumentExpression();
+                ResultHolder argumentType = entry.getValue().argumentType();
+                if (argumentType == null) continue;
+
                 if (null != resolverType && resolverType.isUnknown()) {
-                  methodResolver.add(paramName, result);
+                  methodResolver.add(paramName, argumentType, ResolveSource.ARGUMENT_TYPE);
                 }
                 // If the type contains generic arguments, then evaluate those and see if they are in the resolver.
                 if (paramSpecifics.length > 0) {
                   ResultHolder[] resolvedSpecifics = null;
-                  if (result.isClassType()) {
+                  if (argumentType.isClassType()) {
                     if (fromNullType) {
-                      resolvedSpecifics = new ResultHolder[] {new ResultHolder(result.getClassType())};
+                      resolvedSpecifics = new ResultHolder[] {new ResultHolder(argumentType.getClassType())};
                     }else {
-                      resolvedSpecifics = result.getClassType().getSpecifics();
+                      resolvedSpecifics = argumentType.getClassType().getSpecifics();
                     }
                      // if the paramType  is a Class<?> and the expression is a type declaration, then that class should be used in the resolver
-                    if(paramType.isClassType() && expression instanceof HaxeReferenceExpression referenceExpression) {
+                    if(paramType.isClassType() && argumentExpression instanceof HaxeReferenceExpression referenceExpression) {
                       PsiElement resolve = referenceExpression.resolve();
                       if(resolve instanceof  HaxeClass ) {
-                        resolvedSpecifics = new ResultHolder[]{new ResultHolder(result.getClassType())};
+                        resolvedSpecifics = new ResultHolder[]{new ResultHolder(argumentType.getClassType())};
                       }
 
                     }
-                  }else if (result.isFunctionType()) {
+                  }else if (argumentType.isFunctionType()) {
                     //TODO mlo consider making a method in FunctionType to do this ? (if it works as intended that is)
-                    List<SpecificFunctionReference.Argument> arguments = result.getFunctionType().getArguments();
+                    List<SpecificFunctionReference.Argument> arguments = argumentType.getFunctionType().getArguments();
                     List<ResultHolder> list = arguments.stream().map(SpecificFunctionReference.Argument::getType).toList();
                     resolvedSpecifics = list.toArray(new ResultHolder[0]);
                   }
@@ -192,18 +208,18 @@ public class HaxeGenericResolverUtil {
                       resolverType = methodResolver.resolve(paramSpecificName);
                       if (null != resolverType) {
                         ResultHolder resolvedSpecific = resolvedSpecifics[i];
-                        if (result.getType().isPureClassReference()) {
+                        if (argumentType.getType().isPureClassReference()) {
                           // HACKISH workaround  for wrapped  pure Class references.
                           // unwrap Class<T>
-                          resolvedSpecific = result.getClassType().getSpecifics()[0];
+                          resolvedSpecific = argumentType.getClassType().getSpecifics()[0];
                         }
                         if (resolverType.isUnknown()) {
-                          methodResolver.add(paramSpecificName, resolvedSpecific);
+                          methodResolver.add(paramSpecificName, resolvedSpecific, ResolveSource.ARGUMENT_TYPE);
 
                           // replacing current type with resolved  parameter if it can be assigned to the type
                           // ex. you got an interface and the parameter passed is a type that implements that interface
                         }else if (resolverType.canAssign(resolvedSpecific)) {
-                          methodResolver.add(paramSpecificName, resolvedSpecific);
+                          methodResolver.add(paramSpecificName, resolvedSpecific, ResolveSource.ARGUMENT_TYPE);
                         }else {
                           //TODO mlo: try to add some kind of warning, parameter does not match constraints
                         }
