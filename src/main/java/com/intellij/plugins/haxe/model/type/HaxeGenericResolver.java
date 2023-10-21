@@ -139,10 +139,14 @@ public class HaxeGenericResolver {
       }
     }
     // todo recursion guard
-    if (!reference.isFromTypeParameter()) {
+    if (!reference.isFromTypeParameter() && needResolve(reference)) {
       return HaxeTypeResolver.resolveParameterizedType(reference.createHolder(), this, true);
     }
-    return null;
+    return reference.createHolder();
+  }
+
+  private boolean needResolve(SpecificHaxeClassReference reference) {
+    return Arrays.stream(reference.getSpecifics()).anyMatch(ResultHolder::isTypeParameter);
   }
 
   @NotNull

@@ -82,18 +82,28 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public HaxeTypeTag getTypeTagPsi() {
+    //return CachedValuesManager.getCachedValue(basePsi, () -> new CachedValueProvider.Result<>(getParameterPsi().getTypeTag(), basePsi));
     return getParameterPsi().getTypeTag();
   }
 
-  private ResultHolder macroTypeReplacement;// allow us to replace ExprOf<T> with T
+  private ResultHolder typeReplacement;// allow us to replace ExprOf<T> with T
 
   // TODO mlo find a new way to cache type
   @NotNull
   public ResultHolder getType() {
-    if (macroTypeReplacement != null) {
-      return macroTypeReplacement.duplicate();
+    if (typeReplacement != null) {
+      return typeReplacement.duplicate();
     }
-    return  HaxeTypeResolver.getTypeFromTypeTag(getTypeTagPsi(), this.getContextElement());
+    HaxeTypeTag psi = getTypeTagPsi();
+    ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(psi, this.getContextElement());
+    //caching when we know there's no generics involved
+    if (!type.isTypeParameter() && type.getClassType() != null && type.getClassType().getSpecifics().length == 0 ) {
+      if (psi != null && psi.textMatches(type.getType().toString())) { // make sure we are not caching a resolved value (ex. param:T being resolved to param:String)
+        typeReplacement = type;
+      }
+    }
+
+    return type;
   }
 
   @NotNull
@@ -211,7 +221,7 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
 
   public HaxeParameterModel replaceType(ResultHolder type) {
     HaxeParameterModel model = new HaxeParameterModel(getParameterPsi());
-    model.macroTypeReplacement = type;
+    model.typeReplacement = type;
     return model;
   }
 }
