@@ -283,6 +283,35 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     }
     return accessor;
   }
+  @Nullable
+  @Override
+  public HaxeNamedComponent findArrayAccessSetter(@Nullable HaxeGenericResolver resolver) {
+    HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethodsSelf(resolver), new Condition<HaxeNamedComponent>() {
+      @Override
+      public boolean value(HaxeNamedComponent component) {
+        if (component instanceof HaxeMethod) {
+          HaxeMethodModel model = ((HaxeMethod)component).getModel();
+          return model != null && model.isArrayAccessor() && model.getParameterCount() == 2;
+        }
+        return false;
+      }
+    });
+    // Maybe old style getter?
+    if (null == accessor) {
+      accessor = findHaxeMethodByName("__set", resolver);
+    }
+    // maybe ArrayAccess interface for externs (see hackish workaround where findArrayAccessGetter is used)
+    if (null == accessor) {
+      if (this.isExtern()){
+        Optional<HaxeType> arrayAccess = this.getHaxeImplementsList().stream()
+          .filter(haxeType -> haxeType.getReferenceExpression().getQualifiedName().equals("ArrayAccess")).findFirst();
+        if(arrayAccess.isPresent()) {
+          return arrayAccess.get().getReferenceExpression().resolveHaxeClass().getHaxeClass();
+        }
+      }
+    }
+    return accessor;
+  }
 
   @Override
   public HaxeGenericResolver getMemberResolver(HaxeGenericResolver resolver) {
