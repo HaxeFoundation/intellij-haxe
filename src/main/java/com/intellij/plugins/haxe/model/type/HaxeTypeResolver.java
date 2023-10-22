@@ -572,7 +572,7 @@ public class HaxeTypeResolver {
           }
         }
 
-        return resultHolder;
+       if (resultHolder!= null) return resultHolder;
       }
     }
     return getPsiElementType(element, (AnnotationHolder)null, resolver).result;
