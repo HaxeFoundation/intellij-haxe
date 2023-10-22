@@ -10,8 +10,6 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.generation.OverrideImplementMethodFix;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -387,13 +385,7 @@ public class HaxeClassAnnotator implements Annotator {
                   continue;
                 }
 
-                String message = HaxeBundle.message("haxe.semantic.field.different.access",
-                                                    fieldDeclaration.getName(),
-                                                    intReference.getHaxeClass().getName());
-
-                holder.newAnnotation(HighlightSeverity.ERROR, message)
-                  .range(fieldDeclaration.getTextRange())
-                  .create();
+                annotateDifferentAccess(intReference, holder, fieldDeclaration, fieldDeclaration);
               }
               else {
                 HaxePropertyAccessor getter = propertyDeclaration.getPropertyAccessorList().get(0);
@@ -407,13 +399,7 @@ public class HaxeClassAnnotator implements Annotator {
                   if (!intGetter.textMatches(ACCESSOR_NEVER) && !intGetter.textMatches(ACCESSOR_NULL) && intGetter.textMatches(ACCESSOR_DYNAMIC)) {
 
                   if (!intGetter.getText().equals(getter.getText())) {
-                    String message = HaxeBundle.message("haxe.semantic.field.different.access",
-                                                        fieldDeclaration.getName(),
-                                                        intReference.getHaxeClass().getName());
-
-                    holder.newAnnotation(HighlightSeverity.ERROR, message)
-                      .range(getter.getElement())
-                      .create();
+                    annotateDifferentAccess(intReference, holder, fieldDeclaration, getter.getElement());
                   }
                   }
                 }
@@ -424,13 +410,7 @@ public class HaxeClassAnnotator implements Annotator {
                   // dynamic: Like get/set access, but does not verify the existence of the accessor field.
                   if (!intSetter.textMatches(ACCESSOR_NEVER) && !intSetter.textMatches(ACCESSOR_NULL) && !intSetter.textMatches(ACCESSOR_DYNAMIC)) {
                     if (!intSetter.getText().equals(setter.getText())) {
-                      String message = HaxeBundle.message("haxe.semantic.field.different.access",
-                                                          fieldDeclaration.getName(),
-                                                          intReference.getHaxeClass().getName());
-
-                      holder.newAnnotation(HighlightSeverity.ERROR, message)
-                        .range(setter.getElement())
-                        .create();
+                      annotateDifferentAccess(intReference, holder, fieldDeclaration, setter.getElement());
                     }
                   }
                 }
@@ -460,11 +440,7 @@ public class HaxeClassAnnotator implements Annotator {
               canAssignToFrom(intField.getResultType(interfaceFieldResolver), model.getResultType(classFieldResolver));
 
             if (!typesAreCompatible) {
-              holder.newAnnotation(HighlightSeverity.ERROR, "Field " + fieldDeclaration.getName()
-                                                            + " has different type than in  "
-                                                            + intReference.getHaxeClass().getName())
-                .range(fieldDeclaration.getNode())
-                .create();
+              annotateDifferentType(intReference, holder, fieldDeclaration);
             }
           }
         }
@@ -491,6 +467,43 @@ public class HaxeClassAnnotator implements Annotator {
       }
     }
   }
+
+  private static void annotateDifferentType(HaxeClassReferenceModel intReference, AnnotationHolder holder, HaxeFieldDeclaration fieldDeclaration) {
+    boolean macroCodegen = hasMacroCodeGen(fieldDeclaration);
+
+    holder.newAnnotation(macroCodegen ? HighlightSeverity.WEAK_WARNING : HighlightSeverity.ERROR,
+                         "Field " + fieldDeclaration.getName() + " has different type than in  "
+                         + intReference.getHaxeClass().getName())
+      .range(fieldDeclaration.getNode())
+      .create();
+
+  }
+
+  private static boolean hasMacroCodeGen(HaxeFieldDeclaration fieldDeclaration) {
+    HaxeClass containingClass = (HaxeClass)fieldDeclaration.getContainingClass();
+    if (containingClass == null) return false;
+
+    HaxeClassModel model = containingClass.getModel();
+    return  AnnotatorUtil.hasMacroForCodeGeneration(model);
+  }
+
+  private static void annotateDifferentAccess(HaxeClassReferenceModel intReference,
+                                              AnnotationHolder holder,
+                                              HaxeFieldDeclaration fieldDeclaration,
+                                              PsiElement rangeElement) {
+
+    boolean macroCodegen = hasMacroCodeGen(fieldDeclaration);
+
+    String message = HaxeBundle.message("haxe.semantic.field.different.access",
+                                        fieldDeclaration.getName(),
+                                        intReference.getHaxeClass().getName());
+
+    holder.newAnnotation(macroCodegen ? HighlightSeverity.WEAK_WARNING : HighlightSeverity.ERROR, message)
+      .range(rangeElement)
+      .create();
+  }
+
+
 
 
   private static void checkInterfaceMethods(
