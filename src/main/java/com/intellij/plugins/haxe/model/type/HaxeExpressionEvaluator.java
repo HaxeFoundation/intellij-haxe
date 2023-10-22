@@ -1162,7 +1162,8 @@ public class HaxeExpressionEvaluator {
           // If there is not a block, but there is a statement, then return the type of that statement.
           HaxeBlockStatement block = function.getBlockStatement();
           if (null != block) {
-            returnType = handle(block, context, resolver);
+            //// note : as we enter a block we are leaving the scope where we could use the assignHint directly
+            returnType = handle(block, context, resolver.withoutAssignHint());
           } else if (null != function.getExpression()) {
             returnType = handle(function.getExpression(), context, resolver);
           } else {
