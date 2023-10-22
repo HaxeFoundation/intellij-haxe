@@ -627,7 +627,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard
       if (specific.getClassType() != originalType) {
-        final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver, isReturnType);
+        final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver);
         if (null != typeReference) {
           specific.setType(typeReference);
         }
