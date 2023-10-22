@@ -564,22 +564,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           HaxeExpressionList argumentList = ((HaxeCallExpression)this).getExpressionList();
           if (argumentList != null) {
             List<HaxeExpression> ArgumentExpressions = argumentList.getExpressionList();
-            int parameterNumber = 0;
             for (HaxeExpression exp : ArgumentExpressions) {
               if (exp instanceof HaxeReference reference) {
                 HaxeResolveResult ArgumentResult = reference.resolveHaxeClass();
                 modelResolver.addAll(ArgumentResult.getGenericResolver());
-                if (exp instanceof HaxeReferenceExpression && ArgumentResult.getHaxeClass() != null) {
-                  HaxeParameterModel model = method.getModel().getParameters().get(parameterNumber++);
-                  modelResolver.addAll(parameterOverrideGenericConstraints(model, ArgumentResult));
-                }
               }
             }
             resolver.addAll(modelResolver);
           }
         }
 
-        //final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(resolvedExpression));
         final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(null));
 
         result.specialize(this);
@@ -853,38 +847,6 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
            && className.equalsIgnoreCase(haxeClass.getName());// identical classname and elementText
   }
 
-  /*
-    Another "hack" to get the correct return type from generics arguments
-    while the method  may set constraints for generics  the final type value is what is passed as argument
-   */
-  private static HaxeGenericResolver parameterOverrideGenericConstraints(HaxeParameterModel parameterModel, HaxeResolveResult result) {
-    HaxeGenericResolver genericResolver = new HaxeGenericResolver();
-    ResultHolder parameterType = parameterModel.getType();
-    if (!parameterType.isClassType()) return genericResolver;
-    // get all  parameters from  model
-    HaxeGenericResolver paramsResolver = parameterType.getClassType().getGenericResolver();
-    // get all  parameters from  result
-    HaxeGenericResolver resultsResolver = result.getGenericResolver();
-    // substitute
-    @NotNull String[] names = paramsResolver.names();
-    @NotNull ResultHolder[] paramSpecifics = paramsResolver.getSpecifics();
-    @NotNull ResultHolder[] resultSpecifics = resultsResolver.getSpecifics();
-    for (int i = 0; i < names.length; i++) {
-      if (i < resultSpecifics.length) {
-        String name = names[i];
-        //TODO should not need to override once generic resolver can keep track of origin and chose correct value
-        genericResolver.add(name, resultSpecifics[i]);
-        // if parameter specific is from a TypeParameter replace with specific from argument
-        SpecificHaxeClassReference type = paramSpecifics[i].getClassType();
-        if (type != null && type.isFromTypeParameter()) {
-          String className = type.getClassName();
-          genericResolver.add(className, resultSpecifics[i]);
-        }
-      }
-    }
-
-    return genericResolver;
-  }
 
   @Override
   public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
