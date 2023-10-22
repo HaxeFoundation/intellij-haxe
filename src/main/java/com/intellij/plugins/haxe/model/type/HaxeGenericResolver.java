@@ -46,6 +46,12 @@ public class HaxeGenericResolver {
     constaints.stream().filter(entry -> !entry.type().isUnknown()).forEach(resolver.constaints::add);
     return resolver;
   }
+  public HaxeGenericResolver withoutAssignHint() {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    resolvers.stream().filter(entry -> entry.resolveSource() != ResolveSource.ASSIGN_TYPE).forEach(resolver.resolvers::add);
+    resolver.constaints.addAll(constaints);
+    return resolver;
+  }
 
   /*
      when resolving types inside a method with generic parameters we want to show the generic types and not unknown
