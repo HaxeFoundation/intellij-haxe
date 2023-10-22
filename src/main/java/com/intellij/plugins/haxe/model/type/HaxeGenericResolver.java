@@ -76,10 +76,12 @@ public class HaxeGenericResolver {
     return specificType;
   }
   public ResultHolder add(@NotNull String name, @NotNull ResultHolder specificType, ResolveSource resolveSource) {
+    resolvers.removeIf(entry -> entry.name().equals(name) && entry.resolveSource() == resolveSource);
     resolvers.add(new ResolverEntry(name, specificType, resolveSource));
     return specificType;
   }
   public ResultHolder addConstraint(@NotNull String name, @NotNull ResultHolder specificType, ResolveSource resolveSource) {
+    constaints.removeIf(entry -> entry.name().equals(name) && entry.resolveSource() == resolveSource);
     constaints.add(new ResolverEntry(name, specificType, resolveSource));
     return specificType;
   }
@@ -87,10 +89,25 @@ public class HaxeGenericResolver {
   @NotNull
   public HaxeGenericResolver addAll(@Nullable HaxeGenericResolver parentResolver) {
     if (null != parentResolver) {
+      removeExisting(parentResolver.resolvers, resolvers);
+      removeExisting(parentResolver.constaints, constaints);
+
       this.resolvers.addAll(parentResolver.resolvers);
       this.constaints.addAll(parentResolver.constaints);
     }
     return this;
+  }
+
+  private void removeExisting(@NotNull LinkedList<ResolverEntry> newValues, LinkedList<ResolverEntry> oldValues ) {
+    LinkedList<ResolverEntry> removeList = new LinkedList<>();
+    for (ResolverEntry newVal : newValues) {
+      oldValues.stream()
+        .filter(entry -> entry.name().equals(newVal.name()))
+        .filter(entry -> entry.resolveSource().equals(newVal.resolveSource()))
+        .findFirst()
+        .ifPresent(removeList::add);
+    }
+    oldValues.removeAll(removeList);
   }
 
   @Nullable
@@ -173,11 +190,52 @@ public class HaxeGenericResolver {
       }
     }
     if (!resultHolder.getType().isFromTypeParameter()) {
+      Optional<ResolverEntry> assign = findAsignToType();
+      if (assign.isPresent()) { // if we got expected return type we want to pass along expected typeParameter values when resolving
+        SpecificHaxeClassReference expectedType = assign.get().type().getClassType();
+        if (expectedType != null) {
+          // hack for null<T>  return types
+          if (resultHolder.getType().isNullType()) {
+            resultHolder.getClassType().getSpecifics()[0] = expectedType.createHolder();
+          }else {
+            ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(resultHolder, this, true);
+            replaceSpecifics(holder, expectedType);
+            return holder;
+          }
+
+        }
+      }
       return HaxeTypeResolver.resolveParameterizedType(resultHolder, this, true);
     }
     return null;
 
   }
+
+  // TODO should probably fix this method so it sets specifics instead of direct manipulation
+  private static void replaceSpecifics(ResultHolder holder, SpecificHaxeClassReference expectedType) {
+    SpecificHaxeClassReference resolved = holder.getClassType();
+    if (resolved != null) {
+      if (resolved.isTypeDefOfClass()) {
+        resolved = resolved.resolveTypeDefClass();
+      }
+      if (expectedType.isTypeDefOfClass()) {
+        expectedType = expectedType.resolveTypeDefClass();
+      }
+      @NotNull ResultHolder[] resolvedSpecifics = resolved.getSpecifics();
+      @NotNull ResultHolder[] expectedSpecifics = expectedType.getSpecifics();
+      if (resolvedSpecifics.length == expectedSpecifics.length) {
+        for (int i = 0; i < resolvedSpecifics.length; i++) {
+          ResultHolder expected = expectedSpecifics[i];
+          if (!expected.isUnknown() && !expected.isTypeParameter()) {
+            if (resolvedSpecifics[i].canAssign(expected)) {
+              resolvedSpecifics[i] = expected;
+            }
+          }
+        }
+      }
+    }
+  }
+
   @Nullable
   public ResultHolder resolve(ResultHolder resultHolder) {
     if (null == resultHolder ) return null;
