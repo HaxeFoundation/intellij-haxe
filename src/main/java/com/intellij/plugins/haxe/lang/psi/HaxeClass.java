@@ -159,6 +159,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   @Nullable
   HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver);
+  HaxeNamedComponent findArrayAccessSetter(@Nullable HaxeGenericResolver resolver);
 
   default boolean hasMeta(HaxeMetadataTypeName meta) {
     return HaxeMetadataUtils.hasMeta(this, meta);
