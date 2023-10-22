@@ -117,7 +117,13 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
       for (int n = 0; n < specifics.length; n++) {
         if (n > 0) out.append(", ");
         ResultHolder specific = specifics[n];
-        out.append(specific == null ? UNKNOWN : specific.toStringWithoutConstant());
+        if (specific == null) {
+          out.append(UNKNOWN);
+        } else if (!specific.getType().equals(this)) {
+          out.append(specific.toStringWithoutConstant());
+        }else {
+          out.append("...");
+        }
       }
       out.append(">");
     }
