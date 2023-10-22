@@ -32,6 +32,11 @@ public class HaxeCallExpressionAnnotator implements Annotator {
               }
             }
           }
+          // resolve typedef of function
+          if (type.getType() instanceof  SpecificHaxeClassReference classReference && classReference.isTypeDef()) {
+            SpecificFunctionReference functionReference = classReference.resolveTypeDefFunction();
+            functionType = functionReference;
+          }
 
           if (functionType != null) {
             if (functionType.functionType != null) {
