@@ -375,7 +375,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   /*
-    HaxeExtractorMatchExpression can be chained so we need to loop until we get a refrence
+    HaxeExtractorMatchExpression can be chained so we need to loop until we get a reference
       ex.  case add(_, 1) => mul(_1, 3) => a:
    */
   private HaxeReferenceExpression getReferenceFromExtractorMatchExpression(HaxeExtractorMatchExpression expression) {
