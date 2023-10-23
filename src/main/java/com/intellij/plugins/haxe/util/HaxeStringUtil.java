@@ -44,7 +44,7 @@ public class HaxeStringUtil {
     for (int i = 0; i < s.length(); i++) {
       // fix
       if (!Character.isJavaIdentifierPart(s.charAt(i))) {
-        if (name.length() > 0) {
+        if (!name.isEmpty()) {
           res.add(Pair.create(name.toString(), startInd));
           name.setLength(0);
           startInd = -1;

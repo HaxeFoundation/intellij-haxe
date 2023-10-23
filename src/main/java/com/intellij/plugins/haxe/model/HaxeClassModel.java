@@ -291,7 +291,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeMethodModel methodModel : methodsWithMetadata) {
       if (castMethodAcceptsSource(sourceType, methodModel)) {
         SpecificTypeReference returnType = getReturnType(methodModel);
-        if (returnType.canBeTypeVariable()) {
+        if (returnType.isFromTypeParameter()) {
           ResultHolder resolve = sourceType.getGenericResolver().resolve(((SpecificHaxeClassReference)returnType).getClassName());
           if (resolve!= null && !resolve.isUnknown()) {
             returnType = resolve.getType();
@@ -697,14 +697,22 @@ public class HaxeClassModel implements HaxeExposableModel {
   @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
-    if (getPsi().getGenericParam() != null) {
-      int index = 0;
-      for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
-        out.add(new HaxeGenericParamModel(part, index));
-        index++;
+    // anonymous structures does not have TypeParameters on their own, but their parent may declar them.
+      HaxeGenericParam genericParam = isAnonymous() ? getGenericParamFromParent() : getPsi().getGenericParam();
+      if (genericParam != null) {
+        int index = 0;
+        for (HaxeGenericListPart part : genericParam.getGenericListPartList()) {
+          out.add(new HaxeGenericParamModel(part, index));
+          index++;
+        }
       }
-    }
     return out;
+  }
+
+  private HaxeGenericParam getGenericParamFromParent() {
+    HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(getPsi(), HaxeTypedefDeclaration.class);
+    if (type == null) return null;
+    return type.getGenericParam();
   }
 
   /**

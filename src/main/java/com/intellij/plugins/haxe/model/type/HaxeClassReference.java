@@ -75,10 +75,13 @@ public class HaxeClassReference {
   private String getClassNameInternal(HaxeClassModel clazz) {
     if (clazz.haxeClass instanceof HaxeAnonymousType) {
       HaxeNamedComponent namedComponent = HaxeResolveUtil.findTypeParameterContributor(clazz.getBasePsi());
-      if (namedComponent instanceof HaxeTypedefDeclaration) {
-        final HaxeComponentName name = namedComponent.getComponentName();
-        if (name != null) {
-          return name.getText();
+      if (namedComponent instanceof HaxeTypedefDeclaration typedefDeclaration) {
+        // make sure we only replace the text with typedef name if its an exact match ( we dont want to replace anonymous structures in typeParameters etc)
+        if (clazz.haxeClass.textMatches(typedefDeclaration.getTypeOrAnonymous())) {
+          final HaxeComponentName name = namedComponent.getComponentName();
+          if (name != null) {
+            return name.getText();
+          }
         }
       }
       final String formattedClassText = clazz.haxeClass.getText()

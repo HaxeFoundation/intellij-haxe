@@ -26,10 +26,7 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -841,7 +838,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeClassModel model = typedef.getModel();
     while (null != model && model.isTypedef() && !recursionGuard.contains(model.getName())) {
       recursionGuard.add(model.getName());
-
       final HaxeTypeOrAnonymous toa = model.getUnderlyingType();
       final HaxeType type = toa.getType();
       if (null == type) {
@@ -855,10 +851,40 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (null == nakedResult) {
         nakedResult = type.getReferenceExpression().resolveHaxeClass();
       }
-      result = HaxeResolveResult.create(nakedResult.getHaxeClass(), specialization);
+      // translate  type params from typedef left side to right side value
+      HaxeGenericResolver genericResolver = new HaxeGenericResolver();
+      if(type.getTypeParam() != null ) {
+        HaxeGenericResolver localResolver = specialization.toGenericResolver(type);
+        List<String> names = getGenericParamNames(nakedResult);
+        List<HaxeTypeListPart> typeParameterList = type.getTypeParam().getTypeList().getTypeListPartList();
+        for (int i = 0; i < typeParameterList.size(); i++) {
+          String name = names.get(i);
+          HaxeTypeListPart part = typeParameterList.get(i);
+          if (part.getTypeOrAnonymous() != null) {
+            genericResolver.add(name, HaxeTypeResolver.getTypeFromTypeOrAnonymous(part.getTypeOrAnonymous(), localResolver));
+          }
+          else if (part.getFunctionType() != null) {
+            //TODO resolve  with resolver ?
+            ResultHolder type1 = HaxeTypeResolver.getTypeFromFunctionType(part.getFunctionType());
+            genericResolver.add(name, type1);
+          }
+        }
+      }
+
+      result = HaxeResolveResult.create(nakedResult.getHaxeClass(), HaxeGenericSpecialization.fromGenericResolver(null, genericResolver));
       model = null != result.getHaxeClass() ? result.getHaxeClass().getModel() : null;
+      specialization = result.getSpecialization();
     }
     return result;
+  }
+
+  @NotNull
+  private static List<String> getGenericParamNames(HaxeResolveResult nakedResult) {
+    HaxeClass haxeClass = nakedResult.getHaxeClass();
+    if (haxeClass == null) return  List.of();
+    HaxeGenericParam param = haxeClass.getGenericParam();
+    if (param == null) return  List.of();
+    return  param.getGenericListPartList().stream().map(genericListPart -> genericListPart.getComponentName().getName()).toList();
   }
 
   private static List<? extends PsiElement> asList(@Nullable PsiElement element) {

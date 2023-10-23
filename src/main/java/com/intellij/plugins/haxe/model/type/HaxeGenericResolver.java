@@ -132,6 +132,26 @@ public class HaxeGenericResolver {
     return holder;
   }
 
+  /**
+   * resolve method that helps avoid the use of getText() on elements, using textMatches() which should be faster
+   * <a href="https://plugins.jetbrains.com/docs/intellij/psi-performance.html">PSI Performance</a>
+   */
+  @Nullable
+  public ResultHolder resolve(PsiElement element) {
+    ResultHolder holder = resolvers.stream()
+      .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
+      .map(ResolverEntry::type)
+      .orElse(null);
+    // fallback to constraints ?
+    if (holder == null) {
+      holder = constaints.stream()
+        .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
+        .map(ResolverEntry::type)
+        .orElse(null);
+    }
+    return holder;
+  }
+
   private int ResolverPrioritySort(ResolverEntry entry, ResolverEntry entry1) {
     int priorityA = entry.resolveSource().priority;
     int priorityB = entry1.resolveSource().priority;
