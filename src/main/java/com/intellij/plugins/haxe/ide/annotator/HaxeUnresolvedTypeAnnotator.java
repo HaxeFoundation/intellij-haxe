@@ -91,8 +91,9 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     if (!components.isEmpty()) {
       // operator overload metas don't have "real" references so we skip this check
       if (isCompileTimeMeta(expression, HaxeMeta.OP)) return;
-      if (!annotatedRanges.contains(expression.getTextRange())) {
-        annotatedRanges.add(expression.getTextRange());
+      TextRange textRange = expression.getTextRange();
+      if (!annotatedRanges.contains(textRange)) {
+        annotatedRanges.add(textRange);
         myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
           .range(expression)
           .withFix(new HaxeTypeAddImportIntentionAction(expression, components))

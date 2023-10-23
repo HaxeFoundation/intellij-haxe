@@ -41,7 +41,7 @@ public class HaxeTypeCompatible {
     return canAssignToFrom(to, from.getType());
   }
 
-  static public boolean canAssignToFromWithAnnotator(@Nullable ResultHolder to, @Nullable ResultHolder from, @Nullable AnnotationHolder holder) {
+  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
     if (null == to || null == from) return false;
     if (to.isUnknown()) {
       to.setType(from.getType().withoutConstantValue());
@@ -50,7 +50,7 @@ public class HaxeTypeCompatible {
       from.setType(to.getType().withoutConstantValue());
     }
 
-    return canAssignToFrom(to.getType(), from.getType(), true, holder, to.getOrigin(), from.getOrigin());
+    return canAssignToFrom(to.getType(), from.getType(), true,  to.getOrigin(), from.getOrigin());
   }
 
   //TODO mlo, hack to allow macro expressions to assign to anything
@@ -68,26 +68,7 @@ public class HaxeTypeCompatible {
     return false;
   }
 
-  private static void annotateUnableToEvaluate(@NotNull PsiElement from, @NotNull AnnotationHolder holder) {
-    // TODO  find a better solution for this (it causes PluginException when annotation is outside initial psiElement from annotate())
 
-    //// avoid other files and elements "out of scope"
-    //AnnotationSession session = holder.getCurrentAnnotationSession();
-    //if (from.getOriginalElement().getContainingFile().equals(session.getFile())) {
-    //  TextRange range = from.getTextRange();
-    //
-    //  if (session.getPriorityRange().contains(range)) {
-    //    holder.newAnnotation(HighlightSeverity.WEAK_WARNING,
-    //                         HaxeBundle.message("haxe.inspections.assignment.type.compatibility.unable.description"))
-    //      .range(range)
-    //      .create();
-    //  }
-    //}
-  }
-
-  static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
-    return canAssignToFromWithAnnotator(to,from, null);
-  }
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
     return ref instanceof SpecificFunctionReference
@@ -167,22 +148,13 @@ public class HaxeTypeCompatible {
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from
   ) {
-    return canAssignToFrom(to,from, true, null, null, null);
+    return canAssignToFrom(to,from, true, null, null);
   }
-  static public boolean canAssignToFrom(
-    @Nullable SpecificTypeReference to,
-    @Nullable SpecificTypeReference from,
-    @Nullable AnnotationHolder holder
-  ) {
-    return canAssignToFrom(to,from, true, holder, null, null);
-  }
-
 
   static public boolean canAssignToFrom(
     @Nullable SpecificTypeReference to,
     @Nullable SpecificTypeReference from,
     Boolean includeImplicitCast,
-    @Nullable AnnotationHolder holder,
     @Nullable PsiElement toOrigin,
     @Nullable PsiElement fromOrigin
   ) {
@@ -195,14 +167,14 @@ public class HaxeTypeCompatible {
       if (hasAbstractFunctionTypeCast(to, true)) {
         List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)to, true);
         for (SpecificFunctionReference functionType : functionTypes) {
-          if (canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
+          if (canAssignToFromFunction(functionType, fromFunctionType)) return true;
         }
       }
       if (to instanceof  SpecificHaxeClassReference classReference) {
         List<SpecificTypeReference> list = getImplicitCast(classReference, true);
         for (SpecificTypeReference reference : list) {
           if (reference instanceof SpecificFunctionReference functionType) {
-            if (canAssignToFromFunction(functionType, fromFunctionType, holder)) return true;
+            if (canAssignToFromFunction(functionType, fromFunctionType)) return true;
           }
         }
       }
@@ -213,14 +185,14 @@ public class HaxeTypeCompatible {
       if (hasAbstractFunctionTypeCast(from, false)) {
         List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
         for (SpecificFunctionReference functionType : functionTypes) {
-          if (canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
+          if (canAssignToFromFunction(toFunctionType, functionType)) return true;
         }
       }
       if (from instanceof  SpecificHaxeClassReference classReference) {
         List<SpecificTypeReference> list = getImplicitCast(classReference, false);
         for (SpecificTypeReference reference : list) {
           if (reference instanceof  SpecificFunctionReference functionType) {
-            if (canAssignToFromFunction(toFunctionType, functionType, holder)) return true;
+            if (canAssignToFromFunction(toFunctionType, functionType)) return true;
           }
         }
       }
@@ -234,7 +206,7 @@ public class HaxeTypeCompatible {
       }else {
         SpecificFunctionReference toRef = asFunctionReference(to);
         SpecificFunctionReference fromRef = asFunctionReference(from);
-        return canAssignToFromFunction(toRef, fromRef, holder);
+        return canAssignToFromFunction(toRef, fromRef);
       }
     }
     // check if we try to assign enum value to a reference with (it's) enum class as type
@@ -273,8 +245,7 @@ public class HaxeTypeCompatible {
 
   static private boolean canAssignToFromFunction(
     @NotNull SpecificFunctionReference to,
-    @NotNull SpecificFunctionReference from,
-    @Nullable AnnotationHolder holder
+    @NotNull SpecificFunctionReference from
   ) {
 
     // The Function class is always assignable to other functions.
@@ -301,13 +272,7 @@ public class HaxeTypeCompatible {
         SpecificFunctionReference.Argument fromArg = from.arguments.get(n);
         SpecificFunctionReference.Argument toArg = to.arguments.get(n);
 
-
-        // if type is unknown and/or lack model annotate with warning instead of showing unassignable error
-        if (toArg.getType().isUnknown() || toArg.getType().missingClassModel()) {
-          if (holder != null) {
-              annotateUnableToEvaluate(fromArg.getType().getElementContext(), holder);
-          }
-        }else {
+        if (!toArg.getType().isUnknown() && !toArg.getType().missingClassModel()) {
           if (!toArg.canAssignToFrom(fromArg))
             return false;
         }

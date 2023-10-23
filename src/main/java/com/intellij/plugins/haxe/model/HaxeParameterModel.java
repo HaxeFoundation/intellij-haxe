@@ -110,15 +110,20 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   public ResultHolder getType(@Nullable HaxeGenericResolver resolver) {
     ResultHolder typeResult = getType();
     if (resolver != null) {
-      if(typeResult.getType() instanceof SpecificHaxeClassReference classReference) {
+      SpecificTypeReference type = typeResult.getType();
+      if(type instanceof SpecificHaxeClassReference classReference) {
         propagateGenericsToType(classReference, resolver);
       }
-      else if(typeResult.getType() instanceof SpecificFunctionReference functionReference) {
+      else if(type instanceof SpecificFunctionReference functionReference) {
       // TODO propagate to functionTypes
         //propagateGenericsToType(classReference, resolver);
       }
-      ResultHolder resolved = resolver.resolve(typeResult.getType().toStringWithoutConstant());
-      if (resolved != null) return resolved;
+
+      if(type instanceof SpecificHaxeClassReference classReference) {
+        ResultHolder resolved = resolver.resolve(classReference.getClassName());
+        if (resolved != null) return resolved;
+      }
+
     }
     return typeResult;
   }

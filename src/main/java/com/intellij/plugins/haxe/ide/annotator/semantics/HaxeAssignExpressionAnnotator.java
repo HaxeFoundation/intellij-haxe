@@ -60,7 +60,7 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
       return;
     }
 
-    if (!lhsType.canAssignAnnotateWarnings(rhsType, holder)) {
+    if (!lhsType.canAssign(rhsType)) {
       List<HaxeExpressionConversionFixer> fixers =
         HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType());
 

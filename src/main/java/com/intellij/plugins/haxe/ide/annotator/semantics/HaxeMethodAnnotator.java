@@ -358,7 +358,7 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
 
     // Order of assignment compatibility is to parent, from subclass.
-    if (!canAssignToFrom(parentResult.getType(), currentResult.getType(), holder)) {
+    if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       if (parentResult.getType().isUnknown()) {
         if (parentResult.getType() instanceof SpecificHaxeClassReference classReference) {
