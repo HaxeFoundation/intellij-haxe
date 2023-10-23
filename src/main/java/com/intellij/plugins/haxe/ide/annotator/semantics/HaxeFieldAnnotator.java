@@ -272,7 +272,7 @@ public class HaxeFieldAnnotator implements Annotator {
       if (expression instanceof HaxeReferenceExpression reference) {
         final HaxeIdentifier identifier = reference.getIdentifier();
 
-        if (identifier.getText().equals(fieldName)) {
+        if (identifier.textMatches(fieldName)) {
           PsiElement firstChild = reference.getFirstChild();
           if (firstChild instanceof HaxeThisExpression || firstChild == identifier) {
             this.result = true;

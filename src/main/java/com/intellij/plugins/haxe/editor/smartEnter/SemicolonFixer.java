@@ -59,7 +59,7 @@ public class SemicolonFixer implements Fixer {
       if (typeTag != null) {
         HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
         if (typeOrAnonymous != null) {
-          if (typeOrAnonymous.getText().equals(SpecificTypeReference.VOID)) {
+          if (typeOrAnonymous.textMatches(SpecificTypeReference.VOID)) {
             return false;
           }
         }

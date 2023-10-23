@@ -398,7 +398,7 @@ public class HaxeClassAnnotator implements Annotator {
                   // dynamic: Like get/set access, but does not verify the existence of the accessor field.
                   if (!intGetter.textMatches(ACCESSOR_NEVER) && !intGetter.textMatches(ACCESSOR_NULL) && intGetter.textMatches(ACCESSOR_DYNAMIC)) {
 
-                  if (!intGetter.getText().equals(getter.getText())) {
+                  if (!intGetter.textMatches(getter)) {
                     annotateDifferentAccess(intReference, holder, fieldDeclaration, getter.getElement());
                   }
                   }
@@ -409,7 +409,7 @@ public class HaxeClassAnnotator implements Annotator {
                   // null only specifies access allowed from within the defining class (class may use different access )
                   // dynamic: Like get/set access, but does not verify the existence of the accessor field.
                   if (!intSetter.textMatches(ACCESSOR_NEVER) && !intSetter.textMatches(ACCESSOR_NULL) && !intSetter.textMatches(ACCESSOR_DYNAMIC)) {
-                    if (!intSetter.getText().equals(setter.getText())) {
+                    if (!intSetter.textMatches(setter)) {
                       annotateDifferentAccess(intReference, holder, fieldDeclaration, setter.getElement());
                     }
                   }
@@ -421,7 +421,7 @@ public class HaxeClassAnnotator implements Annotator {
             HaxeMutabilityModifier modifier = intFieldDeclaration.getMutabilityModifier();
 
             HaxeMutabilityModifier mutabilityModifier = fieldDeclaration.getMutabilityModifier();
-            if (!modifier.getText().equals(mutabilityModifier.getText())) {
+            if (!modifier.textMatches(mutabilityModifier)) {
 
               String message = HaxeBundle.message("haxe.semantic.field.different.mutability",
                                                   fieldDeclaration.getName(),
