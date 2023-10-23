@@ -248,7 +248,7 @@ public class HaxeGenericResolverUtil {
         HaxeGenericParam param = abstractClassModel.getAbstractClass().getGenericParam();
         if (param != null) {
           HaxeGenericListPart generic = param.getGenericListPartList().get(0);
-          ResultHolder resolve = resolver.resolve(generic.getName());
+          ResultHolder resolve = resolver.resolve(generic);
           return resolve == null || resolve.getClassType() == null ? resolver : resolve.getClassType().getGenericResolver();
         }
       }

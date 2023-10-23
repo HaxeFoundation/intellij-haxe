@@ -188,7 +188,7 @@ public class HaxeTypeResolver {
       genericParams = translateGenericParamsToModelList(param);
     }
 
-    if (null != genericParams && genericParams.size() != 0) {
+    if (null != genericParams && !genericParams.isEmpty()) {
       ResultHolder[] specifics = new ResultHolder[genericParams.size()];
       int i = 0;
       for (HaxeGenericParamModel param : genericParams) {
