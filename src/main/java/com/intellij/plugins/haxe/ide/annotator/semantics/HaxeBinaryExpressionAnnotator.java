@@ -44,7 +44,7 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
 
       if (result.isUnknown()) {
 
-        String operatorText = children[1].getText();
+
         PsiElement LeftChild = children[0];
         PsiElement rightChild = children[2];
 
@@ -60,6 +60,7 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
           return;
         }
 
+        String operatorText = children[1].getText();
         String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
         holder.newAnnotation(HighlightSeverity.ERROR, error)
           .range(binaryExpression)

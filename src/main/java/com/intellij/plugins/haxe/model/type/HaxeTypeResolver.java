@@ -238,7 +238,7 @@ public class HaxeTypeResolver {
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver, boolean returnType) {
     SpecificTypeReference typeReference = result.getType();
     if (resolver != null) {
-      if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.canBeTypeVariable()) {
+      if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.isFromTypeParameter()) {
         String className = haxeClassReference.getClassName();
         ResultHolder resolved = returnType ? resolver.resolveReturnType(haxeClassReference) : resolver.resolve(className);
         if (null != resolved) {
@@ -447,9 +447,8 @@ public class HaxeTypeResolver {
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
-    if (resolver != null) {
-        String text = type.getText();
-        ResultHolder resolve = resolver.resolve(text);
+    if (resolver != null && !resolver.isEmpty()) {
+        ResultHolder resolve = resolver.resolve(type);
         if (resolve != null && !resolve.isUnknown()) {
           return resolve;
         }
@@ -470,8 +469,8 @@ public class HaxeTypeResolver {
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         ResultHolder partResult = null;
-        if (null != resolver) {
-          partResult = resolver.resolve(part.getText());
+        if (resolver != null && !resolver.isEmpty()) {
+          partResult = resolver.resolve(part);
         }
         if (null == partResult) {
           HaxeFunctionType fnType = part.getFunctionType();
@@ -500,10 +499,13 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous) {
+    return getTypeFromTypeOrAnonymous(typeOrAnonymous, null);
+  }
+  static public ResultHolder getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous, @Nullable HaxeGenericResolver parentResolver) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {
-      return getTypeFromType(type);
+      return getTypeFromType(type, parentResolver);
     }
     final HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
     if (anonymousType != null) {
@@ -511,7 +513,7 @@ public class HaxeTypeResolver {
       if (null != contributor) {
         HaxeClassModel contributorModel = HaxeClassModel.fromElement(contributor);
         if (contributorModel.hasGenericParams()) {
-          HaxeGenericResolver resolver = contributorModel.getGenericResolver(null);
+          HaxeGenericResolver resolver = contributorModel.getGenericResolver(parentResolver);
           return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous),
                                                          resolver.getSpecificsFor(anonymousType)).createHolder();
         }

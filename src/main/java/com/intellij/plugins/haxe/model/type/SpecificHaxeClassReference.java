@@ -196,7 +196,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       for (int n = 0; n < params.size(); n++) {
         HaxeGenericParamModel paramModel = params.get(n);
         ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
-        if(specific == null)  specific = getUnknown(context).createHolder();// null safety
+        if (specific == null) specific = getUnknown(context).createHolder();// null safety
         //TODO check constraints
         resolver.add(paramModel.getName(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
       }
@@ -218,22 +218,30 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (aClass == null) {
       return null;
     }
-
-    HaxeNamedComponent method = aClass.findHaxeMethodByName(name, resolver);
+    HaxeGenericResolver localResolver = new HaxeGenericResolver();
+    localResolver.addAll(resolver);
+    if (aClass.isTypeDef()) {
+      HaxeResolveResult result = HaxeResolver.fullyResolveTypedef(aClass, resolver.getSpecialization(aClass));
+      if (result.isHaxeClass()) {
+        aClass = result.getHaxeClass();
+        localResolver.addAll(result.getGenericResolver());
+      }
+    }
+    HaxeNamedComponent method = aClass.findHaxeMethodByName(name, localResolver);
     if (method != null) {
       if (context.root == method) return null;
       if (isMacroMethod(method)) {
         // if macro method replace Expr / ExprOf types
-        ResultHolder functionType = HaxeTypeResolver.getMethodFunctionType(method, resolver.withoutUnknowns());
+        ResultHolder functionType = HaxeTypeResolver.getMethodFunctionType(method, localResolver.withoutUnknowns());
         return HaxeMacroUtil.resolveMacroTypesForFunction(functionType);
       }
-      return HaxeTypeResolver.getMethodFunctionType(method, resolver);
+      return HaxeTypeResolver.getMethodFunctionType(method, localResolver);
     }
 
-    HaxeNamedComponent field = aClass.findHaxeFieldByName(name, resolver);
+    HaxeNamedComponent field = aClass.findHaxeFieldByName(name, localResolver);
     if (field != null) {
       if (context.root == field) return null;
-      return HaxeTypeResolver.getFieldOrMethodReturnType(field, resolver);
+      return HaxeTypeResolver.getFieldOrMethodReturnType(field, localResolver);
     }
     return null;
   }
@@ -614,7 +622,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (type == null) return null;
     if (genericResolver == null || genericResolver.isEmpty()) return type;
 
-    if (type.canBeTypeVariable()) {
+    if (type.isFromTypeParameter()) {
       String typeVariableName = type.getHaxeClassReference().name;
       ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(type) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
@@ -639,11 +647,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return type;
   }
 
-  @Override
-  public boolean canBeTypeVariable() {
-    return classReference.classModel == null;
-
-  }
 
   @NotNull
   public HaxeClassReference getHaxeClassReference() {

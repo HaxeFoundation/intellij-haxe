@@ -445,7 +445,6 @@ public abstract class SpecificTypeReference {
     return new ResultHolder(this);
   }
 
-  public abstract boolean canBeTypeVariable();
 
   @NotNull
   private static HaxeClassReference getStdClassReference(String className, PsiElement context) {
@@ -496,7 +495,7 @@ public abstract class SpecificTypeReference {
     if (type == null) return null;
     if (genericResolver == null) return type;
 
-    if (type.canBeTypeVariable() && type instanceof  SpecificHaxeClassReference classReference) {
+    if (type.isFromTypeParameter() && type instanceof  SpecificHaxeClassReference classReference) {
       String typeVariableName = classReference.getHaxeClassReference().name;
       ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(classReference) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
