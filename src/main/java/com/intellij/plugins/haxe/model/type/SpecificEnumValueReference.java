@@ -146,10 +146,6 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     return toShortPresentationString() + " = " + constantValue;
   }
 
-  @Override
-  public boolean canBeTypeVariable() {
-    return false;
-  }
 
   @Nullable
   public SpecificFunctionReference getConstructor() {

@@ -216,11 +216,6 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return toPresentationString(); // XXX: If there's an anonymous function, should we be adding it here?
   }
 
-  @Override
-  public boolean canBeTypeVariable() {
-    return false;
-  }
-
   public static class Argument {
     final private int index;
     final private boolean optional;
