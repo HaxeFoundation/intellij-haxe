@@ -307,7 +307,7 @@ public class HaxeExpressionEvaluator {
           HaxePsiField fieldDeclaration = PsiTreeUtil.getParentOfType(expression, HaxePsiField.class);
           if (fieldDeclaration != null && fieldDeclaration.getTypeTag() == null) {
             SpecificHaxeClassReference classType = typeHolder.getClassType();
-            // if class does not have any  generics there  no need to search for refrences
+            // if class does not have any  generics there  no need to search for references
             if (classType != null  && classType.getSpecifics().length > 0) {
               ResultHolder searchResult = searchReferencesForTypeParameters(fieldDeclaration, context, resolver, typeHolder);
               if (!searchResult.isUnknown()) {
@@ -987,6 +987,16 @@ public class HaxeExpressionEvaluator {
       SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder, element);
       if (allConstants) result = result.withConstantValue(constants);
       ResultHolder holder = result.createHolder();
+
+      // try to resolve typeParameter when we got empty literal array with declaration without typeTag
+      if (elementTypeHolder.isUnknown()) {
+        HaxePsiField declaringField = PsiTreeUtil.getParentOfType(element, HaxePsiField.class);
+        if (declaringField != null) {
+          ResultHolder searchResult = searchReferencesForTypeParameters(declaringField, context, resolver, holder);
+          if (!searchResult.isUnknown()) holder = searchResult;
+        }
+      }
+
       return holder;
     }
 
