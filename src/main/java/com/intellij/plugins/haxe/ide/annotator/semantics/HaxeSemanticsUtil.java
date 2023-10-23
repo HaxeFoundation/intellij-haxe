@@ -72,8 +72,8 @@ public class HaxeSemanticsUtil {
           if (fieldDeclaration.getVarInit() == null) return false; // no constant
 
           List<HaxeFieldModifier> list = fieldDeclaration.getFieldModifierList();
-          return  fieldDeclaration.getMutabilityModifier().getText().equals(HaxePsiModifier.FINAL) ||
-            list.stream().anyMatch(modifier -> modifier.getText().equals(HaxePsiModifier.INLINE));
+          return  fieldDeclaration.getMutabilityModifier().textMatches(HaxePsiModifier.FINAL) ||
+            list.stream().anyMatch(modifier -> modifier.textMatches(HaxePsiModifier.INLINE));
 
           // since the compiler seems to do some evaluation of expressions we can use a simple const check here
           // ex :

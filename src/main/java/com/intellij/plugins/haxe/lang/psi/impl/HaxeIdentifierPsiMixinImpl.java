@@ -43,6 +43,6 @@ public class HaxeIdentifierPsiMixinImpl extends HaxePsiCompositeElementImpl impl
 
   @Override
   public boolean isMatchAny() {
-    return Objects.equals(getText(), MATCH_ANY_IDENTIFIER);
+    return textMatches(MATCH_ANY_IDENTIFIER);
   }
 }

@@ -327,7 +327,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public boolean isEnum() {
     if (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM) return true;
     if (isAbstractType()) {
-      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().getText().equals("enum");
+      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
     }
     return false;
   }
