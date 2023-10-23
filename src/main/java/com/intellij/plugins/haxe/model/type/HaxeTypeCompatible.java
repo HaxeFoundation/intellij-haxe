@@ -53,22 +53,6 @@ public class HaxeTypeCompatible {
     return canAssignToFrom(to.getType(), from.getType(), true,  to.getOrigin(), from.getOrigin());
   }
 
-  //TODO mlo, hack to allow macro expressions to assign to anything
-  // thoughts: ExprOf<T> might be mapped to T when only one part of the assignment is macro
-  private static boolean isMacroExpression(ResultHolder from) {
-    SpecificHaxeClassReference type = from.getClassType();
-    if (type != null && type.getHaxeClass() != null) {
-      String qualifiedName = type.getHaxeClass().getQualifiedName();
-      return switch (qualifiedName) {
-        case "haxe.macro.Expr" -> true;
-        case "haxe.macro.ExprOf" -> true;
-        default -> false;
-      };
-    }
-    return false;
-  }
-
-
 
   static private boolean isFunctionTypeOrReference(SpecificTypeReference ref) {
     return ref instanceof SpecificFunctionReference
