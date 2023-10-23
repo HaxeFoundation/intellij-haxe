@@ -103,7 +103,7 @@ public class HaxeClassReferenceImpl extends HaxeReferenceImpl {
   @NotNull
   @Override
   public HaxeResolveResult resolveHaxeClass() {
-    log.trace("Resolving " + getText());
+    if(log.isTraceEnabled()) log.trace("Resolving " + getText());
     final HaxeFunctionType functionType = PsiTreeUtil.getChildOfType(this, HaxeFunctionType.class);
     HaxeTypeOrAnonymous typeOrAnonymous = PsiTreeUtil.getChildOfType(this, HaxeTypeOrAnonymous.class);
     if (functionType != null) {
