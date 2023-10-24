@@ -176,18 +176,26 @@ public class HaxeTypeUnifier {
       ResultHolder holderA = specificsForA[i];
       ResultHolder holderB = specificsForB[i];
       if (holderA.getClassType() != null && holderB.getClassType() != null) {
-        SpecificTypeReference type = unifyTypes(holderA.getClassType(), holderB.getClassType(), context);
-        // if we cant unify specifics then Dynamic should be used
-        if (type.isUnknown()) type = SpecificTypeReference.getDynamic(context);
-        unified[i] = new ResultHolder(type);
+        // the sum of multiple results with incomplete may make a complete specific list
+        // so we replace unknowns with knowns when possible (typical for generic enums)
+        if (holderA.getClassType().isUnknown() && !holderB.getClassType().isUnknown()) {
+          unified[i] = holderB;
+        } else if (!holderA.getClassType().isUnknown() && holderB.getClassType().isUnknown()) {
+          unified[i] = holderA;
+        } else {
+          SpecificTypeReference type = unifyTypes(holderA.getClassType(), holderB.getClassType(), context);
+          // if we cant unify specifics then Dynamic should be used
+          if (type.isUnknown()) type = SpecificTypeReference.getDynamic(context);
+          unified[i] = new ResultHolder(type);
+        }
       } else if (holderA.getFunctionType() != null && holderB.getFunctionType() != null) {
         // TODO compare  functions and see if they are the same signature
         unified[i] = new ResultHolder(SpecificTypeReference.getDynamic(context));
-      }else {
+      } else {
         // use dynamic if we can match in any way
         unified[i] = new ResultHolder(SpecificTypeReference.getDynamic(context));
-      }
     }
+  }
 
     return unified;
   }

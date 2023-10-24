@@ -103,6 +103,8 @@ public class HaxeExpressionEvaluator {
     if(log.isDebugEnabled())log.debug("Handling element: " + element);
     if (element instanceof PsiCodeBlock) {
       context.beginScope();
+      context.getScope().deepSearchForReturnValues = true;
+
       ResultHolder type = SpecificHaxeClassReference.getUnknown(element).createHolder();
       boolean deadCode = false;
       for (PsiElement childElement : element.getChildren()) {
@@ -146,10 +148,17 @@ public class HaxeExpressionEvaluator {
           localResolver.addAll(haxeClassReference.getGenericResolver());// replace parent/old resolver values with newer from class reference
           if (haxeClassReference != null && haxeClassReference.getHaxeClassModel() != null) {
             HaxeForStatement parentForLoop = PsiTreeUtil.getParentOfType(iterable, HaxeForStatement.class);
+
+            if(haxeClassReference.isTypeDefOfClass()) {
+              SpecificHaxeClassReference reference = haxeClassReference.fullyResolveTypeDefClass();
+              HaxeGenericResolver typeDefResolved = reference.getGenericResolver();
+              localResolver.addAll(typeDefResolved);
+            }
+
             if (parentForLoop.getKeyValueIterator() == null) {
               HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("iterator", resolver);
               if (iterator instanceof HaxeMethodModel methodModel) {
-                return methodModel.getReturnType(localResolver);
+                  return methodModel.getReturnType(localResolver);
               }
             }else {
               HaxeMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember("keyValueIterator", resolver);
@@ -171,6 +180,8 @@ public class HaxeExpressionEvaluator {
         final HaxeIterable iterable = forStatement.getIterable();
         final PsiElement body = element.getLastChild();
         context.beginScope();
+
+           if(context.getScope().deepSearchForReturnValues) handle(body, context, resolver);
 
         try {
           final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
@@ -814,12 +825,36 @@ public class HaxeExpressionEvaluator {
 
       if (functionType instanceof SpecificEnumValueReference enumValueConstructor) {
         // TODO, this probably should not be handled here, but its detected as a call expression
-        // also need to resolve type parameter
-        return enumValueConstructor.enumClass.createHolder();
+
+
+        HaxeGenericResolver enumResolver = enumValueConstructor.enumClass.getGenericResolver();
+        SpecificFunctionReference constructor = enumValueConstructor.getConstructor();
+
+        List<ResultHolder> list = parameterExpressions.stream()
+          .map(expression -> HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression), enumResolver).result)
+          .toList();
+
+        ResultHolder holder = enumValueConstructor.enumClass.createHolder();
+        // convert any parameter that matches argument of type TypeParameter into specifics for enum type
+        int parameterIndex = 0;
+        List<Argument> arguments = constructor.getArguments();
+        for (int argumentIndex = 0; argumentIndex < arguments.size(); argumentIndex++) {
+          Argument argument = arguments.get(argumentIndex);
+          if (parameterIndex < list.size()) {
+            ResultHolder parameter = list.get(parameterIndex++);
+            if (argument.getType().canAssign(parameter)) {
+              if (argument.getType().isTypeParameter()) {
+                enumResolver.add(argument.getType().getClassType().getClassName(), parameter);
+                holder.getClassType().getSpecifics()[argumentIndex] = parameter;
+              }
+            }
+          }
+        }
+
+        return holder;
 
       }
       if (functionType instanceof SpecificFunctionReference ftype) {
-        //HaxeExpressionEvaluator.checkParameters(callExpression, ftype, parameterExpressions, context, resolver);
 
         ResultHolder returnType = ftype.getReturnType();
 

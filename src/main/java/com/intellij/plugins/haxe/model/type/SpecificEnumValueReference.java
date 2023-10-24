@@ -149,7 +149,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
 
   @Nullable
   public SpecificFunctionReference getConstructor() {
-    if(model.getConstructorParameters() == null) {
+    if(getModel().getConstructorParameters() == null) {
       // should not happen, no arg constructors are not a thing and enum should be considered a field
       return null;
     }

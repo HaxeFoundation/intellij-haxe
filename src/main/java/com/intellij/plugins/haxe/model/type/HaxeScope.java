@@ -28,6 +28,9 @@ public class HaxeScope<T> {
   @Nullable
   final public HaxeScope<T> parent;
 
+  // we may save time by not looking into every loop or if statement
+  // if they are not relevant to what we are trying to solve
+  public  boolean deepSearchForReturnValues = false;
   private Map<String, T> items = new HashMap<String, T>();
 
   public HaxeScope() {
@@ -65,5 +68,8 @@ public class HaxeScope<T> {
 
   public HaxeScope(HaxeScope<T> parent) {
     this.parent = parent;
+    if (parent != null) {
+      deepSearchForReturnValues = parent.deepSearchForReturnValues;
+    }
   }
 }

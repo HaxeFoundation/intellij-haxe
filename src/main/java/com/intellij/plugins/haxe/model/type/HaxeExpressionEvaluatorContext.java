@@ -150,6 +150,10 @@ public class HaxeExpressionEvaluatorContext {
   public void addLambda(HaxeExpressionEvaluatorContext child) {
     lambdas.add(child);
   }
+
+  public HaxeScope<ResultHolder> getScope() {
+    return scope;
+  }
 }
 
 class ReturnInfo {

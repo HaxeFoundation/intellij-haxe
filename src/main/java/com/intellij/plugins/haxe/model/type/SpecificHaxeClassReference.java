@@ -518,6 +518,22 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     return null;
   }
+  public SpecificHaxeClassReference fullyResolveTypeDefClass() {
+    SpecificHaxeClassReference reference = resolveTypeDefClass();
+
+    HaxeClass haxeClass = getHaxeClass();
+    HaxeGenericResolver resolver = getGenericResolver();
+    while (haxeClass instanceof AbstractHaxeTypeDefImpl typeDef) {
+      reference = typeDef.getTargetClass(resolver);
+      if (reference.isTypeDefOfClass()) {
+        haxeClass = reference.getHaxeClass();
+        resolver = haxeClass.getMemberResolver(resolver);
+      }else{
+        break;
+      }
+    }
+    return reference;
+  }
 
   public SpecificFunctionReference resolveTypeDefFunction() {
     if (typeDefFunction != null) return typeDefFunction;

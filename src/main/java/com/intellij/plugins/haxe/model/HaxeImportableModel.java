@@ -127,7 +127,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   private static HaxeModel getExposedMemberFromEnum(String name, HaxeModel model, HaxeEnumModel enumModel) {
     for (HaxeEnumValueModel enumModelValue : enumModel.getValues()) {
       if (name.equals(enumModelValue.getName())) {
-        return model;
+        return enumModelValue;
       }
     }
     return null;
