@@ -21,10 +21,12 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,17 +40,21 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    final HaxeAnonymousTypeBody body = getAnonymousTypeBody();
-    if (body != null) {
-      final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
-      if (typeExtendsList != null) {
-        final List<HaxeType> typeList = typeExtendsList.getTypeList();
-        if (!typeList.isEmpty()) {
-          return typeList;
+    List<HaxeType> extendsList = new ArrayList<>();
+    HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel) getModel();
+    List<HaxeAnonymousTypeBody> bodyList = model.getAnonymousTypeBodyList();
+    for (HaxeAnonymousTypeBody body : bodyList) {
+      if (body != null) {
+        final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
+        if (typeExtendsList != null) {
+          final List<HaxeType> typeList = typeExtendsList.getTypeList();
+          if (!typeList.isEmpty()) {
+            extendsList.addAll(typeList);
+          }
         }
       }
     }
-    return super.getHaxeExtendsList();
+    return  extendsList;
   }
 
   @Override
@@ -79,4 +85,10 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
       }
     };
   }
+
+  @Override
+  public boolean isAnonymousType() {
+    return true;
+  }
+
 }

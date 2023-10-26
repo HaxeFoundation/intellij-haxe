@@ -340,7 +340,20 @@ public class HaxeResolveUtil {
           resolver.addAll(haxeClass.getMemberResolver(null));
         }
       }
+      if (haxeClass.isAnonymousType()) {
+        HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)haxeClass.getModel();
+        List<ResultHolder> types = model.getCompositeTypes();
+        List<HaxeClass> haxeClasses = types.stream().filter(ResultHolder::isClassType)
+          .map(ResultHolder::getClassType)
+          .filter(Objects::nonNull)
+          .map(SpecificHaxeClassReference::getHaxeClass)
+          .toList();
 
+        List<HaxeNamedComponent> components = findNamedSubComponents(unique, resolver, haxeClasses.toArray(new HaxeClass[0]));
+        addNotNullComponents(unfilteredResult, components);
+
+
+      }
       List<HaxeType> baseTypes = new ArrayList<>();
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
@@ -431,14 +444,17 @@ public class HaxeResolveUtil {
     }
 
     final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
-    if (haxeClass instanceof HaxeAnonymousType) {
-      final HaxeAnonymousTypeBody anonymousTypeBody = ((HaxeAnonymousType)haxeClass).getAnonymousTypeBody();
-      if (anonymousTypeBody != null) {
-        final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
-        if (typeFieldList != null) {
-          result.addAll(typeFieldList.getAnonymousTypeFieldList());
+    if (haxeClass instanceof HaxeAnonymousType anonymousType) {
+      HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)anonymousType.getModel();
+      List<HaxeAnonymousTypeBody> bodyList = model.getAnonymousTypeBodyList();
+      for (HaxeAnonymousTypeBody anonymousTypeBody : bodyList) {
+        if (anonymousTypeBody != null) {
+          final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
+          if (typeFieldList != null) {
+            result.addAll(typeFieldList.getAnonymousTypeFieldList());
+          }
+          body = anonymousTypeBody;
         }
-        body = anonymousTypeBody;
       }
     }
     if (body == null) {
@@ -635,8 +651,8 @@ public class HaxeResolveUtil {
   @NotNull
   private static HaxeResolveResult getHaxeClassResolveResultInternal(@Nullable PsiElement element,
                                                                      @Nullable HaxeGenericSpecialization specialization) {
-    if (element instanceof HaxeType) {
-      HaxeResolveResult result = tryResolveType((HaxeType)element, element, specialization);
+    if (element instanceof HaxeType haxeType) {
+      HaxeResolveResult result = tryResolveType(haxeType, element, specialization);
       if (null == result.getHaxeClass() && specialization.containsKey(null, element.getText())) {
         return specialization.get(null, element.getText());
       }
@@ -645,8 +661,7 @@ public class HaxeResolveUtil {
     if (element instanceof HaxeComponentName) {
       return getHaxeClassResolveResult(element.getParent(), specialization);
     }
-    if (element instanceof AbstractHaxeTypeDefImpl) {
-      final AbstractHaxeTypeDefImpl typeDef = (AbstractHaxeTypeDefImpl)element;
+    if (element instanceof AbstractHaxeTypeDefImpl typeDef) {
       if (typeDef.getFunctionType() != null) {
         return HaxeResolveResult.create(typeDef.getFunctionType());
       }else{

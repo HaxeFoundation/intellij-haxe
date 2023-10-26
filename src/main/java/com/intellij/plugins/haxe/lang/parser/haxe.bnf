@@ -312,13 +312,7 @@ private externClassModifier ::= classModifier | externKeyWord
 // The semantic annotator takes care of warning about duplicate extern keywords.
 externClassModifierList ::= classModifier* externKeyWord externClassModifier* {extends=classModifierList}
 
-// typedefs can "merge" anonymous structures ( not classes, interfaces etc)
-// in order to allow merge with other typdefs of anonymous structures we need to have compositeType
-// typdef combo = {a:Int} & {b:Int} & SomeOthertypeDefOfStruct
-private compositeType ::= componentName | typeOrAnonymous
-typedefExtensionList ::=  ('&' compositeType)+
-
-typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '='  typeWrapper  typedefExtensionList? ';'?
+typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '='  typeWrapper ';'?
 {pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 externClassDeclaration ::= externClassModifierList 'class' componentName genericParam? inheritList? externClassDeclarationBody
@@ -530,7 +524,7 @@ typeListPart ::= typeWrapper | literalExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
-typeOrAnonymous ::= type | anonymousType
+typeOrAnonymous ::=  anonymousType | type
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
 blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
@@ -858,10 +852,17 @@ extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi
 implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
 
 
+// typedefs can "merge" anonymous structures ( not classes, interfaces etc)
+// in order to allow merge with other typdefs of anonymous structures we need to have compositeType
+// typdef combo = {a:Int} & {b:Int} & SomeOthertypeDefOfStruct
+private compositePart ::= anonymousTypeBody | type
+private compositeAnonymousType ::=   (compositePart ('&' compositePart)+) | (anonymousTypeBody ('&' compositePart)*)
+
+
 //       The only difference between anonymous types and object literals are that object literals have values in their type tags.
 //       See parse_block_elt and parse_anonymous in grammar.mly (Haxe compiler sources).
 
-anonymousType ::= anonymousTypeBody // Yes, we need two levels to keep parity with other types.
+anonymousType ::= compositeAnonymousType // Yes, we need two levels to keep parity with other types.
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
 anonymousTypeBody ::= anonymousTypeWithEmptyBody | regularAnonymousTypeBody

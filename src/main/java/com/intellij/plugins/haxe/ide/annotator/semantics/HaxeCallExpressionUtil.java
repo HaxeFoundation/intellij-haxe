@@ -843,7 +843,12 @@ public class HaxeCallExpressionUtil {
   }
 
   private static boolean hasVarArgs(List<HaxeParameterModel> parametersList) {
-    return parametersList.stream().anyMatch(HaxeCallExpressionUtil::isVarArg);
+    for (HaxeParameterModel model : parametersList) {
+      if (isVarArg(model)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static boolean isVarArg(HaxeParameterModel model) {

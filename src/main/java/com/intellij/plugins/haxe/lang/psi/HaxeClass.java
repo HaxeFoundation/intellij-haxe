@@ -79,6 +79,8 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
 
   boolean isTypeDef();
 
+  boolean isAnonymousType();
+
   /**
    * Retrieves list of Methods defined in current class
    * excluding methods defined or implemented in inherited classes

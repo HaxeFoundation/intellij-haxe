@@ -30,7 +30,7 @@ public class HaxeExprPackageModel extends HaxePackageModel {
 
   private HaxeFileModel getExprFileModel() {
     // TODO: This is called by the resolver a LOT.  Cache the result and create a listener to invalidate.
-    final HaxeFile file = getFile(EXPR_TYPES);
+    final HaxeFile file =  getFile(EXPR_TYPES);
     if (file != null) {
       return HaxeExprFileModel.fromFile(file);
     }

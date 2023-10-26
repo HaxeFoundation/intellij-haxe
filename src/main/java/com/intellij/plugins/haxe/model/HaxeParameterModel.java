@@ -26,6 +26,8 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
@@ -82,8 +84,8 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public HaxeTypeTag getTypeTagPsi() {
-    //return CachedValuesManager.getCachedValue(basePsi, () -> new CachedValueProvider.Result<>(getParameterPsi().getTypeTag(), basePsi));
-    return getParameterPsi().getTypeTag();
+    return CachedValuesManager.getCachedValue(basePsi, () -> new CachedValueProvider.Result<>(getParameterPsi().getTypeTag(), basePsi));
+    //return getParameterPsi().getTypeTag();
   }
 
   private ResultHolder typeReplacement;// allow us to replace ExprOf<T> with T

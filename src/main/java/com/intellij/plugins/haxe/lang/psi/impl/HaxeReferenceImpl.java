@@ -821,7 +821,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               return HaxeResolveResult.create(constraint);
             }else if (typeListPart != null) {
               HaxeType type = typeListPart.getTypeOrAnonymous() == null ? null : typeListPart.getTypeOrAnonymous().getType();
-              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), List.of(type));
+              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), type == null ? List.of() : List.of(type));
               return HaxeResolveResult.create(constraint);
             }
           }

@@ -109,7 +109,9 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   public HaxeClassModel getModel() {
     if (_model == null) {
-      if (this instanceof HaxeEnumDeclaration enumDeclaration) {
+      if (this instanceof HaxeAnonymousType anonymousType) {
+        _model = new HaxeAnonymousTypeModel(anonymousType);
+      }else if (this instanceof HaxeEnumDeclaration enumDeclaration) {
         _model = new HaxeEnumModelImpl(enumDeclaration);
       } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) {
         _model = new HaxeExternClassModel(externClassDeclaration);
@@ -158,6 +160,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public boolean isTypeDef() {
     return  HaxeComponentType.typeOf(this)  == HaxeComponentType.TYPEDEF;
+  }
+  @Override
+  public boolean isAnonymousType() {
+    return  false;
   }
 
   @NotNull

@@ -35,11 +35,8 @@ import java.util.List;
 public class HaxeTypeParameterMultiType extends AnonymousHaxeTypeImpl {
 
   private final List<HaxeType> typeList;
-  private final HaxeAnonymousTypeBodyImpl body;
-
   public HaxeTypeParameterMultiType(@NotNull ASTNode node, @NotNull List<HaxeType> typeList) {
     super(node);
-    this.body = new HaxeAnonymousTypeBodyImpl(node);
     this.typeList = typeList;
   }
 
@@ -47,10 +44,15 @@ public class HaxeTypeParameterMultiType extends AnonymousHaxeTypeImpl {
     return typeList;
   }
 
-  @NotNull
+
   @Override
-  public HaxeAnonymousTypeBody getAnonymousTypeBody() {
-    return body;
+  public @NotNull List<HaxeAnonymousTypeBody> getAnonymousTypeBodyList() {
+    return List.of();
+  }
+
+  @Override
+  public @NotNull List<HaxeType> getTypeList() {
+    return List.of();
   }
 
 }

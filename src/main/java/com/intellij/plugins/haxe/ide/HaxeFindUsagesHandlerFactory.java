@@ -68,14 +68,14 @@ public class HaxeFindUsagesHandlerFactory extends FindUsagesHandlerFactory {
       PsiElement target = HaxeFindUsagesUtil.getTargetElement(element);
 
       if (!forHighlightUsages) {
-        if (target instanceof PsiReference) {
-          PsiElement resolved = ((PsiReference)target).resolve();
+        if (target instanceof PsiReference reference) {
+          PsiElement resolved = reference.resolve();
           if (resolved instanceof HaxeMethod) {
             target = resolved;
           }
         }
-        if (target instanceof HaxeMethod) {
-          PsiMethod[] supers = ((HaxeMethod)target).findSuperMethods();
+        if (target instanceof HaxeMethod haxeMethod) {
+          PsiMethod[] supers = haxeMethod.findSuperMethods();
           if (supers.length != 0) {
             String chosen = askWhetherToSearchForOverridingMethods(target);
             if (CURRENT_CLASS.equals(chosen))    { return new HaxeFindUsagesHandler(target); }

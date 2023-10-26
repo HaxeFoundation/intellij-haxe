@@ -22,6 +22,8 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -109,17 +111,20 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
         final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
         final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
         if (anonymousType != null) {
-          final HaxeAnonymousTypeBody body = anonymousType.getAnonymousTypeBody();
-          if(body != null) {
-            final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
-            if (typeExtendsList != null) {
-              final List<HaxeType> typeList = typeExtendsList.getTypeList();
-              for (HaxeType haxeType : typeList) {
-                final String classNameCandidate = haxeType.getText();
-                final String key = classNameCandidate.indexOf('.') != -1 ?
-                                   classNameCandidate :
-                                   getQNameAndCache(qNameCache, psiFile, classNameCandidate);
-                put(result, key, value);
+          HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)anonymousType.getModel();
+          List<HaxeAnonymousTypeBody> bodyList = model.getAnonymousTypeBodyList();
+          for (HaxeAnonymousTypeBody body : bodyList) {
+            if (body != null) {
+              final HaxeTypeExtendsList typeExtendsList = body.getTypeExtendsList();
+              if (typeExtendsList != null) {
+                final List<HaxeType> typeList = typeExtendsList.getTypeList();
+                for (HaxeType haxeType : typeList) {
+                  final String classNameCandidate = haxeType.getText();
+                  final String key = classNameCandidate.indexOf('.') != -1 ?
+                                     classNameCandidate :
+                                     getQNameAndCache(qNameCache, psiFile, classNameCandidate);
+                  put(result, key, value);
+                }
               }
             }
           }
