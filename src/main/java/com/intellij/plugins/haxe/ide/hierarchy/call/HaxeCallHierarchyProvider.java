@@ -87,6 +87,6 @@ public class HaxeCallHierarchyProvider implements HierarchyProvider {
       log.debug( "browserActivated " + hierarchyBrowser );
     }
 
-    ((CallHierarchyBrowser) hierarchyBrowser).changeView(CallHierarchyBrowserBase.CALLER_TYPE);
+    ((CallHierarchyBrowser) hierarchyBrowser).changeView(CallHierarchyBrowserBase.getCallerType());
   }
 }

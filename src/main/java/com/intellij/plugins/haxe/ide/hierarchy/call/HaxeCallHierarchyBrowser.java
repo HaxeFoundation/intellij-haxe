@@ -37,10 +37,10 @@ public class HaxeCallHierarchyBrowser extends CallHierarchyBrowser {
 
   @Override
   protected HierarchyTreeStructure createHierarchyTreeStructure(@NotNull final String typeName, @NotNull final PsiElement psiElement) {
-    if (CALLER_TYPE.equals(typeName)) {
+    if (getCallerType().equals(typeName)) {
       return new HaxeCallerMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
     }
-    else if (CALLEE_TYPE.equals(typeName)) {
+    else if (getCalleeType().equals(typeName)) {
       return new HaxeCalleeMethodsTreeStructure(myProject, (PsiMethod)psiElement, getCurrentScopeType());
     }
     else {
