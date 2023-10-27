@@ -1028,9 +1028,9 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
-      // empty expression with type tag (var x:Array<T> = []), no need to look for usage
+      // empty expression with type tag (var x:Array<T> = []), no need to look for usage, use typetag
       if (references.isEmpty() && suggestedType != null && !suggestedType.isUnknown()) {
-        return SpecificHaxeClassReference.createArray(suggestedType.createHolder(), element).createHolder();
+        return typeTagType;
       } else {
         ResultHolder elementTypeHolder = references.isEmpty()
                                          ? SpecificTypeReference.getUnknown(element).createHolder()
