@@ -1028,25 +1028,28 @@ public class HaxeExpressionEvaluator {
           }
         }
       }
+      // empty expression with type tag (var x:Array<T> = []), no need to look for usage
+      if (references.isEmpty() && suggestedType != null && !suggestedType.isUnknown()) {
+        return SpecificHaxeClassReference.createArray(suggestedType.createHolder(), element).createHolder();
+      } else {
+        ResultHolder elementTypeHolder = references.isEmpty()
+                                         ? SpecificTypeReference.getUnknown(element).createHolder()
+                                         : HaxeTypeUnifier.unify(references, element, suggestedType).withoutConstantValue().createHolder();
 
-      ResultHolder elementTypeHolder = references.isEmpty()
-                                       ? SpecificTypeReference.getUnknown(element).createHolder()
-                                       : HaxeTypeUnifier.unify(references, element, suggestedType).withoutConstantValue().createHolder();
+        SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder, element);
+        if (allConstants) result = result.withConstantValue(constants);
+        ResultHolder holder = result.createHolder();
 
-      SpecificTypeReference result = SpecificHaxeClassReference.createArray(elementTypeHolder, element);
-      if (allConstants) result = result.withConstantValue(constants);
-      ResultHolder holder = result.createHolder();
-
-      // try to resolve typeParameter when we got empty literal array with declaration without typeTag
-      if (elementTypeHolder.isUnknown()) {
-        HaxePsiField declaringField = PsiTreeUtil.getParentOfType(element, HaxePsiField.class);
-        if (declaringField != null) {
-          ResultHolder searchResult = searchReferencesForTypeParameters(declaringField, context, resolver, holder);
-          if (!searchResult.isUnknown()) holder = searchResult;
+        // try to resolve typeParameter when we got empty literal array with declaration without typeTag
+        if (elementTypeHolder.isUnknown()) {
+          HaxePsiField declaringField = PsiTreeUtil.getParentOfType(element, HaxePsiField.class);
+          if (declaringField != null) {
+            ResultHolder searchResult = searchReferencesForTypeParameters(declaringField, context, resolver, holder);
+            if (!searchResult.isUnknown()) holder = searchResult;
+          }
         }
-      }
-
       return holder;
+      }
     }
 
     if (element instanceof HaxePsiToken psiToken) {
