@@ -64,7 +64,9 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
           return specifics[key ? 0 : 1];
         }
       }
-      return SpecificHaxeClassReference.getUnknown(type.getOrigin()).createHolder();
+      PsiElement element = type.getOrigin();
+      if(element == null) element = type.getElementContext(); // TODO mlo check why type origin is null (probably string missing iterator or smoething?)
+      return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
 
     private static ResultHolder extractIteratorElementType(ResultHolder type) {

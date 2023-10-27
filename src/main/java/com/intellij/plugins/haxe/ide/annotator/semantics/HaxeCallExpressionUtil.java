@@ -78,7 +78,7 @@ public class HaxeCallExpressionUtil {
     }
 
     // generics and type parameter
-    HaxeGenericResolver classTypeResolver =  tryGetCallieResolveResult(callExpression).getGenericResolver();
+    HaxeGenericResolver classTypeResolver =  tryGetCallieResolveResult(callExpression);
     HaxeGenericResolver resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, classTypeResolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
@@ -910,23 +910,20 @@ public class HaxeCallExpressionUtil {
 
 //TODO mlo move this to some kind of util (see haxeReferenceImpl)
   @NotNull
-  private static HaxeResolveResult tryGetCallieResolveResult(HaxeCallExpression callExpression) {
+  private static HaxeGenericResolver tryGetCallieResolveResult(HaxeCallExpression callExpression) {
     final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
-    HaxeResolveResult result = leftReference != null
-                               ? leftReference.resolveHaxeClass()
-                               : HaxeResolveResult.create(PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class));
 
-    if (result.isHaxeClass()) {
-      SpecificHaxeClassReference reference =
-        result.getSpecificClassReference(callExpression, callExpression.getSpecialization().toGenericResolver(null));
-      if (reference.isNullType()) {
-        ResultHolder specific = reference.getSpecifics()[0];
-        if (specific.isClassType() && !specific.isUnknown()) {
-          return specific.getClassType().asResolveResult();
-        }
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    PsiElement resolve = leftReference == null ? null :leftReference.resolve();
+    if (resolve != null) {
+      ResultHolder evaluateResult = HaxeExpressionEvaluator.evaluate(resolve, new HaxeExpressionEvaluatorContext(resolve), null).result;
+      if (evaluateResult.isClassType()) {
+        resolver.addAll(evaluateResult.getClassType().getGenericResolver());
       }
     }
-    return result;
+    return resolver;
+
+
   }
 
 }

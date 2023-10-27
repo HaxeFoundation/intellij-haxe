@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.model.HaxeClassReferenceModel;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static java.util.function.Predicate.not;
@@ -18,6 +19,7 @@ public class AnnotatorUtil {
 
     List<HaxeClassModel> classModels = clazz.getExtendingTypes().stream()
       .map(HaxeClassReferenceModel::getHaxeClass)
+      .filter(Objects::nonNull)
       .collect(Collectors.toList());
 
 

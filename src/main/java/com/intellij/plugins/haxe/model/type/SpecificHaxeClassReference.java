@@ -141,7 +141,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           out.append( UNKNOWN);
         }
         else if(specific.getType() == this) {
-          out.append("*Recursion Error*");
+          if (getHaxeClassModel() != null && getHaxeClassModel().getGenericParams().size()>n){
+            HaxeGenericParamModel model = getHaxeClassModel().getGenericParams().get(n);
+            out.append(model.getName());
+          }else {
+            out.append("*Recursion Error*");
+          }
           log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
         }else {
           out.append(specific.toStringWithoutConstant());

@@ -51,6 +51,13 @@ public class HaxeTypeUnifier {
     if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
       return a.withoutConstantValue();
     }
+    // prefer non-void as void is the result of recursive method calls that cant resolve to anything
+    if (a.isVoid() && !b.isVoid() && !b.isUnknown()){
+      return b;
+    }
+    if (!a.isVoid() && !a.isUnknown() && b.isVoid()){
+      return a;
+    }
 
     if (a instanceof SpecificHaxeClassReference && b instanceof SpecificHaxeClassReference) {
 

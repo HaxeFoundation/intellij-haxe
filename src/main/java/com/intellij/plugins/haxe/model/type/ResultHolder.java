@@ -36,12 +36,12 @@ public class ResultHolder {
   private boolean canMutate = true;
   private int mutationCount = 0;
 
-  private  PsiElement origin;
+  private PsiElement origin;
 
   public ResultHolder(@NotNull SpecificTypeReference type) {
     this(type, null);
   }
-  public ResultHolder(@NotNull SpecificTypeReference type, PsiElement origin) {
+  public ResultHolder(@NotNull SpecificTypeReference type, @Nullable PsiElement origin) {
     this.type = type;
     this.origin = origin;
   }

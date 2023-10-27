@@ -132,13 +132,14 @@ public class HaxeGenericSpecialization implements Cloneable {
           // because the caller is already dealing with it, and there is no further type info.
           continue;
         }
-        if (context instanceof HaxeClass haxeClass) {
-          HaxeGenericResolver genericResolver = holder.getClassType().getGenericResolver();
+        SpecificHaxeClassReference classType = holder.getClassType();
+        if (context instanceof HaxeClass haxeClass && classType != null) {
+          HaxeGenericResolver genericResolver = classType.getGenericResolver();
           HaxeResolveResult resolved = HaxeResolveResult.create(haxeClass, fromGenericResolver(context, genericResolver));
           specialization.put(element, name, resolved);
-        } else if (holder.getClassType() != null && !holder.isUnknown()) {
-          HaxeClass clazz = holder.getClassType().getHaxeClass();
-          HaxeResolveResult resolved = HaxeResolveResult.create(clazz, fromGenericResolver(null, holder.getClassType().getGenericResolver()));
+        } else if (classType != null && !holder.isUnknown()) {
+          HaxeClass clazz = classType.getHaxeClass();
+          HaxeResolveResult resolved = HaxeResolveResult.create(clazz, fromGenericResolver(null, classType.getGenericResolver()));
           specialization.put(element, name, resolved);
         } else if (holder.getFunctionType() != null) {
           SpecificFunctionReference type = holder.getFunctionType();

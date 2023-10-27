@@ -39,7 +39,7 @@ import com.intellij.usageView.UsageInfo;
 import com.intellij.util.ArrayUtil;
 import com.intellij.util.Processor;
 import com.intellij.util.SmartList;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -163,7 +163,7 @@ public abstract class HaxeFindUsagesHandlerNS extends FindUsagesHandler {
     if (setterMethod != null) methods.add(setterMethod.getBasePsi());
     if (getterMethod != null) methods.add(getterMethod.getBasePsi());
 
-    return methods.size() == 0 ? null : methods.toArray(PsiElement.EMPTY_ARRAY);
+    return methods.isEmpty() ? null : methods.toArray(PsiElement.EMPTY_ARRAY);
   }
 
   @NotNull

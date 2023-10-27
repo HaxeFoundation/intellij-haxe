@@ -187,6 +187,12 @@ public class HaxeExpressionEvaluator {
           final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
           ResultHolder iteratorResult = iterableValue.getIterableElementType(resolver);
           SpecificTypeReference type = iteratorResult != null ? iteratorResult.getType() : null;
+          //TODO: HACK?
+          // String class in in standard lib is  currently missing iterator methods
+          // this is a workaround  so we can iterate on chars in string.
+          if (type == null && iterableValue.isString()) {
+            type = iterableValue;
+          }
           if (type != null) {
             if (forStatementExpression != null) {
               ResultHolder handle = handle(forStatementExpression, context, resolver);
@@ -207,18 +213,20 @@ public class HaxeExpressionEvaluator {
             }
             return new ResultHolder(type);
           }
-          if (iterableValue.isConstant()) {
-            if (iterableValue.getConstant() instanceof HaxeRange constant) {
-              type = type.withRangeConstraint(constant);
+          if ( type != null) {
+            if (iterableValue.isConstant()) {
+              if (iterableValue.getConstant() instanceof HaxeRange constant) {
+                type = type.withRangeConstraint(constant);
+              }
             }
-          }
-          if (name != null && type != null) {
-            context.setLocal(name.getText(), new ResultHolder(type));
-          } else if (keyValueIterator != null) {
+            if (name != null) {
+              context.setLocal(name.getText(), new ResultHolder(type));
+            } else if (keyValueIterator != null) {
               context.setLocal(keyValueIterator.getIteratorkey().getComponentName().getText(), new ResultHolder(type));
               context.setLocal(keyValueIterator.getIteratorValue().getComponentName().getText(), new ResultHolder(type));
+            }
+            return handle(body, context, resolver);
           }
-          return handle(body, context, resolver);
         }
         finally {
           context.endScope();
@@ -786,9 +794,15 @@ public class HaxeExpressionEvaluator {
             //we  can handle HaxeEnumExtractedValue with  "handle", probably no need to duplicate code here
             typeHolder = handle(subelement, context, resolver);
           }
+
+          else if (subelement instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
+            typeHolder = functionDeclaration.getModel().getFunctionType(resolver).createHolder();
+          }
+
           else if (subelement instanceof AbstractHaxeNamedComponent namedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
           }
+
         }
       }
 
@@ -1169,7 +1183,9 @@ public class HaxeExpressionEvaluator {
       }
       return SpecificHaxeClassReference.getUnknown(element).createHolder();
     }
-
+    if (element instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
+      return functionDeclaration.getModel().getFunctionType(resolver).createHolder();
+    }
     if (element instanceof HaxeFunctionLiteral function) {
       HaxeParameterList params = function.getParameterList();
       if (params == null) {
@@ -1392,6 +1408,7 @@ public class HaxeExpressionEvaluator {
   public static ResultHolder searchReferencesForTypeParameters(final HaxePsiField field,
                                                                final HaxeExpressionEvaluatorContext context,
                                                                final HaxeGenericResolver resolver, ResultHolder resultHolder) {
+    resultHolder = resultHolder.duplicate();
     HaxeComponentName componentName = field.getComponentName();
     SpecificHaxeClassReference classType = resultHolder.getClassType();
 
@@ -1412,7 +1429,7 @@ public class HaxeExpressionEvaluator {
         if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
           HaxeExpression rightExpression = assignExpression.getRightExpression();
           ResultHolder result = handle(rightExpression, context, resolver);
-          if (!result.isUnknown()) {
+          if (!result.isUnknown() && result.getType().isSameType(resultHolder.getType())) {
             return result;
           }
         }
@@ -1426,15 +1443,17 @@ public class HaxeExpressionEvaluator {
             // make sure we are using class level typeParameters (and not method level)
             if (methodModel.getGenericParams().isEmpty()) {
               HaxeCallExpressionList list = callExpression.getExpressionList();
-              List<HaxeExpression> arguments = list.getExpressionList();
-              List<HaxeParameterModel> parameters = methodDeclaration.getModel().getParameters();
-              for (HaxeParameterModel parameter : parameters) {
-                if (parameter.getType().isTypeParameter()) {
-                  for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
-                    if(specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
-                      // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
-                      ResultHolder handle = handle(arguments.get(i), context, resolver);
-                      resultHolder.getClassType().getSpecifics()[i] = handle;
+              if (list != null) {
+                List<HaxeExpression> arguments = list.getExpressionList();
+                List<HaxeParameterModel> parameters = methodDeclaration.getModel().getParameters();
+                for (HaxeParameterModel parameter : parameters) {
+                  if (parameter.getType().isTypeParameter()) {
+                    for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
+                      if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
+                        // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
+                        ResultHolder handle = handle(arguments.get(i), context, resolver);
+                        resultHolder.getClassType().getSpecifics()[i] = handle;
+                      }
                     }
                   }
                 }
