@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.google.common.collect.Lists;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
@@ -50,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
@@ -121,9 +121,10 @@ public class HaxeExpressionEvaluator {
       return type;
     }
 
-    if (element instanceof HaxeReturnStatement) {
-      PsiElement[] children = element.getChildren();
+    if (element instanceof HaxeReturnStatement returnStatement) {
       ResultHolder result = SpecificHaxeClassReference.getVoid(element).createHolder();
+      if (isUntypedReturn(returnStatement)) return result;
+      PsiElement[] children = element.getChildren();
       if (children.length >= 1) {
         result = handle(children[0], context, resolver);
       }
@@ -1376,6 +1377,17 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  private static boolean isUntypedReturn(HaxeReturnStatement statement) {
+    PsiElement child = statement.getFirstChild();
+    while(child != null) {
+      if (child instanceof HaxePsiToken psiToken) {
+        if (psiToken.getTokenType() == KUNTYPED) return true;
+      }
+      child = child.getNextSibling();
+    }
+    return false;
   }
 
   @NotNull

@@ -5,6 +5,7 @@
 * Improvement: Better support for local functions
 * Improvement: Better support for anonymous structure extensions
 * Changed: Switched to EcmaScript Regexp as injected regex language
+* Bugfix: `untyped` return values was incorrectly treated as the expression type
 
 ## 1.4.17
 * Bugfix: Fixed broken caching logic (Broken in 1.4.15, Disabled in 1.4.16, Fixed in 1.4.17)

@@ -296,6 +296,7 @@ privateKeyWord ::= 'private'
 inlineKeyWord ::= 'inline'
 externKeyWord ::= 'extern'
 finalKeyWord ::= 'final'
+untypedKeyword ::= 'untyped'
 
 private externPrivate ::= externKeyWord privateKeyWord
 private privateExtern ::= privateKeyWord externKeyWord
@@ -422,21 +423,21 @@ private lambdaBody ::= blockStatement
                        | expression
 
 private localFunctionDeclarationAttribute ::= inlineKeyWord;
-moduleMethodDeclaration ::= moduleMemberModifier*  methodHeader 'untyped'? functionCommonBody {pin=2}
+moduleMethodDeclaration ::= moduleMemberModifier*  methodHeader untypedKeyword? functionCommonBody {pin=2}
 
-methodDeclaration ::= methodModifier* methodHeader 'untyped'? functionCommonBody
+methodDeclaration ::= methodModifier* methodHeader untypedKeyword? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 private methodHeader ::= 'function' methodDeclarator typeTag?
 private methodDeclarator ::= componentName genericParam? parenthesizedParameterList
 
-constructorDeclaration ::= methodModifier* constructorHeader 'untyped'? functionCommonBody
+constructorDeclaration ::= methodModifier* constructorHeader untypedKeyword? functionCommonBody
 {pin=2 extends="methodDeclaration" implements="com.intellij.plugins.haxe.lang.psi.HaxeConstructor"}
 private constructorHeader ::= 'function' constructorDeclarator typeTag? {elementType="methodHeader"}
 private constructorDeclarator ::= constructorName genericParam? parenthesizedParameterList {elementType="methodDeclarator"}
 constructorId ::= 'new' {elementType="identifier"}
 constructorName ::= constructorId {elementType="componentName"}
 
-localFunctionDeclaration ::= localFunctionDeclarationAttribute? localFunctionHeader 'untyped'? functionCommonBody
+localFunctionDeclaration ::= localFunctionDeclarationAttribute? localFunctionHeader untypedKeyword? functionCommonBody
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
 private localFunctionHeader ::= 'function' localFunctionDeclarator typeTag?
 private localFunctionDeclarator ::= componentName? genericParam? parenthesizedParameterList
@@ -462,7 +463,7 @@ parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restPara
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
-private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? 'untyped'? lambdaBody {pin=2}
+private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? untypedKeyword? lambdaBody {pin=2}
 functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'

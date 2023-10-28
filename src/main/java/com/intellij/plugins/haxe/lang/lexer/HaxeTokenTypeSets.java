@@ -157,7 +157,8 @@ public interface HaxeTokenTypeSets {
     //KFROM,
     //KTO,
     KNEVER,
-    ONEW
+    ONEW,
+    KUNTYPED
   );
 
   TokenSet FUNCTION_DEFINITION = TokenSet.create(
