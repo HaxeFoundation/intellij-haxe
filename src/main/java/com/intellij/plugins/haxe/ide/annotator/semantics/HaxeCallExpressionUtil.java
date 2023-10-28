@@ -78,7 +78,19 @@ public class HaxeCallExpressionUtil {
     }
 
     // generics and type parameter
-    HaxeGenericResolver classTypeResolver =  tryGetCallieResolveResult(callExpression);
+    HaxeGenericResolver classTypeResolver =  new HaxeGenericResolver();
+    ResultHolder callieType = tryGetCallieType(callExpression);
+    if (callieType.isClassType() && !callieType.isUnknown()) {
+      if (!callieType.getClassType().isNullType()) {
+        classTypeResolver.addAll(callieType.getClassType().getGenericResolver());
+      }else {
+        //null Type Hack
+        ResultHolder specific = callieType.getClassType().getSpecifics()[0];
+        if (specific.isClassType()) {
+          classTypeResolver.addAll(specific.getClassType().getGenericResolver());
+        }
+      }
+    }
     HaxeGenericResolver resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(callExpression, classTypeResolver);
 
     Map<String, ResultHolder> typeParamMap = createTypeParameterConstraintMap(method, resolver);
@@ -908,20 +920,18 @@ public class HaxeCallExpressionUtil {
   public record ErrorRecord (TextRange range, String message){};
 
 
-//TODO mlo move this to some kind of util (see haxeReferenceImpl)
-  @NotNull
-  private static HaxeGenericResolver tryGetCallieResolveResult(HaxeCallExpression callExpression) {
+
+  public static ResultHolder tryGetCallieType(HaxeCallExpression callExpression) {
     final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
 
-    HaxeGenericResolver resolver = new HaxeGenericResolver();
     PsiElement resolve = leftReference == null ? null :leftReference.resolve();
     if (resolve != null) {
       ResultHolder evaluateResult = HaxeExpressionEvaluator.evaluate(resolve, new HaxeExpressionEvaluatorContext(resolve), null).result;
       if (evaluateResult.isClassType()) {
-        resolver.addAll(evaluateResult.getClassType().getGenericResolver());
+        return evaluateResult.getClassType().createHolder();
       }
     }
-    return resolver;
+    return SpecificTypeReference.getUnknown(callExpression).createHolder();
 
 
   }

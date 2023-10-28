@@ -313,8 +313,10 @@ public class HaxeResolveUtil {
    * @return a list of named components defined in the rootHaxeClasses and their supertypes.
    */
   @NotNull
-  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver resolver, @NotNull HaxeClass... rootHaxeClasses) {
+  public static List<HaxeNamedComponent> findNamedSubComponents(boolean unique, @Nullable HaxeGenericResolver parentResolver, @NotNull HaxeClass... rootHaxeClasses) {
     ProgressIndicatorProvider.checkCanceled();
+    HaxeGenericResolver localResolver = new HaxeGenericResolver();
+    if (parentResolver != null)localResolver.addAll(parentResolver);
 
     final List<HaxeNamedComponent> unfilteredResult = new ArrayList<>();
     final HashSet<HaxeClass> processed = new HashSet<>();
@@ -327,17 +329,17 @@ public class HaxeResolveUtil {
 
       addNotNullComponents(unfilteredResult, getNamedSubComponents(haxeClass));
       if (haxeClass.isAbstractType()) {
-        if (null == resolver) {
-          resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
+        if (null == parentResolver) {
+          localResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(haxeClass);
         }
-        List<HaxeNamedComponent> subComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, resolver);
+        List<HaxeNamedComponent> subComponents = HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(haxeClass, localResolver);
         addNotNullComponents(unfilteredResult, subComponents);
       }
       if (haxeClass.isTypeDef()) {
-        if (null == resolver) {
-          resolver = haxeClass.getMemberResolver(null);
+        if (null == parentResolver) {
+          localResolver = haxeClass.getMemberResolver(null);
         }else {
-          resolver.addAll(haxeClass.getMemberResolver(null));
+          localResolver.addAll(haxeClass.getMemberResolver(null));
         }
       }
       if (haxeClass.isAnonymousType()) {
@@ -349,7 +351,7 @@ public class HaxeResolveUtil {
           .map(SpecificHaxeClassReference::getHaxeClass)
           .toList();
 
-        List<HaxeNamedComponent> components = findNamedSubComponents(unique, resolver, haxeClasses.toArray(new HaxeClass[0]));
+        List<HaxeNamedComponent> components = findNamedSubComponents(unique, localResolver, haxeClasses.toArray(new HaxeClass[0]));
         addNotNullComponents(unfilteredResult, components);
 
 
