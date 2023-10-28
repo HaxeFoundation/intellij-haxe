@@ -1413,7 +1413,8 @@ public class HaxeExpressionEvaluator {
                                                                final HaxeGenericResolver resolver, ResultHolder resultHolder) {
     resultHolder = resultHolder.duplicate();
     HaxeComponentName componentName = field.getComponentName();
-    SpecificHaxeClassReference classType = resultHolder.getClassType();
+    SpecificHaxeClassReference type = resultHolder.getClassType();
+    SpecificHaxeClassReference classType = type;
 
     HaxeGenericResolver classResolver = classType.getGenericResolver();
     SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getUseScope(componentName);
@@ -1454,8 +1455,15 @@ public class HaxeExpressionEvaluator {
                     for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
                       if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
                         // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
-                        ResultHolder handle = handle(arguments.get(i), context, resolver);
-                        resultHolder.getClassType().getSpecifics()[i] = handle;
+                        if (type.getSpecifics()[i].isUnknown()) {
+                          ResultHolder handle = handle(arguments.get(i), context, resolver);
+                          if (type.getSpecifics()[i].isUnknown()) {
+                            type.getSpecifics()[i] = handle;
+                          }else {
+                            ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                            type.getSpecifics()[i] = unified;
+                          }
+                        }
                       }
                     }
                   }
@@ -1484,7 +1492,12 @@ public class HaxeExpressionEvaluator {
                 if (keyPsiName.equals(specificNames[i])) {
                   HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
                   ResultHolder handle = handle(keyExpression, context, resolver);
-                  resultHolder.getClassType().getSpecifics()[i] = handle;
+                  if (type.getSpecifics()[i].isUnknown()) {
+                    type.getSpecifics()[i] = handle;
+                  }else {
+                    ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                    type.getSpecifics()[i] = unified;
+                  }
                 }
                 // value
                 if (arrayAccessExpression.getParent() instanceof  HaxeBinaryExpression binaryExpression) {
@@ -1492,7 +1505,12 @@ public class HaxeExpressionEvaluator {
                   if (valuePsiName.equals(specificNames[i])) {
                     HaxeExpression keyExpression = binaryExpression.getExpressionList().get(1);
                     ResultHolder handle = handle(keyExpression, context, resolver);
-                    resultHolder.getClassType().getSpecifics()[i] = handle;
+                    if (type.getSpecifics()[i].isUnknown()) {
+                      type.getSpecifics()[i] = handle;
+                    }else {
+                      ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                      type.getSpecifics()[i] = unified;
+                    }
                   }
                 }
               }
@@ -1512,8 +1530,13 @@ public class HaxeExpressionEvaluator {
                   String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
                   if (keyPsiName.equals(specificNames[i])) {
                     HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
-                    ResultHolder handle = handle(keyExpression, context, resolver);
-                    resultHolder.getClassType().getSpecifics()[i] = handle;
+                      ResultHolder handle = handle(keyExpression, context, resolver);
+                    if (type.getSpecifics()[i].isUnknown()) {
+                      type.getSpecifics()[i] = handle;
+                    }else {
+                      ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                      type.getSpecifics()[i] = unified;
+                    }
                   }
                 }
               }

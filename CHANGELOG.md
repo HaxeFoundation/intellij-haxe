@@ -1,8 +1,10 @@
 # Changelog
 
 ## 1.4.18
-* better support for local functions
-* better support for anonymous structure extensions
+* Support for Intellij 2023.3
+* Improvement: Better support for local functions
+* Improvement: Better support for anonymous structure extensions
+* Changed: Switched to EcmaScript Regexp as injected regex language
 
 ## 1.4.17
 * Bugfix: Fixed broken caching logic (Broken in 1.4.15, Disabled in 1.4.16, Fixed in 1.4.17)

@@ -24,7 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression;
 import com.intellij.psi.InjectedLanguagePlaces;
 import com.intellij.psi.LanguageInjector;
 import com.intellij.psi.PsiLanguageInjectionHost;
-import org.intellij.lang.regexp.ecmascript.EcmaScriptUnicodeRegexpLanguage;
+import org.intellij.lang.regexp.ecmascript.EcmaScriptRegexpLanguage;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,7 +39,7 @@ public class RegexLanguageInjector implements LanguageInjector {
     if (host instanceof HaxeRegularExpression) {
       final String text = host.getText();
       final TextRange textRange = new TextRange(text.indexOf('/') + 1, text.lastIndexOf('/'));
-      injectionPlacesRegistrar.addPlace(EcmaScriptUnicodeRegexpLanguage.INSTANCE, textRange, null, null);
+      injectionPlacesRegistrar.addPlace(EcmaScriptRegexpLanguage.INSTANCE, textRange, null, null);
     }
   }
 }
