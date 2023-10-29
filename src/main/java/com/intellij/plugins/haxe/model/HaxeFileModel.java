@@ -23,6 +23,9 @@ import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +36,6 @@ import java.util.stream.Stream;
 
 public class HaxeFileModel implements HaxeExposableModel {
 
-  protected static final Key<HaxeFileModel> HAXE_FILE_MODEL_KEY = new Key<>("HAXE_FILE_MODEL");
   private final HaxeFile file;
 
   protected HaxeFileModel(@NotNull HaxeFile file) {
@@ -44,14 +46,9 @@ public class HaxeFileModel implements HaxeExposableModel {
   static public HaxeFileModel fromElement(PsiElement element) {
     if (element == null) return null;
 
-    final PsiFile file = element instanceof PsiFile ? (PsiFile)element : element.getContainingFile();
-    if (file instanceof HaxeFile) {
-      HaxeFileModel model = file.getUserData(HAXE_FILE_MODEL_KEY);
-      if (model == null) {
-        model = new HaxeFileModel((HaxeFile)file);
-        file.putUserData(HAXE_FILE_MODEL_KEY, model);
-      }
-      return model;
+    final PsiFile file = element instanceof PsiFile  psiFile ? psiFile: element.getContainingFile();
+    if (file instanceof HaxeFile haxeFile) {
+      return CachedValuesManager.getCachedValue(haxeFile, () -> new CachedValueProvider.Result<>(new HaxeFileModel(haxeFile), haxeFile));
     }
     return null;
   }
@@ -102,7 +99,13 @@ public class HaxeFileModel implements HaxeExposableModel {
 
     if (module.isPresent()) {
       HaxeClass haxeClass = (HaxeClass)Arrays.stream(module.get().getChildren())
-        .filter(element -> element instanceof HaxeClass && Objects.equals(name, ((HaxeClass)element).getName()))
+        .filter(element -> {
+          if (element instanceof HaxeClass hxClass) {
+            PsiIdentifier identifier = hxClass.getNameIdentifier();
+            return identifier != null && identifier.textMatches(name);
+          }
+          return false;
+        })
         .findFirst()
         .orElse(null);
 

@@ -143,7 +143,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         log.trace(traceMsg("Resolving reference: " + referenceText));
       }
 
-      List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode);
+      List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode, referenceText);
 
       if (traceEnabled) {
         log.trace(traceMsg("Finished reference:  " + referenceText));
@@ -157,7 +157,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
   }
 
-  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode) {
+  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceText) {
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
@@ -170,11 +170,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
-    //if (result != null) return result;
-
-
-    HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
-
 
     if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
@@ -184,6 +179,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsAccessor(reference);
     if (result == null) result = checkIsSwitchVar(reference);
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
+
+    HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
     if (result == null)result =  searchInSameFile(reference, fileModel);
     if (result == null) result = checkIsClassName(reference);
@@ -194,13 +191,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
 
 
-      fileModel = HaxeFileModel.fromElement(reference);
       if (fileModel != null) {
-        String className = reference.getText();
-
-        PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
-        if (target == null) {
-          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, className);
+          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, referenceText);
           if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
             if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
@@ -216,8 +208,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             }
             return matchesInImport;
           }
-        }
-        if (target == null) target = HaxeResolveUtil.searchInSamePackage(fileModel, className);
+        PsiElement target = HaxeResolveUtil.searchInSamePackage(fileModel, referenceText);
 
         if (target != null) {
           LogResolution(reference, "via import.");

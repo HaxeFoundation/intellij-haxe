@@ -1119,7 +1119,7 @@ public class HaxeResolveUtil {
 
     result = result != null ? result : findClassByQName(className, type.getContext());
 
-    return result instanceof HaxeClass ? (HaxeClass)result : null;
+    return result instanceof HaxeClass haxeClass ? haxeClass : null;
   }
 
   @Nullable
