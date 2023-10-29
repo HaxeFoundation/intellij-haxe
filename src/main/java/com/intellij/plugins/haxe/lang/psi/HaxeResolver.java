@@ -170,15 +170,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
+    //if (result != null) return result;
+
+
+    HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+
+
     if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
-    if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkMacroIdentifier(reference);
     if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
     if (result == null) result = checkIsSwitchVar(reference);
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
+    // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
+    if (result == null)result =  searchInSameFile(reference, fileModel);
+    if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);
@@ -186,7 +194,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
 
 
-      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+      fileModel = HaxeFileModel.fromElement(reference);
       if (fileModel != null) {
         String className = reference.getText();
 
@@ -232,6 +240,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  @Nullable
+  private static List<PsiElement> searchInSameFile(@NotNull HaxeReference reference, HaxeFileModel fileModel) {
+    if(fileModel != null) {
+      String className = reference.getText();
+      PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
+      if (target!= null) return List.of(target);
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkMacroIdentifier(HaxeReference reference) {
@@ -297,6 +315,14 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         // reference is a type tag in constructor, we should check  owning class type parameters
         // so we won't resolve this to a type outside the class if its a type parameter
         HaxeClassModel declaringClass = constructorDeclaration.getModel().getDeclaringClass();
+        List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+        return findTypeParameterPsi(reference, params);
+
+      }
+      HaxeEnumValueDeclaration enumDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeEnumValueDeclaration.class);
+      if (enumDeclaration != null) {
+        // EnumValueDeclarations does not define TypeParameters, only the parent EnumType can have these.
+        HaxeClassModel declaringClass = ((HaxeEnumValueModel)enumDeclaration.getModel()).getDeclaringClass();
         List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
         return findTypeParameterPsi(reference, params);
 

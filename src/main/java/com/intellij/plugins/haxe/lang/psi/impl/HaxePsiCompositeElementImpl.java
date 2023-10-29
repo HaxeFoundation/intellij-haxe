@@ -112,6 +112,14 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
                                      @NotNull ResolveState state,
                                      PsiElement lastParent,
                                      @NotNull PsiElement place) {
+
+    // makes  sure we resolve the local function if referenced from inside
+    if (lastParent instanceof  HaxeLocalFunctionDeclaration) {
+      if (!processor.execute(lastParent, state)) {
+        return false;
+      }
+    }
+
     for (PsiElement element : getDeclarationElementToProcess(lastParent)) {
       if (!processor.execute(element, state)) {
         return false;

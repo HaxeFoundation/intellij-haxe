@@ -110,6 +110,10 @@ public class HaxeTypeCompatible {
     if(isEnumValueConstructor(ref)) {
       return createEnumConstructorFunction(ref);
     }
+    if (ref.isNullType() && ref instanceof  SpecificHaxeClassReference classReference) {
+      @NotNull ResultHolder[] specifics = classReference.getSpecifics();
+      if (specifics.length > 0 &&  specifics[0].isFunctionType()) return specifics[0].getFunctionType();
+    }
 
     return null;  // XXX: Should throw exception instead??
   }
@@ -165,10 +169,11 @@ public class HaxeTypeCompatible {
 
     }
     if (isFunctionTypeOrReference(to) && from.isAbstractType()) {
-      SpecificFunctionReference toFunctionType = asFunctionReference(to);
+      SpecificFunctionReference toFunctionType = asFunctionReference(to); //may return null  (ex. classType of Function, or Null<Function>)
       if (hasAbstractFunctionTypeCast(from, false)) {
         List<SpecificFunctionReference> functionTypes = getAbstractFunctionTypes((SpecificHaxeClassReference)from, false);
         for (SpecificFunctionReference functionType : functionTypes) {
+          if (toFunctionType == null) return true; // any function should be assignable to type Function
           if (canAssignToFromFunction(toFunctionType, functionType)) return true;
         }
       }
@@ -176,6 +181,7 @@ public class HaxeTypeCompatible {
         List<SpecificTypeReference> list = getImplicitCast(classReference, false);
         for (SpecificTypeReference reference : list) {
           if (reference instanceof  SpecificFunctionReference functionType) {
+            if (toFunctionType == null) return true; // any function should be assignable to type Function
             if (canAssignToFromFunction(toFunctionType, functionType)) return true;
           }
         }
