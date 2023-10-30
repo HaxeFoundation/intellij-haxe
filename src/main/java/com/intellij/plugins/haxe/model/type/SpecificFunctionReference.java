@@ -222,7 +222,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     final private String name;
     final private ResultHolder type;
 
-    public Argument(int index, boolean optional, ResultHolder type, @Nullable String name) {
+    public Argument(int index, boolean optional, @NotNull ResultHolder type, @Nullable String name) {
       this.index = index;
       this.optional = optional;
       this.name = name;

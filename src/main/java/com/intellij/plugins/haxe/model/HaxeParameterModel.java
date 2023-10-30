@@ -174,7 +174,12 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   public ResultHolder getResultType() {
     final HaxeTypeTag typeTag = getTypeTagPsi();
     final HaxeTypeOrAnonymous type = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
-    return type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
+    ResultHolder holder = type != null ? HaxeTypeResolver.getTypeFromTypeOrAnonymous(type) : null;
+    if (holder != null) return holder;
+
+    HaxeVarInit initPsi = getVarInitPsi();
+    if (initPsi == null)  return  SpecificHaxeClassReference.getUnknown(getParameterPsi()).createHolder();
+    return HaxeExpressionEvaluator.evaluate(initPsi, new HaxeExpressionEvaluatorContext(initPsi), null).result;
   }
 
   @Override
