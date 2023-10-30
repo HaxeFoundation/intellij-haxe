@@ -38,7 +38,8 @@ public class HaxeParameterUtil {
     for (; counter < parameterCount; counter++) {
       HaxeParameterModel parameter = parameterModelList.get(counter);
       parameterTypeHolder = parameter.getType();
-      parameterTypeHolder = resolveAnyGenericType(parameterTypeHolder);
+      //TODO rewrite getType to get Type Without resolving typeParameters, and then do it before any useage, that way we can cache the value
+      //parameterTypeHolder = resolveAnyGenericType(parameterTypeHolder);
 
       if (argumentCount < counter) {
         map.put(counter, new ParameterToArgumentAndResolver(counter, parameter, null,null,null));

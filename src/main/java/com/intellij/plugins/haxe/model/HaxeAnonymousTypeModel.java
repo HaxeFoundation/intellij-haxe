@@ -95,7 +95,7 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
       List<HaxeFieldModel> list = new ArrayList<>();
       List<HaxePsiField> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class);
       for (HaxePsiField field : children) {
-        HaxeFieldModel model = new HaxeFieldModel(field);
+        HaxeFieldModel model = (HaxeFieldModel)field.getModel();
         list.add(model);
       }
       return list;

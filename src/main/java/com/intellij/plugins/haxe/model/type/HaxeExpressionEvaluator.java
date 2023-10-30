@@ -431,7 +431,6 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeCastExpression castExpression) {
-      handle(((HaxeCastExpression)element).getExpression(), context, resolver);
       HaxeTypeOrAnonymous anonymous = castExpression.getTypeOrAnonymous();
       if (anonymous != null) {
         return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
@@ -1318,37 +1317,39 @@ public class HaxeExpressionEvaluator {
     if (element instanceof  HaxeIsTypeExpression) {
       return SpecificHaxeClassReference.primitive("Bool", element, null).createHolder();
     }
-    //TODO check if common parent of the next if
-    if (
-      (element instanceof HaxeAdditiveExpression) ||
-      (element instanceof HaxeModuloExpression) ||
-      (element instanceof HaxeBitwiseExpression) ||
-      (element instanceof HaxeShiftExpression) ||
-      (element instanceof HaxeLogicAndExpression) ||
-      (element instanceof HaxeLogicOrExpression) ||
-      (element instanceof HaxeCompareExpression) ||
-      (element instanceof HaxeCoalescingExpression) ||
-      (element instanceof HaxeMultiplicativeExpression)
+    //check if common parent before checking all accepted variants (note should not include HaxeAssignExpression, HaxeIteratorExpression etc)
+    if (element instanceof HaxeBinaryExpression) {
+      if (
+        (element instanceof HaxeAdditiveExpression) ||
+        (element instanceof HaxeModuloExpression) ||
+        (element instanceof HaxeBitwiseExpression) ||
+        (element instanceof HaxeShiftExpression) ||
+        (element instanceof HaxeLogicAndExpression) ||
+        (element instanceof HaxeLogicOrExpression) ||
+        (element instanceof HaxeCompareExpression) ||
+        (element instanceof HaxeCoalescingExpression) ||
+        (element instanceof HaxeMultiplicativeExpression)
       ) {
-      PsiElement[] children = element.getChildren();
-      String operatorText;
-      if (children.length == 3) {
-        operatorText = children[1].getText();
-        SpecificTypeReference left = handle(children[0], context, resolver).getType();
-        SpecificTypeReference right = handle(children[2], context, resolver).getType();
-        left = resolveAnyTypeDefs(left);
-        right = resolveAnyTypeDefs(right);
-        return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
-      } else {
-        operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
-        SpecificTypeReference left = handle(children[0], context, resolver).getType();
-        SpecificTypeReference right = handle(children[1], context, resolver).getType();
-        left = resolveAnyTypeDefs(left);
-        right = resolveAnyTypeDefs(right);
-        return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
+        PsiElement[] children = element.getChildren();
+        String operatorText;
+        if (children.length == 3) {
+          operatorText = children[1].getText();
+          SpecificTypeReference left = handle(children[0], context, resolver).getType();
+          SpecificTypeReference right = handle(children[2], context, resolver).getType();
+          left = resolveAnyTypeDefs(left);
+          right = resolveAnyTypeDefs(right);
+          return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
+        }
+        else {
+          operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
+          SpecificTypeReference left = handle(children[0], context, resolver).getType();
+          SpecificTypeReference right = handle(children[1], context, resolver).getType();
+          left = resolveAnyTypeDefs(left);
+          right = resolveAnyTypeDefs(right);
+          return HaxeOperatorResolver.getBinaryOperatorResult(element, left, right, operatorText, context).createHolder();
+        }
       }
     }
-
     if (element instanceof HaxeTypeCheckExpr typeCheckExpr) {
       PsiElement[] children = element.getChildren();
       if (children.length == 2) {

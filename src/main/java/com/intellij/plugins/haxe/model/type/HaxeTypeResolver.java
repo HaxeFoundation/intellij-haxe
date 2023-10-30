@@ -561,10 +561,9 @@ public class HaxeTypeResolver {
       if (null != resultHolder) {
         // If it's a constant, grab the constant value.
         if (targetElement instanceof HaxePsiField field) {
-          HaxeFieldModel model = new HaxeFieldModel(field);
+          HaxeFieldModel model = (HaxeFieldModel)field.getModel();
           if (model.isConstant()) {
-            resultHolder = resultHolder.withConstantValue(
-              model.isEnumValue() ? model.getBasePsi() : model.getInitializerExpression());
+            resultHolder = resultHolder.withConstantValue(model.isEnumValue() ? model.getBasePsi() : model.getInitializerExpression());
           }
         }
         if (targetElement instanceof HaxeLocalVarDeclaration varDeclaration) {

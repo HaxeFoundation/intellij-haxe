@@ -736,6 +736,13 @@ public class HaxeCallExpressionUtil {
         return  HaxeTypeResolver.getEnumReturnType(valueDeclaration, referenceExpression.resolveHaxeClass().getGenericResolver());
       }
     }
+
+    // if expression is enumValue we need to resolve the underlying enumType type to test assignment
+    if (expressionType != null && expressionType.getType() instanceof SpecificEnumValueReference type) {
+      SpecificHaxeClassReference enumType = type.getEnumClass();
+      expressionType = enumType.createHolder();
+    }
+
     // anything else is resolved here (literals etc.)
     if (expressionType == null) {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument);
@@ -743,11 +750,7 @@ public class HaxeCallExpressionUtil {
       expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver.withoutUnknowns()).result;
     }
 
-    // if expression is enumValue we need to resolve the underlying enumType type to test assignment
-    if (expressionType != null && expressionType.getType() instanceof SpecificEnumValueReference type) {
-      SpecificHaxeClassReference enumType = type.getEnumClass();
-      expressionType = enumType.createHolder();
-    }
+
 
     return expressionType;
   }

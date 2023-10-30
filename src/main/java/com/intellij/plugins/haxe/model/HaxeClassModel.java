@@ -513,7 +513,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {
     HaxePsiField field = (HaxePsiField)haxeClass.findHaxeFieldByName(name, resolver);
     if (field instanceof HaxeFieldDeclaration || field instanceof HaxeAnonymousTypeField || field instanceof HaxeEnumValueDeclaration) {
-      return new HaxeFieldModel(field);
+      return (HaxeFieldModel)field.getModel();
     }
     return null;
   }
@@ -625,7 +625,7 @@ public class HaxeClassModel implements HaxeExposableModel {
       List<HaxeFieldModel> list = new ArrayList<>();
       List<HaxePsiField> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclaration.class);
       for (HaxePsiField field : children) {
-        HaxeFieldModel model = new HaxeFieldModel(field);
+        HaxeFieldModel model = (HaxeFieldModel)field.getModel();
         list.add(model);
       }
       return list;
@@ -835,10 +835,9 @@ public class HaxeClassModel implements HaxeExposableModel {
       if (body != null) {
         for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class)) {
           if (!(declaration instanceof PsiMember)) continue;
-          if (declaration instanceof HaxeFieldDeclaration) {
-            HaxeFieldDeclaration varDeclaration = (HaxeFieldDeclaration)declaration;
+          if (declaration instanceof HaxeFieldDeclaration varDeclaration) {
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-              out.add(new HaxeFieldModel((HaxeFieldDeclaration)declaration));
+              out.add(varDeclaration.getModel());
             }
           } else {
             HaxeMethodDeclaration method = (HaxeMethodDeclaration)declaration;
@@ -853,7 +852,7 @@ public class HaxeClassModel implements HaxeExposableModel {
       if (body != null) {
         List<HaxeEnumValueDeclaration> declarations = body.getEnumValueDeclarationList();
         for (HaxeEnumValueDeclaration declaration : declarations) {
-          out.add(new HaxeFieldModel(declaration));
+          out.add(declaration.getModel());
         }
       }
     }

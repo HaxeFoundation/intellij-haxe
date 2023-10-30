@@ -28,7 +28,7 @@ public class HaxeFieldAnnotator implements Annotator {
   }
 
   public static void check(final HaxeFieldDeclaration var, final AnnotationHolder holder) {
-    HaxeFieldModel field = new HaxeFieldModel(var);
+    HaxeFieldModel field = (HaxeFieldModel)var.getModel();
     if (field.isProperty()) {
       checkProperty(field, holder);
     }

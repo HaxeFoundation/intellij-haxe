@@ -136,8 +136,8 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
       final PsiMember parentPsi = PsiTreeUtil.getParentOfType(getBasePsi(), HaxeEnumValueDeclaration.class, HaxeMethod.class);
       if (parentPsi instanceof HaxeMethod) {
         model = ((HaxeMethod)parentPsi).getModel();
-      } else if (parentPsi instanceof HaxeEnumValueDeclaration) {
-        model = new HaxeFieldModel((HaxePsiField)parentPsi);
+      } else if (parentPsi instanceof HaxeEnumValueDeclaration haxeEnumValueDeclaration) {
+        model = (HaxeFieldModel) haxeEnumValueDeclaration.getModel();
       }
       if (model != null) {
         getBasePsi().putUserData(PARAMETER_MEMBER_MODEL_KEY, model);

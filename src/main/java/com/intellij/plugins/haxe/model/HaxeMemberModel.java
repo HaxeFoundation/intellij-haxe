@@ -19,9 +19,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeBinaryExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -29,6 +27,8 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
@@ -98,17 +98,18 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   @Override
   public HaxeClassModel getDeclaringClass() {
-    HaxeClassModel model = getBasePsi().getUserData(DECLARING_CLASS_MODEL_KEY);
-    if (model == null) {
-      PsiClass containingClass = getMemberPsi().getContainingClass();
-      if (containingClass instanceof HaxeClass) {
-        model = ((HaxeClass)containingClass).getModel();
-        getBasePsi().putUserData(DECLARING_CLASS_MODEL_KEY, model);
-      }
-    }
-
-    return model;
+    return  CachedValuesManager.getProjectPsiDependentCache(getMemberPsi(), HaxeMemberModel::_getDeclaringClass).getValue();
   }
+
+  private static CachedValueProvider.Result<HaxeClassModel> _getDeclaringClass(PsiMember member) {
+    PsiClass containingClass = member.getContainingClass();
+    if (containingClass instanceof HaxeClass haxeClass) {
+      return new CachedValueProvider.Result<>(haxeClass.getModel(), member);
+    }else {
+      return new CachedValueProvider.Result<>(null, member);
+    }
+  }
+
   public boolean isInInterface() {
     return getDeclaringClass().isInterface();
   }

@@ -22,9 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -56,15 +54,19 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     super(node);
   }
 
+  private HaxeMemberModel _model = null;
   @Override
-  public HaxeModel getModel() {
-    if (this instanceof HaxeEnumValueDeclaration) {
-      return new HaxeEnumValueModel((HaxeEnumValueDeclaration)this);
+  public HaxeMemberModel getModel() {
+    if (_model == null) {
+      if (this instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
+        _model = new HaxeEnumValueModel(enumValueDeclaration);
+      }else if (HaxeAbstractEnumUtil.isAbstractEnum(getContainingClass()) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(this)) {
+          _model = new HaxeEnumValueModel((HaxeFieldDeclaration)this);
+      }else{
+        _model = new HaxeFieldModel(this);
+      }
     }
-    if (HaxeAbstractEnumUtil.isAbstractEnum(getContainingClass()) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(this)) {
-      return new HaxeEnumValueModel((HaxeFieldDeclaration)this);
-    }
-    return new HaxeFieldModel(this);
+    return _model;
   }
 
   @Override

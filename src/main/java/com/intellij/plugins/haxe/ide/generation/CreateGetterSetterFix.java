@@ -66,11 +66,11 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
 
   @Override
   protected String buildFunctionsText(HaxeNamedComponent namedComponent) {
-    if (!(namedComponent instanceof HaxeFieldDeclaration)) {
+    if (!(namedComponent instanceof HaxeFieldDeclaration fieldDeclaration)) {
       return "";
     }
 
-    HaxeFieldModel field = new HaxeFieldModel((HaxeFieldDeclaration)namedComponent);
+    HaxeFieldModel field = (HaxeFieldModel)fieldDeclaration.getModel();
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
       HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()), null);

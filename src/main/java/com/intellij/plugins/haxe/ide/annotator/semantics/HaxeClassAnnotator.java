@@ -432,7 +432,7 @@ public class HaxeClassAnnotator implements Annotator {
                 .create();
             }
 
-            HaxeFieldModel model = new HaxeFieldModel(fieldDeclaration);
+            HaxeFieldModel model = (HaxeFieldModel) fieldDeclaration.getModel();
             HaxeGenericResolver classFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(model.getBasePsi());
             HaxeGenericResolver interfaceFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(intField.getBasePsi());
 

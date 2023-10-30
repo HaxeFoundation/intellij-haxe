@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.util.HaxePresentableUtil.getPresentableParameterList;
 
-public class HaxeEnumValueModel extends HaxeMemberModel {
+public class HaxeEnumValueModel extends HaxeFieldModel {
   private final boolean isAbstractType;
   private final boolean hasConstructor;
   private final boolean hasReturnType;

@@ -601,7 +601,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeFieldDeclaration varDeclaration = PsiTreeUtil.getParentOfType(reference, HaxeFieldDeclaration.class);
       if (varDeclaration == null) return null;
 
-      final HaxeFieldModel fieldModel = new HaxeFieldModel(varDeclaration);
+      final HaxeFieldModel fieldModel = (HaxeFieldModel)varDeclaration.getModel();
       final HaxeMethodModel method = accessorType == HaxeAccessorType.GET ? fieldModel.getGetterMethod() : fieldModel.getSetterMethod();
 
       if (method != null) {

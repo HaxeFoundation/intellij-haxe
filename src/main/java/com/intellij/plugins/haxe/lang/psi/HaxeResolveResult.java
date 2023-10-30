@@ -162,12 +162,12 @@ public class HaxeResolveResult implements Cloneable {
             // could be due to cache for Psi resolve while it looks like  resolve by QName does not and searches file tree.
             HaxeClass superclass = null;
             PsiElement resolve = haxeType.getReferenceExpression().resolve();
-            if (resolve instanceof HaxeClassDeclaration classDeclaration) {
-              superclass = classDeclaration.getModel().haxeClass;
+            if (resolve instanceof HaxeClass haxeClass) {
+              superclass = haxeClass.getModel().haxeClass;
             }
 
             if (superclass == null) {
-              // if reference resolve fails do QName resolve as fallback
+              // if reference resolve fails, do QName resolve as fallback
               superclass = HaxeResolveUtil.tryResolveClassByQName(haxeType);
             }
             // hopefully it won't be necessary to traverse the entire type hierarchy and we only need to check classes and interfaces that are generic

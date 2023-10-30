@@ -37,7 +37,7 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
     private static void handleFieldDeclarationHints(@NotNull PsiElement element,
                                                     @NotNull InlayTreeSink sink,
                                                     HaxeFieldDeclaration fieldDeclaration) {
-      HaxeFieldModel field = new HaxeFieldModel(fieldDeclaration);
+      HaxeFieldModel field = (HaxeFieldModel)fieldDeclaration.getModel();
 
       if (!field.hasTypeTag()) {
 

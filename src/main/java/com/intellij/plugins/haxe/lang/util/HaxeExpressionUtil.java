@@ -260,7 +260,7 @@ public class HaxeExpressionUtil {
       }
       if (resolved instanceof HaxeFieldDeclaration) {
         HaxeFieldDeclaration fieldDeclaration = (HaxeFieldDeclaration)resolved;
-        HaxeFieldModel fieldModel = new HaxeFieldModel(fieldDeclaration);
+        HaxeFieldModel fieldModel = (HaxeFieldModel)fieldDeclaration.getModel();
         return classifyConstantExpression(fieldModel.getInitializerExpression());
       }
       return resolved instanceof HaxeExpression

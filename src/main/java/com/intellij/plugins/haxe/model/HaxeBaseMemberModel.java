@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class HaxeBaseMemberModel implements HaxeModel {
-  protected static final Key<HaxeClassModel> DECLARING_CLASS_MODEL_KEY = new Key<>("HAXE_DECLARING_CLASS_MODEL");
   protected PsiElement basePsi;
   protected HaxeDocumentModel document = null;
 
@@ -43,23 +42,18 @@ public abstract class HaxeBaseMemberModel implements HaxeModel {
 
   static private HaxeNamedComponent getNamedComponentPsi(PsiElement element) {
     if (element == null) return null;
-    if (element instanceof HaxeNamedComponent) return (HaxeNamedComponent)element;
-    if (element.getParent() instanceof HaxeNamedComponent) return (HaxeNamedComponent)element.getParent();
+    if (element instanceof HaxeNamedComponent namedComponent) return namedComponent;
+    if (element.getParent() instanceof HaxeNamedComponent parentNamedComponent) return parentNamedComponent;
     return getNamedComponentPsi(UsefulPsiTreeUtil.getChild(element, HaxeNamedComponent.class));
   }
 
   public static HaxeBaseMemberModel fromPsi(PsiElement element) {
-    if (element instanceof HaxeMethod) return ((HaxeMethod)element).getModel();
-    if (element instanceof HaxeFieldDeclaration) {
-      PsiClass containingClass = ((HaxeFieldDeclaration)element).getContainingClass();
-      if (HaxeAbstractEnumUtil.isAbstractEnum(containingClass) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(element)) {
-        return new HaxeEnumValueModel((HaxeFieldDeclaration)element);
-      }
-      return new HaxeFieldModel((HaxeFieldDeclaration)element);
-    }
-    if (element instanceof HaxeEnumValueDeclaration) return new HaxeEnumValueModel((HaxeEnumValueDeclaration)element);
-    if (element instanceof HaxeLocalVarDeclaration) return new HaxeLocalVarModel((HaxeLocalVarDeclaration)element);
-    if (element instanceof HaxeAnonymousTypeField) return new HaxeAnonymousTypeFieldModel((HaxeAnonymousTypeField)element);
+    if (element instanceof HaxeMethod method) return method.getModel();
+    if (element instanceof HaxeFieldDeclaration fieldDeclaration) return (HaxeBaseMemberModel)fieldDeclaration.getModel();
+    if (element instanceof HaxeEnumValueDeclaration enumValueDeclaration)  return (HaxeBaseMemberModel) enumValueDeclaration.getModel();
+    if (element instanceof HaxeLocalVarDeclaration varDeclaration) return (HaxeBaseMemberModel) varDeclaration.getModel();
+    if (element instanceof HaxeAnonymousTypeField anonymousTypeField) return (HaxeBaseMemberModel) anonymousTypeField.getModel();
+
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     if (element instanceof HaxeForStatement) return null;
     final PsiElement parent = element.getParent();
