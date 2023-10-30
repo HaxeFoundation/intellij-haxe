@@ -51,11 +51,13 @@ public class HaxeTypeUnifier {
     if (a.toStringWithoutConstant().equals(b.toStringWithoutConstant())) {
       return a.withoutConstantValue();
     }
-    // prefer non-void as void is the result of recursive method calls that cant resolve to anything
-    if (a.isVoid() && !b.isVoid() && !b.isUnknown()){
+    // prefer non-void  and non-dynamic, note that void can be is the result of recursive method calls that cant resolve to anything
+    if ((a.isVoid()  || a.isDynamic())
+        && (!b.isVoid() && !b.isUnknown())){
       return b;
     }
-    if (!a.isVoid() && !a.isUnknown() && b.isVoid()){
+    if ((!a.isVoid() && !a.isUnknown())
+        && (b.isVoid() || b.isDynamic())){
       return a;
     }
 
