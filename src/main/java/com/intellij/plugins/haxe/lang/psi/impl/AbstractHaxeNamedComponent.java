@@ -27,10 +27,7 @@ import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
@@ -42,6 +39,8 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -57,9 +56,6 @@ import java.util.Set;
 abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
   implements HaxeNamedComponent, PsiNamedElement {
 
-  private String myName;
-  public ResultHolder _cachedType;
-  public long _cachedTypeStamp;
 
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
@@ -69,16 +65,21 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Nullable
   @NonNls
   public String getName() {
-    if (ApplicationManager.getApplication().isReadAccessAllowed()) {
-      final HaxeComponentName name = getComponentName();
-      if (name != null) {
-        myName = name.getText();
-      } else {
-        myName = super.getName();
-      }
-    }
-    return myName;
+    return CachedValuesManager.getProjectPsiDependentCache(this, AbstractHaxeNamedComponent::_getName).getValue();
   }
+
+  private static CachedValueProvider.Result<String> _getName(AbstractHaxeNamedComponent namedComponent) {
+      final HaxeComponentName name = namedComponent.getComponentName();
+      if (name != null) {
+        return new CachedValueProvider.Result<>(name.getText(), name, namedComponent);
+      } else {
+        return new CachedValueProvider.Result<>(namedComponent._getNameFromSuper(), namedComponent);
+      }
+  }
+  private String _getNameFromSuper() {
+    return super.getName();
+  }
+
 
   @Override
   public String getText() {
@@ -90,7 +91,6 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     final HaxeComponentName componentName = getComponentName();
     if (componentName != null) {
       componentName.setName(name);
-      myName = name;
     }
     return this;
   }
