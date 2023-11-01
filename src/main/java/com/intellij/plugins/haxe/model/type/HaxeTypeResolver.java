@@ -266,7 +266,7 @@ public class HaxeTypeResolver {
           if (typeOrAnonymous != null) {
             //TODO resolve for anonymous types ?
             if (typeOrAnonymous.getType() != null) {
-              ResultHolder type = HaxeTypeResolver.getTypeFromType(typeOrAnonymous.getType());
+              ResultHolder type = HaxeTypeResolver.getTypeFromType(typeOrAnonymous.getType(), resolver);
               ResultHolder resolve = resolver.resolveReturnType(type);
               if (resolve != null && !resolve.isUnknown()) {
                 return resolve;

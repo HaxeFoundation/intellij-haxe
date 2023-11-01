@@ -50,6 +50,8 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   private HaxeModifiersModel _modifiers;
 
+  private SpecificHaxeClassReference reference;
+
   //for caching purposes
   private FullyQualifiedInfo myQualifiedInfo;
 
@@ -79,7 +81,13 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @NotNull
   public ResultHolder getInstanceType() {
-    return SpecificHaxeClassReference.withoutGenerics(getReference()).createHolder();
+    return getInstanceReference().createHolder();
+  }
+  public SpecificHaxeClassReference getInstanceReference() {
+    if (reference  == null) {
+      reference = SpecificHaxeClassReference.withoutGenerics(getReference());
+    }
+    return reference;
   }
 
   public List<HaxeClassReferenceModel> getExtendingTypes() {

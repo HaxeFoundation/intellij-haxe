@@ -400,14 +400,22 @@ public class HaxeResolveUtil {
   }
 
   public static List<HaxeNamedComponent> getAllNamedSubComponentsFromClassType(HaxeClass haxeClass, HaxeComponentType... fromTypes) {
+    return getAllNamedSubComponentsFromClassType(haxeClass, fromTypes, null);
+  }
+  public static List<HaxeNamedComponent> getAllNamedSubComponentsFromClassType(HaxeClass haxeClass, HaxeComponentType[] fromTypes, List<PsiClass> recursionGuard) {
+    if (recursionGuard == null) recursionGuard =  new ArrayList<>();
     List<HaxeNamedComponent> components = getNamedSubComponents(haxeClass);
     List<HaxeComponentType> types = Arrays.asList(fromTypes);
 
-    components.addAll(Stream.of(haxeClass.getSupers())
-                        .filter(superComponent -> types.isEmpty() || types.contains(HaxeComponentType.typeOf(superComponent)))
-                        .map(superComponent -> getAllNamedSubComponentsFromClassType((HaxeClass)superComponent, fromTypes))
-                        .flatMap(Collection::stream)
-                        .toList());
+    for (PsiClass superComponent : haxeClass.getSupers()) {
+      if (recursionGuard.contains(superComponent)) continue;
+      recursionGuard.add(superComponent);
+
+      if (types.isEmpty() || types.contains(HaxeComponentType.typeOf(superComponent))) {
+        List<HaxeNamedComponent> type = getAllNamedSubComponentsFromClassType((HaxeClass)superComponent, fromTypes, recursionGuard);
+        components.addAll(type);
+      }
+    }
 
     if (types.contains(HaxeComponentType.typeOf(haxeClass))) {
       components.addAll(getNamedSubComponents(haxeClass));

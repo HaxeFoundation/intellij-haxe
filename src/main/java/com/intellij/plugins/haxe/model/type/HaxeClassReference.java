@@ -96,6 +96,8 @@ public class HaxeClassReference {
   public HaxeClass getHaxeClass() {
     if (this.classModel != null) return classModel.getPsi();
     if (this.clazz != null) return clazz;
+    // no real HaxeClass exists for type parameters (only HaxeClassWrapperForTypeParameter  synthetically created)
+    if (this.isTypeParameter) return null;
     clazz = HaxeResolveUtil.findClassByQName(name, elementContext);
     if (clazz == null) {
       clazz = HaxeResolveUtil.tryResolveClassByQName(elementContext);

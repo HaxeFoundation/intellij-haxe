@@ -241,12 +241,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Nullable
   @Override
   public HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
-    return ContainerUtil.find(getHaxeFieldsSelf(resolver), component -> name.equals(component.getName()));
+    return ContainerUtil.find(getHaxeFieldAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM), component -> name.equals(component.getName()));
   }
 
   @Override
   public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
-    return ContainerUtil.find(getHaxeMethodsSelf(resolver), (Condition<HaxeNamedComponent>)component -> name.equals(component.getName()));
+    return ContainerUtil.find(getHaxeMethodsAll(HaxeComponentType.CLASS), (Condition<HaxeNamedComponent>)component -> name.equals(component.getName()));
   }
 
   /** Optimized path to replace findHaxeMethod and findHaxeField when used together. */
@@ -498,6 +498,19 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     for (HaxeNamedComponent method : methods) {
       result.add((HaxeMethod)method);
     }
+    if (this.getModel() instanceof  HaxeAbstractClassModel model) {
+      if (model.hasForwards()) {
+        HaxeClass underlyingClass = model.getUnderlyingClass(null);
+        if (underlyingClass  instanceof  AbstractHaxePsiClass abstractHaxePsiClass) {
+          List<HaxeNamedComponent> components = abstractHaxePsiClass.getAllHaxeNamedComponents(HaxeComponentType.METHOD);
+          for (HaxeNamedComponent component : components) {
+            if (model.isForwarded(component.getName())) {
+              result.add((HaxeMethod)component);
+            }
+          }
+        }
+      }
+    }
     return result;
   }
   @NotNull
@@ -517,6 +530,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     for (HaxeNamedComponent field : fields) {
       result.add((HaxeFieldDeclaration)field);
     }
+    if (this.getModel() instanceof  HaxeAbstractClassModel model) {
+      if (model.hasForwards()) {
+        HaxeClass underlyingClass = model.getUnderlyingClass(null);
+        if (underlyingClass  instanceof  AbstractHaxePsiClass abstractHaxePsiClass) {
+          List<HaxeNamedComponent> components = abstractHaxePsiClass.getAllHaxeNamedComponents(HaxeComponentType.FIELD);
+          for (HaxeNamedComponent field : fields) {
+            if (model.isForwarded(field.getName())) {
+              result.add((HaxeFieldDeclaration)field);
+            }
+          }
+        }
+      }
+    }
+
     return result;
   }
 

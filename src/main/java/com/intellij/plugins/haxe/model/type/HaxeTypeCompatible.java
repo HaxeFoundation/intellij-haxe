@@ -21,9 +21,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -570,7 +568,7 @@ public class HaxeTypeCompatible {
   static private boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from,
-    @Nullable List<SpecificHaxeClassReference> recursionGuard
+    @Nullable List<HaxeModel> recursionGuard
   ) {
     if (to.isDynamic() || from.isDynamic()) {
       return true;
@@ -623,16 +621,42 @@ public class HaxeTypeCompatible {
         return true;
       }
     }
-    if (to.getHaxeClass() != null && to.getHaxeClass().isInterface()) {
-      Set<SpecificHaxeClassReference> fromInferTypes = from.getInferTypes();
-      for (SpecificHaxeClassReference fromInterface : fromInferTypes) {
-        if (recursionGuard == null) recursionGuard = new ArrayList<>();
-        if (!recursionGuard.contains(fromInterface)) {
-            recursionGuard.add(fromInterface);
-          if (canAssignToFromSpecificType(to, fromInterface, recursionGuard)) return true;
+    // if not working with type parameters check inheritance
+    if (!to.isFromTypeParameter() && !from.isFromTypeParameter()) {
+      if (to.getHaxeClass() != null && to.getHaxeClass().isInterface()) {
+        Set<SpecificHaxeClassReference> fromInferTypes = from.getInferTypes();
+        for (SpecificHaxeClassReference fromInterface : fromInferTypes) {
+          HaxeClassModel classModel = fromInterface.getHaxeClassModel();
+          if (recursionGuard == null) recursionGuard = new ArrayList<>();
+          if (!recursionGuard.contains(classModel)) {
+            recursionGuard.add(classModel);
+            if (canAssignToFromSpecificType(to, fromInterface, recursionGuard)) return true;
+          }
+        }
+      }
+      HaxeClass haxeClass = from.getHaxeClass();
+      if (haxeClass != null) {
+
+
+        List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
+        for (HaxeType type : extendsList) {
+          PsiElement resolve = type.getReferenceExpression().resolve();
+          if (resolve instanceof HaxeClass fromClass) {
+            HaxeClassModel fromModel = fromClass.getModel();
+            if (fromModel != null) {
+              if (recursionGuard == null) recursionGuard = new ArrayList<>();
+              if (!recursionGuard.contains(fromModel)) {
+                recursionGuard.add(fromModel);
+                SpecificHaxeClassReference fromReference =
+                  SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(fromModel, fromClass));
+                if (canAssignToFromSpecificType(to, fromReference, recursionGuard)) return true;
+              }
+            }
+          }
         }
       }
     }
+
     return false;
   }
 
