@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -213,7 +212,7 @@ public class HaxeTypeCompatible {
       return toReference.isSameType(fromReference);
     }
     // if value is type parameter and we have reached this point without resolving its type we just accept it as it would be the same as unknown
-    if (to.isFromTypeParameter()) return true;
+    if (to.isTypeParameter()) return true;
 
 
     return false;
@@ -439,7 +438,7 @@ public class HaxeTypeCompatible {
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       if (canAssignToFromSpecificType(to, compatibleType)) return true;
     }
-    if (to.isFromTypeParameter()) {
+    if (to.isTypeParameter()) {
       // if we don't know the type and don't have any constraints for Type parameters we just accept it for now
       // to avoid  wrong error annotations
       return true;
@@ -450,7 +449,7 @@ public class HaxeTypeCompatible {
   }
 
   private static boolean containsAllMembers(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
-    if (to.isFromTypeParameter() || from.isFromTypeParameter() ) return false; // unable to evaluate members when type is not resolved
+    if (to.isTypeParameter() || from.isTypeParameter() ) return false; // unable to evaluate members when type is not resolved
 
     // if one of the types is a Class<T>  its was probably wrapped so we unwrap to T
     if (to.isClass() && to.getSpecifics().length == 1) to = to.getSpecifics()[0].getClassType();
@@ -622,7 +621,7 @@ public class HaxeTypeCompatible {
       }
     }
     // if not working with type parameters check inheritance
-    if (!to.isFromTypeParameter() && !from.isFromTypeParameter()) {
+    if (!to.isTypeParameter() && !from.isTypeParameter()) {
       if (to.getHaxeClass() != null && to.getHaxeClass().isInterface()) {
         Set<SpecificHaxeClassReference> fromInferTypes = from.getInferTypes();
         for (SpecificHaxeClassReference fromInterface : fromInferTypes) {

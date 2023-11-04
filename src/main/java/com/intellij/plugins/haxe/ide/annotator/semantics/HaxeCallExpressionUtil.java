@@ -713,7 +713,7 @@ public class HaxeCallExpressionUtil {
     HaxeGenericResolver inherit = findTypeParametersToInherit(parameterType.getType(), argumentType.getType(), resolver, typeParamMap);
     resolver.addAll(inherit);
     // parameter is a typeParameter type, we can just add it to resolver
-    if (parameterType.getClassType().isFromTypeParameter()) {
+    if (parameterType.getClassType().isTypeParameter()) {
       String className = parameterType.getClassType().getClassName();
       resolver.add(className, argumentType, ResolveSource.ARGUMENT_TYPE);
       typeParamMap.put(className, argumentType);

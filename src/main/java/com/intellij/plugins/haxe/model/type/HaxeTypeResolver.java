@@ -238,7 +238,7 @@ public class HaxeTypeResolver {
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver, boolean returnType) {
     SpecificTypeReference typeReference = result.getType();
     if (resolver != null) {
-      if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.isFromTypeParameter()) {
+      if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.isTypeParameter()) {
         String className = haxeClassReference.getClassName();
         ResultHolder resolved = returnType ? resolver.resolveReturnType(haxeClassReference) : resolver.resolve(className);
         if (null != resolved) {

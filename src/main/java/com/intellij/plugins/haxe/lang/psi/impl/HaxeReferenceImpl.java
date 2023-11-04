@@ -633,7 +633,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeResolveResult result = null;
         HaxeGenericSpecialization specialization = getSpecialization();
         if (resolvedType.getClassType() != null && !resolvedType.isUnknown()) {
-          if (!resolvedType.getClassType().isFromTypeParameter()) {
+          if (!resolvedType.getClassType().isTypeParameter()) {
             result = resolvedType.getClassType().asResolveResult();
             if (specialization != null) {
               result.specializeByParent(specialization.toGenericResolver(null));

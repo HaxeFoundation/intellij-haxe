@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeProjectModel;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -309,11 +310,28 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
-  final public boolean isFromTypeParameter() {
+  /**
+   * In some cases we can not resolve typeParameters (ex. class level typeParameters used in class members)
+   * We currently work around this by creating synthetic types,  this method will return true if the type is
+   * one of these synthetic types.
+   */
+  final public boolean isTypeParameter() {
     if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
       return specificHaxeClassReference.getHaxeClassReference().isTypeParameter();
     }
     return false;
+  }
+
+  /**
+   * checks if type reference is from a typeParameter (ex. `Array<TypeParameter>`)
+   * or if its a normal reference (ex `var x = String;` or `MyType.staticMethod()`)
+   *
+   * @return is class reference from typeParameter.
+   */
+  final public boolean isReferenceFromTypeParameter() {
+    //TODO cache ?
+    HaxeTypeParam type = PsiTreeUtil.getParentOfType(this.context, HaxeTypeParam.class);
+    return type != null;
   }
 
   public boolean isAnonymousType() {
@@ -495,7 +513,7 @@ public abstract class SpecificTypeReference {
     if (type == null) return null;
     if (genericResolver == null) return type;
 
-    if (type.isFromTypeParameter() && type instanceof  SpecificHaxeClassReference classReference) {
+    if (type.isTypeParameter() && type instanceof  SpecificHaxeClassReference classReference) {
       String typeVariableName = classReference.getHaxeClassReference().name;
       ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(classReference) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
@@ -513,7 +531,7 @@ public abstract class SpecificTypeReference {
           //final SpecificTypeReference typeReference = propagateGenericsToType(specific.getClassType(), genericResolver);
           if (specific.getClassType() != null) {
             SpecificTypeReference typeReference = null;
-            if (!specific.getClassType().isFromTypeParameter()) {
+            if (!specific.getClassType().isTypeParameter()) {
               typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver(), isReturnType);
             }else {
               if (isReturnType) {

@@ -299,7 +299,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeMethodModel methodModel : methodsWithMetadata) {
       if (castMethodAcceptsSource(sourceType, methodModel)) {
         SpecificTypeReference returnType = getReturnType(methodModel);
-        if (returnType.isFromTypeParameter()) {
+        if (returnType.isTypeParameter()) {
           ResultHolder resolve = sourceType.getGenericResolver().resolve(((SpecificHaxeClassReference)returnType).getClassName());
           if (resolve!= null && !resolve.isUnknown()) {
             returnType = resolve.getType();

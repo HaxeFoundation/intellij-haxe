@@ -161,7 +161,7 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolveReturnType(SpecificHaxeClassReference reference) {
     if (null == reference ) return null;
-    if (reference.isFromTypeParameter()) {
+    if (reference.isTypeParameter()) {
       String className = reference.getHaxeClassReference().name;
       List<ResolverEntry> resolveValues = resolvers.stream().filter(entry -> entry.name().equals(className)).toList();
       List<ResolverEntry> constraints = constaints.stream().filter(entry -> entry.name().equals(className)).toList();
@@ -182,7 +182,7 @@ public class HaxeGenericResolver {
       }
     }
     // todo recursion guard
-    if (!reference.isFromTypeParameter() && needResolve(reference)) {
+    if (!reference.isTypeParameter() && needResolve(reference)) {
       return HaxeTypeResolver.resolveParameterizedType(reference.createHolder(), this, true);
     }
     return reference.createHolder();
@@ -202,7 +202,7 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolveReturnType(ResultHolder resultHolder) {
     if (null == resultHolder ) return null;
-    if (resultHolder.getType().isFromTypeParameter()) {
+    if (resultHolder.getType().isTypeParameter()) {
       String className = resultHolder.getType().context.getText();
       List<ResolverEntry> list = resolvers.stream().filter(entry -> entry.name().equals(className)).sorted(this::ResolverPrioritySort).toList();
       if (list.isEmpty())  {
@@ -215,7 +215,7 @@ public class HaxeGenericResolver {
         return list.get(0).type();
       }
     }
-    if (!resultHolder.getType().isFromTypeParameter()) {
+    if (!resultHolder.getType().isTypeParameter()) {
       Optional<ResolverEntry> assign = findAsignToType();
       if (assign.isPresent()) { // if we got expected return type we want to pass along expected typeParameter values when resolving
         SpecificHaxeClassReference expectedType = assign.get().type().getClassType();

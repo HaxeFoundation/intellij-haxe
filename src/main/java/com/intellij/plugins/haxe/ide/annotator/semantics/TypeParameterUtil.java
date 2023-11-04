@@ -65,7 +65,7 @@ public class TypeParameterUtil {
 
   public static boolean containsTypeParameter(@NotNull ResultHolder parameterType, @NotNull Map<String, ResultHolder> typeParamMap) {
     if (parameterType.getClassType() == null) return false;
-    if (parameterType.getClassType().isFromTypeParameter()) return true;
+    if (parameterType.getClassType().isTypeParameter()) return true;
 
 
     ResultHolder[] specifics = parameterType.getClassType().getSpecifics();

@@ -201,7 +201,7 @@ public class HaxeExpressionEvaluator {
                 return handle.getType().createHolder();
               }
             }
-            if (type.isFromTypeParameter()) {
+            if (type.isTypeParameter()) {
               if (iterable.getExpression() instanceof  HaxeReference reference) {
                 HaxeResolveResult result = reference.resolveHaxeClass();
                 HaxeGenericResolver classResolver = result.getGenericResolver();

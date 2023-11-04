@@ -643,7 +643,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (type == null) return null;
     if (genericResolver == null || genericResolver.isEmpty()) return type;
 
-    if (type.isFromTypeParameter()) {
+    if (type.isTypeParameter()) {
       String typeVariableName = type.getHaxeClassReference().name;
       ResultHolder possibleValue = isReturnType ? genericResolver.resolveReturnType(type) : genericResolver.resolve(typeVariableName);
       if (possibleValue != null) {
