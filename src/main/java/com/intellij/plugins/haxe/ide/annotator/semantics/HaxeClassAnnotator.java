@@ -350,13 +350,13 @@ public class HaxeClassAnnotator implements Annotator {
 
     if (intReference.getHaxeClass() != null) {
       List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldSelf(clazz.getGenericResolver(null));
-      List<HaxeFieldDeclaration> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
+      List<HaxeNamedComponent> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
       for (HaxeFieldModel intField : intReference.getHaxeClass().getFields()) {
         if (!intField.isStatic()) {
 
 
           String interfaceFieldName = intField.getName();
-          Optional<HaxeFieldDeclaration> fieldResultAll = allFields.stream()
+          Optional<HaxeNamedComponent> fieldResultAll = allFields.stream()
             .filter(method -> interfaceFieldName.equals(method.getName()))
             .findFirst();
           Optional<HaxeFieldDeclaration> fieldResultClassOnly = fieldsInThisClass.stream()

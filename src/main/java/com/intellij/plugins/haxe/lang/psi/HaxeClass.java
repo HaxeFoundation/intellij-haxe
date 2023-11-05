@@ -132,7 +132,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
    * @return list of FieldDeclaration
    */
   @NotNull
-  List<HaxeFieldDeclaration> getHaxeFieldAll(HaxeComponentType... fromTypesFilter);
+  List<HaxeNamedComponent> getHaxeFieldAll(HaxeComponentType... fromTypesFilter);
 
   @Nullable
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);

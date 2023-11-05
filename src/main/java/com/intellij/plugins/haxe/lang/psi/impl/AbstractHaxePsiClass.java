@@ -524,20 +524,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @NotNull
-  public List<HaxeFieldDeclaration> getHaxeFieldAll(HaxeComponentType... fromTypesFilter) {
+  public List<HaxeNamedComponent> getHaxeFieldAll(HaxeComponentType... fromTypesFilter) {
     List<HaxeNamedComponent> fields = getAllHaxeNamedComponents(HaxeComponentType.FIELD, fromTypesFilter);
-    final List<HaxeFieldDeclaration> result = new ArrayList<>();
+    final List<HaxeNamedComponent> result = new ArrayList<>();
     for (HaxeNamedComponent field : fields) {
-      result.add((HaxeFieldDeclaration)field);
+      result.add(field);
     }
     if (this.getModel() instanceof  HaxeAbstractClassModel model) {
       if (model.hasForwards()) {
         HaxeClass underlyingClass = model.getUnderlyingClass(null);
         if (underlyingClass  instanceof  AbstractHaxePsiClass abstractHaxePsiClass) {
           List<HaxeNamedComponent> components = abstractHaxePsiClass.getAllHaxeNamedComponents(HaxeComponentType.FIELD);
-          for (HaxeNamedComponent field : fields) {
-            if (model.isForwarded(field.getName())) {
-              result.add((HaxeFieldDeclaration)field);
+          for (HaxeNamedComponent component : components) {
+            if (model.isForwarded(component.getName())) {
+              result.add(component);
             }
           }
         }
