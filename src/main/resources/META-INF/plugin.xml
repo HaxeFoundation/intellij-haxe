@@ -391,6 +391,26 @@
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
+    <intentionAction>
+      <language>Haxe</language>
+      <className>com.intellij.plugins.haxe.ide.intention.AddTypeTagToFieldIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <className>com.intellij.plugins.haxe.ide.intention.RemoveTypeTagFromFieldIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <className>com.intellij.plugins.haxe.ide.intention.AddReturnTypeTagIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <className>com.intellij.plugins.haxe.ide.intention.RemoveReturnTypeTagIntention</className>
+    </intentionAction>
+
     <toolWindow id="Haxelib"
                 anchor="bottom"
                 canCloseContents="true"

@@ -214,6 +214,21 @@ public class UsefulPsiTreeUtil {
   }
 
   @Nullable
+  public static <T extends PsiElement, K extends PsiElement> T  findParentOfTypeButStopIfTypeIs(PsiElement element,  @NotNull Class<T> toFind, @NotNull Class<K> toStop) {
+    PsiElement parent = element.getParent();
+    while (parent != null) {
+      if (toFind.isInstance(parent)) {
+        return (T)parent;
+      }else if(toStop.isInstance(parent)) {
+        return null;
+      }
+      parent = parent.getParent();
+    }
+    return null;
+  }
+
+
+  @Nullable
   public static List<PsiElement> getPathToParentOfType(@Nullable PsiElement element,
                                                        @NotNull Class<? extends PsiElement> aClass) {
     if (element == null) return null;

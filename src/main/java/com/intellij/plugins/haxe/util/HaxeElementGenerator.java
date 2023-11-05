@@ -70,6 +70,15 @@ public class HaxeElementGenerator {
     assert haxeClass != null;
     return haxeClass.getFieldSelf(null).iterator().next();
   }
+  public static HaxeTypeTag createTypeTag(Project myProject, String text) {
+    var statment = "var someVar:" +text;
+    final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(statment).getFirst());
+    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    assert haxeClass != null;
+    HaxeFieldDeclaration next = haxeClass.getFieldSelf(null).iterator().next();
+    return next.getTypeTag();
+  }
 
   // XXX: Eventually, this ordering should come from the class order in
   //      preferences... once we have one.

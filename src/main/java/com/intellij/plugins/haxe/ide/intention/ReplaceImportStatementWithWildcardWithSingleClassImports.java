@@ -74,7 +74,7 @@ public class ReplaceImportStatementWithWildcardWithSingleClassImports implements
       .map(element -> HaxeImportUtil.exposeReference(importStatement, element))
       .filter(Objects::nonNull)
       .distinct()
-      .collect(Collectors.toList());
+      .toList();
 
     newImports.forEach(elementToImport -> {
       if (elementToImport instanceof HaxeModelTarget) {
