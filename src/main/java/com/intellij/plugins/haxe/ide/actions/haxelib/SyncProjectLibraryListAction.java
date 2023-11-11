@@ -24,7 +24,6 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
 
   @Override
   public void update(@NotNull AnActionEvent event) {
-    super.update(event);
     Presentation p = event.getPresentation();
     p.setEnabled(isAvailable(event));
     p.setVisible(isVisible(event));
