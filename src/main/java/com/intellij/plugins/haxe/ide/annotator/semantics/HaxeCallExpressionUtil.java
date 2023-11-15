@@ -388,10 +388,12 @@ public class HaxeCallExpressionUtil {
           PsiElement first = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(children[0]);
           if (first != null) {
             PsiElement second = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(first);
-            TextRange range = TextRange.create(first.getTextOffset(), second.getTextOffset() + 1);
-            //holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create();
-            validation.errors.add(new ErrorRecord(range, message));
-            return validation;
+            if (second != null) {
+              TextRange range = TextRange.create(first.getTextOffset(), second.getTextOffset() + 1);
+              //holder.newAnnotation(HighlightSeverity.ERROR, message).range(range).create();
+              validation.errors.add(new ErrorRecord(range, message));
+              return validation;
+            }
           }
         }
       }
