@@ -206,6 +206,16 @@ Here's a snippet you can use: (Thanks to @isBatak)
   #end
   ```
 
+Auto Complete For Haxelibs
+--------------------------
+1. Navigate to File -> Project Structure -> Modules -> Dependencies
+2. Click the + to Add a new Library of type Haxe.
+3. Select the folder that contains the top level source packages
+4. If IDEA can't determine what kind of files the chosen item contains, choose Library Classes
+5. For configure choose Project Library.
+
+For example, to enable auto complete for OpenFl 9.3.2, the folder with the top level source packages is located at `HaxeInstallPath/haxe/lib/openfl/9,3,2/src` .
+
 Contribute
 ----------
 See the [contributing document](CONTRIBUTING.md).
