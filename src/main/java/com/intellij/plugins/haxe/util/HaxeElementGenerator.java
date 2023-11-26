@@ -19,7 +19,9 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -27,6 +29,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeExpressionCodeFragmentImpl;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
+import com.intellij.psi.PsiMember;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
@@ -170,6 +174,17 @@ public class HaxeElementGenerator {
     final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
+    reformat(haxeClass);
     return (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
   }
+
+  private static void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      final TextRange range = movedElement.getTextRange();
+      final PsiFile file = movedElement.getContainingFile();
+      final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+      CodeStyleManager.getInstance(movedElement.getProject()).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+    });
+  }
+
 }

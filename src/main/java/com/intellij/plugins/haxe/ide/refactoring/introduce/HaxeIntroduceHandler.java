@@ -194,7 +194,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
     return true;
   }
 
-  private void showCannotPerformError(Project project, Editor editor) {
+  protected void showCannotPerformError(Project project, Editor editor) {
     CommonRefactoringUtil.showErrorHint(
       project,
       editor,
@@ -592,7 +592,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
                                                @NotNull HaxeIntroduceOperation operation);
 
 
-  private static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
+  protected static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
     private final HaxeComponentName myTarget;
 
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,

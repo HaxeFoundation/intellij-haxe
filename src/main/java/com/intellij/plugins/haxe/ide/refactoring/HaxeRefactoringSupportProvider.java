@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.lang.refactoring.RefactoringSupportProvider;
 import com.intellij.plugins.haxe.ide.refactoring.extractInterface.ExtractInterfaceHandler;
+import com.intellij.plugins.haxe.ide.refactoring.extractMethod.HaxeExtractMethodHandler;
 import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperclassHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceVariableHandler;
 import com.intellij.plugins.haxe.ide.refactoring.introduceField.HaxeIntroduceConstantHandler;
@@ -64,7 +65,7 @@ public class HaxeRefactoringSupportProvider extends RefactoringSupportProvider {
   @Nullable
   @Override
   public RefactoringActionHandler getExtractMethodHandler() {
-    return super.getExtractMethodHandler();
+    return new HaxeExtractMethodHandler();
   }
 
   @Nullable

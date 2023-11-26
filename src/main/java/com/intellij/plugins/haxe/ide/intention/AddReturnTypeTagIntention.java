@@ -77,7 +77,7 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
    if (place instanceof HaxeMethod method) {
      myMethod = method;
-    }else {
+    }else if (place != null){
      myMethod = findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
     }
   }

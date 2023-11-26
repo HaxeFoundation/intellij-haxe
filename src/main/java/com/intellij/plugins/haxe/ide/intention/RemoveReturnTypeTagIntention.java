@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeBlockStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
@@ -50,7 +51,8 @@ public class RemoveReturnTypeTagIntention extends BaseIntentionAction {
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
 
     HaxeMethodDeclaration declaration = (HaxeMethodDeclaration)myMethod;
-    declaration.getTypeTag().delete();
+    HaxeTypeTag tag = declaration.getTypeTag();
+    if (tag != null) tag.delete();
   }
 
 
@@ -59,7 +61,7 @@ public class RemoveReturnTypeTagIntention extends BaseIntentionAction {
     if (place instanceof HaxeMethod method) {
       myMethod = method;
     }
-    else {
+    else if (place != null) {
       myMethod = findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
     }
   }

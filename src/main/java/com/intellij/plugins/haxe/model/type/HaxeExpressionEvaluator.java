@@ -60,6 +60,13 @@ public class HaxeExpressionEvaluator {
   static { log.setLevel(LogLevel.INFO); }
 
   @NotNull
+  static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeGenericResolver resolver) {
+    ProgressIndicatorProvider.checkCanceled();
+    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
+    context.result = handle(element, context, resolver);
+    return context;
+  }
+  @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context,
                                                         HaxeGenericResolver resolver) {
     ProgressIndicatorProvider.checkCanceled();
