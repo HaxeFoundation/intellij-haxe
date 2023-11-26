@@ -1,8 +1,9 @@
 # Changelog
 
 ## 1.4.19
-* Quickfixes for adding or removing type tags (return types & variable types)
+* Quickfixes for adding/removing type tags (return types & variable types)
 * Very basic Extract Method support
+* Minor tweaks forIntellij 2023.3 Support 
 
 ## 1.4.18
 * Support for Intellij 2023.3
