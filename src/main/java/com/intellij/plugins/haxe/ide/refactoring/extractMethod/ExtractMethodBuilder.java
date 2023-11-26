@@ -310,8 +310,6 @@ public class ExtractMethodBuilder {
       if (lastExpression.getNextSibling().textMatches(";")) lastExpression = lastExpression.getNextSibling();
       blockStatement.addAfter(returnStatement, lastExpression);
       blockStatement.addAfter(newLine, lastExpression);
-      //CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(blockStatement);
-      // TODO add return value
     }
     else if (!localUsedOutside.isEmpty()) {
       // can not return value and assign as the method already got return statments

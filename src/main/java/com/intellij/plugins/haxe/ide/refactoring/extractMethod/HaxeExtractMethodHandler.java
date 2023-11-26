@@ -189,14 +189,10 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
     if (element == null) return null;
     TextRange range = element.getTextRange();
     int startOffset = range.getStartOffset();
-    //int endOffset = range.getEndOffset();
     PsiElement outerMost = element;
     while (outerMost != null) {
       PsiElement parent = outerMost.getParent();
-      if (parent != null
-          && parent.getTextRange().getStartOffset() == startOffset
-          //&& parent.getTextRange().getEndOffset() == endOffset
-      ) {
+      if (parent != null && parent.getTextRange().getStartOffset() == startOffset) {
         outerMost = parent;
       }else {
         break;
