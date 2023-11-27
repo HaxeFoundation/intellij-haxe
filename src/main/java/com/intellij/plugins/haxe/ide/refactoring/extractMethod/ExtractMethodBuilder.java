@@ -233,7 +233,9 @@ public class ExtractMethodBuilder {
     HaxePsiCompositeElement fistElement = expressions.get(0);
     String suggestedName = getSuggestedNames(fistElement).get(0);
 
-    boolean firstStatementReturn = PsiTreeUtil.getParentOfType(fistElement, HaxeBinaryExpression.class) != null;
+    boolean firstStatementReturn =
+      PsiTreeUtil.getParentOfType(fistElement, HaxeBinaryExpression.class) != null
+      ||  PsiTreeUtil.getParentOfType(fistElement, HaxeVarInit.class) != null;
 
     String block = buildMethodContent(selectedText, firstStatementReturn);
     String method = buildMethod(suggestedName, block, parametersMap);

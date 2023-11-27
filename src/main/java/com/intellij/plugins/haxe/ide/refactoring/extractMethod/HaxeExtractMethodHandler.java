@@ -55,8 +55,18 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
 
     final SelectionModel selectionModel = editor.getSelectionModel();
 
-    final int selectionStart = selectionModel.getSelectionStart();
-    final int selectionEnd = selectionModel.getSelectionEnd();
+    //  check selection direction and invert if right to left.
+    int tmpSelectionStart = selectionModel.getSelectionStart();
+    int tmpSelectionEnd = selectionModel.getSelectionEnd();
+    if (tmpSelectionStart > tmpSelectionEnd) {
+      int realEnd  = tmpSelectionStart;
+      tmpSelectionStart = tmpSelectionEnd;
+      tmpSelectionEnd = realEnd;
+    }
+
+    final int selectionStart = tmpSelectionStart;
+    final int selectionEnd = tmpSelectionEnd;
+
 
     if (selectionModel.hasSelection()) {
       stopElement = file.findElementAt(selectionEnd);
@@ -74,7 +84,9 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
 
     int startOffset = startElement.getTextRange().getStartOffset();
     int endOffset = stopElement.getTextRange().getEndOffset();
-
+    if (!(startElement instanceof HaxePsiCompositeElement) ||  !(stopElement instanceof HaxePsiCompositeElement)) {
+      throw  new UnableToExtractMethodException();
+    }
     List<HaxePsiCompositeElement> expressions = collectExpressions((HaxePsiCompositeElement)startElement, (HaxePsiCompositeElement)stopElement);
 
     ExtractMethodBuilder methodBuilder = new ExtractMethodBuilder()
@@ -92,17 +104,19 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
       PsiElement replacementExpression = methodBuilder.buildReplacementExpressionAndUpdateMethod(project, methodDeclaration);
 
       Document document = editor.getDocument();
-      HaxeMethodDeclaration parentMethod = PsiTreeUtil.getParentOfType(startElement, HaxeMethodDeclaration.class);
-      if (parentMethod != null) {
+      HaxePsiCompositeElement parentMethod = PsiTreeUtil.getParentOfType(startElement, HaxeMethodDeclaration.class);
+      HaxePsiCompositeElement parentField = PsiTreeUtil.getParentOfType(startElement, HaxeFieldDeclaration.class);
+      HaxePsiCompositeElement parentMember = parentMethod != null ? parentMethod : parentField;
+      if (parentMember != null) {
 
-        WriteCommandAction.writeCommandAction(project, parentMethod.getContainingFile())
+        WriteCommandAction.writeCommandAction(project, parentMember.getContainingFile())
           .withGroupId("Extract method")
           .compute(() ->
                    {
 
-                     parentMethod.getParent().addAfter(methodDeclaration, parentMethod);
+                     parentMember.getParent().addAfter(methodDeclaration, parentMember);
 
-                     CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(parentMethod);
+                     CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(parentMember);
 
                      PsiDocumentManager instance = PsiDocumentManager.getInstance(project);
                      instance.doPostponedOperationsAndUnblockDocument(document);

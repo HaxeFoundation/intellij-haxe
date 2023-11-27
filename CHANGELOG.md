@@ -1,6 +1,8 @@
 # Changelog
 
 ## 1.4.20
+* Added: Allow Extract method from fields
+* Bugfix: Extract method did not return value when used in var/field init expressions
 * Bugfix: Extract method did not include parameters from parent method
 * Bugfix: Extract method parameter list was not formatted correctly
 * Bugfix: Extract method was not correctly handling trailing semicolon
