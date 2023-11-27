@@ -19,6 +19,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ExtractMethodBuilder {
 
@@ -28,7 +29,7 @@ public class ExtractMethodBuilder {
   private  String  selectedText;
   private  List<HaxePsiCompositeElement> expressions;
   private  List<HaxeAssignExpression> assignExpressions;
-  private  List<HaxeReferenceExpression> assignExpressionsOutsideSelection;
+  private  List<HaxeReferenceExpression> assignExpressionsToReferencesOutsideSelection;
   private List<HaxeReferenceExpression> referencesUsed;
   private List<HaxeReferenceExpression> referencesToParameters;
   private List<HaxeLocalVarDeclaration> localVariables;
@@ -57,7 +58,7 @@ public class ExtractMethodBuilder {
   public void validateAndProcessExpressions() {
 
     assignExpressions = findAssignExpressions();
-    assignExpressionsOutsideSelection = findAssignsOutsideSelection(assignExpressions);
+    assignExpressionsToReferencesOutsideSelection = findAssignsToReferencesOutsideSelection(assignExpressions);
 
     referencesUsed = findReferencesUsed(expressions, assignExpressions);
     referencesToParameters = findOutsideReferencesForParameterList(referencesUsed);
@@ -92,7 +93,7 @@ public class ExtractMethodBuilder {
   }
 
   private boolean requireMoreThanOneReturnValue() {
-    return assignExpressionsOutsideSelection.size() + localUsedOutside.size() > 1;
+    return assignExpressionsToReferencesOutsideSelection.size() + localUsedOutside.size() > 1;
   }
 
   private boolean moreThanOneLocalVariableUsedOutsideSelection() {
@@ -100,7 +101,7 @@ public class ExtractMethodBuilder {
   }
 
   private boolean moreThanOneLocalVarReferencedOutsideSelection() {
-    return assignExpressionsOutsideSelection.size() > 1;
+    return assignExpressionsToReferencesOutsideSelection.size() > 1;
   }
 
   private List<HaxeAssignExpression> findAssignExpressions() {
@@ -112,7 +113,7 @@ public class ExtractMethodBuilder {
     return assignExpressions;
   }
 
-  private List<HaxeReferenceExpression> findAssignsOutsideSelection(List<HaxeAssignExpression> assignExpressions) {
+  private List<HaxeReferenceExpression> findAssignsToReferencesOutsideSelection(List<HaxeAssignExpression> assignExpressions) {
     List<HaxeReferenceExpression> outside = new ArrayList<>();
     for (HaxeAssignExpression expression : assignExpressions) {
       HaxeExpression leftExpression = expression.getLeftExpression();
@@ -155,6 +156,8 @@ public class ExtractMethodBuilder {
         if (!resolve.getTextRange().intersects(startOffset, endOffset)) {
           outside.add(referenceExpression);
         }
+      }else if (resolve instanceof HaxeParameter) {
+        outside.add(referenceExpression);
       }
     }
     return outside;
@@ -239,35 +242,65 @@ public class ExtractMethodBuilder {
   }
 
   private String buildMethod(String suggestedName, String block, Map<String, String> parameters) {
-    StringBuilder builder = new StringBuilder();
-    builder.append("\nfunction "+suggestedName+" (");
-    parameters.forEach((paramName, paramType) -> {
-      builder.append(paramName);
+    String parameterList = createParameterListText(parameters);
+    return new StringBuilder()
+      .append("\n")
+      .append("function " + suggestedName + " (")
+      .append(parameterList)
+      .append(")")
+      .append(block)
+      .append("\n\n")
+      .toString();
+  }
+
+  private static String createParameterListText(Map<String, String> parameters) {
+    return parameters.entrySet().stream().map(entry -> {
+      String paramName = entry.getKey();
+      String paramType = entry.getValue();
       if (paramType != null && !paramType.isBlank()) {
-        builder.append(":").append(paramType);
+        return paramName + ":" + paramType;
       }
-    });
-    builder.append(")");
-    builder.append(block);
-    builder.append("\n\n");
-    return builder.toString();
+      else {
+        return paramName;
+      }
+    }).collect(Collectors.joining(", "));
   }
 
   private String buildMethodContent(String selectedText, boolean firstStatementReturn) {
-    if (firstStatementReturn) {
-      if (selectedText.trim().endsWith(";")) {
-        return "{\n return " + selectedText + "\n}\n";
-      }else {
-        return "{\n return " + selectedText + ";\n}\n";
-      }
-    }else {
-      return "{\n" + selectedText + "\n}\n";
+    boolean hasAssign = this.assignExpressionsToReferencesOutsideSelection.isEmpty();
+    if (!hasAssign) {
+      // if we need to return a value to a field outside selection
+      // - create var to contain value at beginning
+      // - create return with said var
+      HaxeReferenceExpression referenceExpression = assignExpressionsToReferencesOutsideSelection.get(0);
+      String fieldName = referenceExpression.getText();
+      return new StringBuilder()
+        .append("{\n ")
+        .append("var " + fieldName + ";").append("\n")
+        .append(selectedText).append("\n")
+        .append("return ").append(fieldName).append(";").append("\n")
+        .append("}\n")
+        .toString();
+    } else {
+      // if first statement should return then prefix with return
+      String optionalReturn = firstStatementReturn ? "return " : "";
+      // if we extract part of an expression we may or may not have a semicolon at the end
+      // we check our selection and add it if needed
+      String optionalSemi = selectedText.trim().endsWith(";") ? "" : ";";
+      return new StringBuilder()
+        .append("{\n ")
+        .append(optionalReturn)
+        .append(selectedText)
+        .append(optionalSemi)
+        .append("\n")
+        .append("}\n")
+        .toString();
     }
   }
 
-  private Map<String, String> buildParameterList(List<HaxeReferenceExpression> RefrencesForparameters) {
+  private Map<String, String> buildParameterList(List<HaxeReferenceExpression> referencesForParameters) {
     Map<String, String> parameterNameTypeMap = new HashMap<>();
-    for (HaxeReferenceExpression ref : RefrencesForparameters) {
+    for (HaxeReferenceExpression ref : referencesForParameters) {
       ResultHolder type = HaxeExpressionEvaluator.evaluate(ref, null).result;
       if (type.isUnknown()) {
         parameterNameTypeMap.put(ref.getReferenceName(), null);
@@ -283,16 +316,15 @@ public class ExtractMethodBuilder {
 
 
 
-  public PsiElement buildReplacementExpression(@Nullable Project project, HaxeMethodDeclaration methodDeclaration) {
+  public PsiElement buildReplacementExpressionAndUpdateMethod(@Nullable Project project, HaxeMethodDeclaration methodDeclaration) {
 
     boolean containsReturnStatements = PsiTreeUtil.getChildOfType(methodDeclaration, HaxeReturnStatement.class) != null;
-
     String methodName = methodDeclaration.getComponentName().getText();
     String methodCall = methodName + "(" + String.join(", ", parametersMap.keySet()) + ")";
 
-    if (!assignExpressionsOutsideSelection.isEmpty()) {
+    if (!assignExpressionsToReferencesOutsideSelection.isEmpty()) {
       // TODO find type of assign // TODO this is wrong  check local vars used outside for return/assign
-      methodCall = assignExpressionsOutsideSelection.get(0).getText() + " = " + methodCall;
+      methodCall = assignExpressionsToReferencesOutsideSelection.get(0).getText() + " = " + methodCall;
     }
     else if (!localUsedOutside.isEmpty() && !containsReturnStatements) {
       Set<PsiReference> references = localUsedOutside.keySet();

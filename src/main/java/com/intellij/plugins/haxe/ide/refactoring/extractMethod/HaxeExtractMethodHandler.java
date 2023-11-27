@@ -59,8 +59,8 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
     final int selectionEnd = selectionModel.getSelectionEnd();
 
     if (selectionModel.hasSelection()) {
-      startElement = getOuterMostParentWithSameTextRangeStart(file.findElementAt(selectionStart));
       stopElement = file.findElementAt(selectionEnd);
+      startElement = getOuterMostParentWithSameTextRangeStart(file.findElementAt(selectionStart), stopElement.getTextRange().getEndOffset());
     }
 
     startElement = findStartElement(startElement);
@@ -86,10 +86,10 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
     try {
       methodBuilder.validateAndProcessExpressions();
 
+      boolean partOfExpression = stopElement.getParent().getParent() instanceof  HaxeExpression;
 
       HaxeMethodDeclaration methodDeclaration = methodBuilder.buildExtractedMethod(project);
-      PsiElement replacementExpression = methodBuilder.buildReplacementExpression(project, methodDeclaration);
-
+      PsiElement replacementExpression = methodBuilder.buildReplacementExpressionAndUpdateMethod(project, methodDeclaration);
 
       Document document = editor.getDocument();
       HaxeMethodDeclaration parentMethod = PsiTreeUtil.getParentOfType(startElement, HaxeMethodDeclaration.class);
@@ -109,12 +109,15 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
                      instance.commitDocument(document);
 
                      int number = document.getLineNumber(selectionEnd);
-                     String documentText = document.getText(new TextRange(selectionEnd, document.getLineEndOffset(number)));
+                     String restOfLine = document.getText(new TextRange(selectionEnd, document.getLineEndOffset(number)));
 
-                     if (documentText.trim().startsWith(";")) {
-                       document.replaceString(selectionStart, selectionEnd, replacementExpression.getText());
+                     String replacementText = replacementExpression.getText();
+                     boolean selectionEndsWithSemi = selectionModel.getSelectedText().endsWith(";");
+                     boolean selectionIsFollowedBySemi = restOfLine.trim().startsWith(";");
+                     if (!selectionEndsWithSemi || selectionIsFollowedBySemi  || partOfExpression) {
+                       document.replaceString(selectionStart, selectionEnd, replacementText);
                      } else {
-                       document.replaceString(selectionStart, selectionEnd, replacementExpression.getText() + ";");
+                       document.replaceString(selectionStart, selectionEnd, replacementText + ";");
                      }
 
 
@@ -185,14 +188,16 @@ public class HaxeExtractMethodHandler extends HaxeIntroduceHandler {
     return startElement;
   }
 
-  private PsiElement getOuterMostParentWithSameTextRangeStart(PsiElement element) {
+  private PsiElement getOuterMostParentWithSameTextRangeStart(PsiElement element, int maxOffset) {
     if (element == null) return null;
     TextRange range = element.getTextRange();
     int startOffset = range.getStartOffset();
     PsiElement outerMost = element;
     while (outerMost != null) {
       PsiElement parent = outerMost.getParent();
-      if (parent != null && parent.getTextRange().getStartOffset() == startOffset) {
+      if (parent != null
+          && parent.getTextRange().getStartOffset() == startOffset
+          && parent.getTextRange().getEndOffset() <= maxOffset) {
         outerMost = parent;
       }else {
         break;
