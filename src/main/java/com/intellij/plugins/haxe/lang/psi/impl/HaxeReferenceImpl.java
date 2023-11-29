@@ -399,7 +399,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
     if (isType(HaxeSuperExpression.class)) {
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
-      assert haxeClass != null;
+       if (haxeClass == null) return HaxeResolveResult.createEmpty();
       List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
       if (extendsList.isEmpty()) {
         return HaxeResolveResult.createEmpty();
