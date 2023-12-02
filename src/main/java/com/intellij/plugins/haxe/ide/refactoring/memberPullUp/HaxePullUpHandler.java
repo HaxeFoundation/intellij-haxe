@@ -137,7 +137,7 @@ public class HaxePullUpHandler implements RefactoringActionHandler, HaxePullUpDi
     List<HaxeType> implementsList = aClass.getHaxeImplementsList();
     if (extendsList.isEmpty() && implementsList.isEmpty()) {
       final AbstractHaxePsiClass containingClass = aClass;
-      if (containingClass != null) {
+      if (containingClass != null && containingClass != aClass) {
         invoke(project, dataContext, containingClass, aClass);
         return;
       }

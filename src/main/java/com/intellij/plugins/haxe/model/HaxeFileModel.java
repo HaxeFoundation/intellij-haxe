@@ -130,7 +130,7 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   private static CachedValueProvider.Result<PsiElement[]> _getChildren(HaxeFile file) {
     PsiElement[] children = file.getChildren();
-    return new CachedValueProvider.Result<>(children, children);
+    return new CachedValueProvider.Result<>(children, (Object[])children);
   }
 
   @NotNull
