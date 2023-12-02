@@ -48,6 +48,7 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
     attemptToFindMethod(editor, file);
 
     boolean isMissingTypeTag = myMethod != null
+                               && myMethod.getModel() != null
                                && !myMethod.isConstructor()
                                && myMethod instanceof HaxeMethodDeclaration declaration
                                && declaration.getTypeTag() == null;
