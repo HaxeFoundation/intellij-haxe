@@ -34,6 +34,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -150,6 +151,11 @@ public class HaxeElementGenerator {
   public static HaxePackageStatement createPackageStatementFromPath(Project myProject, String path) {
     final HaxeFile dummyFile = createDummyFile(myProject, "package " + path + ";");
     return PsiTreeUtil.getChildOfType(dummyFile, HaxePackageStatement.class);
+  }
+  @NotNull
+  public static PsiElement createSemi(Project myProject) {
+    final HaxeFile dummyFile =  createDummyFile(myProject, "package;");
+    return dummyFile.getLastChild().getLastChild();
   }
 
   public static HaxeFile createDummyFile(Project myProject, String text) {

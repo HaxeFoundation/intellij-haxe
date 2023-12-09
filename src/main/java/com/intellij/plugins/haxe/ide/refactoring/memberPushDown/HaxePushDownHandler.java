@@ -21,14 +21,16 @@ import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpDialog;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
+import com.intellij.refactoring.RefactoringActionHandler;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.classMembers.MemberInfoBase;
-import com.intellij.refactoring.memberPushDown.JavaPushDownHandler;
+import com.intellij.refactoring.lang.ElementsHandler;
 import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.refactoring.util.classMembers.MemberInfoStorage;
@@ -39,7 +41,19 @@ import java.util.List;
 /**
  * Created by Boch on 14.03.2015.
  */
-public class HaxePushDownHandler extends JavaPushDownHandler {
+public class HaxePushDownHandler implements RefactoringActionHandler, HaxePushDownDialog.Callback, ElementsHandler {
+
+  public static final String REFACTORING_NAME = RefactoringBundle.message("push.members.down.title");
+
+  @Override
+  public boolean isEnabledOnElements(PsiElement[] elements) {
+    return elements.length == 1 && elements[0] instanceof PsiClass;
+  }
+
+  public boolean checkConflicts(final HaxePullUpDialog dialog) {
+    return false; // TODO  PushDownConflicts
+  }
+
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext context) {
     int offset = editor.getCaretModel().getOffset();
@@ -49,7 +63,7 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
       if (element == null || element instanceof PsiFile) {
         String message = RefactoringBundle.getCannotRefactorMessage(
           RefactoringBundle.message("the.caret.should.be.positioned.inside.a.class.to.push.members.from"));
-        CommonRefactoringUtil.showErrorHint(project, editor, message, getRefactoringName(), HelpID.MEMBERS_PUSH_DOWN);
+        CommonRefactoringUtil.showErrorHint(project, editor, message, REFACTORING_NAME, HelpID.MEMBERS_PUSH_DOWN);
         return;
       }
 
@@ -103,4 +117,6 @@ public class HaxePushDownHandler extends JavaPushDownHandler {
       aClass);
     dialog.show();
   }
+
+
 }

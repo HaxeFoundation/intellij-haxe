@@ -31,14 +31,17 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParenthesizedExpressionReferenceImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -1288,24 +1291,43 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {
-    PsiElement candidate =  UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element, true);;
-    // we search backwards for comments, and skipping metas etc
-    while (candidate != null) {
-      // if we find other named components while searching we abort as whatever
-      // doc we might find would belong to that named component and not ours.
-      if (candidate instanceof  HaxeNamedComponent) {
-        return null;
+    if (element instanceof PsiMember member) {
+      PsiElement sibling = member.getPrevSibling();
+      // workaround for members in module
+      // TODO mlo:  maybe look into how tokens are organised when parsed so that meta and comments are inside the module
+      if (sibling == null && member.getParent() instanceof HaxeModule){
+        sibling  = member.getParent();
       }
-      if (candidate instanceof  PsiComment psiComment) {
-        IElementType type = psiComment.getTokenType();
-        if (type == DOC_COMMENT) {
-          return psiComment;
+      // make sure we dont back trace to docs from a different member
+      while (sibling != null && !(sibling instanceof PsiMember)) {
+        if (sibling instanceof PsiComment comment && comment.getTokenType() == HaxeTokenTypeSets.DOC_COMMENT) {
+          return comment;
         }
+        sibling = sibling.getPrevSibling();
       }
-      candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(candidate, true);
     }
     return null;
   }
+  //@Nullable
+  //public static PsiComment findDocumentationOld(HaxeNamedComponent element) {
+  //  PsiElement candidate =  UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(element, true);
+  //  // we search backwards for comments, and skipping metas etc
+  //  while (candidate != null) {
+  //    // if we find other named components while searching we abort as whatever
+  //    // doc we might find would belong to that named component and not ours.
+  //    if (candidate instanceof  HaxeNamedComponent) {
+  //      return null;
+  //    }
+  //    if (candidate instanceof  PsiComment psiComment) {
+  //      IElementType type = psiComment.getTokenType();
+  //      if (type == DOC_COMMENT) {
+  //        return psiComment;
+  //      }
+  //    }
+  //    candidate = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(candidate, true);
+  //  }
+  //  return null;
+  //}
 
   public static Set<IElementType> getDeclarationTypes(@Nullable HaxePsiModifier[] attributeList) {
     return attributeList == null ? Collections.<IElementType>emptySet() : getDeclarationTypes(Arrays.asList(attributeList));

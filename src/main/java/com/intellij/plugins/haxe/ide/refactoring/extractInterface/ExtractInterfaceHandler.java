@@ -24,9 +24,15 @@ import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ScrollType;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
+import com.intellij.plugins.haxe.ide.refactoring.HaxeRefactoringUtil;
 import com.intellij.plugins.haxe.ide.refactoring.extractSuperclass.ExtractSuperClassUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.psi.*;
 import com.intellij.refactoring.HelpID;
 import com.intellij.refactoring.RefactoringActionHandler;
@@ -44,6 +50,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
+import static com.intellij.plugins.haxe.util.HaxeElementGenerator.*;
+
 @CustomLog
 public class ExtractInterfaceHandler implements RefactoringActionHandler, ElementsHandler {
 
@@ -56,6 +64,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
   private String myInterfaceName;
   private MemberInfo[] mySelectedMembers;
   private PsiDirectory myTargetDir;
+  private String packageName;
   private DocCommentPolicy myJavaDocPolicy;
 
   public void invoke(@NotNull Project project, Editor editor, PsiFile file, DataContext dataContext) {
@@ -99,6 +108,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
             myInterfaceName = dialog.getExtractedSuperName();
             mySelectedMembers = ArrayUtil.toObjectArray(dialog.getSelectedMemberInfos(), MemberInfo.class);
             myTargetDir = dialog.getTargetDirectory();
+            packageName = dialog.getTargetPackage();
             myJavaDocPolicy = new DocCommentPolicy(dialog.getDocCommentPolicy());
             try {
               doRefactoring();
@@ -117,7 +127,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
     LocalHistoryAction a = LocalHistory.getInstance().startAction(getCommandName());
     final PsiClass anInterface;
     try {
-      anInterface = extractInterface(myTargetDir, myClass, myInterfaceName, mySelectedMembers, myJavaDocPolicy);
+      anInterface = extractInterface(myTargetDir, myClass, myInterfaceName, packageName, mySelectedMembers, myJavaDocPolicy);
     }
     finally {
       a.finish();
@@ -139,23 +149,75 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
   static PsiClass extractInterface(PsiDirectory targetDir,
                                    PsiClass aClass,
                                    String interfaceName,
+                                   String packageName,
                                    MemberInfo[] selectedMembers,
                                    DocCommentPolicy javaDocPolicy) throws IncorrectOperationException {
     aClass.getProject().getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
       .refactoringStarted(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createBeforeData(aClass, selectedMembers));
-    final PsiClass anInterface = JavaDirectoryService.getInstance().createInterface(targetDir, interfaceName);
+    //final PsiClass anInterface = JavaDirectoryService.getInstance().createInterface(targetDir, interfaceName);
+    HaxeClass haxeInterface = null;
     try {
-      PsiJavaCodeReferenceElement ref = ExtractSuperClassUtil.createExtendingReference(anInterface, aClass, selectedMembers);
-      final PsiReferenceList referenceList = aClass.isInterface() ? aClass.getExtendsList() : aClass.getImplementsList();
-      assert referenceList != null;
-      referenceList.add(ref);
-      PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, anInterface, selectedMembers, javaDocPolicy);
-      pullUpHelper.moveMembersToBase();
-      return anInterface;
+      HaxeFile newFile =
+        (HaxeFile)HaxeFileTemplateUtil.createClass(interfaceName, packageName, targetDir, "HaxeInterface", ExtractInterfaceHandler.class.getClassLoader());
+      HaxeClassModel model = newFile.getModel().getClassModel(interfaceName);
+      haxeInterface = model.getPsi();
+
+      if (aClass instanceof HaxeClass haxeClass) {
+        final PsiReferenceList referenceList = haxeClass.isInterface() ? haxeClass.getExtendsList() : haxeClass.getImplementsList();
+        // if the  class / interface does not have extends/ implements lists we need to create these now.
+        if (referenceList == null) {
+          if (haxeClass.isInterface()) {
+            haxeClass.getModel().addExtends(interfaceName);
+          }else {
+            haxeClass.getModel().addImplements(interfaceName);
+          }
+          if (!packageName.trim().isEmpty() && !packageName.equalsIgnoreCase(StringUtil.getPackageName(haxeClass.getQualifiedName()))) {
+            HaxeFile containingFile = (HaxeFile)haxeClass.getContainingFile();
+            containingFile.getModel().addImport(haxeInterface.getQualifiedName());
+          }
+        }else {
+          referenceList.add(haxeInterface);
+        }
+        boolean move = aClass.isInterface();
+        if (move) {
+          PullUpProcessor pullUpHelper = new PullUpProcessor(aClass, haxeInterface, selectedMembers, javaDocPolicy);
+          pullUpHelper.moveMembersToBase();
+        }else {
+          copySignatures(haxeInterface, selectedMembers);
+
+        }
+        HaxeRefactoringUtil.reformat(haxeInterface);
+        return haxeInterface;
+      }
     }
-    finally {
-      aClass.getProject().getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
-        .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createAfterData(anInterface));
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    finally{
+        aClass.getProject().getMessageBus().syncPublisher(RefactoringEventListener.REFACTORING_EVENT_TOPIC)
+          .refactoringDone(ExtractSuperClassUtil.REFACTORING_EXTRACT_SUPER_ID, ExtractSuperClassUtil.createAfterData(haxeInterface));
+      }
+    return null;
+  }
+
+  private static void copySignatures(HaxeClass anInterface, MemberInfo[] members) {
+    HaxeDocumentModel document = anInterface.getModel().getDocument();
+    PsiElement rBrace = anInterface.getRBrace();
+    PsiElement braceParent = rBrace.getParent();
+
+    for (MemberInfo member : members) {
+      PsiMember psiMember = member.getMember();
+      if (psiMember instanceof HaxeFieldDeclaration fieldDeclaration) {
+        anInterface.add(fieldDeclaration);
+      }
+      if (psiMember instanceof HaxeMethodDeclaration methodDeclaration) {
+        HaxeMethodDeclaration workCopy = (HaxeMethodDeclaration)methodDeclaration.copy();
+        if(workCopy.getBody() != null)workCopy.getBody().delete();
+        workCopy.getMethodModifierList().forEach(PsiElement::delete);
+        PsiElement semi = createSemi(document.getFile().getProject());
+        workCopy.add(semi);
+        braceParent.addBefore(workCopy.copy(), rBrace);
+      }
     }
   }
 

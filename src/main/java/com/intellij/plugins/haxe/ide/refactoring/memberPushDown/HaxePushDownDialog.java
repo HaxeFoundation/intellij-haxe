@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.ide.refactoring.memberPushDown;
 
 import com.intellij.openapi.help.HelpManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.HaxePullUpDialog;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMember;
 import com.intellij.refactoring.HelpID;
@@ -44,6 +45,10 @@ public class HaxePushDownDialog extends RefactoringDialog {
   private DocCommentPanel myJavaDocPanel;
   private MemberInfoModel<PsiMember, MemberInfo> myMemberInfoModel;
 
+  public interface Callback {
+    boolean checkConflicts(HaxePullUpDialog dialog);
+  }
+
   public HaxePushDownDialog(Project project, MemberInfo[] memberInfos, PsiClass aClass) {
     super(project, true);
     myMemberInfos = Arrays.asList(memberInfos);
@@ -55,7 +60,8 @@ public class HaxePushDownDialog extends RefactoringDialog {
   }
 
   public int getJavaDocPolicy() {
-    return myJavaDocPanel.getPolicy();
+    return DocCommentPolicy.COPY;
+    //return myJavaDocPanel.getPolicy();
   }
 
   public MemberInfo[] getSelectedMemberInfos() {
@@ -107,9 +113,9 @@ public class HaxePushDownDialog extends RefactoringDialog {
     memberSelectionPanel.getTable().addMemberInfoChangeListener(myMemberInfoModel);
 
 
-    myJavaDocPanel = new DocCommentPanel(RefactoringBundle.message("push.down.javadoc.panel.title"));
-    myJavaDocPanel.setPolicy(JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC);
-    panel.add(myJavaDocPanel, BorderLayout.EAST);
+    //myJavaDocPanel = new DocCommentPanel(RefactoringBundle.message("push.down.javadoc.panel.title"));
+    //myJavaDocPanel.setPolicy(JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC);
+    //panel.add(myJavaDocPanel, BorderLayout.EAST);
     return panel;
   }
 

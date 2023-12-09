@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.21
+* Improvement: Attempt at restoring `Member pull up` refactoring
+* Improvement: Attempt at restoring `Member push down` refactoring
+* Improvement: Attempt at restoring `extract to interface` refactoring
+
 ## 1.4.20
 * Added: Allow Extract method from fields
 * Bugfix: Extract method did not return value when used in var/field init expressions

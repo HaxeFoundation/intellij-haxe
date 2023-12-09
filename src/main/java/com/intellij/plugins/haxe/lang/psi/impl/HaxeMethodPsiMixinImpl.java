@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiImplUtil;
@@ -170,10 +171,8 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    // TODO: Fix 'public PsiDocComment getDocComment()'
-    //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
-    //return ((psiComment != null)? new HaxePsiDocComment(this, psiComment) : null);
-    return null;
+    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
+    return (psiComment != null) ? new HaxePsiDocComment(this, psiComment) : null;
   }
 
   @Override

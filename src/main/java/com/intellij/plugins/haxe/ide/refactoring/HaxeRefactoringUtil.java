@@ -19,14 +19,18 @@
 package com.intellij.plugins.haxe.ide.refactoring;
 
 import com.intellij.codeInsight.PsiEquivalenceUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.ComponentNameScopeProcessor;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMember;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -79,6 +83,17 @@ public class HaxeRefactoringUtil {
     }
     return PsiTreeUtil.getParentOfType(parent, HaxeExpression.class);
   }
+
+  public static void reformat(final PsiMember movedElement) {
+    ApplicationManager.getApplication().runWriteAction(() -> {
+      Project project = movedElement.getProject();
+      final TextRange range = movedElement.getTextRange();
+      final PsiFile file = movedElement.getContainingFile();
+      final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+      CodeStyleManager.getInstance(project).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
+    });
+  }
+
 
   @NotNull
   public static List<PsiElement> getOccurrences(@NotNull final PsiElement pattern, @Nullable final PsiElement context) {

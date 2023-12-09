@@ -97,8 +97,8 @@ class ExtractSuperclassDialog extends JavaExtractSuperBaseDialog {
     memberInfoModel.memberInfoChanged(new MemberInfoChange<PsiMember, MemberInfo>(myMemberInfos));
     memberSelectionPanel.getTable().setMemberInfoModel(memberInfoModel);
     memberSelectionPanel.getTable().addMemberInfoChangeListener(memberInfoModel);
-
-    panel.add(myDocCommentPanel, BorderLayout.EAST);
+    //TODO support Docs rules when we have better handling for doc psi
+    //panel.add(myDocCommentPanel, BorderLayout.EAST);
 
     return panel;
   }

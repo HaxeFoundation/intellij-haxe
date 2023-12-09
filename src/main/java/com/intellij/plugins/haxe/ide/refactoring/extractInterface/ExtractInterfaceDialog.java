@@ -19,11 +19,13 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.ui.ComponentWithBrowseButton;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.refactoring.*;
 import com.intellij.refactoring.classMembers.DelegatingMemberInfoModel;
@@ -31,9 +33,11 @@ import com.intellij.refactoring.classMembers.MemberInfoBase;
 import com.intellij.refactoring.extractSuperclass.ExtractSuperBaseProcessor;
 import com.intellij.refactoring.extractSuperclass.JavaExtractSuperBaseDialog;
 import com.intellij.refactoring.ui.MemberSelectionPanel;
+import com.intellij.refactoring.ui.PackageNameReferenceEditorCombo;
 import com.intellij.refactoring.util.DocCommentPolicy;
 import com.intellij.refactoring.util.RefactoringMessageUtil;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
+import com.intellij.ui.EditorComboBox;
 import com.intellij.util.ArrayUtil;
 
 import javax.swing.*;
@@ -48,6 +52,22 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
       memberInfo.setToAbstract(true);
     }
     init();
+  }
+
+  @Override
+  protected ComponentWithBrowseButton<EditorComboBox> createPackageNameField() {
+    String packageName = HaxeResolveUtil.getPackageName(mySourceClass.getContainingFile());
+    PsiPackage aPackage = JavaPsiFacade.getInstance(myProject).findPackage(packageName);
+   return new PackageNameReferenceEditorCombo(aPackage.getQualifiedName(), myProject, "ExtractSuperBase.RECENT_KEYS",
+                                        RefactoringBundle.message("choose.destination.package"));
+
+  }
+
+  @Override
+  protected JTextField createExtractedSuperNameField() {
+    JTextField field = super.createExtractedSuperNameField();
+    field.setText(mySourceClass.getName()+"Interface");
+    return field;
   }
 
   private static List<MemberInfo> collectMembers(PsiClass c) {
@@ -153,7 +173,7 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
       });
     panel.add(memberSelectionPanel, BorderLayout.CENTER);
 
-    panel.add(myDocCommentPanel, BorderLayout.EAST);
+    //panel.add(myDocCommentPanel, BorderLayout.EAST);
 
     return panel;
   }
@@ -180,9 +200,13 @@ class ExtractInterfaceDialog extends JavaExtractSuperBaseDialog {
 
   @Override
   protected ExtractSuperBaseProcessor createProcessor() {
-    return new ExtractInterfaceProcessor(myProject, false, getTargetDirectory(), getExtractedSuperName(),
-                                         mySourceClass, ArrayUtil.toObjectArray(getSelectedMemberInfos(), MemberInfo.class),
+    return new ExtractInterfaceProcessor(myProject, false, getTargetDirectory(), getExtractedSuperName(), getTargetPackage(),
+                                         mySourceClass,  ArrayUtil.toObjectArray(getSelectedMemberInfos(), MemberInfo.class),
                                          new DocCommentPolicy(getDocCommentPolicy()));
+  }
+
+  public String getTargetPackage() {
+    return getTargetPackageName();
   }
 
   @Override

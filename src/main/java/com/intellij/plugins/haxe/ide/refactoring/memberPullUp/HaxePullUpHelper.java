@@ -26,12 +26,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.impl.source.JavaDummyHolder;
-import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.searches.OverridingMethodsSearch;
 import com.intellij.psi.search.searches.ReferencesSearch;
@@ -54,7 +51,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
+import static com.intellij.plugins.haxe.ide.refactoring.MoveUpDownUtil.collectRelatedDocsAndMetadata;
+import static com.intellij.plugins.haxe.ide.refactoring.MoveUpDownUtil.addMetadataAndDocs;
 
 /**
  * Created by Max Medvedev on 10/3/13
@@ -210,7 +208,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
     final PsiMember movedElement = (PsiMember)myTargetSuperClass.getBody()
       .addBefore(convertFieldToLanguage(field, myTargetSuperClass.getLanguage()), myTargetSuperClass.getRBrace());
     myMembersAfterMove.add(movedElement);
-    moveMetadataAndDocs(relatedPsiElements, movedElement);
+    addMetadataAndDocs(relatedPsiElements, movedElement, true);
     field.delete();
   }
 
@@ -230,6 +228,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         }
       }
     }
+    // TODO DocPolicy
     List<PsiElement> relatedPsiElements = collectRelatedDocsAndMetadata(method);
     PsiMethod methodCopy = (PsiMethod)method.copy();
     Language language = myTargetSuperClass.getLanguage();
@@ -283,7 +282,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
         deleteOverrideAnnotationIfFound(method);
       }
       myMembersAfterMove.add(movedElement);
-      moveMetadataAndDocs(relatedPsiElements, movedElement);
+      addMetadataAndDocs(relatedPsiElements, movedElement, true);
       //if (isOriginalMethodAbstract) {
       method.delete();
       //}
@@ -305,58 +304,13 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
           anchor != null ? (PsiMember)superClassBody.addAfter(convertMethodToLanguage(methodCopy, language), anchor)
                          : (PsiMember)superClassBody.addBefore(convertMethodToLanguage(methodCopy, language), rightBrace);
         reformat(movedElement);
-        moveMetadataAndDocs(relatedPsiElements, movedElement);
+        addMetadataAndDocs(relatedPsiElements, movedElement, true);
         myMembersAfterMove.add(movedElement);
       }
       method.delete();
     }
   }
 
-  private void moveMetadataAndDocs(List<PsiElement> list, PsiMember element) {
-    Collections.reverse(list);
-    // insert after new member
-    for (PsiElement psiElement : list) {
-      element.getParent().addBefore(psiElement.copy(), element);
-    }
-    // remove from old member
-    for (PsiElement psiElement : list) {
-      if (psiElement.getParent() != null
-          && !(psiElement.getParent()  instanceof JavaDummyHolder)) {
-        psiElement.delete();
-      }
-    }
-  }
-
-  private List<PsiElement> collectRelatedDocsAndMetadata(PsiMember member) {
-    List<PsiElement> psiElements = new ArrayList<>();
-    List<PsiElement> tempList = new ArrayList<>();
-    PsiElement sibling = member.getPrevSibling();
-    // we want to copy all relevant metadata, comments and docs when moving a member
-    // but we dont want to copy comments that might not belong so we only collect
-    // elements until we dont get any  more relevant elements or we reach a different member.
-    while (sibling != null && !(sibling instanceof PsiMember)) {
-      tempList.add(sibling);
-      if (sibling instanceof LazyParseablePsiElement lazy) {
-        for (PsiElement child : lazy.getChildren()) {
-          if (child instanceof HaxeMeta){
-            psiElements.addAll(tempList);
-            tempList.clear();
-          }
-        }
-      }
-      if (sibling instanceof HaxeMeta) {
-        psiElements.addAll(tempList);
-        tempList.clear();
-      }
-      if (sibling instanceof PsiComment comment && comment.getTokenType() == DOC_COMMENT) {
-        psiElements.addAll(tempList);
-        tempList.clear();
-      }
-
-      sibling = sibling.getPrevSibling();
-    }
-    return psiElements;
-  }
 
   private void reformat(final PsiMember movedElement) {
     ApplicationManager.getApplication().runWriteAction(new Runnable() {

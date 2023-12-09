@@ -26,18 +26,22 @@ import com.intellij.util.IncorrectOperationException;
  * @author dsl
  */
 public class ExtractInterfaceProcessor extends ExtractSuperBaseProcessor {
+
+  private  String newClassPackage;
   public ExtractInterfaceProcessor(Project project,
                boolean replaceInstanceOf,
                PsiDirectory targetDirectory,
                String newClassName,
+               String newClassPackage,
                PsiClass aClass,
                MemberInfo[] memberInfos,
                DocCommentPolicy javaDocPolicy) {
     super(project, replaceInstanceOf, targetDirectory, newClassName, aClass, memberInfos, javaDocPolicy);
+    this.newClassPackage = newClassPackage;
   }
 
   protected PsiClass extractSuper(String superClassName) throws IncorrectOperationException {
-    return ExtractInterfaceHandler.extractInterface(myClass.getContainingFile().getContainingDirectory(), myClass, superClassName, myMemberInfos, myJavaDocPolicy);
+    return ExtractInterfaceHandler.extractInterface(myClass.getContainingFile().getContainingDirectory(), myClass, superClassName, newClassPackage, myMemberInfos, myJavaDocPolicy);
   }
 
   protected boolean isSuperInheritor(PsiClass aClass) {

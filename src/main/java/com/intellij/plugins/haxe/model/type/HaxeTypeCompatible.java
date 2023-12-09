@@ -88,7 +88,6 @@ public class HaxeTypeCompatible {
     return false;
   }
 
-  @NotNull
   static private SpecificFunctionReference asFunctionReference(SpecificTypeReference ref) {
     if (ref instanceof SpecificFunctionReference functionReference) return functionReference;
 

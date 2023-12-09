@@ -80,7 +80,8 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
   }
 
   public int getJavaDocPolicy() {
-    return myJavaDocPanel.getPolicy();
+    return DocCommentPolicy.COPY;
+    //return myJavaDocPanel.getPolicy();
   }
   protected String getDimensionServiceKey() {
     return "#com.intellij.refactoring.memberPullUp.PullUpDialog";
@@ -128,7 +129,7 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
   }
   protected void doAction() {
     if (!myCallback.checkConflicts(this)) return;
-    JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC = myJavaDocPanel.getPolicy();
+    JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC = getJavaDocPolicy();
     final PsiClass superClass = getSuperClass();
     String name = superClass.getQualifiedName();
     if (name != null) {
@@ -142,22 +143,24 @@ public class HaxePullUpDialog extends PullUpDialogBase<MemberInfoStorage, Member
   }
   @Override
   protected void addCustomElementsToCentralPanel(JPanel panel) {
-    myJavaDocPanel = new DocCommentPanel(HaxeRefactoringBundle.message("doc.for.abstracts"));
-    myJavaDocPanel.setPolicy(JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC);
-    boolean hasJavadoc = false;
-    for (MemberInfo info : myMemberInfos) {
-      final PsiMember member = info.getMember();
-      if (myMemberInfoModel.isAbstractEnabled(info)) {
-        info.setToAbstract(myMemberInfoModel.isAbstractWhenDisabled(info));
-        if (!hasJavadoc &&
-            member instanceof PsiDocCommentOwner &&
-            ((PsiDocCommentOwner)member).getDocComment() != null) {
-          hasJavadoc = true;
-        }
-      }
-    }
-    UIUtil.setEnabled(myJavaDocPanel, hasJavadoc, true);
-    panel.add(myJavaDocPanel, BorderLayout.EAST);
+    //TODO mlo: add this back in when we have better mechanisms to handle docs and metas
+
+    //myJavaDocPanel = new DocCommentPanel(HaxeRefactoringBundle.message("doc.for.abstracts"));
+    //myJavaDocPanel.setPolicy(JavaRefactoringSettings.getInstance().PULL_UP_MEMBERS_JAVADOC);
+    //boolean hasJavadoc = false;
+    //for (MemberInfo info : myMemberInfos) {
+    //  final PsiMember member = info.getMember();
+    //  if (myMemberInfoModel.isAbstractEnabled(info)) {
+    //    info.setToAbstract(myMemberInfoModel.isAbstractWhenDisabled(info));
+    //    if (!hasJavadoc &&
+    //        member instanceof PsiDocCommentOwner &&
+    //        ((PsiDocCommentOwner)member).getDocComment() != null) {
+    //      hasJavadoc = true;
+    //    }
+    //  }
+    //}
+    //UIUtil.setEnabled(myJavaDocPanel, hasJavadoc, true);
+    //panel.add(myJavaDocPanel, BorderLayout.EAST);
   }
   @Override
   protected AbstractMemberSelectionTable<PsiMember, MemberInfo> createMemberSelectionTable(List<MemberInfo> infos) {

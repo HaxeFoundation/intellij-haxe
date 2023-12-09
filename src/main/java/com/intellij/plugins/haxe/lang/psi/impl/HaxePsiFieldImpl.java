@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -114,10 +115,8 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
-    // TODO:  Implement 'public PsiDocComment getDocComment()'
-    //PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
-    //return ((psiComment != null)? new HaxePsiDocComment(getDelegate(), psiComment) : null);
-    return null;
+    PsiComment psiComment = HaxeResolveUtil.findDocumentation(this);
+    return (psiComment != null) ? new HaxePsiDocComment(this, psiComment) : null;
   }
 
   private boolean isPrivate() {

@@ -28,6 +28,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.javadoc.PsiDocCommentImpl;
 import com.intellij.psi.impl.source.tree.SharedImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.javadoc.PsiDocTag;
 import org.jetbrains.annotations.NotNull;
 
 
@@ -107,5 +108,21 @@ public class HaxePsiDocComment extends PsiDocCommentImpl implements PsiDocCommen
   @Override
   public String toString() {
     return "HaxePsiDocComment";
+  }
+
+  // overriding to avoid issues with some JavaDoc logic
+  @Override
+  public PsiDocTag @NotNull [] getTags() {
+    return new PsiDocTag[]{};
+  }
+
+  @Override
+  public PsiDocTag findTagByName(String name) {
+    return null;
+  }
+
+  @Override
+  public PsiDocTag @NotNull [] findTagsByName(String name) {
+    return new PsiDocTag[]{};
   }
 }

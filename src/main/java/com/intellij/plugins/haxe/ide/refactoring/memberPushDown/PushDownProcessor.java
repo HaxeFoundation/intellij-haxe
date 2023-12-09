@@ -17,6 +17,7 @@ package com.intellij.plugins.haxe.ide.refactoring.memberPushDown;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.ChangeContextUtil;
+import com.intellij.codeInsight.CodeInsightUtilCore;
 import com.intellij.codeInsight.intention.impl.CreateClassDialog;
 import com.intellij.codeInsight.intention.impl.CreateSubclassAction;
 import com.intellij.openapi.application.ApplicationManager;
@@ -29,6 +30,8 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeInterfaceDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.model.HaxeModifiersModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -59,6 +62,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+
+import static com.intellij.plugins.haxe.ide.refactoring.MoveUpDownUtil.collectRelatedDocsAndMetadata;
+import static com.intellij.plugins.haxe.ide.refactoring.MoveUpDownUtil.addMetadataAndDocs;
 
 @CustomLog
 public class PushDownProcessor extends BaseRefactoringProcessor {
@@ -188,17 +194,21 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
         String noInheritors = myClass.isInterface() ?
                               HaxeRefactoringBundle.message("interface.0.does.not.have.inheritors", myClass.getQualifiedName()) :
                               RefactoringBundle.message("class.0.does.not.have.inheritors", myClass.getQualifiedName());
-        final String message = noInheritors + "\n" + RefactoringBundle.message("push.down.will.delete.members");
-        final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
-        if (answer == Messages.YES) {
-          myCreateClassDlg = CreateSubclassAction.chooseSubclassToCreate(myClass);
-          if (myCreateClassDlg != null) {
-            pushDownConflicts.checkTargetClassConflicts(null, false, myCreateClassDlg.getTargetDirectory());
-            return showConflicts(pushDownConflicts.getConflicts(), usagesIn);
-          } else {
-            return false;
-          }
-        } else if (answer != Messages.NO) return false;
+        Messages.showMessageDialog("No subclass to push down to ", JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
+        return false;
+        //TODO mlo this code seems to create a Java class (CreateSubclassAction),  need to create haxe equivalent
+
+        //final String message = noInheritors + "\n" + RefactoringBundle.message("push.down.will.delete.members");
+        //final int answer = Messages.showYesNoCancelDialog(message, JavaPushDownHandler.getRefactoringName(), Messages.getWarningIcon());
+        //if (answer == Messages.YES) {
+        //  myCreateClassDlg = CreateSubclassAction.chooseSubclassToCreate(myClass);
+        //  if (myCreateClassDlg != null) {
+        //    //pushDownConflicts.checkTargetClassConflicts(null, false, myCreateClassDlg.getTargetDirectory());
+        //    //return showConflicts(pushDownConflicts.getConflicts(), usagesIn);
+        //  } else {
+        //    return false;
+        //  }
+        //} else if (answer != Messages.NO) return false;
       }
     }
     Runnable runnable = new Runnable() {
@@ -266,7 +276,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           pushDownToClass(targetClass);
         }
       }
-      removeFromTargetClass();
+      updateInTargetClass();
     }
     catch (IncorrectOperationException e) {
       log.error(e);
@@ -412,21 +422,28 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
     }
   }
 
-  private void removeFromTargetClass() throws IncorrectOperationException {
+  private void updateInTargetClass() throws IncorrectOperationException {
     for (MemberInfo memberInfo : myMemberInfos) {
       final PsiElement member = memberInfo.getMember();
 
       if (member instanceof PsiField) {
         member.delete();
       }
-      else if (member instanceof PsiMethod) {
+      else if (member instanceof HaxeMethod method) {
         if (memberInfo.isToAbstract()) {
-          final PsiMethod method = (PsiMethod)member;
           if (method.hasModifierProperty(PsiModifier.PRIVATE)) {
             PsiUtil.setModifierProperty(method, PsiModifier.PROTECTED, true);
           }
-          RefactoringUtil.makeMethodAbstract(myClass, method);
-          myJavaDocPolicy.processOldJavaDoc(method.getDocComment());
+          PsiCodeBlock body = method.getBody();
+          if (body != null) {
+            body.replace(HaxeElementGenerator.createSemi(myProject).copy());
+          }
+          HaxeModifiersModel modifiers = method.getModel().getModifiers();
+          if (!modifiers.hasModifier(HaxePsiModifier.ABSTRACT)) {
+            CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(method);
+            modifiers.addModifier(HaxePsiModifier.ABSTRACT);
+          }
+          //myJavaDocPolicy.processOldJavaDoc(method.getDocComment());
         }
         else {
           member.delete();
@@ -464,6 +481,7 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           refsToRebind.add(reference);
         }
       }
+      List<PsiElement> psiElements = collectRelatedDocsAndMetadata(member);
       member = (PsiMember)member.copy();
       RefactoringUtil.replaceMovedMemberTypeParameters(member, PsiUtil.typeParametersIterable(myClass), substitutor, factory);
       PsiMember newMember = null;
@@ -474,7 +492,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
           PsiUtil.setModifierProperty(member, PsiModifier.STATIC, true);
           PsiUtil.setModifierProperty(member, PsiModifier.FINAL, true);
         }
-        newMember = (PsiMember)targetClass.addBefore(member, targetClass.getRBrace());
+        newMember = (PsiMember)targetClass.getRBrace().getParent().addBefore(member, targetClass.getRBrace());
+        addMetadataAndDocs(psiElements, newMember, true);
       }
       else if (member instanceof PsiMethod) {
         PsiMethod method = (PsiMethod)member;
@@ -510,11 +529,13 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
             reformat(newMember);
           }
           else if (memberInfo.isToAbstract()) {
-            newMember = (PsiMethod)targetClass.addBefore(method, targetClass.getRBrace());
+            PsiElement brace = targetClass.getRBrace();
+            newMember = (PsiMember)brace.getParent().addBefore(method, brace);
             if (newMember.hasModifierProperty(PsiModifier.PRIVATE)) {
               PsiUtil.setModifierProperty(newMember, PsiModifier.PROTECTED, true);
             }
-            myJavaDocPolicy.processNewJavaDoc(((PsiMethod)newMember).getDocComment());
+            addMetadataAndDocs(psiElements, newMember, false);
+            //myJavaDocPolicy.processNewJavaDoc(((PsiMethod)newMember).getDocComment());
           }
           else {
             String text = member.getText();
@@ -523,10 +544,10 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
               text = text.substring(0, text.length() - 1) + " {}";
             }
 
-            HaxeMethod functionDeclarationWithAttributes =
-              HaxeElementGenerator.createMethodDeclaration(myProject, text);
-            newMember = (PsiMethod)targetClass.addBefore(functionDeclarationWithAttributes, targetClass.getRBrace());
 
+            newMember = HaxeElementGenerator.createMethodDeclaration(myProject, text);
+            PsiMember element = (PsiMember)targetClass.getRBrace().getParent().addBefore(newMember, targetClass.getRBrace());
+            addMetadataAndDocs(psiElements, element, true);
             reformat(newMember);
           }
         }
