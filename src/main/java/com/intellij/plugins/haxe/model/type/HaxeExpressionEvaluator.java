@@ -782,30 +782,7 @@ public class HaxeExpressionEvaluator {
             }
           }
           else if (subelement instanceof HaxeIteratorkey || subelement instanceof HaxeIteratorValue) {
-            HaxeForStatement forStatement = PsiTreeUtil.getParentOfType(subelement, HaxeForStatement.class);
-            HaxeGenericResolver forResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(forStatement);
-
-            HaxeIterable iterable = forStatement.getIterable();
-            var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, forResolver);
-
-            var iteratorType = keyValueIteratorType.getClassType();
-            if (iteratorType.isTypeDef()) {
-              iteratorType = iteratorType.fullyResolveTypeDefClass();
-            }
-            var iteratorTypeResolver = iteratorType.getGenericResolver();
-
-            HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
-            HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
-            nextResolver.addAll(iteratorTypeResolver);
-
-            ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
-            SpecificHaxeClassReference type = returnType.getClassType();
-            HaxeGenericResolver genericResolver = type.getGenericResolver();
-            if (subelement instanceof HaxeIteratorkey ) {
-              typeHolder = type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
-            }else {
-              typeHolder = type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
-            }
+            typeHolder = findIteratorType(element, subelement);
           }
 
 
@@ -1410,6 +1387,34 @@ public class HaxeExpressionEvaluator {
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
+  }
+
+  public static ResultHolder findIteratorType(PsiElement reference, PsiElement iteratorElement) {
+    HaxeForStatement forStatement = PsiTreeUtil.getParentOfType(iteratorElement, HaxeForStatement.class);
+    HaxeGenericResolver forResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(forStatement);
+
+    HaxeIterable iterable = forStatement.getIterable();
+    var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, reference, forResolver);
+
+    var iteratorType = keyValueIteratorType.getClassType();
+    if (iteratorType.isTypeDef()) {
+      iteratorType = iteratorType.fullyResolveTypeDefClass();
+    }
+    var iteratorTypeResolver = iteratorType.getGenericResolver();
+
+    HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
+    HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
+    nextResolver.addAll(iteratorTypeResolver);
+
+    ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
+    SpecificHaxeClassReference type = returnType.getClassType();
+    HaxeGenericResolver genericResolver = type.getGenericResolver();
+    if (iteratorElement instanceof HaxeIteratorkey ) {
+      return type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
+    }else  if (iteratorElement instanceof  HaxeIteratorValue){
+      return type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
+    }
+    return null;
   }
 
   private static boolean isUntypedReturn(HaxeReturnStatement statement) {

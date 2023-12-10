@@ -59,6 +59,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
 import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.evaluate;
+import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.findIteratorType;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 /**
@@ -710,31 +711,13 @@ public class HaxeResolveUtil {
           return HaxeResolveResult.EMPTY;
         }
         final HaxeExpression expression = iterable.getExpression();
-        if (expression instanceof HaxeReference) {
-          final HaxeResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
-          final HaxeClass resolveResultHaxeClass = resolveResult.getHaxeClass();
-          final HaxeGenericResolver resolver = resolveResult.getGenericResolver();
-          final HaxeGenericSpecialization resultSpecialization = resolveResult.getSpecialization();
+        if (expression instanceof HaxeReference reference) {
 
-          // find keyValue iterator type
-          HaxeResolveResult keyValueIteratorResult =
-            getResolveMethodReturnType(resolver, resolveResultHaxeClass, "keyValueIterator",
-                                       resultSpecialization.getInnerSpecialization(resolveResultHaxeClass));
-
-
-          HaxeClass iteratorClass = keyValueIteratorResult.getHaxeClass();
-          HaxeResolveResult iteratorResult =
-            getResolveMethodReturnType(resolver, iteratorClass, "next", keyValueIteratorResult.getSpecialization());
-
-          HaxeClass keyValueType = iteratorResult.getHaxeClass();
-
-          if (element instanceof HaxeIteratorkey) {
-           return  resolveFieldType(resolver, keyValueType, "key",  iteratorResult.getSpecialization());
+          ResultHolder type = findIteratorType(reference, element);
+          if (type!= null && !type.isUnknown() && type.isClassType()) {
+            return type.getClassType().asResolveResult();
           }
 
-          if (element instanceof  HaxeIteratorValue) {
-            return  resolveFieldType(resolver, keyValueType, "value", iteratorResult.getSpecialization());
-          }
         }
         return HaxeResolveResult.EMPTY;
     }
