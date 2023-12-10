@@ -45,6 +45,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   public SpecificHaxeClassReference getTargetClass(HaxeGenericResolver genericResolver) {
+
     final HaxeTypeOrAnonymous haxeTypeOrAnonymous = getTypeOrAnonymous();
     if (haxeTypeOrAnonymous == null) {
       // cause parse error
@@ -54,7 +55,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     if (haxeTypeOrAnonymous.getAnonymousType() != null) {
       return SpecificHaxeClassReference.withGenerics(
         new HaxeClassReference(haxeTypeOrAnonymous.getAnonymousType().getModel(), this),
-        ResultHolder.EMPTY
+        genericResolver == null ? ResultHolder.EMPTY : genericResolver.withoutUnknowns().getSpecificsFor(haxeTypeOrAnonymous.getAnonymousType())
       );
     }
 

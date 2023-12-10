@@ -174,6 +174,18 @@ public class HaxeElementGenerator {
     return codeFragment;
   }
 
+  public static HaxeForStatement createForInLoop(Project myProject, String varName, String source) {
+      String forAinBLoop = "for("+varName+" in "+source+") {\n\n}";
+    return (HaxeForStatement) createStatementFromText(myProject, forAinBLoop);
+
+  }
+  public static PsiElement createForInLoop(Project myProject, String key, String value, String source) {
+      String forAinBLoop = "for("+key+" => "+value+" in "+source+") {\n\n}";
+    PsiElement text = createStatementFromText(myProject, forAinBLoop);
+    return text;
+
+  }
+
   public static HaxeMethodDeclaration createMethodDeclaration(Project myProject,
                                                               String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());

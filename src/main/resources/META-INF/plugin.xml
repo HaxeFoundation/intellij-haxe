@@ -378,37 +378,78 @@
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Imports</category>
       <className>com.intellij.plugins.haxe.ide.intention.ReplaceImportStatementWithWildcardWithSingleClassImports</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Declarations</category>
       <className>com.intellij.plugins.haxe.ide.intention.SplitIntoDeclarationAndAssignment</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Strings</category>
       <className>com.intellij.plugins.haxe.ide.intention.ConvertQuotesIntention</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Types</category>
       <className>com.intellij.plugins.haxe.ide.intention.AddTypeTagToFieldIntention</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Types</category>
       <className>com.intellij.plugins.haxe.ide.intention.RemoveTypeTagFromFieldIntention</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Declarations</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertPropertyToVariableIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/Declarations</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertVariableToPropertyDefaultIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/Declarations</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertVariableToPropertyGetSetIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/Declarations</category>
+      <className>com.intellij.plugins.haxe.ide.intention.ConvertVariableToPropertyReadOnlyIntention</className>
+    </intentionAction>
+
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/Types</category>
       <className>com.intellij.plugins.haxe.ide.intention.AddReturnTypeTagIntention</className>
     </intentionAction>
 
     <intentionAction>
       <language>Haxe</language>
+      <category>Haxe/Types</category>
       <className>com.intellij.plugins.haxe.ide.intention.RemoveReturnTypeTagIntention</className>
+    </intentionAction>
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/loops</category>
+      <className>com.intellij.plugins.haxe.ide.intention.IteratorForLoopIntention</className>
+    </intentionAction>
+    <intentionAction>
+      <language>Haxe</language>
+      <category>Haxe/loops</category>
+      <className>com.intellij.plugins.haxe.ide.intention.KeyValueIteratorForLoopIntention</className>
     </intentionAction>
 
     <toolWindow id="Haxelib"

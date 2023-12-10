@@ -592,13 +592,20 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
                                                @NotNull HaxeIntroduceOperation operation);
 
 
-  protected static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
+  public static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
     private final HaxeComponentName myTarget;
 
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,
                                          HaxeIntroduceOperation operation,
                                          List<PsiElement> occurrences) {
       super(target, operation.getEditor(), operation.getProject(), "Introduce Variable",
+            occurrences.toArray(new PsiElement[0]), null);
+      myTarget = target;
+    }
+    public HaxeInplaceVariableIntroducer(HaxeComponentName target,
+                                         Editor editor,
+                                         List<PsiElement> occurrences) {
+      super(target, editor, editor.getProject(), "Introduce Variable",
             occurrences.toArray(new PsiElement[0]), null);
       myTarget = target;
     }

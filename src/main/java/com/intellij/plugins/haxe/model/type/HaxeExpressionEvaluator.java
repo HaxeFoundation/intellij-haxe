@@ -611,10 +611,14 @@ public class HaxeExpressionEvaluator {
         return handle(valueExpression.getExpression(), context, resolver);
       }
     }
+    //if (element instanceof HaxeParenthesizedExpressionReference parenthesizedReference) {
+    //  ResultHolder handle = handle(parenthesizedReference.getExpression(), context, resolver);
+    //  boolean unknown = handle.isUnknown();
+    //}
 
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
-      ResultHolder typeHolder = handle(children[0], context, resolver);
+      ResultHolder typeHolder = children.length == 0 ? SpecificTypeReference.getUnknown(element).createHolder() :  handle(children[0], context, resolver);
       boolean resolved = !typeHolder.getType().isUnknown();
       for (int n = 1; n < children.length; n++) {
         PsiElement child = children[n];
@@ -778,9 +782,30 @@ public class HaxeExpressionEvaluator {
             }
           }
           else if (subelement instanceof HaxeIteratorkey || subelement instanceof HaxeIteratorValue) {
-            HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(subelement);
-            SpecificHaxeClassReference classReference = result.getSpecificClassReference(element, resolver);
-            typeHolder = new ResultHolder(classReference);
+            HaxeForStatement forStatement = PsiTreeUtil.getParentOfType(subelement, HaxeForStatement.class);
+            HaxeGenericResolver forResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(forStatement);
+
+            HaxeIterable iterable = forStatement.getIterable();
+            var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, forResolver);
+
+            var iteratorType = keyValueIteratorType.getClassType();
+            if (iteratorType.isTypeDef()) {
+              iteratorType = iteratorType.fullyResolveTypeDefClass();
+            }
+            var iteratorTypeResolver = iteratorType.getGenericResolver();
+
+            HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
+            HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
+            nextResolver.addAll(iteratorTypeResolver);
+
+            ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
+            SpecificHaxeClassReference type = returnType.getClassType();
+            HaxeGenericResolver genericResolver = type.getGenericResolver();
+            if (subelement instanceof HaxeIteratorkey ) {
+              typeHolder = type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
+            }else {
+              typeHolder = type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
+            }
           }
 
 

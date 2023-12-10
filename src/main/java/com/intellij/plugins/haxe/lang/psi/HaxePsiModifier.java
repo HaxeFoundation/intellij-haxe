@@ -68,7 +68,7 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @MagicConstant(stringValues = {
     PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, DYNAMIC, ABSTRACT, OVERRIDE, OVERLOAD, FINAL_META, KEEP, IS_VAR, COREAPI, BIND, MACRO, HACK,
     REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
-    AUTOBUILD, UNREFLECTIVE, DEPRECATED
+    AUTOBUILD, UNREFLECTIVE, DEPRECATED, INLINE
   })
   @interface ModifierConstant {
   }

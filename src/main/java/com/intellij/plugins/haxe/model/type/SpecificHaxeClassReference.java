@@ -516,7 +516,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public SpecificHaxeClassReference resolveTypeDefClass() {
-    if (typeDefClass != null) return typeDefClass;
+    if (typeDefClass != null && typeDefClass.getGenericResolver().isEmpty())  return typeDefClass;
     if (isTypeDef()) {
       typeDefClass = ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getTargetClass(getGenericResolver());
       return typeDefClass;
@@ -532,7 +532,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       reference = typeDef.getTargetClass(resolver);
       if (reference.isTypeDefOfClass()) {
         haxeClass = reference.getHaxeClass();
-        resolver = haxeClass.getMemberResolver(resolver);
+        //resolver = haxeClass.getMemberResolver(resolver);
+        resolver = reference.getGenericResolver();
       }else{
         break;
       }

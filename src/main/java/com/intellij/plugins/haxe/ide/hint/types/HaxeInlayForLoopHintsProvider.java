@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.ide.hint.types;
 import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -47,9 +49,24 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
         HaxeIteratorkey iteratorKey = keyValueIterator.getIteratorkey();
         HaxeIteratorValue iteratorValue = keyValueIterator.getIteratorValue();
 
-        ResultHolder keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, resolver);
-        ResultHolder keyType  = extractKeyValueType(keyValueIteratorType, true);
-        ResultHolder valueType  = extractKeyValueType(keyValueIteratorType, false);
+        var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, resolver);
+        var iteratorType = keyValueIteratorType.getClassType();
+        if (iteratorType.isTypeDef()) {
+          iteratorType = iteratorType.fullyResolveTypeDefClass();
+        }
+        var iteratorTypeResolver = iteratorType.getGenericResolver();
+
+        HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
+        HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
+        nextResolver.addAll(iteratorTypeResolver);
+
+        ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
+        SpecificHaxeClassReference type = returnType.getClassType();
+        HaxeGenericResolver genericResolver = type.getGenericResolver();
+
+        ResultHolder keyType = type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
+        ResultHolder valueType = type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
+
 
         createInlayHint(iteratorKey.getComponentName(), sink, keyType);
         createInlayHint(iteratorValue.getComponentName(), sink, valueType);

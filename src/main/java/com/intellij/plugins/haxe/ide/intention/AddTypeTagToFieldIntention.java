@@ -35,7 +35,7 @@ public class AddTypeTagToFieldIntention extends BaseIntentionAction {
   @NotNull
   @Override
   public String getFamilyName() {
-    return HaxeBundle.message("quick.fixes.family");
+    return getText();
   }
 
   @NotNull

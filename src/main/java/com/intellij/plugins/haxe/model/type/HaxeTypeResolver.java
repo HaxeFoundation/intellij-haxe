@@ -264,14 +264,11 @@ public class HaxeTypeResolver {
         if (resolver != null) {
           HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
           if (typeOrAnonymous != null) {
-            //TODO resolve for anonymous types ?
-            if (typeOrAnonymous.getType() != null) {
-              ResultHolder type = HaxeTypeResolver.getTypeFromType(typeOrAnonymous.getType(), resolver);
-              ResultHolder resolve = resolver.resolveReturnType(type);
+              ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, resolver);
+              ResultHolder resolve = resolver.resolve(anonymous);
               if (resolve != null && !resolve.isUnknown()) {
                 return resolve;
               }
-            }
           }
         }
         return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver, true);
@@ -479,7 +476,7 @@ public class HaxeTypeResolver {
           } else {
             HaxeTypeOrAnonymous toa = part.getTypeOrAnonymous();
             if (toa != null) {
-              partResult = getTypeFromTypeOrAnonymous(toa);
+              partResult = getTypeFromTypeOrAnonymous(toa, resolver);
             }
           }
         }
@@ -514,8 +511,7 @@ public class HaxeTypeResolver {
         HaxeClassModel contributorModel = HaxeClassModel.fromElement(contributor);
         if (contributorModel.hasGenericParams()) {
           HaxeGenericResolver resolver = contributorModel.getGenericResolver(parentResolver);
-          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous),
-                                                         resolver.getSpecificsFor(anonymousType)).createHolder();
+          return SpecificHaxeAnonymousReference.withGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous), resolver).createHolder();
         }
       }
       return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous)).createHolder();
