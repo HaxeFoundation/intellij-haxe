@@ -1155,7 +1155,7 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('Kilometer')
       ABSTRACT_FROM_TYPE
-        HaxePsiToken:KFROM('from')
+        HaxePsiToken:from('from')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION
@@ -1255,7 +1255,7 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('Int')
       ABSTRACT_TO_TYPE
-        HaxePsiToken:KTO('to')
+        HaxePsiToken:to('to')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION
@@ -1272,14 +1272,14 @@ Haxe File
         IDENTIFIER
           HaxePsiToken:ID('UInt')
       ABSTRACT_TO_TYPE
-        HaxePsiToken:KTO('to')
+        HaxePsiToken:to('to')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION
               IDENTIFIER
                 HaxePsiToken:ID('Int')
       ABSTRACT_FROM_TYPE
-        HaxePsiToken:KFROM('from')
+        HaxePsiToken:from('from')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION
@@ -1496,14 +1496,14 @@ Haxe File
                 HaxePsiToken:ID('Int')
         HaxePsiToken:)(')')
       ABSTRACT_FROM_TYPE
-        HaxePsiToken:KFROM('from')
+        HaxePsiToken:from('from')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION
               IDENTIFIER
                 HaxePsiToken:ID('Int')
       ABSTRACT_TO_TYPE
-        HaxePsiToken:KTO('to')
+        HaxePsiToken:to('to')
         TYPE_OR_ANONYMOUS
           TYPE
             REFERENCE_EXPRESSION

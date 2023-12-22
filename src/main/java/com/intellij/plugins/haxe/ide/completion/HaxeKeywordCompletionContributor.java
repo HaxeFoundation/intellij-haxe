@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
+import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -59,14 +60,13 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
   };
 
   public HaxeKeywordCompletionContributor() {
-    final PsiElementPattern.Capture<PsiElement> idInExpression =
-      psiElement().withSuperParent(1, HaxeIdentifier.class).withSuperParent(2, HaxeReference.class);
-    final PsiElementPattern.Capture<PsiElement> inComplexExpression =
-      psiElement().withSuperParent(2, psiElement().withFirstChild(StandardPatterns.instanceOf(HaxeReference.class)));
+
+
 
     final PsiElementPattern.Capture<PsiElement> inheritPattern =
-      psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).withSuperParent(1, PsiErrorElement.class).
-        and(psiElement().withSuperParent(2, HaxeInheritList.class));
+      psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class))
+        .withSuperParent(1, PsiErrorElement.class).and(psiElement().withSuperParent(2, HaxeInheritList.class));
+
     extend(CompletionType.BASIC,
            psiElement().andOr(psiElement().withSuperParent(1, PsiErrorElement.class),
                               psiElement().withSuperParent(1, GeneratedParserUtilBase.DummyBlock.class)).
@@ -80,6 +80,22 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
                result.addElement(LookupElementBuilder.create("implements"));
              }
            });
+
+    //TODO mlo: this is not working as  the fake identifier created by intellij  makes the switch case into a broken code block element.
+    extend(CompletionType.BASIC,
+           psiElement()
+             .inside(HaxeSwitchBlock.class)
+             .andNot(psiElement().inside(HaxeSwitchCase.class)),
+           new CompletionProvider<>() {
+             @Override
+             protected void addCompletions(@NotNull CompletionParameters parameters,
+                                           ProcessingContext context,
+                                           @NotNull CompletionResultSet result) {
+               result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create("case"), 1.2));
+               result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create("default"), 1.1));
+             }
+           });
+
     // foo.b<caret> - bad
     // i<caret> - good
     extend(CompletionType.BASIC,

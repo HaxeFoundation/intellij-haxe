@@ -235,8 +235,10 @@ coalescingOperator ::= '??'           { extends=operator }
 questionOperator ::= <<ternary>>      { extends=operator }
 suffixOperator ::= '!'                { extends=operator }
 
-// KFROM and KTO are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER is only used for getters/setters)
-identifier ::= ID | KFROM | KTO | KNEVER | macroIdentifierReification | MACRO_ID
+// KFROM ('from') and KTO ('to') are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER ('never') is only used for getters/setters)
+private identifierWithKeywordName::= 'from' | 'to' | 'never'
+
+identifier ::= ID | identifierWithKeywordName | macroIdentifierReification | MACRO_ID
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
 
 thisExpression ::= 'this'

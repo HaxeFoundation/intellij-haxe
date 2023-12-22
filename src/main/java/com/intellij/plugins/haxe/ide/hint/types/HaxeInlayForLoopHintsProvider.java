@@ -57,6 +57,8 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
         var iteratorTypeResolver = iteratorType.getGenericResolver();
 
         HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
+        if (iteratorReturnType == null) return;
+
         HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
         nextResolver.addAll(iteratorTypeResolver);
 

@@ -541,6 +541,7 @@ public class HaxeCallExpressionUtil {
     }
 
 
+    if (expression.getExpressionList() == null)return validation;
 
     List<HaxeParameterModel> parameterList = mapParametersToModel(model.getConstructorParameters());
     List<HaxeExpression> argumentList = expression.getExpressionList().getExpressionList();
@@ -693,6 +694,7 @@ public class HaxeCallExpressionUtil {
 
   @NotNull
   private static List<HaxeParameterModel> mapParametersToModel(HaxeParameterList parameterList) {
+    if (parameterList == null) return List.of();
     return parameterList.getParameterList().stream().map(HaxeParameterModel::new).toList();
   }
 

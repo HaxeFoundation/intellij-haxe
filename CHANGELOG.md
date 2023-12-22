@@ -4,6 +4,12 @@
 * Improvement: Attempt at restoring `Member pull up` refactoring
 * Improvement: Attempt at restoring `Member push down` refactoring
 * Improvement: Attempt at restoring `extract to interface` refactoring
+* Added: intent for convert variable to property
+* Added: intent for convert property to variable
+* Added: intent for creating for loop from variables implementing iterator
+* Improved type resolving for key-value loops
+* Fixed incorrect keyword suggestions (KNEVER-> never, KTO -> to, KFROM -> from)
+* Misc NPE fixes.
 
 ## 1.4.20
 * Added: Allow Extract method from fields
@@ -14,8 +20,8 @@
 * Bugfix: Name suggestion for Extract Method was suggestion names from outside selection
 
 ## 1.4.19
-* Quickfixes for adding/removing type tags (return types & variable types)
-* Very basic Extract Method support
+* Added: Intent for adding/removing type tags (return types & variable types)
+* Added: Very basic Extract Method support
 * Minor tweaks for Intellij 2023.3 Support 
 
 ## 1.4.18
