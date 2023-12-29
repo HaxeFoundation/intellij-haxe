@@ -107,6 +107,7 @@
     <!-- HXML BEGIN -->
     <lang.parserDefinition language="HXML" implementationClass="com.intellij.plugins.haxe.buildsystem.hxml.HXMLParserDefinition"/>
     <lang.syntaxHighlighterFactory language="HXML" implementationClass="com.intellij.plugins.haxe.ide.highlight.HXMLSyntaxHighlighterFactory"/>
+    <lang.commenter language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HxmlCommenter"/>
     <colorSettingsPage implementation="com.intellij.plugins.haxe.ide.highlight.HXMLColorSettingsPage"/>
     <!-- HXML END -->
 

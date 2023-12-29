@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.4.21
+* Added: support for comment line/block command in HXML files
 * Improvement: Attempt at restoring `Member pull up` refactoring
 * Improvement: Attempt at restoring `Member push down` refactoring
 * Improvement: Attempt at restoring `extract to interface` refactoring
