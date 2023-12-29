@@ -19,33 +19,30 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
-import com.intellij.lang.parser.GeneratedParserUtilBase;
-import com.intellij.openapi.util.Pair;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.util.HaxeCodeGenerateUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiErrorElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiFileFactory;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
+import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionPatterns.*;
+import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionUtil.*;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_GET;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_SET;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -67,109 +64,136 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class))
         .withSuperParent(1, PsiErrorElement.class).and(psiElement().withSuperParent(2, HaxeInheritList.class));
 
+    // foo.b<caret> - bad
+    // i<caret> - good
     extend(CompletionType.BASIC,
-           psiElement().andOr(psiElement().withSuperParent(1, PsiErrorElement.class),
-                              psiElement().withSuperParent(1, GeneratedParserUtilBase.DummyBlock.class)).
-             andOr(psiElement().withSuperParent(2, HaxeClassBody.class), psiElement().withSuperParent(2, HaxeInheritList.class)),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               result.addElement(LookupElementBuilder.create("extends"));
-               result.addElement(LookupElementBuilder.create("implements"));
-             }
-           });
-
-    //TODO mlo: this is not working as  the fake identifier created by intellij  makes the switch case into a broken code block element.
-    extend(CompletionType.BASIC,
-           psiElement()
-             .inside(HaxeSwitchBlock.class)
-             .andNot(psiElement().inside(HaxeSwitchCase.class)),
+           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(idInExpression.and(inComplexExpression)),
            new CompletionProvider<>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-               result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create("case"), 1.2));
-               result.addElement(PrioritizedLookupElement.withPriority(LookupElementBuilder.create("default"), 1.1));
-             }
-           });
-
-    // foo.b<caret> - bad
-    // i<caret> - good
-    extend(CompletionType.BASIC,
-           psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class)).andNot(idInExpression.and(inComplexExpression))
-             .andNot(inheritPattern),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               final Collection<String> suggestedKeywords = suggestKeywords(parameters.getPosition());
-               suggestedKeywords.retainAll(allowedKeywords);
-               for (String keyword : suggestedKeywords) {
-                 result.addElement(LookupElementBuilder.create(keyword));
-               }
+               suggestKeywords(parameters.getPosition(), result, context);
              }
            });
   }
 
-  private static Collection<String> suggestKeywords(PsiElement position) {
-    final TextRange posRange = position.getTextRange();
+  private static void suggestKeywords(PsiElement position, @NotNull CompletionResultSet result, ProcessingContext context) {
+    List<String> keywordsFromParser = new ArrayList<>();
+    final HaxeFile cloneFile = createCopyWithFakeIdentifierAsComment(position, keywordsFromParser);
+    PsiElement completionElementAsComment = cloneFile.findElementAt(position.getTextOffset());
+
+    List<LookupElement> lookupElements = new ArrayList<>();
+
+
+    if (packageExpected.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, PACKAGE_KEYWORD);
+      return;
+    }
+
+    if (toplevelScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, TOP_LEVEL_KEYWORDS);
+    }
+
+    if (moduleScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, MODULE_STRUCTURES_KEYWORDS);
+      addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+    }
+
+    if (classDeclarationScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, CLASS_DEFINITION_KEYWORDS);
+    }
+    if (interfaceDeclarationScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, INTERFACE_DEFINITION_KEYWORDS);
+    }
+
+    if (abstractTypeDeclarationScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, ABSTRACT_DEFINITION_KEYWORDS);
+    }
+
+    if (interfaceBodyScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, INTERFACE_BODY_KEYWORDS);
+    }
+
+    if (classBodyScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, CLASS_BODY_KEYWORDS);
+      addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+      addKeywords(lookupElements, ACCESSIBILITY_KEYWORDS);
+    }
+
+    if (functionBodyScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
+    }
+
+    if (insideSwitchCase.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
+    }
+
+    if (isAfterIfStatement.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, Set.of(KELSE));
+    }
+
+    if (isInsideLoopBlock.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, LOOP_BODY_KEYWORDS);
+    }
+
+    if (isInsideForIterator.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, LOOP_ITERATOR_KEYWORDS);
+    }
+
+    HaxePropertyAccessor propertyAccessor = PsiTreeUtil.getParentOfType(position, HaxePropertyAccessor.class);
+    if (isPropertyGetterValue.accepts(propertyAccessor)) {
+      result.stopHere();
+      lookupElements.clear();
+      addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+      addKeywords(lookupElements, Set.of(PROPERTY_GET), 1.2f);
+    }
+    if (isPropertySetterValue.accepts(propertyAccessor)) {
+      result.stopHere();
+      lookupElements.clear();
+      addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+      addKeywords(lookupElements, Set.of(PROPERTY_SET), 1.2f);
+    }
+
+
+
+    addKeywords(lookupElements, Set.of(KMACRO2, KUNTYPED), -0.1f);
+    addKeywords(lookupElements, PP_KEYWORDS, -0.2f, false, true);
+
+
+    result.addAllElements(lookupElements);
+  }
+
+
+
+  private static HaxeFile createCopyWithFakeIdentifierAsComment(PsiElement position, List<String> keywordsFromParser) {
+
     final HaxeFile posFile = (HaxeFile)position.getContainingFile();
+    final TextRange posRange = position.getTextRange();
 
-    final List<PsiElement> pathToBlockStatement = UsefulPsiTreeUtil.getPathToParentOfType(position, HaxeBlockStatement.class);
+    // clone original content
+    HaxeFile clonedFile = (HaxeFile)posFile.copy();
+    int offset = posRange.getStartOffset();
 
-    final HaxePsiCompositeElement classInterfaceEnum =
-      PsiTreeUtil.getParentOfType(position, HaxeClassBody.class, HaxeInterfaceBody.class, HaxeEnumBody.class);
+    // replace dummy identifier with comment so it does not affect the parsing and psi structure
+    PsiElement dummyIdentifier = clonedFile.findElementAt(offset);
+    PsiElement comment = HaxeElementGenerator.createDummyComment(posFile.getProject(), dummyIdentifier.getTextLength());
+    PsiElement elementToReplace = dummyIdentifier;
 
-    final String text;
-    final int offset;
-    if (pathToBlockStatement != null) {
-      final Pair<String, Integer> pair = HaxeCodeGenerateUtil.wrapStatement(posRange.substring(posFile.getText()));
-      text = pair.getFirst();
-      offset = pair.getSecond();
+    //make sure we replace the "root" element of the identifier
+    // we dont want to replace identifier inside a reference and keep the reference etc.
+    while (elementToReplace.getPrevSibling() == null && elementToReplace.getParent() != null) {
+      PsiElement parent = elementToReplace.getParent();
+      if (parent == clonedFile) break;
+      elementToReplace = parent;
     }
-    else if (classInterfaceEnum != null) {
-      final Pair<String, Integer> pair = HaxeCodeGenerateUtil.wrapFunction(posRange.substring(posFile.getText()));
-      text = pair.getFirst();
-      offset = pair.getSecond();
-    }
-    else {
-      text = posFile.getText().substring(0, posRange.getStartOffset());
-      offset = 0;
-    }
+    elementToReplace.replace(comment);
 
-    final List<String> result = new ArrayList<String>();
-    if (pathToBlockStatement != null && pathToBlockStatement.size() > 1) {
-      final PsiElement blockChild = pathToBlockStatement.get(pathToBlockStatement.size() - 2);
-      result.addAll(suggestBySibling(UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(blockChild, true)));
-    }
-
-    PsiFile file = PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, text, true, false);
-    GeneratedParserUtilBase.CompletionState state = new GeneratedParserUtilBase.CompletionState(text.length() - offset);
-    file.putUserData(GeneratedParserUtilBase.COMPLETION_STATE_KEY, state);
+    // reparse content
+    HaxeFile file = (HaxeFile)PsiFileFactory.getInstance(posFile.getProject()).createFileFromText("a.hx", HaxeLanguage.INSTANCE, clonedFile.getText(), true, false);
     TreeUtil.ensureParsed(file.getNode());
-    result.addAll(state.items);
-
-    // always
-    result.add(HaxeTokenTypes.PPIF.toString());
-    result.add(HaxeTokenTypes.PPELSE.toString());
-    result.add(HaxeTokenTypes.PPELSEIF.toString());
-    result.add(HaxeTokenTypes.PPERROR.toString());
-    return result;
+    return file;
   }
 
-  @NotNull
-  private static Collection<? extends String> suggestBySibling(@Nullable PsiElement sibling) {
-    if (HaxeIfStatement.class.isInstance(sibling)) {
-      return Collections.singletonList(HaxeTokenTypes.KELSE.toString());
-    }
-    else if (HaxeTryStatement.class.isInstance(sibling) || HaxeCatchStatement.class.isInstance(sibling)) {
-      return Collections.singletonList(HaxeTokenTypes.KCATCH.toString());
-    }
 
-    return Collections.emptyList();
-  }
 }

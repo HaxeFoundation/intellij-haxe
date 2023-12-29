@@ -31,12 +31,15 @@ import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataListOwnerImpl;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -249,5 +252,27 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   @Override
   public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
     return HaxeMetadataUtils.hasMeta(this, metadataType, name);
+  }
+
+  @Override
+  public PsiElement @NotNull [] getChildren() {
+    PsiElement psiChild = getFirstChild();
+    if (psiChild == null) return PsiElement.EMPTY_ARRAY;
+
+    List<PsiElement> result = null;
+    while (psiChild != null) {
+      // we want to include comments when listing children as its usefull in a lot of places
+      // we could get children with comments by using custom code looping getNextSibling manually, but its more convenient
+      // to just override this method and solve the need everywhere, and if we dont want Comments we can always filter the results later.
+      // (including Comments here will for instance allow us to use Comments in Pattern matching for autocompletion)
+      if (psiChild.getNode() instanceof CompositeElement || psiChild.getNode() instanceof PsiComment) {
+        if (result == null) {
+          result = new ArrayList<>();
+        }
+        result.add(psiChild);
+      }
+      psiChild = psiChild.getNextSibling();
+    }
+    return result == null ? PsiElement.EMPTY_ARRAY : PsiUtilCore.toPsiElementArray(result);
   }
 }

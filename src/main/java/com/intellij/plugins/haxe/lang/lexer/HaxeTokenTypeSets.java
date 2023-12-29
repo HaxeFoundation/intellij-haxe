@@ -40,6 +40,12 @@ public interface HaxeTokenTypeSets {
   IElementType SINGLE_QUOTE = new HaxeElementType("'");
   IElementType DOUBLE_QUOTE = new HaxeElementType("\"");
 
+  IElementType PROPERTY_GET = new HaxeElementType("get");
+  IElementType PROPERTY_SET = new HaxeElementType("set");
+
+  IElementType IS_KEYWORD = new HaxeElementType("is");
+  IElementType IN_KEYWORD = new HaxeElementType("in");
+
   TokenSet WHITESPACES = TokenSet.create(
     WSNLS,
     TokenType.WHITE_SPACE,

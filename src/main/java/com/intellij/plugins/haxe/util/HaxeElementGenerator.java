@@ -166,6 +166,13 @@ public class HaxeElementGenerator {
     assert psiFile != null;
     return psiFile;
   }
+  public static PsiElement createDummyComment(Project myProject, int length) {
+    StringBuilder  builder = new StringBuilder();
+    builder.append("/*");
+    builder.append("*".repeat(Math.max(0, length - 4)));
+    builder.append("*/");
+    return HaxeElementGenerator.createDummyFile(myProject, builder.toString()).getChildren()[0];
+  }
 
   public static PsiFile createExpressionCodeFragment(Project myProject, String text, PsiElement context, boolean resolveScope) {
     final String name = "dummy." + HaxeFileType.INSTANCE.getDefaultExtension();
