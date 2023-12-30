@@ -30,18 +30,31 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
           // handle Null<FunctionType>
           if (type.getClassType() != null) {
-            if (type.getClassType().isNullType()) {
-              SpecificFunctionReference functionReference = getUnderlyingFunctionIfAbstractNull(type.getClassType());
+            SpecificHaxeClassReference classReference = type.getClassType();
+            if (classReference.isNullType()) {
+              SpecificFunctionReference functionReference = getUnderlyingFunctionIfAbstractNull(classReference);
               if (functionReference != null) {
                 functionType = functionReference;
               }
             }
+
+            // resolve typedef of function
+            if (classReference.isTypeDefOfFunction()) {
+              SpecificFunctionReference functionReference = classReference.resolveTypeDefFunction();
+              functionType = functionReference;
+            }
+
+            if (classReference.isTypeDefOfClass()) {
+              classReference = classReference.fullyResolveTypeDefClass();
+            }
+            if (functionType == null) {
+              boolean callable = classReference.getHaxeClassModel().isCallable();
+              if (callable) {
+                type = SpecificTypeReference.getDynamic(classReference.getElementContext()).createHolder();
+              }
+            }
           }
-          // resolve typedef of function
-          if (type.getType() instanceof  SpecificHaxeClassReference classReference && classReference.isTypeDef()) {
-            SpecificFunctionReference functionReference = classReference.resolveTypeDefFunction();
-            functionType = functionReference;
-          }
+
 
           if (functionType != null) {
             if (functionType.functionType != null) {

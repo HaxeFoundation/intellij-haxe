@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
@@ -141,6 +142,9 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public boolean hasCompileTimeMeta(@NotNull HaxeMetadataTypeName name) {
     return haxeClass.hasCompileTimeMeta(name);
+  }
+  public boolean isCallable() {
+    return haxeClass.hasCompileTimeMeta(HaxeMeta.CALLABLE);
   }
 
   @Nullable

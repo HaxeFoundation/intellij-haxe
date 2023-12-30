@@ -128,6 +128,8 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   HaxeMetadataTypeName USING = new HaxeMetadataTypeName("using");
   HaxeMetadataTypeName VALUE = new HaxeMetadataTypeName("value");
 
+  HaxeMetadataTypeName CALLABLE = new HaxeMetadataTypeName("callable");
+
   // We need a token for things we don't know about (user meta).  This name cannot be constructed in code.
   // XXX: This needs to be thought through some more.  CUSTOM should not match just any string.
   HaxeMetadataTypeName CUSTOM = new HaxeMetadataTypeName("{custom}");
