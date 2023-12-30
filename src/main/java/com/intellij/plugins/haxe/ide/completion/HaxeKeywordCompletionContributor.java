@@ -40,6 +40,8 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionPatterns.*;
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionUtil.*;
+import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordOnly;
+import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordWithSpace;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_GET;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_SET;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
@@ -58,11 +60,6 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
   public HaxeKeywordCompletionContributor() {
 
-
-
-    final PsiElementPattern.Capture<PsiElement> inheritPattern =
-      psiElement().inFile(StandardPatterns.instanceOf(HaxeFile.class))
-        .withSuperParent(1, PsiErrorElement.class).and(psiElement().withSuperParent(2, HaxeInheritList.class));
 
     // foo.b<caret> - bad
     // i<caret> - good
@@ -85,6 +82,10 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     List<LookupElement> lookupElements = new ArrayList<>();
 
+    if (dotFromIterator.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
+      return;
+    }
 
     if (packageExpected.accepts(completionElementAsComment)) {
       addKeywords(lookupElements, PACKAGE_KEYWORD);
@@ -123,14 +124,19 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     if (functionBodyScope.accepts(completionElementAsComment)) {
       addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
+      addKeywords(lookupElements, VALUE_KEYWORDS);
     }
+    if (initScope.accepts(completionElementAsComment)) {
+      addKeywords(lookupElements, VALUE_KEYWORDS);
+    }
+
 
     if (insideSwitchCase.accepts(completionElementAsComment)) {
       addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
     }
 
     if (isAfterIfStatement.accepts(completionElementAsComment)) {
-      addKeywords(lookupElements, Set.of(KELSE));
+      addKeywords(lookupElements, Set.of(keywordWithSpace(KELSE)));
     }
 
     if (isInsideLoopBlock.accepts(completionElementAsComment)) {
@@ -146,19 +152,19 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       result.stopHere();
       lookupElements.clear();
       addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-      addKeywords(lookupElements, Set.of(PROPERTY_GET), 1.2f);
+      addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
     }
     if (isPropertySetterValue.accepts(propertyAccessor)) {
       result.stopHere();
       lookupElements.clear();
       addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-      addKeywords(lookupElements, Set.of(PROPERTY_SET), 1.2f);
+      addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
     }
 
 
 
-    addKeywords(lookupElements, Set.of(KMACRO2, KUNTYPED), -0.1f);
-    addKeywords(lookupElements, PP_KEYWORDS, -0.2f, false, true);
+    addKeywords(lookupElements, PP_KEYWORDS, -0.2f);
+    addKeywords(lookupElements, MISC_KEYWORDS, -0.1f);
 
 
     result.addAllElements(lookupElements);

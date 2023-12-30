@@ -11,86 +11,130 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Set;
 
+import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.IN_KEYWORD;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.IS_KEYWORD;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public class HaxeKeywordCompletionUtil {
 
-  private static final String CARET = "<CARET>";
 
-  public static final Set<IElementType> PACKAGE_KEYWORD = Set.of(KPACKAGE);
-  public static final Set<IElementType> TOP_LEVEL_KEYWORDS = Set.of(KIMPORT, KUSING);
-  public static final Set<IElementType> VISIBILITY_KEYWORDS = Set.of(KPRIVATE, KPUBLIC);
-  public static final Set<IElementType> ACCESSIBILITY_KEYWORDS = Set.of(KFINAL, KABSTRACT, KINLINE, KEXTERN, KDYNAMIC);
-  public static final Set<IElementType> MODULE_STRUCTURES_KEYWORDS = Set.of(KCLASS, KABSTRACT, KINTERFACE, KENUM, KEXTERN, KTYPEDEF, KVAR);
 
-  public static final Set<IElementType> CLASS_DEFINITION_KEYWORDS = Set.of(KEXTENDS, KIMPLEMENTS);
-  public static final Set<IElementType> INTERFACE_DEFINITION_KEYWORDS = Set.of(KEXTENDS);
-  public static final Set<IElementType> INTERFACE_BODY_KEYWORDS = Set.of(KFUNCTION, KVAR);
-  public static final Set<IElementType> ABSTRACT_DEFINITION_KEYWORDS = Set.of(KTO, KFROM);
-  public static final Set<IElementType> CLASS_BODY_KEYWORDS = Set.of(KVAR, KFUNCTION, KOVERLOAD, KOVERRIDE);
-  public static final Set<IElementType> METHOD_BODY_KEYWORDS =
-    Set.of(IS_KEYWORD, ONEW, KIF, KVAR, KFUNCTION, KINLINE, KFINAL, KSWITCH, KTHROW, KTRY, KCATCH, KTHIS, KSUPER, KFOR, KWHILE, KDO, KRETURN, KSTATIC, KCAST);
+  public static final Set<KeywordCompletionData> PACKAGE_KEYWORD = Set.of(keywordWithSpace(KPACKAGE));
+  public static final Set<KeywordCompletionData> TOP_LEVEL_KEYWORDS = Set.of(keywordWithSpace(KIMPORT),
+                                                                             keywordWithSpace((KUSING)));
+  public static final Set<KeywordCompletionData> VISIBILITY_KEYWORDS = Set.of(keywordWithSpace(KPRIVATE),
+                                                                              keywordWithSpace(KPUBLIC));
+  public static final Set<KeywordCompletionData> ACCESSIBILITY_KEYWORDS = Set.of(keywordWithSpace(KFINAL),
+                                                                                 keywordWithSpace(KABSTRACT),
+                                                                                 keywordWithSpace(KINLINE),
+                                                                                 keywordWithSpace(KEXTERN),
+                                                                                 keywordWithSpace(KDYNAMIC));
+  public static final Set<KeywordCompletionData> MODULE_STRUCTURES_KEYWORDS = Set.of(keywordWithSpace(KCLASS),
+                                                                                     keywordWithSpace(KABSTRACT),
+                                                                                     keywordWithSpace(KINTERFACE),
+                                                                                     keywordWithSpace(KENUM),
+                                                                                     keywordWithSpace(KEXTERN),
+                                                                                     keywordWithSpace(KTYPEDEF),
+                                                                                     keywordWithSpace(KVAR));
 
-  public static final Set<IElementType> SWITCH_BODY_KEYWORDS = Set.of(KCASE, KDEFAULT);
-  public static final Set<IElementType> LOOP_BODY_KEYWORDS = Set.of(KBREAK, KCONTINUE);
-  public static final Set<IElementType> LOOP_ITERATOR_KEYWORDS = Set.of(IN_KEYWORD);
+  public static final Set<KeywordCompletionData> CLASS_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KEXTENDS),
+                                                                                    keywordWithSpace(KIMPLEMENTS));
+  public static final Set<KeywordCompletionData> INTERFACE_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KEXTENDS));
+  public static final Set<KeywordCompletionData> INTERFACE_BODY_KEYWORDS = Set.of(keywordWithSpace(KFUNCTION),
+                                                                                  keywordWithSpace(KVAR));
+  public static final Set<KeywordCompletionData> ABSTRACT_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KTO),
+                                                                                       keywordWithSpace(KFROM));
+  public static final Set<KeywordCompletionData> CLASS_BODY_KEYWORDS = Set.of(keywordWithSpace(KVAR),
+                                                                              keywordWithSpace(KFUNCTION),
+                                                                              keywordWithSpace(KOVERLOAD),
+                                                                              keywordWithSpace(KOVERRIDE));
+  public static final Set<KeywordCompletionData> METHOD_BODY_KEYWORDS =
+    Set.of(keywordWithSpace(IS_KEYWORD),
+           keywordWithSpace(ONEW),
+           keywordParentheses(KIF),
+           keywordWithSpace(KVAR),
+           keywordWithSpace(KFUNCTION),
+           keywordWithSpace(KINLINE),
+           keywordWithSpace(KFINAL),
+           keywordWithSpace(KSWITCH),
+           keywordWithSpace(KTHROW),
+           keywordCurlyBrackets(KTRY),
+           keywordParentheses(KCATCH),
+           keywordOnly(KTHIS),
+           keywordOnly(KSUPER),
+           keywordParentheses(KFOR),
+           keywordParentheses(KWHILE),
+           keywordCurlyBrackets(KDO),
+           keywordWithSpace(KRETURN),
+           keywordWithSpace(KSTATIC),
+           keywordWithSpace(KCAST));
+  public static final Set<KeywordCompletionData> VALUE_KEYWORDS =
+    Set.of(keywordOnly(KNULL),
+           keywordOnly(KTRUE),
+           keywordOnly(KFALSE)
+           );
 
-  public static final Set<IElementType> PROPERTY_KEYWORDS = Set.of(KDEFAULT, KNULL, KNEVER, KDYNAMIC);
+  public static final Set<KeywordCompletionData> SWITCH_BODY_KEYWORDS = Set.of(keywordWithSpace(KCASE),
+                                                                               keywordWithSpace(KDEFAULT));
+  public static final Set<KeywordCompletionData> LOOP_BODY_KEYWORDS = Set.of(keywordTemplate(KBREAK, KBREAK + ";" + CARET),
+                                                                             keywordTemplate(KCONTINUE, KCONTINUE + ";" + CARET));
+  public static final Set<KeywordCompletionData> LOOP_ITERATOR_KEYWORDS = Set.of(keywordWithSpace(IN_KEYWORD));
 
-  public static final Set<IElementType> PP_KEYWORDS = Set.of(PPIF, PPELSE, PPELSEIF, PPEND, PPERROR);
+  public static final Set<KeywordCompletionData> PROPERTY_KEYWORDS = Set.of(keywordOnly(KDEFAULT),
+                                                                            keywordOnly(KNULL),
+                                                                            keywordOnly(KNEVER),
+                                                                            keywordOnly(KDYNAMIC));
 
-  public static final List<String> insertParentheses = List.of(KIF.toString(), KCATCH.toString(), KFOR.toString(), KWHILE.toString());
-  public static final List<String> insertbrackets = List.of(KTRY.toString(), KDO.toString());
+  public static final Set<KeywordCompletionData> MISC_KEYWORDS = Set.of(keywordWithSpace(KMACRO2),
+                                                                      keywordWithSpace(KUNTYPED));
 
-  public static void addKeywords(List<LookupElement> result, Set<IElementType> keywords) {
-    for (IElementType keyword : keywords) {
-      result.add(keyword(keyword,true, false));
+  public static final Set<KeywordCompletionData> PP_KEYWORDS = Set.of(keywordWithSpace(PPIF, false, true),
+                                                                      keywordWithSpace(PPELSE,false, true),
+                                                                      keywordWithSpace(PPELSEIF,false, true),
+                                                                      keywordWithSpace(PPEND,false, true),
+                                                                      keywordWithSpace(PPERROR,false, true));
+
+
+  public static void addKeywords(List<LookupElement> result, Set<KeywordCompletionData> keywords) {
+    for (KeywordCompletionData keyword : keywords) {
+      result.add(keyword(keyword));
     }
   }
-  public static void addKeywords(List<LookupElement> result, Set<IElementType> keywords, float priority) {
-    for (IElementType keyword : keywords) {
-      result.add(keyword(keyword, priority,true, false));
-    }
-  }
-  public static void addKeywords(List<LookupElement> result, Set<IElementType> keywords, float priority,  boolean bold, boolean italic) {
-    for (IElementType keyword : keywords) {
-      result.add(keyword(keyword, priority,bold, italic));
+
+  public static void addKeywords(List<LookupElement> result, Set<KeywordCompletionData> keywords, float priority) {
+    for (KeywordCompletionData keyword : keywords) {
+      result.add(keyword(keyword, priority));
     }
   }
 
-  public static @NotNull LookupElement keyword(IElementType keywordElement, float priority, boolean bold, boolean italic) {
-    return PrioritizedLookupElement.withPriority(keyword(keywordElement, bold, italic), priority);
+  public static @NotNull LookupElement keyword(KeywordCompletionData dataElement, float priority) {
+    return PrioritizedLookupElement.withPriority(keyword(dataElement), priority);
   }
 
 
-  public static @NotNull LookupElement keyword(IElementType keywordElement,  boolean bold, boolean italic) {
+  public static @NotNull LookupElement keyword(KeywordCompletionData data) {
 
-    String elementString = keywordElement.toString();
-    boolean addPar = insertParentheses.contains(elementString);
-    boolean addBracket = insertbrackets.contains(elementString);
+    String elementName = data.getKeyword().toString();
+    String templateValue = data.getTemplate();
 
-    StringBuilder stringBuilder = new StringBuilder().append(keywordElement).append(" ");
-    if (addPar) stringBuilder.append("(" + CARET + ")");
-    if (addBracket) stringBuilder.append("{\n" + CARET + "\n}");
+    String template = templateValue != null ? templateValue : elementName;
 
-    LookupElementBuilder builder = LookupElementBuilder.create(keywordElement, stringBuilder.toString())
-      .withBoldness(bold)
-      .withItemTextItalic(italic)
-      .withPresentableText(elementString);
+
+    LookupElementBuilder builder = LookupElementBuilder.create(data.getKeyword(), template)
+      .withBoldness(data.isBold())
+      .withItemTextItalic(data.isItalic())
+      .withPresentableText(elementName);
 
     builder = builder.withInsertHandler((context, item) -> {
       Editor editor = context.getEditor();
       Project project = editor.getProject();
 
-      String template = item.getLookupString();
       int caretOffset = template.lastIndexOf(CARET);
       String content = template.replaceAll(CARET, "");
 
@@ -127,6 +171,5 @@ public class HaxeKeywordCompletionUtil {
     styleManager.reformatRange(file, range.getStartOffset(), range.getEndOffset());
     styleManager.adjustLineIndent(file, editor.getCaretModel().getOffset());
   }
-
 
 }

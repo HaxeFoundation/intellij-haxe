@@ -44,7 +44,18 @@ public class HaxeKeywordCompletionPatterns {
       .and(psiElement().inside(psiElement(HaxeClassBody.class)))
       .andNot(psiElement().inside(psiElement(HaxeMethod.class)));
   public static final PsiElementPattern.Capture<PsiElement> functionBodyScope =
-    psiElement().inside(psiElement(HaxeMethod.class));
+    psiElement()
+      .inside(HaxeBlockStatement.class)
+      .andOr(
+        psiElement().inside(psiElement(HaxeMethod.class)),
+        psiElement().inside(psiElement(HaxeFunctionLiteral.class))
+    );
+  public static final PsiElementPattern.Capture<PsiElement> initScope =
+    psiElement()
+      .andOr(
+        psiElement().inside(HaxeVarInit.class),
+        psiElement().inside(HaxeFieldDeclaration.class)
+      );// consider adding check: is after equals sign
 
   public static final PsiElementPattern.Capture<PsiElement> insideSwitchCase = psiElement()
     .inside(HaxeSwitchBlock.class)
@@ -70,4 +81,6 @@ public class HaxeKeywordCompletionPatterns {
 
   public static final PsiElementPattern.Capture<PsiElement> isAfterIfStatement = psiElement()
     .afterSiblingSkipping(psiElement().whitespaceCommentEmptyOrError(), psiElement(HaxeIfStatement.class));
+  public static final PsiElementPattern.Capture<PsiElement> dotFromIterator =psiElement().afterSiblingSkipping(psiElement().whitespaceCommentEmptyOrError(), psiElement(
+    HaxeIterable.class));
 }
