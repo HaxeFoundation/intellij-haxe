@@ -27,6 +27,8 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 
@@ -86,10 +88,19 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     return filtered;
   }
 
-  private static String getFunctionName(CompletionResult candidate) {
+  private static String getDedupeName(CompletionResult candidate) {
     LookupElement el = candidate.getLookupElement();
-    String name = null != el ? el.getLookupString() : null;
-    return name;
+    if (el == null) return null;
+    // we don't want to filter away classes with similar names we want to show classes from different packages and/or libs
+    // for now we try use fully Qualified name for classes but this might break de-duping for compiler completion
+    if (el.getObject() instanceof HaxeComponentName element) {
+      if (element.getParent() instanceof HaxeClass haxeClass) {
+        return  haxeClass.getQualifiedName();
+      }
+    }else if (el.getObject() instanceof  String stringValue) {
+      return stringValue;
+    }
+    return el.getLookupString();
   }
 
   private static boolean shouldRemoveDuplicateCompletions(PsiFile file) {
@@ -138,7 +149,7 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     ArrayList<CompletionResult> deduped = new ArrayList<CompletionResult>();
     String lastName = null;
     for (CompletionResult next: sorted) {
-      String nextName = getFunctionName(next);
+      String nextName = getDedupeName(next);
       // In the long run, it's probably not good enough just to check the name.  Multiple argument types may
       // be present, and we may be able to filter based on the local variables available.
       if (null == lastName || !lastName.equals(nextName)) {
