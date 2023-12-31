@@ -1051,10 +1051,15 @@ public class HaxeExpressionEvaluator {
 
         // try to resolve typeParameter when we got empty literal array with declaration without typeTag
         if (elementTypeHolder.isUnknown()) {
-          HaxePsiField declaringField = PsiTreeUtil.getParentOfType(element, HaxePsiField.class);
-          if (declaringField != null) {
-            ResultHolder searchResult = searchReferencesForTypeParameters(declaringField, context, resolver, holder);
-            if (!searchResult.isUnknown()) holder = searchResult;
+          // note to avoid recursive loop we only  do this check if its part of a varInit and not part of any expression,
+          // it would not make sense trying to look it up in a callExpression etc because then its type should be defined in the parameter list.
+          if (element.getParent() instanceof HaxeVarInit) {
+            HaxePsiField declaringField =
+              UsefulPsiTreeUtil.findParentOfTypeButStopIfTypeIs(element, HaxePsiField.class, HaxeCallExpression.class);
+            if (declaringField != null) {
+              ResultHolder searchResult = searchReferencesForTypeParameters(declaringField, context, resolver, holder);
+              if (!searchResult.isUnknown()) holder = searchResult;
+            }
           }
         }
       return holder;
