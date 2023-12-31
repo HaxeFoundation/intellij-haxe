@@ -9,7 +9,10 @@
 * Added: intent for convert property to variable
 * Added: intent for creating for loop from variables implementing iterator
 * Improved type resolving for key-value loops
-* Fixed incorrect keyword suggestions (KNEVER-> never, KTO -> to, KFROM -> from)
+* Improvement: Reworked keyword completion
+* Fixed: Incorrect keyword suggestions (KNEVER-> never, KTO -> to, KFROM -> from)
+* Fixed: Type completion should now allow same name if type is in different package
+* Fixed: callExpression annotator now checks for @:callable
 * Misc NPE fixes.
 
 ## 1.4.20
