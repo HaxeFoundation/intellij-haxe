@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.completion;
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.patterns.StandardPatterns.string;
@@ -83,4 +84,18 @@ public class HaxeKeywordCompletionPatterns {
     .afterSiblingSkipping(psiElement().whitespaceCommentEmptyOrError(), psiElement(HaxeIfStatement.class));
   public static final PsiElementPattern.Capture<PsiElement> dotFromIterator =psiElement().afterSiblingSkipping(psiElement().whitespaceCommentEmptyOrError(), psiElement(
     HaxeIterable.class));
+
+  // must use afterLeafSkipping as afterLeaf skips whitespaceCommentEmptyOrError by default
+  public static final PsiElementPattern.Capture<PsiElement> allowLookupPattern = psiElement()
+    .afterLeafSkipping(psiElement(PsiErrorElement.class), psiElement()
+    .andOr(
+      psiElement().whitespaceCommentEmptyOrError(),
+      psiElement().withElementType(PLBRACK),
+      psiElement().withElementType(PLCURLY),
+      psiElement().withElementType(PLPAREN),
+      psiElement().withElementType(PRBRACK),
+      psiElement().withElementType(PRCURLY),
+      psiElement().withElementType(PRPAREN),
+      psiElement().withElementType(OSEMI)
+    ));
 }
