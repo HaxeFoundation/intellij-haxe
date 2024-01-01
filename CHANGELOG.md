@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.4.21
-* Added: support for comment line/block command in HXML files
+* Added: Support for comment line/block command in HXML files
 * Improvement: Attempt at restoring `Member pull up` refactoring
 * Improvement: Attempt at restoring `Member push down` refactoring
 * Improvement: Attempt at restoring `extract to interface` refactoring
@@ -11,7 +11,7 @@
 * Improved type resolving for key-value loops
 * Improvement: Reworked keyword completion
 * Fixed: Incorrect keyword suggestions (KNEVER-> never, KTO -> to, KFROM -> from)
-* Fixed: Type completion should now allow same name if type is in different package
+* Fixed: Type completion should now allow identical names if package is different
 * Fixed: callExpression annotator now checks for @:callable
 * Misc NPE fixes.
 

@@ -873,7 +873,7 @@ public class HaxelibProjectUpdater {
     currentList.iterate(new HaxeLibraryList.Lambda() {
       @Override
       public boolean processEntry(HaxeLibraryReference entry) {
-        if (entry.isManaged()) { // (e.g. starts with "haxelib|"
+        if (entry.isManaged()) { // (e.g. starts with "haxelib:"
           currentManagedEntries.add(entry);
         }  else {
           currentUnmanagedEntries.add(entry);
