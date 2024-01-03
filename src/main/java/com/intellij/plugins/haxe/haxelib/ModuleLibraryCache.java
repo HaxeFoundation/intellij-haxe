@@ -95,7 +95,7 @@ public final class ModuleLibraryCache {
   @Nullable
   public HaxeLibrary getLibrary(String name, @Nullable HaxelibSemVer requestedVersion) {
     if (libraryIsInstalled(name)) {
-      List<HaxeLibrary> libVersions = myCache.get(name);
+      List<HaxeLibrary> libVersions = myCache.getOrDefault(name, List.of());
       String haxeLibSelectedVersion = haxelibIndex.getSelectedVersion(name);
 
 
