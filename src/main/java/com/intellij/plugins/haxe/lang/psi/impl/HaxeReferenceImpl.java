@@ -802,19 +802,41 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
       if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration) {
         HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
-        HaxeGenericParam genericParam = method.getGenericParam();
-        List<HaxeGenericListPart> partList = genericParam != null ? genericParam.getGenericListPartList() : null;
-        if (partList != null) {
+        HaxeGenericParam methodGenericParam = method.getGenericParam();
+        List<HaxeGenericListPart> methodPartList = methodGenericParam != null ? methodGenericParam.getGenericListPartList() : null;
+
+        List<HaxeGenericListPart> classPartList = null;
+        if (method.getContainingClass() instanceof HaxeClassDeclaration declaringClass) {
+          // check class for type parameters
+          HaxeGenericParam classGenericParam = declaringClass.getGenericParam();
+          classPartList = classGenericParam != null ? classGenericParam.getGenericListPartList() : null;
+        }
+
+        if (methodPartList != null || classPartList != null) {
           HaxeGenericListPart listPart = null;
-          for (HaxeGenericListPart genericListPart : partList) {
-            if (Objects.equals(typeName, genericListPart.getName())) {
-              listPart = genericListPart;
-              break;
+          // check method declaration first if it got generic params
+          if (methodPartList != null) {
+            for (HaxeGenericListPart genericListPart : methodPartList) {
+              if (Objects.equals(typeName, genericListPart.getName())) {
+                listPart = genericListPart;
+                break;
+              }
             }
           }
+          // if not found in method, then check class
+          if (listPart == null  && classPartList != null) {
+            for (HaxeGenericListPart genericListPart : classPartList) {
+              if (Objects.equals(typeName, genericListPart.getName())) {
+                listPart = genericListPart;
+                break;
+              }
+            }
+          }
+
           if (listPart != null) {
             HaxeTypeList list = listPart.getTypeList();
             HaxeTypeListPart typeListPart = listPart.getTypeListPart();
+            ASTNode node = listPart.getContext().getNode();
             if (list != null) {
               List<HaxeType> classReferences = new ArrayList<>();
               for (HaxeTypeListPart part : list.getTypeListPartList()) {
@@ -824,12 +846,25 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                 }
               }
 
-              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), classReferences);
+              HaxeTypeParameterMultiType constraint = HaxeTypeParameterMultiType.withTypeList(node, classReferences);
               return HaxeResolveResult.create(constraint);
             }else if (typeListPart != null) {
-              HaxeType type = typeListPart.getTypeOrAnonymous() == null ? null : typeListPart.getTypeOrAnonymous().getType();
-              HaxeTypeParameterMultiType constraint = new HaxeTypeParameterMultiType(listPart.getContext().getNode(), type == null ? List.of() : List.of(type));
-              return HaxeResolveResult.create(constraint);
+              HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
+              if (typeOrAnonymous != null) {
+                if (typeOrAnonymous.getType() != null) {
+                  HaxeTypeParameterMultiType constraint =
+                    HaxeTypeParameterMultiType.withTypeList(node, List.of(typeOrAnonymous.getType()));
+
+                  return HaxeResolveResult.create(constraint);
+                }
+                else if (typeOrAnonymous.getAnonymousType() != null) {
+                  HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+                  HaxeTypeParameterMultiType constraint =
+                    HaxeTypeParameterMultiType.withAnonymousList(node, anonymousType.getAnonymousTypeBodyList());
+
+                  return HaxeResolveResult.create(constraint);
+                }
+              }
             }
           }
         }

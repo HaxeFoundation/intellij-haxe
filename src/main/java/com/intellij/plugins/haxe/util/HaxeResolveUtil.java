@@ -37,6 +37,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParenthesizedExpressionReferenceImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
@@ -886,7 +887,24 @@ public class HaxeResolveUtil {
       }
       return result;
     }
-
+    if (haxeClass == null && type != null) {
+      PsiElement resolve = type.getReferenceExpression().resolve();
+      if (resolve instanceof HaxeGenericListPart listPart) {
+        if (listPart.getTypeListPart() != null) {
+          HaxeTypeOrAnonymous typeOrAnonymous = listPart.getTypeListPart().getTypeOrAnonymous();
+          if (typeOrAnonymous != null) {
+            HaxeType haxeType = typeOrAnonymous.getType();
+            HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+            if (haxeType != null) {
+              haxeClass = HaxeTypeParameterMultiType.withTypeList(resolve.getNode(), List.of(haxeType));
+            }
+            else if (anonymousType != null) {
+              haxeClass = HaxeTypeParameterMultiType.withAnonymousList(resolve.getNode(), anonymousType.getAnonymousTypeBodyList());
+            }
+          }
+        }
+      }
+    }
     if (null != haxeClass && haxeClass.isGeneric()) {
       HaxeResolveResult temp = HaxeResolveResult.create(haxeClass, specialization);
       temp.specializeByParameters(type.getTypeParam());
