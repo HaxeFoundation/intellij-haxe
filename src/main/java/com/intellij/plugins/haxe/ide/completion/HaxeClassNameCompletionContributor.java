@@ -129,7 +129,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       @Override
       public void visitImportStatement(@NotNull HaxeImportStatement importStatement) {
         final List<HaxeModel> exposedMembers = importStatement.getModel().getExposedMembers();
-        final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getText() : null;
+        final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getIdentifier().getText() : null;
 
         for (HaxeModel member : exposedMembers) {
           LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(member, alias);

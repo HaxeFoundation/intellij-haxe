@@ -16,7 +16,7 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportAlias;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.psi.PsiElement;
@@ -51,9 +51,9 @@ public class HaxeImportModel extends HaxeImportableModel {
 
   @Nullable
   public String getAliasName() {
-    HaxeIdentifier alias = getBasePsi().getAlias();
+    HaxeImportAlias alias = getBasePsi().getAlias();
     if (alias == null) return null;
-    return alias.getText();
+    return alias.getIdentifier().getText();
   }
 
   public HaxeReferenceExpression getReferenceExpression() {
@@ -63,7 +63,7 @@ public class HaxeImportModel extends HaxeImportableModel {
   @NotNull
   public List<HaxeModel> getExposedMembersInternal() {
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
-    List<HaxeModel> result = null;
+    List<HaxeModel> result =  new ArrayList<>();
     if (hasWildcard()) {
       if (qualifiedInfo.memberName != null) return Collections.emptyList();
 
@@ -78,13 +78,14 @@ public class HaxeImportModel extends HaxeImportableModel {
           .collect(Collectors.toList());
       }
     } else {
+      result.addAll(super.getExposedMembersInternal());
+
       if (hasAlias() && qualifiedInfo.fileName != null && qualifiedInfo.className == null) {
-        qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
+        result.add(new HaxeAliasModel(getBasePsi().getAlias()));
       }
-      result = super.getExposedMembersInternal();
     }
 
-    return result != null ? exposeEnumValues(result) : Collections.emptyList();
+    return exposeEnumValues(result);
   }
 
 
@@ -129,23 +130,38 @@ public class HaxeImportModel extends HaxeImportableModel {
    */
   @NotNull
   public List<PsiElement> exposeAllByName(String name) {
-    if (name == null) return List.of();
     List<PsiElement> results = new ArrayList<>();
+    if (name == null) return results;
+    if (hasAlias()) {
+      if (equalsToAlias(name)) {
+        List<HaxeModel> members = getExposedMembers();
+        if (getReferenceExpression() != null) {
+          for (HaxeModel member : members) {
+            if (member.getName().equals(getReferenceExpression().getIdentifier().getText())) {
+              return List.of(member.getBasePsi());
+            }
+          }
+        }
+
+        return List.of(getBasePsi().getAlias());
+      }
+    }else {
       for (HaxeModel exposedMember : getExposedMembers()) {
-        if (Objects.equals(exposedMember.getName(), name) || (equalsToAlias(name))) {
+        if (Objects.equals(exposedMember.getName(), name)) {
           if (!(exposedMember instanceof HaxeEnumValueModel)) {
             return List.of(exposedMember.getBasePsi());
-          }else {
+          }
+          else {
             results.add(exposedMember.getBasePsi());
           }
         }
       }
-
+    }
     return results;
   }
 
   private boolean equalsToAlias(String name) {
-    return hasAlias() && Objects.equals(getAliasName(), name);
+    return Objects.equals(getAliasName(), name);
   }
 
   @Override

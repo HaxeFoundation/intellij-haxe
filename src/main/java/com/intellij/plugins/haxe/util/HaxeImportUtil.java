@@ -31,7 +31,6 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @CustomLog
 public class HaxeImportUtil {
@@ -134,20 +133,32 @@ public class HaxeImportUtil {
       @Override
       public void visitElement(PsiElement element) {
         if (element instanceof HaxePackageStatement || element instanceof HaxeImportStatement || element instanceof HaxeUsingStatement) return;
-        if (element instanceof HaxeReference) {
-          HaxeReference reference = (HaxeReference)element;
+        if (element instanceof HaxeReference reference) {
           PsiElement referencedElement = reference.resolve();
-          if ((!(reference.isQualified() || referencedElement instanceof PsiPackage) || (reference.isQualified() && referencedElement instanceof HaxeClass)) &&
-              isApplicableExternalReference(referencedElement)) {
-            result.put(referencedElement, element);
+          if (!result.containsKey(referencedElement)) {
+            boolean qualified = reference.isQualified();
+            if (!(qualified || referencedElement instanceof PsiPackage)){
+              result.put(referencedElement, element);
+            }
+            if (qualified) {
+              if (referencedElement instanceof HaxeClass) {
+                result.put(referencedElement, element);
+              }
+              if (referencedElement instanceof HaxeIdentifier) {
+                result.put(referencedElement, element);
+              }
+              if (referencedElement instanceof HaxeImportAlias) {
+                result.put(referencedElement, element);
+              }
+            }
           }
         }
 
         super.visitElement(element);
       }
 
-      private boolean isApplicableExternalReference(PsiElement reference) {
-        return reference != null && !result.containsKey(reference) && reference.getContainingFile() != file;
+      private boolean inSameFile(PsiElement reference) {
+        return reference.getContainingFile() != file;
       }
 
       @Override

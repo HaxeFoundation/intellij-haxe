@@ -12,7 +12,8 @@ Haxe File
       HaxePsiToken:.('.')
       IDENTIFIER
         HaxePsiToken:ID('Sprite')
-    HaxePsiToken:in('in')
-    IDENTIFIER
-      HaxePsiToken:ID('FDSprite')
+    IMPORT_ALIAS
+      HaxePsiToken:in('in')
+      IDENTIFIER
+        HaxePsiToken:ID('FDSprite')
     HaxePsiToken:;(';')

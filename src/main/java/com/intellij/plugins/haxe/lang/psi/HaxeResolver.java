@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNameHelper;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
@@ -171,6 +172,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
 
+    if (result == null) result = checkIsAlias(reference);
     if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
@@ -667,6 +669,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "via parent type name.");
       return asList(haxeClassInType.getComponentName());
     }
+    return null;
+  }
+  @Nullable
+  private List<? extends PsiElement> checkIsAlias(HaxeReference reference) {
+      PsiFile file = reference.getContainingFile();
+      if (file instanceof HaxeFile haxeFile) {
+        List<HaxeImportStatement> statements = haxeFile.getImportStatements();
+        for (HaxeImportStatement statement : statements) {
+          HaxeImportAlias alias = statement.getAlias();
+          if (alias != null) {
+            HaxeIdentifier identifier = alias.getIdentifier();
+            if (identifier.textMatches(reference)) {
+              return List.of(alias);
+            }
+          }
+        }
+      }
     return null;
   }
 

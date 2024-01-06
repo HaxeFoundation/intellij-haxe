@@ -267,14 +267,19 @@ runTimeMetaArg ::= arrayLiteral | objectLiteral | constantExpression
 private runTimeMetaArgList ::= runTimeMetaArg (',' runTimeMetaArg)*
 //
 
-private importAlias ::= ('in' | 'as') identifier {elementType="identifier"}
+private aliasKeyword ::= ('in' | 'as')
+importAlias ::= aliasKeyword identifier
+{
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClassResolvable"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeImportAliasPsiMixinImpl"
+}
 importWildcard ::= '.*'
 importStatement ::= 'import' simpleQualifiedReferenceExpression [importWildcard | importAlias]';'
 {
   implements="com.intellij.plugins.haxe.lang.psi.HaxeImportStatementPsiMixin"
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeImportStatementPsiMixinImpl"
   methods=[
-    alias="identifier";
+    alias="importAlias";
     wildcard="importWildcard"
   ]
 }

@@ -46,6 +46,8 @@ public interface HaxeTokenTypeSets {
   IElementType IS_KEYWORD = new HaxeElementType("is");
   IElementType IN_KEYWORD = new HaxeElementType("in");
 
+  IElementType AS_KEYWORD = new HaxeElementType("as");
+
   TokenSet WHITESPACES = TokenSet.create(
     WSNLS,
     TokenType.WHITE_SPACE,

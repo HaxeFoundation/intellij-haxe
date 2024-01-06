@@ -21,15 +21,13 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiType;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeReference extends HaxeExpression, PsiJavaCodeReferenceElement {
-  @NotNull // TODO mlo: rename to ResolveType or something like that
-  HaxeResolveResult resolveHaxeClass();
+public interface HaxeReference extends HaxeExpression, HaxeClassResolvable, PsiJavaCodeReferenceElement {
+
 
   @Nullable
   PsiType getPsiType();

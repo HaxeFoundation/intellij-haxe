@@ -617,6 +617,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // if this is the case threat as "class reference" Class<theClass>
       //HaxeResolveResult resolveResult = resolveHaxeClass();
       resolve = resolve();
+      // find real type for import alias
+      if (resolve instanceof  HaxeImportAlias alias) {
+        return alias.resolveHaxeClass();
+      }
+
       // Note: this is a bit of a hack for switch extractor arguments that are not named components but a reference to a reference
       if (resolve instanceof HaxeReferenceExpression referenceExpression) {
         PsiElement second = referenceExpression.resolve();
@@ -1024,7 +1029,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         resolver = result.getSpecialization().toGenericResolver(haxeClass);
       }
+      if (leftReference.resolve() instanceof  HaxeImportAlias alias) {
+        name = alias.getIdentifier().getText();
+      }
     }
+
 
     boolean isThis = leftReference instanceof HaxeThisExpression;
     if (leftReference != null && name != null &&
@@ -1320,7 +1329,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiElement getQualifier() {
     PsiElement expression = getFirstChild();
-    return expression != null && expression instanceof HaxeReference ? expression : null;
+    if (expression instanceof HaxeIdentifier identifier) expression = identifier.getParent();
+    if (expression instanceof HaxeReference reference) return reference;
+    return null;
   }
 
   @Nullable

@@ -129,7 +129,7 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
       else if (parent instanceof HaxeAbstractToType) {
         return token.getTokenType() == HaxeTokenTypes.KTO;
       }
-      else if (parent instanceof HaxeImportStatement importStatement && importStatement.getAlias() != null) {
+      else if (parent instanceof HaxeImportAlias alias) {
         return token.textMatches("in") || token.textMatches("as");
       }
     return false;

@@ -127,6 +127,15 @@ public class HaxeExpressionEvaluator {
       context.endScope();
       return type;
     }
+    if (element instanceof  HaxeImportAlias alias) {
+      HaxeResolveResult result = alias.resolveHaxeClass();
+      HaxeClass haxeClass = result.getHaxeClass();
+      if (haxeClass == null) {
+        return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
+      }else {
+        return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(haxeClass.getModel(),element)).createHolder();
+      }
+    }
 
     if (element instanceof HaxeReturnStatement returnStatement) {
       ResultHolder result = SpecificHaxeClassReference.getVoid(element).createHolder();
