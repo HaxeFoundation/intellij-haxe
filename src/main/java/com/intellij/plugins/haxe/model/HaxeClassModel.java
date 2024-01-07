@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
-import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
@@ -704,14 +703,14 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public boolean hasGenericParams() {
-    return getPsi().getGenericParam() != null;
+    return getGenericParamPsi() != null;
   }
 
   @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     // anonymous structures does not have TypeParameters on their own, but their parent may declar them.
-      HaxeGenericParam genericParam = isAnonymous() ? getGenericParamFromParent() : getPsi().getGenericParam();
+      HaxeGenericParam genericParam = getGenericParamPsi();
       if (genericParam != null) {
         int index = 0;
         for (HaxeGenericListPart part : genericParam.getGenericListPartList()) {
@@ -722,11 +721,22 @@ public class HaxeClassModel implements HaxeExposableModel {
     return out;
   }
 
+  @Nullable
+  private HaxeGenericParam getGenericParamPsi() {
+    return CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getGenericParamPsiCached).getValue();
+  }
+
+  private static CachedValueProvider.Result<HaxeGenericParam> getGenericParamPsiCached(@NotNull HaxeClass haxeClass) {
+    boolean isAnonymous = haxeClass instanceof HaxeAnonymousType;
+    HaxeGenericParam param = isAnonymous ? getGenericParamFromParent(haxeClass) : haxeClass.getGenericParam();
+    return  CachedValueProvider.Result.create(param, haxeClass);
+  }
+
   /**
    * only intended for typedefs with anonymous structures
    */
-  private HaxeGenericParam getGenericParamFromParent() {
-    HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(getPsi(), HaxeTypedefDeclaration.class);
+  private static HaxeGenericParam getGenericParamFromParent(HaxeClass haxeClass) {
+    HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
     if (type == null) return null;
     return type.getGenericParam();
   }
@@ -736,10 +746,11 @@ public class HaxeClassModel implements HaxeExposableModel {
    */
   @NotNull
   public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
-    if (getPsi().getGenericParam() != null) {
+    HaxeGenericParam param = getGenericParamPsi();
+    if (param != null) {
 
       HaxeGenericResolver resolver = new HaxeGenericResolver();
-      for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
+      for (HaxeGenericListPart part : param.getGenericListPartList()) {
         HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
         ResultHolder constraint = model.getConstraint(parentResolver);
         if (null == constraint) {

@@ -690,20 +690,6 @@ public class HaxeTypeCompatible {
 
   //used to help prevent stack overflows in canAssignToFromSpecificType
   private static boolean referencesAreDifferent(@NotNull SpecificHaxeClassReference first, @NotNull SpecificHaxeClassReference second) {
-    //if(Objects.equals(first.getHaxeClassModel(),second.getHaxeClassModel())) {
-    //  @NotNull ResultHolder[] firstSpecifics = first.getSpecifics();
-    //  @NotNull ResultHolder[] secondSpecifics = second.getSpecifics();
-    //  if (firstSpecifics.length != secondSpecifics.length) return true;
-    //  for (int i = 0; i < firstSpecifics.length; i++) {
-    //    SpecificTypeReference firstGeneric = firstSpecifics[i].getType();
-    //    SpecificTypeReference secondGeneric = secondSpecifics[i].getType();
-    //    if(!firstGeneric.toPresentationString().equals(secondGeneric.toPresentationString())) {
-    //      return true;
-    //    }
-    //  }
-    //  return false;
-    //}
-    //return true;
     return !first.toPresentationString().equalsIgnoreCase(second.toPresentationString());
   }
 
