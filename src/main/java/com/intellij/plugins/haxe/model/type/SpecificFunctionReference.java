@@ -152,7 +152,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public SpecificFunctionReference withConstantValue(Object constantValue) {
-    return new SpecificFunctionReference(arguments, returnValue, method, context, constantValue);
+    if (method != null) {
+      return new SpecificFunctionReference(arguments, returnValue, method, context, constantValue);
+    }else {
+      return new SpecificFunctionReference(arguments, returnValue, functionType, context);
+    }
   }
 
   @Override

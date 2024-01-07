@@ -315,4 +315,10 @@ public class HaxeGenericResolver {
   }
 
 
+  public HaxeGenericResolver without(String name) {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    resolvers.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.resolvers::add);
+    constaints.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.constaints::add);
+    return resolver;
+  }
 }

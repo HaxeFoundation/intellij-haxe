@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -721,6 +722,9 @@ public class HaxeClassModel implements HaxeExposableModel {
     return out;
   }
 
+  /**
+   * only intended for typedefs with anonymous structures
+   */
   private HaxeGenericParam getGenericParamFromParent() {
     HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(getPsi(), HaxeTypedefDeclaration.class);
     if (type == null) return null;
@@ -733,10 +737,17 @@ public class HaxeClassModel implements HaxeExposableModel {
   @NotNull
   public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
     if (getPsi().getGenericParam() != null) {
-      HaxeResolveResult result = HaxeResolveResult.create(getPsi(),
-                                      parentResolver == null ? HaxeGenericSpecialization.EMPTY
-                                                             : HaxeGenericSpecialization.fromGenericResolver(null, parentResolver));
-      HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(getPsi());
+
+      HaxeGenericResolver resolver = new HaxeGenericResolver();
+      for (HaxeGenericListPart part : getPsi().getGenericParam().getGenericListPartList()) {
+        HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
+        ResultHolder constraint = model.getConstraint(parentResolver);
+        if (null == constraint) {
+          constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
+        }
+        resolver.addConstraint(model.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+      }
+
       return resolver;
     }
     return new HaxeGenericResolver();

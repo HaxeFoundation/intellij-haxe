@@ -203,8 +203,8 @@ public class HaxeTypeCompatible {
       }
     }
 
-    if (to instanceof SpecificHaxeClassReference && from instanceof SpecificHaxeClassReference) {
-      return canAssignToFromType((SpecificHaxeClassReference)to, (SpecificHaxeClassReference)from, includeImplicitCast, toOrigin, fromOrigin) ;
+    if (to instanceof SpecificHaxeClassReference toClassReference && from instanceof SpecificHaxeClassReference fromClassReference) {
+      return canAssignToFromType(toClassReference, fromClassReference, includeImplicitCast, toOrigin, fromOrigin) ;
     }
 
     if (to instanceof SpecificEnumValueReference toReference && from instanceof SpecificEnumValueReference fromReference) {
@@ -540,11 +540,19 @@ public class HaxeTypeCompatible {
     // The compiler does not accept types to be assigned to Class<Any> without being casted
     // This is probably due to the abstract implicit cast methods only accepting and returning instances.
     if(typeParameterTo.isAny() && !from.isAny()) return false;
+
+    //TODO
+    //HACK prevent overflow  when circular, this really should not happen but it does :(
+    // need to find where in the code we creates this loop, probably generic propagation
+    if (simpleTypeParameterRecursionGuard(to, from, typeParameterTo, typeParameterFrom)) return false;
+
     return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }
   private static boolean handleEnumType(SpecificHaxeClassReference to, SpecificHaxeClassReference from) {
     if(from.isEnumValueClass()) return false;
     if (from.isClass()) return false;
+    // prevent overflow due to wrap in Enum class
+
 
     ResultHolder[] specificsTo = to.getSpecifics();
     ResultHolder[] specificsFrom = from.getSpecifics();
@@ -555,8 +563,30 @@ public class HaxeTypeCompatible {
 
     SpecificHaxeClassReference typeParameterTo = specificsTo[0].getClassType();
     SpecificHaxeClassReference typeParameterFrom = specificsFrom[0].getClassType();
+    //TODO
+    //HACK prevent overflow  when circular, this really should not happen but it does :(
+    // need to find where in the code we creates this loop, probably generic propagation
+    // possible hint,  seems to be related to abstracts and/Or enums ?
+    if (simpleTypeParameterRecursionGuard(to, from, typeParameterTo, typeParameterFrom)) return false;
+
     return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }
+
+  /**
+   * just making sure type and typeParameter is the same class
+   */
+  private static boolean simpleTypeParameterRecursionGuard(SpecificHaxeClassReference to,
+                                                           SpecificHaxeClassReference from,
+                                                           SpecificHaxeClassReference typeParameterTo,
+                                                           SpecificHaxeClassReference typeParameterFrom) {
+    if (to.isWrapper) to = to.getSpecifics()[0].getClassType();
+    if (from.isWrapper) from = from.getSpecifics()[0].getClassType();
+    if (to == typeParameterTo && to.getSpecifics().length > 0) return true;
+    if (from == typeParameterFrom && from.getSpecifics().length > 0) return true;
+
+    return false;
+  }
+
   static public boolean canAssignToFromSpecificType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from
@@ -660,12 +690,28 @@ public class HaxeTypeCompatible {
 
   //used to help prevent stack overflows in canAssignToFromSpecificType
   private static boolean referencesAreDifferent(@NotNull SpecificHaxeClassReference first, @NotNull SpecificHaxeClassReference second) {
+    //if(Objects.equals(first.getHaxeClassModel(),second.getHaxeClassModel())) {
+    //  @NotNull ResultHolder[] firstSpecifics = first.getSpecifics();
+    //  @NotNull ResultHolder[] secondSpecifics = second.getSpecifics();
+    //  if (firstSpecifics.length != secondSpecifics.length) return true;
+    //  for (int i = 0; i < firstSpecifics.length; i++) {
+    //    SpecificTypeReference firstGeneric = firstSpecifics[i].getType();
+    //    SpecificTypeReference secondGeneric = secondSpecifics[i].getType();
+    //    if(!firstGeneric.toPresentationString().equals(secondGeneric.toPresentationString())) {
+    //      return true;
+    //    }
+    //  }
+    //  return false;
+    //}
+    //return true;
     return !first.toPresentationString().equalsIgnoreCase(second.toPresentationString());
   }
 
   @NotNull
   public static SpecificHaxeClassReference wrapType(@NotNull ResultHolder type, @NotNull PsiElement context, boolean useEnum) {
-    return getStdClass(useEnum ? "Enum" : "Class", context, new ResultHolder[]{type});
+    SpecificHaxeClassReference aClass = getStdClass(useEnum ? "Enum" : "Class", context, new ResultHolder[]{type});
+    aClass.isWrapper = true;
+    return aClass;
   }
 
   // We only want to wrap "real" types in Class<T>, ex Class<String>

@@ -59,6 +59,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Nullable private HaxeClass clazz;
 
+  // workaround to avoid overflow when wrapping and unwrapping
+  public boolean isWrapper = false;
+
   public SpecificHaxeClassReference(
     @NotNull HaxeClassReference classReference,
     @NotNull ResultHolder[] specifics,

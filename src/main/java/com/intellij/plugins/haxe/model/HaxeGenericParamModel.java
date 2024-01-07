@@ -57,30 +57,28 @@ public class HaxeGenericParamModel {
     HaxeTypeListPart constraint = part.getTypeListPart();
     if (null != constraint) {
       HaxeTypeOrAnonymous toa = constraint.getTypeOrAnonymous();
-      if (null != toa.getType()) {
-        HaxeReferenceExpression reference = toa.getType().getReferenceExpression();
-        if (null != reference) {
-
-          ResultHolder result =
-            HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part), resolver).result;
+      if (toa != null) {
+        if (null != toa.getType()) {
+          HaxeReferenceExpression reference = toa.getType().getReferenceExpression();
+          ResultHolder result = HaxeExpressionEvaluator.evaluate(reference, new HaxeExpressionEvaluatorContext(part), resolver).result;
           if (!result.isUnknown()) {
             return result;
-          }else {
-            if(HaxeTypeResolver.isTypeParameter(reference)) {
+          } else {
+            if (HaxeTypeResolver.isTypeParameter(reference)) {
               return HaxeTypeResolver.getTypeFromTypeOrAnonymous(toa);
             }
           }
         }
+
         else {
-
-          // TODO: Deal with function return types.
-
+          // Anonymous struct for a constraint.
+          // TODO: Turn the anonymous structure into a ResolveResult.
+          return HaxeTypeResolver.getPsiElementType(toa.getOriginalElement(), resolver); //temp solution
         }
       }
-      else {
-        // Anonymous struct for a constraint.
-        // TODO: Turn the anonymous structure into a ResolveResult.
-        return HaxeTypeResolver.getPsiElementType(toa.getOriginalElement(),  resolver); //temp solution
+      HaxeFunctionType functionType = constraint.getFunctionType();
+      if (functionType != null) {
+        return HaxeTypeResolver.getTypeFromFunctionType(functionType);
       }
     }
     return null;

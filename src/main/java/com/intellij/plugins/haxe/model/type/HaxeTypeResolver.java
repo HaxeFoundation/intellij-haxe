@@ -243,6 +243,9 @@ public class HaxeTypeResolver {
         ResultHolder resolved = returnType ? resolver.resolveReturnType(haxeClassReference) : resolver.resolve(className);
         if (null != resolved) {
           result = resolved;
+          // removing from resolver to avoid attempting to propagate to the resolved class
+          // if T = Array<T> and we continue to propagate T into Array<T>, then it will go on forever Array<Array<Array<...>>
+          resolver = resolver.without(className).withoutUnknowns();
         }
       }
     }
@@ -377,7 +380,7 @@ public class HaxeTypeResolver {
       returnValue = SpecificTypeReference.getInvalid(type).createHolder();
     }
 
-    return new SpecificFunctionReference(args, returnValue, (HaxeMethodModel)null, type).createHolder();
+    return new SpecificFunctionReference(args, returnValue, type, type).createHolder();
   }
 
   static String getArgumentName(HaxeFunctionArgument argument) {

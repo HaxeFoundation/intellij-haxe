@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +49,15 @@ public class HaxeCallExpressionAnnotator implements Annotator {
               classReference = classReference.fullyResolveTypeDefClass();
             }
             if (functionType == null) {
-              boolean callable = classReference.getHaxeClassModel().isCallable();
-              if (callable) {
+              HaxeClassModel model = classReference.getHaxeClassModel();
+              if (model != null) {
+                boolean callable = model.isCallable();
+                if (callable) {
+                  type = SpecificTypeReference.getDynamic(classReference.getElementContext()).createHolder();
+                }
+              }
+              // if we could not resolve the type "ignore" for now
+              else if (classReference.isTypeParameter()) {
                 type = SpecificTypeReference.getDynamic(classReference.getElementContext()).createHolder();
               }
             }
