@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.22
+* Added: Support for resolving & completion for typeParameters with anonymous structures.
+* Improvement: better handling of import statements with aliases. 
+* Misc NPE fixes.
+
+
 ## 1.4.21
 * Added: Support for comment line/block command in HXML files
 * Improvement: Attempt at restoring `Member pull up` refactoring

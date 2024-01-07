@@ -467,6 +467,10 @@ public class HaxeResolveUtil {
           final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
           if (typeFieldList != null) {
             result.addAll(typeFieldList.getAnonymousTypeFieldList());
+          }else {
+            result.addAll(anonymousTypeBody.getMethodDeclarationList());
+            result.addAll(anonymousTypeBody.getFieldDeclarationList());
+            result.addAll(anonymousTypeBody.getOptionalFieldDeclarationList());
           }
           body = anonymousTypeBody;
         }
@@ -899,7 +903,7 @@ public class HaxeResolveUtil {
               haxeClass = HaxeTypeParameterMultiType.withTypeList(resolve.getNode(), List.of(haxeType));
             }
             else if (anonymousType != null) {
-              haxeClass = HaxeTypeParameterMultiType.withAnonymousList(resolve.getNode(), anonymousType.getAnonymousTypeBodyList());
+              haxeClass = anonymousType;
             }
           }
         }
