@@ -2,6 +2,7 @@
 
 ## 1.4.22
 * Added: Support for resolving & completion for typeParameters with anonymous structures.
+* Added: Check argument types in call expressions for functionTypes from typeParameters.
 * Improvement: better handling of import statements with aliases. 
 * Misc NPE fixes.
 

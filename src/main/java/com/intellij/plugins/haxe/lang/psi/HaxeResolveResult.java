@@ -471,6 +471,7 @@ public class HaxeResolveResult implements Cloneable {
       final PsiElement specializedType = typeList.get(i);
 
       if (genericParamName == null) continue;
+      if (specializedType == null) continue;
 
       final HaxeResolveResult specializedTypeResult = HaxeResolveUtil.getHaxeClassResolveResult(specializedType, specialization);
       if(specializedTypeResult.getHaxeClass() != null) {
@@ -479,10 +480,10 @@ public class HaxeResolveResult implements Cloneable {
       else if(specializedTypeResult.getFunctionType() != null) {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }else {
-        //TODO: Experimental (adding fake haxeClass for generic types that are not connected to nay type yet)
-        HaxeClassWrapperForTypeParameter aClass = new HaxeClassWrapperForTypeParameter(specializedType.getNode(), List.of());
-        HaxeResolveResult result = HaxeResolveResult.create(aClass, new HaxeGenericSpecialization());
-        specialization.put(haxeClass, genericParamName, result);
+          //TODO: Experimental (adding fake haxeClass for generic types that are not connected to any type yet)
+          HaxeClassWrapperForTypeParameter aClass = new HaxeClassWrapperForTypeParameter(specializedType.getNode(), List.of());
+          HaxeResolveResult result = HaxeResolveResult.create(aClass, new HaxeGenericSpecialization());
+          specialization.put(haxeClass, genericParamName, result);
       }
 
     }
