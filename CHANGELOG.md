@@ -1,6 +1,11 @@
 # Changelog
 
 ## 1.4.22
+* Added: Auto-detect preprocessing definitions from build config (enabled by default)
+> This feature can be disabled under `Settings -> Build, Execution, Deployment -> Haxe`. If disabled only manually configured definitions will be used.
+
+> Auto-detected definitions can be overridden with user defined definitions or removed by setting definition value  = `*UNSET*`
+* Added: Completion suggestions for preprocessor definitions 
 * Added: Support for resolving & completion for typeParameters with anonymous structures.
 * Added: Check argument types in call expressions for functionTypes from typeParameters.
 * Improvement: better handling of import statements with aliases. 

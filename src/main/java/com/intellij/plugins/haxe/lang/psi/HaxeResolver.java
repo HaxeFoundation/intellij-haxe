@@ -894,6 +894,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         List<String> names = getGenericParamNames(nakedResult);
         List<HaxeTypeListPart> typeParameterList = type.getTypeParam().getTypeList().getTypeListPartList();
         for (int i = 0; i < typeParameterList.size(); i++) {
+          if (names.size() -1 < i) break;
           String name = names.get(i);
           HaxeTypeListPart part = typeParameterList.get(i);
           if (part.getTypeOrAnonymous() != null) {

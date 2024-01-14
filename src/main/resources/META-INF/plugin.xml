@@ -249,6 +249,7 @@
 
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionContributor" order="after ControllingCompletion"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePrecompilerContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeEnumValuesCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
@@ -289,6 +290,7 @@
 
     <definitionsScopedSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher"/>
 
+    <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
 

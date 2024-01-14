@@ -41,8 +41,7 @@ import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionPatt
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionUtil.*;
 import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordOnly;
 import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordWithSpace;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_GET;
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.PROPERTY_SET;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 /**
@@ -82,89 +81,90 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     List<LookupElement> lookupElements = new ArrayList<>();
 
+    boolean isPPExpression = psiElement().withElementType(PPEXPRESSION).accepts(position);
     // avoid showing keyword suggestions when not relevant
     if (allowLookupPattern.accepts(completionElementAsComment)) {
+      if (!isPPExpression) {
+        if (dotFromIterator.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
+          return;
+        }
 
-      if (dotFromIterator.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
-        return;
-      }
+        if (packageExpected.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, PACKAGE_KEYWORD);
+          return;
+        }
 
-      if (packageExpected.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, PACKAGE_KEYWORD);
-        return;
-      }
+        if (toplevelScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, TOP_LEVEL_KEYWORDS);
+        }
 
-      if (toplevelScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, TOP_LEVEL_KEYWORDS);
-      }
+        if (moduleScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, MODULE_STRUCTURES_KEYWORDS);
+          addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+        }
 
-      if (moduleScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, MODULE_STRUCTURES_KEYWORDS);
-        addKeywords(lookupElements, VISIBILITY_KEYWORDS);
-      }
+        if (classDeclarationScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, CLASS_DEFINITION_KEYWORDS);
+        }
+        if (interfaceDeclarationScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, INTERFACE_DEFINITION_KEYWORDS);
+        }
 
-      if (classDeclarationScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, CLASS_DEFINITION_KEYWORDS);
-      }
-      if (interfaceDeclarationScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, INTERFACE_DEFINITION_KEYWORDS);
-      }
+        if (abstractTypeDeclarationScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, ABSTRACT_DEFINITION_KEYWORDS);
+        }
 
-      if (abstractTypeDeclarationScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, ABSTRACT_DEFINITION_KEYWORDS);
-      }
+        if (interfaceBodyScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, INTERFACE_BODY_KEYWORDS);
+        }
 
-      if (interfaceBodyScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, INTERFACE_BODY_KEYWORDS);
-      }
-
-      if (classBodyScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, CLASS_BODY_KEYWORDS);
-        addKeywords(lookupElements, VISIBILITY_KEYWORDS);
-        addKeywords(lookupElements, ACCESSIBILITY_KEYWORDS);
-      }
-
-      if (functionBodyScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
-        addKeywords(lookupElements, VALUE_KEYWORDS);
-      }
-      if (initScope.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, VALUE_KEYWORDS);
-      }
+        if (classBodyScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, CLASS_BODY_KEYWORDS);
+          addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+          addKeywords(lookupElements, ACCESSIBILITY_KEYWORDS);
+        }
 
 
-      if (insideSwitchCase.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
-      }
-
-      if (isAfterIfStatement.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, Set.of(keywordWithSpace(KELSE)));
-      }
-
-      if (isInsideLoopBlock.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, LOOP_BODY_KEYWORDS);
-      }
-
-      if (isInsideForIterator.accepts(completionElementAsComment)) {
-        addKeywords(lookupElements, LOOP_ITERATOR_KEYWORDS);
-      }
-
-      HaxePropertyAccessor propertyAccessor = PsiTreeUtil.getParentOfType(position, HaxePropertyAccessor.class);
-      if (isPropertyGetterValue.accepts(propertyAccessor)) {
-        result.stopHere();
-        lookupElements.clear();
-        addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-        addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
-      }
-      if (isPropertySetterValue.accepts(propertyAccessor)) {
-        result.stopHere();
-        lookupElements.clear();
-        addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-        addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
-      }
+        if (functionBodyScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
+          addKeywords(lookupElements, VALUE_KEYWORDS);
+        }
+        if (initScope.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, VALUE_KEYWORDS);
+        }
 
 
+        if (insideSwitchCase.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
+        }
+
+        if (isAfterIfStatement.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, Set.of(keywordWithSpace(KELSE)));
+        }
+
+        if (isInsideLoopBlock.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, LOOP_BODY_KEYWORDS);
+        }
+
+        if (isInsideForIterator.accepts(completionElementAsComment)) {
+          addKeywords(lookupElements, LOOP_ITERATOR_KEYWORDS);
+        }
+
+        HaxePropertyAccessor propertyAccessor = PsiTreeUtil.getParentOfType(position, HaxePropertyAccessor.class);
+        if (isPropertyGetterValue.accepts(propertyAccessor)) {
+          result.stopHere();
+          lookupElements.clear();
+          addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
+        }
+        if (isPropertySetterValue.accepts(propertyAccessor)) {
+          result.stopHere();
+          lookupElements.clear();
+          addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
+        }
+      }
       addKeywords(lookupElements, PP_KEYWORDS, -0.2f);
       addKeywords(lookupElements, MISC_KEYWORDS, -0.1f);
 

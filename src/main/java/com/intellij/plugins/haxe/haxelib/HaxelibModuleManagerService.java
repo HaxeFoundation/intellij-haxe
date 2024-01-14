@@ -27,6 +27,7 @@ import com.intellij.openapi.project.ModuleListener;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.startup.ProjectActivity;
+import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
 import kotlin.Unit;
 import kotlin.coroutines.Continuation;
 import lombok.CustomLog;
@@ -70,6 +71,7 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
   @Override
   public void moduleRemoved(@NotNull Project project, @NotNull Module module) {
     HaxelibCacheManager.removeInstance(module);
+    HaxeDefineDetectionManager.getInstance(project).removeDetectedDefinitions(module);
     HaxelibProjectUpdater.getInstance().findProjectTracker(project).moduleRemoved(module);
     ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
   }

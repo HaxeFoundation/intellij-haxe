@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.util.List;
 
 
 /**
@@ -32,18 +33,18 @@ public enum HaxeTarget {
 
   // Target     clFlag    Extension,  OutputDir,  OutputType              Description
 
-  NEKO(         "neko",   ".n",       "neko",     OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.neko")),
-  JAVA_SCRIPT(  "js",     ".js",      "js",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.js")),
-  FLASH(        "swf",    ".swf",     "flash",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.swf")),
-  CPP(          "cpp",    ".exe",     "cpp",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.cpp")),
-  CPPIA(        "cppia",  ".cppia",   "cppia",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.cppia")),
-  PHP(          "php",    ".php",     "php",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.php")),
-  JAVA(         "java",   ".jar",     "java",     OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.java")),
-  CSHARP(       "cs",     ".exe",     "cs",       OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.csharp")),
-  PYTHON(       "python", ".py",      "python",   OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.python")),
-  LUA(          "lua",    ".lua",     "lua",      OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.lua")),
-  HL(           "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl")),
-  INTERP(       "-interp","",         "",         OUTPUT_TYPE.NONE,       HaxeCommonBundle.message("haxe.target.interp"));
+  NEKO(         "neko",   ".n",       "neko",     OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.neko"), List.of("neko", "sys")),
+  JAVA_SCRIPT(  "js",     ".js",      "js",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.js"), List.of("js")),
+  FLASH(        "swf",    ".swf",     "flash",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.swf"), List.of("flash")),
+  CPP(          "cpp",    ".exe",     "cpp",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.cpp"), List.of("cpp", "sys")),
+  CPPIA(        "cppia",  ".cppia",   "cppia",    OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.cppia"), List.of("cppia")),
+  PHP(          "php",    ".php",     "php",      OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.php"), List.of("php", "sys")),
+  JAVA(         "java",   ".jar",     "java",     OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.java"), List.of("java", "jvm", "sys")),
+  CSHARP(       "cs",     ".exe",     "cs",       OUTPUT_TYPE.DIRECTORY,  HaxeCommonBundle.message("haxe.target.csharp"), List.of("cs", "sys")),
+  PYTHON(       "python", ".py",      "python",   OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.python"), List.of("python")),
+  LUA(          "lua",    ".lua",     "lua",      OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.lua"), List.of("lua")),
+  HL(           "hl",     ".hl",      "hl",       OUTPUT_TYPE.FILE,       HaxeCommonBundle.message("haxe.target.hl"), List.of("hl")),
+  INTERP(       "-interp","",         "",         OUTPUT_TYPE.NONE,       HaxeCommonBundle.message("haxe.target.interp"), List.of("eval"));
 
   private enum OUTPUT_TYPE {
     FILE,
@@ -57,12 +58,15 @@ public enum HaxeTarget {
   private final String fileExtension;
   private final OUTPUT_TYPE outputType;
 
-  HaxeTarget(String flag, String fileExtension, String outputDir, OUTPUT_TYPE outputType, String description) {
+  private final List<String> definitions;
+
+  HaxeTarget(String flag, String fileExtension, String outputDir, OUTPUT_TYPE outputType, String description, List<String> definitions) {
     this.flag = flag;
     this.description = description;
     this.outputDir = outputDir;
     this.outputType = outputType;
     this.fileExtension = fileExtension;
+    this.definitions = definitions;
   }
 
   public String getFlag() {
@@ -71,6 +75,10 @@ public enum HaxeTarget {
 
   public String getCompilerFlag() {
     return "-" + flag;
+  }
+
+  public List<String> getDefinitions() {
+    return definitions;
   }
 
   public String getDefaultOutputSubdirectory() {

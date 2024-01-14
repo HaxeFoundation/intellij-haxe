@@ -34,6 +34,7 @@ public class HaxeElementType extends IElementType {
     if ("EMBEDDED_META".equals(name)) {
       return new HaxeEmbeddedElementType(name, HaxeMetadataLanguage.INSTANCE);
     }
+    //TODO try to make CONDITIONAL_STATEMENT_ID a token that can have docs
     return new HaxeElementType(name);
   }
 

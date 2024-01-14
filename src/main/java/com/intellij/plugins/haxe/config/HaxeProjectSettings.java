@@ -26,10 +26,9 @@ import com.intellij.plugins.haxe.util.HaxeModificationTracker;
 import com.intellij.plugins.haxe.util.HaxeTrackedModifiable;
 import com.intellij.util.containers.ContainerUtil;
 import org.jdom.Element;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author: Fedor.Korotkov
@@ -43,7 +42,9 @@ import java.util.Set;
 public class HaxeProjectSettings implements PersistentStateComponent<Element>, HaxeTrackedModifiable {
   public static final String HAXE_SETTINGS = "HaxeProjectSettings";
   public static final String DEFINES = "defines";
+  public static final String AUTO_DETECT = "auto_detect_defines";
   private String userCompilerDefinitions = "";
+  private boolean autoDetectDefinitions = true;
   private HaxeModificationTracker tracker = new HaxeModificationTracker(getClass().getName());
 
   public Set<String> getUserCompilerDefinitionsAsSet() {
@@ -59,6 +60,26 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
     return userCompilerDefinitions.split(",");
   }
 
+  @NotNull
+  public Map<String, String> getUserCompilerDefinitionMap() {
+    Map<String, String> defintionMap = new HashMap<>();
+    String[] definitions = getUserCompilerDefinitions();
+    for (String def : definitions) {
+      if (def.trim().isEmpty()) continue;
+
+      String[] split = def.split("=", 2);
+
+      // Dashes are subtraction operators, so definitions (on the command line) that
+      // contain dashes are mapped to an equivalent using underscores (when looking up definitions).
+      String key = split[0];
+      String value = split.length > 1 ? split[1] : null;
+      defintionMap.put(key, value == null ? "" : value);
+
+
+    }
+    return defintionMap;
+  }
+
   public void setUserCompilerDefinitions(String[] userCompilerDefinitions) {
     this.userCompilerDefinitions = StringUtil.join(ContainerUtil.filter(userCompilerDefinitions, new Condition<String>() {
       @Override
@@ -72,6 +93,13 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   @Override
   public void loadState(Element state) {
     userCompilerDefinitions = state.getAttributeValue(DEFINES, "");
+    String value = state.getAttributeValue(AUTO_DETECT);
+    if (value == null) {
+      // using default value "true" value if not found
+      autoDetectDefinitions = true;
+    }else {
+      autoDetectDefinitions = Boolean.parseBoolean(value);
+    }
     tracker.notifyUpdated();
   }
 
@@ -79,6 +107,7 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   public Element getState() {
     final Element element = new Element(HAXE_SETTINGS);
     element.setAttribute(DEFINES, userCompilerDefinitions);
+    element.setAttribute(AUTO_DETECT, String.valueOf(autoDetectDefinitions));
     return element;
   }
 
@@ -90,5 +119,13 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   @Override
   public boolean isModifiedSince(Stamp s) {
     return tracker.isModifiedSince(s);
+  }
+
+  public boolean getAutoDetectDefinitions() {
+    return autoDetectDefinitions;
+  }
+
+  public void setAutoDetectDefinitions(boolean selected) {
+    autoDetectDefinitions = selected;
   }
 }

@@ -606,7 +606,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
         if (arrayAccessGetter instanceof  HaxeExternInterfaceDeclaration  declaration && declaration.getComponentName().textMatches("ArrayAccess")){
           HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);
-          return result.getSpecialization().get(arrayAccessGetter, "T");
+          HaxeResolveResult getter = result.getSpecialization().get(arrayAccessGetter, "T");
+          if (getter != null) return getter;
         }
 
         return HaxeResolveUtil.getHaxeClassResolveResult(arrayAccessGetter, memberSpecialization);

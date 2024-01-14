@@ -7,10 +7,11 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.project.DumbAware;
+import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
 import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
 import com.intellij.plugins.haxe.ide.intention.HaxeDefineIntention;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
@@ -24,6 +25,7 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Set;
 
 import static com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUtil.colorizeKeyword;
@@ -39,6 +41,9 @@ import static com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUt
  *  - comments and preprosessor / conditional compilation
  */
 public class HaxeFastColorAnnotator implements Annotator , DumbAware {
+
+  public static final Key<String> PP_EXPRESSION_KEY = Key.create("haxe.ppexpression.key");
+  public static final Key<String> PP_EXPRESSION_VALUE = Key.create("haxe.ppexpression.value");
   @Override
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
     if (node instanceof PsiWhiteSpace) return;
@@ -80,7 +85,8 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
   }
 
   private static void annotateCompilationExpression(PsiElement node, AnnotationHolder holder) {
-    final Set<String> definitions = HaxeProjectSettings.getInstance(node.getProject()).getUserCompilerDefinitionsAsSet();
+    Map<String, String> allDefinitions = HaxeDefineDetectionManager.getInstance(node.getProject()).getAllDefinitions();
+    final Set<String> definitionKeys = allDefinitions.keySet();
     final String nodeText = node.getText();
     for (Pair<String, Integer> pair : HaxeStringUtil.getWordsWithOffset(nodeText)) {
       final String word = pair.getFirst();
@@ -88,13 +94,20 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
       final int absoluteOffset = node.getTextOffset() + offset;
       final TextRange range = new TextRange(absoluteOffset, absoluteOffset + word.length());
 
-      final String attributeName = definitions.contains(word) ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
-                                                              : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
+      boolean containsDefinition = definitionKeys.contains(word);
+      final String attributeName = containsDefinition ? HaxeSyntaxHighlighterColors.HAXE_DEFINED_VAR
+                                            : HaxeSyntaxHighlighterColors.HAXE_UNDEFINED_VAR;
 
       TextAttributesKey attributes = TextAttributesKey.find(attributeName);
 
+      if (containsDefinition) {
+        String value = allDefinitions.get(word);
+        node.putUserData(PP_EXPRESSION_VALUE, value);
+        node.putUserData(PP_EXPRESSION_KEY, word);
+      }
+
       HaxeColorAnnotatorUtil.annotationBuilder(holder, range, attributes)
-        .withFix(new HaxeDefineIntention(word, definitions.contains(word)))
+        .withFix(new HaxeDefineIntention(word, containsDefinition))
         .create();
     }
   }

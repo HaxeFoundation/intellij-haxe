@@ -19,7 +19,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.config.HaxeProjectSettings;
+import com.intellij.plugins.haxe.haxelib.HaxelibSemVer;
 import com.intellij.plugins.haxe.lang.parser.HaxeAstFactory;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.containers.Stack;
@@ -27,10 +27,9 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
+
+import java.util.*;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.plugins.haxe.lang.util.HaxeAstUtil.*;
@@ -388,36 +387,43 @@ public class HaxeConditionalExpression {
     if (context == null) {
       return SDK_DEFINES.contains(identifier);
     }
-    String[] definitions = null;
+    Map<String, String> definitionMap = new HashMap<>();
     if (ApplicationManager.getApplication().isUnitTestMode()) {
       final Object userData = context.getUserData(DEFINES_KEY);
       if (userData instanceof String) {
-        definitions = ((String)userData).split(",");
+        definitionMap = parseUserdataDefinitions((String)userData);
       }
     }
     else {
-      definitions = HaxeProjectSettings.getInstance(context).getUserCompilerDefinitions();
+      definitionMap = HaxeDefineDetectionManager.getInstance(context).getAllDefinitions();
+      //definitionMap = HaxeProjectSettings.getInstance(context).getUserAndBuildSystemCompilerDefinitions(context);
     }
     String name = identifier.getText();
-    if (definitions != null) {
-      for (String def : definitions) {
-        String[] split = def.split("=", 2);
-
-        // Dashes are subtraction operators, so definitions (on the command line) that
-        // contain dashes are mapped to an equivalent using underscores (when looking up definitions).
-        String possible = split.length > 0 ? split[0].replaceAll("-","_") : null;
-        String value = split.length > 1 ? split[1] : null;
-
-        if (possible.equals(name)) {
-          if (null == value) {
-            return Boolean.TRUE;
-          } else {
-            return identifierValue(value);
-          }
-        }
+    if (definitionMap.containsKey(name)) {
+      String value = definitionMap.get(name);
+      if (null == value) {
+        return Boolean.TRUE;
+      } else {
+        return identifierValue(value);
       }
     }
     return Boolean.FALSE;
+  }
+
+  private static Map<String, String> parseUserdataDefinitions(String userData) {
+    Map<String, String> definitionMap = new HashMap<>();
+    String[] definitions = userData.split(",");
+    for (String def : definitions) {
+      String[] split = def.split("=", 2);
+
+      // Dashes are subtraction operators, so definitions (on the command line) that
+      // contain dashes are mapped to an equivalent using underscores (when looking up definitions).
+      String possible = split.length > 0 ? split[0].replaceAll("-","_") : null;
+      String value = split.length > 1 ? split[1] : null;
+
+      definitionMap.put(split[0], value == null ? "" : value);
+    }
+    return definitionMap;
   }
 
 
@@ -438,6 +444,8 @@ public class HaxeConditionalExpression {
     if (lhs instanceof Boolean && rhs instanceof Boolean) { return ((Boolean)lhs).compareTo((Boolean)rhs); }
     if (lhs instanceof String && rhs instanceof String)   { return ((String)lhs).compareTo((String)rhs); }
 
+
+
     // For String vs Float, convert the strings to floats.  Errors converting are thrown past this function.
     if (lhs instanceof String  && rhs instanceof Float)  { lhs = identifierValue((String)lhs); }
     if (lhs instanceof Float   && rhs instanceof String) { rhs = identifierValue((String)rhs); }
@@ -450,6 +458,19 @@ public class HaxeConditionalExpression {
       if (((Float)rhs).isNaN()) { result = -result; }
       return result;
     }
+
+    HaxelibSemVer lhsSemVer = null;
+    HaxelibSemVer rhsSemVer = null;
+    if (lhs instanceof Float lhsFloat) lhsSemVer = HaxelibSemVer.create(lhsFloat);
+    if (lhs instanceof String lhsString) lhsSemVer = HaxelibSemVer.create(lhsString);
+
+    if (rhs instanceof Float rhsFloat) rhsSemVer = HaxelibSemVer.create(rhsFloat);
+    if (rhs instanceof String rhsString) rhsSemVer = HaxelibSemVer.create(rhsString);
+
+    if (lhsSemVer != null && rhsSemVer != null) {
+      return lhsSemVer.toCompareValue().compareTo(rhsSemVer.toCompareValue());
+    }
+
 
     throw new CompareException("Invalid value comparison between '"
                                    + lhs.toString() + "' and '" + rhs.toString() + "'.");

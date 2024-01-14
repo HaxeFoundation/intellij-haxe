@@ -33,6 +33,7 @@ import java.util.List;
 public class HaxeProjectSettingsForm {
   private JPanel myPanel;
   private MyAddDeleteListPanel myAddDeleteListPanel;
+  private JCheckBox autoDetectDefinitionsFromCheckBox;
 
   public JComponent getPanel() {
     return myPanel;
@@ -41,15 +42,22 @@ public class HaxeProjectSettingsForm {
   public boolean isModified(HaxeProjectSettings settings) {
     final List<String> oldList = Arrays.asList(settings.getUserCompilerDefinitions());
     final List<String> newList = Arrays.asList(myAddDeleteListPanel.getItems());
-    final boolean isEqual = oldList.size() == newList.size() && new HashSet<>(oldList).containsAll(newList);
-    return !isEqual;
+    final boolean listEqual = oldList.size() == newList.size() && new HashSet<>(oldList).containsAll(newList);
+
+    final boolean autoDetectOld = settings.getAutoDetectDefinitions();
+    final boolean autoDetectNew = autoDetectDefinitionsFromCheckBox.isSelected();
+    boolean checkboxChanged = autoDetectOld != autoDetectNew;
+
+    return !listEqual || checkboxChanged;
   }
 
   public void applyEditorTo(HaxeProjectSettings settings) {
     settings.setUserCompilerDefinitions(myAddDeleteListPanel.getItems());
+    settings.setAutoDetectDefinitions(autoDetectDefinitionsFromCheckBox.isSelected());
   }
 
   public void resetEditorFrom(HaxeProjectSettings settings) {
+    autoDetectDefinitionsFromCheckBox.setSelected(settings.getAutoDetectDefinitions());
     myAddDeleteListPanel.removeALlItems();
     for (String item : settings.getUserCompilerDefinitions()) {
       myAddDeleteListPanel.addItem(item);

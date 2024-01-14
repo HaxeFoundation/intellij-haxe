@@ -48,13 +48,11 @@ import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
 import com.intellij.plugins.haxe.config.HaxeConfiguration;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
+import com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
-import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
-import com.intellij.plugins.haxe.util.HaxeDebugUtil;
-import com.intellij.plugins.haxe.util.HaxeFileUtil;
-import com.intellij.plugins.haxe.util.Lambda;
+import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.xml.XmlFile;
@@ -124,10 +122,8 @@ public class HaxelibProjectUpdater {
    */
   public void openProject(@NotNull Project project) {
     ProjectTracker tracker = myProjects.add(project);
-    if(tracker!= null) {
-      tracker.setDirty(true);
-      myQueue.add(tracker);
-    }
+    tracker.setDirty(true);
+    myQueue.add(tracker);
   }
 
   /**
@@ -765,7 +761,17 @@ public class HaxelibProjectUpdater {
     ProgressManager progressManager = ProgressManager.getInstance();
     progressManager.executeProcessUnderProgress(()-> syncProjectClasspath(tracker, true), progressManager.getProgressIndicator());
     progressManager.executeProcessUnderProgress(()-> syncModuleClasspaths(tracker, true), progressManager.getProgressIndicator());
+    recalculateDefinitions(tracker);
+  }
 
+  private void recalculateDefinitions(ProjectTracker tracker) {
+
+    Project project = tracker.myProject;
+    HaxeDefineDetectionManager.getInstance(project).recalculateDefinitions(project);
+
+    // TODO create index for PP keywords  and use index for reparse list of files
+    // consider  FileIndexingFlavorProvider<Flavor> or other ways to limit hte amount of files needing reparse
+    HaxeUtil.reparseProjectFiles(tracker.getProject(), false);
   }
 
   /**

@@ -108,6 +108,15 @@ public class HaxelibSemVer {
                              Integer.parseInt(matcher.group(3)));
 
   }
+  @Nullable
+  public static HaxelibSemVer create(float f) {
+    String[] split = String.valueOf(f).split("\\.");
+    int major = Integer.parseInt(split[0]);
+    int minor = split.length > 1 ? Integer.parseInt(split[1]) : 0;
+    int patch = 0;
+    return new HaxelibSemVer(major, minor,  patch);
+
+  }
 
   /**
    * Checks whether this version number matches the requested version.  Takes into

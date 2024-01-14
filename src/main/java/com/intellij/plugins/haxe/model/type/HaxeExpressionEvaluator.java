@@ -1202,7 +1202,8 @@ public class HaxeExpressionEvaluator {
             else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
               HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
               HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
-              return resolvedInterface.getGenericResolver().resolve("T");
+              ResultHolder type = resolvedInterface.getGenericResolver().resolve("T");
+              if (type != null) return type;
             }
           }
         }

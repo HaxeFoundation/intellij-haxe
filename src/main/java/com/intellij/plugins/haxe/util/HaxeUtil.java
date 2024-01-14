@@ -41,8 +41,13 @@ import java.util.Collection;
  */
 public class HaxeUtil {
   public static void reparseProjectFiles(@NotNull final Project project) {
+    reparseProjectFiles(project, true);
+  }
+  public static void reparseProjectFiles(@NotNull final Project project, boolean invalidateBuildConfig) {
 
-    ExternalSystemProjectTracker.getInstance(project).markDirty(HaxelibAutoImport.mySystemProjectId);
+    if (invalidateBuildConfig) {
+      ExternalSystemProjectTracker.getInstance(project).markDirty(HaxelibAutoImport.mySystemProjectId);
+    }
     Task.Backgroundable task = new Task.Backgroundable(project, HaxeBundle.message("haxe.project.reparsing"), false) {
       public void run(@NotNull ProgressIndicator indicator) {
         final Collection<VirtualFile> haxeFiles = new ArrayList<VirtualFile>();
