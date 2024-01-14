@@ -401,7 +401,7 @@ public class HaxeConditionalExpression {
     String name = identifier.getText();
     if (definitionMap.containsKey(name)) {
       String value = definitionMap.get(name);
-      if (null == value) {
+      if (null == value || value.isEmpty()) {
         return Boolean.TRUE;
       } else {
         return identifierValue(value);
@@ -421,7 +421,7 @@ public class HaxeConditionalExpression {
       String possible = split.length > 0 ? split[0].replaceAll("-","_") : null;
       String value = split.length > 1 ? split[1] : null;
 
-      definitionMap.put(split[0], value == null ? "" : value);
+      definitionMap.put(possible, value == null ? "" : value);
     }
     return definitionMap;
   }
