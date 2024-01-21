@@ -166,6 +166,7 @@ public class HaxeDefineDetectionManager implements Disposable {
     String[] flags = settings.getOpenFLTarget().getFlags();
     Arrays.stream(flags).forEach(def -> detectedDefines.put(def, "true"));
     XmlFile projectXml = findProjectXml(module, settings.getOpenFLPath());
+    //todo look for include xml &  include xml in openfl lib
     processProjectXml(module, detectedDefines, projectXml);
   }
 

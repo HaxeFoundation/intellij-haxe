@@ -1,6 +1,10 @@
 package com.intellij.plugins.haxe.haxelib.definitions;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -25,15 +29,25 @@ public class ProjectXmlDefinitionsUtil {
   @Nullable
   public static XmlFile findProjectXml(Module module, String projectXml) {
     if (projectXml == null) return null;
-
-    VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
-    VirtualFile file = vfs.findFileByPath(projectXml);
-    if (file == null) return null;
-    PsiFile projectFile = PsiManager.getInstance(module.getProject()).findFile(file);
-    if (projectFile instanceof XmlFile xmlFile) {
-      return xmlFile;
-    }
-    return null;
+    Computable<XmlFile> computable = () -> {
+      VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
+      VirtualFile file = vfs.findFileByPath(projectXml);
+      if (file == null) return null;
+      PsiFile projectFile = PsiManager.getInstance(module.getProject()).findFile(file);
+      if (projectFile instanceof XmlFile xmlFile) {
+        return xmlFile;
+      }
+      return null;
+    };
+      Application application = ApplicationManager.getApplication();
+      if (!application.isDispatchThread() && application.isReadAccessAllowed()) {
+        return computable.compute();
+      }else {
+        return ProgressManager.getInstance().runProcessWithProgressSynchronously(() ->
+                 ApplicationManager.getApplication().isReadAccessAllowed() ? computable.compute() : application.runReadAction(computable),
+               "Reading Project configuration",
+               false, module.getProject());
+   }
   }
 
   // TODO merge definition classes to avoid duplicated code like this

@@ -27,6 +27,7 @@ import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
+import com.intellij.codeInsight.navigation.PsiTargetNavigator;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.DefaultPsiElementCellRenderer;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -222,12 +223,18 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {
-          PsiElementListNavigator.openTargets(
-            e, HaxeResolveUtil.getComponentNames(filteredSubItems).toArray(new NavigatablePsiElement[filteredSubItems.size()]),
-            isInterface ?
-            DaemonBundle.message("navigation.title.implementation.method", namedComponent.getName(), filteredSubItems.size())
-                        :
-            DaemonBundle.message("navigation.title.overrider.method", namedComponent.getName(), filteredSubItems.size()),
+
+
+
+          NavigatablePsiElement[] psiElements =
+            HaxeResolveUtil.getComponentNames(filteredSubItems).toArray(new NavigatablePsiElement[filteredSubItems.size()]);
+
+          String title = isInterface ?
+                         DaemonBundle.message("navigation.title.implementation.method", namedComponent.getName(), filteredSubItems.size()) :
+                         DaemonBundle.message("navigation.title.overrider.method", namedComponent.getName(), filteredSubItems.size());
+
+
+          PsiElementListNavigator.openTargets(e, psiElements, title,
             "Implementations of " + namedComponent.getName(),
             new DefaultPsiElementCellRenderer()
           );

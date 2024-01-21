@@ -9,6 +9,7 @@
 * Added: Support for resolving & completion for typeParameters with anonymous structures.
 * Added: Check argument types in call expressions for functionTypes from typeParameters.
 * Improvement: better handling of import statements with aliases. 
+* Added: Documentation and examples for intentions
 * Misc NPE fixes.
 
 
