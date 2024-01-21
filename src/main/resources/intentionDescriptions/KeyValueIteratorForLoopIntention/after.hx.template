@@ -1,0 +1,9 @@
+package ;
+class SomeClass {
+    function myFun() {
+        var myMap = ["A" => 1, "B" => 2, "C" => 3];
+        <spot>for (key => value in myMap) {
+
+        }</spot>
+    }
+}

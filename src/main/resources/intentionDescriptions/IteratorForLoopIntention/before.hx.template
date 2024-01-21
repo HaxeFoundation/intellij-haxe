@@ -1,0 +1,7 @@
+package ;
+class SomeClass {
+    function myFun() {
+        var myArray = ["A", "B", "C"];
+        myArray<spot></spot>
+    }
+}

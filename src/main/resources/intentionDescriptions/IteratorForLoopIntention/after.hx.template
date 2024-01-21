@@ -1,0 +1,9 @@
+package ;
+class SomeClass {
+    function myFun() {
+        var myArray = ["A", "B", "C"];
+        <spot>for (itr in myArray) {
+
+        }</spot>
+    }
+}

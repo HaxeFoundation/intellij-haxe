@@ -1,0 +1,10 @@
+package ;
+
+import sys.*<spot></spot>;
+
+class SomeClass {
+    public function myFunction() {
+        var url = Http.requestUrl("url");
+        var path = FileSystem.absolutePath("path");
+    }
+}

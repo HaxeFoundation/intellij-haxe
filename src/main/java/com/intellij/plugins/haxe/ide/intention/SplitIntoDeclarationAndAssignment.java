@@ -64,12 +64,15 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
   @Override
   public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
     PsiElement elementAt = file.findElementAt(editor.getCaretModel().getOffset());
-    HaxeLocalVarDeclaration localVarDeclaration = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclaration.class);
+    HaxeLocalVarDeclarationList localVarDeclarationList = PsiTreeUtil.getParentOfType(elementAt, HaxeLocalVarDeclarationList.class);
 
-    if (localVarDeclaration == null) return;
-    String name = localVarDeclaration.getComponentName().getName();
-    HaxeTypeTag typeTag = localVarDeclaration.getTypeTag();
-    HaxeVarInit varInit = localVarDeclaration.getVarInit();
+    if (localVarDeclarationList == null) return;
+    List<HaxeLocalVarDeclaration> list = localVarDeclarationList.getLocalVarDeclarationList();
+    if (list.size() != 1) return;
+    HaxeLocalVarDeclaration declaration = list.get(0);
+    String name = declaration.getComponentName().getName();
+    HaxeTypeTag typeTag = declaration.getTypeTag();
+    HaxeVarInit varInit = declaration.getVarInit();
 
     String text = "var " + name;
     if (typeTag != null) {
@@ -83,8 +86,8 @@ public class SplitIntoDeclarationAndAssignment implements IntentionAction {
     PsiElement statementFromText = HaxeElementGenerator.createStatementFromText(project, text);
     statementFromText.getNode().addLeaf(HaxeTokenTypes.OSEMI, ";", null);
 
-    localVarDeclaration.getParent().addBefore(varDeclaration, localVarDeclaration);
-    PsiElement replace = localVarDeclaration.replace(statementFromText);
+    localVarDeclarationList.getParent().addBefore(varDeclaration, localVarDeclarationList);
+    PsiElement replace = localVarDeclarationList.replace(statementFromText);
 
     final TextRange range = replace.getTextRange();
     final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());

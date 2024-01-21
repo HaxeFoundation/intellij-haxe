@@ -1,0 +1,5 @@
+package ;
+class SomeClass {
+    public var variable<spot>(get, set)</spot>:String;
+}
+

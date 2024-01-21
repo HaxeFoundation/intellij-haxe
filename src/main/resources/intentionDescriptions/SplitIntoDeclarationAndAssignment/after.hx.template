@@ -1,0 +1,7 @@
+package ;
+class SomeClass {
+    public function myFunction() {
+        <spot>var stringVar;
+        stringVar = "MyString";</spot>
+    }
+}
