@@ -19,13 +19,13 @@
 package com.intellij.plugins.haxe.ide.refactoring.introduce;
 
 import com.intellij.codeInsight.CodeInsightUtilCore;
+import com.intellij.codeInsight.template.TemplateBuilderImpl;
 import com.intellij.codeInsight.template.impl.TemplateManagerImpl;
 import com.intellij.codeInsight.template.impl.TemplateState;
 import com.intellij.injected.editor.EditorWindow;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.Result;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.CaretModel;
@@ -594,6 +594,7 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
   public static class HaxeInplaceVariableIntroducer extends InplaceVariableIntroducer<PsiElement> {
     private final HaxeComponentName myTarget;
+    private  Map<HaxeComponentName, String> additional;
 
     public HaxeInplaceVariableIntroducer(HaxeComponentName target,
                                          HaxeIntroduceOperation operation,
@@ -608,6 +609,23 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
       super(target, editor, editor.getProject(), "Introduce Variable",
             occurrences.toArray(new PsiElement[0]), null);
       myTarget = target;
+    }
+    public HaxeInplaceVariableIntroducer(HaxeComponentName target,
+                                         Editor editor,
+                                         List<PsiElement> occurrences, Map<HaxeComponentName, String> additional) {
+      super(target, editor, editor.getProject(), "Introduce Variable",
+            occurrences.toArray(new PsiElement[0]), null);
+      this.additional = additional;
+      myTarget = target;
+    }
+
+    @Override
+    protected void addAdditionalVariables(TemplateBuilderImpl builder) {
+      if (additional != null) {
+        for (Map.Entry<HaxeComponentName, String> entry : additional.entrySet()) {
+        builder.replaceElement(entry.getKey(), entry.getValue());
+        }
+      }
     }
 
     @Override

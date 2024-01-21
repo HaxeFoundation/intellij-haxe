@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.23
+* Fixed: introduce variable feature for introduce key-value intention
+* Added: Suggest enum values for  case completion in switch blocks.
+
 ## 1.4.22
 * Added: Auto-detect preprocessing definitions from build config (enabled by default)
 > This feature can be disabled under `Settings -> Build, Execution, Deployment -> Haxe`. If disabled only manually configured definitions will be used.

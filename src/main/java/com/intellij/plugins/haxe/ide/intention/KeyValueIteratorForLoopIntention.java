@@ -1,12 +1,14 @@
 package com.intellij.plugins.haxe.ide.intention;
 
+import com.intellij.codeInsight.CodeInsightUtilCore;
 import com.intellij.codeInsight.intention.impl.BaseIntentionAction;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
+import com.intellij.plugins.haxe.ide.refactoring.introduce.HaxeIntroduceHandler;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -19,6 +21,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 
 public class KeyValueIteratorForLoopIntention extends BaseIntentionAction {
 
@@ -52,8 +58,33 @@ public class KeyValueIteratorForLoopIntention extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-      PsiElement itr = HaxeElementGenerator.createForInLoop(project, "key", "value", haxeReference.getText());
-      haxeReference.replace(itr);
+    HaxeForStatement forLoop = HaxeElementGenerator.createForInLoop(project, "key", "value", haxeReference.getText());
+    forLoop = (HaxeForStatement)haxeReference.replace(forLoop.copy());
+
+    if (!editor.isViewer()) {
+      CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(forLoop);
+      HaxeKeyValueIterator keyValueIterator = forLoop.getKeyValueIterator();
+
+      introduceKeyValueIterators(editor, keyValueIterator);
+    }
+  }
+
+
+
+
+  private static void introduceKeyValueIterators(Editor editor, HaxeKeyValueIterator keyValueIterator) {
+    HaxeIteratorkey keyItr = keyValueIterator.getIteratorkey();
+    HaxeIteratorValue valueItr = keyValueIterator.getIteratorValue();
+
+    HaxeComponentName keyNamed = keyItr.getComponentName();
+    HaxeComponentName valueNamed = valueItr.getComponentName();
+
+    final var introducer = new HaxeIntroduceHandler.HaxeInplaceVariableIntroducer(keyNamed, editor, List.of(), Map.of( valueNamed, "value"));
+    introducer.setElementToRename(keyNamed);
+    TextRange range = keyNamed.getTextRange();
+    editor.getSelectionModel().setSelection(range.getStartOffset(), range.getEndOffset());
+    editor.getCaretModel().moveToOffset(range.getEndOffset());
+    introducer.performInplaceRefactoring(new LinkedHashSet<>(List.of()));
   }
 
 

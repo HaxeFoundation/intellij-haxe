@@ -20,17 +20,26 @@ package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.patterns.PsiElementPattern;
 import com.intellij.patterns.StandardPatterns;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -43,6 +52,7 @@ import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.key
 import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordWithSpace;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static java.util.function.Predicate.not;
 
 /**
  * @author: Fedor.Korotkov
@@ -55,6 +65,8 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       }
     }
   };
+  private static final PsiElementPattern.Capture<PsiElement> afterCaseKeyword =
+    psiElement().afterSiblingSkipping(skippableWhitespace, psiElement().withText("case"));
 
   public HaxeKeywordCompletionContributor() {
 
@@ -137,6 +149,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
         if (insideSwitchCase.accepts(completionElementAsComment)) {
           addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
+          addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
         }
 
         if (isAfterIfStatement.accepts(completionElementAsComment)) {
@@ -172,6 +185,41 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
     result.addAllElements(lookupElements);
   }
 
+  private static void addEnumValuesIfSourceIsEnum(PsiElement completionElementAsComment, List<LookupElement> lookupElements) {
+    boolean isAfterCase = afterCaseKeyword.accepts(completionElementAsComment);
+    HaxeSwitchStatement parent = PsiTreeUtil.getParentOfType(completionElementAsComment, HaxeSwitchStatement.class);
+    if (parent == null) return;
+
+    HaxeExpression expression = parent.getExpression();
+    if (expression == null) return;
+
+    ResultHolder holder = HaxeExpressionEvaluator.evaluate(expression, null).result;
+    if (!holder.isEnum()) return;
+
+    SpecificTypeReference type = holder.getType();
+    if (type instanceof SpecificHaxeClassReference classReference) {
+      List<HaxeSwitchCase> list = parent.getSwitchBlock().getSwitchCaseList();
+      List<String> alreadyInUse =
+        list.stream().map(HaxeSwitchCase::getSwitchCaseExprList).filter(not(List::isEmpty)).map(exprs -> exprs.get(0).getText())
+          .toList();
+      List<HaxeMemberModel> members = classReference.getHaxeClassModel().getMembers(null);
+      for (HaxeMemberModel member : members) {
+
+        if (member instanceof HaxeEnumValueModel model) {
+          String name = member.getName();
+          if (alreadyInUse.contains(name)) continue;
+          String completionText = (isAfterCase ? "" : "case ") + name + " ";
+
+          LookupElementBuilder element = LookupElementBuilder.create(model, completionText)
+            .withIcon(HaxeIcons.Enum)
+            .withItemTextItalic(true);
+
+          LookupElement element1 = PrioritizedLookupElement.withPriority(element, 10000);
+          lookupElements.add(element1);
+        }
+      }
+    }
+  }
 
 
   private static HaxeFile createCopyWithFakeIdentifierAsComment(PsiElement position, List<String> keywordsFromParser) {

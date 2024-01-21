@@ -186,9 +186,9 @@ public class HaxeElementGenerator {
     return (HaxeForStatement) createStatementFromText(myProject, forAinBLoop);
 
   }
-  public static PsiElement createForInLoop(Project myProject, String key, String value, String source) {
+  public static HaxeForStatement createForInLoop(Project myProject, String key, String value, String source) {
       String forAinBLoop = "for("+key+" => "+value+" in "+source+") {\n\n}";
-    PsiElement text = createStatementFromText(myProject, forAinBLoop);
+    HaxeForStatement text = (HaxeForStatement)createStatementFromText(myProject, forAinBLoop);
     return text;
 
   }
