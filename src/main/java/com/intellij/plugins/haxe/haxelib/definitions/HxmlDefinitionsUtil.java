@@ -1,6 +1,10 @@
 package com.intellij.plugins.haxe.haxelib.definitions;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
@@ -23,15 +27,26 @@ public class HxmlDefinitionsUtil {
   @Nullable
   public static HXMLFile findHxml(Module module, String projectHxml) {
     if (projectHxml == null) return null;
-
-    VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
-    VirtualFile file = vfs.findFileByPath(projectHxml);
-    if (file == null) return null;
-    PsiFile projectFile = PsiManager.getInstance(module.getProject()).findFile(file);
-    if (projectFile instanceof HXMLFile hxmlFile) {
-      return hxmlFile;
+    Computable<HXMLFile> computable = () -> {
+      VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
+      VirtualFile file = vfs.findFileByPath(projectHxml);
+      if (file == null) return null;
+      PsiFile projectFile = PsiManager.getInstance(module.getProject()).findFile(file);
+      if (projectFile instanceof HXMLFile hxmlFile) {
+        return hxmlFile;
+      }
+        return null;
+    };
+    Application application = ApplicationManager.getApplication();
+    if (!application.isDispatchThread() && application.isReadAccessAllowed()) {
+      return computable.compute();
+    }else {
+      return ProgressManager.getInstance().runProcessWithProgressSynchronously(() ->
+             ApplicationManager.getApplication().isReadAccessAllowed() ? computable.compute() : application.runReadAction(computable),
+           "Reading Project configuration",
+           false, module.getProject());
     }
-    return null;
+
   }
 
   public static void processHxml(Module module, Map<String, String> defines, HXMLFile hxml) {
