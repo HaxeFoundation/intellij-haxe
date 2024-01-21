@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,11 +72,9 @@ public class ResultHolder {
   public boolean isClassType() {
     return (type instanceof SpecificHaxeClassReference);
   }
-  @Nullable
   public boolean isTypeDef() {
     return (type instanceof SpecificHaxeClassReference classReference) && classReference.isTypeDef();
   }
-  @Nullable
   public boolean isEnum() {
     return (type instanceof SpecificHaxeClassReference classReference) && classReference.isEnumType();
   }

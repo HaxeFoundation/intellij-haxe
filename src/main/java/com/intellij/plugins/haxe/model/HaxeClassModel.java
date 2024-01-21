@@ -756,7 +756,7 @@ public class HaxeClassModel implements HaxeExposableModel {
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.addConstraint(model.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+        resolver.addConstraint(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
       }
 
       return resolver;

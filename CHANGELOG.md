@@ -1,7 +1,8 @@
 # Changelog
 
 ## 1.4.23
-* Fixed: introduce variable feature for introduce key-value intention
+* Fixed: Introduce variable feature for introduce key-value intention
+* Fixed: Issue where members of anonymous structures using type parameters did not resolve.
 * Added: Suggest enum values for  case completion in switch blocks.
 
 ## 1.4.22

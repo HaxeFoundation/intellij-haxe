@@ -514,6 +514,7 @@ public class HaxeTypeResolver {
         HaxeClassModel contributorModel = HaxeClassModel.fromElement(contributor);
         if (contributorModel.hasGenericParams()) {
           HaxeGenericResolver resolver = contributorModel.getGenericResolver(parentResolver);
+          resolver.addAll(parentResolver); // anonymous inherits its typeParameter from parent
           return SpecificHaxeAnonymousReference.withGenerics(new HaxeClassReference(anonymousType.getModel(), typeOrAnonymous), resolver).createHolder();
         }
       }
