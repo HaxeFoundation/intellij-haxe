@@ -1,9 +1,11 @@
 # Changelog
 
 ## 1.4.23
+* Fixed: typedefs of function types should now resolve correctly
 * Fixed: Introduce variable feature for introduce key-value intention
-* Fixed: Issue where members of anonymous structures using type parameters did not resolve.
-* Added: Suggest enum values for  case completion in switch blocks.
+* Fixed: Issue where members of anonymous structures using type-parameters did not resolve.
+* Added: Suggest enum values for case completion in switch blocks.
+ 
 
 ## 1.4.22
 * Added: Auto-detect preprocessing definitions from build config (enabled by default)
