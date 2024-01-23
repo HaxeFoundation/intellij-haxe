@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
-import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
@@ -139,7 +138,11 @@ public class HaxeGenericResolver {
    */
   @Nullable
   public ResultHolder resolve(PsiElement element) {
-    ResultHolder holder = resolvers.stream()
+   return  resolve(element, false);
+  }
+  @Nullable
+  public ResultHolder resolve(PsiElement element, boolean useAssignHint) {
+   ResultHolder holder = resolvers.stream()
       .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
       .map(ResolverEntry::type)
       .orElse(null);
@@ -149,6 +152,10 @@ public class HaxeGenericResolver {
         .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
         .map(ResolverEntry::type)
         .orElse(null);
+      // if resolved type is from constraints
+      if (useAssignHint && holder != null) {
+        holder = useAssignHintIfPossible(holder);
+      }
     }
     return holder;
   }
@@ -167,7 +174,7 @@ public class HaxeGenericResolver {
       List<ResolverEntry> resolveValues = resolvers.stream().filter(entry -> entry.name().equals(className)).toList();
       List<ResolverEntry> constraints = constaints.stream().filter(entry -> entry.name().equals(className)).toList();
       if (resolveValues.isEmpty())  {
-        Optional<ResolverEntry> assign = findAsignToType();
+        Optional<ResolverEntry> assign = findAssignToType();
 
         // if we know expected value and dont have any resolves
         if (assign.isPresent()) {
@@ -194,7 +201,7 @@ public class HaxeGenericResolver {
   }
 
   @NotNull
-  private Optional<ResolverEntry> findAsignToType() {
+  private Optional<ResolverEntry> findAssignToType() {
     return resolvers.stream()
       .filter(entry -> entry.resolveSource() == ResolveSource.ASSIGN_TYPE)
       .findFirst();
@@ -207,7 +214,7 @@ public class HaxeGenericResolver {
       String className = resultHolder.getType().context.getText();
       List<ResolverEntry> list = resolvers.stream().filter(entry -> entry.name().equals(className)).sorted(this::ResolverPrioritySort).toList();
       if (list.isEmpty())  {
-        Optional<ResolverEntry> assign = findAsignToType();
+        Optional<ResolverEntry> assign = findAssignToType();
         if (assign.isPresent()) {
           return assign.get().type();
         }
@@ -217,7 +224,7 @@ public class HaxeGenericResolver {
       }
     }
     if (!resultHolder.getType().isTypeParameter()) {
-      Optional<ResolverEntry> assign = findAsignToType();
+      Optional<ResolverEntry> assign = findAssignToType();
       if (assign.isPresent()) { // if we got expected return type we want to pass along expected typeParameter values when resolving
         SpecificHaxeClassReference expectedType = assign.get().type().getClassType();
         if (expectedType != null) {
@@ -335,5 +342,26 @@ public class HaxeGenericResolver {
     resolvers.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.resolvers::add);
     constaints.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.constaints::add);
     return resolver;
+  }
+
+  /**
+   * This is a "hackish" workaround for a complex problem.
+   * the haxe compiler have a way of checking if  you can assign a more complex object than the generic constraints it seems.
+   * in HaxeFixel (FlxDestroyUtil) there are methods  that returns null and only define an interface as a generic constraints value
+   *  yet haxe still allows you to assign the return value to a variable with a more complex type.
+   *  best guess is that its allowed because the returned value is null
+   *  (if this is the case we would have to do a evaluation of return values to be able to check for this)
+   *
+   * ex.
+   * var x:ClassWithInterface = method(x);
+   * <T:interface>method(x:Interface):T {  return null;}
+   */
+  private ResultHolder useAssignHintIfPossible(ResultHolder type) {
+    Optional<ResolverEntry> assign = findAssignToType();
+    if(assign.isPresent()) {
+      ResultHolder assignHint = assign.get().type();
+      if (type.canAssign(assignHint)) return assignHint;
+    }
+    return type;
   }
 }

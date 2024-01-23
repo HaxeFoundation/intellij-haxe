@@ -65,7 +65,9 @@ public class HaxeTypeResolver {
   static public ResultHolder getMethodFunctionType(PsiElement comp, @Nullable HaxeGenericResolver resolver) {
     if (comp instanceof HaxeMethod method) {
       resolver = resolver == null ? null : resolver.withoutUnknowns();
-      return method.getModel().getFunctionType(resolver).createHolder();
+      HaxeGenericResolver methodResolver = method.getModel().getGenericResolver(null);
+      methodResolver.addAll(resolver);
+      return method.getModel().getFunctionType(methodResolver).createHolder();
     }
     // @TODO: error
     return SpecificTypeReference.getInvalid(comp).createHolder();
@@ -269,7 +271,7 @@ public class HaxeTypeResolver {
         if (resolver != null) {
           HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
           if (typeOrAnonymous != null) {
-              ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, resolver);
+              ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, resolver, true);
               ResultHolder resolve = resolver.resolve(anonymous);
               if (resolve != null && !resolve.isUnknown()) {
                 return resolve;
@@ -449,10 +451,13 @@ public class HaxeTypeResolver {
    */
   @NotNull
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver) {
+    return getTypeFromType(type, resolver, false);
+  }
+  static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver, boolean useAssignHint) {
     //System.out.println("Type:" + type);
     //System.out.println("Type:" + type.getText());
     if (resolver != null && !resolver.isEmpty()) {
-        ResultHolder resolve = resolver.resolve(type);
+        ResultHolder resolve = resolver.resolve(type, useAssignHint);
         if (resolve != null && !resolve.isUnknown()) {
           return resolve;
         }
@@ -506,10 +511,13 @@ public class HaxeTypeResolver {
     return getTypeFromTypeOrAnonymous(typeOrAnonymous, null);
   }
   static public ResultHolder getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous, @Nullable HaxeGenericResolver parentResolver) {
+   return getTypeFromTypeOrAnonymous(typeOrAnonymous, parentResolver, false);
+  }
+  static public ResultHolder getTypeFromTypeOrAnonymous(@NotNull HaxeTypeOrAnonymous typeOrAnonymous, @Nullable HaxeGenericResolver parentResolver, boolean useAssignHint) {
     // @TODO: Do a proper type resolving
     HaxeType type = typeOrAnonymous.getType();
     if (type != null) {
-      return getTypeFromType(type, parentResolver);
+      return getTypeFromType(type, parentResolver, useAssignHint);
     }
     final HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
     if (anonymousType != null) {
