@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -228,11 +229,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
     if (result == null) result = checkIsForwardedName(reference);
+    if (result == null) result = checkGlobalAlias(reference);
 
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result == null ? EMPTY_LIST : result;
+  }
+
+  private List<? extends PsiElement> checkGlobalAlias(HaxeReference reference) {
+    if (reference.textMatches("trace")) {
+      if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      HaxeProjectModel haxeProjectModel = HaxeProjectModel.fromElement(reference);
+        HaxeModel model = haxeProjectModel.getLogPackage().resolveTrace();
+        if (model != null) return List.of(model.getBasePsi());
+      }
+    }
+    return null;
   }
 
   @Nullable

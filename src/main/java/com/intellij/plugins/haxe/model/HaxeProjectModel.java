@@ -88,6 +88,10 @@ public class HaxeProjectModel {
   public HaxePackageModel getExprPackage() {
     return getRootsCache().exprPackageModel;
   }
+  @NotNull
+  public HaxeLogPackageModel getLogPackage() {
+    return getRootsCache().logPackageModel;
+  }
 
   @Nullable
   public List<HaxeModel> resolve(FullyQualifiedInfo info) {
@@ -168,11 +172,14 @@ class RootsCache {
   final HaxeStdPackageModel stdPackageModel;
   final HaxeExprPackageModel exprPackageModel;
 
+  final HaxeLogPackageModel logPackageModel;
+
   private RootsCache(List<HaxeSourceRootModel> roots, HaxeSourceRootModel sdkRoot) {
     this.roots = roots;
     this.sdkRoot = sdkRoot;
     this.stdPackageModel = new HaxeStdPackageModel(sdkRoot);
     this.exprPackageModel = new HaxeExprPackageModel(sdkRoot);
+    this.logPackageModel = new HaxeLogPackageModel(sdkRoot);
   }
 
   static RootsCache fromProjectModel(HaxeProjectModel model) {

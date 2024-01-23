@@ -102,14 +102,16 @@ public class HaxeCallExpressionUtil {
       // this might not work for literals, need to handle those in a different way
       if (methodExpression instanceof HaxeReferenceExpression referenceChain) {
         HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceChain);
-        ResultHolder leftType = HaxeTypeResolver.getPsiElementType(leftReference, resolver);
+        if (leftReference != null) {
+          ResultHolder leftType = HaxeTypeResolver.getPsiElementType(leftReference, resolver);
 
-        HaxeParameterModel model = parameterList.get(parameterCounter++);
-        ResultHolder type = model.getType(resolver.withoutUnknowns());
-        if (!canAssignToFrom(type, leftType)) {
-          // TODO better error message
-          validation.errors.add(new ErrorRecord(callExpression.getTextRange(), "Can not use extension method, wrong type"));
-          return validation;
+          HaxeParameterModel model = parameterList.get(parameterCounter++);
+          ResultHolder type = model.getType(resolver.withoutUnknowns());
+          if (!canAssignToFrom(type, leftType)) {
+            // TODO better error message
+            validation.errors.add(new ErrorRecord(callExpression.getTextRange(), "Can not use extension method, wrong type"));
+            return validation;
+          }
         }
       }
       else {
