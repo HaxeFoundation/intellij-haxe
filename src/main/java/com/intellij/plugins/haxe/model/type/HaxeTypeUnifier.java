@@ -109,10 +109,10 @@ public class HaxeTypeUnifier {
   private static Argument unify(Argument a, Argument b) {
     if (a.isOptional() != b.isOptional()) {
       ResultHolder invalidType = SpecificTypeReference.getInvalid(a.getType().getElementContext()).createHolder();
-      return new Argument(a.getIndex(), a.isOptional(), invalidType, a.getName());
+      return new Argument(a.getIndex(), a.isOptional(),false, invalidType, a.getName());
     }
 
-    return new Argument(a.getIndex(), a.isOptional(), unify(a.getType(), b.getType()), a.getName());
+    return new Argument(a.getIndex(), a.isOptional(),false, unify(a.getType(), b.getType()), a.getName());
   }
 
   @NotNull

@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,11 +90,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     List<HaxeParameterModel> parameters = model.getParameters();
     if (parameters.isEmpty()) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((model.getMethodPsi()));
-      args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      args.add(new Argument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < parameters.size(); i++) {
         HaxeParameterModel parameterModel = parameters.get(i);
-        args.add(new Argument(i, parameterModel.isOptional(), parameterModel.getResultType(), parameterModel.getName()));
+        args.add(new Argument(i, parameterModel.isOptional(),parameterModel.isRest(), parameterModel.getResultType(), parameterModel.getName()));
       }
     }
     return new SpecificFunctionReference(args, model.getReturnType(null), model, model.getMethodPsi());
@@ -117,12 +118,12 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
     if (arguments.size() == 0) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((func));
-      args.add(new Argument(0, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      args.add(new Argument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < arguments.size(); i++) {
         HaxeFunctionArgument arg = arguments.get(i);
         ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
-        args.add(new Argument(i, null != arg.getOptionalMark(), result, arg.getName()));
+        args.add(new Argument(i, null != arg.getOptionalMark(), null != arg.getRestArgumentType(),result, arg.getName()));
       }
     }
 
@@ -221,36 +222,22 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   public static class Argument {
-    final private int index;
-    final private boolean optional;
-    final private String name;
-    final private ResultHolder type;
+    @Getter final private int index;
+    @Getter final private boolean optional;
+    @Getter final private boolean isRest;
+    @Getter final private String name;
+    @Getter final private ResultHolder type;
 
-    public Argument(int index, boolean optional, @NotNull ResultHolder type, @Nullable String name) {
+    public Argument(int index, boolean optional,boolean rest, @NotNull ResultHolder type, @Nullable String name) {
       this.index = index;
       this.optional = optional;
+      this.isRest = rest;
       this.name = name;
       this.type = type;
     }
 
-    public boolean isOptional() {
-      return optional;
-    }
-
-    public int getIndex() {
-      return index;
-    }
-
-    public String getName() {
-      return name;
-    }
-
     public boolean hasName() {
       return name != null;
-    }
-
-    public ResultHolder getType() {
-      return type;
     }
 
     public String toString() {
@@ -294,7 +281,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     }
 
     public Argument changeType(ResultHolder newType) {
-      return new Argument(this.index, this.optional, newType, this.name);
+      return new Argument(this.index, this.optional, this.isRest, newType, this.name);
     }
   }
 }

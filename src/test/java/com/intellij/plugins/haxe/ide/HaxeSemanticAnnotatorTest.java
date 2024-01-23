@@ -819,4 +819,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testResolveTypeFromUsage() throws Throwable {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testTypeParameterAnonymousStructure() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 }

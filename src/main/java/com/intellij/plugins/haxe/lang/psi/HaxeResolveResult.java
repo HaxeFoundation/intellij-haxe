@@ -386,7 +386,9 @@ public class HaxeResolveResult implements Cloneable {
        type = HaxeTypeResolver.getTypeFromFunctionType(argument.getFunctionType());
     }
     boolean optional = argument.getOptionalMark() != null;
-    return new SpecificFunctionReference.Argument(index, optional, type, null);
+    boolean rest = argument.getRestArgumentType() != null;
+
+    return new SpecificFunctionReference.Argument(index, optional, rest, type, null);
   }
 
   @NotNull

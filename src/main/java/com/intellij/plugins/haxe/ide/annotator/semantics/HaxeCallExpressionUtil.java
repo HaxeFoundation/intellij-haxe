@@ -13,7 +13,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -217,23 +216,27 @@ public class HaxeCallExpressionUtil {
     return validation;
   }
 
-  public static CallExpressionValidation checkFunctionCall(HaxeCallExpression callExpression, @Nullable HaxeFunctionType functionType) {
+  public static CallExpressionValidation checkFunctionCall(HaxeCallExpression callExpression, SpecificFunctionReference functionType) {
     CallExpressionValidation validation  = new CallExpressionValidation();
     validation.isFunction = true;
     if (functionType != null) {
 
-      HaxeFunctionTypeModel model = new HaxeFunctionTypeModel(functionType);
+      //HaxeFunctionTypeModel model = new HaxeFunctionTypeModel(functionType);
       HaxeExpression methodExpression = callExpression.getExpression();
 
       HaxeCallExpressionList callExpressionList = callExpression.getExpressionList();
-      List<HaxeFunctionTypeParameterModel> parameterList = model.getParameters();
+      //List<HaxeFunctionTypeParameterModel> parameterList = model.getParameters();
+      List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
+
       List<HaxeExpression> argumentList = Optional.ofNullable(callExpressionList)
         .map(HaxeExpressionList::getExpressionList)
         .orElse(List.of());
 
-      boolean hasVarArgs = parameterList.stream().anyMatch(HaxeFunctionTypeParameterModel::isRestArgument);
-      long minArgRequired = countRequiredFunctionTypeArguments(parameterList);
-      long maxArgAllowed = hasVarArgs ? Long.MAX_VALUE : parameterList.size();
+
+
+      boolean hasVarArgs = arguments.stream().anyMatch(SpecificFunctionReference.Argument::isRest);
+      long minArgRequired = countRequiredFunctionTypeArguments(arguments);
+      long maxArgAllowed = hasVarArgs ? Long.MAX_VALUE : arguments.size();
 
       // min arg check
 
@@ -276,7 +279,7 @@ public class HaxeCallExpressionUtil {
       int argumentCounter = 0;
 
       boolean isRestArg = false;
-      HaxeFunctionTypeParameterModel parameter = null;
+      SpecificFunctionReference.Argument parameter = null;
       HaxeExpression argument;
 
       ResultHolder parameterType = null;
@@ -297,9 +300,9 @@ public class HaxeCallExpressionUtil {
         }
 
         if (!isRestArg) {
-          if (parameterList.size() > parameterCounter) {
-            parameter = parameterList.get(parameterCounter++);
-            if (parameter.isRestArgument()) isRestArg = true;
+          if (arguments.size() > parameterCounter) {
+            parameter = arguments.get(parameterCounter++);
+            if (parameter.isRest()) isRestArg = true;
           }
           else {
             // out of parameters and last is not var arg, must mean that ve have skipped optionals and still had arguments left
@@ -311,7 +314,7 @@ public class HaxeCallExpressionUtil {
         }
 
         argumentType = resolveArgumentType(argument, localResolver);
-        parameterType = parameter.getArgumentType();
+        parameterType = parameter.getType();
 
 
         //TODO properly resolve typedefs
@@ -855,9 +858,9 @@ public class HaxeCallExpressionUtil {
       .count();
   }
 
-  private static long countRequiredFunctionTypeArguments(List<HaxeFunctionTypeParameterModel> parametersList) {
+  private static long countRequiredFunctionTypeArguments(List<SpecificFunctionReference.Argument> parametersList) {
     return parametersList.stream()
-      .filter(p -> !p.isOptional() && !p.getArgumentType().isVoid() && !p.isRestArgument())
+      .filter(p -> !p.isOptional() && !p.getType().isVoid() && !p.isRest())
       .count();
   }
 
@@ -930,6 +933,12 @@ public class HaxeCallExpressionUtil {
 
   public static ResultHolder tryGetCallieType(HaxeCallExpression callExpression) {
     final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
+
+
+    //HaxeResolveResult resolveResult = leftReference == null ? null :leftReference.resolveHaxeClass();
+    //if (resolveResult.isFunctionType()) {
+    //  return new ResultHolder(resolveResult.getSpecificFunctionReference(callExpression, resolveResult.getGenericResolver()));
+    //}
 
     PsiElement resolve = leftReference == null ? null :leftReference.resolve();
     if (resolve != null) {

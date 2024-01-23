@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousTypeBody;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericParam;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import org.jetbrains.annotations.NotNull;
 
@@ -64,5 +65,6 @@ public class HaxeTypeParameterMultiType extends AnonymousHaxeTypeImpl {
   public @NotNull List<HaxeType> getTypeList() {
     return List.of();
   }
+
 
 }

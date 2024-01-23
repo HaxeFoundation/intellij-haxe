@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
@@ -38,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
+import static java.util.function.Predicate.not;
 
 @CustomLog
 @EqualsAndHashCode
@@ -200,13 +202,27 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     HaxeClassModel model = getHaxeClassModel();
     if (model != null) {
-      List<HaxeGenericParamModel> params = model.getGenericParams();
-      for (int n = 0; n < params.size(); n++) {
-        HaxeGenericParamModel paramModel = params.get(n);
-        ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
-        if (specific == null) specific = getUnknown(context).createHolder();// null safety
-        //TODO check constraints
-        resolver.add(paramModel.getName(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
+      if (model instanceof HaxeAnonymousTypeModel anonymousTypeModel
+          && anonymousTypeModel.haxeClass instanceof HaxeTypeParameterMultiType multiType) {
+        //TODO move into HaxeAnonymousTypeModel or HaxeTypeParameterMultiType maybe solve as getGenericParam
+        List<HaxeGenericResolver> list =
+          multiType.getHaxeExtendsList().stream()
+            .map(HaxeTypeResolver::getTypeFromType)
+            .filter(not(ResultHolder::isUnknown))
+            .filter(ResultHolder::isClassType)
+            .map(resultHolder -> resultHolder.getClassType().getGenericResolver())
+            .toList();
+
+        list.forEach(resolver::addAll);
+      } else {
+        List<HaxeGenericParamModel> params = model.getGenericParams();
+        for (int n = 0; n < params.size(); n++) {
+          HaxeGenericParamModel paramModel = params.get(n);
+          ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
+          if (specific == null) specific = getUnknown(context).createHolder();// null safety
+          //TODO check constraints
+          resolver.add(paramModel.getName(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
+        }
       }
     }
     return resolver;
@@ -510,6 +526,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if(clazz instanceof HaxeTypedefDeclaration) return true;
       return getHaxeClassModel() != null && getHaxeClassModel().isTypedef();
   }
+  //TODO MLO: Warning, typedef of typedef will be considered class, should probably return false in this case and create istypeDefOfTypeDef or something
   public boolean isTypeDefOfClass() {
     return isTypeDef() && ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getTargetClass() != null;
   }
@@ -526,12 +543,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     return null;
   }
-  public SpecificHaxeClassReference fullyResolveTypeDefClass() {
+  public SpecificTypeReference fullyResolveTypeDefReference() {
     SpecificHaxeClassReference reference = resolveTypeDefClass();
 
     HaxeClass haxeClass = getHaxeClass();
     HaxeGenericResolver resolver = getGenericResolver();
     while (haxeClass instanceof AbstractHaxeTypeDefImpl typeDef) {
+      HaxeFunctionType functionType = typeDef.getFunctionType();
+      if (functionType != null) {
+        SpecificFunctionReference reference1 = reference.resolveTypeDefFunction();
+        return resolver.resolve(reference1);
+      }
       reference = typeDef.getTargetClass(resolver);
       if (reference.isTypeDefOfClass()) {
         haxeClass = reference.getHaxeClass();

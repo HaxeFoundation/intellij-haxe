@@ -176,6 +176,6 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     boolean optional = parameter.getOptionalMark() != null;
     String name = parameter.getComponentName().getName();
     ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
-    return new SpecificFunctionReference.Argument(index, optional, type, name);
+    return new SpecificFunctionReference.Argument(index, optional, false, type, name);
   }
 }

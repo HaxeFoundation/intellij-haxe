@@ -167,9 +167,11 @@ public class HaxeExpressionEvaluator {
             HaxeForStatement parentForLoop = PsiTreeUtil.getParentOfType(iterable, HaxeForStatement.class);
 
             if(haxeClassReference.isTypeDefOfClass()) {
-              SpecificHaxeClassReference reference = haxeClassReference.fullyResolveTypeDefClass();
-              HaxeGenericResolver typeDefResolved = reference.getGenericResolver();
-              localResolver.addAll(typeDefResolved);
+              SpecificTypeReference typeReference = haxeClassReference.fullyResolveTypeDefReference();
+              if (typeReference instanceof  SpecificHaxeClassReference classReference) {
+                HaxeGenericResolver typeDefResolved = classReference.getGenericResolver();
+                localResolver.addAll(typeDefResolved);
+              }
             }
 
             if (parentForLoop.getKeyValueIterator() == null) {
@@ -408,7 +410,12 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeParameter parameter) {
       HaxeTypeTag typeTag = parameter.getTypeTag();
       if (typeTag!= null) {
-        return HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
+        ResultHolder typeFromTypeTag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
+        if (typeFromTypeTag.isTypeParameter()) {
+          ResultHolder resolve = resolver.resolve(typeFromTypeTag);
+          if (!resolve.isUnknown()) return resolve;
+        }
+        return typeFromTypeTag;
       }
     }
     if (element instanceof HaxeSpreadExpression spreadExpression) {
@@ -855,6 +862,9 @@ public class HaxeExpressionEvaluator {
         parameterExpressions = Collections.emptyList();
       }
 
+      if (functionType instanceof  SpecificHaxeClassReference classReference && classReference.isTypeDef() ) {
+        functionType = classReference.fullyResolveTypeDefReference();
+      }
       if (functionType instanceof SpecificEnumValueReference enumValueConstructor) {
         // TODO, this probably should not be handled here, but its detected as a call expression
 
@@ -1229,14 +1239,16 @@ public class HaxeExpressionEvaluator {
           ResultHolder argumentType = SpecificTypeReference.getUnknown(function).createHolder();
           String argumentName = openParamList.getComponentName().getName();
           context.setLocal(argumentName, argumentType);
-          arguments.add(new Argument(0, false, argumentType, argumentName));
+          // TODO check if rest param?
+          arguments.add(new Argument(0, false, false, argumentType, argumentName));
         } else {
           List<HaxeParameter> list = params.getParameterList();
           for (int i = 0; i < list.size(); i++) {
             HaxeParameter parameter = list.get(i);
             ResultHolder argumentType = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
             context.setLocal(parameter.getName(), argumentType);
-            arguments.add(new Argument(i, parameter.getOptionalMark() != null, argumentType, parameter.getName()));
+            // TODO check if rest param?
+            arguments.add(new Argument(i, parameter.getOptionalMark() != null, false, argumentType, parameter.getName()));
           } // TODO: Add Void if list.size() == 0
         }
         context.addLambda(context.createChild(function.getLastChild()));
@@ -1413,7 +1425,10 @@ public class HaxeExpressionEvaluator {
 
     var iteratorType = keyValueIteratorType.getClassType();
     if (iteratorType.isTypeDef()) {
-      iteratorType = iteratorType.fullyResolveTypeDefClass();
+      SpecificTypeReference type = iteratorType.fullyResolveTypeDefReference();
+      if (type instanceof SpecificHaxeClassReference  classReference) {
+        iteratorType = classReference;
+      }
     }
     var iteratorTypeResolver = iteratorType.getGenericResolver();
 

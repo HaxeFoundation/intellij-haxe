@@ -657,6 +657,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
           }
           if (result != null) return result;
+        }else if (resolvedType.isFunctionType()) {
+          return HaxeResolveResult.create(resolvedType.getFunctionType().functionType);
         }
       }
       if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {

@@ -175,7 +175,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     List<HaxeParameterModel> parameters = this.getParameters();
     for (int i = 0; i < parameters.size(); i++) {
       HaxeParameterModel param = parameters.get(i);
-      args.add(new Argument(i, param.isOptional(), param.getType(resolver), param.getName()));
+      args.add(new Argument(i, param.isOptional(),param.isRest(), param.getType(resolver), param.getName()));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }

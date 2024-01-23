@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeGenericSpecialization;
+import com.intellij.plugins.haxe.lang.psi.HaxeSpecificFunction;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
@@ -266,6 +267,20 @@ public class HaxeGenericResolver {
   public ResultHolder resolve(ResultHolder resultHolder) {
     if (null == resultHolder ) return null;
     return HaxeTypeResolver.resolveParameterizedType(resultHolder, this);
+  }
+  @Nullable
+  public SpecificFunctionReference resolve(SpecificFunctionReference fnRef) {
+    if (null == fnRef ) return null;
+    if (fnRef.functionType == null) return fnRef;
+
+    List<SpecificFunctionReference.Argument> newArgList = fnRef.getArguments().stream()
+      .map(argument -> argument.changeType(Optional.ofNullable(resolve(argument.getType())).orElse(argument.getType())))
+      .toList();
+
+    ResultHolder newReturnType = resolve(fnRef.getReturnType());
+    ResultHolder returnValue = Optional.ofNullable(newReturnType).orElse(fnRef.getReturnType());
+
+    return  new SpecificFunctionReference(newArgList, returnValue, fnRef.functionType, fnRef.context);
   }
 
   /**

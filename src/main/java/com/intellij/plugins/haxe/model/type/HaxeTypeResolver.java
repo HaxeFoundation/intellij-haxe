@@ -80,6 +80,8 @@ public class HaxeTypeResolver {
         return getFunctionReturnType(comp, resolver);
       } else if (comp instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
         return getEnumReturnType(enumValueDeclaration, resolver);
+      } else if (comp instanceof HaxeParameter parameter) {
+        return getPsiElementType(parameter, resolver);
       } else {
         return getFieldType(comp, resolver);
       }
@@ -355,7 +357,9 @@ public class HaxeTypeResolver {
     for (int i = 0; i < list.size(); i++) {
       HaxeFunctionArgument argument = list.get(i);
       ResultHolder argumentType = getTypeFromFunctionArgument(argument);
-      args.add(new Argument(i, argument.getOptionalMark() != null, argumentType, getArgumentName(argument)));
+      boolean optional = argument.getOptionalMark() != null;
+      boolean rest = argument.getRestArgumentType() != null;
+      args.add(new Argument(i, optional,rest, argumentType, getArgumentName(argument)));
     }
 
     if (args.size() == 1 && args.get(0).isVoid()) {

@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.ide.hint.types;
 import com.intellij.codeInsight.hints.declarative.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -52,7 +51,10 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
         var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, resolver);
         var iteratorType = keyValueIteratorType.getClassType();
         if (iteratorType.isTypeDef()) {
-          iteratorType = iteratorType.fullyResolveTypeDefClass();
+          SpecificTypeReference type = iteratorType.fullyResolveTypeDefReference();
+          if (type instanceof SpecificHaxeClassReference  classReference) {
+            iteratorType = classReference;
+          }
         }
         var iteratorTypeResolver = iteratorType.getGenericResolver();
 
