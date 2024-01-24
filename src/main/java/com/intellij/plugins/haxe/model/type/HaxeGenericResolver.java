@@ -42,13 +42,27 @@ public class HaxeGenericResolver {
 
   public HaxeGenericResolver withoutUnknowns() {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    resolvers.stream().filter(entry -> !entry.type().isUnknown()).forEach(resolver.resolvers::add);
-    constaints.stream().filter(entry -> !entry.type().isUnknown()).forEach(resolver.constaints::add);
+
+    for (ResolverEntry resolverEntry : resolvers) {
+      if (!resolverEntry.type().isUnknown()) {
+        resolver.resolvers.add(resolverEntry);
+      }
+    }
+    for (ResolverEntry entry : constaints) {
+      if (!entry.type().isUnknown()) {
+        resolver.constaints.add(entry);
+      }
+    }
     return resolver;
   }
   public HaxeGenericResolver withoutAssignHint() {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    resolvers.stream().filter(entry -> entry.resolveSource() != ResolveSource.ASSIGN_TYPE).forEach(resolver.resolvers::add);
+
+    for (ResolverEntry entry : resolvers) {
+      if (entry.resolveSource() != ResolveSource.ASSIGN_TYPE) {
+        resolver.resolvers.add(entry);
+      }
+    }
     resolver.constaints.addAll(constaints);
     return resolver;
   }
@@ -343,8 +357,16 @@ public class HaxeGenericResolver {
 
   public HaxeGenericResolver without(String name) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    resolvers.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.resolvers::add);
-    constaints.stream().filter(entry -> !entry.name().equals(name)).forEach(resolver.constaints::add);
+    for (ResolverEntry resolverEntry : resolvers) {
+      if (!resolverEntry.name().equals(name)) {
+        resolver.resolvers.add(resolverEntry);
+      }
+    }
+    for (ResolverEntry entry : constaints) {
+      if (!entry.name().equals(name)) {
+        resolver.constaints.add(entry);
+      }
+    }
     return resolver;
   }
 
@@ -383,5 +405,14 @@ public class HaxeGenericResolver {
   @Override
   public int hashCode() {
     return resolvers.hashCode() * constaints.hashCode();
+  }
+
+  public String findNameFor(ResultHolder specific) {
+    for (ResolverEntry entry : resolvers) {
+      if (entry.type().equals(specific)) {
+        return entry.name();
+      }
+    }
+    return null;
   }
 }
