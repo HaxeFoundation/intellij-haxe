@@ -25,17 +25,15 @@ import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ex.InspectionProfileImpl;
 import com.intellij.codeInspection.ex.InspectionToolWrapper;
 import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
-import com.intellij.lang.LanguageAnnotators;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator;
+import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
@@ -96,6 +94,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
     doTest(true, false, false, null, additionalFiles);
+  }
+  private void doTestNoFixWithWeakWarnings(String... additionalFiles) throws Exception {
+    doTest(true, false, true, null, additionalFiles);
   }
 
   private void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
@@ -783,6 +784,18 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   public void testTypeParameterConstraints() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
+  }
+  @Test
+  public void testTypeParameterArguments() throws Throwable {
+    // unresolved symbols are used to confirm correct returned type
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+  }
+  @Test
+  public void testCallingFunctionTypes() throws Throwable {
+    // unresolved symbols are used to confirm correct returned type
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
   }
 
   @Test

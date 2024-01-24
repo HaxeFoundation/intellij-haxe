@@ -89,25 +89,25 @@ class OperatorTest {
     }
 
     public function TestBool() {
-        toBool = <error descr="Unable to apply operator + for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a + b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator - for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a - b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator * for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a * b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator / for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a / b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator % for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a % b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator + for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a + b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator - for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a - b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator * for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a * b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator / for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a / b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator % for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a % b</error>; //WRONG, no operator for bool
 
-        toBool = <error descr="Unable to apply operator | for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a |  b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator & for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a &  b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator << for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a << b</error>; //WRONG, no operator for bool
-        toBool = <error descr="Unable to apply operator >> for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a >> b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator | for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a |  b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator & for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a &  b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator << for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a << b</error>; //WRONG, no operator for bool
+        toBool = <error descr="Unable to apply operator >> for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a >> b</error>; //WRONG, no operator for bool
 
 
         toBool = a == b;
         toBool = a != b;
 
-        toBool = <error descr="Unable to apply operator < for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a <  b</error>; // WRONG,  not operator for float
-        toBool = <error descr="Unable to apply operator <= for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a <= b</error>; // WRONG,  not operator for float
-        toBool = <error descr="Unable to apply operator > for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a >  b</error>; // WRONG,  not operator for float
-        toBool = <error descr="Unable to apply operator >= for types Bool = true and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">a >= b</error>; // WRONG,  not operator for float
+        toBool = <error descr="Unable to apply operator < for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a <  b</error>; // WRONG,  not operator for float
+        toBool = <error descr="Unable to apply operator <= for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a <= b</error>; // WRONG,  not operator for float
+        toBool = <error descr="Unable to apply operator > for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a >  b</error>; // WRONG,  not operator for float
+        toBool = <error descr="Unable to apply operator >= for types Bool and Bool" textAttributesKey="ERRORS_ATTRIBUTES">a >= b</error>; // WRONG,  not operator for float
 
         toBool = (a is Bool);
         toDyn = a ?? b;
@@ -158,7 +158,7 @@ class OperatorTest {
 
         toDyn = <error descr="Unable to apply operator ?? for types String and Int" textAttributesKey="ERRORS_ATTRIBUTES">s?.toLowerCase()?.charAt(i) ?? i</error>; // WRONG, can not unify types
 
-        toDyn = <error descr="Unable to apply operator ?? for types String and Bool = false" textAttributesKey="ERRORS_ATTRIBUTES">t ?? b</error>; // WRONG, can not unify types
+        toDyn = <error descr="Unable to apply operator ?? for types String and Bool" textAttributesKey="ERRORS_ATTRIBUTES">t ?? b</error>; // WRONG, can not unify types
         toDyn = <error descr="Unable to apply operator ?? for types String and Int" textAttributesKey="ERRORS_ATTRIBUTES">s ?? i</error>; // WRONG, can not unify types
     }
 }

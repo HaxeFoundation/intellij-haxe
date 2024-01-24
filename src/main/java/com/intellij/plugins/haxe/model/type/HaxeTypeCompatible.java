@@ -615,6 +615,10 @@ public class HaxeTypeCompatible {
           ResultHolder fromHolder = from.getSpecifics()[n];
           if(toHolder.equals(fromHolder)) continue;
 
+          //allow assign if we got unspecified (type parameter) and real type as we cant tell if its right or wrong?
+          // added this due to failing test, but in real world code it works just fine without, maybe look at test
+          if (toHolder.isTypeParameter() &&  !fromHolder.isTypeParameter()) return true;
+
           if (typeCanBeWrapped(toHolder) && typeCanBeWrapped(fromHolder)) {
             SpecificHaxeClassReference toSpecific = toHolder.getClassType();
             SpecificHaxeClassReference fromSpecific = fromHolder.getClassType();

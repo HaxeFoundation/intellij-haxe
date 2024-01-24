@@ -402,6 +402,7 @@ public abstract class SpecificTypeReference {
     return null;
   }
 
+  abstract public HaxeResolveResult asResolveResult();
   abstract public SpecificTypeReference withConstantValue(Object constantValue);
 
   final public SpecificTypeReference withoutConstantValue() {

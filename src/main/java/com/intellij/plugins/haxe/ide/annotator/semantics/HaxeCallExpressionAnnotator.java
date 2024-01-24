@@ -82,11 +82,11 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
 
           if (functionType != null) {
-            if (functionType.functionType != null) {
+            // function type or function literal
+            if ( functionType.method == null) {
               CallExpressionValidation validation = checkFunctionCall(expression, functionType);
               createErrorAnnotations(validation, holder);
-            }
-            else if (functionType.method != null) {
+            } else {
               CallExpressionValidation validation = checkMethodCall(expression, functionType.method.getMethod());
               createErrorAnnotations(validation, holder);
             }

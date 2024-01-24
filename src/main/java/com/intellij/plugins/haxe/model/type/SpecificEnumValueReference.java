@@ -15,9 +15,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeEnumModelImpl;
 import com.intellij.plugins.haxe.model.HaxeEnumValueModel;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -59,6 +57,11 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     this.declaration = enumValue;
     this.resolver = resolver;
     this.constantValue = constantValue;
+  }
+
+  @NotNull
+  public HaxeResolveResult asResolveResult() {
+    return HaxeResolveResult.create(enumClass.getHaxeClass());
   }
 
   public SpecificEnumValueReference clone() {

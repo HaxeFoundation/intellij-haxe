@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.hierarchy.type;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher;
 import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
@@ -122,6 +123,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
   private static ArrayList<PsiClass> getSuperTypesAsList(PsiClass theClass) {
     final ArrayList<PsiClass> allSuperClasses = new ArrayList<PsiClass>();
     while (true) {
+      ProgressIndicatorProvider.checkCanceled();
       final PsiClass aClass1 = theClass;
       final PsiClass[] superTypes = aClass1.getSupers();
       PsiClass superType = null;

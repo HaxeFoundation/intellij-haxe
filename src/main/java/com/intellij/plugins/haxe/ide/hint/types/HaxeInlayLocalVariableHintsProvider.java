@@ -40,7 +40,7 @@ public class HaxeInlayLocalVariableHintsProvider implements InlayHintsProvider {
         ResultHolder type;
         HaxeVarInit init = varDeclaration.getVarInit();
         if (init != null) {
-          HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init);
+          HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(init.getExpression());
           type = HaxeTypeResolver.getPsiElementType(init, varDeclaration, resolver);
         } else {
           // attempts to resolve type from usage

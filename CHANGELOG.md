@@ -1,4 +1,7 @@
 # Changelog
+## 1.4.24
+* Improved how function types where resolved
+* Improved how call expressions with function types where checked.
 
 ## 1.4.23
 * Fixed: typedefs of function types should now resolve correctly

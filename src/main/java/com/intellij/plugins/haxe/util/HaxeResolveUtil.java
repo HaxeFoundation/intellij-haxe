@@ -781,6 +781,19 @@ public class HaxeResolveUtil {
     final HaxeVarInit varInit = PsiTreeUtil.getChildOfType(element, HaxeVarInit.class);
     final HaxeExpression initExpression = varInit == null ? null : varInit.getExpression();
     if (initExpression instanceof HaxeReference reference) {
+      // init expressions are complicated and can depend on type parameters,
+      HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(reference);
+      ResultHolder evalResult = evaluate(reference, genericResolver).result;
+      if (!evalResult.isUnknown()) {
+        if (evalResult.isClassType()) {
+          return evalResult.getClassType().asResolveResult();
+        }else if (evalResult.isFunctionType()) {
+          HaxeResolveResult functionResult = evalResult.getFunctionType().asResolveResult();
+          if (functionResult != null) return functionResult;
+        }
+      }
+      // if result is a method declaration functionResult will be null and we end up here,
+      // not sure if resolveHaxeClass will  be able to solve anything but keeping it here as a failover
       result = reference.resolveHaxeClass();
       // TODO MLO: check for missing Type parameter
       //  (var x = new Map() is allowed and typeParameters can be resolved from usage)

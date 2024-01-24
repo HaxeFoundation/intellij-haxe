@@ -573,9 +573,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             resolver.addAll(modelResolver);
           }
         }
-
+        ResultHolder holder = HaxeExpressionEvaluator.evaluate(this, resolver).result;
+        if (!holder.isUnknown()){
+          return holder.getType().asResolveResult();
+        }
+        // should not be necessary
         final HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(resolvedExpression, resolver.getSpecialization(null));
-
         result.specialize(this);
         return result;
       }

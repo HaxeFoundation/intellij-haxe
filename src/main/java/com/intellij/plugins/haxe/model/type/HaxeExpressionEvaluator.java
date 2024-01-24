@@ -647,6 +647,7 @@ public class HaxeExpressionEvaluator {
           }
         } else {
 
+          if (typeReference.isUnknown()) continue;
 
           // unwrap Null
           //TODO make util for unwrap/get underlying type of Null<T>? (or fix resolver ?)

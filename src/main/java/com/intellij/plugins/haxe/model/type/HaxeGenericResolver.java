@@ -146,13 +146,17 @@ public class HaxeGenericResolver {
       .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
       .map(ResolverEntry::type)
       .orElse(null);
-    // fallback to constraints ?
+
+    // if not specified by normal usage  try constraints or assignment
     if (holder == null) {
       holder = constaints.stream()
         .filter(entry -> element.textMatches(entry.name())).min(this::ResolverPrioritySort)
         .map(ResolverEntry::type)
         .orElse(null);
-      // if resolved type is from constraints
+
+      //if none of the method parameters specifies the type parameter
+      // and only the return type uses the type parameter
+      // then the assign value is what defines the type-parameter
       if (useAssignHint && holder != null) {
         holder = useAssignHintIfPossible(holder);
       }
@@ -344,18 +348,6 @@ public class HaxeGenericResolver {
     return resolver;
   }
 
-  /**
-   * This is a "hackish" workaround for a complex problem.
-   * the haxe compiler have a way of checking if  you can assign a more complex object than the generic constraints it seems.
-   * in HaxeFixel (FlxDestroyUtil) there are methods  that returns null and only define an interface as a generic constraints value
-   *  yet haxe still allows you to assign the return value to a variable with a more complex type.
-   *  best guess is that its allowed because the returned value is null
-   *  (if this is the case we would have to do a evaluation of return values to be able to check for this)
-   *
-   * ex.
-   * var x:ClassWithInterface = method(x);
-   * <T:interface>method(x:Interface):T {  return null;}
-   */
   private ResultHolder useAssignHintIfPossible(ResultHolder type) {
     Optional<ResolverEntry> assign = findAssignToType();
     if(assign.isPresent()) {

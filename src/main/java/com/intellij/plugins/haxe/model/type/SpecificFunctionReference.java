@@ -36,6 +36,11 @@ import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromT
 public class SpecificFunctionReference extends SpecificTypeReference {
   private static final String DELIMITER = "->";
 
+  @Nullable
+  public HaxeResolveResult asResolveResult() {
+    return functionType != null ? HaxeResolveResult.create(functionType) : null;
+  }
+
   public static class StdFunctionReference extends SpecificFunctionReference {
     public StdFunctionReference(@NotNull PsiElement context) {
       super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), (HaxeMethodModel)null, context);

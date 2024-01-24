@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -271,7 +272,9 @@ public class HaxeTypeResolver {
         if (resolver != null) {
           HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
           if (typeOrAnonymous != null) {
-              ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, resolver, true);
+            HaxeClass aClass = (HaxeClass) method.getContainingClass();
+            HaxeGenericResolver localResolver = HaxeGenericSpecialization.fromGenericResolver(null, resolver).toGenericResolver(aClass);
+            ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, localResolver, true);
               ResultHolder resolve = resolver.resolve(anonymous);
               if (resolve != null && !resolve.isUnknown()) {
                 return resolve;

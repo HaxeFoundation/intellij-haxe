@@ -59,6 +59,8 @@ public class HaxeResolveResult implements Cloneable {
   private final HaxeClass haxeClass;
   @Nullable
   private final HaxeFunctionType functionType;
+
+  // TODO add support for methods as well, and make function that returns spesificFn instead of functionType
   private final HaxeGenericSpecialization specialization;
 
   private HaxeResolveResult(@Nullable HaxeClass aClass) {
