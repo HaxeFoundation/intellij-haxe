@@ -356,4 +356,32 @@ public class HaxeGenericResolver {
     }
     return type;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj instanceof HaxeGenericResolver otherResolver) {
+      if (otherResolver.resolvers.size() != resolvers.size()) return false;
+      if (otherResolver.constaints.size() != constaints.size()) return false;
+
+      for (int i = 0; i < otherResolver.resolvers.size(); i++) {
+        ResolverEntry otherEntry = otherResolver.resolvers.get(i);
+        ResolverEntry thisEntry = resolvers.get(i);
+        if (!otherEntry.equals(thisEntry)) return false;
+      }
+
+      for (int i = 0; i < otherResolver.constaints.size(); i++) {
+        ResolverEntry otherEntry = otherResolver.constaints.get(i);
+        ResolverEntry thisEntry = constaints.get(i);
+        if (!otherEntry.equals(thisEntry)) return false;
+      }
+
+      return true;
+    }
+    return false;
+  }
+
+  @Override
+  public int hashCode() {
+    return resolvers.hashCode() * constaints.hashCode();
+  }
 }

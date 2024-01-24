@@ -140,8 +140,11 @@ public class HaxeGenericSpecialization implements Cloneable {
           specialization.put(element, name, resolved);
         } else if (classType != null && !holder.isUnknown()) {
           HaxeClass clazz = classType.getHaxeClass();
-          if (clazz == element) continue;// recursion guard, same object in input class and resolver
-          HaxeResolveResult resolved = HaxeResolveResult.create(clazz, fromGenericResolver(clazz, classType.getGenericResolver()));
+          HaxeGenericResolver classResolver = classType.getGenericResolver();
+          if (clazz == element && classResolver.equals(resolver)) {
+            continue;// recursion guard, same object in input class and resolver
+          }
+          HaxeResolveResult resolved = HaxeResolveResult.create(clazz, fromGenericResolver(clazz, classResolver));
           specialization.put(element, name, resolved);
         } else if (holder.getFunctionType() != null) {
           if (context instanceof  HaxeFunctionType functionType){
