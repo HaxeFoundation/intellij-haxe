@@ -57,6 +57,7 @@ import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
   public static final Key<Boolean> isExtensionKey = new Key<>("isExtensionKey");
+  public static final Key<String> typeHintKey = new Key<>("typeHint");
 
   //static {  // Remove when finished debugging.
   //  LOG.setLevel(LogLevel.DEBUG);
@@ -90,7 +91,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // fail until the indices are complete), we don't want to cache the (likely incorrect)
     // results.
     boolean isDumb = DumbService.isDumb(reference.getProject());
-    boolean skipCaching = skipCachingForDebug || isDumb;
+    boolean hasTypeHint = checkForTypeHint(reference);
+    boolean skipCaching = skipCachingForDebug || isDumb || hasTypeHint;
     List<? extends PsiElement> elements
       = skipCaching ? doResolve(reference, incompleteCode)
                     : ResolveCache.getInstance(reference.getProject()).resolveWithCaching(
@@ -117,6 +119,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     return elements;
+  }
+
+  //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints
+  private boolean checkForTypeHint(HaxeReference reference) {
+    if (reference.getUserData(typeHintKey) != null ) return true;
+    if (reference.getParent() instanceof  HaxeCallExpression expression) {
+      if (expression.getUserData(typeHintKey) != null ) return true;
+    }
+    return false;
   }
 
   private boolean isResolving(@NotNull HaxeReference reference) {
@@ -200,9 +211,27 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
             if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+
+              // check type hinting for enumValues
               for (PsiElement element : matchesInImport) {
                 if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
-                  int currentSize = Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p ->  p.getParameterList().size()).orElse(0);
+                  PsiElement typeHintPsi = reference;
+
+                  if (reference.getParent() instanceof  HaxeCallExpression expression) {
+                    typeHintPsi = expression;
+                  }
+                  String currentQname = enumValueDeclaration.getContainingClass().getQualifiedName();
+                  String data = typeHintPsi.getUserData(typeHintKey);
+                  if (currentQname != null && currentQname.equals(data)) {
+                    return List.of(element);
+                  }
+                }
+              }
+              // fallback, heck method parameters (needs work , optional are not handled)
+              for (PsiElement element : matchesInImport) {
+                if (element instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
+                  int currentSize =
+                    Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
                   if (expectedSize == currentSize) {
                     return List.of(element);
                   }

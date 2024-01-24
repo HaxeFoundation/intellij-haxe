@@ -19,6 +19,7 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.ASSIGNMENT_TYPE_COMPATIBILITY_CHECK;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
+import static com.intellij.plugins.haxe.lang.psi.HaxeResolver.typeHintKey;
 
 public class HaxeAssignExpressionAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -34,13 +35,21 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     PsiElement lhs = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(psi);
     PsiElement assignOperation = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(lhs);
     PsiElement rhs = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(assignOperation);
+    if (lhs == null || rhs == null) return;
 
     HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(lhs);
     HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rhs);
 
     ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
     rhsResolver.add("", lhsType, ResolveSource.ASSIGN_TYPE);
-
+    // if class add type hinting for resolver
+    if(lhsType.isClassType()){
+      SpecificHaxeClassReference type = lhsType.getClassType();
+      if(type != null && type.getHaxeClass() != null) {
+        String qualifiedName = type.getHaxeClass().getQualifiedName();
+        rhs.putUserData(typeHintKey, qualifiedName);
+      }
+    }
     ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rhs, psi, rhsResolver);
 
     // Allow Literal Maps and arrays to be assigned to any specifics they have in common with assigned variable.
