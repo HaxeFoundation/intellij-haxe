@@ -355,6 +355,15 @@ public class HaxeGenericResolver {
   }
 
 
+  public HaxeGenericResolver without(ResultHolder holder) {
+    String name = findNameFor(holder);
+    if (name != null) {
+      return without(name);
+    }
+    else {
+      return this;
+    }
+  }
   public HaxeGenericResolver without(String name) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     for (ResolverEntry resolverEntry : resolvers) {
@@ -407,9 +416,12 @@ public class HaxeGenericResolver {
     return resolvers.hashCode() * constaints.hashCode();
   }
 
-  public String findNameFor(ResultHolder specific) {
+  private String findNameFor(ResultHolder specific) {
     for (ResolverEntry entry : resolvers) {
-      if (entry.type().equals(specific)) {
+      if (specific.isTypeParameter() && entry.name().equals(specific.getClassType().getClassName())){
+        return entry.name();
+      }
+      else if (entry.type().equals(specific)) {
         return entry.name();
       }
     }

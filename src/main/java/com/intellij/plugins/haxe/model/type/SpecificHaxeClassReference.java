@@ -568,6 +568,57 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
     return reference;
   }
+  public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference() {
+    if (isNullType()) {
+      SpecificTypeReference typeReference = unwrapNullType();
+      if (typeReference instanceof SpecificHaxeClassReference reference) {
+        if (reference.isTypeDef()) return reference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      }
+      return typeReference;
+    }
+
+    if (isTypeDefOfFunction()) {
+      return  resolveTypeDefFunction();
+    }
+
+    if (isTypeDefOfClass()) {
+      SpecificHaxeClassReference reference = resolveTypeDefClass();
+
+      HaxeClass haxeClass = getHaxeClass();
+      HaxeGenericResolver resolver = getGenericResolver();
+      while (haxeClass instanceof AbstractHaxeTypeDefImpl typeDef) {
+        HaxeFunctionType functionType = typeDef.getFunctionType();
+        if (functionType != null) {
+          SpecificFunctionReference reference1 = reference.resolveTypeDefFunction();
+          return resolver.resolve(reference1);
+        }
+        reference = typeDef.getTargetClass(resolver);
+        if (reference.isTypeDefOfClass()) {
+          haxeClass = reference.getHaxeClass();
+          resolver = reference.getGenericResolver();
+        }
+        else if (reference.isNullType()) {
+          SpecificTypeReference unwrapped = reference.unwrapNullType();
+          if (unwrapped instanceof SpecificHaxeClassReference haxeClassReference) {
+            haxeClass = haxeClassReference.getHaxeClass();
+            resolver = haxeClassReference.getGenericResolver();
+          }
+          else if (unwrapped instanceof SpecificFunctionReference functionReference) {
+            return resolver.resolve(functionReference);
+          }
+        }
+        else {
+          break;
+        }
+      }
+      return reference;
+    }
+    return this;
+  }
+
+  private SpecificTypeReference unwrapNullType() {
+    return specifics[0].getType();
+  }
 
   public SpecificFunctionReference resolveTypeDefFunction() {
     if (typeDefFunction != null) return typeDefFunction;
@@ -685,10 +736,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard (remove type parameters that has been used)
       if (specific.getClassType() != originalType) {
-        String name = genericResolver.findNameFor(specific);
-        if (name != null) {
-          genericResolver = genericResolver.without(name);
-        }
+        genericResolver = genericResolver.without(specific);
         if (!genericResolver.isEmpty()) {
           final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver);
           if (null != typeReference) {

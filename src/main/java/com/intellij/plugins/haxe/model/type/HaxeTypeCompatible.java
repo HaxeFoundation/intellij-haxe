@@ -145,6 +145,18 @@ public class HaxeTypeCompatible {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
 
+
+    if (to instanceof  SpecificHaxeClassReference classReference) {
+      if (classReference.isTypeDef() || classReference.isNullType()) {
+        to = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      }
+    }
+    if (from instanceof  SpecificHaxeClassReference classReference ) {
+      if (classReference.isTypeDef() || classReference.isNullType()) {
+        from = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      }
+    }
+
     // if abstract of function is being compared to a function we map the abstract to its underlying function
     if (isFunctionTypeOrReference(from) && to.isAbstractType()) {
       SpecificFunctionReference fromFunctionType = asFunctionReference(from);
