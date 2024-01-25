@@ -616,7 +616,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return this;
   }
 
-  private SpecificTypeReference unwrapNullType() {
+  public SpecificTypeReference unwrapNullType() {
     return specifics[0].getType();
   }
 

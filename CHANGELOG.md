@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.26
+* Fixed: Return type inlay was not placed correctly in some cases.
+* Improved: Better type checking for parameters and assignment expressions.
+
 ## 1.4.25
 * Improved: how function types where resolved
 * Improved: how call expressions with function types where checked.

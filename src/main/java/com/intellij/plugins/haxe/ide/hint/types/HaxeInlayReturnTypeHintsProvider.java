@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import kotlin.Unit;
@@ -37,7 +38,9 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
         HaxeGenericResolver resolver = methodModel.getGenericResolver(null);
         resolver = resolver.withTypeParametersAsType(methodModel.getGenericParams());
         ResultHolder returnType = methodModel.getReturnType(resolver);
-        int offset = declaration.getParameterList().getNextSibling().getTextRange().getEndOffset();
+        PsiElement paramListEnd = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(declaration.getParameterList());
+        if (paramListEnd == null) return;
+        int offset = paramListEnd.getTextRange().getEndOffset();
         if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
           InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
           sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));

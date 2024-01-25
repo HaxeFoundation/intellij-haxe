@@ -94,13 +94,8 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           }else {
             SpecificTypeReference typeReference = type.getType();
 
-            if (type.getType().isNullType()) {
-              // unwrap null<T> and check for function or callable
-              ResultHolder specific = type.getClassType().getSpecifics()[0];
-              SpecificTypeReference specificType = specific.getType();
-              if (specific.isTypeDef()) {
-                specificType = specific.getClassType().fullyResolveTypeDefReference();
-              }
+            if (type.isClassType()) {
+              SpecificTypeReference specificType = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
               if (specificType instanceof SpecificFunctionReference) {
                 return;
               }else if(specificType instanceof SpecificHaxeClassReference classReference){

@@ -61,6 +61,19 @@ public class HaxeGenericParamModel {
     if (constraint == null) {
       HaxeTypeList list = part.getTypeList();
       if (list != null) {
+        // no need to  use multiType if only one value
+        if (list.getTypeListPartList().size() == 1) {
+          HaxeTypeListPart typeListPart = list.getTypeListPartList().get(0);
+          HaxeFunctionType functionType = typeListPart.getFunctionType();
+          if (functionType != null) {
+            return SpecificFunctionReference.create(new HaxeSpecificFunction(functionType, HaxeGenericSpecialization.EMPTY)).createHolder();
+          }
+          HaxeTypeOrAnonymous anonymous = typeListPart.getTypeOrAnonymous();
+          if(anonymous != null) {
+            return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
+          }
+
+        }
         HaxeTypeParameterMultiType type = convertToMultiTypeParameter(list, resolver);
         return  new ResultHolder(SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type.getModel(), part)));
       }
