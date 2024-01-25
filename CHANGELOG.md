@@ -1,9 +1,9 @@
 # Changelog
-## 1.4.24
-* Improved how function types where resolved
-* Improved how call expressions with function types where checked.
 
-## 1.4.23
+## 1.4.25
+* Improved: how function types where resolved
+* Improved: how call expressions with function types where checked.
+* Fixed: now resolving values from Null<T> and typeDef when checking if field is callable
 * Fixed: typedefs of function types should now resolve correctly
 * Fixed: Introduce variable feature for introduce key-value intention
 * Fixed: Issue where members of anonymous structures using type-parameters did not resolve.

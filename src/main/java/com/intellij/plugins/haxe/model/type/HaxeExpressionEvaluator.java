@@ -988,14 +988,16 @@ public class HaxeExpressionEvaluator {
 
       ArrayList<SpecificTypeReference> keyReferences = new ArrayList<>(initializers.size());
       ArrayList<SpecificTypeReference> valueReferences = new ArrayList<>(initializers.size());
+      HaxeGenericResolver resolverWithoutHint = resolver.withoutAssignHint();
       for (HaxeExpression ex : initializers) {
         HaxeMapInitializerExpression fatArrow = (HaxeMapInitializerExpression)ex;
-        SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context, resolver).getType();
+
+        SpecificTypeReference keyType = handle(fatArrow.getFirstChild(), context, resolverWithoutHint).getType();
         if (keyType instanceof SpecificEnumValueReference enumValueReference) {
           keyType = enumValueReference.getEnumClass();
         }
         keyReferences.add(keyType);
-        SpecificTypeReference valueType = handle(fatArrow.getLastChild(), context, resolver).getType();
+        SpecificTypeReference valueType = handle(fatArrow.getLastChild(), context, resolverWithoutHint).getType();
         if (valueType instanceof SpecificEnumValueReference enumValueReference) {
           valueType = enumValueReference.getEnumClass();
         }
@@ -1032,7 +1034,8 @@ public class HaxeExpressionEvaluator {
       boolean allConstants = true;
       if (list != null) {
         for (HaxeExpression expression : list.getExpressionList()) {
-          SpecificTypeReference type = handle(expression, context, resolver).getType();
+          // dropping AssignHint as we are in an array so field type will include the array part.
+          SpecificTypeReference type = handle(expression, context, resolver.withoutAssignHint()).getType();
           if (!type.isConstant()) {
             allConstants = false;
           } else {

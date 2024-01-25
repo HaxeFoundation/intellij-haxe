@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -92,6 +93,22 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             }
           }else {
             SpecificTypeReference typeReference = type.getType();
+
+            if (type.getType().isNullType()) {
+              // unwrap null<T> and check for function or callable
+              ResultHolder specific = type.getClassType().getSpecifics()[0];
+              SpecificTypeReference specificType = specific.getType();
+              if (specific.isTypeDef()) {
+                specificType = specific.getClassType().fullyResolveTypeDefReference();
+              }
+              if (specificType instanceof SpecificFunctionReference) {
+                return;
+              }else if(specificType instanceof SpecificHaxeClassReference classReference){
+                if (classReference.getHaxeClassModel() != null) {
+                  if (classReference.getHaxeClassModel().isCallable()) return;
+                }
+              }
+            }
             // if not enum value constructor or dynamic, show error
             if (!type.isEnumValueType() && !type.isDynamic() && !type.isUnknown()) {
               // TODO bundle
@@ -102,6 +119,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           }
         }
         else if (resolved instanceof HaxeMethod method) {
+          if (isTrace(method))return;
           CallExpressionValidation validation = checkMethodCall(expression, method);
           createErrorAnnotations(validation, holder);
         }
@@ -111,6 +129,15 @@ public class HaxeCallExpressionAnnotator implements Annotator {
       CallExpressionValidation validation = checkConstructor(newExpression);
       createErrorAnnotations(validation, holder);
     }
+  }
+
+  // the trace method in std does not have rest arg so we ignore it
+  private static boolean isTrace(HaxeMethod method) {
+    FullyQualifiedInfo info = method.getModel().getQualifiedInfo();
+    if (info == null) return false;
+    return info.className.equals("Log")
+           && info.packagePath.equals("haxe")
+           && info.memberName.equals("trace");
   }
 
   private void createErrorAnnotations(@NotNull CallExpressionValidation validation, @NotNull AnnotationHolder holder) {
