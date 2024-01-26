@@ -1,6 +1,7 @@
 # Changelog
 
 ## 1.4.26
+* Fixed: Parser bug that caused massive slowdown in code with many level nested structures
 * Fixed: Return type inlay was not placed correctly in some cases.
 * Improved: Better type checking for parameters and assignment expressions.
 

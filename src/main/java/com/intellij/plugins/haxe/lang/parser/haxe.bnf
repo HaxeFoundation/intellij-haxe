@@ -737,7 +737,7 @@ prefixExpression ::= (prefixOperator (postfixExpression | valueExpression))
                    | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
 postfixExpression ::= (assignableValueExpression assignableOperator)
                    | notSuffixExpression                                      { extends=unaryExpression }
-notSuffixExpression ::= valueExpression suffixOperator                        { extends=postfixExpression }
+notSuffixExpression ::= valueExpression !suffixOperator                       { extends=postfixExpression }
 valueExpression ::= value
 
 // These fake rules won't be in the parser, but the PSI will contain a HaxeBinaryExpression class
