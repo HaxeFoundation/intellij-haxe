@@ -481,8 +481,10 @@ mapLiteral ::= '[' (mapInitializerStatement | mapInitializerExpressionList) ']'
 optionalMark ::= '?'
 functionType ::= newFunctionType | oldFunctionType
 functionReturnType ::= typeWrapper
-
-private typeWrapper ::= functionType | typeOrAnonymous
+// normal types have type parameters that can be nested so its best to check types before function types/function signatures
+// as functions are not nested and checking them first will cause a wasted function type check on every nested type in normal types
+// to avoid normal types from consume tokens from function type we add should not end with function type check ( !'->')
+private typeWrapper ::=  typeOrAnonymous !'->' | functionType
 
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=3}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
