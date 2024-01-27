@@ -713,6 +713,7 @@ expression ::= assignExpression
              | prefixExpression
              | postfixExpression
              | valueExpression !suffixOperator !assignableOperator
+             | notSuffixExpression
              { extraRoot=true recoverWhile=expression_recover }
 
 assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
@@ -733,17 +734,11 @@ shiftExpression ::= expression shiftOperator expression                       { 
 additiveExpression ::= expression additiveOperator expression                 { extends=binaryExpression }
 multiplicativeExpression ::= expression multiplicativeOperator expression     { extends=binaryExpression }
 moduloExpression ::= expression moduloOperator expression                     { extends=binaryExpression }
-prefixExpression ::= (prefixOperator (postfixExpression | valueExpression))
-                   | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
-postfixExpression ::= (assignableValueExpression assignableOperator)
-                   | notSuffixExpression                                      { extends=unaryExpression }
-// TODO
-// this expression is incorrect on purpose as notSuffixExpression was causing huge slow downs when parsing nested objectLiterals
-// (remove "!" before suffixOperator tom make it correct again)
 
-// we need to find a way to support the notSuffix  without causing each level of nested objectLiteral to cause n^2 valueExpression parsings
-// since "expr!" is not used anywhere except for macros we can probably get away with this for a while
-notSuffixExpression ::= valueExpression !suffixOperator                       { extends=postfixExpression }
+prefixExpression ::= (prefixOperator (postfixExpression | notSuffixExpression | valueExpression))
+                   | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
+postfixExpression ::= (assignableValueExpression assignableOperator)          { extends=unaryExpression }
+notSuffixExpression ::= valueExpression suffixOperator                       { extends=postfixExpression }
 
 valueExpression ::= value
 
