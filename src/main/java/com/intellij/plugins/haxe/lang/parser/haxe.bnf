@@ -737,7 +737,12 @@ prefixExpression ::= (prefixOperator (postfixExpression | valueExpression))
                    | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
 postfixExpression ::= (assignableValueExpression assignableOperator)
                    | notSuffixExpression                                      { extends=unaryExpression }
+// TODO
+// this expression is incorrect on purpose as notSuffixExpression was causing huge slow donws when parsing nested objectLiterals
+// we need to find a way to support the notSuffix  without causing each level of nested objectLiteral to cause n^2 valueExpression parsings
+// since "expr!" is not used anywhere except for macros we can probably get away with this for a while
 notSuffixExpression ::= valueExpression !suffixOperator                       { extends=postfixExpression }
+
 valueExpression ::= value
 
 // These fake rules won't be in the parser, but the PSI will contain a HaxeBinaryExpression class
