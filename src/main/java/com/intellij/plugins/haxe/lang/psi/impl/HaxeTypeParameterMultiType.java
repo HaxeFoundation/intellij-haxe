@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This class is a helper class to handle type parameters with constrains from multiple types
@@ -67,4 +68,16 @@ public class HaxeTypeParameterMultiType extends AnonymousHaxeTypeImpl {
   }
 
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    HaxeTypeParameterMultiType type = (HaxeTypeParameterMultiType)o;
+    return Objects.equals(typeList, type.typeList) && Objects.equals(anonymousTypeBodyList, type.anonymousTypeBodyList);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(typeList, anonymousTypeBodyList);
+  }
 }
