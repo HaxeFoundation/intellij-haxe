@@ -118,7 +118,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
-    return elements;
+    return elements == null ? EMPTY_LIST : elements;
   }
 
   //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints
@@ -144,6 +144,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
   }
 
+  @Nullable
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     Stack<String> stack = referencesProcessing.get();
     boolean traceEnabled = log.isTraceEnabled();
@@ -159,7 +160,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode, referenceText);
 
       if (traceEnabled) {
-        log.trace(traceMsg("Finished reference:  " + referenceText));
+        log.trace(traceMsg("Finished  reference: " + referenceText));
         log.trace(traceMsg("-----------------------------------------"));
       }
 
@@ -178,7 +179,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
       if (!(reference instanceof HaxeRegularExpression || reference instanceof HaxeStringLiteralExpression)) {
-        return EMPTY_LIST;
+        return null;
       }
     }
 
@@ -263,7 +264,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-    return result == null ? EMPTY_LIST : result;
+    return result;
   }
 
   private List<? extends PsiElement> checkGlobalAlias(HaxeReference reference) {
