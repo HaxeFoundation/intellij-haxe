@@ -683,7 +683,7 @@ public class HaxeExpressionEvaluator {
             }
 
           }
-          typeHolder = access;
+          if (access != null) typeHolder = access;
         }
       }
 
