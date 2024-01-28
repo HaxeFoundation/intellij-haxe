@@ -48,18 +48,25 @@ public class HaxeMacroUtil {
     return argument;
   }
 
-  public static ResultHolder resolveMacroType(ResultHolder returnType) {
-    SpecificHaxeClassReference classReference = returnType.getClassType();
-    if (classReference == null  || classReference.getHaxeClass() == null) return returnType;
+  public static ResultHolder resolveMacroType(ResultHolder returntype) {
+    SpecificHaxeClassReference type = returntype.getClassType();
+    SpecificTypeReference reference = resolveMacroType(type);
+    return reference == null ? returntype : reference.createHolder();
+  }
+  public static SpecificTypeReference resolveMacroType(SpecificHaxeClassReference classReference) {
+
+    if (classReference == null  || classReference.getHaxeClass() == null) return classReference;
     String qualifiedName = classReference.getHaxeClass().getQualifiedName();
     return  switch (qualifiedName) {
-      case "haxe.macro.Expr"  -> SpecificTypeReference.getDynamic(returnType.getElementContext()).createHolder();
-      case "haxe.macro.Expr.ExprOf" -> classReference.getSpecifics()[0];
-      default -> returnType;
+      case "haxe.macro.Expr"  -> SpecificTypeReference.getDynamic(classReference.getElementContext());
+      case "haxe.macro.Expr.ExprOf" -> classReference.getSpecifics()[0].getClassType();
+      default -> classReference;
     };
   }
   public static boolean isMacroType(ResultHolder returnType) {
-    SpecificHaxeClassReference classReference = returnType.getClassType();
+    return isMacroType(returnType.getClassType());
+  }
+  public static boolean isMacroType(SpecificHaxeClassReference classReference) {
     if (classReference == null  || classReference.getHaxeClass() == null) return false;
     String qualifiedName = classReference.getHaxeClass().getQualifiedName();
     return  switch (qualifiedName) {

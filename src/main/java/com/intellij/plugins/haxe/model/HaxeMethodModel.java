@@ -20,10 +20,8 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
@@ -31,7 +29,6 @@ import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.CachedValue;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import lombok.EqualsAndHashCode;
@@ -187,6 +184,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   public boolean isAbstract() {
     return hasModifier(HaxePsiModifier.ABSTRACT);
+  }
+  public boolean isMacro() {
+    return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO2);
   }
 
   @Override

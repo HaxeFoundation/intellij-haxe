@@ -26,7 +26,7 @@ Haxe File
         HaxePsiToken:{('{')
         METHOD_DECLARATION
           METHOD_MODIFIER
-            HaxePsiToken:macro('macro ')
+            HaxePsiToken:macro('macro')
           METHOD_MODIFIER
             HaxePsiToken:public('public')
           HaxePsiToken:function('function')
@@ -67,7 +67,7 @@ Haxe File
             HaxePsiToken:}('}')
         METHOD_DECLARATION
           METHOD_MODIFIER
-            HaxePsiToken:macro('macro ')
+            HaxePsiToken:macro('macro')
           METHOD_MODIFIER
             HaxePsiToken:public('public')
           HaxePsiToken:function('function')
@@ -101,7 +101,7 @@ Haxe File
               HaxePsiToken:;(';')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              HaxePsiToken:macro('macro ')
+              HaxePsiToken:macro('macro')
               BLOCK_STATEMENT
                 HaxePsiToken:{('{')
                 VALUE_EXPRESSION
@@ -153,7 +153,7 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              HaxePsiToken:macro('macro ')
+              HaxePsiToken:macro('macro')
               VALUE_EXPRESSION
                 MACRO_EXPRESSION_REIFICATION
                   MACRO_BLOCK_REIFICATION
@@ -192,7 +192,7 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              HaxePsiToken:macro('macro ')
+              HaxePsiToken:macro('macro')
               VALUE_EXPRESSION
                 MACRO_EXPRESSION_REIFICATION
                   MACRO_IDENTIFIER_REIFICATION
@@ -293,7 +293,7 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              HaxePsiToken:macro('macro ')
+              HaxePsiToken:macro('macro')
               PARENTHESIZED_EXPRESSION
                 HaxePsiToken:(('(')
                 FUNCTION_LITERAL

@@ -157,7 +157,7 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              HaxePsiToken:macro('macro ')
+              HaxePsiToken:macro('macro')
               WHILE_STATEMENT
                 HaxePsiToken:while('while')
                 HaxePsiToken:(('(')

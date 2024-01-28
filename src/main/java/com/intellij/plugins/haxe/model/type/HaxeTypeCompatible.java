@@ -145,6 +145,7 @@ public class HaxeTypeCompatible {
     if (to == null || from == null) return false;
     if (to.isDynamic() || from.isDynamic()) return true;
 
+    from = replaceMacroExprIfFromMacroMethod(from, fromOrigin);
 
     if (to instanceof  SpecificHaxeClassReference classReference) {
       if (classReference.isTypeDef() || classReference.isNullType()) {
@@ -227,6 +228,18 @@ public class HaxeTypeCompatible {
 
 
     return false;
+  }
+
+  private static SpecificTypeReference replaceMacroExprIfFromMacroMethod(@NotNull SpecificTypeReference from, @Nullable PsiElement fromOrigin) {
+    if (from instanceof SpecificHaxeClassReference classReference) {
+      if (fromOrigin instanceof HaxeMethodDeclaration methodDeclaration) {
+          HaxeMethodModel model = methodDeclaration.getModel();
+          if (model != null && model.isMacro() && HaxeMacroUtil.isMacroType(classReference)) {
+            from = HaxeMacroUtil.resolveMacroType(classReference);
+          }
+        }
+      }
+    return from;
   }
 
   private static List<SpecificTypeReference> getImplicitCast(@NotNull SpecificHaxeClassReference classReference, boolean from) {

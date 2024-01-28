@@ -333,7 +333,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "never"                                   {  return emitToken( KNEVER);  }
 "override"                                {  return emitToken( KOVERRIDE);  }
 "inline"                                  {  return emitToken( KINLINE);  }
-"macro" ({WHITE_SPACE_CHAR}+)             {  return emitToken( KMACRO2); }
+"macro" /({WHITE_SPACE_CHAR}+)             {  return emitToken( KMACRO2); }
 "macro:"
                                           {
                                             yypushback(1); // do not consume the colon (but catch the macro keyword)

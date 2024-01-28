@@ -290,6 +290,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return null;
   }
 
+  public void isExprOf() {
+  }
+
   public enum Compatibility {
     ASSIGNABLE_TO,   // Assignable via @:to or "to <Type>" on an abstract.
     ASSIGNABLE_FROM  // Assignable via @:from or "from <Type>" on an abstract.
