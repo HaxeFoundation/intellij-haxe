@@ -496,9 +496,14 @@ public class HaxeTypeCompatible {
     // assigning value from  the result of a method call or anything else that has the type as part of a typeTag should be allowed
     // to be able to separate these 2 cases with the same SpecificHaxeClassReference we need to know the origin of the value
     // this is a hackish attempt at solving this without  breaking  other part of the code (type.context needs to be the correct class for generics to be resolved correclty)
-    if(fromOrigin != null) {
-      return (from.isEnumType() && !( fromOrigin instanceof HaxeClass))|| from.isContextAnEnumDeclaration();
-    }else {
+    if (fromOrigin != null) {
+      if (from.isContextAnEnumDeclaration()) return true;
+      if (from.isEnumType()) {
+        return fromOrigin instanceof HaxeParameter
+               || fromOrigin instanceof HaxeMethod;
+      }
+      return false;
+    } else {
       return (from.isEnumType() && !from.isContextAType() )|| from.isContextAnEnumDeclaration();
     }
 

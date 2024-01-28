@@ -149,7 +149,8 @@ public class HaxeGenericResolverUtil {
             for (Map.Entry<Integer, HaxeParameterUtil.ParameterToArgumentAndResolver> entry : parameterArgumentMap.entrySet()) {
 
 
-              ResultHolder paramType = entry.getValue().parameter().getType();
+              HaxeParameterModel parameterOrigin = entry.getValue().parameter();
+              ResultHolder paramType = parameterOrigin.getType();
 
               String paramName = paramType.getType().toStringWithoutConstant();
               ResultHolder[] paramSpecifics = {};
@@ -218,7 +219,7 @@ public class HaxeGenericResolverUtil {
 
                           // replacing current type with resolved  parameter if it can be assigned to the type
                           // ex. you got an interface and the parameter passed is a type that implements that interface
-                        }else if (resolverType.canAssign(resolvedSpecific)) {
+                        }else if (resolverType.canAssign(resolvedSpecific.withOrigin(parameterOrigin.getContextElement()))) {
                           methodResolver.add(paramSpecificName, resolvedSpecific, ResolveSource.ARGUMENT_TYPE);
                         }else {
                           //TODO mlo: try to add some kind of warning, parameter does not match constraints
