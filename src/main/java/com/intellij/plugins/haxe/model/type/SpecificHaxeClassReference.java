@@ -49,6 +49,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
+  private static final ThreadLocal<Stack<SpecificHaxeClassReference>> processedElementsToString = ThreadLocal.withInitial(Stack::new);
   private static final ThreadLocal<SpecificHaxeClassReference> currentProcessingElement = new ThreadLocal<>();
 
   @NotNull private final HaxeClassReference classReference;
@@ -135,34 +136,53 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public String toPresentationString() {
-    StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
-    ResultHolder [] specifics = getSpecifics();
-    if (specifics.length > 0) {
-      out.append("<");
-      for (int n = 0; n < specifics.length; n++) {
-        if (n > 0) out.append(", ");
-        ResultHolder specific = specifics[n];
-        if(specific == null) {
-          out.append( UNKNOWN);
-        }
-        else if(specific.getType() == this) {
-          if (getHaxeClassModel() != null && getHaxeClassModel().getGenericParams().size()>n){
-            HaxeGenericParamModel model = getHaxeClassModel().getGenericParams().get(n);
-            out.append(model.getName());
-          }else {
-            out.append("*Recursion Error*");
-          }
-          log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
-        }else {
-          out.append(specific.toStringWithoutConstant());
+    Stack<SpecificHaxeClassReference> stack = processedElementsToString.get();
+    try {
+      HaxeClassModel classModel = getHaxeClassModel();
+      // stack overflow guard
+      if (stack.contains(this) && classModel != null) {
+        List<HaxeGenericParamModel> params = classModel.getGenericParams();
+        if (!params.isEmpty()) {
+          log.warn("toString overflow prevention");
+          return "?"; // prevent overflow
         }
       }
-      out.append(">");
+      stack.add(this);
+
+      StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
+      ResultHolder[] specifics = getSpecifics();
+      if (specifics.length > 0) {
+        out.append("<");
+        for (int n = 0; n < specifics.length; n++) {
+          if (n > 0) out.append(", ");
+          ResultHolder specific = specifics[n];
+          if (specific == null) {
+            out.append(UNKNOWN);
+          }
+          else if (specific.getType() == this) {
+            List<HaxeGenericParamModel> params = classModel.getGenericParams();
+            if (params.size() > n) {
+              HaxeGenericParamModel model = params.get(n);
+              out.append(model.getName());
+            }
+            else {
+              out.append("*Recursion Error*");
+            }
+            log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
+          }
+          else {
+            out.append(specific.toStringWithoutConstant());
+          }
+        }
+        out.append(">");
+      }
+      String result = out.toString();
+      if (result.equals("Dynamic<Dynamic>")) return "Dynamic";
+      if (result.equals("Dynamic<unknown>")) return "Dynamic";
+      return result;
+    }finally {
+      stack.remove(this);
     }
-    String result = out.toString();
-    if(result.equals("Dynamic<Dynamic>")) return "Dynamic";
-    if(result.equals("Dynamic<unknown>")) return "Dynamic";
-    return result;
   }
 
   public String toStringWithoutConstant() {
@@ -732,6 +752,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           type = classReference;
         }
       }
+      genericResolver = genericResolver.without(typeVariableName);
     }
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard (remove type parameters that has been used)

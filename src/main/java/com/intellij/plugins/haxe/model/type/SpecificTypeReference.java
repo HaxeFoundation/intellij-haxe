@@ -533,7 +533,8 @@ public abstract class SpecificTypeReference {
           if (specific.getClassType() != null) {
             SpecificTypeReference typeReference = null;
             if (!specific.getClassType().isTypeParameter()) {
-              typeReference = propagateGenericsToType(specific.getClassType(), specific.getClassType().getGenericResolver(), isReturnType);
+              HaxeGenericResolver resolver = specific.getClassType().getGenericResolver().without(specific);
+              typeReference = propagateGenericsToType(specific.getClassType(), resolver, isReturnType);
             }else {
               if (isReturnType) {
                 ResultHolder resolve = genericResolver.resolveReturnType(specific);
