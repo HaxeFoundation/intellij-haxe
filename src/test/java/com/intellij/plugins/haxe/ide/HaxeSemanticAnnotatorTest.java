@@ -837,4 +837,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testTypeParameterAnonymousStructure() throws Throwable {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testSwitchEumVariableCapture() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
 }
