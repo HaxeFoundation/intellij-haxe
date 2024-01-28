@@ -186,6 +186,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
 
     if (result == null) result = checkIsAlias(reference);
+    if (result == null) result = checkEnumMemberHints(reference);
     if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
@@ -265,6 +266,60 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result;
+  }
+
+  // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
+  private List<? extends PsiElement> checkEnumMemberHints(HaxeReference reference) {
+    HaxePsiField fieldFromReferenceExpression = null;
+    HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class);
+    if (assignExpression != null) {
+      HaxeExpression left = assignExpression.getLeftExpression();
+      if (left instanceof HaxeReferenceExpression referenceExpression) {
+        PsiElement resolve = referenceExpression.resolve();
+        if (resolve instanceof HaxePsiField psiField) {
+          fieldFromReferenceExpression = psiField;
+        }
+      }
+    }
+
+    HaxePsiField field = fieldFromReferenceExpression != null ? fieldFromReferenceExpression :  PsiTreeUtil.getParentOfType(reference, HaxePsiField.class);
+    if (field != null) {
+      HaxeTypeTag tag = field.getTypeTag();
+      if (tag != null && tag.getTypeOrAnonymous() != null) {
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
+        if (type.getClassType() != null) {
+          SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+          return findEnumMember(reference, typeReference);
+        }
+      }
+    }
+
+    HaxeParameter parameter = PsiTreeUtil.getParentOfType(reference, HaxeParameter.class);
+    if (parameter != null) {
+      HaxeTypeTag tag = parameter.getTypeTag();
+      if (tag != null && tag.getTypeOrAnonymous() != null) {
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
+        if (type.getClassType() != null) {
+          SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+          return findEnumMember(reference, typeReference);
+        }
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static List<HaxeNamedComponent> findEnumMember(HaxeReference reference, SpecificTypeReference typeReference) {
+    if (typeReference.isEnumType()) {
+      if (typeReference instanceof  SpecificHaxeClassReference classReference) {
+        HaxeClass haxeClass = classReference.getHaxeClass();
+        if (haxeClass != null) {
+          HaxeNamedComponent name = haxeClass.findHaxeMemberByName(reference.getText(), null);
+          if (name != null) return List.of(name);
+        }
+      }
+    }
+    return null;
   }
 
   private List<? extends PsiElement> checkGlobalAlias(HaxeReference reference) {
