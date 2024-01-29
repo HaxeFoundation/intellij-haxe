@@ -43,6 +43,7 @@ import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
@@ -150,6 +151,11 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
         if (insideSwitchCase.accepts(completionElementAsComment)) {
           addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
           addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
+
+          HaxeSwitchCase type = PsiTreeUtil.getPrevSiblingOfType(completionElementAsComment, HaxeSwitchCase.class);
+          if (type!= null) {
+            addSwitchVars(type, lookupElements);
+          }
         }
 
         if (isAfterIfStatement.accepts(completionElementAsComment)) {
@@ -183,6 +189,20 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     }
     result.addAllElements(lookupElements);
+  }
+
+  private static void addSwitchVars(HaxeSwitchCase type, List<LookupElement> lookupElements) {
+    Collection<HaxeEnumExtractedValue> extractedValues = PsiTreeUtil.findChildrenOfType(type, HaxeEnumExtractedValue.class);
+    Set<LookupElementBuilder> variables = extractedValues.stream().map(value -> value.getComponentName().getIdentifier().getText())
+      .map(lookupString -> LookupElementBuilder.create(lookupString).withIcon(HaxeIcons.Field))
+      .collect(Collectors.toSet());
+    lookupElements.addAll(variables);
+
+    Collection<HaxeSwitchCaseCaptureVar> captureVar = PsiTreeUtil.findChildrenOfType(type, HaxeSwitchCaseCaptureVar.class);
+    Set<LookupElementBuilder> captureVars = captureVar.stream().map(value -> value.getComponentName().getIdentifier().getText())
+      .map(lookupString -> LookupElementBuilder.create(lookupString).withIcon(HaxeIcons.Field))
+      .collect(Collectors.toSet());
+    lookupElements.addAll(captureVars);
   }
 
   private static void addEnumValuesIfSourceIsEnum(PsiElement completionElementAsComment, List<LookupElement> lookupElements) {

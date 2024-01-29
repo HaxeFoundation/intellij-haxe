@@ -96,6 +96,7 @@ public class HaxeKeywordCompletionPatterns {
       psiElement().withElementType(PRBRACK),
       psiElement().withElementType(PRCURLY),
       psiElement().withElementType(PRPAREN),
-      psiElement().withElementType(OSEMI)
+      psiElement().withElementType(OSEMI),
+      psiElement().withElementType(OCOLON)
     ));
 }
