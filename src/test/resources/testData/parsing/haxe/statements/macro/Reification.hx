@@ -21,7 +21,7 @@ class MacroTest {
     }
 
     static public function macroFieldReification(field:Array<String>) {
-        return macro($p{field});
+        return macro ($p{field});
     }
 
     static public function macroExpReification(e:Expr):Dynamic {

@@ -28,18 +28,19 @@ public class HaxeCallExpressionUtil {
     CallExpressionValidation validation  = new CallExpressionValidation();
     validation.isMethod = true;
 
-    if (method.getModel().isOverload()) {
+    HaxeMethodModel methodModel = method.getModel();
+    if (methodModel.isOverload()) {
       //TODO implement support for overloaded methods (need to get correct model ?)
       return validation; //(stopping here to avoid marking arguments as type mismatch)
     }
 
-
+    validation.memberMacroFunction = methodModel.isMacro() && !methodModel.isStatic();
     validation.isStaticExtension = callExpression.resolveIsStaticExtension();
     HaxeExpression methodExpression = callExpression.getExpression();
 
 
     HaxeCallExpressionList callExpressionList = callExpression.getExpressionList();
-    List<HaxeParameterModel> parameterList = method.getModel().getParameters();
+    List<HaxeParameterModel> parameterList = methodModel.getParameters();
     if (method instanceof  HaxeMethodDeclarationImpl methodDeclaration) {
 
       if (HaxeMacroUtil.isMacroMethod(methodDeclaration)) {
@@ -51,8 +52,9 @@ public class HaxeCallExpressionUtil {
       .orElse(List.of());
 
     boolean hasVarArgs = hasVarArgs(parameterList);
-    long minArgRequired = countRequiredArguments(parameterList) - (validation.isStaticExtension ? 1 : 0);
-    long maxArgAllowed = hasVarArgs ? Long.MAX_VALUE : parameterList.size() - (validation.isStaticExtension ? 1 : 0);
+    boolean hasThisReference = validation.isStaticExtension || validation.memberMacroFunction;
+    long minArgRequired = countRequiredArguments(parameterList) - (hasThisReference ? 1 : 0);
+    long maxArgAllowed = hasVarArgs ? Long.MAX_VALUE : parameterList.size() - (hasThisReference ? 1 : 0);
 
     // min arg check
 
@@ -130,7 +132,7 @@ public class HaxeCallExpressionUtil {
     // methods might have typeParameters with same name as a parent so we need to make sure we are not resolving parents type
     // when resolving parameters
     HaxeGenericResolver parameterResolver = resolver.withoutUnknowns();
-    resolver.addAll(method.getModel().getGenericResolver(resolver));
+    resolver.addAll(methodModel.getGenericResolver(resolver));
 
     // checking arguments is a bit complicated, rest parameters allow "infinite" arguments and optional parameters can be "skipped"
     // so we only want to break the loop once we have either exhausted the arguments or parameter list.
@@ -922,7 +924,7 @@ public class HaxeCallExpressionUtil {
 
     List<ErrorRecord> errors = new ArrayList<>();
     boolean completed = false;
-
+    boolean memberMacroFunction = false;
     boolean isStaticExtension = false;
     boolean isConstructor = false;
     boolean isFunction = false;

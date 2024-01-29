@@ -43,7 +43,7 @@ public class HaxeKeywordCompletionPatterns {
   public static final PsiElementPattern.Capture<PsiElement> classBodyScope =
     psiElement()
       .and(psiElement().inside(psiElement(HaxeClassBody.class)))
-      .andNot(psiElement().inside(psiElement(HaxeMethod.class)));
+      .andNot(psiElement().inside(psiElement(HaxeBlockStatement.class)));
   public static final PsiElementPattern.Capture<PsiElement> functionBodyScope =
     psiElement()
       .inside(HaxeBlockStatement.class)

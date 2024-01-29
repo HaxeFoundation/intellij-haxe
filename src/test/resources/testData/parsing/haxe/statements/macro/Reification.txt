@@ -241,21 +241,18 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              CALL_EXPRESSION
-                REFERENCE_EXPRESSION
-                  IDENTIFIER
-                    HaxePsiToken:ID('macro')
+              HaxePsiToken:macro('macro')
+              PARENTHESIZED_EXPRESSION
                 HaxePsiToken:(('(')
-                CALL_EXPRESSION_LIST
-                  VALUE_EXPRESSION
-                    MACRO_EXPRESSION_REIFICATION
-                      MACRO_FIELD_REIFICATION
-                        HaxePsiToken:MACRO_ID('$p')
-                        HaxePsiToken:{('{')
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('field')
-                        HaxePsiToken:}('}')
+                VALUE_EXPRESSION
+                  MACRO_EXPRESSION_REIFICATION
+                    MACRO_FIELD_REIFICATION
+                      HaxePsiToken:MACRO_ID('$p')
+                      HaxePsiToken:{('{')
+                      REFERENCE_EXPRESSION
+                        IDENTIFIER
+                          HaxePsiToken:ID('field')
+                      HaxePsiToken:}('}')
                 HaxePsiToken:)(')')
               HaxePsiToken:;(';')
             HaxePsiToken:}('}')
