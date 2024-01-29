@@ -622,6 +622,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   //}
 
   @Test
+  public void testNoErrorOnOptionalParameterWithFieldConstant() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testNoErrorOnOptionalParameterWithIntFieldConstant() throws Exception {
     doTestNoFixWithWarnings();
   }

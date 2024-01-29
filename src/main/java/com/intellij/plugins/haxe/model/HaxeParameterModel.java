@@ -96,15 +96,21 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     if (typeReplacement != null) {
       return typeReplacement.duplicate();
     }
+    ResultHolder type = null;
     HaxeTypeTag psi = getTypeTagPsi();
-    ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(psi, this.getContextElement());
-    //caching when we know there's no generics involved
-    if (!type.isTypeParameter() && type.getClassType() != null && type.getClassType().getSpecifics().length == 0 ) {
-      if (psi != null && psi.textMatches(type.getType().toString())) { // make sure we are not caching a resolved value (ex. param:T being resolved to param:String)
-        typeReplacement = type;
+    if (psi != null) {
+      type = HaxeTypeResolver.getTypeFromTypeTag(psi, this.getContextElement());
+      //caching when we know there's no generics involved
+      if (!type.isTypeParameter() && type.getClassType() != null && type.getClassType().getSpecifics().length == 0) {
+        if (psi.textMatches(type.getType().toString())) { // make sure we are not caching a resolved value (ex. param:T being resolved to param:String)
+          typeReplacement = type;
+        }
       }
+    }else if (this.getVarInitPsi() != null) {
+      type = HaxeExpressionEvaluator.evaluate(this.getVarInitPsi(), null).result;
+    }else {
+      type = new ResultHolder(SpecificHaxeClassReference.getUnknown(this.basePsi));
     }
-
     return type;
   }
 

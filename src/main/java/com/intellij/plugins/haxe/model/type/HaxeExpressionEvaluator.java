@@ -827,6 +827,9 @@ public class HaxeExpressionEvaluator {
 
           else if (subelement instanceof AbstractHaxeNamedComponent namedComponent) {
             typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
+          } else {
+            // unable to find type
+            typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
           }
 
         }
