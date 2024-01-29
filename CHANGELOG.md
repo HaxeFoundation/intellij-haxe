@@ -1,4 +1,10 @@
 # Changelog
+## 1.4.27
+* Fixed: broken macro type conversion
+* Improved: Resolve parameter-type from init-expression when typeTag is missing.
+* Improved: Use field type as hint when class and enumValue names causes resolve conflicts.
+* Improved: Null-safety fixes and overflow prevention.
+* Improved: Misc improvements to auto-completion suggestions.
 
 ## 1.4.26
 * Fixed: Parser bug that caused massive slowdown in code with many level nested structures
