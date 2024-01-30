@@ -62,10 +62,10 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   public HaxeClassModel getParentClass() {
     // TODO: Anonymous structures can extend several structs.  Need to be able to find/check/use all of them.
-    List<HaxeType> list = haxeClass.getHaxeExtendsList();
+    List<HaxeType> list = getExtendsList();
     if (!list.isEmpty()) {
       PsiElement haxeClass = list.get(0).getReferenceExpression().resolve();
-      if (haxeClass != null && haxeClass instanceof HaxeClass) {
+      if (haxeClass instanceof HaxeClass) {
         return ((HaxeClass)haxeClass).getModel();
       }
     }
@@ -92,7 +92,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeClassReferenceModel> getExtendingTypes() {
-    List<HaxeType> list = haxeClass.getHaxeExtendsList();
+    List<HaxeType> list = getExtendsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
     for (HaxeType type : list) {
       out.add(new HaxeClassReferenceModel(type));
@@ -101,7 +101,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   public List<HaxeClassReferenceModel> getImplementingInterfaces() {
-    List<HaxeType> list = haxeClass.getHaxeImplementsList();
+    List<HaxeType> list = getImplementsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
     for (HaxeType type : list) {
       out.add(new HaxeClassReferenceModel(type));
@@ -583,11 +583,20 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
   @NotNull
   public List<HaxeType> getExtendsList() {
-    return haxeClass.getHaxeExtendsList();
+    return CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getHaxeExtendsListCached).getValue();
   }
+  private static CachedValueProvider.Result<List<HaxeType>> getHaxeExtendsListCached(@NotNull HaxeClass haxeClass) {
+    List<HaxeType> list = haxeClass.getHaxeExtendsList();
+    return  CachedValueProvider.Result.create(list, haxeClass);
+  }
+
   @NotNull
   public List<HaxeType> getImplementsList() {
-    return haxeClass.getHaxeImplementsList();
+    return CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getHaxeImplementsListCached).getValue();
+  }
+  private static CachedValueProvider.Result<List<HaxeType>> getHaxeImplementsListCached(@NotNull HaxeClass haxeClass) {
+    List<HaxeType> list = haxeClass.getHaxeImplementsList();
+    return  CachedValueProvider.Result.create(list, haxeClass);
   }
 
   @NotNull

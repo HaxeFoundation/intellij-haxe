@@ -151,8 +151,9 @@ public class HaxeResolveResult implements Cloneable {
       HaxeResolveResult resolveResult = getResult(aClass, specialization);
 
         try {
-          List<HaxeType> superclasses = new ArrayList<HaxeType>(aClass.getHaxeExtendsList());
-          superclasses.addAll(aClass.getHaxeImplementsList());
+          HaxeClassModel classModel = aClass.getModel();
+          List<HaxeType> superclasses = new ArrayList<>(classModel.getExtendsList());
+          superclasses.addAll(classModel.getImplementsList());
 
           final HaxeGenericSpecialization innerSpecialization = specialization.getInnerSpecialization(aClass);
           for (HaxeType haxeType : superclasses) {
