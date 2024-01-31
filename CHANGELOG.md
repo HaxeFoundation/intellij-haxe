@@ -1,4 +1,10 @@
 # Changelog
+## 1.4.28
+* Fixed: Allow final keyword in anonymous structures
+* Fixed: Check inherited members from classes when comparing anonymous types with classes
+* Improvement: Use switch expression as enum type hint when resolving case expressions.
+* Misc: Caching class inherit lists
+
 ## 1.4.27
 * Fixed: broken macro type conversion
 * Improved: Resolve parameter-type from init-expression when typeTag is missing.
