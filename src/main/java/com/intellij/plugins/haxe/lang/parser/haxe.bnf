@@ -471,7 +471,7 @@ private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in 
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
 private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? untypedKeyword? lambdaBody {pin=2}
-functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral
+functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral // TODO considder extending functionType and implement logic to find arguments and return type
 
 arrayLiteral ::= '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

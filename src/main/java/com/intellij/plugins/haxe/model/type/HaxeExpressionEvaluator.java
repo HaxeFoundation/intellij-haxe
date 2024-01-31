@@ -52,8 +52,7 @@ import java.util.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
 @CustomLog
 public class HaxeExpressionEvaluator {
@@ -717,10 +716,10 @@ public class HaxeExpressionEvaluator {
             // check if pure Class Reference
             if (reference instanceof HaxeReferenceExpressionImpl expression) {
               if (expression.isPureClassReferenceOf(haxeClass.getName())) {
-                // wrap in Class<>
+                // wrap in Class<> or Enum<>
                 SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
                 SpecificHaxeClassReference wrappedClass =
-                  SpecificHaxeClassReference.getStdClass(CLASS, element, new ResultHolder[]{new ResultHolder(originalClass)});
+                  SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element, new ResultHolder[]{new ResultHolder(originalClass)});
                 typeHolder = wrappedClass.createHolder();
               }
             }

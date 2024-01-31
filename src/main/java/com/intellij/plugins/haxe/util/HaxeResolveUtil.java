@@ -764,10 +764,32 @@ public class HaxeResolveUtil {
     }
     if (element instanceof  HaxePsiField psiField) {
       // if we dont have a type search references
-      if (psiField.getVarInit() == null && psiField.getTypeTag() == null) {
+      if (psiField.getTypeTag() != null) {
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(psiField.getTypeTag(), element);
+        if (!type.isUnknown()) {
+          return type.getType().asResolveResult();
+        }
+      }else if (psiField.getVarInit() != null) {
+        HaxeVarInit init = psiField.getVarInit();
+        HaxeExpressionEvaluatorContext evaluate = evaluate(init, null);
+        ResultHolder holder = evaluate.result;
+        if (!holder.isUnknown()) {
+          //TODO function literals does not have a HaxeType and will result in null
+          HaxeResolveResult resolveResult = holder.getType().asResolveResult();
+          if (resolveResult != null) {
+            return resolveResult;
+          }
+
+        }
+      }
+      if (psiField.getTypeTag() == null &&  psiField.getVarInit() == null) {
         ResultHolder holder = HaxeExpressionEvaluator.searchReferencesForType(psiField, new HaxeExpressionEvaluatorContext(psiField), null);
-        if (holder != null && !holder.isUnknown()) {
-          return holder.getClassType().asResolveResult();
+        if (!holder.isUnknown()) {
+          //TODO function literals does not have a HaxeType and will result in null
+          HaxeResolveResult resolveResult = holder.getType().asResolveResult();
+          if (resolveResult != null) {
+            return resolveResult;
+          }
         }
       }
     }

@@ -179,7 +179,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
       if (!(reference instanceof HaxeRegularExpression || reference instanceof HaxeStringLiteralExpression)) {
-        return null;
+        return EMPTY_LIST;
       }
     }
 
@@ -215,6 +215,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
 
               // check type hinting for enumValues
+              // TODO type hints for switch case (h3d.mat.Pass)
               for (PsiElement element : matchesInImport) {
                 if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
                   PsiElement typeHintPsi = reference;
@@ -240,7 +241,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                 }
               }
             }
-            return matchesInImport;
+            return matchesInImport.isEmpty() ? null : matchesInImport;
           }
         PsiElement target = HaxeResolveUtil.searchInSamePackage(fileModel, referenceText);
 
@@ -266,6 +267,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       LogResolution(reference, "failed after exhausting all options.");
     }
     return result;
+    //return result != null ? result : EMPTY_LIST;
   }
 
   // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
@@ -657,7 +659,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeAbstractClassModel model = new HaxeAbstractClassModel((HaxeAbstractTypeDeclaration)associatedElement);
           HaxeGenericResolver resolver = model.getGenericResolver(null);
           HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
-          result = resolveByClassAndSymbol(underlyingClass, resolver, reference);
+          List<? extends PsiElement> resolved = resolveByClassAndSymbol(underlyingClass, resolver, reference);
+          if (!resolved.isEmpty())result = resolved;
         }
       }
     }

@@ -11,7 +11,7 @@ abstract AbstractForward2(UnderlyingType) from UnderlyingType to UnderlyingType 
 class Test {
 
   public function new() {
-    var a:AbstractForward1 = new UnderlyingType();
+    var a:AbstractForward2 = new UnderlyingType();
     a.<caret>
   }
 

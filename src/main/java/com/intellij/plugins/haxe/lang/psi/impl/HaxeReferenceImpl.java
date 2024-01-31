@@ -557,8 +557,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         PsiElement resolvedExpression = ((HaxeReference)expression).resolve();
 
-        if (resolvedExpression instanceof HaxeMethod) {
-          HaxeMethod method = (HaxeMethod)resolvedExpression;
+        if (resolvedExpression instanceof HaxeMethod method) {
           HaxeGenericResolver modelResolver = method.getModel().getGenericResolver(leftResult.getGenericResolver());
 
           HaxeExpressionList argumentList = ((HaxeCallExpression)this).getExpressionList();
