@@ -215,7 +215,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
 
               // check type hinting for enumValues
-              // TODO type hints for switch case (h3d.mat.Pass)
               for (PsiElement element : matchesInImport) {
                 if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
                   PsiElement typeHintPsi = reference;
@@ -272,6 +271,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
   private List<? extends PsiElement> checkEnumMemberHints(HaxeReference reference) {
+    HaxeSwitchCaseExpr switchCaseExpr = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExpr.class, true);
+    if (switchCaseExpr != null) {
+      HaxeSwitchStatement parentSwitch = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
+      if (parentSwitch != null) {
+        HaxeExpression expression = parentSwitch.getExpression();
+        HaxeExpressionEvaluatorContext evaluate = HaxeExpressionEvaluator.evaluate(expression, null);
+        ResultHolder result = evaluate.result;
+        if (result.getClassType() != null) {
+          SpecificTypeReference typeReference = result.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+          return findEnumMember(reference, typeReference);
+        }
+      }
+    }
+
     HaxePsiField fieldFromReferenceExpression = null;
     HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class);
     if (assignExpression != null) {
