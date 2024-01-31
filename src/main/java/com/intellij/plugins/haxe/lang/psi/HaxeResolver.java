@@ -265,8 +265,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-    return result;
-    //return result != null ? result : EMPTY_LIST;
+    return result != null ? result : EMPTY_LIST;
   }
 
   // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
