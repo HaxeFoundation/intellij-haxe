@@ -481,19 +481,19 @@ public class HaxeTypeCompatible {
 
     if (to == null || from == null) return false;
 
-    List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getMembers(to.getGenericResolver());
-    List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getMembers(to.getGenericResolver());
+    List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getAllMembers(to.getGenericResolver());
+    List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getAllMembers(to.getGenericResolver());
     for (HaxeMemberModel member : toMembers) {
-      HaxeComponentName psi = member.getNamePsi();
-      // TODO  type check
+      String name = member.getName();
+      // TODO  type check parameter and return type
       boolean memberExists;
       if (member instanceof HaxeMethodModel methodModel){
         memberExists = fromMembers.stream().filter(model -> model instanceof HaxeMethodModel)
           .map(model -> (HaxeMethodModel) model)
           .filter(mm -> methodModel.getParameters().size() == mm.getParameters().size())
-          .anyMatch(model -> model.getNamePsi().textMatches(psi.getText()));
+          .anyMatch(model -> model.getNamePsi().textMatches(name));
       }else {
-        memberExists = fromMembers.stream().anyMatch(model -> model.getNamePsi().textMatches(psi.getText()));
+        memberExists = fromMembers.stream().anyMatch(model -> model.getNamePsi().textMatches(name));
       }
       if (!memberExists) return false;
     }

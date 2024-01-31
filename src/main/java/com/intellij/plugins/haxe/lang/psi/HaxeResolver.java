@@ -58,6 +58,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
   public static final Key<Boolean> isExtensionKey = new Key<>("isExtensionKey");
   public static final Key<String> typeHintKey = new Key<>("typeHint");
+  private static final Key<Boolean> skipCacheKey = new Key<>("skipCache");
 
   //static {  // Remove when finished debugging.
   //  LOG.setLevel(LogLevel.DEBUG);
@@ -83,6 +84,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // Kill circular resolutions -- before checking the cache.
     if (isResolving(reference)) {
+      reference.putUserData(skipCacheKey, Boolean.TRUE);
       reportSkip(reference);
       return EMPTY_LIST;
     }
@@ -117,8 +119,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
-
-    return elements == null ? EMPTY_LIST : elements;
+    if (elements == null) {
+      // to avoid caching empty due to already being resolved we mark
+      // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
+      if (reference.getUserData(skipCacheKey) == Boolean.TRUE) {
+        return null;
+      }else {
+        return EMPTY_LIST;
+      }
+    }else {
+      return elements;
+    }
   }
 
   //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints

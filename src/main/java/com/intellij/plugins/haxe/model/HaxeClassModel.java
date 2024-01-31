@@ -504,6 +504,12 @@ public class HaxeClassModel implements HaxeExposableModel {
     members.addAll(getFields());
     return members;
   }
+  public List<HaxeMemberModel> getAllMembers(@Nullable HaxeGenericResolver resolver) {
+    final List<HaxeMemberModel> members = new ArrayList<>();
+    members.addAll(getAllMethods(resolver));
+    members.addAll(getFields());// TODO add get all ?
+    return members;
+  }
 
   @NotNull
   public List<HaxeMemberModel> getMembersSelf() {
@@ -540,6 +546,14 @@ public class HaxeClassModel implements HaxeExposableModel {
     for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(resolver)) {
       models.add(method.getModel());
     }
+    return models;
+  }
+  public List<HaxeMethodModel> getAllMethods(@Nullable HaxeGenericResolver resolver) {
+    List<HaxeMethodModel> models =  getAncestorMethods(resolver);
+    for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(resolver)) {
+      models.add(method.getModel());
+    }
+
     return models;
   }
 
