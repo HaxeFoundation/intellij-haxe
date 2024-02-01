@@ -434,7 +434,7 @@ public class HaxeMethodAnnotator implements Annotator {
     for (int n = 0; n < parametersCount; n++) {
       final HaxeParameterModel sourceParam = sourceParameters.get(n);
       final HaxeParameterModel prototypeParam = prototypeParameters.get(n);
-      if (!canAssignToFrom(sourceParam.getType(), prototypeParam.getType()) ||
+      if (!canAssignToFrom(prototypeParam.getType(), sourceParam.getType()) ||
           sourceParam.isOptional() != prototypeParam.isOptional()) {
         return true;
       }
@@ -443,6 +443,6 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder currentResult = source.getResultType();
     ResultHolder prototypeResult = prototype.getResultType();
 
-    return !currentResult.canAssign(prototypeResult);
+    return !prototypeResult.canAssign(currentResult);
   }
 }

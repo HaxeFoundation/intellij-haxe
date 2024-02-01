@@ -1,4 +1,8 @@
 # Changelog
+## 1.4.29
+* Fixed: Incorrect resolver caching
+* Fixed: Incorrect type compare when checking interface  implementations 
+ 
 ## 1.4.28
 * Fixed: Allow final keyword in anonymous structures
 * Fixed: Check inherited members from classes when comparing anonymous types with classes
