@@ -119,17 +119,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
-    if (elements == null) {
-      // to avoid caching empty due to already being resolved we mark
-      // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
-      if (reference.getUserData(skipCacheKey) == Boolean.TRUE) {
-        return null;
-      }else {
-        return EMPTY_LIST;
-      }
-    }else {
-      return elements;
-    }
+    return elements == null ? EMPTY_LIST : elements;
   }
 
   //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints
@@ -276,7 +266,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-    return result != null ? result : EMPTY_LIST;
+
+    if (result == null) {
+      // to avoid caching empty due to already being resolved we mark
+      // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
+      if (reference.getUserData(skipCacheKey) == Boolean.TRUE) {
+        return null;
+      }else {
+        return EMPTY_LIST;
+      }
+    }else {
+      return result;
+    }
   }
 
   // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
