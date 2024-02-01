@@ -12,5 +12,4 @@ interface Test3 {
   public function test2(b:Int):String;
   public function test3(b:Int):String;
   public function test4(b:Int):Int;
-  public function test5(b:Int):Int;
 }
