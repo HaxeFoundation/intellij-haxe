@@ -572,7 +572,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             resolver.addAll(modelResolver);
           }
         }
-        ResultHolder holder = HaxeExpressionEvaluator.evaluate(this, resolver).result;
+        //TODO should not be necessary  with both (resolve from parent scope and  "manual" from models)
+        // gets chain generics
+        HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(this);
+        // adds generics from class and method where this  reference is in.
+        genericResolver.addAll(resolver);
+        ResultHolder holder = HaxeExpressionEvaluator.evaluate(this, genericResolver).result;
         if (!holder.isUnknown()){
           return holder.getType().asResolveResult();
         }

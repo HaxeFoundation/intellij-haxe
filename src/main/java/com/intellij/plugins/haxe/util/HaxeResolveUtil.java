@@ -771,7 +771,7 @@ public class HaxeResolveUtil {
         }
       }else if (psiField.getVarInit() != null) {
         HaxeVarInit init = psiField.getVarInit();
-        HaxeExpressionEvaluatorContext evaluate = evaluate(init, null);
+        HaxeExpressionEvaluatorContext evaluate = evaluate(init.getExpression(), null);
         ResultHolder holder = evaluate.result;
         if (!holder.isUnknown()) {
           //TODO function literals does not have a HaxeType and will result in null
