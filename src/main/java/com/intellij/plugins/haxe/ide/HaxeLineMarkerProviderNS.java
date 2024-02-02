@@ -179,12 +179,10 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {
-          PsiElementListNavigator.openTargets(
-            e,
-            HaxeResolveUtil.getComponentNames(filteredSuperItems).toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
-            DaemonBundle.message("navigation.title.super.method", namedComponent.getName()),
-            DaemonBundle.message("navigation.findUsages.title.super.method", namedComponent.getName()),
-            new DefaultPsiElementCellRenderer());
+          NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(filteredSuperItems).toArray(new NavigatablePsiElement[filteredSuperItems.size()]);
+          String title = DaemonBundle.message("navigation.title.super.method", namedComponent.getName());
+          String tab = DaemonBundle.message("navigation.findUsages.title.super.method", namedComponent.getName());
+          new PsiTargetNavigator<>(psiElements).tabTitle(tab).navigate(e, title, elt.getProject());
         }
       },
       GutterIconRenderer.Alignment.LEFT,
@@ -262,12 +260,10 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {
-          PsiElementListNavigator.openTargets(
-            e, HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]),
-            DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), ""),
-            "Subclasses of " + componentWithDeclarationList.getName(),
-            new DefaultPsiElementCellRenderer()
-          );
+          NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]);
+          String title = DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), "");
+          String tab = "Subclasses of " + componentWithDeclarationList.getName();
+          new PsiTargetNavigator<>(psiElements).tabTitle(tab).navigate(e, title, elt.getProject());
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
@@ -292,12 +288,10 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       new GutterIconNavigationHandler<PsiElement>() {
         @Override
         public void navigate(MouseEvent e, PsiElement elt) {
-          PsiElementListNavigator.openTargets(
-            e, HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]),
-            DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), ""),
-            "Subclasses of " + componentWithDeclarationList.getName(),
-            new DefaultPsiElementCellRenderer()
-          );
+          NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(items).toArray(new NavigatablePsiElement[items.size()]);
+          String title = DaemonBundle.message("navigation.title.subclass", componentWithDeclarationList.getName(), items.size(), "");
+          String tab = "Subclasses of " + componentWithDeclarationList.getName();
+          new PsiTargetNavigator<>(psiElements).tabTitle(tab).navigate(e, title, elt.getProject());
         }
       },
       GutterIconRenderer.Alignment.RIGHT,

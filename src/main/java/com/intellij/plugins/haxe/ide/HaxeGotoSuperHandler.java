@@ -19,8 +19,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.daemon.DaemonBundle;
-import com.intellij.codeInsight.daemon.impl.PsiElementListNavigator;
-import com.intellij.ide.util.DefaultPsiElementCellRenderer;
+import com.intellij.codeInsight.navigation.PsiTargetNavigator;
 import com.intellij.lang.LanguageCodeInsightActionHandler;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -69,14 +68,11 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
       tryNavigateToSuperMethod(editor, methodDeclaration, superItems);
     }
     else if (!supers.isEmpty() && namedComponent instanceof HaxeClass) {
-      PsiElementListNavigator.openTargets(
-        editor,
-        HaxeResolveUtil.getComponentNames(supers).<NavigatablePsiElement>toArray(new NavigatablePsiElement[supers.size()]),
-        DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":"),
-        "Subclasses of " + namedComponent.getName(),
-        new DefaultPsiElementCellRenderer(),
-        null
-      );
+      NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(supers).toArray(new NavigatablePsiElement[supers.size()]);
+      String title = DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":");
+      String tab = "Subclasses of " + namedComponent.getName();
+
+      new PsiTargetNavigator<>(psiElements).tabTitle(tab).navigate(editor, title);
     }
   }
 
@@ -94,13 +90,11 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
       }
     });
     if (!filteredSuperItems.isEmpty()) {
-      PsiElementListNavigator.openTargets(editor, HaxeResolveUtil.getComponentNames(filteredSuperItems)
-        .toArray(new NavigatablePsiElement[filteredSuperItems.size()]),
-                                          DaemonBundle.message("navigation.title.super.method", methodName),
-                                          null,
-                                          new DefaultPsiElementCellRenderer(),
-                                          null
-      );
+      NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(filteredSuperItems)
+        .toArray(new NavigatablePsiElement[filteredSuperItems.size()]);
+      String title = DaemonBundle.message("navigation.title.super.method", methodName);
+      new PsiTargetNavigator<>(psiElements).navigate(editor, title);
+
     }
   }
 
