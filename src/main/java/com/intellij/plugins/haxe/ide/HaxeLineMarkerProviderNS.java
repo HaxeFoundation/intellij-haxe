@@ -233,11 +233,9 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
                          DaemonBundle.message("navigation.title.implementation.method", namedComponent.getName(), filteredSubItems.size()) :
                          DaemonBundle.message("navigation.title.overrider.method", namedComponent.getName(), filteredSubItems.size());
 
-
-          PsiElementListNavigator.openTargets(e, psiElements, title,
-            "Implementations of " + namedComponent.getName(),
-            new DefaultPsiElementCellRenderer()
-          );
+          new PsiTargetNavigator<>(psiElements)
+            .tabTitle("Implementations of " + namedComponent.getName())
+            .navigate(e,title, element.getProject());
         }
       },
       GutterIconRenderer.Alignment.RIGHT,
