@@ -1,4 +1,7 @@
 # Changelog
+## 1.4.30
+* Fixed: Resolver bug 
+
 ## 1.4.29
 * Fixed: Incorrect resolver caching
 * Fixed: Incorrect type compare when checking interface  implementations 
