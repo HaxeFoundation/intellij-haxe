@@ -1141,9 +1141,13 @@ public class HaxeResolveUtil {
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
       if (fileModel != null) {
-        result = searchInSameFile(fileModel, className);
+        boolean isTypeTag = PsiTreeUtil.getParentOfType(type, HaxeTypeTag.class) != null;
+        result = searchInSameFile(fileModel, className, isTypeTag);
         if (result == null) {
           List<PsiElement> matchesInImport = searchInImports(fileModel, className);
+          if (isTypeTag) {// typeTags should not contain EnumValues only parent enum type
+            matchesInImport = matchesInImport.stream().filter(element -> !(element instanceof HaxeEnumValueDeclaration)).toList();
+          }
           if(!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
             if(matchesInImport.size()> 1 &&  type.getParent() instanceof  HaxeCallExpression callExpression) {
@@ -1174,14 +1178,17 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name) {
+  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name, boolean isTypeTag) {
     List<HaxeClassModel> models = file.getClassModels();
-    final Stream<HaxeClassModel> classesStream = models.stream().filter(model -> name.equals(model.getName()));
-    final Stream<HaxeEnumValueModel> enumsStream = models.stream().filter(model -> model instanceof HaxeEnumModel)
-      .map(model -> ((HaxeEnumModel)model).getValue(name))
-      .filter(Objects::nonNull);
+    if (!isTypeTag) {
+      Optional<HaxeEnumValueModel> enumValueModel = models.stream().filter(model -> model instanceof HaxeEnumModel)
+        .map(model -> ((HaxeEnumModel)model).getValue(name))
+        .filter(Objects::nonNull)
+        .findFirst();
+      if (enumValueModel.isPresent()) return enumValueModel.get().getBasePsi();
+    }
 
-    final HaxeModel result = Stream.concat(classesStream, enumsStream)
+    final HaxeModel result  = models.stream().filter(model -> name.equals(model.getName()))
       .findFirst()
       .orElse(null);
 

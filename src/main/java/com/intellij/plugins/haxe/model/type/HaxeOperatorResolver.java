@@ -126,7 +126,9 @@ public class HaxeOperatorResolver {
           result = result.withConstantValue(left.getConstant());
         }
       }else {
-        result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
+        if (result != null) {
+          result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
+        }
       }
     }
 

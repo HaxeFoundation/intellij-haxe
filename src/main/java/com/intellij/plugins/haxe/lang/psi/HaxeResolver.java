@@ -183,7 +183,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         return EMPTY_LIST;
       }
     }
-
+    boolean isTypeTag = PsiTreeUtil.getParentOfType(reference, HaxeTypeTag.class) != null;
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
 
     if (result == null) result = checkIsAlias(reference);
@@ -199,7 +199,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
-    if (result == null)result =  searchInSameFile(reference, fileModel);
+    if (result == null)result =  searchInSameFile(reference, fileModel, isTypeTag);
     if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
@@ -210,7 +210,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
       if (fileModel != null) {
           List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, referenceText);
-          if (!matchesInImport.isEmpty()) {
+        // Remove enumValues if we are resolving typeTag as typeTags should not be EnumValues
+        if (isTypeTag) {
+          matchesInImport = matchesInImport.stream().filter(element ->  !(element instanceof HaxeEnumValueDeclaration)).toList();
+        }
+        if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
             if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
@@ -360,10 +364,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
-  private static List<PsiElement> searchInSameFile(@NotNull HaxeReference reference, HaxeFileModel fileModel) {
+  private static List<PsiElement> searchInSameFile(@NotNull HaxeReference reference, HaxeFileModel fileModel, boolean isTypeTag) {
     if(fileModel != null) {
       String className = reference.getText();
-      PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className);
+      PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className, isTypeTag);
       if (target!= null) return List.of(target);
     }
     return null;
