@@ -211,8 +211,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (fileModel != null) {
           List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, referenceText);
         // Remove enumValues if we are resolving typeTag as typeTags should not be EnumValues
+        // We also have to remove resolved fields as abstract enums is a thing
         if (isType) {
           matchesInImport = matchesInImport.stream().filter(element ->  !(element instanceof HaxeEnumValueDeclaration)).toList();
+          matchesInImport = matchesInImport.stream().filter(element ->  !(element instanceof HaxeFieldDeclaration)).toList();
         }
         if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list

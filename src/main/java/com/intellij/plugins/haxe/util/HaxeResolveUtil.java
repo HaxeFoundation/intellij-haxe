@@ -313,7 +313,7 @@ public class HaxeResolveUtil {
    *
    * @param unique - whether multiple components sharing a name are included.  If true, *which* of the components
    *               sharing a name is returned is indeterminate.
-   * @param resolver - map of generic type names to real types.
+   * @param parentResolver - map of generic type names to real types.
    * @param rootHaxeClasses - which class(es) to gather components from.
    * @return a list of named components defined in the rootHaxeClasses and their supertypes.
    */
@@ -364,7 +364,8 @@ public class HaxeResolveUtil {
       List<HaxeType> baseTypes = new ArrayList<>();
       baseTypes.addAll(haxeClass.getHaxeExtendsList());
       baseTypes.addAll(haxeClass.getHaxeImplementsList());
-      List<HaxeClass> baseClasses = tryResolveClassesByQName(baseTypes);
+
+      List<HaxeClass> baseClasses = tryResolveClasses(baseTypes);
       if (haxeClass.isEnum() && !haxeClass.isAbstractType() && haxeClass.getContext() != null) {
         //Enums should provide the same methods as EnumValue
         baseClasses.add(HaxeEnumValueUtil.getEnumValueClass(haxeClass.getContext()).getHaxeClass());
@@ -1043,6 +1044,22 @@ public class HaxeResolveUtil {
     return tryResolveClassByTypeTag(returnType.getTypeOrAnonymous().getType(), specialization);
   }
 
+  @NotNull
+  public static List<HaxeClass> tryResolveClasses(@NotNull List<HaxeType> types) {
+    final List<HaxeClass> result = new ArrayList<HaxeClass>();
+    for (HaxeType haxeType : types) {
+      PsiElement resolve = haxeType.getReferenceExpression().resolve();
+      if (resolve instanceof HaxeClass type) {
+        result.add(type);
+      }else {
+        final HaxeClass haxeClass = tryResolveClassByQName(haxeType);
+        if (haxeClass != null) {
+          result.add(haxeClass);
+        }
+      }
+    }
+    return result;
+  }
   @NotNull
   public static List<HaxeClass> tryResolveClassesByQName(@NotNull List<HaxeType> types) {
     final List<HaxeClass> result = new ArrayList<HaxeClass>();
