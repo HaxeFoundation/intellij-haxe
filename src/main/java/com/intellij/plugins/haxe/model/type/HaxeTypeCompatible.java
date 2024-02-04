@@ -449,13 +449,19 @@ public class HaxeTypeCompatible {
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
     if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastFromTypesListClassOnly(to));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (canAssignToFromSpecificType(compatibleType, from)) return true;
+      SpecificTypeReference compatibleTypeResolved = compatibleType.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      if (compatibleTypeResolved instanceof SpecificHaxeClassReference classReference) {
+        if (canAssignToFromSpecificType(classReference, from)) return true;
+      }
     }
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
     if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getImplicitCastToTypesListClassOnly(from));
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
-      if (canAssignToFromSpecificType(to, compatibleType)) return true;
+      SpecificTypeReference compatibleTypeResolved = compatibleType.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      if (compatibleTypeResolved instanceof SpecificHaxeClassReference classReference) {
+        if (canAssignToFromSpecificType(to, classReference)) return true;
+      }
     }
 
     compatibleTypes = from.getInferTypes();

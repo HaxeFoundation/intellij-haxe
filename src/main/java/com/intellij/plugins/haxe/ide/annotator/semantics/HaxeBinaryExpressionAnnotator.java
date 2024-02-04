@@ -59,7 +59,10 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
         if (lhsType.isUnknown()  || lhsType.isDynamic() || rhsType.isUnknown() || rhsType.isDynamic()  || containsMacroExpression) {
           return;
         }
-
+        // ignoring enums as they are often  "OR-ed" (|) in switch expressions (and EnumValue.match)
+        if (lhsType.isEnum() && rhsType.isEnum()) {
+          return;
+        }
         String operatorText = children[1].getText();
         String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
         holder.newAnnotation(HighlightSeverity.ERROR, error)
