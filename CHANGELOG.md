@@ -1,8 +1,8 @@
 # Changelog
-## 1.4.30
-* Fixed: Issue where classes with identical names as Enum values would resolve to enum value
+## 1.4.31
+* Fixed: Issue where classes with identical names as Enumvalues would resolve to enumvalue
 * Added: Indent options under haxe code style (PR #1148 from virtulis)
-* 
+ 
 ## 1.4.30
 * Fixed: Resolver bug 
 
