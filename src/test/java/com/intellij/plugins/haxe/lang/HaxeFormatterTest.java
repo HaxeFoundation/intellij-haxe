@@ -255,6 +255,19 @@ public class HaxeFormatterTest extends HaxeCodeInsightFixtureTestCase {
     myTestStyleSettings.KEEP_FIRST_COLUMN_COMMENT = true;
     doTest();
   }
+  @Test
+  public void testIndentTabs() throws Exception {
+    myTestStyleSettings.getIndentOptions().USE_TAB_CHARACTER = true;
+    myTestStyleSettings.getIndentOptions().INDENT_SIZE = 1;
+    myTestStyleSettings.getIndentOptions().TAB_SIZE = 1;
+    doTest();
+  }
+  @Test
+  public void testIndentSpaces() throws Exception {
+    myTestStyleSettings.getIndentOptions().USE_TAB_CHARACTER = false;
+    myTestStyleSettings.getIndentOptions().INDENT_SIZE = 3;
+    doTest();
+  }
 
   @Test
   public void testLineFeedsWithComments() throws Exception {
