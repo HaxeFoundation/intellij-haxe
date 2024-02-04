@@ -1141,11 +1141,11 @@ public class HaxeResolveUtil {
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
       if (fileModel != null) {
-        boolean isTypeTag = PsiTreeUtil.getParentOfType(type, HaxeTypeTag.class) != null;
-        result = searchInSameFile(fileModel, className, isTypeTag);
+        boolean isType =  type.getParent() instanceof HaxeType ||  PsiTreeUtil.getParentOfType(type, HaxeTypeTag.class) != null;
+        result = searchInSameFile(fileModel, className, isType);
         if (result == null) {
           List<PsiElement> matchesInImport = searchInImports(fileModel, className);
-          if (isTypeTag) {// typeTags should not contain EnumValues only parent enum type
+          if (isType) {// typeTags should not contain EnumValues only parent enum type
             matchesInImport = matchesInImport.stream().filter(element -> !(element instanceof HaxeEnumValueDeclaration)).toList();
           }
           if(!matchesInImport.isEmpty()) {
@@ -1178,9 +1178,9 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name, boolean isTypeTag) {
+  public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name, boolean isType) {
     List<HaxeClassModel> models = file.getClassModels();
-    if (!isTypeTag) {
+    if (!isType) {
       Optional<HaxeEnumValueModel> enumValueModel = models.stream().filter(model -> model instanceof HaxeEnumModel)
         .map(model -> ((HaxeEnumModel)model).getValue(name))
         .filter(Objects::nonNull)
