@@ -35,26 +35,28 @@ public class HaxeFieldAnnotator implements Annotator {
     else {
       if (FINAL_FIELD_IS_INITIALIZED.isEnabled(var)) {
         if (field.isFinal()) {
-          if (!field.hasInitializer()) {
-            if (!isParentInterface(var) && !isParentAnonymousStructure(var)) {
-              if (field.isStatic()) {
-                holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()))
-                  .range(var)
-                  .create();
-              }
-              else if (!isFieldInitializedInTheConstructor(field)) {
-                holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()))
-                  .range(var)
-                  .create();
+          if (field.getDeclaringClass() == null || !field.getDeclaringClass().isExtern()) {
+            if (!field.hasInitializer()) {
+              if (!isParentInterface(var) && !isParentAnonymousStructure(var)) {
+                if (field.isStatic()) {
+                  holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.final.static.var.init", field.getName()))
+                    .range(var)
+                    .create();
+                }
+                else if (!isFieldInitializedInTheConstructor(field)) {
+                  holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.final.var.init", field.getName()))
+                    .range(var)
+                    .create();
+                }
               }
             }
-          }
-          else {
-            if (isParentInterface(var)) {
-              holder.newAnnotation(HighlightSeverity.ERROR,
-                                   HaxeBundle.message("haxe.semantic.final.static.var.init.interface", field.getName()))
-                .range(var)
-                .create();
+            else {
+              if (isParentInterface(var)) {
+                holder.newAnnotation(HighlightSeverity.ERROR,
+                                     HaxeBundle.message("haxe.semantic.final.static.var.init.interface", field.getName()))
+                  .range(var)
+                  .create();
+              }
             }
           }
         }
