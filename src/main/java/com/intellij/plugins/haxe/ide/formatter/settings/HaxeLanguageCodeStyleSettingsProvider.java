@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.ide.formatter.settings;
 
+import com.intellij.application.options.IndentOptionsEditor;
 import com.intellij.lang.Language;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.codeStyle.*;
@@ -160,6 +161,11 @@ public class HaxeLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSett
                                    "ALIGN_MULTILINE_TERNARY_OPERATION",
                                    "SPECIAL_ELSE_IF_TREATMENT");
     }
+  }
+
+  @Override
+  public IndentOptionsEditor getIndentOptionsEditor() {
+    return new IndentOptionsEditor(this);
   }
 
   public static final String SPACING_CODE_SAMPLE = "package;\n" +
