@@ -31,6 +31,7 @@ public class HaxeSemanticsUtil {
     ) {
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
       final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
+      if (initType.isInvalid()) return;
 
       if (!varType.canAssign(initType)) {
 

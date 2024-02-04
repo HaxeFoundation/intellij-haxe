@@ -179,4 +179,8 @@ public class ResultHolder {
   public PsiElement getOrigin() {
     return origin;
   }
+
+  public boolean isInvalid() {
+    return type.isInvalid();
+  }
 }

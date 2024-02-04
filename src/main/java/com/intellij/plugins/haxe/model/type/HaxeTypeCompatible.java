@@ -481,8 +481,15 @@ public class HaxeTypeCompatible {
 
     if (to == null || from == null) return false;
 
-    List<HaxeMemberModel> toMembers = to.getHaxeClassModel().getAllMembers(to.getGenericResolver());
-    List<HaxeMemberModel> fromMembers = from.getHaxeClassModel().getAllMembers(to.getGenericResolver());
+    HaxeClassModel toClassModel = to.getHaxeClassModel();
+    HaxeClassModel fromClassModel = from.getHaxeClassModel();
+
+    // unable to determine, consider if we should return true or false in this case
+    if (toClassModel == null ||  fromClassModel == null)
+       return false;
+
+    List<HaxeMemberModel> toMembers = toClassModel.getAllMembers(to.getGenericResolver());
+    List<HaxeMemberModel> fromMembers = fromClassModel.getAllMembers(to.getGenericResolver());
     for (HaxeMemberModel member : toMembers) {
       String name = member.getName();
       // TODO  type check parameter and return type
