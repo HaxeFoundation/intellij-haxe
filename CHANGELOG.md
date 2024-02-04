@@ -1,4 +1,9 @@
 # Changelog
+## 1.4.34
+* Improved: Better typechecking for implicit casts to typedefs.   
+* Changed: Avoiding testing `OR` operator on EnumValues.
+* Fixed: incorrect error on uninitialized static final vars in extern types.
+ 
 ## 1.4.33
 * Fixed: Another case where types where resolved to enumValue
 
