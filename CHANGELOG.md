@@ -1,6 +1,6 @@
 # Changelog
-## 1.4.32
-* Fixed: Another case where types where resolved to enumValue 
+## 1.4.33
+* Fixed: Another case where types where resolved to enumValue
 
 ## 1.4.31
 * Fixed: Issue where classes with identical names as Enumvalues would resolve to enumvalue
