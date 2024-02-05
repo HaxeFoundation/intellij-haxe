@@ -1,4 +1,7 @@
 # Changelog
+## 1.4.35
+* Fixed: Assign hint was not working when resolving function return type.
+
 ## 1.4.34
 * Improved: Better typechecking for implicit casts to typedefs.   
 * Changed: Avoiding testing `OR` operator on EnumValues.
