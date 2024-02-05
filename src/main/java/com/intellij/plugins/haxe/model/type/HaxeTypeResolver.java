@@ -274,8 +274,9 @@ public class HaxeTypeResolver {
           if (typeOrAnonymous != null) {
             HaxeClass aClass = (HaxeClass) method.getContainingClass();
             HaxeGenericResolver localResolver = HaxeGenericSpecialization.fromGenericResolver(null, resolver).toGenericResolver(aClass);
+            localResolver.addAssignHint(resolver);
             ResultHolder anonymous = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, localResolver, true);
-              ResultHolder resolve = resolver.resolve(anonymous);
+              ResultHolder resolve = resolver.resolveReturnType(anonymous);
               if (resolve != null && !resolve.isUnknown()) {
                 return resolve;
               }
