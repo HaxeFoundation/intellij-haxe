@@ -24,12 +24,14 @@ import com.intellij.formatting.Spacing;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettings;
+import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 
 import java.util.List;
@@ -161,14 +163,18 @@ public class HaxeSpacingProcessor {
     if (isClassBodyType(type1)) {  // End of the class body. (After the right brace.)
       return Spacing.createSpacing(0, 0, 1, false, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
+    // avoid  multi-line formatting types (anonymous structures have brackets)
+    boolean isType = parentType == ANONYMOUS_TYPE || PsiTreeUtil.getParentOfType(myNode.getPsi(), HaxeTypeTag.class) != null;
 
     if (type1 == PLCURLY && isClassBodyType(elementType) && isFirstChild(child1)) {
-      int lineFeeds = max(1, (isFieldDeclaration(type2) ? mySettings.BLANK_LINES_AROUND_FIELD : mySettings.BLANK_LINES_AROUND_METHOD));
+      int settings = isFieldDeclaration(type2) ? mySettings.BLANK_LINES_AROUND_FIELD : mySettings.BLANK_LINES_AROUND_METHOD;
+      int lineFeeds = isType ? 0 : max(1, settings);
       return Spacing.createSpacing(0, 0, lineFeeds, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (type2 == PRCURLY && isClassBodyType(elementType) && isLastChild(child2)) {
-      return Spacing.createSpacing(0, 0, max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END), mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
+      int lineFeeds = isType ? 0 : max(1, mySettings.BLANK_LINES_BEFORE_CLASS_END);
+      return Spacing.createSpacing(0, 0, lineFeeds, mySettings.KEEP_LINE_BREAKS, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (isMethodDeclarationOrConstructorDeclaration(type1) && isMethodDeclarationOrConstructorDeclaration(type2)) {
