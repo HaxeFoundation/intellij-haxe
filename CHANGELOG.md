@@ -1,4 +1,8 @@
 # Changelog
+## 1.4.36
+* Fixed: Restored broken formatting rules
+* Fixed: Prevent anonymous types from being formatted as code-blocks
+
 ## 1.4.35
 * Fixed: Assign hint was not working when resolving function return type.
 

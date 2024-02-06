@@ -42,7 +42,7 @@ class Foo {
 	}
 
 	public function new() {
-		switch( v ) {
+		switch (v) {
 			case 0:
 				e1();
 			case foo(1):

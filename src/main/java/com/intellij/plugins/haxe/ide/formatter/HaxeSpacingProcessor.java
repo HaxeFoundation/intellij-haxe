@@ -332,8 +332,10 @@ public class HaxeSpacingProcessor {
     // Spacing around assignment operators (=, -=, etc.)
     //
 
-    if (ASSIGN_OPERATORS.contains(typeType1) || ASSIGN_OPERATORS.contains(typeType2) ||
-        type2 == VAR_INIT) {
+    if (ASSIGN_OPERATORS.contains(type1)
+        || ASSIGN_OPERATORS.contains(typeType1)
+        || ASSIGN_OPERATORS.contains(typeType2)
+        || type2 == VAR_INIT) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
     }
 
