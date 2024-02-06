@@ -283,7 +283,7 @@ public class HaxeSpacingProcessor {
       else if (elementType == FOR_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_FOR_PARENTHESES);
       }
-      else if (elementType == SWITCH_STATEMENT) {
+      else if (parentType == SWITCH_STATEMENT && elementType == PARENTHESIZED_EXPRESSION) {
         return addSingleSpaceIf(mySettings.SPACE_WITHIN_SWITCH_PARENTHESES);
       }
       else if (elementType == TRY_STATEMENT) {

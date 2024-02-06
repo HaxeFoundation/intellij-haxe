@@ -86,7 +86,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (isResolving(reference)) {
       reference.putUserData(skipCacheKey, Boolean.TRUE);
       reportSkip(reference);
-      return EMPTY_LIST;
+      return null;
     }
 
     // If we are in dumb mode (e.g. we are still indexing files and resolving may
