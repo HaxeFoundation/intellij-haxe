@@ -211,9 +211,6 @@ public class HaxeSpacingProcessor {
       else if (elementType == FOR_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_FOR_PARENTHESES);
       }
-      else if (elementType == SWITCH_STATEMENT) {
-        return addSingleSpaceIf(mySettings.SPACE_BEFORE_SWITCH_PARENTHESES);
-      }
       else if (elementType == TRY_STATEMENT) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_TRY_PARENTHESES);
       }
@@ -227,7 +224,11 @@ public class HaxeSpacingProcessor {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_METHOD_CALL_PARENTHESES);
       }
     }
-
+    if (elementType == SWITCH_STATEMENT) {
+      if (type2 == PARENTHESIZED_EXPRESSION) {
+        return addSingleSpaceIf(mySettings.SPACE_BEFORE_SWITCH_PARENTHESES);
+      }
+    }
     if (type1 == OGREATER && type2 == OASSIGN) {
       return addSingleSpaceIf(false);
     }
