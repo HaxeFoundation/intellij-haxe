@@ -228,6 +228,9 @@ public class HaxeSpacingProcessor {
       if (type2 == PARENTHESIZED_EXPRESSION) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_SWITCH_PARENTHESES);
       }
+      else if (type2 == SWITCH_BLOCK) {
+        return addSingleSpaceIf(mySettings.SPACE_BEFORE_SWITCH_LBRACE);
+      }
     }
     if (type1 == OGREATER && type2 == OASSIGN) {
       return addSingleSpaceIf(false);
@@ -259,9 +262,6 @@ public class HaxeSpacingProcessor {
       }
       else if (elementType == FOR_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_FOR_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
-      }
-      else if (elementType == SWITCH_STATEMENT) {
-        return setBraceSpace(mySettings.SPACE_BEFORE_SWITCH_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
       }
       else if (elementType == TRY_STATEMENT) {
         return setBraceSpace(mySettings.SPACE_BEFORE_TRY_LBRACE, mySettings.BRACE_STYLE, child1.getTextRange());
@@ -314,16 +314,16 @@ public class HaxeSpacingProcessor {
     }
 
     if (elementType == TERNARY_EXPRESSION) {
-      if (type2 == OQUEST) {
+      if (typeType2 == OQUEST) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_QUEST);
       }
-      else if (type2 == OCOLON) {
+      else if (typeType2 == OCOLON) {
         return addSingleSpaceIf(mySettings.SPACE_BEFORE_COLON);
       }
-      else if (type1 == OQUEST) {
+      else if (typeType1 == OQUEST) {
         return addSingleSpaceIf(mySettings.SPACE_AFTER_QUEST);
       }
-      else if (type1 == OCOLON) {
+      else if (typeType1 == OCOLON) {
         return addSingleSpaceIf(mySettings.SPACE_AFTER_COLON);
       }
     }
@@ -332,7 +332,7 @@ public class HaxeSpacingProcessor {
     // Spacing around assignment operators (=, -=, etc.)
     //
 
-    if (ASSIGN_OPERATORS.contains(type1) || ASSIGN_OPERATORS.contains(type2) ||
+    if (ASSIGN_OPERATORS.contains(typeType1) || ASSIGN_OPERATORS.contains(typeType2) ||
         type2 == VAR_INIT) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
     }
@@ -340,7 +340,7 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around  logical operators (&&, OR, etc.)
     //
-    if (LOGIC_OPERATORS.contains(type1) || LOGIC_OPERATORS.contains(type2)) {
+    if (LOGIC_OPERATORS.contains(typeType1) || LOGIC_OPERATORS.contains(typeType2)) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_LOGICAL_OPERATORS);
     }
     //
@@ -360,33 +360,34 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around  additive operators ( &, |, ^, etc.)
     //
-    if (BITWISE_OPERATORS.contains(type1) || BITWISE_OPERATORS.contains(type2)) {
+    if (BITWISE_OPERATORS.contains(typeType1) || BITWISE_OPERATORS.contains(typeType2)) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_BITWISE_OPERATORS);
     }
     //
     // Spacing around  additive operators ( +, -, etc.)
     //
-    if ((ADDITIVE_OPERATORS.contains(type1) || ADDITIVE_OPERATORS.contains(type2)) &&
+    //ADDITIVE_OPERATOR == type2
+    if ((ADDITIVE_OPERATORS.contains(typeType1) || ADDITIVE_OPERATORS.contains(typeType2)) &&
         elementType != PREFIX_EXPRESSION) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_ADDITIVE_OPERATORS);
     }
     //
     // Spacing around  multiplicative operators ( *, /, %, etc.)
     //
-    if ((MULTIPLICATIVE_OPERATORS.contains(type1) || MULTIPLICATIVE_OPERATORS.contains(type2))) {
+    if ((MULTIPLICATIVE_OPERATORS.contains(typeType1) || MULTIPLICATIVE_OPERATORS.contains(typeType2))) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_MULTIPLICATIVE_OPERATORS);
     }
     //
     // Spacing around  unary operators ( NOT, ++, etc.)
     //
-    if ((UNARY_OPERATORS.contains(type1) || UNARY_OPERATORS.contains(type2)) &&
+    if ((UNARY_OPERATORS.contains(typeType1) || UNARY_OPERATORS.contains(typeType2)) &&
         elementType == PREFIX_EXPRESSION) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_UNARY_OPERATOR);
     }
     //
     // Spacing around  shift operators ( <<, >>, >>>, etc.)
     //
-    if (SHIFT_OPERATORS.contains(type1) || SHIFT_OPERATORS.contains(type2)) {
+    if (SHIFT_OPERATORS.contains(typeType1) || SHIFT_OPERATORS.contains(typeType2)) {
       return addSingleSpaceIf(mySettings.SPACE_AROUND_SHIFT_OPERATORS);
     }
 
