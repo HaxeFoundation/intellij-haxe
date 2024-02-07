@@ -313,6 +313,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
+    if (reference.getParent() instanceof HaxeCompareExpression compareExpression ) {
+      if (compareExpression.getLeftExpression() instanceof HaxeReferenceExpression referenceExpression) {
+        PsiElement resolve = referenceExpression.resolve();
+        if (resolve instanceof HaxePsiField psiField) {
+          fieldFromReferenceExpression = psiField;
+        }
+      }
+    }
+
 
     HaxePsiField field = fieldFromReferenceExpression != null ? fieldFromReferenceExpression :  PsiTreeUtil.getParentOfType(reference, HaxePsiField.class);
     if (field != null) {
@@ -342,15 +351,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private static List<HaxeNamedComponent> findEnumMember(HaxeReference reference, SpecificTypeReference typeReference) {
-    if (typeReference.isEnumType()) {
       if (typeReference instanceof  SpecificHaxeClassReference classReference) {
-        HaxeClass haxeClass = classReference.getHaxeClass();
-        if (haxeClass != null) {
-          HaxeNamedComponent name = haxeClass.findHaxeMemberByName(reference.getText(), null);
-          if (name != null) return List.of(name);
+        HaxeClassModel classModel = classReference.getHaxeClassModel();
+        if (classModel != null && classModel.isEnum()) {
+          HaxeClass haxeClass = classReference.getHaxeClass();
+          if (haxeClass != null) {
+            HaxeNamedComponent name = haxeClass.findHaxeMemberByName(reference.getText(), null);
+            if (name != null) return List.of(name);
+          }
         }
       }
-    }
     return null;
   }
 

@@ -159,6 +159,7 @@ public class HaxeTypeCompatible {
     }
     if (to.isAny()) return true;
     if (to.isDynamic() || from.isDynamic()) return true;
+    if (to.isEnumValueClass() && isEnum(from)) return true;
 
     // if abstract of function is being compared to a function we map the abstract to its underlying function
     if (isFunctionTypeOrReference(from) && to.isAbstractType()) {
@@ -229,6 +230,14 @@ public class HaxeTypeCompatible {
     if (to.isTypeParameter()) return true;
 
 
+    return false;
+  }
+
+  private static boolean isEnum(@Nullable SpecificTypeReference from) {
+    if (from instanceof  SpecificHaxeClassReference classReference) {
+      HaxeClassModel classModel = classReference.getHaxeClassModel();
+      return classModel != null && classModel.isEnum();
+    }
     return false;
   }
 
