@@ -143,7 +143,7 @@ public class HaxeTypeCompatible {
     @Nullable PsiElement fromOrigin
   ) {
     if (to == null || from == null) return false;
-    if (to.isDynamic() || from.isDynamic()) return true;
+
 
     from = replaceMacroExprIfFromMacroMethod(from, fromOrigin);
 
@@ -157,6 +157,8 @@ public class HaxeTypeCompatible {
         from = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
       }
     }
+    if (to.isAny()) return true;
+    if (to.isDynamic() || from.isDynamic()) return true;
 
     // if abstract of function is being compared to a function we map the abstract to its underlying function
     if (isFunctionTypeOrReference(from) && to.isAbstractType()) {

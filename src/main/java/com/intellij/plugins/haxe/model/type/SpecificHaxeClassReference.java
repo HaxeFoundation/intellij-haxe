@@ -625,6 +625,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           if (unwrapped instanceof SpecificHaxeClassReference haxeClassReference) {
             haxeClass = haxeClassReference.getHaxeClass();
             resolver = haxeClassReference.getGenericResolver();
+            reference = haxeClassReference;
           }
           else if (unwrapped instanceof SpecificFunctionReference functionReference) {
             return resolver.resolve(functionReference);

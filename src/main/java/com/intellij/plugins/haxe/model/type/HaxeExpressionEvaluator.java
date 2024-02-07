@@ -1560,68 +1560,74 @@ public class HaxeExpressionEvaluator {
         }
         if (expression.getParent() instanceof HaxeArrayAccessExpression arrayAccessExpression) {
           // try to find setter first if that fails try getter
-          HaxeNamedComponent arrayAccessSetter = classType.getHaxeClass().findArrayAccessSetter(resolver);
-          if (arrayAccessSetter instanceof HaxeMethodDeclaration methodDeclaration) {
-            HaxeMethodModel methodModel = methodDeclaration.getModel();
-            // make sure we are using class level typeParameters (and not method level)
-            if (methodModel.getGenericParams().isEmpty()) {
-              List<HaxeParameterModel> parameters = methodModel.getParameters();
+          if (classType.getHaxeClass() != null) { // need to check if Haxe class exists as it will be null when SDK is missing
+            HaxeNamedComponent arrayAccessSetter = classType.getHaxeClass().findArrayAccessSetter(resolver);
+            if (arrayAccessSetter instanceof HaxeMethodDeclaration methodDeclaration) {
+              HaxeMethodModel methodModel = methodDeclaration.getModel();
+              // make sure we are using class level typeParameters (and not method level)
+              if (methodModel.getGenericParams().isEmpty()) {
+                List<HaxeParameterModel> parameters = methodModel.getParameters();
 
-              HaxeTypeTag keyParamPsi = parameters.get(0).getTypeTagPsi();
-              HaxeTypeTag valueParamPsi = parameters.get(1).getTypeTagPsi();
+                HaxeTypeTag keyParamPsi = parameters.get(0).getTypeTagPsi();
+                HaxeTypeTag valueParamPsi = parameters.get(1).getTypeTagPsi();
 
 
-              @NotNull String[] specificNames = classResolver.names();
-              for (int i = 0; i < specificNames.length; i++) {
-                String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
-                // key
-                if (keyPsiName.equals(specificNames[i])) {
-                  HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
-                  ResultHolder handle = handle(keyExpression, context, resolver);
-                  if (type.getSpecifics()[i].isUnknown()) {
-                    type.getSpecifics()[i] = handle;
-                  }else {
-                    ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
-                    type.getSpecifics()[i] = unified;
-                  }
-                }
-                // value
-                if (arrayAccessExpression.getParent() instanceof  HaxeBinaryExpression binaryExpression) {
-                  String valuePsiName = valueParamPsi.getTypeOrAnonymous().getType().getText();
-                  if (valuePsiName.equals(specificNames[i])) {
-                    HaxeExpression keyExpression = binaryExpression.getExpressionList().get(1);
+                @NotNull String[] specificNames = classResolver.names();
+                for (int i = 0; i < specificNames.length; i++) {
+                  String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
+                  // key
+                  if (keyPsiName.equals(specificNames[i])) {
+                    HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
                     ResultHolder handle = handle(keyExpression, context, resolver);
                     if (type.getSpecifics()[i].isUnknown()) {
                       type.getSpecifics()[i] = handle;
-                    }else {
+                    }
+                    else {
                       ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
                       type.getSpecifics()[i] = unified;
+                    }
+                  }
+                  // value
+                  if (arrayAccessExpression.getParent() instanceof HaxeBinaryExpression binaryExpression) {
+                    String valuePsiName = valueParamPsi.getTypeOrAnonymous().getType().getText();
+                    if (valuePsiName.equals(specificNames[i])) {
+                      HaxeExpression keyExpression = binaryExpression.getExpressionList().get(1);
+                      ResultHolder handle = handle(keyExpression, context, resolver);
+                      if (type.getSpecifics()[i].isUnknown()) {
+                        type.getSpecifics()[i] = handle;
+                      }
+                      else {
+                        ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                        type.getSpecifics()[i] = unified;
+                      }
                     }
                   }
                 }
               }
             }
-          } else {
-            HaxeNamedComponent arrayAccessGetter = classType.getHaxeClass().findArrayAccessGetter(resolver);
-            if (arrayAccessGetter instanceof HaxeMethodDeclaration methodDeclaration) {
-              HaxeMethodModel methodModel = methodDeclaration.getModel();
-              // make sure we are using class level typeParameters (and not method level)
-              if (methodModel.getGenericParams().isEmpty()) {
-                List<HaxeParameterModel> parameters = methodModel.getParameters();
-                HaxeParameterModel keyParameter = parameters.get(0);
-                HaxeTypeTag keyParamPsi = keyParameter.getTypeTagPsi();
+            else {
+              HaxeNamedComponent arrayAccessGetter = classType.getHaxeClass().findArrayAccessGetter(resolver);
+              if (arrayAccessGetter instanceof HaxeMethodDeclaration methodDeclaration) {
+                HaxeMethodModel methodModel = methodDeclaration.getModel();
+                // make sure we are using class level typeParameters (and not method level)
+                if (methodModel.getGenericParams().isEmpty()) {
+                  List<HaxeParameterModel> parameters = methodModel.getParameters();
+                  HaxeParameterModel keyParameter = parameters.get(0);
+                  HaxeTypeTag keyParamPsi = keyParameter.getTypeTagPsi();
 
-                @NotNull String[] specificNames = classResolver.names();
-                for (int i = 0; i < specificNames.length; i++) {
-                  String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
-                  if (keyPsiName.equals(specificNames[i])) {
-                    HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
+                  @NotNull String[] specificNames = classResolver.names();
+                  for (int i = 0; i < specificNames.length; i++) {
+                    String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
+                    if (keyPsiName.equals(specificNames[i])) {
+                      HaxeExpression keyExpression = arrayAccessExpression.getExpressionList().get(1);
                       ResultHolder handle = handle(keyExpression, context, resolver);
-                    if (type.getSpecifics()[i].isUnknown()) {
-                      type.getSpecifics()[i] = handle;
-                    }else {
-                      ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
-                      type.getSpecifics()[i] = unified;
+                      if (type.getSpecifics()[i].isUnknown()) {
+                        type.getSpecifics()[i] = handle;
+                      }
+                      else {
+                        ResultHolder unified = HaxeTypeUnifier.unify(handle, type.getSpecifics()[i]);
+                        type.getSpecifics()[i] = unified;
+                      }
                     }
                   }
                 }
