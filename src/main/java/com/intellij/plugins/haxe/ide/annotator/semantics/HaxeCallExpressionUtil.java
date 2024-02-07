@@ -164,6 +164,21 @@ public class HaxeCallExpressionUtil {
       // parameters might have type parameters with same name as a parent so we need to make sure we are not resolving parents type
       //HaxeGenericResolver parameterResolver = ((HaxeMethodModel)parameter.getMemberModel()).getGenericResolver(localResolver);
       parameterType = resolveParameterType(parameter, parameterResolver);
+      //TODO hack
+      // unwrap Null<T> if arg is Null<> but not Param (and update resolver so we dont use T from Null<T>)
+      if ((argumentType.getType() instanceof SpecificHaxeClassReference argRef && argRef.isNullType())
+        && !(parameterType.getType() instanceof SpecificHaxeClassReference paramRef && paramRef.isNullType())) {
+        SpecificTypeReference typeReference = argRef.unwrapNullType();
+        if (typeReference instanceof SpecificHaxeClassReference classReference) {
+          argumentType = new ResultHolder(argRef.unwrapNullType());
+          //TODO  Hackish workaround, should really try to fix Null<T> logic so we dont have to unwrap
+          argumentResolver = argumentResolver.without("T");
+          argumentResolver.addAll(classReference.getGenericResolver());
+          // updating paramsResolver as well becuase it inherits from CallExpressionGenericResolver
+          parameterResolver = parameterResolver.without("T");
+          parameterResolver.addAll(classReference.getGenericResolver());
+        }
+      }
 
       // when methods has type-parameters we can inherit the type from arguments (note that they may contain constraints)
       if (containsTypeParameter(parameterType, typeParamMap)) {
