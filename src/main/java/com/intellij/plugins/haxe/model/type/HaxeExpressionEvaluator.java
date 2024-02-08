@@ -26,6 +26,7 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
+import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -350,22 +351,31 @@ public class HaxeExpressionEvaluator {
           HaxeMethod method = constructor.getMethod();
           HaxeMethodModel methodModel = method.getModel();
           if (methodModel.getGenericParams().isEmpty()) {
+            boolean  changedTypeParameters = false;
+            HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkConstructor(expression);
+            Map<Integer, Integer> toParameterIndex = validation.getArgumentToParameterIndex();
+
+
             List<HaxeExpression> arguments = expression.getExpressionList();
             List<HaxeParameterModel> parameters = methodModel.getParameters();
+
             if (!parameters.isEmpty()) {
-              for (HaxeParameterModel parameter : parameters) {
+
+              for (Map.Entry<Integer, Integer> entry : toParameterIndex.entrySet()) {
+                Integer argumentIndex = entry.getKey();
+                Integer parameterIndex = entry.getValue();
+
+                HaxeParameterModel parameter = parameters.get(parameterIndex);
                 if (parameter.getType().isTypeParameter()) {
                   for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
                     if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
                       // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
                       @NotNull ResultHolder[] specifics = classReference.getSpecifics();
                       if (specifics[i].isUnknown()) {
-                        ResultHolder handle = handle(arguments.get(i), context, resolver);
-                        if (specifics[i].isUnknown()) {
+                        ResultHolder handle = handle(arguments.get(argumentIndex), context, resolver);
+                        if (!handle.isUnknown()) {
+                          changedTypeParameters = true;
                           specifics[i] = handle;
-                        }else {
-                          ResultHolder unified = HaxeTypeUnifier.unify(handle, specifics[i]);
-                          specifics[i] = unified;
                         }
                       }
                     }
@@ -373,7 +383,8 @@ public class HaxeExpressionEvaluator {
                 }
               }
             }
-          }
+            if (changedTypeParameters) return typeHolder.duplicate();
+            }
           }
         }
       }
