@@ -272,7 +272,7 @@ public class HaxeClassAnnotator implements Annotator {
 
 
     List<HaxeMethod> allMethodList = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
-    List<HaxeMethod> extendedClassMethodList = abstractClass.getHaxeClass().haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE);
+    Set<HaxeMethod> extendedClassMethodList = new HashSet<>(abstractClass.getHaxeClass().haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.INTERFACE));
 
     Map<String, HaxeMethodModel> abstractMethods = extendedClassMethodList.stream()
       .map(HaxeMethodPsiMixin::getModel)
@@ -302,15 +302,15 @@ public class HaxeClassAnnotator implements Annotator {
           .range(abstractClass.getPsi())
           .withFix(implementMissingMethodsFix(clazz, missingMethods))
           .create();
-      }
-    }else {
-      String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
-      holder.newAnnotation(HighlightSeverity.ERROR, message)
-        .range(abstractClass.getPsi())
-        .withFix(implementMissingMethodsFix(clazz, missingMethods))
-        .create();
-    }
 
+      }else {
+        String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
+        holder.newAnnotation(HighlightSeverity.ERROR, message)
+          .range(abstractClass.getPsi())
+          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .create();
+      }
+    }
   //TODO  check abstract classes for abstract methods to implement
   }
 

@@ -1005,9 +1005,8 @@ public class HaxeResolveUtil {
       return HaxeResolveResult.EMPTY;
     }
 
-    if (element instanceof HaxeMethodDeclaration) {
-      HaxeMethodDeclaration method = (HaxeMethodDeclaration)element;
-      HaxeMethodModel model = new HaxeMethodModel(method);
+    if (element instanceof HaxeMethodDeclaration method) {
+      HaxeMethodModel model = method.getModel();
 
       HaxeGenericResolver resolver = specialization.toGenericResolver(element);
 

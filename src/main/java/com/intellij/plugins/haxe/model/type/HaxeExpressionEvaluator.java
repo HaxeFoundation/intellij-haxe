@@ -339,6 +339,44 @@ public class HaxeExpressionEvaluator {
           return SpecificTypeReference.getDynamic(element).createHolder();
         }
         ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type, resolver);
+      if (!typeHolder.isUnknown() && typeHolder.getClassType() != null) {
+        SpecificHaxeClassReference classReference = typeHolder.getClassType();
+        HaxeClassModel classModel = classReference.getHaxeClassModel();
+        HaxeGenericResolver classResolver = classReference.getGenericResolver();
+        if (classModel != null) {
+        HaxeMethodModel constructor = classModel.getConstructor(classResolver);
+        if (constructor != null) {
+          @NotNull String[] specificNames = classResolver.names();
+          HaxeMethod method = constructor.getMethod();
+          HaxeMethodModel methodModel = method.getModel();
+          if (methodModel.getGenericParams().isEmpty()) {
+            List<HaxeExpression> arguments = expression.getExpressionList();
+            List<HaxeParameterModel> parameters = methodModel.getParameters();
+            if (!parameters.isEmpty()) {
+              for (HaxeParameterModel parameter : parameters) {
+                if (parameter.getType().isTypeParameter()) {
+                  for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
+                    if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
+                      // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
+                      if (classReference.getSpecifics()[i].isUnknown()) {
+                        ResultHolder handle = handle(arguments.get(i), context, resolver);
+                        if (classReference.getSpecifics()[i].isUnknown()) {
+                          classReference.getSpecifics()[i] = handle;
+                        }else {
+                          ResultHolder unified = HaxeTypeUnifier.unify(handle, classReference.getSpecifics()[i]);
+                          classReference.getSpecifics()[i] = unified;
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+              return typeHolder.duplicate();
+            }
+          }
+          }
+        }
+      }
         // if new expression is missing typeParameters try to resolve from usage
         if (type.getTypeParam() == null && typeHolder.getClassType() != null && typeHolder.getClassType().getSpecifics().length > 0) {
           HaxePsiField fieldDeclaration = PsiTreeUtil.getParentOfType(expression, HaxePsiField.class);

@@ -50,9 +50,10 @@ public class AddTypeTagToFieldIntention extends BaseIntentionAction {
 
     attemptToFindField(editor, file);
 
-    boolean isMissingTypeTag = myField != null && myField.getTypeTag() == null;
+    HaxePsiField field = myField;
+    boolean isMissingTypeTag = field != null && field.getTypeTag() == null;
     if (isMissingTypeTag) {
-      type = HaxeExpressionEvaluator.evaluate(myField, new HaxeExpressionEvaluatorContext(myField), null).result;
+      type = HaxeExpressionEvaluator.evaluate(field, new HaxeExpressionEvaluatorContext(field), null).result;
       return !(type == null || type.isUnknown());
     }
     return false;

@@ -899,7 +899,7 @@ public class HaxeClassModel implements HaxeExposableModel {
           } else {
             HaxeMethodDeclaration method = (HaxeMethodDeclaration)declaration;
             if (method.isStatic() && method.isPublic()) {
-              out.add(new HaxeMethodModel(method));
+              out.add(method.getModel());
             }
           }
         }
