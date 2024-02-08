@@ -1,4 +1,6 @@
 # Changelog
+## 1.4.38
+* Trying to fix some minor resolver regression 
 ## 1.4.37
 * Fixed: Issue where function-literal would show error if assigned to  variable of type Dynamic or Any
 * Improved: Better type resolve when generics are specified through constructor 
