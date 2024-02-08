@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
@@ -53,9 +54,10 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
                                && myMethod instanceof HaxeMethodDeclaration declaration
                                && declaration.getTypeTag() == null;
     if (isMissingTypeTag) {
-      HaxeGenericResolver resolver = myMethod.getModel().getGenericResolver(null);
-      resolver = resolver.withTypeParametersAsType(myMethod.getModel().getGenericParams());
-      returnType = myMethod.getModel().getReturnType(resolver);
+      HaxeMethodModel model = myMethod.getModel();
+      HaxeGenericResolver resolver = model.getGenericResolver(null);
+      resolver = resolver.withTypeParametersAsType(model.getGenericParams());
+      returnType = model.getReturnType(resolver);
       return !(returnType == null);
     }
     return false;
