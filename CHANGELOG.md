@@ -1,4 +1,9 @@
 # Changelog
+## 1.4.37
+* Fixed: Issue where function-literal would show error if assigned to  variable of type Dynamic or Any
+* Improved: Better type resolve when generics are specified through constructor 
+* Misc other resolver changes for better type detection.
+
 ## 1.4.36
 * Fixed: Restored broken formatting rules
 * Fixed: Prevent anonymous types from being formatted as code-blocks
