@@ -33,7 +33,9 @@ import com.intellij.psi.formatter.common.AbstractBlock;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
@@ -121,6 +123,7 @@ public class HaxeSpacingProcessor {
 
     final IElementType elementType = myNode.getElementType();
     final IElementType parentType = myNode.getTreeParent() == null ? null : myNode.getTreeParent().getElementType();
+    final IElementType typeNext = getNextElementType();
     final ASTNode node1 = ((AbstractBlock)child1).getNode();
     final IElementType type1 = node1.getElementType();
     final ASTNode node2 = ((AbstractBlock)child2).getNode();
@@ -142,10 +145,22 @@ public class HaxeSpacingProcessor {
       }
     }
 
-    if (type1 == IMPORT_STATEMENT ||
-        type1 == PACKAGE_STATEMENT ||
-        type1 == USING_STATEMENT) {
-      return addSingleSpaceIf(false, true);
+    //if (
+    //  type1 == IMPORT_STATEMENT ||
+    //    //type1 == PACKAGE_STATEMENT ||
+    //    type1 == USING_STATEMENT) {
+    //  return addSingleSpaceIf(false, true);
+    //}
+
+    if (type1.equals(PACKAGE_STATEMENT)) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AFTER_PACKAGE, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+
+    if (type1 == IMPORT_STATEMENT && type2 != IMPORT_STATEMENT ) {
+      return Spacing.createSpacing(0, 0, mySettings.BLANK_LINES_AFTER_IMPORTS, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
+    }
+    if (type1 == USING_STATEMENT && type2 != USING_STATEMENT ) {
+      return Spacing.createSpacing(0, 0, myHaxeCodeStyleSettings.MINIMUM_BLANK_LINES_AFTER_USING, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
     }
 
     if (elementType.equals(IMPORT_WILDCARD)) {
@@ -442,6 +457,26 @@ public class HaxeSpacingProcessor {
     }
 
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
+  }
+
+  @Nullable
+  private IElementType getNextElementType() {
+    if (myNode.getTreeParent() == null) return null;
+
+    ASTNode parent = myNode.getTreeParent();
+    ASTNode[] parentChildren = parent.getChildren(null);
+    List<ASTNode> list = Arrays.asList(parentChildren);
+    int myNodeIndex = list.indexOf(myNode);
+    for (int i = myNodeIndex+1; i < list.size(); i++) {
+      ASTNode node = list.get(i);
+      IElementType type = node.getElementType();
+      if (!WHITESPACES.contains(type)) {
+        return type;
+      }
+    }
+
+
+      return null;
   }
 
   private Spacing addSingleSpaceIf(boolean condition) {
