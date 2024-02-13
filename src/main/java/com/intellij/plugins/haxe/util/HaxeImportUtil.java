@@ -128,6 +128,7 @@ public class HaxeImportUtil {
 
   public static Collection<PsiElement> getExternalReferences(@NotNull PsiFile file) {
     final Map<PsiElement, PsiElement> result = new HashMap<>();
+    final List<String> names = new ArrayList<>();
 
     file.acceptChildren(new HaxeRecursiveVisitor() {
       @Override
@@ -135,20 +136,28 @@ public class HaxeImportUtil {
         if (element instanceof HaxePackageStatement || element instanceof HaxeImportStatement || element instanceof HaxeUsingStatement) return;
         if (element instanceof HaxeReference reference) {
           PsiElement referencedElement = reference.resolve();
-          if (!result.containsKey(referencedElement)) {
+          // makes sure that even if we have a fully qualified a.b.SomeClass added to the list
+          // that any reference of just the class name (SomeClass) without package structure is also added as  reference
+          String qualifiedName = reference.getQualifiedName();
+          if (!names.contains(qualifiedName)) {
+
             boolean qualified = reference.isQualified();
             if (!(qualified || referencedElement instanceof PsiPackage)){
               result.put(referencedElement, element);
+              names.add(qualifiedName);
             }
             if (qualified) {
               if (referencedElement instanceof HaxeClass) {
                 result.put(referencedElement, element);
+                names.add(qualifiedName);
               }
               if (referencedElement instanceof HaxeIdentifier) {
                 result.put(referencedElement, element);
+                names.add(qualifiedName);
               }
               if (referencedElement instanceof HaxeImportAlias) {
                 result.put(referencedElement, element);
+                names.add(qualifiedName);
               }
             }
           }
