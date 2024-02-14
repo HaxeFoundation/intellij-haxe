@@ -29,7 +29,7 @@ public class HaxeDebugLogUtil {
     return com.intellij.openapi.diagnostic.Logger.getInstance(clazz);
   }
   public static void traceAs(Logger logger, StackTraceElement frame, Object message) {
-    traceAs(logger, frame, message);
+    traceAs(logger, frame, message, null);
   }
 
   public static void traceAs(Logger logger, StackTraceElement frame, Object message, Throwable t) {

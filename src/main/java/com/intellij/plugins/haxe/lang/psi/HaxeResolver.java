@@ -232,6 +232,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                   String currentQname = enumValueDeclaration.getContainingClass().getQualifiedName();
                   String data = typeHintPsi.getUserData(typeHintKey);
                   if (currentQname != null && currentQname.equals(data)) {
+                    LogResolution(reference, "via import & typeHintKey");
                     return List.of(element);
                   }
                 }
@@ -242,6 +243,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                   int currentSize =
                     Optional.ofNullable(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
                   if (expectedSize == currentSize) {
+                    LogResolution(reference, "via import  & enum value declaration");
                     return List.of(element);
                   }
                 }
@@ -277,11 +279,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // to avoid caching empty due to already being resolved we mark
       // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
       if (reference.getUserData(skipCacheKey) == Boolean.TRUE) {
+        if (log.isTraceEnabled()) {
+          String message = "result is empty and skip cache flag is true, skipping cache for: " + referenceText;
+          traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
+        }
         return null;
       }else {
+        if (log.isTraceEnabled()){
+          String message = "result is empty caching not found for :" + referenceText;
+          traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
+        }
         return EMPTY_LIST;
       }
     }else {
+      if (log.isTraceEnabled()){
+        String message = "caching result for :" + referenceText;
+        traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
+      }
       return result;
     }
   }
@@ -357,7 +371,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeClass haxeClass = classReference.getHaxeClass();
           if (haxeClass != null) {
             HaxeNamedComponent name = haxeClass.findHaxeMemberByName(reference.getText(), null);
-            if (name != null) return List.of(name);
+            if (name != null) {
+              LogResolution(reference, "via enum member name.");
+              return List.of(name);
+            }
           }
         }
       }
@@ -369,7 +386,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (!ApplicationManager.getApplication().isUnitTestMode()) {
       HaxeProjectModel haxeProjectModel = HaxeProjectModel.fromElement(reference);
         HaxeModel model = haxeProjectModel.getLogPackage().resolveTrace();
-        if (model != null) return List.of(model.getBasePsi());
+        if (model != null){
+          LogResolution(reference, "via global alias");
+          return List.of(model.getBasePsi());
+        }
       }
     }
     return null;
@@ -380,7 +400,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if(fileModel != null) {
       String className = reference.getText();
       PsiElement target = HaxeResolveUtil.searchInSameFile(fileModel, className, isType);
-      if (target!= null) return List.of(target);
+      if (target!= null) {
+        LogResolution(reference, "via search In Same File");
+        return List.of(target);
+      }
     }
     return null;
   }
@@ -482,7 +505,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
       if (classReference != null) {
         HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
-        if (declaration!= null) return List.of(declaration);
+        if (declaration!= null)
+          LogResolution(reference, "via enum extractor");
+          return List.of(declaration);
       }
     }else {
       // Last attempt to resolve  enum value (not extractor), normally imports would solve this but  some typedefs can omit this.
@@ -496,7 +521,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if(haxeClass != null && haxeClass.isEnum()) {
           SpecificHaxeClassReference classReference = result.getSpecificClassReference(haxeClass, null);
           HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, reference.getText());
-          if (declaration!= null) return List.of(declaration);
+          if (declaration!= null) {
+            LogResolution(reference, "via enum extractor");
+            return List.of(declaration);
+          }
         }
       }
 
@@ -516,6 +544,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               if (haxeExpression instanceof HaxeExtractorMatchExpression matchExpression) {
                 HaxeExpression PossibleCapture = matchExpression.getSwitchCaseExpr().getExpression();
                 if (PossibleCapture != null && PossibleCapture.textMatches(reference)) {
+                  LogResolution(reference, "via switch argument extractor");
                   return List.of(PossibleCapture);
                 }
               }
@@ -524,6 +553,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           else if (expression instanceof HaxeExtractorMatchExpression matchExpression) {
             HaxeReferenceExpression referenceFromExtractor = getReferenceFromExtractorMatchExpression(matchExpression);
             if (referenceFromExtractor!= null && reference.textMatches(referenceFromExtractor)) {
+              LogResolution(reference, "via witch extractor");
               return List.of(referenceFromExtractor);
             }
           }
@@ -557,6 +587,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(reference, HaxeExtractorMatchExpression.class);
     if (matchExpression!= null) {
       if (matchExpression.getSwitchCaseExpr().textMatches(reference.getText())) {
+        LogResolution(reference, "via Capture Var");
         return List.of(matchExpression.getExpression());
       }
     }
@@ -587,7 +618,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // try to resolve reference for guard and block (ex. `case [a, b] if ( b > a): b + ">" + a;`)
     if (result == null) result = tryResolveVariableForGuardsAndBlock(reference);
-
+    if (result != null) {
+      LogResolution(reference, "via switch var");
+    }
     return result;
   }
 
@@ -822,6 +855,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (alias != null) {
             HaxeIdentifier identifier = alias.getIdentifier();
             if (identifier.textMatches(reference)) {
+              LogResolution(reference, "via import alias name.");
               return List.of(alias);
             }
           }

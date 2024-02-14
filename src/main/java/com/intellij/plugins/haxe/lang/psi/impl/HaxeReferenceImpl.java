@@ -148,7 +148,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   private List<? extends PsiElement> resolveNamesToParents(List<? extends PsiElement> nameList) {
-    if (log.isTraceEnabled()) log.trace(traceMsg("namelist: " + nameList.toString()));
+    if (log.isTraceEnabled()) log.trace(traceMsg("namelist: " + (nameList== null ? null : nameList.toString())));
     if (nameList == null || nameList.isEmpty()) {
       return Collections.emptyList();
     }
@@ -625,66 +625,70 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // if this is the case threat as "class reference" Class<theClass>
       //HaxeResolveResult resolveResult = resolveHaxeClass();
       resolve = resolve();
-      // find real type for import alias
-      if (resolve instanceof  HaxeImportAlias alias) {
-        return alias.resolveHaxeClass();
-      }
+      if (resolve != null) {
+        // find real type for import alias
+        if (resolve instanceof HaxeImportAlias alias) {
+          return alias.resolveHaxeClass();
+        }
 
-      // Note: this is a bit of a hack for switch extractor arguments that are not named components but a reference to a reference
-      if (resolve instanceof HaxeReferenceExpression referenceExpression) {
-        PsiElement second = referenceExpression.resolve();
-        if (second instanceof HaxeReference reference) {
-          // small attempt at guarding against recursive loop
-          if (reference != this) {
-            return reference.resolveHaxeClass();
+        // Note: this is a bit of a hack for switch extractor arguments that are not named components but a reference to a reference
+        if (resolve instanceof HaxeReferenceExpression referenceExpression) {
+          PsiElement second = referenceExpression.resolve();
+          if (second instanceof HaxeReference reference) {
+            // small attempt at guarding against recursive loop
+            if (reference != this) {
+              return reference.resolveHaxeClass();
+            }
           }
         }
-      }
-      if (resolve instanceof HaxeAnonymousTypeField anonymousTypeField) {
-        HaxeTypeTag tag = anonymousTypeField.getTypeTag();
-        ResultHolder resolvedType = HaxeTypeResolver.getTypeFromTypeTag(tag, anonymousTypeField);
-        HaxeResolveResult result = null;
-        HaxeGenericSpecialization specialization = getSpecialization();
-        if (resolvedType.getClassType() != null && !resolvedType.isUnknown()) {
-          if (!resolvedType.getClassType().isTypeParameter()) {
-            result = resolvedType.getClassType().asResolveResult();
-            if (specialization != null) {
-              result.specializeByParent(specialization.toGenericResolver(null));
-            }
-          }else {
-            if (specialization != null) {
-              ResultHolder resolveTypeParameter = specialization.toGenericResolver(resolve).resolve(resolvedType);
-              if (resolveTypeParameter != null
-                  && !resolveTypeParameter.isUnknown()
-                  && resolveTypeParameter.getClassType() != null
-              ) {
-                result = resolveTypeParameter.getClassType().asResolveResult();
+        if (resolve instanceof HaxeAnonymousTypeField anonymousTypeField) {
+          HaxeTypeTag tag = anonymousTypeField.getTypeTag();
+          ResultHolder resolvedType = HaxeTypeResolver.getTypeFromTypeTag(tag, anonymousTypeField);
+          HaxeResolveResult result = null;
+          HaxeGenericSpecialization specialization = getSpecialization();
+          if (resolvedType.getClassType() != null && !resolvedType.isUnknown()) {
+            if (!resolvedType.getClassType().isTypeParameter()) {
+              result = resolvedType.getClassType().asResolveResult();
+              if (specialization != null) {
+                result.specializeByParent(specialization.toGenericResolver(null));
               }
             }
-
+            else {
+              if (specialization != null) {
+                ResultHolder resolveTypeParameter = specialization.toGenericResolver(resolve).resolve(resolvedType);
+                if (resolveTypeParameter != null
+                    && !resolveTypeParameter.isUnknown()
+                    && resolveTypeParameter.getClassType() != null
+                ) {
+                  result = resolveTypeParameter.getClassType().asResolveResult();
+                }
+              }
+            }
+            if (result != null) return result;
           }
-          if (result != null) return result;
-        }else if (resolvedType.isFunctionType()) {
-          return HaxeResolveResult.create(resolvedType.getFunctionType().functionType);
+          else if (resolvedType.isFunctionType()) {
+            return HaxeResolveResult.create(resolvedType.getFunctionType().functionType);
+          }
         }
-      }
-      if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
-        //TODO mlo: try to make a Resolve result with method
-        //SpecificFunctionReference functionReference = SpecificFunctionReference.create(methodDeclaration.getModel());
-        //return HaxeResolveResult.create(functionReference, getSpecialization());
-      }
-      if (resolve instanceof HaxeClassDeclaration haxeClassDeclaration) {
-        String className = haxeClassDeclaration.getComponentName().getName();
+        if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
+          //TODO mlo: try to make a Resolve result with method
+          //SpecificFunctionReference functionReference = SpecificFunctionReference.create(methodDeclaration.getModel());
+          //return HaxeResolveResult.create(functionReference, getSpecialization());
+        }
+        if (resolve instanceof HaxeClassDeclaration haxeClassDeclaration) {
+          String className = haxeClassDeclaration.getComponentName().getName();
 
 
-        boolean isPure = isPureClassReferenceOf(className);
+          boolean isPure = isPureClassReferenceOf(className);
 
-        if (isPure) {
-          // wrap in Class<>
-          SpecificHaxeClassReference reference = SpecificHaxeClassReference.withoutGenerics(haxeClassDeclaration.getModel().getReference());
-          SpecificHaxeClassReference aClass =
-            SpecificHaxeClassReference.getStdClass(CLASS, this, new ResultHolder[]{new ResultHolder(reference)});
-          return aClass.asResolveResult();
+          if (isPure) {
+            // wrap in Class<>
+            SpecificHaxeClassReference reference =
+              SpecificHaxeClassReference.withoutGenerics(haxeClassDeclaration.getModel().getReference());
+            SpecificHaxeClassReference aClass =
+              SpecificHaxeClassReference.getStdClass(CLASS, this, new ResultHolder[]{new ResultHolder(reference)});
+            return aClass.asResolveResult();
+          }
         }
       }
     }
@@ -693,197 +697,199 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (resolve == null) {
       resolve = resolve();
     }
-    if (isType(resolve, PsiPackage.class)) {
-      // Packages don't ever resolve to classes. (And they don't have children!)
-      return HaxeResolveResult.EMPTY;
-    }
-    if (isType(resolve, HaxeAnonymousTypeField.class)) {
-      HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
-      HaxeTypeTag typeTag = field.getTypeTag();
-      if (typeTag.getTypeOrAnonymous() != null) {
-        HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
-        if (typeOrAnonymous != null) {
-          if (typeOrAnonymous.getAnonymousType() != null) {
-            return HaxeResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization());
+    if (resolve != null) {
+
+      if (isType(resolve, PsiPackage.class)) {
+        // Packages don't ever resolve to classes. (And they don't have children!)
+        return HaxeResolveResult.EMPTY;
+      }
+      if (isType(resolve, HaxeAnonymousTypeField.class)) {
+        HaxeAnonymousTypeField field = (HaxeAnonymousTypeField)resolve;
+        HaxeTypeTag typeTag = field.getTypeTag();
+        if (typeTag.getTypeOrAnonymous() != null) {
+          HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+          if (typeOrAnonymous != null) {
+            if (typeOrAnonymous.getAnonymousType() != null) {
+              return HaxeResolveResult.create(typeOrAnonymous.getAnonymousType(), getSpecialization());
+            }
+            else {
+              HaxeType type = typeOrAnonymous.getType();
+              if (type != null) {
+                PsiElement resolvedType = type.getReferenceExpression().resolve();
+                if (resolvedType instanceof HaxeGenericListPart genericListPart) {
+                  final HaxeComponentName componentName = genericListPart.getComponentName();
+                  final HaxeGenericSpecialization specialization = getSpecialization();
+                  if (specialization != null && componentName != null) {
+                    String genericName = componentName.getText();
+                    final HaxeResolveResult result = specialization.get(resolve, genericName);
+                    if (result != null) {
+                      return result;
+                    }
+                  }
+                }
+                if (resolvedType instanceof HaxeClass) {
+                  return HaxeResolveResult.create((HaxeClass)resolvedType, getSpecialization());
+                }
+              }
+            }
           }
-          else {
-            HaxeType type = typeOrAnonymous.getType();
-            if (type != null) {
-              PsiElement resolvedType = type.getReferenceExpression().resolve();
-              if (resolvedType instanceof HaxeGenericListPart genericListPart) {
-                final HaxeComponentName componentName = genericListPart.getComponentName();
-                final HaxeGenericSpecialization specialization = getSpecialization();
-                if (specialization != null && componentName != null) {
-                  String genericName = componentName.getText();
-                  final HaxeResolveResult result = specialization.get(resolve, genericName);
-                  if (result != null) {
-                    return result;
+        }
+        return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
+      }
+
+      if (isType(resolve, HaxeGenericListPart.class)) {
+        final HaxeComponentName componentName = ((HaxeGenericListPart)resolve).getComponentName();
+        if (componentName != null) {
+          HaxeGenericSpecialization innerSpecialization =
+            tryGetLeftResolveResult(this).getSpecialization();
+          String genericName = componentName.getText();
+          final HaxeResolveResult result = innerSpecialization.get(resolve, genericName);
+          if (result != null) {
+            return result;
+          }
+        }
+      }
+
+      if (isType(resolve, HaxeEnumValueDeclaration.class)) {
+        final HaxeEnumDeclaration enumDeclaration = UsefulPsiTreeUtil.getParentOfType(resolve, HaxeEnumDeclaration.class);
+        return HaxeResolveResult.create(enumDeclaration, getSpecialization());
+      }
+
+      if (isType(resolve, HaxeClass.class) || isType(resolve, HaxeFunctionLiteral.class)) {
+        // Classes (particularly typedefs) that are already resolved should not be
+        // re-resolved to their component parts.
+        return HaxeResolveResult.create((HaxeClass)resolve, getSpecialization());
+      }
+
+      if (isType(resolve, HaxeMethod.class)) {
+        // If the resolved element is a method, but the reference's parent is not a call expression, then
+        // we want to return the method type, and not the method's return type.  (e.g. String->String->Void, rather than Void.)
+        List<PsiElement> typeList = UsefulPsiTreeUtil.getPathToParentOfType(this, HaxeCallExpression.class);
+        if (null == typeList || typeList.size() != 1) {
+
+          HaxeGenericSpecialization specialization = getSpecialization();
+          if (null == specialization) {
+            specialization = new HaxeGenericSpecialization();
+          }
+          //failsafe check that we can get function model from SDK
+          if (SpecificTypeReference.getFunction(resolve).getHaxeClass() != null) {
+            final HaxeClass fn = new HaxeSpecificFunction((HaxeMethod)resolve, specialization);
+            return HaxeResolveResult.create(fn, specialization);
+          }
+        }
+      }
+      if (isType(resolve, HaxeEnumExtractedValue.class)) {
+        HaxeEnumExtractedValue extractedValue = (HaxeEnumExtractedValue)resolve;
+        HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
+        if (extractor != null) {
+          int index = -1;
+          @NotNull PsiElement[] children = extractor.getEnumExtractorArgumentList().getChildren();
+          for (int i = 0; i < children.length; i++) {
+            if (children[i] == resolve) {
+              index = i;
+              break;
+            }
+          }
+          SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
+          HaxeEnumValueDeclaration enumValueDeclaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
+          if (enumValueDeclaration  != null) {
+            HaxeParameter parameter = enumValueDeclaration.getParameterList().getParameterList().get(index);
+            HaxeGenericResolver resolver = enumClass.getGenericResolver();
+            ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
+            ResultHolder resultHolder = resolver.resolve(type);
+            if(resultHolder != null && resultHolder.getClassType()!= null) {
+              return resultHolder.getClassType().asResolveResult();
+            }
+          }
+        }
+      }
+
+      // RestParameter can have a normal typeTag but the argument is treated as an array, so we have to wrap it in an array
+      if (isType(resolve, HaxeRestParameter.class)) {
+        HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, resolve);
+        return SpecificTypeReference.getStdClass(ARRAY, resolve, new ResultHolder[]{type}).asResolveResult();
+      }
+      if (isType(resolve, HaxeParameter.class)) {
+        // check if  type parameters has multiple constraints and try to unify
+        HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
+        String typeName = tag != null && tag.getTypeOrAnonymous() != null ? tag.getTypeOrAnonymous().getText() : null;
+        PsiElement parameterList = resolve.getParent();
+
+        if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration) {
+          HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
+          HaxeGenericParam methodGenericParam = method.getGenericParam();
+          List<HaxeGenericListPart> methodPartList = methodGenericParam != null ? methodGenericParam.getGenericListPartList() : null;
+
+          List<HaxeGenericListPart> classPartList = null;
+          if (method.getContainingClass() instanceof HaxeClassDeclaration declaringClass) {
+            // check class for type parameters
+            HaxeGenericParam classGenericParam = declaringClass.getGenericParam();
+            classPartList = classGenericParam != null ? classGenericParam.getGenericListPartList() : null;
+          }
+
+          if (methodPartList != null || classPartList != null) {
+            HaxeGenericListPart listPart = null;
+            // check method declaration first if it got generic params
+            if (methodPartList != null) {
+              for (HaxeGenericListPart genericListPart : methodPartList) {
+                if (Objects.equals(typeName, genericListPart.getName())) {
+                  listPart = genericListPart;
+                  break;
+                }
+              }
+            }
+            // if not found in method, then check class
+            if (listPart == null  && classPartList != null) {
+              for (HaxeGenericListPart genericListPart : classPartList) {
+                if (Objects.equals(typeName, genericListPart.getName())) {
+                  listPart = genericListPart;
+                  break;
+                }
+              }
+            }
+
+            if (listPart != null) {
+              HaxeTypeList list = listPart.getTypeList();
+              HaxeTypeListPart typeListPart = listPart.getTypeListPart();
+              ASTNode node = listPart.getContext().getNode();
+              if (list != null) {
+                List<HaxeType> classReferences = new ArrayList<>();
+                for (HaxeTypeListPart part : list.getTypeListPartList()) {
+                  HaxeType type = part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType();
+                  if (type != null) {
+                    classReferences.add(type);
+                  }
+                }
+
+                HaxeTypeParameterMultiType constraint = HaxeTypeParameterMultiType.withTypeList(node, classReferences);
+                return HaxeResolveResult.create(constraint);
+              }else if (typeListPart != null) {
+                HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
+                if (typeOrAnonymous != null) {
+                  if (typeOrAnonymous.getType() != null) {
+                    HaxeTypeParameterMultiType constraint =
+                      HaxeTypeParameterMultiType.withTypeList(node, List.of(typeOrAnonymous.getType()));
+
+                    return HaxeResolveResult.create(constraint);
+                  }
+                  else if (typeOrAnonymous.getAnonymousType() != null) {
+                    HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+                    HaxeTypeParameterMultiType constraint =
+                      HaxeTypeParameterMultiType.withAnonymousList(node, anonymousType.getAnonymousTypeBodyList());
+
+                    return HaxeResolveResult.create(constraint);
                   }
                 }
               }
-              if (resolvedType instanceof HaxeClass) {
-                return HaxeResolveResult.create((HaxeClass)resolvedType, getSpecialization());
-              }
             }
           }
-        }
-      }
-      return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName("Dynamic", this));
-    }
+          else {
 
-    if (isType(resolve, HaxeGenericListPart.class)) {
-      final HaxeComponentName componentName = ((HaxeGenericListPart)resolve).getComponentName();
-      if (componentName != null) {
-        HaxeGenericSpecialization innerSpecialization =
-          tryGetLeftResolveResult(this).getSpecialization();
-        String genericName = componentName.getText();
-        final HaxeResolveResult result = innerSpecialization.get(resolve, genericName);
-        if (result != null) {
-          return result;
-        }
-      }
-    }
-
-    if (isType(resolve, HaxeEnumValueDeclaration.class)) {
-      final HaxeEnumDeclaration enumDeclaration = UsefulPsiTreeUtil.getParentOfType(resolve, HaxeEnumDeclaration.class);
-      return HaxeResolveResult.create(enumDeclaration, getSpecialization());
-    }
-
-    if (isType(resolve, HaxeClass.class) || isType(resolve, HaxeFunctionLiteral.class)) {
-      // Classes (particularly typedefs) that are already resolved should not be
-      // re-resolved to their component parts.
-      return HaxeResolveResult.create((HaxeClass)resolve, getSpecialization());
-    }
-
-    if (isType(resolve, HaxeMethod.class)) {
-      // If the resolved element is a method, but the reference's parent is not a call expression, then
-      // we want to return the method type, and not the method's return type.  (e.g. String->String->Void, rather than Void.)
-      List<PsiElement> typeList = UsefulPsiTreeUtil.getPathToParentOfType(this, HaxeCallExpression.class);
-      if (null == typeList || typeList.size() != 1) {
-
-        HaxeGenericSpecialization specialization = getSpecialization();
-        if (null == specialization) {
-          specialization = new HaxeGenericSpecialization();
-        }
-        //failsafe check that we can get function model from SDK
-        if (SpecificTypeReference.getFunction(resolve).getHaxeClass() != null) {
-          final HaxeClass fn = new HaxeSpecificFunction((HaxeMethod)resolve, specialization);
-          return HaxeResolveResult.create(fn, specialization);
-        }
-      }
-    }
-    if (isType(resolve, HaxeEnumExtractedValue.class)) {
-      HaxeEnumExtractedValue extractedValue = (HaxeEnumExtractedValue)resolve;
-      HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
-      if (extractor != null) {
-        int index = -1;
-        @NotNull PsiElement[] children = extractor.getEnumExtractorArgumentList().getChildren();
-        for (int i = 0; i < children.length; i++) {
-          if (children[i] == resolve) {
-            index = i;
-            break;
-          }
-        }
-        SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
-        HaxeEnumValueDeclaration enumValueDeclaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
-        if (enumValueDeclaration  != null) {
-          HaxeParameter parameter = enumValueDeclaration.getParameterList().getParameterList().get(index);
-          HaxeGenericResolver resolver = enumClass.getGenericResolver();
-          ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
-          ResultHolder resultHolder = resolver.resolve(type);
-          if(resultHolder != null && resultHolder.getClassType()!= null) {
-            return resultHolder.getClassType().asResolveResult();
           }
         }
       }
-    }
 
-    // RestParameter can have a normal typeTag but the argument is treated as an array, so we have to wrap it in an array
-    if (isType(resolve, HaxeRestParameter.class)) {
-      HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
-      ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, resolve);
-      return SpecificTypeReference.getStdClass(ARRAY, resolve, new ResultHolder[]{type}).asResolveResult();
-    }
-    if (isType(resolve, HaxeParameter.class)) {
-      // check if  type parameters has multiple constraints and try to unify
-      HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
-      String typeName = tag != null && tag.getTypeOrAnonymous() != null ? tag.getTypeOrAnonymous().getText() : null;
-      PsiElement parameterList = resolve.getParent();
-
-      if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration) {
-        HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
-        HaxeGenericParam methodGenericParam = method.getGenericParam();
-        List<HaxeGenericListPart> methodPartList = methodGenericParam != null ? methodGenericParam.getGenericListPartList() : null;
-
-        List<HaxeGenericListPart> classPartList = null;
-        if (method.getContainingClass() instanceof HaxeClassDeclaration declaringClass) {
-          // check class for type parameters
-          HaxeGenericParam classGenericParam = declaringClass.getGenericParam();
-          classPartList = classGenericParam != null ? classGenericParam.getGenericListPartList() : null;
-        }
-
-        if (methodPartList != null || classPartList != null) {
-          HaxeGenericListPart listPart = null;
-          // check method declaration first if it got generic params
-          if (methodPartList != null) {
-            for (HaxeGenericListPart genericListPart : methodPartList) {
-              if (Objects.equals(typeName, genericListPart.getName())) {
-                listPart = genericListPart;
-                break;
-              }
-            }
-          }
-          // if not found in method, then check class
-          if (listPart == null  && classPartList != null) {
-            for (HaxeGenericListPart genericListPart : classPartList) {
-              if (Objects.equals(typeName, genericListPart.getName())) {
-                listPart = genericListPart;
-                break;
-              }
-            }
-          }
-
-          if (listPart != null) {
-            HaxeTypeList list = listPart.getTypeList();
-            HaxeTypeListPart typeListPart = listPart.getTypeListPart();
-            ASTNode node = listPart.getContext().getNode();
-            if (list != null) {
-              List<HaxeType> classReferences = new ArrayList<>();
-              for (HaxeTypeListPart part : list.getTypeListPartList()) {
-                HaxeType type = part.getTypeOrAnonymous() == null ? null : part.getTypeOrAnonymous().getType();
-                if (type != null) {
-                  classReferences.add(type);
-                }
-              }
-
-              HaxeTypeParameterMultiType constraint = HaxeTypeParameterMultiType.withTypeList(node, classReferences);
-              return HaxeResolveResult.create(constraint);
-            }else if (typeListPart != null) {
-              HaxeTypeOrAnonymous typeOrAnonymous = typeListPart.getTypeOrAnonymous();
-              if (typeOrAnonymous != null) {
-                if (typeOrAnonymous.getType() != null) {
-                  HaxeTypeParameterMultiType constraint =
-                    HaxeTypeParameterMultiType.withTypeList(node, List.of(typeOrAnonymous.getType()));
-
-                  return HaxeResolveResult.create(constraint);
-                }
-                else if (typeOrAnonymous.getAnonymousType() != null) {
-                  HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
-                  HaxeTypeParameterMultiType constraint =
-                    HaxeTypeParameterMultiType.withAnonymousList(node, anonymousType.getAnonymousTypeBodyList());
-
-                  return HaxeResolveResult.create(constraint);
-                }
-              }
-            }
-          }
-        }
-        else {
-
-        }
-      }
-    }
-    if (resolve != null) {
       return HaxeResolveUtil.getHaxeClassResolveResult(resolve, getSpecialization());
     }
 
