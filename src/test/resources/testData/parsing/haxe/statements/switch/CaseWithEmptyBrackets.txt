@@ -49,22 +49,21 @@ Haxe File
                       HaxePsiToken:true('true')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK
-                    LITERAL_EXPRESSION
-                      BLOCK_STATEMENT
-                        HaxePsiToken:{('{')
-                        CALL_EXPRESSION
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('trace')
-                          HaxePsiToken:(('(')
-                          CALL_EXPRESSION_LIST
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE('"')
-                              HaxePsiToken:REGULAR_STRING_PART('true')
-                              HaxePsiToken:CLOSING_QUOTE('"')
-                          HaxePsiToken:)(')')
-                        HaxePsiToken:;(';')
-                        HaxePsiToken:}('}')
+                    BLOCK_STATEMENT
+                      HaxePsiToken:{('{')
+                      CALL_EXPRESSION
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('trace')
+                        HaxePsiToken:(('(')
+                        CALL_EXPRESSION_LIST
+                          STRING_LITERAL_EXPRESSION
+                            HaxePsiToken:OPEN_QUOTE('"')
+                            HaxePsiToken:REGULAR_STRING_PART('true')
+                            HaxePsiToken:CLOSING_QUOTE('"')
+                        HaxePsiToken:)(')')
+                      HaxePsiToken:;(';')
+                      HaxePsiToken:}('}')
                 SWITCH_CASE
                   HaxePsiToken:case('case')
                   SWITCH_CASE_EXPR
@@ -72,7 +71,7 @@ Haxe File
                       HaxePsiToken:false('false')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK
-                    OBJECT_LITERAL
+                    BLOCK_STATEMENT
                       HaxePsiToken:{('{')
                       PsiComment(MSL_COMMENT)('// do nothing')
                       HaxePsiToken:}('}')
