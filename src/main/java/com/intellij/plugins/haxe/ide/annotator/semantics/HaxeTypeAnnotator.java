@@ -54,31 +54,43 @@ public class HaxeTypeAnnotator implements Annotator {
 
   static public void checkValidTypeParameters(final HaxeType type, final AnnotationHolder holder) {
     PsiElement context = type.getContext();
-    if (context != null && context.getParent() instanceof HaxeTypeTag) {
+    if (context == null || context.getParent() == null) return;
+    if (context instanceof HaxeNewExpression) {
+      if (type.getTypeParam() != null) {
+        checkTypeParametersForType(type, holder);
+      }
+    }
+    else if (context.getParent() instanceof HaxeTypeTag) {
       if (context.getParent().getParent() instanceof HaxeParameter) {
         // if HaxeType is part of a method parameter then  type specifics are possibly inherited
         //  this check is currently only checking assignment to variables and arguments when calling methods
         return;
       }
-      SpecificHaxeClassReference haxeClassReference = HaxeTypeResolver.getTypeFromType(type).getClassType();
-      if (haxeClassReference != null) {
-        if (HaxeTypeResolver.isTypeParameter(type.getReferenceExpression())) {
-          // ignoring  check if type is Type Parameter itself.
-          return;
-        }
-        HaxeClass haxeClass = haxeClassReference.getHaxeClass();
-        if (haxeClass != null) {
-          // Dynamic is special and does not require Type parameter to de specified
-          if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
-          int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
-          int classParameterCount = countTypeParameters(haxeClass);
+      checkTypeParametersForType(type, holder);
+    }
+  }
 
-          if (typeParameterCount != classParameterCount) {
-            String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
-            holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCount, typeParameterCount))
-              .range(type)
-              .create();
-          }
+  private static void checkTypeParametersForType(HaxeType type, AnnotationHolder holder) {
+    SpecificHaxeClassReference haxeClassReference = HaxeTypeResolver.getTypeFromType(type).getClassType();
+    if (haxeClassReference != null) {
+      if (HaxeTypeResolver.isTypeParameter(type.getReferenceExpression())) {
+        // ignoring  check if type is Type Parameter itself.
+        return;
+      }
+      HaxeClass haxeClass = haxeClassReference.getHaxeClass();
+      if (haxeClass != null) {
+        // Dynamic is special and does not require Type parameter to de specified
+        if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
+        int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
+        int classParameterCount = countTypeParameters(haxeClass);
+
+        if (typeParameterCount != classParameterCount) {
+          String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
+          holder.newAnnotation(HighlightSeverity.ERROR,
+                               HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCount,
+                                                  typeParameterCount))
+            .range(type)
+            .create();
         }
       }
     }
