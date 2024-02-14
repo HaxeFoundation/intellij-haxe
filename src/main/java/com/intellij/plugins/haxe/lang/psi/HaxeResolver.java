@@ -494,6 +494,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       .map(HaxeGenericParamModel::getPsi)
       .findFirst();
     if (first.isPresent()) {
+      LogResolution(reference, "via TypeParameter Psi");
       return List.of(first.get());
     }
     return null;
@@ -505,9 +506,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
       if (classReference != null) {
         HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
-        if (declaration!= null)
+        if (declaration!= null) {
           LogResolution(reference, "via enum extractor");
           return List.of(declaration);
+        }
       }
     }else {
       // Last attempt to resolve  enum value (not extractor), normally imports would solve this but  some typedefs can omit this.

@@ -1,4 +1,10 @@
 # Changelog
+## 1.4.39
+* Added: More format options for minimum newlines
+* Fixed: Unused imports bugfix (fully qualified references would mask normal references)
+* Added: Checking typeParameters in new expressions.
+* Added: Misc. debug and trace logging for debugging resolver bugs.
+
 ## 1.4.38
 * Trying to fix some minor resolver regression 
 ## 1.4.37
