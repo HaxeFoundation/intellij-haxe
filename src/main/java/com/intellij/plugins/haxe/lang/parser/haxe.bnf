@@ -642,7 +642,8 @@ switchCaseExpr ::= (switchExtractorExpression  | expression | switchCaseCaptureV
 ExtractorMatchExpression ::= expression '=>' switchCaseExpr {extends="expression"}
 
 switchExtractorExpression ::= switchCaseExtractor (bitOperation switchCaseExtractor)* {extends="expression"}
-switchCaseExtractor ::= '('ExtractorMatchExpression')' | ExtractorMatchExpression | enumArgumentExtractor | variableCaptureExpression {extends="expression"}
+private extractorMatchExpressionVariant::= '('ExtractorMatchExpression')' | '['ExtractorMatchExpression']'  | ExtractorMatchExpression
+switchCaseExtractor ::= extractorMatchExpressionVariant | enumArgumentExtractor | variableCaptureExpression {extends="expression"}
 //TODO mlo: clean up and bind to classes
 switchExtractorExpressionArrayLiteral ::= '[' (enumExtractorArgumentList ','?)? ']'
 
@@ -765,7 +766,7 @@ private value ::= ('untyped' expression)
                 | macroValueExpression
                 | callFunctionLiteral
                 | immediateArrayAccess
-                | (macroExpressionReification qualifiedReferenceTail?)
+                | (macroExpressionReification CallArrayOrReferenceExpression?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral
                 | callOrArrayAccess
@@ -817,8 +818,11 @@ private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
+private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedReferenceExpression)
 private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
-private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression (callExpression | arrayAccessExpression | qualifiedReferenceExpression)*
+private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
+
+
 
 private callFunctionLiteral ::= functionLiteral callExpression
 private callOrArrayAccess ::=  (callAccess | arrayAccess )
