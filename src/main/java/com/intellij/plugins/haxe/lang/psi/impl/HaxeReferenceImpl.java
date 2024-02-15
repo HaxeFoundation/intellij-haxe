@@ -815,9 +815,12 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
         String typeName = tag != null && tag.getTypeOrAnonymous() != null ? tag.getTypeOrAnonymous().getText() : null;
         PsiElement parameterList = resolve.getParent();
-
-        if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration) {
-          HaxeMethodDeclaration method = (HaxeMethodDeclaration)parameterList.getParent();
+        if (parameterList != null && parameterList.getParent() instanceof HaxeFunctionLiteral literal) {
+          // if parameter type is unknown  (allowed in function literals) we can try to find it from assignment, ex. callExpression
+          ResultHolder holder = tryToFindTypeFromCallExpression(literal, resolve);
+          if (holder != null && !holder.isUnknown()) return holder.getType().asResolveResult();
+        }
+        if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration method) {
           HaxeGenericParam methodGenericParam = method.getGenericParam();
           List<HaxeGenericListPart> methodPartList = methodGenericParam != null ? methodGenericParam.getGenericListPartList() : null;
 
@@ -896,6 +899,37 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (log.isTraceEnabled()) log.trace(traceMsg("Trying class resolve by fully qualified name."));
 
     return HaxeResolveResult.create(HaxeResolveUtil.findClassByQName(getText(), this));
+  }
+
+  @Nullable
+  public static ResultHolder tryToFindTypeFromCallExpression(HaxeFunctionLiteral literal, @NotNull PsiElement parameter) {
+    if (literal.getParent().getParent() instanceof  HaxeCallExpression callExpression) {
+      if (callExpression.getExpression() instanceof HaxeReference reference) {
+        if (reference.resolve() instanceof  HaxeMethod haxeMethod) {
+          // TODO find correct parameter, this is just a quick and dirty attempt might get wrong type
+          HaxeCallExpressionList list = callExpression.getExpressionList();
+          if (list == null) return null;
+          int callExpressionIndex = list.getExpressionList().indexOf(literal);
+          List<HaxeParameterModel> parameters = haxeMethod.getModel().getParameters();
+          if (parameters.size() < callExpressionIndex) return null;
+          for (int i = 0; i<callExpressionIndex; i++) {
+            if (parameters.get(i).isOptional()) return null; //TODO,  lazy hack to avoid incorrect results, need parameter map
+          }
+          HaxeParameterModel model = parameters.get(callExpressionIndex);
+          ResultHolder type = model.getType();
+          if (type.isFunctionType()) {
+            SpecificFunctionReference functionType = type.getFunctionType();
+            HaxeParameterList parameterList = literal.getParameterList();
+            if (parameterList == null || functionType == null) return null;
+            int parameterMappedToArgument = parameterList.getParameterList().indexOf(parameter);
+            List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
+            SpecificFunctionReference.Argument argument = arguments.get(parameterMappedToArgument);
+            return argument.getType().getType().createHolder();
+          }
+        }
+      }
+    }
+    return null;
   }
 
   public boolean isPureClassReferenceOf(@NotNull String className) {

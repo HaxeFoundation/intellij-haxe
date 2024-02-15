@@ -226,6 +226,14 @@
                                           bundle="messages.HaxeHintBundle"
                                           nameKey="haxe.return.type.hint.name"
                                           descriptionKey="haxe.return.type.hint.description"/>
+    <codeInsight.declarativeInlayProvider language="Haxe"
+                                          implementationClass="com.intellij.plugins.haxe.ide.hint.types.HaxeInlayUntypedParameterHintsProvider"
+                                          isEnabledByDefault="true"
+                                          group="TYPES_GROUP"
+                                          providerId="haxe.untyped.parameter.type"
+                                          bundle="messages.HaxeHintBundle"
+                                          nameKey="haxe.untyped.parameter.hint.name"
+                                          descriptionKey="haxe.untyped.parameter.hint.description"/>
 
 
 

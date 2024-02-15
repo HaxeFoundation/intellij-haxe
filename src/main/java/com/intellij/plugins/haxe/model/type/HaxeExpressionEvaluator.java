@@ -52,6 +52,7 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
@@ -464,6 +465,14 @@ public class HaxeExpressionEvaluator {
           if (!resolve.isUnknown()) return resolve;
         }
         return typeFromTypeTag;
+      }
+      if (parameter.getVarInit() == null) {
+        if (element.getParent().getParent() instanceof HaxeFunctionLiteral functionLiteral) {
+          ResultHolder holder = tryToFindTypeFromCallExpression(functionLiteral, parameter);
+          if (holder!= null && !holder.isUnknown()) {
+            return holder;
+          }
+        }
       }
     }
     if (element instanceof HaxeSpreadExpression spreadExpression) {

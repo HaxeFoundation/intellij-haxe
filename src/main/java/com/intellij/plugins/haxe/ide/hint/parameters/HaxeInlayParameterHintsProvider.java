@@ -80,7 +80,7 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
       if (showHintsForEnumConstructors.isEnabled()) {
         HaxeEnumValueModel enumValueModel = getEnumValueModel(callExpression);
         if (enumValueModel != null) {
-          handleEnumValueCOnstructor(callExpression, enumValueModel, infoList);
+          handleEnumValueConstructor(callExpression, enumValueModel, infoList);
           return infoList;
         }
       }
@@ -89,7 +89,7 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     return infoList;
   }
 
-  private void handleEnumValueCOnstructor(HaxeCallExpression callExpression, HaxeEnumValueModel enumValueModel, List<InlayInfo> infoList) {
+  private void handleEnumValueConstructor(HaxeCallExpression callExpression, HaxeEnumValueModel enumValueModel, List<InlayInfo> infoList) {
     HaxeCallExpressionList expressionList = callExpression.getExpressionList();
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
