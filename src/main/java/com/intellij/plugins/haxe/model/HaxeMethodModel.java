@@ -244,5 +244,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     }
     return resolver;
   }
+
+  public boolean HasNoUsingMeta() {
+    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.NO_USING);
+  }
 }
 

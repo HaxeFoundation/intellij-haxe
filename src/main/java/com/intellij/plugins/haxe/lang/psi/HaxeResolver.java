@@ -933,7 +933,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       for (int i = usingModels.size() - 1; i >= 0; --i) {
         foundMethod = usingModels.get(i)
           .findExtensionMethod(identifier, leftExpression.getSpecificClassReference(reference, leftExpression.getGenericResolver()));
-        if (null != foundMethod) {
+        if (null != foundMethod && !foundMethod.HasNoUsingMeta()) {
+
           reference.putUserData(isExtensionKey, true);
           if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());
           return asList(foundMethod.getBasePsi());
