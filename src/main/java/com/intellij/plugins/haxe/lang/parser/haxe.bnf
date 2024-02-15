@@ -766,7 +766,7 @@ private value ::= ('untyped' expression)
                 | macroValueExpression
                 | callFunctionLiteral
                 | immediateArrayAccess
-                | (macroExpressionReification CallArrayOrReferenceExpression?)
+                | (macroExpressionReification (qualifiedReferenceTail | CallArrayOrReferenceExpression)?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral
                 | callOrArrayAccess
