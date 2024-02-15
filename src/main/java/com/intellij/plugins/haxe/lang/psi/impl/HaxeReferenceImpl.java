@@ -924,7 +924,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             int parameterMappedToArgument = parameterList.getParameterList().indexOf(parameter);
             List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
             SpecificFunctionReference.Argument argument = arguments.get(parameterMappedToArgument);
-            return argument.getType().getType().createHolder();
+            //TODO this is a bit hackish way to get resolver
+            HaxeResolveResult result = reference.resolveHaxeClass();
+            HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(haxeMethod);
+            ResultHolder resolved = resolver.resolve(argument.getType());
+            if (resolved != null && !resolved.isUnknown())return resolved.getType().createHolder();
           }
         }
       }
