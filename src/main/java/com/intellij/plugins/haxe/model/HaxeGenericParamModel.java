@@ -34,10 +34,14 @@ public class HaxeGenericParamModel {
   final private HaxeGenericListPart part;
   final private String name;
   final private int index;
+  final private HaxeTypeOrAnonymous defaultType;
+  final private HaxeFunctionType defaultFunction;
 
   public HaxeGenericParamModel(@NotNull HaxeGenericListPart part, int index) {
     this.index = index;
     this.part = part;
+    this.defaultType = part.getTypeOrAnonymous();
+    this.defaultFunction = part.getFunctionType();
     this.name = part.getComponentName().getText();
   }
 
@@ -48,6 +52,11 @@ public class HaxeGenericParamModel {
   public String getName() {
     return this.name;
   }
+
+  public  boolean hasDefault() {
+    return defaultType != null || defaultFunction !=  null;
+  }
+
 
   public HaxeGenericListPart getPsi() { return part; }
 

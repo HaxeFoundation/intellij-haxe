@@ -7,12 +7,15 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.INVALID_TYPE_NAME;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.DYNAMIC;
@@ -81,15 +84,25 @@ public class HaxeTypeAnnotator implements Annotator {
       if (haxeClass != null) {
         // Dynamic is special and does not require Type parameter to de specified
         if (DYNAMIC.equalsIgnoreCase(haxeClass.getName())) return;
-        int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
-        int classParameterCount = countTypeParameters(haxeClass);
+        String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
+        if (typeName.startsWith("$"))return; // ignore when type is from macro variable
 
-        if (typeParameterCount != classParameterCount) {
-          String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
+        int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
+        int classParameterCountMin = minTypeParameters(haxeClass);
+        int classParameterCountMax = maxTypeParameters(haxeClass);
+
+        if (typeParameterCount < classParameterCountMin) {
+
+
+          holder.newAnnotation(HighlightSeverity.ERROR,
+                               HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCountMin, typeParameterCount))
+            .range(type)
+            .create();
+        }
+        if (typeParameterCount > classParameterCountMax) {
           if (typeName.startsWith("$"))return; // ignore when type is from macro variable
           holder.newAnnotation(HighlightSeverity.ERROR,
-                               HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCount,
-                                                  typeParameterCount))
+                               HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCountMax, typeParameterCount))
             .range(type)
             .create();
         }
@@ -98,10 +111,14 @@ public class HaxeTypeAnnotator implements Annotator {
   }
 
 
-  static private int countTypeParameters(HaxeClass haxeClass) {
-    HaxeGenericParam param = haxeClass.getGenericParam();
-    if (param == null) return 0;
-    return param.getGenericListPartList().size();
+  static private int minTypeParameters(HaxeClass haxeClass) {
+    List<HaxeGenericParamModel> params = haxeClass.getModel().getGenericParams();
+    boolean allHasDefaults = params.stream().allMatch(HaxeGenericParamModel::hasDefault);
+    if (allHasDefaults) return 0;
+    return params.size();
+  }
+  static private int maxTypeParameters(HaxeClass haxeClass) {
+    return haxeClass.getModel().getGenericParams().size();
   }
 
   private static String getTypeName(PsiIdentifier identifier) {
