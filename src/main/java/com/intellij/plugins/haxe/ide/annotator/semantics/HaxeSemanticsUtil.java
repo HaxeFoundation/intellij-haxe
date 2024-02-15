@@ -29,6 +29,8 @@ public class HaxeSemanticsUtil {
       boolean requireConstant,
       final AnnotationHolder holder
     ) {
+      if (isTypeFromMacroVar(tag))return; // ignore if  macro variable name
+
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
       final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
       if (initType.isInvalid()) return;
@@ -54,6 +56,13 @@ public class HaxeSemanticsUtil {
           .range(erroredElement)
           .create();
       }
+    }
+
+    private static boolean isTypeFromMacroVar(HaxeTypeTag tag) {
+      if (tag.getTypeOrAnonymous() != null) {
+        return tag.getTypeOrAnonymous().getText().startsWith("$");
+      }
+      return false;
     }
 
     private static boolean isConstant(ResultHolder initType, HaxeVarInit initExpression) {

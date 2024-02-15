@@ -86,6 +86,7 @@ public class HaxeTypeAnnotator implements Annotator {
 
         if (typeParameterCount != classParameterCount) {
           String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
+          if (typeName.startsWith("$"))return; // ignore when type is from macro variable
           holder.newAnnotation(HighlightSeverity.ERROR,
                                HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCount,
                                                   typeParameterCount))
