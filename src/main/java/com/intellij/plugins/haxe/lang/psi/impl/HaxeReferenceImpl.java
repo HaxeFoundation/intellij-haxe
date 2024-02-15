@@ -1202,6 +1202,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   @NotNull
   private static JavaResolveResult[] toCandidateInfoArray(List<? extends PsiElement> elements) {
+    if (elements == null) return new JavaResolveResult[0];
     final JavaResolveResult[] result = new JavaResolveResult[elements.size()];
     for (int i = 0, size = elements.size(); i < size; i++) {
       result[i] = new CandidateInfo(elements.get(i), EmptySubstitutor.getInstance());

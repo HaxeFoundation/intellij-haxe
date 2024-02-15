@@ -1279,7 +1279,7 @@ public class HaxeExpressionEvaluator {
       return functionDeclaration.getModel().getFunctionType(resolver).createHolder();
     }
     if (element instanceof HaxeFunctionLiteral function) {
-      HaxeParameterList params = function.getParameterList();
+      HaxeParameterList params = function.getParameterList(); // TODO mlo: get expected type to use if signature/parameters are without types
       if (params == null) {
         return SpecificHaxeClassReference.getInvalid(function).createHolder();
       }
@@ -1318,7 +1318,16 @@ public class HaxeExpressionEvaluator {
           HaxeBlockStatement block = function.getBlockStatement();
           if (null != block) {
             //// note : as we enter a block we are leaving the scope where we could use the assignHint directly
-            returnType = handle(block, context, resolver.withoutAssignHint());
+            HaxeExpressionEvaluatorContext functionBlockContext = new HaxeExpressionEvaluatorContext(element);
+            ResultHolder handled = handle(block, functionBlockContext, resolver.withoutAssignHint());
+
+            if (!functionBlockContext.getReturnValues().isEmpty()) {
+              returnType = HaxeTypeUnifier.unifyHolders(functionBlockContext.getReturnValues(), element);
+            }else  if (block.getExpressionList().size() == 1){
+              returnType = handled;
+            }else {
+              returnType = SpecificHaxeClassReference.getVoid(element).createHolder();
+            }
           } else if (null != function.getExpression()) {
             returnType = handle(function.getExpression(), context, resolver);
           } else {
