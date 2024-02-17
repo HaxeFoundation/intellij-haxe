@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -554,7 +553,13 @@ public class HaxeTypeResolver {
       HaxeResolveResult result = expression.resolveHaxeClass();
       HaxeClass haxeClass = result.getHaxeClass();
       if (haxeClass instanceof HaxeSpecificFunction specificFunction) {
-        resultHolder = new ResultHolder(SpecificFunctionReference.create(specificFunction));
+        SpecificFunctionReference reference = SpecificFunctionReference.create(specificFunction);
+        SpecificFunctionReference resolveResult = resolver.resolve(reference, true);
+        if (resolveResult != null && !resolveResult.isUnknown()) {
+          return resolveResult.createHolder();
+        } else {
+          return reference.createHolder();
+        }
       } else if (null != haxeClass) {
         resultHolder = new ResultHolder(result.getSpecificClassReference(element, result.getGenericResolver()));
         // if class reference (not chain) wrap as Class<T>

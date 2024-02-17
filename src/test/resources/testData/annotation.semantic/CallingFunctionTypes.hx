@@ -23,8 +23,8 @@ class Test {
         withoutTypeTag(1).toLowerCase();    // correct: return type should be string
         fromFunction(1).toLowerCase();      // correct: return type should be string
 
+        var genericsFromTypeTag:String->String = testB; // correct : generics are set based on type in typetag
 
-        var <error descr="Incompatible type: T->T should be String->String">wrongTypeTagA:String->String = testB</error>; // Wrong : generic Types
         var wrongTypeTagB:<warning descr="Unresolved symbol">T</warning>-><warning descr="Unresolved symbol">T</warning> = testB; // Wrong : generic Types not available?
 
         var withoutTypeTagGeneric = testB;

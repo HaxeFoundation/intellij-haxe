@@ -295,17 +295,62 @@ public class HaxeGenericResolver {
   }
   @Nullable
   public SpecificFunctionReference resolve(SpecificFunctionReference fnRef) {
+    return resolve(fnRef, false);
+  }
+  public SpecificFunctionReference resolve(SpecificFunctionReference fnRef, boolean useAssignHint) {
     if (null == fnRef ) return null;
-    if (fnRef.functionType == null) return fnRef;
+    if (resolvers.isEmpty()) return fnRef;
 
-    List<SpecificFunctionReference.Argument> newArgList = fnRef.getArguments().stream()
-      .map(argument -> argument.withType(Optional.ofNullable(resolve(argument.getType())).orElse(argument.getType())))
-      .toList();
+      List<SpecificFunctionReference.Argument> arguments = fnRef.getArguments();
+      ResultHolder returnType = fnRef.getReturnType();
 
-    ResultHolder newReturnType = resolve(fnRef.getReturnType());
-    ResultHolder returnValue = Optional.ofNullable(newReturnType).orElse(fnRef.getReturnType());
+      if (useAssignHint) {
+        Optional<ResolverEntry> assignHint = findAssignToType();
+        if (assignHint.isPresent()) {
+          ResolverEntry hint = assignHint.get();
+          ResultHolder hintType = hint.type();
+          if (hintType.isFunctionType()) {
+            SpecificFunctionReference hintFunction = hintType.getFunctionType();
 
-    return  new SpecificFunctionReference(newArgList, returnValue, fnRef.functionType, fnRef.context);
+            List<SpecificFunctionReference.Argument> hintArguments = hintFunction.getArguments();
+            List<SpecificFunctionReference.Argument> newArgumentList = new ArrayList<>();
+            int argumentCount = Math.min(arguments.size(), hintArguments.size());
+            for (int i = 0; i < argumentCount; i++) {
+              SpecificFunctionReference.Argument argument = arguments.get(i);
+              if (argument.getType().isTypeParameter()) {
+                newArgumentList.add(argument.withType(hintArguments.get(i).getType()));
+              }
+              else {
+                newArgumentList.add(argument);
+              }
+            }
+            if (returnType.isTypeParameter()) {
+              returnType = hintFunction.getReturnType();
+            }
+            if (fnRef.functionType != null) {
+              return new SpecificFunctionReference(newArgumentList, returnType, fnRef.functionType, fnRef.context);
+            }else {
+              return new SpecificFunctionReference(newArgumentList, returnType, fnRef.method, fnRef.context);
+            }
+          }
+        }
+      }
+
+
+      List<SpecificFunctionReference.Argument> newArgList = arguments.stream()
+        .map(argument -> argument.withType(Optional.ofNullable(resolve(argument.getType())).orElse(argument.getType())))
+        .toList();
+
+      ResultHolder newReturnType = resolve(returnType);
+      ResultHolder returnValue = Optional.ofNullable(newReturnType).orElse(returnType);
+
+    if (fnRef.functionType != null) {
+      return new SpecificFunctionReference(newArgList, returnValue, fnRef.functionType, fnRef.context);
+    }else {
+      return new SpecificFunctionReference(newArgList, returnValue, fnRef.method, fnRef.context);
+    }
+
+
   }
 
   /**
@@ -436,4 +481,5 @@ public class HaxeGenericResolver {
       resolvers.add(assign.get().copy());
     }
   }
+
 }
