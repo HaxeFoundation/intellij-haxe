@@ -299,7 +299,7 @@ public class HaxeGenericResolver {
     if (fnRef.functionType == null) return fnRef;
 
     List<SpecificFunctionReference.Argument> newArgList = fnRef.getArguments().stream()
-      .map(argument -> argument.changeType(Optional.ofNullable(resolve(argument.getType())).orElse(argument.getType())))
+      .map(argument -> argument.withType(Optional.ofNullable(resolve(argument.getType())).orElse(argument.getType())))
       .toList();
 
     ResultHolder newReturnType = resolve(fnRef.getReturnType());

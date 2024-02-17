@@ -302,7 +302,7 @@ public class HaxeTypeCompatible {
     }
     // Void return on the to just means that the value isn't used/cared about. See
     // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
-    return to.returnValue != null && (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
+    return to.returnValue == null || (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
   }
 
   private static boolean hasAbstractFunctionTypeCast(SpecificTypeReference reference, boolean castFrom) {

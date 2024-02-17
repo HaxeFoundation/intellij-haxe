@@ -24,7 +24,7 @@ public class HaxeCallExpressionUtil {
   //TODO find a way to combine check method, function, constructor and Enum constructor
   // (amongst the problem is mixed parameter classes and method needing reference for type resolve)
 
-  public static CallExpressionValidation checkMethodCall(@NotNull HaxeCallExpression callExpression, HaxeMethod method) {
+  public static CallExpressionValidation checkMethodCall(@NotNull HaxeCallExpression callExpression, @NotNull HaxeMethod method) {
     CallExpressionValidation validation  = new CallExpressionValidation();
     validation.isMethod = true;
 

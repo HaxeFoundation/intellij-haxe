@@ -796,6 +796,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWeakWarnings();
   }
   @Test
+  public void testTypeParameterFunctionArguments() throws Throwable {
+    // unresolved symbols are used to confirm correct returned type
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+  }
+  @Test
   public void testCallingFunctionTypes() throws Throwable {
     // unresolved symbols are used to confirm correct returned type
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);

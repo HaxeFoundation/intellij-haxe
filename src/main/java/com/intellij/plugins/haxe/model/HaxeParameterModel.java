@@ -33,6 +33,8 @@ import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference.propagateGenericsToType;
 
 /**
@@ -123,8 +125,7 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
         propagateGenericsToType(classReference, resolver);
       }
       else if(type instanceof SpecificFunctionReference functionReference) {
-      // TODO propagate to functionTypes
-        //propagateGenericsToType(classReference, resolver);
+        return propagateGenericsToFunction(functionReference, resolver).createHolder();
       }
 
       if(type instanceof SpecificHaxeClassReference classReference) {
@@ -134,6 +135,27 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
 
     }
     return typeResult;
+  }
+
+  private SpecificFunctionReference propagateGenericsToFunction(SpecificFunctionReference reference, HaxeGenericResolver resolver) {
+    // copy so we dont break other logic
+
+    List<SpecificFunctionReference.Argument> arguments = reference.getArguments().stream().map(argument -> resolverArgument(argument, resolver)).toList();
+    ResultHolder returnType = reference.getReturnType();
+    ResultHolder resolvedReturnType = resolver.resolveReturnType(returnType);
+    if (resolvedReturnType != null && !resolvedReturnType.isUnknown()) returnType = resolvedReturnType;
+    if (reference.method != null) {
+      return new SpecificFunctionReference(arguments, returnType, reference.method, reference.getElementContext());
+    }else {
+      return new SpecificFunctionReference(arguments, returnType, reference.functionType, reference.getElementContext());
+    }
+  }
+
+  private SpecificFunctionReference.Argument resolverArgument(SpecificFunctionReference.Argument argument, HaxeGenericResolver resolver) {
+    ResultHolder type = argument.getType();
+    ResultHolder resolve = resolver.resolve(type);
+    if (resolve != null && !resolve.isUnknown()) type = resolve;
+    return argument.withType(type);
   }
 
   public HaxeMemberModel getMemberModel() {

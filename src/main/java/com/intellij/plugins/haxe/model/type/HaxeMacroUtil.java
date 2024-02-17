@@ -2,7 +2,6 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +41,7 @@ public class HaxeMacroUtil {
     ResultHolder type = argument.getType();
     if (type.isClassType()) {
       ResultHolder holder = resolveMacroType(type);
-      return argument.changeType(holder);
+      return argument.withType(holder);
     }
     // TODO function type support
     return argument;

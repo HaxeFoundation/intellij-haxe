@@ -285,7 +285,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       return (argument.isOptional() || this.isOptional() == argument.isOptional()) && type.canAssign(argument.type);
     }
 
-    public Argument changeType(ResultHolder newType) {
+    public Argument withType(ResultHolder newType) {
       return new Argument(this.index, this.optional, this.isRest, newType, this.name);
     }
   }
