@@ -134,7 +134,11 @@ public class HaxeImportUtil {
       @Override
       public void visitElement(PsiElement element) {
         if (element instanceof HaxePackageStatement || element instanceof HaxeImportStatement || element instanceof HaxeUsingStatement) return;
+        if (element instanceof  HaxeCallExpression callExpression) {
+          element = callExpression.getExpression();
+        }
         if (element instanceof HaxeReference reference) {
+
           PsiElement referencedElement = reference.resolve();
           // makes sure that even if we have a fully qualified a.b.SomeClass added to the list
           // that any reference of just the class name (SomeClass) without package structure is also added as  reference
@@ -147,15 +151,23 @@ public class HaxeImportUtil {
               names.add(qualifiedName);
             }
             if (qualified) {
-              if (referencedElement instanceof HaxeClass) {
+              if (referencedElement instanceof HaxePsiField) {
                 result.put(referencedElement, element);
                 names.add(qualifiedName);
               }
-              if (referencedElement instanceof HaxeIdentifier) {
+              if (referencedElement instanceof HaxeMethod) {
                 result.put(referencedElement, element);
                 names.add(qualifiedName);
               }
-              if (referencedElement instanceof HaxeImportAlias) {
+              else if (referencedElement instanceof HaxeClass) {
+                result.put(referencedElement, element);
+                names.add(qualifiedName);
+              }
+              else  if (referencedElement instanceof HaxeIdentifier) {
+                result.put(referencedElement, element);
+                names.add(qualifiedName);
+              }
+              else  if (referencedElement instanceof HaxeImportAlias) {
                 result.put(referencedElement, element);
                 names.add(qualifiedName);
               }
