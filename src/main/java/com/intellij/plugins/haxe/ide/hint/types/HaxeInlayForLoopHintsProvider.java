@@ -48,32 +48,11 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
         HaxeIteratorkey iteratorKey = keyValueIterator.getIteratorkey();
         HaxeIteratorValue iteratorValue = keyValueIterator.getIteratorValue();
 
-        var keyValueIteratorType = HaxeTypeResolver.getPsiElementType(iterable, element, resolver);
-        var iteratorType = keyValueIteratorType.getClassType();
-        if (iteratorType.isTypeDef()) {
-          SpecificTypeReference type = iteratorType.fullyResolveTypeDefReference();
-          if (type instanceof SpecificHaxeClassReference  classReference) {
-            iteratorType = classReference;
-          }
-        }
-        var iteratorTypeResolver = iteratorType.getGenericResolver();
+        ResultHolder keyType = HaxeExpressionEvaluator.findIteratorType(element, iteratorKey);
+        ResultHolder valueType = HaxeExpressionEvaluator.findIteratorType(element, iteratorValue);
 
-        HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
-        if (iteratorReturnType == null) return;
-
-        HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
-        nextResolver.addAll(iteratorTypeResolver);
-
-        ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
-        SpecificHaxeClassReference type = returnType.getClassType();
-        HaxeGenericResolver genericResolver = type.getGenericResolver();
-
-        ResultHolder keyType = type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
-        ResultHolder valueType = type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
-
-
-        createInlayHint(iteratorKey.getComponentName(), sink, keyType);
-        createInlayHint(iteratorValue.getComponentName(), sink, valueType);
+        if (keyType!= null) createInlayHint(iteratorKey.getComponentName(), sink, keyType);
+        if (valueType!= null) createInlayHint(iteratorValue.getComponentName(), sink, valueType);
       }
 
     }

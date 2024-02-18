@@ -75,6 +75,22 @@ public class HaxeExpressionEvaluator {
     return context;
   }
 
+  private static ThreadLocal<HashSet<PsiElement>> resolvesInProcess = new ThreadLocal<>().withInitial(()->new HashSet<PsiElement>());
+  @Nullable
+  private static ResultHolder handleWithRecursionGuard(PsiElement element,
+                                                       HaxeExpressionEvaluatorContext context,
+                                                       HaxeGenericResolver resolver) {
+    if (element == null) return null;
+    HashSet<PsiElement> elements = resolvesInProcess.get();
+    try {
+      if (elements.contains(element)) return null;
+      elements.add(element);
+      return handle(element, context, resolver);
+    } finally {
+      elements.remove(element);
+    }
+  }
+
   @NotNull
   static private ResultHolder handle(final PsiElement element,
                                      final HaxeExpressionEvaluatorContext context,
@@ -456,9 +472,15 @@ public class HaxeExpressionEvaluator {
       return holder;
     }
 
+    if (element instanceof HaxeRestParameter restParameter) {
+      HaxeTypeTag tag = restParameter.getTypeTag();
+      ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, restParameter);
+      return new ResultHolder(SpecificTypeReference.getStdClass(ARRAY, restParameter, new ResultHolder[]{type}));
+    }
+
     if (element instanceof HaxeParameter parameter) {
       HaxeTypeTag typeTag = parameter.getTypeTag();
-      if (typeTag!= null) {
+      if (typeTag != null) {
         ResultHolder typeFromTypeTag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
         if (typeFromTypeTag.isTypeParameter()) {
           ResultHolder resolve = resolver.resolve(typeFromTypeTag);
@@ -466,7 +488,14 @@ public class HaxeExpressionEvaluator {
         }
         return typeFromTypeTag;
       }
-      if (parameter.getVarInit() == null) {
+
+      HaxeVarInit init = parameter.getVarInit();
+      if (init != null) {
+        ResultHolder holder = handle(init, context, resolver);
+        if (!holder.isUnknown()) {
+          return holder;
+        }
+       }else {
         if (element.getParent().getParent() instanceof HaxeFunctionLiteral functionLiteral) {
           ResultHolder holder = tryToFindTypeFromCallExpression(functionLiteral, parameter);
           if (holder!= null && !holder.isUnknown()) {
@@ -661,13 +690,13 @@ public class HaxeExpressionEvaluator {
       }
       return handle(expression, context, resolver);
     }
-    if (element instanceof  HaxeRegularExpressionLiteral) {
+    if (element instanceof HaxeRegularExpressionLiteral) {
       HaxeClass regexClass = HaxeResolveUtil.findClassByQName(getLiteralClassName(HaxeTokenTypes.REG_EXP), element);
       if (regexClass != null) {
         return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(regexClass.getModel(),element)).createHolder();
       }
     }
-    if (element instanceof  HaxeValueExpression valueExpression) {
+    if (element instanceof HaxeValueExpression valueExpression) {
       if (valueExpression.getSwitchStatement() != null){
         return handle(valueExpression.getSwitchStatement(), context, resolver);
       }
@@ -684,10 +713,6 @@ public class HaxeExpressionEvaluator {
         return handle(valueExpression.getExpression(), context, resolver);
       }
     }
-    //if (element instanceof HaxeParenthesizedExpressionReference parenthesizedReference) {
-    //  ResultHolder handle = handle(parenthesizedReference.getExpression(), context, resolver);
-    //  boolean unknown = handle.isUnknown();
-    //}
 
     if (element instanceof HaxeReferenceExpression) {
       PsiElement[] children = element.getChildren();
@@ -750,14 +775,10 @@ public class HaxeExpressionEvaluator {
         PsiReference reference = element.getReference();
         if (reference != null) {
           PsiElement subelement = reference.resolve();
+
           if (subelement instanceof  HaxeReferenceExpression referenceExpression) {
             PsiElement resolve = referenceExpression.resolve();
-            if (resolve != null) {
-              // small attempt at recursion guard
-              if (resolve != element) {
-                typeHolder = handle(resolve, context, resolver);
-              }
-            }
+            typeHolder = handleWithRecursionGuard(resolve, context, resolver);
           }
           if (subelement instanceof HaxeClass haxeClass) {
 
@@ -800,41 +821,6 @@ public class HaxeExpressionEvaluator {
             typeHolder = type.createHolder();
           }
 
-          else if (subelement instanceof HaxeParameter parameter) {
-            if (subelement instanceof HaxeRestParameter restParameter) {
-              HaxeTypeTag tag = restParameter.getTypeTag();
-              ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(tag, restParameter);
-              typeHolder = new ResultHolder(SpecificTypeReference.getStdClass(ARRAY, subelement, new ResultHolder[]{type}));
-            }
-            else {
-              HaxeTypeTag tag = parameter.getTypeTag();
-              if (tag != null) {
-                typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, parameter);
-                ResultHolder holder = HaxeTypeResolver.resolveParameterizedType(typeHolder, resolver);
-                if (!holder.isUnknown()) {
-                  typeHolder = holder;
-                }
-              }else {
-                HaxeVarInit init = parameter.getVarInit();
-                if (init != null) {
-                  ResultHolder holder = handle(init, context, resolver);
-                  if (!holder.isUnknown()) {
-                    typeHolder = holder;
-                  }
-                }
-              }
-            }
-          }
-          else if (subelement instanceof HaxeLocalVarDeclaration varDeclaration) {
-            HaxeVarInit init = varDeclaration.getVarInit();
-            if (init != null) {
-              HaxeExpression initExpression = init.getExpression();
-              HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
-              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
-            }else {
-              typeHolder =  handle(subelement, context,resolver);
-            }
-          }
           else if (subelement instanceof HaxeForStatement forStatement) {
             // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
             final HaxeComponentName name = forStatement.getComponentName();
@@ -859,13 +845,13 @@ public class HaxeExpressionEvaluator {
             typeHolder = findIteratorType(element, subelement);
           }
 
-
           else if (subelement instanceof HaxeSwitchCaseCaptureVar caseCaptureVar) {
             HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseCaptureVar, HaxeSwitchStatement.class);
             if (switchStatement.getExpression() != null) {
               typeHolder = handle(switchStatement.getExpression(), context, resolver);
             }
           }
+
           else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
             HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
             if (switchStatement.getExpression() != null) {
@@ -873,20 +859,12 @@ public class HaxeExpressionEvaluator {
             }
           }
 
-          else if (subelement instanceof HaxeEnumExtractedValue extractedValue) {
-            //we  can handle HaxeEnumExtractedValue with  "handle", probably no need to duplicate code here
-            typeHolder = handle(subelement, context, resolver);
-          }
-
-          else if (subelement instanceof HaxeLocalFunctionDeclaration functionDeclaration) {
-            typeHolder = functionDeclaration.getModel().getFunctionType(resolver).createHolder();
-          }
-
-          else if (subelement instanceof AbstractHaxeNamedComponent namedComponent) {
-            typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
-          } else {
-            // unable to find type
-            typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
+        else {
+            // attempt to resolve subelement using default handle logic
+            typeHolder =  handleWithRecursionGuard(subelement, context, resolver);
+            if (typeHolder == null) {
+              typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
+            }
           }
 
         }
@@ -1423,7 +1401,7 @@ public class HaxeExpressionEvaluator {
       }
       return typeHolder;
     }
-    if (element instanceof  HaxeIsTypeExpression) {
+    if (element instanceof HaxeIsTypeExpression) {
       return SpecificHaxeClassReference.primitive("Bool", element, null).createHolder();
     }
     //check if common parent before checking all accepted variants (note should not include HaxeAssignExpression, HaxeIteratorExpression etc)
@@ -1484,11 +1462,15 @@ public class HaxeExpressionEvaluator {
       }
     }
 
+    if (element instanceof AbstractHaxeNamedComponent namedComponent) {
+      return HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
+    }
 
     if(log.isDebugEnabled()) log.debug("Unhandled " + element.getClass());
     return SpecificHaxeClassReference.getUnknown(element).createHolder();
   }
 
+  @Nullable
   public static ResultHolder findIteratorType(PsiElement reference, PsiElement iteratorElement) {
     HaxeForStatement forStatement = PsiTreeUtil.getParentOfType(iteratorElement, HaxeForStatement.class);
     HaxeGenericResolver forResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(forStatement);
@@ -1505,7 +1487,20 @@ public class HaxeExpressionEvaluator {
     }
     var iteratorTypeResolver = iteratorType.getGenericResolver();
 
-    HaxeMethodModel iteratorReturnType = (HaxeMethodModel)iteratorType.getHaxeClassModel().getMember("next", iteratorTypeResolver);
+    HaxeClassModel classModel = iteratorType.getHaxeClassModel();
+    if (classModel == null) return null;
+    // NOTE if "String" we need to add iterator types manually as  std string class does not have this method
+    if (iteratorType.isString()) {
+      if (iteratorElement instanceof HaxeIteratorkey ) {
+        return SpecificTypeReference.getInt(iteratorElement).createHolder();
+      }else  if (iteratorElement instanceof  HaxeIteratorValue){
+        return SpecificTypeReference.getString(iteratorElement).createHolder();
+      }
+    }
+
+    HaxeMethodModel iteratorReturnType = (HaxeMethodModel)classModel.getMember("next", iteratorTypeResolver);
+    if (iteratorReturnType == null) return null;
+
     HaxeGenericResolver nextResolver = iteratorReturnType.getGenericResolver(null);
     nextResolver.addAll(iteratorTypeResolver);
 
