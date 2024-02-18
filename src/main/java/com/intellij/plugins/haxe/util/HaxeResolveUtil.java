@@ -459,7 +459,7 @@ public class HaxeResolveUtil {
       }
     }
 
-    final List<HaxeNamedComponent> result = new ArrayList<HaxeNamedComponent>();
+    final List<HaxeNamedComponent> result = new ArrayList<>();
     if (haxeClass instanceof HaxeAnonymousType anonymousType) {
       HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)anonymousType.getModel();
       List<HaxeAnonymousTypeBody> bodyList = model.getAnonymousTypeBodyList();
@@ -473,18 +473,17 @@ public class HaxeResolveUtil {
             result.addAll(anonymousTypeBody.getFieldDeclarationList());
             result.addAll(anonymousTypeBody.getOptionalFieldDeclarationList());
           }
-          body = anonymousTypeBody;
         }
       }
-    }
-    if (body == null) {
       return result;
     }
-    final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
-    if (namedComponents != null) {
-      result.addAll(Arrays.asList(namedComponents));
-    }
 
+    if (body != null) {
+      final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
+      if (namedComponents != null) {
+        result.addAll(Arrays.asList(namedComponents));
+      }
+    }
 
     return result;
   }

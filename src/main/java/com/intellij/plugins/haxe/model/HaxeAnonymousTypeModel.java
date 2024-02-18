@@ -59,14 +59,11 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
   }
 
   @Override
+  public List<HaxeMethodModel> getAllMethods(@Nullable HaxeGenericResolver resolver) {
+    return getMethods(resolver);
+  }
   public List<HaxeMethodModel> getMethods(@Nullable HaxeGenericResolver resolver) {
-    List<HaxeMethodModel> inheritedFields = getCompositeTypes().stream()
-      .map(ResultHolder::getClassType)
-      .filter(Objects::nonNull)
-      .filter(SpecificHaxeClassReference::isTypeDefOfClass)
-      .map(classReference -> classReference.resolveTypeDefClass().getHaxeClassModel().getMethods(resolver))
-      .flatMap(Collection::stream)
-      .toList();
+    List<HaxeMethodModel> inheritedMethods = getInheritedMethods(resolver);
 
     List<HaxeMethodModel> bodyFieldList = getAnonymousTypeBodyList().stream()
       .map(this::getMethodsFromBody)
@@ -74,11 +71,25 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
       .toList();
 
     ArrayList<HaxeMethodModel> fields = new ArrayList<>();
-    fields.addAll(inheritedFields);
+    fields.addAll(inheritedMethods);
     fields.addAll(bodyFieldList);
     return fields;
   }
 
+  @NotNull
+  private List<HaxeMethodModel> getInheritedMethods(@Nullable HaxeGenericResolver resolver) {
+    return getCompositeTypes().stream()
+      .map(ResultHolder::getClassType)
+      .filter(Objects::nonNull)
+      .filter(SpecificHaxeClassReference::isTypeDefOfClass)
+      .map(classReference -> classReference.resolveTypeDefClass().getHaxeClassModel().getMethods(resolver))
+      .flatMap(Collection::stream)
+      .toList();
+  }
+
+  public List<HaxeMemberModel> getAllMembers(@Nullable HaxeGenericResolver resolver) {
+    return getMembers(resolver);
+  }
   @Override
   public List<HaxeMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     List<HaxeFieldModel> fields = getFields();

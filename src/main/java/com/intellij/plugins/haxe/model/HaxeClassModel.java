@@ -489,6 +489,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return null;
   }
 
+  @Nullable
   public HaxeMemberModel getMember(String name, @Nullable HaxeGenericResolver resolver) {
     if (name == null) return null;
     HaxeNamedComponent component = haxeClass.findHaxeMemberByName(name, resolver);

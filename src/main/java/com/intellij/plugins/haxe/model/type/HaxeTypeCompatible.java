@@ -506,7 +506,7 @@ public class HaxeTypeCompatible {
        return false;
 
     List<HaxeMemberModel> toMembers = toClassModel.getAllMembers(to.getGenericResolver());
-    List<HaxeMemberModel> fromMembers = fromClassModel.getAllMembers(to.getGenericResolver());
+    List<HaxeMemberModel> fromMembers = fromClassModel.getAllMembers(from.getGenericResolver());
     for (HaxeMemberModel member : toMembers) {
       String name = member.getName();
       // TODO  type check parameter and return type
