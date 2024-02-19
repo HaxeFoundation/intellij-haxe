@@ -149,8 +149,8 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     if (!processor.execute(component)) {
       return false;
     }
-    if (component instanceof HaxeClass) {
-      for (HaxeNamedComponent subComponent : getNamedComponents((HaxeClass)component)) {
+    if (component instanceof HaxeClass haxeClass) {
+      for (HaxeNamedComponent subComponent : getNamedComponents(haxeClass)) {
         if (!processor.execute(subComponent)) {
           return false;
         }
@@ -172,7 +172,7 @@ public class HaxeSymbolIndex extends ScalarIndexExtension<String> {
     if (body != null) {
       final Collection<HaxeNamedComponent> members = PsiTreeUtil.findChildrenOfAnyType(body, MEMBER_TYPES);
       for (HaxeNamedComponent member : members) {
-        if (member instanceof HaxeMethod && ((HaxeMethod)member).isConstructor()) {
+        if (member instanceof HaxeMethod  method &&  method.isConstructor()) {
           continue;
         }
         components.add(member);

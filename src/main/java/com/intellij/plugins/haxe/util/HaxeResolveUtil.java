@@ -1325,8 +1325,8 @@ public class HaxeResolveUtil {
     final HaxeImportStatement importStatement =
       (HaxeImportStatement)(StreamUtil.reverse(Arrays.stream(fileChildren))
                               .filter(element ->
-                                        element instanceof HaxeImportStatement &&
-                                        ((HaxeImportStatement)element).getModel().exposeByName(result) != null)
+                                        element instanceof HaxeImportStatement impStatement
+                                        && impStatement.getModel().exposeByName(result) != null)
                               .findFirst()
                               .orElse(null));
 
