@@ -1510,6 +1510,11 @@ public class HaxeExpressionEvaluator {
     ResultHolder returnType = iteratorReturnType.getReturnType(nextResolver);
     SpecificHaxeClassReference type = returnType.getClassType();
     HaxeGenericResolver genericResolver = type.getGenericResolver();
+
+    if (keyValueIteratorType.getClassType()!= null) {
+      genericResolver.addAll(keyValueIteratorType.getClassType().getGenericResolver());
+    }
+
     if (iteratorElement instanceof HaxeIteratorkey ) {
       return type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
     }else  if (iteratorElement instanceof  HaxeIteratorValue){
