@@ -1,4 +1,13 @@
 # Changelog
+## 1.4.40
+* Fixed: incomplete member list for anonymous strcutures
+* Fixed: wrongfully marking wildcard import statement as unused
+* Improved: Better support for untyped parameters in function literals 
+* Improved: Better support for default values for generics
+* Added: Honoring `@:noUsing` meta when resolving extension methods
+* Fixed: Incorrect parsing of some  macro expressions 
+* Fixed: Incorrect parsing of some switchCaseBlocks 
+
 ## 1.4.39
 * Added: More format options for minimum newlines
 * Fixed: Unused imports bugfix (fully qualified references would mask normal references)
