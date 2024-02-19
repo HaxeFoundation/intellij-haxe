@@ -178,23 +178,26 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
   public boolean resolveIsStaticExtension() {
-    // @TODO: DIRTY HACK! to avoid rewriting all the code!
-    Boolean result;
     if (this instanceof HaxeCallExpression) {
-      PsiReference child = this.getFirstChild().getReference();
-      if (!(child instanceof HaxeReferenceExpression)) return false;
-      HaxeReferenceExpression reference = (HaxeReferenceExpression)child;
-      result = reference.getUserData(HaxeResolver.isExtensionKey);
-      if (result == null) {
-        HaxeResolver.INSTANCE.resolve(reference, true);
-        result = reference.getUserData(HaxeResolver.isExtensionKey);
+      PsiReference referenceChain = this.getFirstChild().getReference();
+      if (referenceChain instanceof HaxeReferenceExpression referenceExpression) {
+        PsiElement method = referenceExpression.resolve();
+        if (method instanceof HaxeMethod haxeMethod) {
+          if (!haxeMethod.isStatic()) return false; // only static methods can be extensions (compiler: Cannot access static field XXX from a class instance)
+
+          PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
+          if (ChainBeforeMethod instanceof  HaxeIdentifier) return false; // not chain, got method identifer
+          if (ChainBeforeMethod instanceof HaxeReferenceExpression referenceExpression1) {
+            PsiElement caller = referenceExpression1.resolve();
+            // todo find using import statement for methods declaring class and confirm "using"
+            return !(caller instanceof HaxeClass || caller instanceof HaxeImportAlias);
+          }else {
+            return true;
+          }
+        }
       }
     }
-    else {
-      HaxeResolver.INSTANCE.resolve(this, true);
-      result = this.getUserData(HaxeResolver.isExtensionKey);
-    }
-    return result == null ? false : result;
+    return false;
   }
 
 

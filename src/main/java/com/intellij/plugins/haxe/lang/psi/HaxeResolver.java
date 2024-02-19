@@ -56,7 +56,6 @@ import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
 @CustomLog
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
-  public static final Key<Boolean> isExtensionKey = new Key<>("isExtensionKey");
   public static final Key<String> typeHintKey = new Key<>("typeHint");
   private static final Key<Boolean> skipCacheKey = new Key<>("skipCache");
 
@@ -158,7 +157,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         log.trace(traceMsg("Resolving reference: " + referenceText));
       }
 
-      List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode, referenceText);
+       List<? extends PsiElement> foundElements = doResolveInner(reference, incompleteCode, referenceText);
 
       if (traceEnabled) {
         log.trace(traceMsg("Finished  reference: " + referenceText));
@@ -274,11 +273,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-
     if (result == null) {
       // to avoid caching empty due to already being resolved we mark
       // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
-      if (reference.getUserData(skipCacheKey) == Boolean.TRUE) {
+      if (incompleteCode || reference.getUserData(skipCacheKey) == Boolean.TRUE) {
         if (log.isTraceEnabled()) {
           String message = "result is empty and skip cache flag is true, skipping cache for: " + referenceText;
           traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
@@ -867,12 +865,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> checkIsFullyQualifiedStatement(@NotNull HaxeReference reference) {
-    if (PsiTreeUtil.getParentOfType(reference,
-                                    HaxePackageStatement.class,
-                                    HaxeImportStatement.class,
-                                    HaxeUsingStatement.class) != null && reference instanceof HaxeReferenceExpression) {
-      LogResolution(reference, "via parent/package import.");
-      return asList(resolveQualifiedReference((HaxeReferenceExpression)reference));
+    if (reference instanceof HaxeReferenceExpression) {
+      HaxeStatementPsiMixin parent = PsiTreeUtil.getParentOfType(reference,
+                                                               HaxePackageStatement.class,
+                                                               HaxeImportStatement.class,
+                                                               HaxeUsingStatement.class);
+      if (parent != null) {
+
+        //TODO check for @:using on haxeType and add to using (this might not be the correct place, but its a reminder to add it somewhere in the resolver logic)
+        // TODO if using,  include all members from file for resolving ( qualified path / package + memberName in using should resolve)
+
+        LogResolution(reference, "via parent/package import.");
+        return asList(resolveQualifiedReference(reference));
+      }
     }
     return null;
   }
@@ -935,7 +940,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           .findExtensionMethod(identifier, leftExpression.getSpecificClassReference(reference, leftExpression.getGenericResolver()));
         if (null != foundMethod && !foundMethod.HasNoUsingMeta()) {
 
-          reference.putUserData(isExtensionKey, true);
           if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());
           return asList(foundMethod.getBasePsi());
         }
@@ -1214,7 +1218,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeUsingModel model = usingModels.get(i);
           HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClassReference);
           if (method != null) {
-            reference.putUserData(isExtensionKey, true);
             return asList(method.getNamePsi());
           }
         }

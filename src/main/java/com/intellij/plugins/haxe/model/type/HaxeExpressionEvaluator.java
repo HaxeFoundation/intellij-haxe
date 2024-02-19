@@ -37,6 +37,7 @@ import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.SearchScope;
@@ -80,7 +81,7 @@ public class HaxeExpressionEvaluator {
   private static ResultHolder handleWithRecursionGuard(PsiElement element,
                                                        HaxeExpressionEvaluatorContext context,
                                                        HaxeGenericResolver resolver) {
-    if (element == null) return null;
+    if (element == null ) return null;
     HashSet<PsiElement> elements = resolvesInProcess.get();
     try {
       if (elements.contains(element)) return null;
@@ -861,7 +862,9 @@ public class HaxeExpressionEvaluator {
 
         else {
             // attempt to resolve subelement using default handle logic
-            typeHolder =  handleWithRecursionGuard(subelement, context, resolver);
+            if (!(subelement instanceof PsiPackage)) {
+              typeHolder = handleWithRecursionGuard(subelement, context, resolver);
+            }
             if (typeHolder == null) {
               typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
             }
@@ -1592,27 +1595,59 @@ public class HaxeExpressionEvaluator {
 
             @NotNull String[] specificNames = classResolver.names();
             HaxeMethodModel methodModel = methodDeclaration.getModel();
+            HaxeGenericResolver methodResolver = methodModel.getGenericResolver(null);
+            @NotNull String[] methodSpecificNames = methodResolver.names();
+
+            List<String> specificsForClass = Arrays.asList(specificNames);
+            specificsForClass.removeAll(Arrays.asList(methodSpecificNames));
             // make sure we are using class level typeParameters (and not method level)
             if (methodModel.getGenericParams().isEmpty()) {
               HaxeCallExpressionList list = callExpression.getExpressionList();
               if (list != null) {
                 List<HaxeExpression> arguments = list.getExpressionList();
                 List<HaxeParameterModel> parameters = methodDeclaration.getModel().getParameters();
-                for (HaxeParameterModel parameter : parameters) {
-                  if (parameter.getType().isTypeParameter()) {
-                    for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
-                      if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
-                        // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
-                        @NotNull ResultHolder[] specifics = type.getSpecifics();
-                        if (specifics[i].isUnknown()) {
+                //TODO This really need to be cleaned up and is one big messy hack at the moment
+
+                // correct way to solve it.
+                //- find method parameters that are typeParameters from class (not from method)
+                // - try to match parameters and arguments and create map with typeParameters to resolved argument type
+                // update type specifics  with map
+
+
+
+                HaxeClassModel classModel = classType.getHaxeClassModel();
+                if (classModel == null) continue;
+                List<HaxeGenericParamModel> params = classModel.getGenericParams();
+                @NotNull ResultHolder[] specifics = type.getSpecifics();
+                Map<String, Integer>specificsMap = new HashMap<>();
+                for (int i = 0; i < specifics.length; i++) {
+                  HaxeGenericParamModel model = params.get(i);
+                  ResultHolder specific = specifics[i];
+                  if (specific.getType() instanceof  SpecificHaxeClassReference classReference) {
+                    if (classReference.isUnknown() || classReference.isTypeParameter()) {
+                      specificsMap.put(model.getName(), i);
+                    }
+                  }
+                }
+
+                Set<String> genericNames = specificsMap.keySet();
+
+                int inputCount = Math.min(parameters.size(), arguments.size());
+                for (int i = 0; i<inputCount; i++) {
+                  SpecificTypeReference paramType = parameters.get(i).getType().getType();
+                  if (paramType instanceof SpecificHaxeClassReference classReference && classReference.isTypeParameter()) {
+                    String name = classReference.getClassName();
+
+                    if (genericNames.contains(name)) {
+                      Integer index = specificsMap.get(name);
+                        if (specifics[index].isUnknown()) {
                           ResultHolder handle = handle(arguments.get(i), context, resolver);
-                          if (specifics[i].isUnknown()) {
-                            specifics[i] = handle;
+                          if (specifics[index].isUnknown()) {
+                            specifics[index] = handle;
                           }else {
-                            ResultHolder unified = HaxeTypeUnifier.unify(handle, specifics[i]);
-                            specifics[i] = unified;
+                            ResultHolder unified = HaxeTypeUnifier.unify(handle, specifics[index]);
+                            specifics[index] = unified;
                           }
-                        }
                       }
                     }
                   }
