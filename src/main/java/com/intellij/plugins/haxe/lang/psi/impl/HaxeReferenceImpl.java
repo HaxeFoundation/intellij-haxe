@@ -189,6 +189,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           if (ChainBeforeMethod instanceof  HaxeIdentifier) return false; // not chain, got method identifer
           if (ChainBeforeMethod instanceof HaxeReferenceExpression referenceExpression1) {
             PsiElement caller = referenceExpression1.resolve();
+            if (caller == method) return false; // probably a function bind or similar
             // todo find using import statement for methods declaring class and confirm "using"
             return !(caller instanceof HaxeClass || caller instanceof HaxeImportAlias);
           }else {

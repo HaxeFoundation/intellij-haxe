@@ -1,4 +1,6 @@
 # Changelog
+## 1.4.42
+* Bugfix: function bindings was incorrectly treated as static extensions 
 ## 1.4.41
 * Bugfix: fixed type resolve regression for iterators
 ## 1.4.40
