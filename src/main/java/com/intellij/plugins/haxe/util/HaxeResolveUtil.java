@@ -734,9 +734,9 @@ public class HaxeResolveUtil {
         return HaxeResolveResult.EMPTY;
       }
       final HaxeExpression expression = iterable.getExpression();
-      if (expression instanceof HaxeReference) {
+      if (expression instanceof HaxeReference reference) {
 
-        final HaxeResolveResult resolveResult = ((HaxeReference)expression).resolveHaxeClass();
+        final HaxeResolveResult resolveResult = reference.resolveHaxeClass();
         List<String> circularReferenceProtection = new LinkedList<>();
         return  searchForIterableTypeRecursively(resolveResult,circularReferenceProtection);
 

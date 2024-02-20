@@ -1,4 +1,6 @@
 # Changelog
+## 1.4.41
+* Bugfix: fixed type resolve regression for iterators
 ## 1.4.40
 * Fixed: incomplete member list for anonymous strcutures
 * Fixed: wrongfully marking wildcard import statement as unused
