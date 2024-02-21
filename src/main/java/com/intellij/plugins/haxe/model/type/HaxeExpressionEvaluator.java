@@ -24,6 +24,8 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
+import com.intellij.openapi.roots.ProjectRootModificationTracker;
+import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
@@ -39,11 +41,14 @@ import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -502,6 +507,12 @@ public class HaxeExpressionEvaluator {
           if (holder!= null && !holder.isUnknown()) {
             return holder;
           }
+        }else {
+          HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
+          ResultHolder holder = searchReferencesForType(parameter.getComponentName(), context, resolver, method.getBody());
+          if (holder!= null && !holder.isUnknown()) {
+            return holder;
+          }
         }
       }
     }
@@ -663,7 +674,7 @@ public class HaxeExpressionEvaluator {
 
       if (init == null && typeTag == null) {
         // search for usage to determine type
-        return searchReferencesForType(varDeclaration, context, resolver);
+        return searchReferencesForType(varDeclaration.getComponentName(), context, resolver, null);
       }
 
       if (init != null && typeTag != null) {
@@ -776,100 +787,104 @@ public class HaxeExpressionEvaluator {
         PsiReference reference = element.getReference();
         if (reference != null) {
           PsiElement subelement = reference.resolve();
-
-          if (subelement instanceof  HaxeReferenceExpression referenceExpression) {
-            PsiElement resolve = referenceExpression.resolve();
-            typeHolder = handleWithRecursionGuard(resolve, context, resolver);
-          }
-          if (subelement instanceof HaxeClass haxeClass) {
-
-            HaxeClassModel model = haxeClass.getModel();
-            HaxeClassReference classReference = new HaxeClassReference(model, element);
-
-            if(haxeClass.isGeneric()) {
-              @NotNull ResultHolder[] specifics = resolver.getSpecificsFor(classReference);
-              typeHolder = SpecificHaxeClassReference.withGenerics(classReference, specifics).createHolder();
-            } else {
-              typeHolder = SpecificHaxeClassReference.withoutGenerics(classReference).createHolder();
+          if (subelement != element) {
+            if (subelement instanceof HaxeReferenceExpression referenceExpression) {
+              PsiElement resolve = referenceExpression.resolve();
+              if (resolve != element)
+                typeHolder = handleWithRecursionGuard(resolve, context, resolver);
             }
+            if (subelement instanceof HaxeClass haxeClass) {
 
-            // check if pure Class Reference
-            if (reference instanceof HaxeReferenceExpressionImpl expression) {
-              if (expression.isPureClassReferenceOf(haxeClass.getName())) {
-                // wrap in Class<> or Enum<>
-                SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
-                SpecificHaxeClassReference wrappedClass =
-                  SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element, new ResultHolder[]{new ResultHolder(originalClass)});
-                typeHolder = wrappedClass.createHolder();
+              HaxeClassModel model = haxeClass.getModel();
+              HaxeClassReference classReference = new HaxeClassReference(model, element);
+
+              if (haxeClass.isGeneric()) {
+                @NotNull ResultHolder[] specifics = resolver.getSpecificsFor(classReference);
+                typeHolder = SpecificHaxeClassReference.withGenerics(classReference, specifics).createHolder();
               }
-            }
-          }
-          else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
-            HaxeVarInit init = fieldDeclaration.getVarInit();
-            if(init != null) {
-              HaxeExpression initExpression = init.getExpression();
-              HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
-              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
-            }else {
-              HaxeTypeTag tag = fieldDeclaration.getTypeTag();
-              if (tag != null){
-                typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, fieldDeclaration);
+              else {
+                typeHolder = SpecificHaxeClassReference.withoutGenerics(classReference).createHolder();
               }
-            }
-          }
-          else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
-            SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
-            typeHolder = type.createHolder();
-          }
 
-          else if (subelement instanceof HaxeForStatement forStatement) {
-            // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
-            final HaxeComponentName name = forStatement.getComponentName();
-            // if element text matches  for loops  iterator  i guess we can consider it a match?
-            if (name != null && element.textMatches(name)) {
-              final HaxeIterable iterable = forStatement.getIterable();
-              if (iterable != null) {
-                ResultHolder iterator = handle(iterable, context, resolver);
-                // "unwrap" null type  if Null<T>
-                if(iterator.getClassType().isNullType()) {
-                  iterator = iterator.getClassType().getSpecifics()[0];
-                }
-                // get specific from iterator as thats the type for our variable
-                ResultHolder[] specifics = iterator.getClassType().getSpecifics();
-                if (specifics.length > 0) {
-                  typeHolder = specifics[0];
+              // check if pure Class Reference
+              if (reference instanceof HaxeReferenceExpressionImpl expression) {
+                if (expression.isPureClassReferenceOf(haxeClass.getName())) {
+                  // wrap in Class<> or Enum<>
+                  SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
+                  SpecificHaxeClassReference wrappedClass =
+                    SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
+                                                           new ResultHolder[]{new ResultHolder(originalClass)});
+                  typeHolder = wrappedClass.createHolder();
                 }
               }
             }
-          }
-          else if (subelement instanceof HaxeIteratorkey || subelement instanceof HaxeIteratorValue) {
-            typeHolder = findIteratorType(element, subelement);
-          }
+            else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
+              HaxeVarInit init = fieldDeclaration.getVarInit();
+              if (init != null) {
+                HaxeExpression initExpression = init.getExpression();
+                HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
+                typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+              }
+              else {
+                HaxeTypeTag tag = fieldDeclaration.getTypeTag();
+                if (tag != null) {
+                  typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, fieldDeclaration);
+                }
+              }
+            }
+            else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
+              SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
+              typeHolder = type.createHolder();
+            }
 
-          else if (subelement instanceof HaxeSwitchCaseCaptureVar caseCaptureVar) {
-            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseCaptureVar, HaxeSwitchStatement.class);
-            if (switchStatement.getExpression() != null) {
-              typeHolder = handle(switchStatement.getExpression(), context, resolver);
+            else if (subelement instanceof HaxeForStatement forStatement) {
+              // key-value iterator is not relevant here as it will be resolved to HaxeIteratorkey  or HaxeIteratorValue
+              final HaxeComponentName name = forStatement.getComponentName();
+              // if element text matches  for loops  iterator  i guess we can consider it a match?
+              if (name != null && element.textMatches(name)) {
+                final HaxeIterable iterable = forStatement.getIterable();
+                if (iterable != null) {
+                  ResultHolder iterator = handle(iterable, context, resolver);
+                  // "unwrap" null type  if Null<T>
+                  if (iterator.getClassType().isNullType()) {
+                    iterator = iterator.getClassType().getSpecifics()[0];
+                  }
+                  // get specific from iterator as thats the type for our variable
+                  ResultHolder[] specifics = iterator.getClassType().getSpecifics();
+                  if (specifics.length > 0) {
+                    typeHolder = specifics[0];
+                  }
+                }
+              }
+            }
+            else if (subelement instanceof HaxeIteratorkey || subelement instanceof HaxeIteratorValue) {
+              typeHolder = findIteratorType(element, subelement);
+            }
+
+            else if (subelement instanceof HaxeSwitchCaseCaptureVar caseCaptureVar) {
+              HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseCaptureVar, HaxeSwitchStatement.class);
+              if (switchStatement.getExpression() != null) {
+                typeHolder = handle(switchStatement.getExpression(), context, resolver);
+              }
+            }
+
+            else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
+              HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
+              if (switchStatement.getExpression() != null) {
+                typeHolder = handle(switchStatement.getExpression(), context, resolver);
+              }
+            }
+
+            else {
+              // attempt to resolve subelement using default handle logic
+              if (!(subelement instanceof PsiPackage)) {
+                typeHolder = handleWithRecursionGuard(subelement, context, resolver);
+              }
+              if (typeHolder == null) {
+                typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
+              }
             }
           }
-
-          else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
-            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
-            if (switchStatement.getExpression() != null) {
-              typeHolder = handle(switchStatement.getExpression(), context, resolver);
-            }
-          }
-
-        else {
-            // attempt to resolve subelement using default handle logic
-            if (!(subelement instanceof PsiPackage)) {
-              typeHolder = handleWithRecursionGuard(subelement, context, resolver);
-            }
-            if (typeHolder == null) {
-              typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
-            }
-          }
-
         }
       }
 
@@ -1237,7 +1252,9 @@ public class HaxeExpressionEvaluator {
               }
             }
           }
-          return left.getArrayElementType().getType().withConstantValue(constant).createHolder();
+          ResultHolder arrayType = left.getArrayElementType().getType().withConstantValue(constant).createHolder();
+          ResultHolder resolved = resolver.resolve(arrayType);
+          return resolved.isUnknown() ? arrayType : resolved;
         }
         //if not native array, look up ArrayAccessGetter method and use result
         if(left instanceof SpecificHaxeClassReference classReference) {
@@ -1535,34 +1552,66 @@ public class HaxeExpressionEvaluator {
   }
 
   @NotNull
-  public static ResultHolder searchReferencesForType(final HaxePsiField field,
+  public static ResultHolder searchReferencesForType(final HaxeComponentName componentName,
                                                      final HaxeExpressionEvaluatorContext context,
-                                                     final HaxeGenericResolver resolver) {
-    HaxeComponentName componentName = field.getComponentName();
-    SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getUseScope(componentName);
+                                                     final HaxeGenericResolver resolver,
+                                                     @Nullable final PsiElement searchScope
+  ) {
+    // search is slow so we can probably save some unnecessary searches when analyzing code
+    List<PsiReference> references =
+      CachedValuesManager.getProjectPsiDependentCache(componentName, (c) -> cachedSearch(c, searchScope))
+        .getValue();
 
+
+      for (PsiReference reference : references) {
+        ResultHolder possibleType = checkSearchResult(context, resolver, reference);
+        if (possibleType != null) return possibleType;
+      }
+
+    return  SpecificHaxeClassReference.getUnknown(componentName).createHolder();
+  }
+  @NotNull
+  public static CachedValueProvider.Result<List<PsiReference>> cachedSearch(final HaxeComponentName componentName, @Nullable final PsiElement searchScope) {
+    PsiSearchHelper searchHelper = PsiSearchHelper.getInstance(componentName.getProject());
+    SearchScope scope = searchScope != null ? new LocalSearchScope(searchScope) :  searchHelper.getCodeUsageScope(componentName);
 
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();
-    List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll()).stream()
+    List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, scope).findAll()).stream()
       .sorted((r1, r2) -> {
         int i1 = getDistance(r1, offset);
         int i2 = getDistance(r2, offset);
-        return  i1 -i2;
-      } ).toList();
+        return i1 - i2;
+      }).toList();
+    return CachedValueProvider.Result.create(references, ModificationTracker.EVER_CHANGED, ProjectRootModificationTracker.getInstance(componentName.getProject()));
+  }
 
-    for (PsiReference reference : references) {
-      if (reference instanceof HaxeExpression expression) {
-        if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
-          HaxeExpression rightExpression = assignExpression.getRightExpression();
-          ResultHolder result = handle(rightExpression, context, resolver);
-          if (!result.isUnknown()) {
-            return result;
+  @Nullable
+  private static ResultHolder checkSearchResult(HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver, PsiReference reference) {
+    if (reference instanceof HaxeExpression expression) {
+      if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
+        HaxeExpression rightExpression = assignExpression.getRightExpression();
+        ResultHolder result = handle(rightExpression, context, resolver);
+        if (!result.isUnknown()) {
+          return result;
+        }
+        HaxeExpression leftExpression = assignExpression.getLeftExpression();
+        if (leftExpression instanceof HaxeReferenceExpression referenceExpression) {
+          PsiElement resolve = referenceExpression.resolve();
+          if (resolve instanceof HaxePsiField psiField) {
+            HaxeTypeTag tag = psiField.getTypeTag();
+            if (tag != null) {
+              ResultHolder holder = HaxeTypeResolver.getTypeFromTypeTag(tag, resolve);
+              if (!holder.isUnknown()) {
+                return holder;
+              }
+            }
           }
         }
       }
     }
-    return  SpecificHaxeClassReference.getUnknown(field).createHolder();
+    return null;
   }
+
   @NotNull
   public static ResultHolder searchReferencesForTypeParameters(final HaxePsiField field,
                                                                final HaxeExpressionEvaluatorContext context,
@@ -1573,7 +1622,7 @@ public class HaxeExpressionEvaluator {
     SpecificHaxeClassReference classType = type;
 
     HaxeGenericResolver classResolver = classType.getGenericResolver();
-    SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getUseScope(componentName);
+    SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getCodeUsageScope(componentName);
 
 
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();

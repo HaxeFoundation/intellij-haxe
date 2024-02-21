@@ -53,6 +53,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.intellij.openapi.util.text.StringUtil.defaultIfEmpty;
+import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.searchReferencesForType;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ARRAY;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
@@ -265,7 +266,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final PsiElement result = resolveResults.length != 1 ||
                               !resolveResults[0].isValidResult() ? null : resolveResults[0].getElement();
 
-    if (result != null && result instanceof HaxeNamedComponent namedComponent) {
+    if (result instanceof HaxeNamedComponent namedComponent) {
       return namedComponent.getComponentName();
     }
 
@@ -816,15 +817,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
       if (isType(resolve, HaxeParameter.class)) {
         // check if  type parameters has multiple constraints and try to unify
-        HaxeTypeTag tag = ((HaxeParameter)resolve).getTypeTag();
+        HaxeParameter parameter = (HaxeParameter)resolve;
+        HaxeTypeTag tag = parameter.getTypeTag();
         String typeName = tag != null && tag.getTypeOrAnonymous() != null ? tag.getTypeOrAnonymous().getText() : null;
         PsiElement parameterList = resolve.getParent();
-        if (parameterList != null && parameterList.getParent() instanceof HaxeFunctionLiteral literal) {
+        if (parameterList != null) {
+          if (parameterList.getParent() instanceof HaxeFunctionLiteral literal) {
           // if parameter type is unknown  (allowed in function literals) we can try to find it from assignment, ex. callExpression
           ResultHolder holder = tryToFindTypeFromCallExpression(literal, resolve);
           if (holder != null && !holder.isUnknown()) return holder.getType().asResolveResult();
         }
-        if (parameterList != null && parameterList.getParent() instanceof HaxeMethodDeclaration method) {
+          else if (parameterList.getParent() instanceof HaxeMethodDeclaration method) {
           HaxeGenericParam methodGenericParam = method.getGenericParam();
           List<HaxeGenericListPart> methodPartList = methodGenericParam != null ? methodGenericParam.getGenericListPartList() : null;
 
@@ -891,8 +894,16 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               }
             }
           }
-          else {
-
+        }
+          // try to search for usage to determine type
+          if (tag == null && parameter.getVarInit() == null) {
+            HaxeComponentName componentName = parameter.getComponentName();
+            HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(parameterList);
+            HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
+            ResultHolder holder = searchReferencesForType(componentName, context, null, method == null ? null : method.getBody());
+            if (!holder.isUnknown()) {
+              return holder.getType().asResolveResult();
+            }
           }
         }
       }

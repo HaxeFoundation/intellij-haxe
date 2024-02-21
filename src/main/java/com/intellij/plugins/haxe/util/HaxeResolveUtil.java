@@ -783,7 +783,9 @@ public class HaxeResolveUtil {
         }
       }
       if (psiField.getTypeTag() == null &&  psiField.getVarInit() == null) {
-        ResultHolder holder = HaxeExpressionEvaluator.searchReferencesForType(psiField, new HaxeExpressionEvaluatorContext(psiField), null);
+        HaxeComponentName componentName = psiField.getComponentName();
+        HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(componentName);
+        ResultHolder holder = HaxeExpressionEvaluator.searchReferencesForType(componentName, context, null, null);
         if (!holder.isUnknown()) {
           //TODO function literals does not have a HaxeType and will result in null
           HaxeResolveResult resolveResult = holder.getType().asResolveResult();

@@ -90,6 +90,18 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this.functionType = functionType;
   }
 
+    public List<ResultHolder> getTypeParameters() {
+    //TODO? find generics recursively inside argument types
+    List<ResultHolder> genericsTypes = new ArrayList<>();
+      for (Argument argument : arguments) {
+        if (argument.isTypeParameter()) {
+          genericsTypes.add(argument.getType());
+        }
+      }
+      if (returnValue.isTypeParameter()) genericsTypes.add(returnValue);
+      return genericsTypes;
+    }
+
   public static SpecificFunctionReference create(HaxeMethodModel model) {
     LinkedList<Argument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
@@ -239,6 +251,9 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       this.isRest = rest;
       this.name = name;
       this.type = type;
+    }
+    public  boolean isTypeParameter() {
+      return type.isTypeParameter();
     }
 
     public boolean hasName() {

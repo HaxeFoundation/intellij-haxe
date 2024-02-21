@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,6 +32,7 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
+@CustomLog
 public class HaxeTypeCompatible {
 
   static public boolean canAssignToFrom(@Nullable SpecificTypeReference to, @Nullable ResultHolder from) {
@@ -621,7 +623,10 @@ public class HaxeTypeCompatible {
     //HACK prevent overflow  when circular, this really should not happen but it does :(
     // need to find where in the code we creates this loop, probably generic propagation
     // possible hint,  seems to be related to abstracts and/Or enums ?
-    if (simpleTypeParameterRecursionGuard(to, from, typeParameterTo, typeParameterFrom)) return false;
+    if (simpleTypeParameterRecursionGuard(to, from, typeParameterTo, typeParameterFrom)) {
+      log.warn("Recursion guard for Enum compare");
+      return true;
+    }
 
     return canAssignToFromType(typeParameterTo, typeParameterFrom);
   }

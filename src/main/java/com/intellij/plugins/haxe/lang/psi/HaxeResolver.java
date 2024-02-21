@@ -273,7 +273,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
     }
-    if (result == null) {
+    if (result == null || result.isEmpty()) {
       // to avoid caching empty due to already being resolved we mark
       // elements so we know if we want to cache as not found or just skip (null is not cached, empty list is cached)
       if (incompleteCode || reference.getUserData(skipCacheKey) == Boolean.TRUE) {
@@ -608,7 +608,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // NOTE: this one has to come before  `checkIfSwitchCaseDefaultValue`
     // check if default name in match expression (ex  `case TString(_ => captureVar)`)
-    if (result == null) result = checkIfDefaultValueInMatchExpression(reference, switchCaseExpr);
+    result = checkIfDefaultValueInMatchExpression(reference, switchCaseExpr);
 
     // check if matches default name ( ex. `case _:`)
     if (result == null) result = checkIfSwitchCaseDefaultValue(reference);
@@ -873,7 +873,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (parent != null) {
 
         //TODO check for @:using on haxeType and add to using (this might not be the correct place, but its a reminder to add it somewhere in the resolver logic)
-        // TODO if using,  include all members from file for resolving ( qualified path / package + memberName in using should resolve)
 
         LogResolution(reference, "via parent/package import.");
         return asList(resolveQualifiedReference(reference));
@@ -916,12 +915,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     // Check 'using' classes.
-    HaxeClass leftClass = leftExpression.getHaxeClass();
-    if (leftClass != null) {
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference.getContainingFile());
 
       // Add the global usings to the top of the list (so they're checked last).
-      HaxeProjectModel projectModel = HaxeProjectModel.fromElement(leftClass);
+      HaxeProjectModel projectModel = HaxeProjectModel.fromElement(reference);
       HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)projectModel.getStdPackage();
       final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
 
@@ -943,7 +940,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());
           return asList(foundMethod.getBasePsi());
         }
-      }
+        // check other types ("using" can be used to find typedefsetc)
+        PsiElement element = usingModels.get(i).exposeByName(identifier);
+        if (element != null) {
+          if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + identifier);
+          return List.of(element);
+        }
     }
 
     if (log.isTraceEnabled()) log.trace(traceMsg(null));

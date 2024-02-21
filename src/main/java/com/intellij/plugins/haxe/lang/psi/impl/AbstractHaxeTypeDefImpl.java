@@ -37,8 +37,12 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     super(node);
   }
 
+  private HaxeResolveResult targetClass;
+
   public HaxeResolveResult getTargetClass() {
-    return getTargetClass(new HaxeGenericSpecialization());
+    if (targetClass != null) return targetClass;
+    targetClass = getTargetClass(new HaxeGenericSpecialization());
+    return targetClass;
   }
 
   public SpecificHaxeClassReference getTargetClass(HaxeGenericResolver genericResolver) {

@@ -66,6 +66,12 @@ public class HaxeGenericResolver {
     resolver.constaints.addAll(constaints);
     return resolver;
   }
+  public HaxeGenericResolver withoutConstraints() {
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    resolver.resolvers.addAll(this.resolvers);
+
+    return resolver;
+  }
 
   /*
      when resolving types inside a method with generic parameters we want to show the generic types and not unknown

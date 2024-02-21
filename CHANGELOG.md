@@ -1,6 +1,9 @@
 # Changelog
 ## 1.4.42
-* Bugfix: function bindings was incorrectly treated as static extensions 
+* Bugfix: Function bindings was incorrectly treated as static extensions 
+* Bugfix: Stack overflow when resolving  expression type
+* Misc resolver tweaks to better resolve untyped parameters and performance 
+
 ## 1.4.41
 * Bugfix: fixed type resolve regression for iterators
 ## 1.4.40
