@@ -24,16 +24,19 @@ import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Stack;
 
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeGenericSpecialization implements Cloneable {
 
   public static final HaxeGenericSpecialization EMPTY = new HaxeGenericSpecialization() {
@@ -80,6 +83,10 @@ public class HaxeGenericSpecialization implements Cloneable {
     this.map = map;
   }
 
+  // TODO: temp workaround to stop  overflow issue in closed source (have not yet found way to reproduce)
+  // it seems to be related to function types  and resolving type parameters?
+  private static ThreadLocal<Stack<PsiElement>> referencesProcessing = ThreadLocal.withInitial(Stack::new);
+
   /**
    * @return the values in this specialization as a HaxeGenericResolver.
    **/
@@ -93,6 +100,7 @@ public class HaxeGenericSpecialization implements Cloneable {
      *
      * A third would be to remove HaxeGenericResolver altogether and make the models use this class.
      */
+    Stack<PsiElement> elements = referencesProcessing.get();
     if (null == element) {
       element = SpecificTypeReference.createUnknownContext();
     }
@@ -103,14 +111,35 @@ public class HaxeGenericSpecialization implements Cloneable {
     for (String key : innerMap.keySet()) {
       HaxeResolveResult resolveResult = innerMap.get(key);
 
-      ResultHolder resultHolder;
+      ResultHolder resultHolder = null;
+
       if (resolveResult.isFunctionType()) {
         HaxeFunctionType functionType = resolveResult.getFunctionType();
-        resultHolder = resolveResult.getSpecificFunctionReference(functionType, null).createHolder();
-      }else if (resolveResult.isHaxeClass()) {
+        if (!elements.contains(functionType)) {
+          try {
+            elements.add(functionType);
+            resultHolder = resolveResult.getSpecificFunctionReference(functionType, null).createHolder();
+          } finally {
+            elements.pop();
+          }
+        }else {
+          log.warn("Overflow prevention");
+        }
+      }
+      else if (resolveResult.isHaxeClass()) {
         HaxeClass haxeClass = resolveResult.getHaxeClass();
-        resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
-      }else {
+        if (!elements.contains(haxeClass)) {
+          try {
+            elements.add(haxeClass);
+            resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
+          }  finally {
+            elements.pop();
+          }
+        }else {
+          log.warn("Overflow prevention");
+        }
+      }
+      if (resultHolder == null) {
         HaxeClass haxeClass = SpecificHaxeClassReference.getUnknown(element).getHaxeClass();
         resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
       }
@@ -118,6 +147,7 @@ public class HaxeGenericSpecialization implements Cloneable {
       resolver.add(key, resultHolder, ResolveSource.CLASS_TYPE_PARAMETER);
     }
     return resolver;
+
   }
 
   @NotNull

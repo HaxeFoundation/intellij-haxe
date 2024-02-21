@@ -1,4 +1,6 @@
 # Changelog
+## 1.4.43
+* Adding overflow guard when converting GenericSpecialization to genericResolver
 ## 1.4.42
 * Bugfix: Function bindings was incorrectly treated as static extensions 
 * Bugfix: Stack overflow when resolving  expression type
