@@ -159,6 +159,8 @@ public class HaxeTypeCompatible {
         from = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
       }
     }
+    // We allow any expression to be assign to Expr and treating it kinda like Dynamic as we currently dont have any real way of type compare.
+    if (to.isExpr())return true;
     if (to.isAny()) return true;
     if (to.isDynamic() || from.isDynamic()) return true;
     if (to.isEnumValueClass() && isEnum(from)) return true;

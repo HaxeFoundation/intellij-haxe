@@ -613,4 +613,11 @@ public abstract class SpecificTypeReference {
   }
 
 
+  public boolean isExpr() {
+     if (this instanceof SpecificHaxeClassReference classReference) {
+       HaxeClass aClass = classReference.getHaxeClass();
+       return aClass != null && aClass.getQualifiedName().equalsIgnoreCase("haxe.macro.Expr");
+     }
+    return false;
+  }
 }
