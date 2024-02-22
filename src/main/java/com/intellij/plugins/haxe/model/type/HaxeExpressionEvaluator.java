@@ -1416,7 +1416,9 @@ public class HaxeExpressionEvaluator {
       SpecificTypeReference type = typeHolder.getType();
       if (type.getConstant() != null) {
         String operatorText = getOperator(element, HaxeTokenTypeSets.OPERATORS);
-        return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
+        if (operatorText != "") {
+          return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
+        }
       }
       return typeHolder;
     }

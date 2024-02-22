@@ -277,7 +277,8 @@ public interface HaxeTokenTypeSets {
     OSHIFT_RIGHT_ASSIGN,
     OGREATER_OR_EQUAL,
     OGREATER,
-    IS_OPERATOR
+    IS_OPERATOR,
+    PREFIX_OPERATOR
   );
 
   TokenSet CLASS_BODY_TYPES = TokenSet.create(
