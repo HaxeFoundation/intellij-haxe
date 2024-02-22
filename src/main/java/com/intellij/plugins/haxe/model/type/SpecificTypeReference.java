@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
+import java.util.Stack;
 
 @CustomLog
 public abstract class SpecificTypeReference {
@@ -506,6 +507,9 @@ public abstract class SpecificTypeReference {
                                                               @Nullable HaxeGenericResolver genericResolver) {
     return propagateGenericsToType(originalType, genericResolver , false);
   }
+
+  private static final ThreadLocal<Stack<ResultHolder>> propagatedElement = ThreadLocal.withInitial(Stack::new);
+
   public static SpecificTypeReference propagateGenericsToType(@Nullable SpecificTypeReference originalType,
                                                               @Nullable HaxeGenericResolver genericResolver,
                                                               boolean isReturnType
@@ -533,8 +537,18 @@ public abstract class SpecificTypeReference {
           if (specific.getClassType() != null) {
             SpecificTypeReference typeReference = null;
             if (!specific.getClassType().isTypeParameter()) {
-              HaxeGenericResolver resolver = specific.getClassType().getGenericResolver().without(specific);
-              typeReference = propagateGenericsToType(specific.getClassType(), resolver, isReturnType);
+              Stack<ResultHolder> stack = propagatedElement.get();
+                 if (!stack.contains(specific)) {
+                   try {
+                   stack.add(specific);
+                   HaxeGenericResolver resolver = specific.getClassType().getGenericResolver().without(specific);
+                   typeReference = propagateGenericsToType(specific.getClassType(), resolver, isReturnType);
+                   }finally {
+                     stack.pop();
+                   }
+                 }else {
+                   typeReference = getUnknown(createUnknownContext());
+                 }
             }else {
               if (isReturnType) {
                 ResultHolder resolve = genericResolver.resolveReturnType(specific);

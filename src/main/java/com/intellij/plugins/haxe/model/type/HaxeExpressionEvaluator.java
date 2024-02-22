@@ -22,8 +22,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.diagnostic.LogLevel;
-import com.intellij.openapi.progress.ProcessCanceledException;
-import com.intellij.openapi.progress.ProgressIndicatorProvider;
+import com.intellij.openapi.progress.*;
 import com.intellij.openapi.roots.ProjectRootModificationTracker;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.HaxeBundle;
@@ -488,10 +487,8 @@ public class HaxeExpressionEvaluator {
       HaxeTypeTag typeTag = parameter.getTypeTag();
       if (typeTag != null) {
         ResultHolder typeFromTypeTag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, element);
-        if (typeFromTypeTag.isTypeParameter()) {
-          ResultHolder resolve = resolver.resolve(typeFromTypeTag);
-          if (!resolve.isUnknown()) return resolve;
-        }
+        ResultHolder resolve = resolver.resolve(typeFromTypeTag);
+        if (!resolve.isUnknown()) return resolve;
         return typeFromTypeTag;
       }
 
@@ -505,7 +502,8 @@ public class HaxeExpressionEvaluator {
         if (element.getParent().getParent() instanceof HaxeFunctionLiteral functionLiteral) {
           ResultHolder holder = tryToFindTypeFromCallExpression(functionLiteral, parameter);
           if (holder!= null && !holder.isUnknown()) {
-            return holder;
+            ResultHolder resolve = resolver.resolve(holder);
+            return resolve != null  && !resolve.isUnknown() ? resolve : holder;
           }
         }else {
           HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
@@ -1307,7 +1305,8 @@ public class HaxeExpressionEvaluator {
           List<HaxeParameter> list = params.getParameterList();
           for (int i = 0; i < list.size(); i++) {
             HaxeParameter parameter = list.get(i);
-            ResultHolder argumentType = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
+            //ResultHolder argumentType = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
+            ResultHolder argumentType = handle(parameter, context, resolver);
             context.setLocal(parameter.getName(), argumentType);
             // TODO check if rest param?
             arguments.add(new Argument(i, parameter.getOptionalMark() != null, false, argumentType, parameter.getName()));
@@ -1622,17 +1621,19 @@ public class HaxeExpressionEvaluator {
     SpecificHaxeClassReference classType = type;
 
     HaxeGenericResolver classResolver = classType.getGenericResolver();
-    SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getCodeUsageScope(componentName);
+    PsiSearchHelper searchHelper = PsiSearchHelper.getInstance(componentName.getProject());
+    SearchScope useScope = searchHelper.getCodeUsageScope(componentName);
 
 
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();
-    List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll()).stream()
-      .sorted((r1, r2) -> {
-        int i1 = getDistance(r1, offset);
-        int i2 = getDistance(r2, offset);
-        return  i1 -i2;
-      } ).toList();
-
+    List<PsiReference> references = ProgressManager.getInstance().computeInNonCancelableSection(() -> {
+      return new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll()).stream()
+        .sorted((r1, r2) -> {
+          int i1 = getDistance(r1, offset);
+          int i2 = getDistance(r2, offset);
+          return  i1 -i2;
+        } ).toList();
+    });
     for (PsiReference reference : references) {
       if (reference instanceof HaxeExpression expression) {
         if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {

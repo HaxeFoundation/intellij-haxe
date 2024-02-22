@@ -29,6 +29,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.model.type.resolver.ResolveSource.ARGUMENT_TYPE;
+
 public class HaxeGenericResolver {
   // This must remain ordered, thus the LinkedHashMap.
   //final private LinkedHashMap<String, ResolverEntry> resolvers;
@@ -97,6 +99,7 @@ public class HaxeGenericResolver {
     resolver.constaints.addAll(constaints);
     return resolver;
   }
+  @Deprecated
   public ResultHolder add(@NotNull String name, @NotNull ResultHolder specificType) {
     resolvers.add(new ResolverEntry(name, specificType, ResolveSource.TODO));
     return specificType;
@@ -150,6 +153,23 @@ public class HaxeGenericResolver {
         .orElse(null);
     }
     return holder;
+  }
+  @Nullable
+  public ResultHolder resolveArgument(String name) {
+    return resolvers.stream()
+      .filter(entry -> entry.resolveSource() == ARGUMENT_TYPE)
+      .filter(entry -> entry.name().equals(name))
+      .map(ResolverEntry::type)
+      .findFirst()
+      .orElse(null);
+  }
+  @Nullable
+  public ResultHolder resolveConstraint(String name) {
+    return constaints.stream()
+        .filter(entry -> entry.name().equals(name))
+        .map(ResolverEntry::type)
+        .findFirst()
+        .orElse(null);
   }
 
   /**
@@ -297,6 +317,10 @@ public class HaxeGenericResolver {
   @Nullable
   public ResultHolder resolve(ResultHolder resultHolder) {
     if (null == resultHolder ) return null;
+    if (resultHolder.isFunctionType()) {
+      SpecificFunctionReference resolve = resolve(resultHolder.getFunctionType());
+      return resolve != null ? resolve.createHolder(): null;
+    }
     return HaxeTypeResolver.resolveParameterizedType(resultHolder, this);
   }
   @Nullable
@@ -305,7 +329,7 @@ public class HaxeGenericResolver {
   }
   public SpecificFunctionReference resolve(SpecificFunctionReference fnRef, boolean useAssignHint) {
     if (null == fnRef ) return null;
-    if (resolvers.isEmpty()) return fnRef;
+    if (resolvers.isEmpty() && constaints.isEmpty()) return fnRef;
 
       List<SpecificFunctionReference.Argument> arguments = fnRef.getArguments();
       ResultHolder returnType = fnRef.getReturnType();
@@ -467,7 +491,7 @@ public class HaxeGenericResolver {
     return resolvers.hashCode() * constaints.hashCode();
   }
 
-  private String findNameFor(ResultHolder specific) {
+  public String findNameFor(ResultHolder specific) {
     for (ResolverEntry entry : resolvers) {
       if (specific.isTypeParameter() && entry.name().equals(specific.getClassType().getClassName())){
         return entry.name();

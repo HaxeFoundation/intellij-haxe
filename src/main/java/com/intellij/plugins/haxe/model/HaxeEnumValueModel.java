@@ -82,11 +82,18 @@ public class HaxeEnumValueModel extends HaxeFieldModel {
     if (aClass instanceof HaxeClass haxeClass) {
 
       HaxeClassReference superclassReference = new HaxeClassReference(haxeClass.getModel(), haxeClass);
-      SpecificHaxeClassReference reference =
-        SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
+      if (resolver != null) {
+        SpecificHaxeClassReference reference =
+          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
 
-      ResultHolder holder = reference.createHolder();
-      return holder;
+      return reference.createHolder();
+      }else {
+
+        SpecificHaxeClassReference reference =
+          SpecificHaxeClassReference.withoutGenerics(superclassReference);
+        return reference.createHolder();
+      }
+
 
     }
     return SpecificHaxeClassReference.getUnknown(aClass).createHolder();

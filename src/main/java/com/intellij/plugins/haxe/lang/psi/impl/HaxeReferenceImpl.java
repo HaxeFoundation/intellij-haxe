@@ -939,16 +939,32 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             int parameterMappedToArgument = parameterList.getParameterList().indexOf(parameter);
             List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
             SpecificFunctionReference.Argument argument = arguments.get(parameterMappedToArgument);
-            //TODO this is a bit hackish way to get resolver
-            HaxeResolveResult result = reference.resolveHaxeClass();
-            HaxeGenericResolver resolver = result.getSpecialization().toGenericResolver(haxeMethod);
-            ResultHolder resolved = resolver.resolve(argument.getType());
-            if (resolved != null && !resolved.isUnknown())return resolved.getType().createHolder();
+
+            HaxeGenericResolver parentExpResolver = getGenericResolverFromParentExpression(callExpression);
+            ResultHolder resolved = parentExpResolver.resolve(argument.getType());
+            if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
+
           }
         }
       }
     }
     return null;
+  }
+
+  private static HaxeGenericResolver getGenericResolverFromParentExpression(HaxeCallExpression callExpression) {
+    @NotNull PsiElement[] children = callExpression.getChildren();
+    if (children.length> 0 ) {
+      PsiElement firstChild = children[0];
+      @NotNull PsiElement[] secondLevelChildren = firstChild.getChildren();
+      if (secondLevelChildren.length > 0) {
+        PsiElement child = secondLevelChildren[0];
+        ResultHolder holder = HaxeExpressionEvaluator.evaluate(child, null).result;
+        if (holder.isClassType()) {
+          return holder.getClassType().getGenericResolver();
+        }
+      }
+    }
+    return new HaxeGenericResolver();
   }
 
   public boolean isPureClassReferenceOf(@NotNull String className) {

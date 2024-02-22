@@ -760,7 +760,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     for (ResultHolder specific : type.getSpecifics()) {
       // recursive guard (remove type parameters that has been used)
       if (specific.getClassType() != originalType) {
+        ResultHolder resolve = genericResolver.resolve(specific);
         genericResolver = genericResolver.without(specific);
+        if(resolve != null && !resolve.isUnknown()) {
+          specific.setType(resolve.getType());
+        }
         if (!genericResolver.isEmpty()) {
           final SpecificTypeReference typeReference = propagateGenericsToType(specific.getType(), genericResolver);
           if (null != typeReference) {

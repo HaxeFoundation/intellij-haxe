@@ -72,12 +72,21 @@ public class TypeParameterUtil {
     if (specifics.length == 0){
       return typeParamMap.containsKey(parameterType.getClassType().getClassName());
     }
+    List<ResultHolder> recursionGuard = new ArrayList<>();
 
-    return Arrays.stream(specifics)
-      .filter(ResultHolder::isClassType)
-      .flatMap(TypeParameterUtil::getSpecificsIfClass)
-      .map( holder ->  holder.getClassType().getClassName())
-      .anyMatch(typeParamMap::containsKey);
+    for (ResultHolder specific : specifics) {
+      if (specific.isClassType()) {
+        recursionGuard.add(specific);
+        List<ResultHolder> list = getSpecificsIfClass(specific, recursionGuard);
+        if(list.stream()
+          .map(holder -> holder.getClassType().getClassName())
+          .anyMatch(typeParamMap::containsKey)) {
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
   public static Optional<ResultHolder> findConstraintForTypeParameter(@NotNull ResultHolder parameterType, @NotNull Map<String, ResultHolder> typeParamMap) {
     if (!parameterType.isClassType()) return Optional.empty();
@@ -87,12 +96,18 @@ public class TypeParameterUtil {
       String className = parameterType.getClassType().getClassName();
       return typeParamMap.containsKey(className) ? Optional.ofNullable(typeParamMap.get(className)) : Optional.empty();
     }
+    List<ResultHolder> result = new ArrayList<>();
+    List<ResultHolder> recursionGuard = new ArrayList<>();
     HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (ResultHolder specific : specifics) {
+      if (specific.isClassType()) {
+        recursionGuard.add(specific);
+        result.addAll(getSpecificsIfClass(specific, recursionGuard));
+      }
+    }
 
-    Arrays.stream(specifics)
-      .filter(ResultHolder::isClassType)
-      .flatMap(TypeParameterUtil::getSpecificsIfClass)
-      .map( holder ->  holder.getClassType().getClassName())
+
+    result.stream().map(holder -> holder.getClassType().getClassName())
       .filter(typeParamMap::containsKey)
       .filter( s ->  typeParamMap.get(s) != null)
       .forEach( s ->  resolver.addConstraint(s, typeParamMap.get(s), ResolveSource.CLASS_TYPE_PARAMETER));
@@ -102,12 +117,26 @@ public class TypeParameterUtil {
 
   }
 
-  private static Stream<ResultHolder> getSpecificsIfClass(@NotNull ResultHolder holder) {
+  private static List<ResultHolder> getSpecificsIfClass(@NotNull ResultHolder holder, List<ResultHolder> recursionGuard) {
     @NotNull ResultHolder[] specifics = holder.getClassType().getSpecifics();
-    if (specifics.length == 0) return Stream.of(holder);
-    return Arrays.stream(specifics)
-      .filter(ResultHolder::isClassType)
-      .filter(h -> !h.equals(holder) )// avoid recursive loop (classes can have itself as type parameter)
-      .flatMap(TypeParameterUtil::getSpecificsIfClass);
+    if (specifics.length == 0) return List.of(holder);
+    List<ResultHolder> result = new ArrayList<>();
+    for (ResultHolder specific : specifics) {
+      if (specific.isClassType() && !recursionGuard.contains(specific)) {
+        recursionGuard.add(specific);
+        result.addAll(getSpecificsIfClass(specific, recursionGuard));
+      }
+    }
+  return result;
   }
+  //private static Stream<ResultHolder> getSpecificsIfClass(@NotNull ResultHolder holder) {
+  //  List<ResultHolder> proccesed = new ArrayList<>();
+  //  @NotNull ResultHolder[] specifics = holder.getClassType().getSpecifics();
+  //  if (specifics.length == 0) return Stream.of(holder);
+  //  return Arrays.stream(specifics)
+  //    .filter(ResultHolder::isClassType)
+  //    .filter(h -> !proccesed.contains(h) )// avoid recursive loop (classes can have itself as type parameter)
+  //    .peek(proccesed::add)
+  //    .flatMap(TypeParameterUtil::getSpecificsIfClass);
+  //}
 }

@@ -136,7 +136,7 @@ public class HaxeGenericSpecialization implements Cloneable {
             elements.pop();
           }
         }else {
-          log.warn("Overflow prevention");
+          //log.warn("Overflow prevention");
         }
       }
       if (resultHolder == null) {

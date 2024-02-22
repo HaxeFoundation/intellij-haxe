@@ -773,6 +773,7 @@ public class HaxeCallExpressionUtil {
     if (expressionType == null) {
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(argument);
       HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(argument);
+      genericResolver.addAll(resolver);
       expressionType = HaxeExpressionEvaluator.evaluate(argument, context, genericResolver.withoutUnknowns()).result;
     }
 

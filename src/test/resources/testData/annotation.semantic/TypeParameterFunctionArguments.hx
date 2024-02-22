@@ -15,7 +15,7 @@ class Generics {
         // WRONG: incorrect types in  functions/lambdas
         filtered3.sort(<error descr="Type mismatch (Expected: '(String, String)->Int' got: '(String, String)->String')">(t1, t2) -> {return "";}</error>);
         filtered3.sort(<error descr="Type mismatch (Expected: '(String, String)->Int' got: '(String, Int)->Int')">(t1, t2:Int) -> {return 1;}</error>);
-        filtered3.sort(<error descr="Type mismatch (Expected: '(String, String)->Int' got: '(Int, unknown)->Int')">(t1:Int, t2) -> {return 1;}</error>);
+        filtered3.sort(<error descr="Type mismatch (Expected: '(String, String)->Int' got: '(Int, String)->Int')">(t1:Int, t2) -> {return 1;}</error>);
         filtered3.sort(<error descr="Type mismatch (Expected: '(String, String)->Int' got: '(Int, Int)->Int')">(t1:Int, t2:Int) -> {return 1;}</error>);
 
     }

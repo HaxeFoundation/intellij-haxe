@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
+import com.intellij.psi.PsiWhiteSpace;
 import com.intellij.util.SmartList;
 import com.intellij.util.containers.MultiMap;
 import lombok.CustomLog;
@@ -133,11 +134,16 @@ public class HaxeImportUtil {
     file.acceptChildren(new HaxeRecursiveVisitor() {
       @Override
       public void visitElement(PsiElement element) {
+        if (element instanceof PsiWhiteSpace) return;
+        // avoid references that is part of import/using statements
         if (element instanceof HaxePackageStatement || element instanceof HaxeImportStatement || element instanceof HaxeUsingStatement) return;
-        if (element instanceof  HaxeCallExpression callExpression) {
-          element = callExpression.getExpression();
+
+        PsiElement workElement = element;
+        if (workElement instanceof  HaxeCallExpression callExpression) {
+          workElement = callExpression.getExpression(); {
+          }
         }
-        if (element instanceof HaxeReference reference) {
+        if (workElement instanceof HaxeReference reference) {
 
           PsiElement referencedElement = reference.resolve();
           // makes sure that even if we have a fully qualified a.b.SomeClass added to the list
@@ -147,28 +153,28 @@ public class HaxeImportUtil {
 
             boolean qualified = reference.isQualified();
             if (!(qualified || referencedElement instanceof PsiPackage)){
-              result.put(referencedElement, element);
+              result.put(referencedElement, workElement);
               names.add(qualifiedName);
             }
             if (qualified) {
               if (referencedElement instanceof HaxePsiField) {
-                result.put(referencedElement, element);
+                result.put(referencedElement, workElement);
                 names.add(qualifiedName);
               }
               if (referencedElement instanceof HaxeMethod) {
-                result.put(referencedElement, element);
+                result.put(referencedElement, workElement);
                 names.add(qualifiedName);
               }
               else if (referencedElement instanceof HaxeClass) {
-                result.put(referencedElement, element);
+                result.put(referencedElement, workElement);
                 names.add(qualifiedName);
               }
               else  if (referencedElement instanceof HaxeIdentifier) {
-                result.put(referencedElement, element);
+                result.put(referencedElement, workElement);
                 names.add(qualifiedName);
               }
               else  if (referencedElement instanceof HaxeImportAlias) {
-                result.put(referencedElement, element);
+                result.put(referencedElement, workElement);
                 names.add(qualifiedName);
               }
             }

@@ -538,8 +538,8 @@ typeOrAnonymous ::=  anonymousType | type
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
 blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
-private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededByStatement>> statementWithOptionalSemicolon? {pin=1}
-private statementList ::= (statementWithOptionalSemicolon ';'?) {recoverWhile="statement_recovery"}
+private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededByStatement>>  {pin=1}
+private statementList ::= (statementWithOptionalSemicolon)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('case' | 'default' | '}')
 
 //https://haxe.org/manual/macro-reification-expression.html

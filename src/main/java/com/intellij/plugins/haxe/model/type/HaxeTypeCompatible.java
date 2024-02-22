@@ -43,10 +43,10 @@ public class HaxeTypeCompatible {
   static public boolean canAssignToFrom(@Nullable ResultHolder to, @Nullable ResultHolder from) {
     if (null == to || null == from) return false;
     if (to.isUnknown()) {
-      to.setType(from.getType().withoutConstantValue());
+      return true;
     }
     else if (from.isUnknown()) {
-      from.setType(to.getType().withoutConstantValue());
+      return true;
     }
 
     return canAssignToFrom(to.getType(), from.getType(), true,  to.getOrigin(), from.getOrigin());
@@ -728,23 +728,22 @@ public class HaxeTypeCompatible {
       HaxeClass haxeClass = from.getHaxeClass();
       if (haxeClass != null) {
 
-
-        List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
-        for (HaxeType type : extendsList) {
-          PsiElement resolve = type.getReferenceExpression().resolve();
-          if (resolve instanceof HaxeClass fromClass) {
-            HaxeClassModel fromModel = fromClass.getModel();
-            if (fromModel != null) {
-              if (recursionGuard == null) recursionGuard = new ArrayList<>();
-              if (!recursionGuard.contains(fromModel)) {
-                recursionGuard.add(fromModel);
-                SpecificHaxeClassReference fromReference =
-                  SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(fromModel, fromClass));
-                if (canAssignToFromSpecificType(to, fromReference, recursionGuard)) return true;
+          List<HaxeType> extendsList = !haxeClass.isAbstractType() ? haxeClass.getHaxeExtendsList() : haxeClass.getModel().getAbstractToList() ;
+          for (HaxeType type : extendsList) {
+            PsiElement resolve = type.getReferenceExpression().resolve();
+            if (resolve instanceof HaxeClass fromClass) {
+              HaxeClassModel fromModel = fromClass.getModel();
+              if (fromModel != null) {
+                if (recursionGuard == null) recursionGuard = new ArrayList<>();
+                if (!recursionGuard.contains(fromModel)) {
+                  recursionGuard.add(fromModel);
+                  SpecificHaxeClassReference fromReference =
+                    SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(fromModel, fromClass));
+                  if (canAssignToFromSpecificType(to, fromReference, recursionGuard)) return true;
+                }
               }
             }
           }
-        }
       }
     }
 

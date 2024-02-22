@@ -7,7 +7,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeEnumExtractedValue;
 import com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterList;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import kotlin.Unit;
@@ -38,6 +38,9 @@ public class HaxeInlayEnumExtractorHintsProvider implements InlayHintsProvider {
       PsiElement resolve = extractor.getEnumValueReference().getReferenceExpression().resolve();
       if (resolve instanceof HaxeEnumValueDeclaration enumValueDeclaration) {
 
+
+        List<HaxeEnumExtractedValue> extractedValueList = extractor.getEnumExtractorArgumentList().getEnumExtractedValueList();
+
         HaxeParameterList parameterList = enumValueDeclaration.getParameterList();
         if (parameterList != null) {
           List<HaxeParameterModel> parameters = MapParametersToModel(parameterList);
@@ -48,7 +51,7 @@ public class HaxeInlayEnumExtractorHintsProvider implements InlayHintsProvider {
 
               InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
               if (parameters.size() > i) {
-                ResultHolder type = parameters.get(i).getType();
+                ResultHolder type = HaxeExpressionEvaluator.evaluate(extractedValueList.get(i), null).result;
                 sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
               }
             }

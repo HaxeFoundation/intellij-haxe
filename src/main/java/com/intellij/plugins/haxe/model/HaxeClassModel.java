@@ -212,7 +212,7 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  public SpecificHaxeClassReference getUnderlyingClassReference(HaxeGenericResolver resolver) {
+  public SpecificHaxeClassReference getUnderlyingClassReference(@NotNull HaxeGenericResolver resolver) {
     if (!isAbstractType() && !isTypedef()) return null;
 
     PsiElement element = getBasePsi();
