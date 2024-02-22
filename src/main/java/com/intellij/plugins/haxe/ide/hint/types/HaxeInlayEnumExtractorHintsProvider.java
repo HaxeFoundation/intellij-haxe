@@ -43,14 +43,13 @@ public class HaxeInlayEnumExtractorHintsProvider implements InlayHintsProvider {
 
         HaxeParameterList parameterList = enumValueDeclaration.getParameterList();
         if (parameterList != null) {
-          List<HaxeParameterModel> parameters = MapParametersToModel(parameterList);
           @NotNull PsiElement[] children = extractor.getEnumExtractorArgumentList().getChildren();
           for (int i = 0; i < children.length; i++) {
             if (children[i] instanceof HaxeEnumExtractedValue enumExtractedValue) {
               int offset = enumExtractedValue.getTextRange().getEndOffset();
 
               InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-              if (parameters.size() > i) {
+              if (extractedValueList.size() > i) {
                 ResultHolder type = HaxeExpressionEvaluator.evaluate(extractedValueList.get(i), null).result;
                 sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
               }
