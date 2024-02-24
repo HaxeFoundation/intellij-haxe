@@ -12,7 +12,7 @@ Haxe File
         HaxePsiToken:{('{')
         FIELD_DECLARATION
           FIELD_MODIFIER
-            HaxePsiToken:extern('extern ')
+            HaxePsiToken:extern('extern')
           FIELD_MODIFIER
             HaxePsiToken:inline('inline')
           MUTABILITY_MODIFIER
@@ -35,7 +35,7 @@ Haxe File
           HaxePsiToken:;(';')
         METHOD_DECLARATION
           METHOD_MODIFIER
-            HaxePsiToken:extern('extern ')
+            HaxePsiToken:extern('extern')
           METHOD_MODIFIER
             HaxePsiToken:public('public')
           METHOD_MODIFIER
@@ -76,7 +76,7 @@ Haxe File
           METHOD_MODIFIER
             HaxePsiToken:inline('inline')
           METHOD_MODIFIER
-            HaxePsiToken:extern('extern ')
+            HaxePsiToken:extern('extern')
           METHOD_MODIFIER
             HaxePsiToken:private('private')
           HaxePsiToken:function('function')

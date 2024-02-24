@@ -2,7 +2,7 @@ Haxe File
   MODULE
     EXTERN_INTERFACE_DECLARATION
       EXTERN_KEY_WORD
-        HaxePsiToken:extern('extern ')
+        HaxePsiToken:extern('extern')
       HaxePsiToken:interface('interface')
       COMPONENT_NAME
         IDENTIFIER
