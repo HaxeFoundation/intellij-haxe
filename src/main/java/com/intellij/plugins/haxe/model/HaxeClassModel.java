@@ -76,6 +76,7 @@ public class HaxeClassModel implements HaxeExposableModel {
     return name.substring(0, 1).equals(name.substring(0, 1).toUpperCase());
   }
 
+  @NotNull
   public HaxeClassReference getReference() {
     return new HaxeClassReference(this, this.getPsi());
   }

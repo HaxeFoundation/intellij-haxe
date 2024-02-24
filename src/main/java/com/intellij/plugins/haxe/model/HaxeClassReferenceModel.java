@@ -19,6 +19,9 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeClassReference;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,4 +57,11 @@ public class HaxeClassReferenceModel {
     }
     return (_clazz != null) ? _clazz.getModel() : null;
   }
+  public SpecificHaxeClassReference getSpecificHaxeClassReference() {
+    HaxeClassReference reference = getHaxeClass().getReference();
+    List<HaxeTypeParameterModel> parameters = getTypeParameters();
+    List<ResultHolder> generics = parameters.stream().map(model -> model.getTypeReference().getSpecificHaxeClassReference().createHolder()).toList();
+    return SpecificHaxeClassReference.withGenerics(reference, generics.toArray(new ResultHolder[0]));
+  }
+
 }

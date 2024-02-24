@@ -831,7 +831,13 @@ public class HaxeExpressionEvaluator {
               }
             }
             else if (subelement instanceof HaxeMethodDeclaration methodDeclaration) {
-              SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(resolver);
+              boolean isFromCallExpression = reference instanceof  HaxeCallExpression;
+              SpecificFunctionReference type = methodDeclaration.getModel().getFunctionType(isFromCallExpression ? resolver : resolver.withoutAssignHint());
+              if (!isFromCallExpression) {
+                //  expression is referring to the method not calling it.
+                //  assign hint should be used for substituting parameters instead of being used as return type
+                type = resolver.substituteTypeParamsWithAssignHintTypes(type);
+              }
               typeHolder = type.createHolder();
             }
 

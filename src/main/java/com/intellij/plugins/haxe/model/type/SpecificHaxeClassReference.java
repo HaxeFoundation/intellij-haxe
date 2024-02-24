@@ -285,9 +285,48 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeNamedComponent field = aClass.findHaxeFieldByName(name, localResolver);
     if (field != null) {
       if (context.root == field) return null;
+      HaxeClass containingClass = (HaxeClass)((HaxePsiField)field).getContainingClass();
+      if (containingClass != aClass) {
+        localResolver.addAll(createInheritedClassResolver(containingClass, aClass, localResolver));
+      }
       return HaxeTypeResolver.getFieldOrMethodReturnType(field, localResolver);
     }
     return null;
+  }
+
+  private HaxeGenericResolver createInheritedClassResolver(HaxeClass inheritedClass, HaxeClass ownerClass,
+                                                           HaxeGenericResolver localResolver) {
+
+    List<SpecificHaxeClassReference> path = new ArrayList<>();
+    findClasHierarchy(ownerClass, inheritedClass, path);
+
+    Collections.reverse(path);
+    HaxeGenericResolver resolver = ownerClass.getMemberResolver(localResolver);
+    for (SpecificHaxeClassReference reference : path) {
+      ResultHolder resolved = resolver.resolve(reference.createHolder());
+      resolver = resolved.getClassType().getGenericResolver();
+    }
+    return resolver;
+  }
+
+  private boolean findClasHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
+    List<HaxeClassReferenceModel> types = from.getModel().getExtendingTypes();
+    for (HaxeClassReferenceModel model : types) {
+      HaxeClassModel classModel = model.getHaxeClass();
+      if (classModel != null) {
+        HaxeClass childClass = classModel.haxeClass;
+        if (childClass == to) {
+          return path.add(model.getSpecificHaxeClassReference());
+        } else {
+          if (findClasHierarchy(childClass, to, path)) {
+            path.add(model.getSpecificHaxeClassReference());
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
   }
 
 

@@ -512,4 +512,39 @@ public class HaxeGenericResolver {
     }
   }
 
+  public SpecificFunctionReference substituteTypeParamsWithAssignHintTypes(SpecificFunctionReference type) {
+    Optional<ResolverEntry> assignHint = findAssignToType();
+    if (assignHint.isEmpty()) return type;
+
+    ResultHolder assignType = assignHint.get().type();
+    SpecificFunctionReference functionTypeHint = assignType.getFunctionType();
+    if (functionTypeHint == null) return type;
+
+    List<SpecificFunctionReference.Argument> originalArguments = type.getArguments();
+    List<SpecificFunctionReference.Argument> hintArguments = functionTypeHint.getArguments();
+
+    LinkedList<SpecificFunctionReference.Argument> args = new LinkedList<>();
+
+    int minArgs = Math.min(originalArguments.size(), hintArguments.size());
+    for (int i = 0; i < minArgs; i++) {
+      SpecificFunctionReference.Argument argument = originalArguments.get(i);
+      if (argument.isTypeParameter()) {
+        SpecificFunctionReference.Argument hint = hintArguments.get(i);
+        args.add(new SpecificFunctionReference.Argument(i, argument.isOptional(), argument.isRest(), hint.getType(), argument.getName()));
+      }else {
+        args.add(argument);
+      }
+    }
+    ResultHolder returnType = type.getReturnType();
+    if (returnType.isTypeParameter()) {
+      returnType = functionTypeHint.getReturnType();
+    }
+    if (type.method != null) {
+      return new SpecificFunctionReference(args, returnType,  type.method, type.context );
+    }else {
+      return new SpecificFunctionReference(args, returnType,  type.functionType, type.context);
+    }
+
+
+  }
 }
