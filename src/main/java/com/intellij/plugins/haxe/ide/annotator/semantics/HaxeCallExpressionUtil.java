@@ -209,7 +209,14 @@ public class HaxeCallExpressionUtil {
             argumentCounter--; //retry argument with next parameter
           }
           else {
-            validation.errors.add(annotateTypeMismatch(constraint, argumentType, argument));
+
+            if (constraint.isClassType() && constraint.isMissingClassModel()) {
+              validation.warnings.add(annotateUnableToCompare(constraint, argument));
+            }else if (argumentType.isClassType() && argumentType.isMissingClassModel()){
+              validation.warnings.add(annotateUnableToCompare( argumentType, argument));
+            }else {
+              validation.errors.add(annotateTypeMismatch(constraint, argumentType, argument));
+            }
             addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }

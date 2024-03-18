@@ -6,13 +6,15 @@
 * Fixed: Lexer incorrectly included whitespace in "external" keyword token
 * Fixed: Allow referencing constructors using new keyword (MyClass.new) 
 * Fixed: Arguments with default values was not treated as optional
+* Added: support for implicit cast to/from function types.
+* Changed: show warning instead of error when type compare is not possible.
 
 ## 1.4.44
 * Fixed: Issue where parser would pass recursion limit 
 * Fixed: TypeParameter was shown instead of resolved type for enum extractor inlay
 * Fixed: Bug in unused imports where usage in callExpressions where ignored.
 * Changed : buggy logic that resolves generics from call expressions has been rewritten.
-*  Added: More guards against stack overflow (abstracts to/from cast circularity etc)
+* Added: More guards against stack overflow (abstracts to/from cast circularity etc)
 
 ## 1.4.43
 * Adding overflow guard when converting GenericSpecialization to genericResolver

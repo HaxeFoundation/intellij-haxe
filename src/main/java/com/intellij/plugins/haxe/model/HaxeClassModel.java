@@ -324,7 +324,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
 
   private boolean castMethodAcceptsSource(@NotNull SpecificHaxeClassReference reference, @NotNull HaxeMethodModel methodModel) {
-    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
+    SpecificTypeReference parameter = getTypeOfFirstParameter(methodModel);
     //implicit cast methods seems to accept both parameter-less methods and single parameter methods
     if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
     HaxeGenericResolver resolver = reference.getGenericResolver().withoutUnknowns();
@@ -370,7 +370,7 @@ public class HaxeClassModel implements HaxeExposableModel {
 
   @Nullable
   private SpecificTypeReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel, @Nullable HaxeGenericResolver resolver) {
-    SpecificHaxeClassReference parameter = getTypeOfFirstParameter(methodModel);
+    SpecificTypeReference parameter = getTypeOfFirstParameter(methodModel);
     if (parameter == null) return null;
     return setSpecificsConstraints(methodModel, parameter, resolver);
   }
@@ -427,11 +427,11 @@ public class HaxeClassModel implements HaxeExposableModel {
   }
 
   @Nullable
-  private SpecificHaxeClassReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
+  private SpecificTypeReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
     List<SpecificFunctionReference.Argument> arguments = model.getFunctionType().getArguments();
     if (arguments.isEmpty()) return null;
 
-    return arguments.get(0).getType().getClassType();
+    return arguments.get(0).getType().getType();
   }
 
 
