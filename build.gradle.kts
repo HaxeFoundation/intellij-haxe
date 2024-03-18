@@ -22,7 +22,7 @@ plugins {
     // lombok
     id("io.freefair.lombok") version "8.0.1"
     // generate parser and lexer
-    id("org.jetbrains.grammarkit") version "2022.3.2"
+    id("org.jetbrains.grammarkit") version "2022.3.2.2"
 
     id("com.adarshr.test-logger") version "3.2.0"
 }
@@ -259,7 +259,7 @@ tasks.register<Delete>("cleanGenerated") {
 
 tasks.register<GenerateParserTask>("generateHaxeParser") {
     group = "parsers"
-    targetRoot.set("src/main/gen")
+    targetRootOutputDir.set(File("src/main/gen"))
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/parser/haxe.bnf"))
     pathToParser.set("com/intellij/plugins/haxe/lang/parser/HaxeParser.java")
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
@@ -267,13 +267,12 @@ tasks.register<GenerateParserTask>("generateHaxeParser") {
 tasks.register<GenerateLexerTask>("generateHaxeLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/lexer/haxe.flex"))
-    targetDir.set("src/main/gen/com/intellij/plugins/haxe/lang/lexer")
-    targetClass.set("HaxeLexer")
+    targetOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/lang/lexer"))
 }
 
 tasks.register<GenerateParserTask>("generateMetadataParser") {
     group = "parsers"
-    targetRoot.set("src/main/gen")
+    targetRootOutputDir.set(File("src/main/gen"))
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/parser/metadata.bnf"))
     pathToParser.set("com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java")
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
@@ -283,14 +282,13 @@ tasks.register<GenerateParserTask>("generateMetadataParser") {
 tasks.register<GenerateLexerTask>("generateMetadataLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
-    targetDir.set("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/")
-    targetClass.set("MetadataLexer")
+    targetOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/"))
 }
 
 
 tasks.register<GenerateParserTask>("generateHxmlParser") {
     group = "parsers"
-    targetRoot.set("src/main/gen")
+    targetRootOutputDir.set(File("src/main/gen"))
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/parser/hxml.bnf"))
     pathToParser.set("com/intellij/plugins/haxe/hxml/parser/HXMLParser.java")
     pathToPsiRoot.set("com/intellij/plugins/haxe/lang")
@@ -299,7 +297,6 @@ tasks.register<GenerateParserTask>("generateHxmlParser") {
 tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/lexer/hxml.flex"))
-    targetDir.set("src/main/gen/com/intellij/plugins/haxe/hxml/lexer")
-    targetClass.set("HXMLLexer")
+    targetOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/hxml/lexer"))
 }
 

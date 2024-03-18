@@ -66,7 +66,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   public static final HaxeResolver INSTANCE = new HaxeResolver();
 
-  public static ThreadLocal<Stack<String>> referencesProcessing = ThreadLocal.withInitial(() -> new Stack<String>());
+  public static ThreadLocal<Stack<PsiElement>> referencesProcessing = ThreadLocal.withInitial(() -> new Stack<PsiElement>());
 
   private static boolean reportCacheMetrics = false;   // Should always be false when checked in.
   private static AtomicInteger dumbRequests = new AtomicInteger(0);
@@ -78,47 +78,47 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
-    boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
+       /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
+       boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
 
-    // Kill circular resolutions -- before checking the cache.
-    if (isResolving(reference)) {
-      reference.putUserData(skipCacheKey, Boolean.TRUE);
-      reportSkip(reference);
-      return null;
-    }
+       // Kill circular resolutions -- before checking the cache.
+       if (isResolving(reference)) {
+         reference.putUserData(skipCacheKey, Boolean.TRUE);
+         reportSkip(reference);
+         return null;
+       }
 
-    // If we are in dumb mode (e.g. we are still indexing files and resolving may
-    // fail until the indices are complete), we don't want to cache the (likely incorrect)
-    // results.
-    boolean isDumb = DumbService.isDumb(reference.getProject());
-    boolean hasTypeHint = checkForTypeHint(reference);
-    boolean skipCaching = skipCachingForDebug || isDumb || hasTypeHint;
-    List<? extends PsiElement> elements
-      = skipCaching ? doResolve(reference, incompleteCode)
-                    : ResolveCache.getInstance(reference.getProject()).resolveWithCaching(
-                      reference, this::doResolve, true, incompleteCode);
+       // If we are in dumb mode (e.g. we are still indexing files and resolving may
+       // fail until the indices are complete), we don't want to cache the (likely incorrect)
+       // results.
+       boolean isDumb = DumbService.isDumb(reference.getProject());
+       boolean hasTypeHint = checkForTypeHint(reference);
+       boolean skipCaching = skipCachingForDebug || isDumb || hasTypeHint;
+       List<? extends PsiElement> elements
+         = skipCaching ? doResolve(reference, incompleteCode)
+                       : ResolveCache.getInstance(reference.getProject()).resolveWithCaching(
+                         reference, this::doResolve, true, incompleteCode);
 
-    if (reportCacheMetrics) {
-      if (skipCachingForDebug) {
-        log.debug("Resolve cache is disabled.  No metrics computed.");
-        reportCacheMetrics = false;
-      }
-      else {
-        int dumb = isDumb ? dumbRequests.incrementAndGet() : dumbRequests.get();
-        int requestCount = isDumb ? requests.get() : requests.incrementAndGet();
-        if ((dumb + requestCount) % REPORT_FREQUENCY == 0) {
-          int res = resolves.get();
-          Formatter formatter = new Formatter();
-          formatter.format("Resolve requests: %d; cache misses: %d; (%2.2f%% effective); Dumb requests: %d",
-                           requestCount, res,
-                           (1.0 - (Float.intBitsToFloat(res) / Float.intBitsToFloat(requestCount))) * 100,
-                           dumb);
-          log.debug(formatter.toString());
-        }
-      }
-    }
-    return elements == null ? EMPTY_LIST : elements;
+       if (reportCacheMetrics) {
+         if (skipCachingForDebug) {
+           log.debug("Resolve cache is disabled.  No metrics computed.");
+           reportCacheMetrics = false;
+         }
+         else {
+           int dumb = isDumb ? dumbRequests.incrementAndGet() : dumbRequests.get();
+           int requestCount = isDumb ? requests.get() : requests.incrementAndGet();
+           if ((dumb + requestCount) % REPORT_FREQUENCY == 0) {
+             int res = resolves.get();
+             Formatter formatter = new Formatter();
+             formatter.format("Resolve requests: %d; cache misses: %d; (%2.2f%% effective); Dumb requests: %d",
+                              requestCount, res,
+                              (1.0 - (Float.intBitsToFloat(res) / Float.intBitsToFloat(requestCount))) * 100,
+                              dumb);
+             log.debug(formatter.toString());
+           }
+         }
+       }
+       return elements == null ? EMPTY_LIST : elements;
   }
 
   //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints
@@ -131,9 +131,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private boolean isResolving(@NotNull HaxeReference reference) {
-    Stack<String> stack = referencesProcessing.get();
-    String referenceText = reference.getText();
-    return stack.contains(referenceText);
+    Stack<PsiElement> stack = referencesProcessing.get();
+    return stack.contains(reference);
   }
 
   private void reportSkip(HaxeReference reference) {
@@ -146,11 +145,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    Stack<String> stack = referencesProcessing.get();
+    Stack<PsiElement> stack = referencesProcessing.get();
     boolean traceEnabled = log.isTraceEnabled();
 
     String referenceText = reference.getText();
-    stack.push(referenceText);
+    stack.push(reference);
     try {
       if (traceEnabled) {
         log.trace(traceMsg("-----------------------------------------"));

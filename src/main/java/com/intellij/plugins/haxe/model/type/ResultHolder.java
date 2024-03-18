@@ -86,8 +86,11 @@ public class ResultHolder {
   public boolean isUnknown() {
     return type.isUnknown();
   }
-  public boolean missingClassModel() {
-    return !isClassType()  || getClassType().getHaxeClassModel() == null;
+  public boolean isMissingClassModel() {
+    if (type instanceof SpecificHaxeClassReference classReference) {
+      return classReference.getHaxeClassModel() == null;
+    }
+    return true;
   }
 
   public boolean isVoid() {

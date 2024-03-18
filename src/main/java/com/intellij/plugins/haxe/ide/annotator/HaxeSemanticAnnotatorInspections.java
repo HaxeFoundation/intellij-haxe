@@ -174,7 +174,7 @@ public enum HaxeSemanticAnnotatorInspections {
   public static class IsTypeExpressionInspection4dot1Compatible extends HaxeAnnotatorInspection {
     public IsTypeExpressionInspection4dot1Compatible() {
       super("haxe.inspections.is.type.expression.inspection.4dot1.compatible.name",
-            "haxe.inspections.is.type.expression.inspection.4dot1.compatible.description");
+            "haxe.inspections.is.type.expression.inspection.4dot1.compatible.description", false);
     }
   }
 

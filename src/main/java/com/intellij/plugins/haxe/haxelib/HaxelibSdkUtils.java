@@ -44,14 +44,16 @@ public class HaxelibSdkUtils {
   /**
    * An SDK that can be used/returned when project lookup fails.
    */
-  static public Sdk DefaultSDK;
-  static {
-    HaxeSdkType sdkType = HaxeSdkType.getInstance();
-    DefaultSDK = new ProjectJdkImpl(sdkType.suggestSdkName(null, sdkType.suggestHomePath()),
-                                    sdkType,
-                                    sdkType.suggestHomePath(),
-                                    sdkType.getVersionString(sdkType.suggestHomePath()));
-    sdkType.setupSdkPaths(DefaultSDK);
+  private static  Sdk defaultSDK;
+  private static void tryToSetDefaultSdk() {
+    if (defaultSDK == null) {
+      HaxeSdkType sdkType = HaxeSdkType.getInstance();
+      defaultSDK = new ProjectJdkImpl(sdkType.suggestSdkName(null, sdkType.suggestHomePath()),
+                                      sdkType,
+                                      sdkType.suggestHomePath(),
+                                      sdkType.getVersionString(sdkType.suggestHomePath()));
+      sdkType.setupSdkPaths(defaultSDK);
+    }
   }
   static boolean myDefaultSdkErrorHasBeenLogged = false;
 
@@ -116,7 +118,8 @@ public class HaxelibSdkUtils {
         myDefaultSdkErrorHasBeenLogged = true;
       }
     }
-    return DefaultSDK;
+    tryToSetDefaultSdk();
+    return defaultSDK;
   }
 
 }

@@ -25,9 +25,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeParameterUtil.mapArgumentsToParameters;
 
@@ -243,5 +241,43 @@ public class HaxeGenericResolverUtil {
       }
     }
   }
+
+
+  public static HaxeGenericResolver createInheritedClassResolver(HaxeClass inheritedClass, HaxeClass ownerClass,
+                                                                  HaxeGenericResolver localResolver) {
+
+    List<SpecificHaxeClassReference> path = new ArrayList<>();
+    findClasHierarchy(ownerClass, inheritedClass, path);
+
+    Collections.reverse(path);
+    HaxeGenericResolver resolver = ownerClass.getMemberResolver(localResolver);
+    for (SpecificHaxeClassReference reference : path) {
+      ResultHolder resolved = resolver.resolve(reference.createHolder());
+      resolver = resolved.getClassType().getGenericResolver();
+    }
+    return resolver;
+  }
+
+  private static boolean findClasHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
+    List<HaxeClassReferenceModel> types = from.getModel().getExtendingTypes();
+    for (HaxeClassReferenceModel model : types) {
+      HaxeClassModel classModel = model.getHaxeClass();
+      if (classModel != null) {
+        HaxeClass childClass = classModel.haxeClass;
+        if (childClass == to) {
+          return path.add(model.getSpecificHaxeClassReference());
+        } else {
+          if (findClasHierarchy(childClass, to, path)) {
+            path.add(model.getSpecificHaxeClassReference());
+            return true;
+          }
+        }
+      }
+    }
+
+    return false;
+  }
+
+
 
 }

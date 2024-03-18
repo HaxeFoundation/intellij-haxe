@@ -58,10 +58,15 @@ public class HaxeClassReferenceModel {
     return (_clazz != null) ? _clazz.getModel() : null;
   }
   public SpecificHaxeClassReference getSpecificHaxeClassReference() {
-    HaxeClassReference reference = getHaxeClass().getReference();
-    List<HaxeTypeParameterModel> parameters = getTypeParameters();
-    List<ResultHolder> generics = parameters.stream().map(model -> model.getTypeReference().getSpecificHaxeClassReference().createHolder()).toList();
-    return SpecificHaxeClassReference.withGenerics(reference, generics.toArray(new ResultHolder[0]));
+    HaxeClassModel aClass = getHaxeClass();
+    if (aClass != null){
+      HaxeClassReference reference = aClass.getReference();
+      List<HaxeTypeParameterModel> parameters = getTypeParameters();
+      List<ResultHolder> generics = parameters.stream().map(model -> model.getTypeReference().getSpecificHaxeClassReference().createHolder()).toList();
+      return SpecificHaxeClassReference.withGenerics(reference, generics.toArray(new ResultHolder[0]));
+    }else {
+      return SpecificHaxeClassReference.getUnknown(getPsi());
+    }
   }
 
 }

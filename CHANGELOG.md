@@ -1,4 +1,12 @@
 # Changelog
+
+## 1.4.45
+* Added: Support for Intellij 2024.1
+* Fixed: Parser bug not recognizing top-level variables without modifiers
+* Fixed: Lexer incorrectly included whitespace in "external" keyword token
+* Fixed: Allow referencing constructors using new keyword (MyClass.new) 
+* Fixed: Arguments with default values was not treated as optional
+
 ## 1.4.44
 * Fixed: Issue where parser would pass recursion limit 
 * Fixed: TypeParameter was shown instead of resolved type for enum extractor inlay

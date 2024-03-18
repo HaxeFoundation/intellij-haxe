@@ -1,5 +1,9 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.codeInsight.daemon.HighlightDisplayKey;
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInspection.InspectionProfile;
+import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
@@ -10,6 +14,7 @@ import com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
+import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

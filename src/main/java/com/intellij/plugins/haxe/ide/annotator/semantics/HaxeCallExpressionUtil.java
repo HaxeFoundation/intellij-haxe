@@ -225,7 +225,13 @@ public class HaxeCallExpressionUtil {
             argumentCounter--; //retry argument with next parameter
           }
           else {
-            validation.errors.add(annotateTypeMismatch(resolvedParameterType, argumentType, argument));
+            if (resolvedParameterType.isClassType() && resolvedParameterType.isMissingClassModel()) {
+              validation.warnings.add(annotateUnableToCompare(resolvedParameterType, argument));
+            }else if (argumentType.isClassType() && argumentType.isMissingClassModel()){
+              validation.warnings.add(annotateUnableToCompare( argumentType, argument));
+            }else {
+              validation.errors.add(annotateTypeMismatch(resolvedParameterType, argumentType, argument));
+            }
             addToIndexMap(validation, argumentCounter, parameterCounter);
           }
         }
@@ -374,7 +380,7 @@ public class HaxeCallExpressionUtil {
 
     ResultHolder type = HaxeTypeResolver.getTypeFromType(expressionType);
     // ignore anything where we dont have class model
-    if (type.missingClassModel()) {
+    if (type.isMissingClassModel()) {
       return validation;
     }
     HaxeMethodModel constructor = type.getClassType().getHaxeClass().getModel().getConstructor(null);
@@ -853,6 +859,10 @@ public class HaxeCallExpressionUtil {
                                         got.toPresentationString());
     return new ErrorRecord(expression.getTextRange(), message);
   }
+  private static WarningRecord annotateUnableToCompare( ResultHolder problemType, HaxeExpression expression) {
+    String message = HaxeBundle.message("haxe.semantic.method.parameter.unable.to.compare", problemType.toPresentationString());
+    return new WarningRecord(expression.getTextRange(), message);
+  }
 
   private static int findMinArgsCounts(List<HaxeFunctionArgument> argumentList) {
     int count = 0;
@@ -939,6 +949,7 @@ public class HaxeCallExpressionUtil {
     Map<Integer, Integer> argumentToParameterIndex = new HashMap<>();
 
     List<ErrorRecord> errors = new ArrayList<>();
+    List<WarningRecord> warnings = new ArrayList<>();
     boolean completed = false;
     boolean memberMacroFunction = false;
     boolean isStaticExtension = false;
@@ -948,6 +959,7 @@ public class HaxeCallExpressionUtil {
 
   }
   public record ErrorRecord (TextRange range, String message){};
+  public record WarningRecord (TextRange range, String message){};
 
 
 

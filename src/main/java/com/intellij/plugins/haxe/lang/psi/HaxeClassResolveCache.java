@@ -40,17 +40,16 @@ public class HaxeClassResolveCache {
     return project.getService(HaxeClassResolveCache.class);
   }
 
-  public HaxeClassResolveCache(@NotNull MessageBus messageBus) {
-    messageBus.connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
-      @Override
-      public void beforePsiChanged(boolean isPhysical) {
-        myMap.clear();
-      }
+  public HaxeClassResolveCache(Project project) { project.getMessageBus().connect().subscribe(PsiManagerImpl.ANY_PSI_CHANGE_TOPIC, new AnyPsiChangeListener() {
+    @Override
+    public void beforePsiChanged(boolean isPhysical) {
+      myMap.clear();
+    }
 
-      @Override
-      public void afterPsiChanged(boolean isPhysical) {
-      }
-    });
+    @Override
+    public void afterPsiChanged(boolean isPhysical) {
+    }
+  });
   }
 
   public void put(@NotNull HaxeClass haxeClass, @NotNull HaxeResolveResult result) {

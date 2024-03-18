@@ -58,6 +58,7 @@ import java.util.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
+import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.createInheritedClassResolver;
 import static com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 
@@ -827,6 +828,15 @@ public class HaxeExpressionEvaluator {
                 HaxeTypeTag tag = fieldDeclaration.getTypeTag();
                 if (tag != null) {
                   typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, fieldDeclaration);
+                  HaxeClass  usedIn = PsiTreeUtil.getParentOfType((PsiElement)reference, HaxeClass.class);
+                  HaxeClass containingClass = (HaxeClass)fieldDeclaration.getContainingClass();
+                  if (usedIn != null && containingClass != null && usedIn != containingClass && containingClass.isGeneric()) {
+                    HaxeGenericResolver inheritedClassResolver = createInheritedClassResolver(containingClass,usedIn, resolver);
+                    HaxeGenericResolver resolverForContainingClass = inheritedClassResolver.getSpecialization(null).toGenericResolver(containingClass);
+                    ResultHolder resolve = resolverForContainingClass.resolve(typeHolder);
+                    if (!resolve.isUnknown())typeHolder = resolve;
+                  }
+
                 }
               }
             }
@@ -1315,7 +1325,8 @@ public class HaxeExpressionEvaluator {
             ResultHolder argumentType = handle(parameter, context, resolver);
             context.setLocal(parameter.getName(), argumentType);
             // TODO check if rest param?
-            arguments.add(new Argument(i, parameter.getOptionalMark() != null, false, argumentType, parameter.getName()));
+            boolean optional = parameter.getOptionalMark() != null || parameter.getVarInit() != null;
+            arguments.add(new Argument(i, optional, false, argumentType, parameter.getName()));
           } // TODO: Add Void if list.size() == 0
         }
         context.addLambda(context.createChild(function.getLastChild()));

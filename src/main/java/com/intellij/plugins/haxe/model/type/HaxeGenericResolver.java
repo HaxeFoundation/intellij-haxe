@@ -299,14 +299,16 @@ public class HaxeGenericResolver {
       if (expectedType.isTypeDefOfClass()) {
         expectedType = expectedType.resolveTypeDefClass();
       }
+      if (expectedType != null && resolved != null) {
       @NotNull ResultHolder[] resolvedSpecifics = resolved.getSpecifics();
-      @NotNull ResultHolder[] expectedSpecifics = expectedType.getSpecifics();
-      if (resolvedSpecifics.length == expectedSpecifics.length) {
-        for (int i = 0; i < resolvedSpecifics.length; i++) {
-          ResultHolder expected = expectedSpecifics[i];
-          if (!expected.isUnknown() && !expected.isTypeParameter()) {
-            if (resolvedSpecifics[i].canAssign(expected)) {
-              resolvedSpecifics[i] = expected;
+        @NotNull ResultHolder[] expectedSpecifics = expectedType.getSpecifics();
+        if (resolvedSpecifics.length == expectedSpecifics.length) {
+          for (int i = 0; i < resolvedSpecifics.length; i++) {
+            ResultHolder expected = expectedSpecifics[i];
+            if (!expected.isUnknown() && !expected.isTypeParameter()) {
+              if (resolvedSpecifics[i].canAssign(expected)) {
+                resolvedSpecifics[i] = expected;
+              }
             }
           }
         }

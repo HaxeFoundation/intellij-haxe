@@ -298,7 +298,7 @@ public class HaxeTypeCompatible {
         SpecificFunctionReference.Argument fromArg = from.arguments.get(n);
         SpecificFunctionReference.Argument toArg = to.arguments.get(n);
 
-        if (!toArg.getType().isUnknown() && !toArg.getType().missingClassModel()) {
+        if (!toArg.getType().isUnknown() && !toArg.getType().isMissingClassModel()) {
           if (!toArg.canAssignToFrom(fromArg))
             return false;
         }

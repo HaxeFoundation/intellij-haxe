@@ -7,6 +7,11 @@ class OptionalFieldsSyntax {
     callbackWithRequired = optionalMarkArg;
     callbackWithRequired = optionalArg;
     callbackWithRequired = reqArg;
+
+    callbackWithRequired = function(s:String):Void{};
+    callbackWithOptional = function(s:String = ""):Void{};
+    callbackWithOptional = function(?s:String):Void{};
+
     // wrong argument type
     callbackWithRequired = <error descr="Incompatible type: ?Int->Void should be String->Void">optionalOtherArg</error>;
     callbackWithRequired = <error descr="Incompatible type: Int->Void should be String->Void">otherArg</error>;
@@ -16,6 +21,7 @@ class OptionalFieldsSyntax {
 
     //Optional parameters can't be forced
     callbackWithOptional = <error descr="Incompatible type: String->Void should be ?String->Void">reqArg</error>;
+    callbackWithOptional = <error descr="Incompatible type: String->Void should be ?String->Void">function(s:String):Void{}</error>;
     // wrong argument type
     callbackWithOptional = <error descr="Incompatible type: ?Int->Void should be ?String->Void">optionalOtherArg</error>;
     callbackWithOptional = <error descr="Incompatible type: Int->Void should be ?String->Void">otherArg</error>;

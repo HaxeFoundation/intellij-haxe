@@ -86,10 +86,10 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             // function type or function literal
             if ( functionType.method == null) {
               CallExpressionValidation validation = checkFunctionCall(expression, functionType);
-              createErrorAnnotations(validation, holder);
+              createAnnotations(holder, validation);
             } else {
               CallExpressionValidation validation = checkMethodCall(expression, functionType.method.getMethod());
-              createErrorAnnotations(validation, holder);
+              createAnnotations(holder, validation);
             }
           }else {
             SpecificTypeReference typeReference = type.getType();
@@ -116,14 +116,19 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         else if (resolved instanceof HaxeMethod method) {
           if (isTrace(method))return;
           CallExpressionValidation validation = checkMethodCall(expression, method);
-          createErrorAnnotations(validation, holder);
+          createAnnotations(holder, validation);
         }
       }
     }
     if (element instanceof HaxeNewExpression newExpression) {
       CallExpressionValidation validation = checkConstructor(newExpression);
-      createErrorAnnotations(validation, holder);
+      createAnnotations(holder, validation);
     }
+  }
+
+  private void createAnnotations(@NotNull AnnotationHolder holder, CallExpressionValidation validation) {
+    createErrorAnnotations(validation, holder);
+    createWarningAnnotations(validation, holder);
   }
 
   // the trace method in std does not have rest arg so we ignore it
@@ -137,6 +142,11 @@ public class HaxeCallExpressionAnnotator implements Annotator {
 
   private void createErrorAnnotations(@NotNull CallExpressionValidation validation, @NotNull AnnotationHolder holder) {
     validation.errors.forEach(record -> holder.newAnnotation(HighlightSeverity.ERROR, record.message())
+      .range(record.range())
+      .create());
+  }
+  private void createWarningAnnotations(@NotNull CallExpressionValidation validation, @NotNull AnnotationHolder holder) {
+    validation.warnings.forEach(record -> holder.newAnnotation(HighlightSeverity.WEAK_WARNING, record.message())
       .range(record.range())
       .create());
   }
