@@ -362,51 +362,33 @@ public class HaxeExpressionEvaluator {
         if (isMacroVariable(type.getReferenceExpression().getIdentifier())){
           return SpecificTypeReference.getDynamic(element).createHolder();
         }
+        ResultHolder hint = resolver.getAssignHint();
         ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type, resolver);
+        if (hint != null && hint.isClassType()) {
+          HaxeGenericResolver localResolver = new HaxeGenericResolver();
+          HaxeGenericResolver hintsResolver = hint.getClassType().getGenericResolver();
+          localResolver.addAll(hintsResolver);
+          ResultHolder resolvedWithHint = localResolver.resolve(typeHolder);
+          if (resolvedWithHint != null && !resolvedWithHint.isUnknown()) typeHolder = resolvedWithHint;
+        }
+
       if (!typeHolder.isUnknown() && typeHolder.getClassType() != null) {
         SpecificHaxeClassReference classReference = typeHolder.getClassType();
         HaxeClassModel classModel = classReference.getHaxeClassModel();
         HaxeGenericResolver classResolver = classReference.getGenericResolver();
         if (classModel != null) {
-        HaxeMethodModel constructor = classModel.getConstructor(classResolver);
-        if (constructor != null) {
-          @NotNull String[] specificNames = classResolver.names();
-          HaxeMethod method = constructor.getMethod();
-          HaxeMethodModel methodModel = method.getModel();
-          if (methodModel.getGenericParams().isEmpty()) {
-            boolean  changedTypeParameters = false;
-            HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkConstructor(expression);
-            Map<Integer, Integer> toParameterIndex = validation.getArgumentToParameterIndex();
+          HaxeMethodModel constructor = classModel.getConstructor(classResolver);
+          if (constructor != null) {
+            HaxeMethod method = constructor.getMethod();
+            HaxeMethodModel methodModel = method.getModel();
+            if (methodModel.getGenericParams().isEmpty()) {
+              HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkConstructor(expression);
+              HaxeGenericResolver resolverFromCallExpression = validation.getResolver();
 
-
-            List<HaxeExpression> arguments = expression.getExpressionList();
-            List<HaxeParameterModel> parameters = methodModel.getParameters();
-
-            if (!parameters.isEmpty()) {
-
-              for (Map.Entry<Integer, Integer> entry : toParameterIndex.entrySet()) {
-                Integer argumentIndex = entry.getKey();
-                Integer parameterIndex = entry.getValue();
-
-                HaxeParameterModel parameter = parameters.get(parameterIndex);
-                if (parameter.getType().isTypeParameter()) {
-                  for (int i = 0; i < Math.min(specificNames.length, arguments.size()); i++) {
-                    if (specificNames[i].equals(parameter.getTypeTagPsi().getTypeOrAnonymous().getText())) {
-                      // we could try to map parameters and args, but in most cases this probably won't be necessary and it would make this part very complex
-                      @NotNull ResultHolder[] specifics = classReference.getSpecifics();
-                      if (specifics[i].isUnknown()) {
-                        ResultHolder handle = handle(arguments.get(argumentIndex), context, resolver);
-                        if (!handle.isUnknown()) {
-                          changedTypeParameters = true;
-                          specifics[i] = handle;
-                        }
-                      }
-                    }
-                  }
-                }
+              if (resolverFromCallExpression != null) {
+                ResultHolder resolve = resolverFromCallExpression.resolve(typeHolder);
+                if (!resolve.isUnknown()) typeHolder = resolve;
               }
-            }
-            if (changedTypeParameters) return typeHolder.duplicate();
             }
           }
         }

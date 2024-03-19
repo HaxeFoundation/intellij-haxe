@@ -250,6 +250,13 @@ public class HaxeGenericResolver {
       .filter(entry -> entry.resolveSource() == ResolveSource.ASSIGN_TYPE)
       .findFirst();
   }
+  public ResultHolder getAssignHint() {
+    return resolvers.stream()
+      .filter(entry -> entry.resolveSource() == ResolveSource.ASSIGN_TYPE)
+      .findFirst()
+      .map(ResolverEntry::type)
+      .orElse(null);
+  }
 
   @Nullable
   public ResultHolder resolveReturnType(ResultHolder resultHolder) {
