@@ -19,8 +19,6 @@ import java.util.List;
 
 public class RemoveTypeTagFromFieldIntention extends BaseIntentionAction {
 
-  private HaxePsiField myField;
-
 
   @Nls
   @NotNull
@@ -37,22 +35,24 @@ public class RemoveTypeTagFromFieldIntention extends BaseIntentionAction {
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
-
-    attemptToFindField(editor, file);
-
+    HaxePsiField myField = attemptToFindField(editor, file);
     return  myField != null && myField.getTypeTag() != null;
   }
 
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    myField.getTypeTag().delete();
+    HaxePsiField myField = attemptToFindField(editor, file);
+    if (myField != null && myField.getTypeTag() != null) {
+      myField.getTypeTag().delete();
+    }
   }
 
 
-  private void attemptToFindField(Editor editor, PsiFile file) {
+  private HaxePsiField attemptToFindField(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     HaxeLocalVarDeclarationList varDeclarationList = PsiTreeUtil.getParentOfType(place, HaxeLocalVarDeclarationList.class);
+    HaxePsiField myField = null;
     if (varDeclarationList != null) {
       List<HaxeLocalVarDeclaration> list = varDeclarationList.getLocalVarDeclarationList();
       if (!list.isEmpty())myField = list.get(list.size() - 1);
@@ -61,6 +61,7 @@ public class RemoveTypeTagFromFieldIntention extends BaseIntentionAction {
     }else {
       myField = PsiTreeUtil.getParentOfType(place, HaxePsiField.class);
     }
+    return myField;
   }
 
 

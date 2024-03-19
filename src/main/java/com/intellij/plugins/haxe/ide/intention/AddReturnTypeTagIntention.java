@@ -17,14 +17,13 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.util.HaxeElementGenerator.createTypeTag;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.findParentOfTypeButStopIfTypeIs;
 
 public class AddReturnTypeTagIntention extends BaseIntentionAction {
 
-  private HaxeMethod myMethod;
-  private ResultHolder returnType;
 
   public AddReturnTypeTagIntention() {
   }
@@ -46,19 +45,15 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
 
-    attemptToFindMethod(editor, file);
+    HaxeMethod method = attemptToFindMethod(editor, file);
 
-    boolean isMissingTypeTag = myMethod != null
-                               && myMethod.getModel() != null
-                               && !myMethod.isConstructor()
-                               && myMethod instanceof HaxeMethodDeclaration declaration
+    boolean isMissingTypeTag = method != null
+                               && method.getModel() != null
+                               && !method.isConstructor()
+                               && method instanceof HaxeMethodDeclaration declaration
                                && declaration.getTypeTag() == null;
     if (isMissingTypeTag) {
-      HaxeMethodModel model = myMethod.getModel();
-      HaxeGenericResolver resolver = model.getGenericResolver(null);
-      resolver = resolver.withTypeParametersAsType(model.getGenericParams());
-      returnType = model.getReturnType(resolver);
-      return !(returnType == null);
+      return !( getReturnType(method) == null);
     }
     return false;
   }
@@ -66,23 +61,34 @@ public class AddReturnTypeTagIntention extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+    HaxeMethod method = attemptToFindMethod(editor, file);
+    if (method != null) {
+      ResultHolder returnType = getReturnType(method);
 
-    String typeText = returnType.isUnknown() ? SpecificTypeReference.VOID : returnType.getType().toPresentationString();
-    HaxeTypeTag tag = createTypeTag(project, typeText);
-    PsiParameterList list = myMethod.getParameterList();
-    PsiElement element = PsiTreeUtil.nextVisibleLeaf(list);
-    myMethod.addAfter(tag, element);
+      String typeText = returnType.isUnknown() ? SpecificTypeReference.VOID : returnType.getType().toPresentationString();
+      HaxeTypeTag tag = createTypeTag(project, typeText);
+      PsiParameterList list = method.getParameterList();
+      PsiElement element = PsiTreeUtil.nextVisibleLeaf(list);
+      method.addAfter(tag, element);
+    }
+  }
 
+  private static ResultHolder getReturnType(HaxeMethod method) {
+    HaxeMethodModel model = method.getModel();
+    HaxeGenericResolver resolver = model.getGenericResolver(null);
+    resolver = resolver.withTypeParametersAsType(model.getGenericParams());
+    return model.getReturnType(resolver);
   }
 
 
-  private void attemptToFindMethod(Editor editor, PsiFile file) {
+  private @Nullable HaxeMethod attemptToFindMethod(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
    if (place instanceof HaxeMethod method) {
-     myMethod = method;
+     return method;
     }else if (place != null){
-     myMethod = findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
+     return findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
     }
+    return null;
   }
 
 

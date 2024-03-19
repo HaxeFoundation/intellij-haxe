@@ -16,7 +16,6 @@ import org.jetbrains.annotations.NotNull;
 
 public class ConvertPropertyToVariableIntention extends BaseIntentionAction {
 
-  private HaxeFieldDeclaration myField;
 
   @Nls
   @NotNull
@@ -35,11 +34,11 @@ public class ConvertPropertyToVariableIntention extends BaseIntentionAction {
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
-    attemptToFindField(editor, file);
+    HaxeFieldDeclaration field = attemptToFindField(editor, file);
 
-    if (myField  == null) return false;
-    if (myField.getTypeTag() == null) return false;
-    if (myField.getPropertyDeclaration() == null) return false;
+    if (field  == null) return false;
+    if (field.getTypeTag() == null) return false;
+    if (field.getPropertyDeclaration() == null) return false;
 
     return true;
   }
@@ -47,19 +46,22 @@ public class ConvertPropertyToVariableIntention extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    myField.getPropertyDeclaration().delete();
+    HaxeFieldDeclaration field = attemptToFindField(editor, file);
+    if (field != null && field.getPropertyDeclaration() != null) {
+      field.getPropertyDeclaration().delete();
+    }
   }
 
 
 
 
 
-  private void attemptToFindField(Editor editor, PsiFile file) {
+  private HaxeFieldDeclaration attemptToFindField(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     if (place instanceof HaxeFieldDeclaration psiField) {
-      myField = psiField;
+      return psiField;
     } else {
-      myField = PsiTreeUtil.getParentOfType(place, HaxeFieldDeclaration.class);
+      return PsiTreeUtil.getParentOfType(place, HaxeFieldDeclaration.class);
     }
   }
 }

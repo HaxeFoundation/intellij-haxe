@@ -17,19 +17,16 @@ import java.util.List;
 
 public abstract class ConvertVariableToPropertyIntentionBase extends BaseIntentionAction {
 
-  private HaxePsiField myField;
-
-
   @Override
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
-    attemptToFindField(editor, file);
+    HaxePsiField field = attemptToFindFieldDeclaration(editor, file);
 
-    if (myField  == null) return false;
+    if (field  == null) return false;
 
-    if (myField.getTypeTag() == null) return false;
-    if (myField.getVarInit() != null) return false;
-    if (myField.getModel() instanceof HaxeFieldModel model) {
+    if (field.getTypeTag() == null) return false;
+    if (field.getVarInit() != null) return false;
+    if (field.getModel() instanceof HaxeFieldModel model) {
       if (model.hasModifier(HaxePsiModifier.INLINE)) return false;
       if (model.isProperty()) return false;
     }else {
@@ -42,15 +39,18 @@ public abstract class ConvertVariableToPropertyIntentionBase extends BaseIntenti
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    HaxePsiField element = getTempProperty(project);
-    PsiElement copy = HaxeElementGenerator.createVarDeclaration(project, element.getText()).copy();
-    myField.replace(copy);
+    HaxePsiField field = attemptToFindFieldDeclaration(editor, file);
+    if (field!= null) {
+      HaxePsiField element = getTempProperty(project, field);
+      PsiElement copy = HaxeElementGenerator.createVarDeclaration(project, element.getText()).copy();
+      field.replace(copy);
+    }
 
   }
 
   @NotNull
-  private HaxePsiField getTempProperty(@NotNull Project project) {
-    HaxePsiField element = (HaxePsiField)myField.copy();
+  private HaxePsiField getTempProperty(@NotNull Project project,  HaxePsiField field) {
+    HaxePsiField element = (HaxePsiField)field.copy();
     HaxePropertyDeclaration declaration = generateTmpDeclaration(project);
     HaxeComponentName name = element.getComponentName();
     HaxeIdentifier identifier = name.getIdentifier();
@@ -68,18 +68,25 @@ public abstract class ConvertVariableToPropertyIntentionBase extends BaseIntenti
   protected abstract String getPropertyElementString();
 
 
-  private void attemptToFindField(Editor editor, PsiFile file) {
+  private HaxeFieldDeclaration attemptToFindFieldDeclaration(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     HaxeLocalVarDeclarationList varDeclarationList = PsiTreeUtil.getParentOfType(place, HaxeLocalVarDeclarationList.class);
+
+    HaxeFieldDeclaration declaration = null;
     if (varDeclarationList != null) {
       List<HaxeLocalVarDeclaration> list = varDeclarationList.getLocalVarDeclarationList();
-      if (!list.isEmpty()) myField = list.get(list.size() - 1);
+      if (!list.isEmpty()){
+        if(list.get(list.size() - 1) instanceof HaxeFieldDeclaration fieldDeclaration){
+          declaration = fieldDeclaration;
+        }
+      }
     }
-    else if (place instanceof HaxePsiField psiField) {
-      myField = psiField;
+    else if (place instanceof HaxeFieldDeclaration fieldDeclaration) {
+      declaration = fieldDeclaration;
     }
     else {
-      myField = PsiTreeUtil.getParentOfType(place, HaxePsiField.class);
+      declaration = PsiTreeUtil.getParentOfType(place, HaxeFieldDeclaration.class);
     }
+    return declaration;
   }
 }

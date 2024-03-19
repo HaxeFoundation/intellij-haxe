@@ -28,8 +28,6 @@ import java.util.Map;
 
 public class KeyValueIteratorForLoopIntention extends BaseIntentionAction {
 
-  private SpecificHaxeClassReference resolvedType;
-  private HaxeReference haxeReference;
 
 
   public KeyValueIteratorForLoopIntention() {
@@ -52,20 +50,24 @@ public class KeyValueIteratorForLoopIntention extends BaseIntentionAction {
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
 
-    return attemptToFindIterableExpression(editor, file);
+    HaxeReference reference = attemptToFindIterableExpression(editor, file);
+    return hasIterator(reference);
   }
 
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-    HaxeForStatement forLoop = HaxeElementGenerator.createForInLoop(project, "key", "value", haxeReference.getText());
-    forLoop = (HaxeForStatement)haxeReference.replace(forLoop.copy());
+    HaxeReference reference = attemptToFindIterableExpression(editor, file);
+    if (reference != null) {
+      HaxeForStatement forLoop = HaxeElementGenerator.createForInLoop(project, "key", "value", reference.getText());
+      forLoop = (HaxeForStatement)reference.replace(forLoop.copy());
 
-    if (!editor.isViewer()) {
-      CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(forLoop);
-      HaxeKeyValueIterator keyValueIterator = forLoop.getKeyValueIterator();
+      if (!editor.isViewer()) {
+        CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(forLoop);
+        HaxeKeyValueIterator keyValueIterator = forLoop.getKeyValueIterator();
 
-      introduceKeyValueIterators(editor, keyValueIterator);
+        introduceKeyValueIterators(editor, keyValueIterator);
+      }
     }
   }
 
@@ -87,27 +89,26 @@ public class KeyValueIteratorForLoopIntention extends BaseIntentionAction {
     introducer.performInplaceRefactoring(new LinkedHashSet<>(List.of()));
   }
 
-
-  private boolean attemptToFindIterableExpression(Editor editor, PsiFile file) {
+  private HaxeReference attemptToFindIterableExpression(Editor editor, PsiFile file) {
     PsiElement psiElement = file.findElementAt(editor.getCaretModel().getOffset());
     if (psiElement instanceof PsiWhiteSpace) {
-      psiElement =
-        UsefulPsiTreeUtil.getPrevSiblingSkippingCondition(psiElement, element -> !(element instanceof HaxePsiCompositeElement), true);
+      psiElement = UsefulPsiTreeUtil.getPrevSiblingSkippingCondition(psiElement, element -> !(element instanceof HaxePsiCompositeElement), true);
     }
-    if (psiElement == null) return false;
+    if (psiElement == null) return null;
 
-    haxeReference =
-      psiElement instanceof HaxeReference reference ? reference
-                                                    : PsiTreeUtil.getParentOfType(psiElement, HaxeReference.class);
+    return psiElement instanceof HaxeReference reference ? reference : PsiTreeUtil.getParentOfType(psiElement, HaxeReference.class);
+  }
 
-    if (haxeReference == null) return false;
+  private boolean hasIterator(HaxeReference reference) {
+    if (reference == null) return false;
 
-    ResultHolder holder = HaxeExpressionEvaluator.evaluate(haxeReference, null).result;
-    resolvedType = holder.getClassType();
+    ResultHolder holder = HaxeExpressionEvaluator.evaluate(reference, null).result;
+    SpecificHaxeClassReference resolvedType = holder.getClassType();
     if (resolvedType == null) return false;
 
-    return resolvedType.isLiteralMap() || hasKeyValueIterator(resolvedType);
+    return resolvedType.isLiteralArray() || hasKeyValueIterator(resolvedType);
   }
+
 
   private boolean hasKeyValueIterator(SpecificHaxeClassReference type) {
     if (type.getHaxeClassModel() == null) return false;

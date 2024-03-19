@@ -14,12 +14,12 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.findParentOfTypeButStopIfTypeIs;
 
 public class RemoveReturnTypeTagIntention extends BaseIntentionAction {
 
-  private HaxeMethod myMethod;
 
   public RemoveReturnTypeTagIntention() {
   }
@@ -41,7 +41,7 @@ public class RemoveReturnTypeTagIntention extends BaseIntentionAction {
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
 
-    attemptToFindMethod(editor, file);
+    HaxeMethod myMethod =  attemptToFindMethod(editor, file);
 
     return  myMethod instanceof HaxeMethodDeclaration declaration && declaration.getTypeTag() != null;
   }
@@ -49,21 +49,23 @@ public class RemoveReturnTypeTagIntention extends BaseIntentionAction {
 
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
-
-    HaxeMethodDeclaration declaration = (HaxeMethodDeclaration)myMethod;
-    HaxeTypeTag tag = declaration.getTypeTag();
-    if (tag != null) tag.delete();
+    HaxeMethod myMethod =  attemptToFindMethod(editor, file);
+    if (myMethod instanceof  HaxeMethodDeclaration declaration) {
+      HaxeTypeTag tag = declaration.getTypeTag();
+      if (tag != null) tag.delete();
+    }
   }
 
 
-  private void attemptToFindMethod(Editor editor, PsiFile file) {
+  private @Nullable HaxeMethod attemptToFindMethod(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     if (place instanceof HaxeMethod method) {
-      myMethod = method;
+      return method;
     }
     else if (place != null) {
-      myMethod = findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
+      return findParentOfTypeButStopIfTypeIs(place, HaxeMethod.class, HaxeBlockStatement.class);
     }
+    return null;
   }
 
 }
