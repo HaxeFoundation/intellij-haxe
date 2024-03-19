@@ -25,6 +25,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,7 +131,8 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   private static CachedValueProvider.Result<PsiElement[]> _getChildren(HaxeFile file) {
     PsiElement[] children = file.getChildren();
-    return new CachedValueProvider.Result<>(children, (Object[])children);
+    PsiElement[] elements = ArrayUtils.addAll(children, file);
+    return new CachedValueProvider.Result<>(children, (Object[])elements);
   }
 
   @NotNull
