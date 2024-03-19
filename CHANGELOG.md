@@ -8,6 +8,7 @@
 * Fixed: Arguments with default values was not treated as optional
 * Added: support for implicit cast to/from function types.
 * Changed: show warning instead of error when type compare is not possible.
+* Misc: added a bunch of null safety fixes.
 
 ## 1.4.44
 * Fixed: Issue where parser would pass recursion limit 
