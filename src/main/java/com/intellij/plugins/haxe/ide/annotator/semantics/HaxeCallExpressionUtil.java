@@ -74,7 +74,11 @@ public class HaxeCallExpressionUtil {
     //max arg check
     if (argumentList.size() > maxArgAllowed) {
       String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgAllowed, argumentList.size());
-      validation.errors.add(new ErrorRecord(callExpressionList.getTextRange(), message));
+      if (callExpressionList != null) {
+        validation.errors.add(new ErrorRecord(callExpressionList.getTextRange(), message));
+      }else {
+        validation.errors.add(new ErrorRecord(callExpression.getTextRange(), message));
+      }
       return validation;
     }
 
@@ -245,6 +249,7 @@ public class HaxeCallExpressionUtil {
       }
     }
     validation.completed = true;
+    validation.resolver = resolver;
     return validation;
   }
 
@@ -555,6 +560,7 @@ public class HaxeCallExpressionUtil {
       }
     }
     validation.completed = true;
+    validation.resolver = resolver;
     return validation;
   }
 
@@ -723,6 +729,7 @@ public class HaxeCallExpressionUtil {
       }
     }
     validation.completed = true;
+    validation.resolver = resolver;
     return validation;
   }
 
@@ -957,6 +964,9 @@ public class HaxeCallExpressionUtil {
 
     List<ErrorRecord> errors = new ArrayList<>();
     List<WarningRecord> warnings = new ArrayList<>();
+
+    HaxeGenericResolver resolver = null;
+
     boolean completed = false;
     boolean memberMacroFunction = false;
     boolean isStaticExtension = false;
