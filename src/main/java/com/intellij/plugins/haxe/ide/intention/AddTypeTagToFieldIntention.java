@@ -25,9 +25,6 @@ import static com.intellij.plugins.haxe.util.HaxeElementGenerator.createTypeTag;
 
 public class AddTypeTagToFieldIntention extends BaseIntentionAction {
 
-  private HaxePsiField myField;
-  private ResultHolder type;
-
   public AddTypeTagToFieldIntention() {
   }
 
@@ -48,12 +45,12 @@ public class AddTypeTagToFieldIntention extends BaseIntentionAction {
   public boolean isAvailable(@NotNull Project project, Editor editor, PsiFile file) {
     if (file.getLanguage() != HaxeLanguage.INSTANCE) return false;
 
-    attemptToFindField(editor, file);
 
-    HaxePsiField field = myField;
+
+    HaxePsiField field = attemptToFindField(editor, file);;
     boolean isMissingTypeTag = field != null && field.getTypeTag() == null;
     if (isMissingTypeTag) {
-      type = HaxeExpressionEvaluator.evaluate(field, new HaxeExpressionEvaluatorContext(field), null).result;
+      ResultHolder type = HaxeExpressionEvaluator.evaluate(field, new HaxeExpressionEvaluatorContext(field), null).result;
       return !(type == null || type.isUnknown());
     }
     return false;
@@ -63,23 +60,33 @@ public class AddTypeTagToFieldIntention extends BaseIntentionAction {
   @Override
   public void invoke(@NotNull final Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
 
-      HaxeTypeTag tag = createTypeTag(project, type.getType().toString());
-      myField.addAfter(tag, myField.getComponentName());
+    HaxePsiField field = attemptToFindField(editor, file);;
+    boolean isMissingTypeTag = field != null && field.getTypeTag() == null;
+    if (isMissingTypeTag) {
+      ResultHolder type = HaxeExpressionEvaluator.evaluate(field, new HaxeExpressionEvaluatorContext(field), null).result;
+      if (!(type == null || type.isUnknown())) {
+        HaxeTypeTag tag = createTypeTag(project, type.getType().toString());
+        field.addAfter(tag, field.getComponentName());
+      }
+    }
 
   }
 
 
-  private void attemptToFindField(Editor editor, PsiFile file) {
+  private HaxePsiField attemptToFindField(Editor editor, PsiFile file) {
     PsiElement place = file.findElementAt(editor.getCaretModel().getOffset());
     HaxeLocalVarDeclarationList varDeclarationList = PsiTreeUtil.getParentOfType(place, HaxeLocalVarDeclarationList.class);
+
+    HaxePsiField field = null;
     if (varDeclarationList != null) {
       List<HaxeLocalVarDeclaration> list = varDeclarationList.getLocalVarDeclarationList();
-      if (!list.isEmpty())myField = list.get(list.size() - 1);
+      if (!list.isEmpty())field = list.get(list.size() - 1);
     } else if (place instanceof HaxePsiField psiField) {
-      myField = psiField;
+      field = psiField;
     }else {
-      myField = PsiTreeUtil.getParentOfType(place, HaxePsiField.class);
+      field = PsiTreeUtil.getParentOfType(place, HaxePsiField.class);
     }
+    return field;
   }
 
 
