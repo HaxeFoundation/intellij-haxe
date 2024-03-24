@@ -26,6 +26,8 @@ import java.util.Objects;
 
 public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeImportStatement {
 
+  private HaxeImportModel myImportModel = null;
+
   public HaxeImportStatementPsiMixinImpl(ASTNode node) {
     super(node);
   }
@@ -33,7 +35,10 @@ public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMi
   @NotNull
   @Override
   public HaxeImportModel getModel() {
-    return new HaxeImportModel(this);
+    if (myImportModel == null) {
+      myImportModel = new HaxeImportModel(this);
+    }
+    return myImportModel;
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {
