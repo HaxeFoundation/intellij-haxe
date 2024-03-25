@@ -1163,7 +1163,10 @@ public class HaxeResolveUtil {
         if (result == null) {
           List<PsiElement> matchesInImport = searchInImports(fileModel, className);
           if (isType) {// typeTags should not contain EnumValues only parent enum type
-            matchesInImport = matchesInImport.stream().filter(element -> !(element instanceof HaxeEnumValueDeclaration)).toList();
+            matchesInImport = matchesInImport.stream()
+              .filter(element -> !(element instanceof HaxeEnumValueDeclaration))
+              .filter(element -> !(element instanceof HaxeFieldDeclaration)) // @:enum abstracts have EnumValues as fields
+              .toList();
           }
           if(!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
