@@ -939,8 +939,21 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             int parameterMappedToArgument = parameterList.getParameterList().indexOf(parameter);
             List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
             SpecificFunctionReference.Argument argument = arguments.get(parameterMappedToArgument);
-
-            HaxeGenericResolver parentExpResolver = getGenericResolverFromParentExpression(callExpression);
+            // this is an ugly hack to get a resolver from callexpression without causing a stack overflow as this parameter could be
+            // a type parameter that the resolver needs to resolve, if we notice that we are resolving multiple times we try to only use
+            //  parent genericResolver values or allow this second pass to return unknown so that any other parameters can populate
+            //  the generic resolver
+            HaxeGenericResolver parentExpResolver = null;
+            try {
+              if (genericResolverHelper.get() == callExpression) {
+                parentExpResolver = getGenericResolverFromParentExpression(callExpression);
+              }else {
+                genericResolverHelper.set(callExpression);
+                parentExpResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+              }
+            }finally{
+              genericResolverHelper.remove();
+            }
             ResultHolder resolved = parentExpResolver.resolve(argument.getType());
             if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
 
@@ -950,6 +963,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     return null;
   }
+  private static ThreadLocal<HaxeCallExpression> genericResolverHelper = new ThreadLocal<>();
 
   private static HaxeGenericResolver getGenericResolverFromParentExpression(HaxeCallExpression callExpression) {
     @NotNull PsiElement[] children = callExpression.getChildren();
