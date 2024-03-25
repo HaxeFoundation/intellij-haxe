@@ -190,8 +190,8 @@ class RootsCache {
     final OrderEnumerator enumerator = OrderEnumerator.orderEntries(model.getProject()).withoutSdk();
 
     return Stream.concat(
-      Arrays.stream(enumerator.getClassesRoots()),
-      Arrays.stream(enumerator.getSourceRoots())
+        Arrays.stream(enumerator.getSourceRoots()),
+        Arrays.stream(enumerator.getClassesRoots())
     )
       .distinct()
       .map(root -> new HaxeSourceRootModel(model, root))
