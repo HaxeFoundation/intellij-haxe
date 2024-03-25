@@ -32,10 +32,7 @@ import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiNameHelper;
-import com.intellij.psi.ResolveState;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -317,18 +314,23 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class);
     if (assignExpression != null) {
       HaxeExpression left = assignExpression.getLeftExpression();
-      if (left instanceof HaxeReferenceExpression referenceExpression) {
-        PsiElement resolve = referenceExpression.resolve();
-        if (resolve instanceof HaxePsiField psiField) {
-          fieldFromReferenceExpression = psiField;
+      //guard to avoid another resolve of the same reference, and attempts to check assignExpression for only part of a reference expression
+      if (left != reference && !(reference.getParent() instanceof  HaxeReferenceExpression)) {
+        if (left instanceof HaxeReferenceExpression referenceExpression) {
+          PsiElement resolve = referenceExpression.resolve();
+          if (resolve instanceof HaxePsiField psiField) {
+            fieldFromReferenceExpression = psiField;
+          }
         }
       }
     }
     if (reference.getParent() instanceof HaxeCompareExpression compareExpression ) {
       if (compareExpression.getLeftExpression() instanceof HaxeReferenceExpression referenceExpression) {
-        PsiElement resolve = referenceExpression.resolve();
-        if (resolve instanceof HaxePsiField psiField) {
-          fieldFromReferenceExpression = psiField;
+        if (referenceExpression != reference) {//guard to avoid another resolve of the same reference
+          PsiElement resolve = referenceExpression.resolve();
+          if (resolve instanceof HaxePsiField psiField) {
+            fieldFromReferenceExpression = psiField;
+          }
         }
       }
     }
