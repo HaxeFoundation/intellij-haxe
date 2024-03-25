@@ -1,4 +1,8 @@
 # Changelog
+## 1.4.46
+* Bugfix: The plugin was unable to resolve types if an abstract enum had defined enum values with identical name.
+* Change: Misc work to reduce memory footprint for import statements. 
+
 
 ## 1.4.45
 * Added: Support for Intellij 2024.1
