@@ -171,11 +171,14 @@ public class HaxeExpressionEvaluator {
       return result;
     }
     if (element instanceof HaxeTryStatement tryStatement) {
-     //  does not return a type, but we should iterate trough so we can pick up any return statements
+     //  try-catch can be used as a value expression all blocks must be evaluated and unified
+     //  we should also iterate trough so we can pick up any return statements
       @NotNull PsiElement[] children = tryStatement.getChildren();
+      List<ResultHolder> blockResults = new ArrayList<>();
       for (PsiElement child : children) {
-         handle(child, context, resolver);
+        blockResults.add(handle(child, context, resolver));
       }
+      return HaxeTypeUnifier.unifyHolders(blockResults, tryStatement);
     }
     if (element instanceof HaxeIterable iterable) {
       ResultHolder iteratorParent = handle(iterable.getExpression(), context, resolver);
