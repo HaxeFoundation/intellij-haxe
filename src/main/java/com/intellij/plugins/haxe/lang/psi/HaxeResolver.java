@@ -310,52 +310,57 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }
 
-    HaxePsiField fieldFromReferenceExpression = null;
-    HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class);
-    if (assignExpression != null) {
-      HaxeExpression left = assignExpression.getLeftExpression();
-      //guard to avoid another resolve of the same reference, and attempts to check assignExpression for only part of a reference expression
-      if (left != reference && !(reference.getParent() instanceof  HaxeReferenceExpression)) {
-        if (left instanceof HaxeReferenceExpression referenceExpression) {
-          PsiElement resolve = referenceExpression.resolve();
-          if (resolve instanceof HaxePsiField psiField) {
-            fieldFromReferenceExpression = psiField;
+
+    PsiElement referenceParent = reference.getParent();
+
+    if (!(referenceParent instanceof HaxeType)) {
+      HaxePsiField fieldFromReferenceExpression = null;
+      HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class);
+      if (assignExpression != null) {
+        HaxeExpression left = assignExpression.getLeftExpression();
+        //guard to avoid another resolve of the same reference, and attempts to check assignExpression for only part of a reference expression
+        if (left != reference && !(referenceParent instanceof  HaxeReferenceExpression)) {
+          if (left instanceof HaxeReferenceExpression referenceExpression) {
+            PsiElement resolve = referenceExpression.resolve();
+            if (resolve instanceof HaxePsiField psiField) {
+              fieldFromReferenceExpression = psiField;
+            }
           }
         }
       }
-    }
-    if (reference.getParent() instanceof HaxeCompareExpression compareExpression ) {
-      if (compareExpression.getLeftExpression() instanceof HaxeReferenceExpression referenceExpression) {
-        if (referenceExpression != reference) {//guard to avoid another resolve of the same reference
-          PsiElement resolve = referenceExpression.resolve();
-          if (resolve instanceof HaxePsiField psiField) {
-            fieldFromReferenceExpression = psiField;
+      if (referenceParent instanceof HaxeCompareExpression compareExpression ) {
+        if (compareExpression.getLeftExpression() instanceof HaxeReferenceExpression referenceExpression) {
+          if (referenceExpression != reference) {//guard to avoid another resolve of the same reference
+            PsiElement resolve = referenceExpression.resolve();
+            if (resolve instanceof HaxePsiField psiField) {
+              fieldFromReferenceExpression = psiField;
+            }
           }
         }
       }
-    }
 
 
-    HaxePsiField field = fieldFromReferenceExpression != null ? fieldFromReferenceExpression :  PsiTreeUtil.getParentOfType(reference, HaxePsiField.class);
-    if (field != null) {
-      HaxeTypeTag tag = field.getTypeTag();
-      if (tag != null && tag.getTypeOrAnonymous() != null) {
-        ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
-        if (type.getClassType() != null) {
-          SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-          return findEnumMember(reference, typeReference);
+      HaxePsiField field = fieldFromReferenceExpression != null ? fieldFromReferenceExpression :  PsiTreeUtil.getParentOfType(reference, HaxePsiField.class);
+      if (field != null) {
+        HaxeTypeTag tag = field.getTypeTag();
+        if (tag != null && tag.getTypeOrAnonymous() != null) {
+          ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
+          if (type.getClassType() != null) {
+            SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+            return findEnumMember(reference, typeReference);
+          }
         }
       }
-    }
 
-    HaxeParameter parameter = PsiTreeUtil.getParentOfType(reference, HaxeParameter.class);
-    if (parameter != null) {
-      HaxeTypeTag tag = parameter.getTypeTag();
-      if (tag != null && tag.getTypeOrAnonymous() != null) {
-        ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
-        if (type.getClassType() != null) {
-          SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-          return findEnumMember(reference, typeReference);
+      HaxeParameter parameter = PsiTreeUtil.getParentOfType(reference, HaxeParameter.class);
+      if (parameter != null) {
+        HaxeTypeTag tag = parameter.getTypeTag();
+        if (tag != null && tag.getTypeOrAnonymous() != null) {
+          ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
+          if (type.getClassType() != null) {
+            SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+            return findEnumMember(reference, typeReference);
+          }
         }
       }
     }
