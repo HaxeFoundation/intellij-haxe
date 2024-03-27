@@ -960,14 +960,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             //  the generic resolver
             HaxeGenericResolver parentExpResolver = null;
             try {
-              if (genericResolverHelper.get() == callExpression) {
-                parentExpResolver = getGenericResolverFromParentExpression(callExpression);
-              }else {
-                genericResolverHelper.set(callExpression);
-                parentExpResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+              parentExpResolver = getGenericResolverFromParentExpression(callExpression);
+              if (!genericResolverHelper.get().contains(callExpression)) {
+                genericResolverHelper.get().push(callExpression);
+                HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+                parentExpResolver.addAll(resolver);
               }
             }finally{
-              genericResolverHelper.remove();
+              genericResolverHelper.get().remove(callExpression);
             }
             ResultHolder resolved = parentExpResolver.resolve(argument.getType());
             if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
@@ -978,7 +978,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     return null;
   }
-  private static ThreadLocal<HaxeCallExpression> genericResolverHelper = new ThreadLocal<>();
+  private static ThreadLocal<Stack<HaxeCallExpression>> genericResolverHelper = ThreadLocal.withInitial(Stack::new);
 
   private static HaxeGenericResolver getGenericResolverFromParentExpression(HaxeCallExpression callExpression) {
     @NotNull PsiElement[] children = callExpression.getChildren();
