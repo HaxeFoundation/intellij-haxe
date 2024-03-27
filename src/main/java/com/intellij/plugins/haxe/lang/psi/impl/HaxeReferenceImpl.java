@@ -958,16 +958,17 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             // a type parameter that the resolver needs to resolve, if we notice that we are resolving multiple times we try to only use
             //  parent genericResolver values or allow this second pass to return unknown so that any other parameters can populate
             //  the generic resolver
+            boolean shouldPop = false;
             HaxeGenericResolver parentExpResolver = null;
             try {
               parentExpResolver = getGenericResolverFromParentExpression(callExpression);
               if (!genericResolverHelper.get().contains(callExpression)) {
-                genericResolverHelper.get().push(callExpression);
+                shouldPop = genericResolverHelper.get().add(callExpression);
                 HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
                 parentExpResolver.addAll(resolver);
               }
             }finally{
-              genericResolverHelper.get().remove(callExpression);
+              if (shouldPop)genericResolverHelper.get().remove(callExpression);
             }
             ResultHolder resolved = parentExpResolver.resolve(argument.getType());
             if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
