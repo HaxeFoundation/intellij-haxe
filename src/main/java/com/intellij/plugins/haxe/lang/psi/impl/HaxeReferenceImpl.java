@@ -206,10 +206,25 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @NotNull
   @Override
   public JavaResolveResult advancedResolve(boolean incompleteCode) {
-    final PsiElement resolved = resolve(incompleteCode);
+    PsiElement resolved = resolve(incompleteCode);
+    // get real type for any  import alias
+    resolved = tryResolveAlias(resolved);
     // TODO: Determine if we are using the right substitutor.
     // ?? XXX: Is the internal element here supposed to be a PsiClass sub-class ??
     return null != resolved ? new CandidateInfo(resolved, EmptySubstitutor.getInstance()) : JavaResolveResult.EMPTY;
+  }
+
+  @Nullable
+  private static PsiElement tryResolveAlias(PsiElement element) {
+    if (element instanceof  HaxeImportAlias alias) {
+      if (alias.getParent() instanceof HaxeImportStatement statement) {
+        HaxeReferenceExpression referenceExpression = statement.getReferenceExpression();
+        if (referenceExpression != null) {
+          return  referenceExpression.resolve();
+        }
+      }
+    }
+    return element;
   }
 
   @NotNull
