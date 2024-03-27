@@ -38,11 +38,9 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParenthesizedExpressionReferenceImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
-import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
@@ -55,10 +53,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
 import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.evaluate;
 import static com.intellij.plugins.haxe.model.type.HaxeExpressionEvaluator.findIteratorType;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
@@ -1446,24 +1441,14 @@ public class HaxeResolveUtil {
         expression = parenthesizedExpression.getExpression();
       }
       HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(expression);
-      ResultHolder result = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
-
-      // null type "hack" : if nullType unwrap to real type
-      if(result.getType().isNullType()) {
-        result = result.getClassType().getSpecifics()[0];
+      ResultHolder switchExpressionResult = evaluate(expression, new HaxeExpressionEvaluatorContext(expression), resolver).result;
+      if (!switchExpressionResult.isUnknown() && switchExpressionResult.getClassType() != null) {
+        switchExpressionResult = switchExpressionResult.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference().createHolder();
       }
 
-      if (result.isTypeDef() && result.getClassType() != null) {
-        SpecificHaxeClassReference type = result.getClassType();
-        HaxeResolveResult resolvedTypedef = HaxeResolver.fullyResolveTypedef(type.getHaxeClass(), type.asResolveResult().getSpecialization());
-        HaxeClass haxeClass = resolvedTypedef.getHaxeClass();
-        if(haxeClass != null && haxeClass.isEnum()) {
-          return resolvedTypedef.getSpecificClassReference(haxeClass, resolvedTypedef.getGenericResolver());
-        }
-      }
 
-      if (result.isEnum() && result.getClassType() != null) {
-        return result.getClassType();
+      if (switchExpressionResult.isEnum() && switchExpressionResult.getClassType() != null) {
+        return switchExpressionResult.getClassType();
       }
     }
     return null;

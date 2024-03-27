@@ -35,6 +35,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiCodeBlock;
 import com.intellij.psi.PsiElement;
@@ -313,35 +314,16 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeEnumExtractedValue extractedValue) {
+
       HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
-      if (extractor != null) {
-        int index = -1;
-        PsiElement[] extractorArguments = extractor.getEnumExtractorArgumentList().getChildren();
-        for (int i = 0; i < extractorArguments.length; i++) {
-          if ( extractorArguments[i] == element){
-            index = i;
-            break;
-          }
-        }
-        if (index != -1) {
-          SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
-          HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
 
-          if (declaration != null) {
-            List<HaxeParameter> list = declaration.getParameterList().getParameterList();
-            if (index < list.size()) {
-              HaxeParameter parameter = list.get(index);
-              resolver.addAll(enumClass.getGenericResolver());
-
-
-              ResultHolder type = HaxeTypeResolver.getPsiElementType(parameter, resolver);
-              return resolver.resolve(type);
-
-            }else {
-              log.warn("encountered Enum extractor with more argument than enum constructor");
-            }
-          }
-        }
+      // TODO mlo should probably move the haxe model logic to the PSI implementation so we can cache it
+      HaxeEnumExtractorModel extractorModel =  new HaxeEnumExtractorModel(extractor);
+      HaxeEnumValueModel enumValueModel =  extractorModel.getEnumValueModel();
+      if (enumValueModel != null) {
+        int index = extractorModel.findExtractValueIndex(extractedValue);
+        HaxeGenericResolver extractorResolver =  extractorModel.getGenericResolver();
+        return  enumValueModel.getParameterType(index, extractorResolver);
       }
     }
 
@@ -490,6 +472,8 @@ public class HaxeExpressionEvaluator {
           if (holder!= null && !holder.isUnknown()) {
             ResultHolder resolve = resolver.resolve(holder);
             return resolve != null  && !resolve.isUnknown() ? resolve : holder;
+          }else {
+            return SpecificHaxeClassReference.getUnknown(element).createHolder();
           }
         }else {
           HaxeMethod method = PsiTreeUtil.getParentOfType(parameter, HaxeMethod.class);
@@ -924,30 +908,61 @@ public class HaxeExpressionEvaluator {
         // TODO, this probably should not be handled here, but its detected as a call expression
 
 
-        HaxeGenericResolver enumResolver = enumValueConstructor.enumClass.getGenericResolver();
+        SpecificHaxeClassReference enumClass = enumValueConstructor.enumClass;
+        HaxeGenericResolver enumResolver = enumClass.getGenericResolver();
         SpecificFunctionReference constructor = enumValueConstructor.getConstructor();
 
         List<ResultHolder> list = parameterExpressions.stream()
           .map(expression -> HaxeExpressionEvaluator.evaluate(expression, new HaxeExpressionEvaluatorContext(expression), enumResolver).result)
           .toList();
 
-        ResultHolder holder = enumValueConstructor.enumClass.createHolder();
+
+        ResultHolder holder = enumClass.createHolder();
+        SpecificHaxeClassReference type = holder.getClassType();
+        @NotNull ResultHolder[] specifics = type.getSpecifics();
         // convert any parameter that matches argument of type TypeParameter into specifics for enum type
-        int parameterIndex = 0;
-        List<Argument> arguments = constructor.getArguments();
-        for (int argumentIndex = 0; argumentIndex < arguments.size(); argumentIndex++) {
-          Argument argument = arguments.get(argumentIndex);
-          if (parameterIndex < list.size()) {
-            ResultHolder parameter = list.get(parameterIndex++);
-            if (argument.getType().canAssign(parameter)) {
-              if (argument.getType().isTypeParameter()) {
-                enumResolver.add(argument.getType().getClassType().getClassName(), parameter);
-                holder.getClassType().getSpecifics()[argumentIndex] = parameter;
+        HaxeGenericParam param = enumClass.getHaxeClass().getGenericParam();
+        List<HaxeGenericParamModel> params = enumClass.getHaxeClassModel().getGenericParams();
+
+        Map<String, List<ResultHolder>> genericsMap = new HashMap<>();
+        params.forEach(g -> genericsMap.put(g.getName(), new ArrayList<>()));
+
+        for (HaxeGenericParamModel model : params) {
+          String genericName = model.getName();
+
+          int parameterIndex = 0;
+          List<Argument> arguments = constructor.getArguments();
+          for (int argumentIndex = 0; argumentIndex < arguments.size(); argumentIndex++) {
+            Argument argument = arguments.get(argumentIndex);
+            if (parameterIndex < list.size()) {
+              ResultHolder parameter = list.get(parameterIndex++);
+              if (argument.getType().canAssign(parameter)) {
+                if (argument.getType().getType() instanceof SpecificHaxeClassReference classReference ){
+                  if (classReference.isTypeParameter() && genericName.equals(classReference.getClassName())) {
+                    genericsMap.get(genericName).add(parameter);
+                  } else {
+                  if (argument.getType().isClassType()) {
+                    HaxeGenericResolver parameterResolver = parameter.getClassType().getGenericResolver();
+                    ResultHolder test = parameterResolver.resolve(genericName);
+                    if (test != null && !test.isUnknown()) {
+                      genericsMap.get(genericName).add(parameter);
+                    }
+                  }
+                }
+                }
               }
             }
           }
         }
-
+        // unify all usage of generics
+        for (int i = 0; i < params.size(); i++) {
+          HaxeGenericParamModel g = params.get(i);
+          String name = g.getName();
+          List<ResultHolder> holders = genericsMap.get(name);
+          ResultHolder unified = HaxeTypeUnifier.unifyHolders(holders, element);
+          enumResolver.add(name, unified, ResolveSource.CLASS_TYPE_PARAMETER);
+          specifics[i] = unified;
+        }
         return holder;
 
       }
@@ -1256,6 +1271,12 @@ public class HaxeExpressionEvaluator {
         }
         //if not native array, look up ArrayAccessGetter method and use result
         if(left instanceof SpecificHaxeClassReference classReference) {
+          // make sure we fully resolve and unwrap any nulls and typedefs before searching for accessors
+          SpecificTypeReference reference = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+          if (reference instanceof SpecificHaxeClassReference fullyResolved){
+            classReference = fullyResolved;
+          }
+
           HaxeClass haxeClass = classReference.getHaxeClass();
           if (haxeClass != null) {
             HaxeNamedComponent getter = haxeClass.findArrayAccessGetter(resolver);
@@ -1306,7 +1327,8 @@ public class HaxeExpressionEvaluator {
           for (int i = 0; i < list.size(); i++) {
             HaxeParameter parameter = list.get(i);
             //ResultHolder argumentType = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), function);
-            ResultHolder argumentType = handle(parameter, context, resolver);
+            ResultHolder argumentType = handleWithRecursionGuard(parameter, context, resolver);
+            if (argumentType == null) argumentType = SpecificTypeReference.getUnknown(parameter).createHolder();
             context.setLocal(parameter.getName(), argumentType);
             // TODO check if rest param?
             boolean optional = parameter.getOptionalMark() != null || parameter.getVarInit() != null;

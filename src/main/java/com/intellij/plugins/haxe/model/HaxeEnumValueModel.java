@@ -23,6 +23,8 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static com.intellij.plugins.haxe.util.HaxePresentableUtil.getPresentableParameterList;
 
 public class HaxeEnumValueModel extends HaxeFieldModel {
@@ -86,15 +88,12 @@ public class HaxeEnumValueModel extends HaxeFieldModel {
         SpecificHaxeClassReference reference =
           SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(haxeClass));
 
-      return reference.createHolder();
-      }else {
-
+        return reference.createHolder();
+      } else {
         SpecificHaxeClassReference reference =
           SpecificHaxeClassReference.withoutGenerics(superclassReference);
         return reference.createHolder();
       }
-
-
     }
     return SpecificHaxeClassReference.getUnknown(aClass).createHolder();
   }
@@ -121,5 +120,41 @@ public class HaxeEnumValueModel extends HaxeFieldModel {
         .append(getResultType().toString());
     }
     return result.toString();
+  }
+
+  @Nullable
+  public HaxeClassModel getDeclaringEnum() {
+    PsiClass aClass = getMemberPsi().getContainingClass();
+    if (aClass instanceof HaxeClass haxeClass) {
+      return haxeClass.getModel();
+    }
+    return null;
+  }
+
+  @Nullable
+  public ResultHolder getParameterType(int index, HaxeGenericResolver resolver) {
+    if (!hasConstructor) return null;
+    if (index < 0) return null;
+    List<ResultHolder> parameters = getParameters();
+    if (index >= parameters.size()) return null;
+    ResultHolder holder = parameters.get(index);
+    if (holder.isTypeParameter()) return  resolver.resolve(holder);
+    @NotNull ResultHolder[] specifics = resolver.getSpecifics();
+    if (specifics.length> 0) {
+      // drop one level of resolver as we need the resolver for the constrcutor argument not the result of enumValues
+      HaxeGenericResolver subResolver = specifics[0].getClassType().getGenericResolver();
+      return subResolver.resolve(holder);
+    }else {
+      ResultHolder resolve = resolver.resolve(holder);
+      return resolve;
+    }
+  }
+
+  private List<ResultHolder> getParameters() {
+    HaxeParameterList parameters = getConstructorParameters();
+    if (parameters == null) return List.of();
+    return parameters.getParameterList().stream()
+      .map(parameter -> HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameters))
+      .toList();
   }
 }
