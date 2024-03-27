@@ -1,6 +1,7 @@
 # Changelog
 ## 1.4.47
-* Fixed: attempt at fixing incorrect sorting of Project roots
+* Fixed: Attempt at fixing incorrect sorting of Project roots
+* Fixed: Resolve of super types would fail when type was  import alias
 * Improvement: Better type resolve for parameters without type tag in functionLiterals
 
 
