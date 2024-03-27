@@ -841,9 +841,8 @@ public class HaxeExpressionEvaluator {
                 final HaxeIterable iterable = forStatement.getIterable();
                 if (iterable != null) {
                   ResultHolder iterator = handle(iterable, context, resolver);
-                  // "unwrap" null type  if Null<T>
-                  if (iterator.getClassType().isNullType()) {
-                    iterator = iterator.getClassType().getSpecifics()[0];
+                  if (iterator.isClassType()) {
+                    iterator = iterator.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference().createHolder();
                   }
                   // get specific from iterator as thats the type for our variable
                   ResultHolder[] specifics = iterator.getClassType().getSpecifics();
