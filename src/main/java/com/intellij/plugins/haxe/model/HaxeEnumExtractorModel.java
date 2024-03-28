@@ -93,6 +93,10 @@ public class HaxeEnumExtractorModel {
 
   private static CachedValueProvider.Result<PsiElement> computeResolveEnumValue(HaxeEnumArgumentExtractor extractor) {
     PsiElement resolve = extractor.getEnumValueReference().getReferenceExpression().resolve();
-    return new CachedValueProvider.Result<>(resolve, extractor, resolve);
+    if (resolve != null) {
+      return new CachedValueProvider.Result<>(resolve, extractor, resolve);
+    }else {
+      return new CachedValueProvider.Result<>(null, extractor);
+    }
   }
 }

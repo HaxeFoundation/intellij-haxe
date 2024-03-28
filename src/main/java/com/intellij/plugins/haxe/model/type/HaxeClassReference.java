@@ -28,6 +28,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -63,16 +65,15 @@ public class HaxeClassReference {
   }
 
   private String getClassName(HaxeClassModel clazz) {
-    Pair<Integer, String> className = clazz.haxeClass.getUserData(CLASS_NAME_KEY);
-    if (className == null || className.first != clazz.haxeClass.hashCode()) {
-      className = new Pair<>(clazz.haxeClass.hashCode(), getClassNameInternal(clazz));
-      clazz.haxeClass.putUserData(CLASS_NAME_KEY, className);
-    }
-
-    return className.second;
+    return CachedValuesManager.getProjectPsiDependentCache(clazz.getPsi(), HaxeClassReference::getNameCached).getValue();
   }
 
-  private String getClassNameInternal(HaxeClassModel clazz) {
+  private static CachedValueProvider.Result<String> getNameCached(HaxeClass aClass) {
+    String name = getClassNameInternal(aClass.getModel());
+    return  CachedValueProvider.Result.create(name, aClass);
+  }
+
+  private static String getClassNameInternal(HaxeClassModel clazz) {
     if (clazz.haxeClass instanceof HaxeAnonymousType) {
       HaxeNamedComponent namedComponent = HaxeResolveUtil.findTypeParameterContributor(clazz.getBasePsi());
       if (namedComponent instanceof HaxeTypedefDeclaration typedefDeclaration) {

@@ -155,31 +155,33 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       stack.add(this);
 
       StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
-      ResultHolder[] specifics = getSpecifics();
-      if (specifics.length > 0) {
-        out.append("<");
-        for (int n = 0; n < specifics.length; n++) {
-          if (n > 0) out.append(", ");
-          ResultHolder specific = specifics[n];
-          if (specific == null) {
-            out.append(UNKNOWN);
-          }
-          else if (specific.getType() == this) {
-            List<HaxeGenericParamModel> params = classModel.getGenericParams();
-            if (params.size() > n) {
-              HaxeGenericParamModel model = params.get(n);
-              out.append(model.getName());
+      if (!(this instanceof  SpecificHaxeAnonymousReference)) {
+        ResultHolder[] specifics = getSpecifics();
+        if (specifics.length > 0) {
+          out.append("<");
+          for (int n = 0; n < specifics.length; n++) {
+            if (n > 0) out.append(", ");
+            ResultHolder specific = specifics[n];
+            if (specific == null) {
+              out.append(UNKNOWN);
+            }
+            else if (specific.getType() == this) {
+              List<HaxeGenericParamModel> params = classModel.getGenericParams();
+              if (params.size() > n) {
+                HaxeGenericParamModel model = params.get(n);
+                out.append(model.getName());
+              }
+              else {
+                out.append("*Recursion Error*");
+              }
+              log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
             }
             else {
-              out.append("*Recursion Error*");
+              out.append(specific.toStringWithoutConstant());
             }
-            log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
           }
-          else {
-            out.append(specific.toStringWithoutConstant());
-          }
+          out.append(">");
         }
-        out.append(">");
       }
       String result = out.toString();
       if (result.equals("Dynamic<Dynamic>")) return "Dynamic";
