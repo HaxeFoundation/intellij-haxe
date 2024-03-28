@@ -338,8 +338,14 @@ public class HaxeTypeResolver {
       return statement;
     }
     else {
-      return PsiTreeUtil.findChildOfType(psi, HaxeReturnStatement.class);
+      // search for ReturnStatements but filter out any that are part of local functions
+      Collection<HaxeReturnStatement> returnStatements = PsiTreeUtil.findChildrenOfType(psi, HaxeReturnStatement.class);
+      for (HaxeReturnStatement statement : returnStatements) {
+        HaxePsiCompositeElement type = PsiTreeUtil.getParentOfType(statement, HaxeLocalFunctionDeclaration.class, HaxeFunctionLiteral.class);
+        if (type == null) return statement;
+      }
     }
+    return null;
   }
 
   private static boolean isVoidReturn(HaxeReturnStatement statement) {

@@ -155,7 +155,10 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    if ((resolver == null || resolver.isEmpty()) && haxeMethod.getGenericParam() != null) {
+    // attempt att caching returnType for methods that does not change by resolver or parameters
+    if ((resolver == null || resolver.isEmpty()) // must not use resolver
+        && haxeMethod.getReturnType() !=null // must have type tag
+        && haxeMethod.getGenericParam() != null) { // must not have generics
       return CachedValuesManager.getProjectPsiDependentCache(haxeMethod,  HaxeMethodModel::getReturnTypeCacheProvider).getValue();
     }else {
       return  HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
