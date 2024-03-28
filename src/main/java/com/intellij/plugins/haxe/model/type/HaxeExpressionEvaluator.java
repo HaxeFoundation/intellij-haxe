@@ -1665,7 +1665,12 @@ public class HaxeExpressionEvaluator {
           HaxeExpression rightExpression = assignExpression.getRightExpression();
           ResultHolder result = handle(rightExpression, context, resolver);
           if (!result.isUnknown() && result.getType().isSameType(resultHolder.getType())) {
-            return result;
+            HaxeGenericResolver resultResolver = result.getClassType().getGenericResolver();
+            HaxeGenericResolver resultResolverWithoutUnknowns = resultResolver.withoutUnknowns();
+            // check that assigned value does not contain any unknown typeParameters (ex. someArrVar = [])
+            if (resultResolver.names().length == resultResolverWithoutUnknowns.names().length) {
+              return result;
+            }
           }
         }
         if (expression.getParent() instanceof HaxeReferenceExpression referenceExpression) {
