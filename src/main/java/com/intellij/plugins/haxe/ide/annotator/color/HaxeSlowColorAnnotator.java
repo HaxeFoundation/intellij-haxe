@@ -24,6 +24,8 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.ide.highlight.HaxeSyntaxHighlighterColors;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -41,6 +43,11 @@ public class HaxeSlowColorAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
     if (node instanceof PsiWhiteSpace) return;
 
+
+    if(isReification(node) || node instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {
+    //if(node instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {
+      colorizeReification(holder, node);
+    }
 
     if (node instanceof HaxeReference reference) {
       final boolean chain = PsiTreeUtil.getChildOfType(node, HaxeReference.class) != null;
@@ -82,6 +89,30 @@ public class HaxeSlowColorAnnotator implements Annotator {
 
   private static boolean checkStatic(PsiElement parent) {
     return parent instanceof HaxeNamedComponent && ((HaxeNamedComponent)parent).isStatic();
+  }
+
+  private void colorizeReification(AnnotationHolder holder, PsiElement element) {
+    TextAttributesKey attributesKey = HaxeSyntaxHighlighterColors.TYPE_REIFICATION;
+
+    if (element instanceof  HaxeReificationExpression) {
+      PsiElement macroId = element.getFirstChild();
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(macroId).textAttributes(attributesKey).create();
+      PsiElement sibling = macroId.getNextSibling();
+      if (sibling != null && sibling.textMatches("{")) {
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(sibling).textAttributes(attributesKey).create();
+
+        PsiElement parent = sibling.getParent();
+        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(parent.getLastChild()).textAttributes(attributesKey).create();
+      }
+    }else {
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(attributesKey).create();
+    }
+
+
+  }
+
+  private boolean isReification(PsiElement token) {
+    return token instanceof HaxeReificationExpression;
   }
 
 }

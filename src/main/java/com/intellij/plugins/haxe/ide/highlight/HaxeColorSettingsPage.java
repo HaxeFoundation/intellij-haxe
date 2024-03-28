@@ -64,6 +64,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.class"), CLASS),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.interface"), INTERFACE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.type-parameter"), TYPE_PARAMETER),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.reification"), TYPE_REIFICATION),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.function"), INSTANCE_MEMBER_FUNCTION),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.static.member.function"), STATIC_MEMBER_FUNCTION),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.variable"), INSTANCE_MEMBER_VARIABLE),
@@ -85,6 +86,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("undefined.flag", UNDEFINED_VAR);
     ourTags.put("interface", INTERFACE);
     ourTags.put("type.parameter", TYPE_PARAMETER);
+    ourTags.put("reification", TYPE_REIFICATION);
     ourTags.put("instance.member.function", INSTANCE_MEMBER_FUNCTION);
     ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
     ourTags.put("instance.member.variable", INSTANCE_MEMBER_VARIABLE);
@@ -153,6 +155,11 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
         public static function <static.member.function>inc</static.member.function>() {
           <static.member.variable>staticField</static.member.variable>++;
         }
+        
+        macro public static function macroBlockReification(a:Array<Expr>) {
+            return macro <reification>$b{}</reification>a<reification>}</reification>;
+        }
+        
         public function <instance.member.function>foo</instance.member.function>(<parameter>param</parameter>:<interface>AnInterface</interface>) {
           trace(<instance.member.variable>anotherString</instance.member.variable> + <parameter>param</parameter>);
           var <local.variable>reassignedValue</local.variable>:<class>Int</class> = <class>SomeClass</class>.<static.member.variable>staticField</static.member.variable>;\s

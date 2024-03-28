@@ -59,14 +59,14 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
       }
 
     }else if (node instanceof PsiComment) {
-      ppelements(node, holder);
+      ppElements(node, holder);
     }else if (node instanceof HaxeComponentName componentName) {
       checkComponentName(componentName, holder);
     }
 
   }
 
-  private static void ppelements(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
+  private static void ppElements(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
     final ASTNode astNode = node.getNode();
     if (astNode == null) return;
     IElementType tt = astNode.getElementType();

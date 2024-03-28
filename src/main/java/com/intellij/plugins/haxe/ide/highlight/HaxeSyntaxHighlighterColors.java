@@ -81,6 +81,10 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey(HAXE_CLASS, DefaultLanguageHighlighterColors.CLASS_NAME);
   public static final TextAttributesKey TYPE_PARAMETER =
   createTextAttributesKey("HAXE_TYPE_PARAMETER", DefaultLanguageHighlighterColors.TEMPLATE_LANGUAGE_COLOR);
+
+  public static final TextAttributesKey TYPE_REIFICATION =
+  createTextAttributesKey("HAXE_TYPE_REIFICATION", DefaultLanguageHighlighterColors.HIGHLIGHTED_REFERENCE);
+
   public static final TextAttributesKey INTERFACE =
     createTextAttributesKey(HAXE_INTERFACE, DefaultLanguageHighlighterColors.INTERFACE_NAME);
   public static final TextAttributesKey STATIC_MEMBER_FUNCTION =

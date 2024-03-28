@@ -544,14 +544,14 @@ private statement_recovery ::= !('case' | 'default' | '}')
 
 //https://haxe.org/manual/macro-reification-expression.html
 // Expression Reification
-macroArrayReification::= "$a" macroStatementWrapper
-macroBlockReification::= "$b" macroStatementWrapper
-macroIdentifierReification::= "$i" macroStatementWrapper
-macroFieldReification::= "$p" macroStatementWrapper
-macroDynamicReification::= "$v" macroStatementWrapper
+macroArrayReification::= "$a" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
+macroBlockReification::= "$b" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
+macroIdentifierReification::= "$i" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
+macroFieldReification::= "$p" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
+macroDynamicReification::= "$v" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
 
-macroExpReification::= "$e" macroStatementWrapper
-macroShorthandExpReification::= '$' "{" expression "}" // shorthand for $e / expression ?
+macroExpReification::= "$e" macroStatementWrapper {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"}
+macroShorthandExpReification::= '$' "{" expression "}" {mixin="com.intellij.plugins.haxe.lang.psi.HaxeReificationExpression"} // shorthand for $e / expression ?
 
 private macroStatementWrapper ::= "{" expression "}"
 

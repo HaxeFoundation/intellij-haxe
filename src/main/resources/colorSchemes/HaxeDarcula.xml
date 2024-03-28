@@ -22,6 +22,11 @@
       <option name="FOREGROUND" value="507874"/>
     </value>
   </option>
+  <option name="HAXE_TYPE_REIFICATION">
+    <value>
+      <option name="FOREGROUND" value="b25c5e"/>
+    </value>
+  </option>
   <option name="HAXE_CONDITIONALLY_NOT_COMPILED">
     <value>
       <option name="FOREGROUND" value="89B270"/>
