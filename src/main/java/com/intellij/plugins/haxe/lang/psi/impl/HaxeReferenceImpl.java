@@ -384,11 +384,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
           || aClass.getQualifiedName().equals(HaxeMacroTypeUtil.EXPR)) {
         HaxeGenericResolver resolver = result.getGenericResolver();
-        HaxeGenericListPart part = aClass.getGenericParam().getGenericListPartList().get(0);
-        ResultHolder resolve = resolver.resolve(part);
-        if (resolve != null && !resolve.isUnknown()) {
-          SpecificHaxeClassReference type = resolve.getClassType();
-          if (type != null) return type.asResolveResult();
+        HaxeGenericParam genericParam = aClass.getGenericParam();
+        if(genericParam != null) {
+          HaxeGenericListPart part = genericParam.getGenericListPartList().get(0);
+          ResultHolder resolve = resolver.resolve(part);
+          if (resolve != null && !resolve.isUnknown()) {
+            SpecificHaxeClassReference type = resolve.getClassType();
+            if (type != null) return type.asResolveResult();
+          }
         }
       }
     }
