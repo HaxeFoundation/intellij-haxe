@@ -152,6 +152,10 @@ public class HaxeEnumExtractorModel implements HaxeModel {
             HaxeGenericResolver pathResolver =  switchExpressionType.getClassType().getGenericResolver();
             SpecificHaxeClassReference classType = switchExpressionType.getClassType();
             if (classType != null) {
+              //unwrap null so we can resolve members correctly
+              if(classType.isNullType() && classType.unwrapNullType() instanceof SpecificHaxeClassReference classReference) {
+                classType = classReference;
+              }
               // LinkedHashMap because order matters
               LinkedHashMap<String, String> memberPath = createSwitchExpressionMemberPath(extractedValue);
               for (Map.Entry<String, String> path : memberPath.entrySet()) {
@@ -171,9 +175,6 @@ public class HaxeEnumExtractorModel implements HaxeModel {
                   }
                 }
                 }
-              }
-              if(classType != null) {
-                return classType.createHolder();
               }
             }
             ResultHolder resolve = pathResolver.resolve(parameterType);
