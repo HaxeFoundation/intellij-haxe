@@ -34,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.MULTI_TYPE;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.TRANSITIVE;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 @CustomLog
@@ -448,6 +449,8 @@ public class HaxeTypeCompatible {
     return canAssignToFromType(to,from, true, null);
   }
 
+  private static final RecursionGuard<HaxeClass> transitiveRecursionGuard = RecursionManager.createGuard("transitiveRecursionGuard");
+
   static private boolean canAssignToFromType(
     @NotNull SpecificHaxeClassReference to,
     @NotNull SpecificHaxeClassReference from,
@@ -505,22 +508,37 @@ public class HaxeTypeCompatible {
 
     Set<SpecificHaxeClassReference> compatibleTypes = to.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_FROM);
     if (to.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(to.getHaxeClassModel().getImplicitCastFromTypesListClassOnly(to));
+
+    boolean transitiveFrom = isTransitive(from);
+    HaxeClassModel fromClassModel = from.getHaxeClassModel();
+    List<SpecificHaxeClassReference> fromTransitiveTypes = fromClassModel == null ? List.of() : fromClassModel.getImplicitCastToTypesListClassOnly(from);
+
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       SpecificTypeReference compatibleTypeResolved = compatibleType.fullyResolveTypeDefAndUnwrapNullTypeReference();
       if (compatibleTypeResolved instanceof SpecificHaxeClassReference classReference) {
         if (canAssignToFromSpecificType(classReference, from)) return true;
+
+        if (transitiveFrom && fromClassModel != null) {
+
+          for (SpecificHaxeClassReference transitiveType : fromTransitiveTypes) {
+            HaxeClass haxeClass = transitiveType.getHaxeClass();
+            if (haxeClass != null) {
+              Boolean canAssign =
+                transitiveRecursionGuard.computePreventingRecursion(haxeClass, true, () -> canAssignToFromSpecificType(classReference, transitiveType));
+              if (canAssign == Boolean.TRUE) return true;
+            }
+          }
+        }
       }
     }
-
 
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
     if (from.isAbstractType()) {
 
       boolean isMultiType = from.getHaxeClass().hasCompileTimeMeta(MULTI_TYPE);
       if (isMultiType || includeImplicitCast) {
-        HaxeClassModel classModel = from.getHaxeClassModel();
-        if (classModel != null) {
-          List<SpecificHaxeClassReference> implicitCastList = classModel.getImplicitCastToTypesListClassOnly(from);
+        if (fromClassModel != null) {
+          List<SpecificHaxeClassReference> implicitCastList = fromClassModel.getImplicitCastToTypesListClassOnly(from);
           if (isMultiType) {
             if (canAssignMultiType(to, from, context, implicitCastList)) return true;
           }
@@ -551,6 +569,11 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  private static boolean isTransitive(@NotNull SpecificHaxeClassReference from) {
+    HaxeClass aClass = from.getHaxeClass();
+    return aClass != null && aClass.hasCompileTimeMeta(TRANSITIVE);
   }
 
   private static boolean canAssignMultiType(@NotNull SpecificHaxeClassReference to,

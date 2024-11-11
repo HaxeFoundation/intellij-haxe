@@ -128,6 +128,7 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   HaxeMetadataTypeName UNREFLECTIVE = new HaxeMetadataTypeName("unreflective");
   HaxeMetadataTypeName USING = new HaxeMetadataTypeName("using");
   HaxeMetadataTypeName VALUE = new HaxeMetadataTypeName("value");
+  HaxeMetadataTypeName TRANSITIVE = new HaxeMetadataTypeName("transitive");
 
   HaxeMetadataTypeName CALLABLE = new HaxeMetadataTypeName("callable");
 
