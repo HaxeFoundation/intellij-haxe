@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.PsiElement;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -83,7 +84,12 @@ public class ResultHolder {
     return (type instanceof SpecificHaxeClassReference classReference) && classReference.isTypeDef();
   }
   public boolean isEnum() {
-    return (type instanceof SpecificHaxeClassReference classReference) && classReference.isEnumType();
+    if (type instanceof SpecificHaxeClassReference classReference){
+      if(classReference.isEnumType()) return true;
+      HaxeClass aClass = classReference.getHaxeClass();
+      if(aClass != null)  return aClass.isEnum();
+    }
+    return false;
   }
 
   public boolean isEnumValueType() {
@@ -221,6 +227,14 @@ public class ResultHolder {
   public boolean containsUnknownTypeParameters() {
     return containsUnknownTypeParameters(this);
   }
+  public boolean containsUnknownTypes() {
+    if(isUnknown()) return true;
+    if(isFunctionType()) {
+      return containsUnknownTypeParameters(this) || getFunctionType().containsUnknownTypes();
+    }else {
+      return containsUnknownTypeParameters(this);
+    }
+  }
   public static boolean containsUnknownTypeParameters(ResultHolder holder) {
     if (holder.isUnknown()) return  false;
     if (holder.isTypeParameter()) return true;
@@ -256,5 +270,9 @@ public class ResultHolder {
 
   public ResultHolder wrapInNullType() {
     return getType().wrapInNullType().createHolder();
+  }
+
+  public static boolean nullOrUnknown(ResultHolder holder) {
+    return holder == null || holder.isUnknown();
   }
 }

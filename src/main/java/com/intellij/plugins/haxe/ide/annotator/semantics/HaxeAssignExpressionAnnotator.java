@@ -42,7 +42,7 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rhs);
 
     ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(lhs, psi, lhsResolver);
-    rhsResolver.add("", lhsType.tryUnwrapNullType(), ResolveSource.ASSIGN_TYPE);
+    rhsResolver.setAssignHint(lhsType.tryUnwrapNullType());
     // if class add type hinting for resolver
     if(lhsType.isClassType()){
       SpecificHaxeClassReference type = lhsType.getClassType();

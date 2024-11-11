@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -369,7 +368,7 @@ public class HaxeResolveResult implements Cloneable {
     }
 
     int i = 0;
-    List<SpecificFunctionReference.Argument> argList = new ArrayList<>();
+    List<HaxeArgument> argList = new ArrayList<>();
     for (HaxeFunctionArgument argument : argumentList) {
       argList.add(convertToArgument(argument, i++));
     }
@@ -378,7 +377,7 @@ public class HaxeResolveResult implements Cloneable {
     return new SpecificFunctionReference(argList, returnType, (HaxeMethodModel)null, functionType);
   }
 
-  private SpecificFunctionReference.Argument convertToArgument(HaxeFunctionArgument argument, int index) {
+  private HaxeArgument convertToArgument(HaxeFunctionArgument argument, int index) {
     ResultHolder type;
     if (argument.getTypeOrAnonymous() != null) {
         type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(argument.getTypeOrAnonymous());
@@ -388,7 +387,7 @@ public class HaxeResolveResult implements Cloneable {
     boolean optional = argument.getOptionalMark() != null;
     boolean rest = argument.getRestArgumentType() != null;
 
-    return new SpecificFunctionReference.Argument(index, optional, rest, type, null);
+    return new HaxeArgument(index, optional, rest, type, null);
   }
 
   @NotNull
@@ -483,9 +482,13 @@ public class HaxeResolveResult implements Cloneable {
         specialization.put(haxeClass, genericParamName, specializedTypeResult);
       }else {
           //TODO: Experimental (adding fake haxeClass for generic types that are not connected to any type yet)
-          HaxeClassWrapperForTypeParameter aClass = new HaxeClassWrapperForTypeParameter(specializedType.getNode(), List.of());
-          HaxeResolveResult result = HaxeResolveResult.create(aClass, new HaxeGenericSpecialization());
-          specialization.put(haxeClass, genericParamName, result);
+        if(specializedType instanceof HaxeType haxeType) {
+
+          ResultHolder type = genericListPart.getModel().getInstanceType();
+          HaxeResolveResult result1 = type.getType().asResolveResult();
+          specialization.put(haxeClass, genericParamName, result1);
+
+        }
       }
 
     }

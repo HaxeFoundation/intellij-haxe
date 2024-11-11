@@ -95,7 +95,7 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
           if (classModel != null && leftReferenceResolveResult != null) {
             HaxeClass currentClass = leftReferenceResolveResult.getHaxeClass();
             HaxeClass membersClass = classModel.haxeClass;
-            resolver = HaxeGenericResolverUtil.createInheritedClassResolver(membersClass, currentClass, resolver);
+            if(currentClass != null)  resolver = resolver.translateFromTo(currentClass, membersClass);
           }
           if (model instanceof  HaxeMethodModel) {
             // adding functionType in addition to method call

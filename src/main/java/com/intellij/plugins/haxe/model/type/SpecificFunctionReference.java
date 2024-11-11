@@ -23,7 +23,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,14 +40,25 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return functionType != null ? HaxeResolveResult.create(functionType) : null;
   }
 
+  public boolean containsUnknownTypes() {
+    for (HaxeArgument argument : getArguments()) {
+      ResultHolder argumentType = argument.getType();
+      if(argumentType.isUnknown() || argumentType.containsUnknownTypes()) return true;
+    }
+
+    ResultHolder type = getReturnType();
+    return type.isUnknown() || type.containsUnknownTypes();
+  }
+
+
   public static class StdFunctionReference extends SpecificFunctionReference {
     public StdFunctionReference(@NotNull PsiElement context) {
-      super(new ArrayList<Argument>(), SpecificTypeReference.getDynamic(context).createHolder(), (HaxeMethodModel)null, context);
+      super(new ArrayList<HaxeArgument>(), SpecificTypeReference.getDynamic(context).createHolder(), (HaxeMethodModel)null, context);
     }
   }
 
 
-  final public List<Argument> arguments;
+  final public List<HaxeArgument> arguments;
   final public ResultHolder returnValue;
 
   @Nullable final public HaxeMethodModel method;
@@ -56,8 +66,8 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   @Nullable final public HaxeFunctionType functionType;
   @Nullable final public Object constantValue;
 
-  public SpecificFunctionReference(List<Argument> arguments,
-                                   ResultHolder returnValue,
+  public SpecificFunctionReference(List<HaxeArgument> arguments,
+                                   @NotNull ResultHolder returnValue,
                                    @Nullable HaxeMethodModel method,
                                    @NotNull PsiElement context,
                                    @Nullable Object constantValue) {
@@ -70,15 +80,15 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     this.functionType = null;
   }
 
-  public SpecificFunctionReference(List<Argument> arguments,
-                                   ResultHolder returnValue,
+  public SpecificFunctionReference(List<HaxeArgument> arguments,
+                                   @NotNull ResultHolder returnValue,
                                    @Nullable HaxeMethodModel method,
                                    @NotNull PsiElement context) {
     this(arguments, returnValue, method, context, null);
   }
 
-  public SpecificFunctionReference(List<Argument> arguments,
-                                   ResultHolder returnValue,
+  public SpecificFunctionReference(List<HaxeArgument> arguments,
+                                   @NotNull ResultHolder returnValue,
                                    @Nullable HaxeFunctionType functionType,
                                    @NotNull PsiElement context) {
     super(context);
@@ -93,7 +103,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   @Override
   public List<ResultHolder> getTypeParameters() {
     List<ResultHolder> genericsTypes = new ArrayList<>();
-      for (Argument argument : arguments) {
+      for (HaxeArgument argument : arguments) {
         ResultHolder holder = argument.getType();
         if (holder.isTypeParameter()) {
           genericsTypes.add(holder);
@@ -110,15 +120,15 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     }
 
   public static SpecificFunctionReference create(HaxeMethodModel model) {
-    LinkedList<Argument> args = new LinkedList<>();
+    LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
     if (parameters.isEmpty()) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((model.getMethodPsi()));
-      args.add(new Argument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      args.add(new HaxeArgument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < parameters.size(); i++) {
         HaxeParameterModel parameterModel = parameters.get(i);
-        args.add(new Argument(i, parameterModel.isOptional(),parameterModel.isRest(), parameterModel.getResultType(), parameterModel.getName()));
+        args.add(new HaxeArgument(i, parameterModel.isOptional(), parameterModel.isRest(), parameterModel.getResultType(), parameterModel.getName()));
       }
     }
     return new SpecificFunctionReference(args, model.getReturnType(null), model, model.getMethodPsi());
@@ -138,16 +148,16 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     HaxeGenericSpecialization specialization = func.getSpecialization();
     HaxeGenericResolver resolver = specialization.toGenericResolver(func);
 
-    LinkedList<Argument> args = new LinkedList<>();
+    LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
-    if (arguments.size() == 0) {
+    if (arguments.isEmpty()) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((func));
-      args.add(new Argument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      args.add(new HaxeArgument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < arguments.size(); i++) {
         HaxeFunctionArgument arg = arguments.get(i);
         ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
-        args.add(new Argument(i, null != arg.getOptionalMark(), null != arg.getRestArgumentType(),result, arg.getName()));
+        args.add(new HaxeArgument(i, null != arg.getOptionalMark(), null != arg.getRestArgumentType(), result, arg.getName()));
       }
     }
 
@@ -197,7 +207,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       .count();
   }
 
-  public List<Argument> getArguments() {
+  public List<HaxeArgument> getArguments() {
     return arguments;
   }
 
@@ -205,14 +215,14 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return returnValue;
   }
 
-  public static String toFunctionDescription(boolean presentable, List<Argument> arguments, ResultHolder returnValue) {
+  public static String toFunctionDescription(boolean presentable, List<HaxeArgument> arguments, ResultHolder returnValue) {
     StringBuilder out = new StringBuilder();
 
     final boolean notSingleArgument = arguments.size() > 1;
     if (notSingleArgument) out.append('(');
     for (int n = 0; n < arguments.size(); n++) {
       if (n > 0) out.append(", ");
-      Argument argument = arguments.get(n);
+      HaxeArgument argument = arguments.get(n);
       out.append(argument.toStringWithoutConstant());
     }
     if (arguments.isEmpty() && presentable) {
@@ -245,71 +255,8 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return toPresentationString(); // XXX: If there's an anonymous function, should we be adding it here?
   }
 
-  public static class Argument {
-    @Getter final private int index;
-    @Getter final private boolean optional;
-    @Getter final private boolean isRest;
-    @Getter final private String name;
-    @Getter final private ResultHolder type;
-
-    public Argument(int index, boolean optional,boolean rest, @NotNull ResultHolder type, @Nullable String name) {
-      this.index = index;
-      this.optional = optional;
-      this.isRest = rest;
-      this.name = name;
-      this.type = type;
-    }
-    public  boolean isTypeParameter() {
-      return type.isTypeParameter();
-    }
-
-    public boolean hasName() {
-      return name != null;
-    }
-
-    public String toString() {
-      return buildStringRepresentation(true);
-    }
-
-    public String toStringWithoutConstant() {
-      return buildStringRepresentation(false);
-    }
-
-    @NotNull
-    private String buildStringRepresentation(final boolean withConstantValue) {
-      StringBuilder builder = new StringBuilder();
-      if (isOptional()) builder.append('?');
-      if (withConstantValue && hasName()) {
-        builder.append(getName());
-        builder.append(':');
-      }
-
-      if (withConstantValue) {
-        builder.append(type.toString());
-      } else {
-        builder.append(type.toStringWithoutConstant());
-      }
-
-      return builder.toString();
-    }
-
-    public boolean isVoid() {
-      return type.getType().isVoid();
-    }
-
-    public boolean isInvalid() {
-      return type.getType().isInvalid();
-    }
-
-    public boolean canAssignToFrom(Argument argument) {
-      // TO can accept optional but not the other way around.
-      // if TO has optional argument and  FROM does not then the assignment should fail.
-      return (argument.isOptional() || this.isOptional() == argument.isOptional()) && type.canAssign(argument.type);
-    }
-
-    public Argument withType(ResultHolder newType) {
-      return new Argument(this.index, this.optional, this.isRest, newType, this.name);
-    }
+  public SpecificFunctionReference withTypes(@NotNull List<HaxeArgument> newArgs, @NotNull ResultHolder newReturnType) {
+    return new SpecificFunctionReference( newArgs, newReturnType, method, context, constantValue) ;
   }
 
   @Override

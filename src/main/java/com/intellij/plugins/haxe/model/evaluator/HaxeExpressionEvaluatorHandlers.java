@@ -13,9 +13,11 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
@@ -41,8 +43,8 @@ import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiter
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.searchReferencesForTypeParameters;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
-import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.createInheritedClassResolver;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.resolveMacroTypesForFunction;
+import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.*;
 
@@ -219,7 +221,6 @@ public class HaxeExpressionEvaluatorHandlers {
 
         SpecificHaxeClassReference classType = typeHolder.getClassType();
         if (null != classType) {
-          localResolver = localResolver.withoutClassTypeParameters();
           localResolver.addAll(classType.getGenericResolver());
         }
         String accessName = child.getText();
@@ -296,9 +297,8 @@ public class HaxeExpressionEvaluatorHandlers {
                 HaxeClass  usedIn = PsiTreeUtil.getParentOfType((PsiElement)reference, HaxeClass.class);
                 HaxeClass containingClass = (HaxeClass)fieldDeclaration.getContainingClass();
                 if (usedIn != null && containingClass != null && usedIn != containingClass && containingClass.isGeneric()) {
-                  HaxeGenericResolver inheritedClassResolver = createInheritedClassResolver(containingClass, usedIn, resolver);
-                  HaxeGenericResolver resolverForContainingClass = inheritedClassResolver.getSpecialization(null).toGenericResolver(containingClass);
-                  ResultHolder resolve = resolverForContainingClass.resolve(typeHolder);
+                  HaxeGenericResolver inheritedClassResolver = resolver.translateFromTo(usedIn, containingClass);
+                  ResultHolder resolve = inheritedClassResolver.resolve(typeHolder);
                   if (resolve != null && !resolve.isUnknown()) typeHolder = resolve;
                 }else if (typeHolder.isTypeParameter()) {
                   ResultHolder resolve = resolver.resolve(typeHolder);
@@ -312,7 +312,20 @@ public class HaxeExpressionEvaluatorHandlers {
           }
           else if (subelement instanceof HaxeMethod haxeMethod) {
             boolean isFromCallExpression = reference instanceof  HaxeCallExpression;
-            SpecificFunctionReference type = haxeMethod.getModel().getFunctionType(isFromCallExpression ? resolver : resolver.withoutAssignHint());
+            //TODO resolversClass is unreliable due to  gaps in type parameter inheritance and we might not get a resolver with  class typeParams
+            HaxeClass resolversClass = resolver.resolversClass();
+            HaxeMethodModel model = haxeMethod.getModel();
+            HaxeGenericResolver localResolver = new HaxeGenericResolver();
+            localResolver.addAll(resolver);
+
+            if(model != null) {
+              HaxeClassModel classModel = model.getDeclaringClass();
+              if(resolversClass != null && classModel != null && classModel.haxeClass != null) {
+                localResolver = resolver.translateFromTo(resolversClass, classModel.haxeClass);
+              }
+            }
+
+            SpecificFunctionReference type = haxeMethod.getModel().getFunctionType(isFromCallExpression ? localResolver : localResolver.withoutAssignHint());
             if (!isFromCallExpression) {
               //  expression is referring to the method not calling it.
               //  assign hint should be used for substituting parameters instead of being used as return type
@@ -525,7 +538,7 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeTypeTag typeTag = parameter.getTypeTag();
     if (typeTag != null) {
       ResultHolder typeFromTypeTag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, parameter);
-      ResultHolder resolve = resolver.resolve(typeFromTypeTag);
+      ResultHolder resolve = resolver.withoutUnknowns().resolve(typeFromTypeTag);
       if (resolve != null && !resolve.isUnknown()) typeFromTypeTag = resolve;
       // if parameter is optional then its nullable and should be Null<T>
       if (parameter.getOptionalMark() != null && !typeFromTypeTag.isNullWrappedType()) {
@@ -782,7 +795,7 @@ public class HaxeExpressionEvaluatorHandlers {
     //if (params == null) {
     //  return SpecificHaxeClassReference.getInvalid(function).createHolder();
     //}
-    LinkedList<SpecificFunctionReference.Argument> arguments = new LinkedList<>();
+    LinkedList<HaxeArgument> arguments = new LinkedList<>();
     ResultHolder returnType = null;
     HaxeScope scope = context.beginScope();
     scope.unificationRules = UnificationRules.PREFER_VOID;
@@ -816,7 +829,7 @@ public class HaxeExpressionEvaluatorHandlers {
               if (reference instanceof  SpecificFunctionReference functionReference) {
                   // if type found in param, override  argumentType (default is unknown)
                   if (argumentType.isUnknown() && !functionReference.getArguments().isEmpty()) {
-                    SpecificFunctionReference.Argument argument = functionReference.getArguments().get(0);
+                    HaxeArgument argument = functionReference.getArguments().get(0);
                     argumentType = argument.getType();
                 }
               }
@@ -826,7 +839,7 @@ public class HaxeExpressionEvaluatorHandlers {
         }
         context.setLocal(argumentName, argumentType);
         // TODO check if rest param?
-        arguments.add(new SpecificFunctionReference.Argument(0, false, false, argumentType, argumentName));
+        arguments.add(new HaxeArgument(0, false, false, argumentType, argumentName));
       } else if (parameterList != null) {
         List<HaxeParameter> list = parameterList.getParameterList();
         for (int i = 0; i < list.size(); i++) {
@@ -837,7 +850,7 @@ public class HaxeExpressionEvaluatorHandlers {
           context.setLocal(parameter.getName(), argumentType);
           // TODO check if rest param?
           boolean optional = parameter.getOptionalMark() != null || parameter.getVarInit() != null;
-          arguments.add(new SpecificFunctionReference.Argument(i, optional, false, argumentType, parameter.getName()));
+          arguments.add(new HaxeArgument(i, optional, false, argumentType, parameter.getName()));
         } // TODO: Add Void if list.size() == 0
       }
       context.addLambda(context.createChild(function.getLastChild()));
@@ -950,7 +963,7 @@ public class HaxeExpressionEvaluatorHandlers {
         }
         ResultHolder arrayType = left.getArrayElementType().getType().withConstantValue(constant).createHolder();
         ResultHolder resolved = resolver.resolve(arrayType);
-        return resolved.isUnknown() ? arrayType : resolved;
+        return resolved == null || resolved.isUnknown() ? arrayType : resolved;
       }
       //if not native array, look up ArrayAccessGetter method and use result
       if(left instanceof SpecificHaxeClassReference classReference) {
@@ -970,14 +983,22 @@ public class HaxeExpressionEvaluatorHandlers {
             localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
             ResultHolder returnType = methodModel.getReturnType(localResolver);
             if (returnType.getType().isNullType()) localResolver.resolve(returnType);
-            if (returnType != null) return returnType;
+            return returnType;
           }
+          // TODO make better solution
           // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
           else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
             HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
             HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
-            ResultHolder type = resolvedInterface.getGenericResolver().resolve("T");
-            if (type != null) return type;
+            //TODO fix
+            //ResultHolder type = resolvedInterface.getGenericResolver().resolve("T");
+            //ResultHolder type = (ResultHolder)specifics;
+            //if (type != null) return type;
+
+            // temp fix for above
+            @NotNull ResultHolder[] specifics = resolvedInterface.getGenericResolver().getSpecifics();
+            if(specifics.length == 1) return specifics[0];
+
           }
         }
       }
@@ -1222,9 +1243,24 @@ public class HaxeExpressionEvaluatorHandlers {
     ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
     ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
 
-    SpecificTypeReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, mapLiteral);
-    ResultHolder holder = result.createHolder();
-    return holder;
+    SpecificHaxeClassReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, mapLiteral);
+    if (mapLiteral.getParent() instanceof HaxeVarInit ) {
+      ResultHolder assignHint = resolver.getAssignHint();
+      if(assignHint != null && assignHint.isClassType()) {
+        // try to use assignHint to figure out expected map type (literal maps should work with any class with interface IMap )
+        SpecificHaxeClassReference hintClassType = assignHint.getClassType();
+        if(hintClassType!= null && hintClassType.isMapType()) {
+          HaxeGenericResolver genericResolver = result.getGenericResolver();
+          HaxeGenericResolver translated = genericResolver.translateFromTo(result.getHaxeClass(), hintClassType.getHaxeClass());
+          HaxeClassReference reference = hintClassType.getHaxeClassReference();
+          ResultHolder possibleValue = SpecificHaxeClassReference.withGenerics(reference, translated.getSpecifics()).createHolder();
+          if (possibleValue.canAssign(assignHint)) {
+            return possibleValue;
+          }
+        }
+      }
+    }
+    return result.createHolder();
   }
 
   @NotNull
@@ -1253,10 +1289,15 @@ public class HaxeExpressionEvaluatorHandlers {
     if (callExpressionRef != null) {   // can be null if the entire expression is a macro  of callExpression
       // map type Parameters to methods declaring class resolver if necessary
       SpecificHaxeClassReference callieClassRef = tryGetCallieType(callExpression).getClassType();
-      HaxeClass callieType = callieClassRef != null ? callieClassRef.getHaxeClass() : null;
-      HaxeClass methodTypeClassType = tryGetMethodDeclaringClass(callExpression);
-      if (callieType != null && methodTypeClassType != null) {
-        localResolver = HaxeGenericResolverUtil.createInheritedClassResolver(methodTypeClassType, callieType, localResolver);
+      if(callieClassRef != null) {
+        HaxeGenericResolver callieResolver = callieClassRef.getGenericResolver();
+        HaxeClass callieType = callieClassRef.getHaxeClass();
+        HaxeClass methodTypeClassType = tryGetMethodDeclaringClass(callExpression);
+        if (callieType != null && methodTypeClassType != null) {
+
+          localResolver.addAll(callieResolver);
+          localResolver = HaxeGenericResolverUtil.createInheritedClassResolver(methodTypeClassType, callieType, localResolver);
+        }
       }
 
       functionType = handle(callExpressionRef, context, localResolver).getType();
@@ -1320,29 +1361,29 @@ public class HaxeExpressionEvaluatorHandlers {
       HaxeGenericParam param = enumClass.getHaxeClass().getGenericParam();
       List<HaxeGenericParamModel> params = enumClass.getHaxeClassModel().getGenericParams();
 
-      Map<String, List<ResultHolder>> genericsMap = new HashMap<>();
-      params.forEach(g -> genericsMap.put(g.getName(), new ArrayList<>()));
+      Map<HaxeTypeParameterDeclaration, List<ResultHolder>> genericsMap = new HashMap<>();
+      params.forEach(g -> genericsMap.put(g.getTypeParameter(), new ArrayList<>()));
 
       for (HaxeGenericParamModel model : params) {
-        String genericName = model.getName();
+        HaxeTypeParameterDeclaration typeParameter = model.getTypeParameter();
 
         int parameterIndex = 0;
-        List<SpecificFunctionReference.Argument> arguments = constructor.getArguments();
+        List<HaxeArgument> arguments = constructor.getArguments();
         for (int argumentIndex = 0; argumentIndex < arguments.size(); argumentIndex++) {
-          SpecificFunctionReference.Argument argument = arguments.get(argumentIndex);
+          HaxeArgument argument = arguments.get(argumentIndex);
           if (parameterIndex < list.size()) {
             ResultHolder parameter = list.get(parameterIndex++);
             if (argument.getType().canAssign(parameter)) {
               if (argument.getType().getType() instanceof SpecificHaxeClassReference classReference ){
-                if (classReference.isTypeParameter() && genericName.equals(classReference.getClassName())) {
-                  genericsMap.get(genericName).add(parameter);
+                if (classReference.isTypeParameter() && typeParameter == classReference.getHaxeClass()) {
+                  genericsMap.get(typeParameter).add(parameter);
                 } else {
                   if (argument.getType().isClassType()) {
                     SpecificHaxeClassReference classType = parameter.getClassType();
                     HaxeGenericResolver parameterResolver = classType != null ? classType.getGenericResolver() : new HaxeGenericResolver();
-                    ResultHolder test = parameterResolver.resolve(genericName);
+                    ResultHolder test = parameterResolver.resolveTypeParameter(typeParameter);
                     if (test != null && !test.isUnknown()) {
-                      genericsMap.get(genericName).add(parameter);
+                      genericsMap.get(typeParameter).add(parameter);
                     }
                   }
                 }
@@ -1353,11 +1394,11 @@ public class HaxeExpressionEvaluatorHandlers {
       }
       // unify all usage of generics
       for (int i = 0; i < params.size(); i++) {
-        HaxeGenericParamModel g = params.get(i);
-        String name = g.getName();
+        HaxeGenericParamModel paramModel = params.get(i);
+        String name = paramModel.getName();
         List<ResultHolder> holders = genericsMap.get(name);
         ResultHolder unified = HaxeTypeUnifier.unifyHolders(holders, callExpression, UnificationRules.DEFAULT);
-        enumResolver.add(name, unified, ResolveSource.CLASS_TYPE_PARAMETER);
+        enumResolver.add(paramModel.getTypeParameter(), unified, ResolveSource.CLASS_TYPE_PARAMETER);
         specifics[i] = unified;
       }
       return holder;
@@ -1377,8 +1418,9 @@ public class HaxeExpressionEvaluatorHandlers {
         functionResolver.addAll(validation.getResolver());
       }
 
-      ResultHolder resolved = functionResolver.resolveReturnType(returnType.tryUnwrapNullType());
-      if (resolved != null && !resolved.isUnknown()) {
+      //ResultHolder resolved = functionResolver.resolveReturnType(returnType.tryUnwrapNullType());
+      ResultHolder resolved = functionResolver.resolve(returnType.tryUnwrapNullType());
+      if (!nullOrUnknown(resolved)) {
         if(nullWrapped) resolved = resolved.wrapInNullType();
         returnType = resolved;
       }
@@ -1479,7 +1521,7 @@ public class HaxeExpressionEvaluatorHandlers {
     if (typeTag != null) {
       result = HaxeTypeResolver.getTypeFromTypeTag(typeTag, varDeclaration);
       ResultHolder resolve = resolver.resolve(result);
-      if (!resolve.isUnknown()) result = resolve;
+      if (!nullOrUnknown(resolve)) result = resolve;
     }
 
     if (result == null && init != null) {
@@ -1868,7 +1910,7 @@ public class HaxeExpressionEvaluatorHandlers {
   ) {
     if (!context.isReportingErrors()) return;
 
-    List<SpecificFunctionReference.Argument> parameterTypes = ftype.getArguments();
+    List<HaxeArgument> parameterTypes = ftype.getArguments();
 
     int parameterTypesSize = parameterTypes.size();
     int parameterExpressionsSize = parameterExpressions.size();

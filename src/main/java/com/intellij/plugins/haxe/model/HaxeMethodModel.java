@@ -22,16 +22,13 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
@@ -42,6 +39,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.intellij.openapi.util.Key;
+
 @EqualsAndHashCode
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
 
@@ -161,22 +159,29 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
     // attempt att caching returnType for methods that does not change by resolver or parameters
+
+
+
     if ((resolver == null || resolver.isEmpty()) // must not use resolver
         && haxeMethod.getReturnType() !=null // must have type tag
         && haxeMethod.getGenericParam() != null) { // must not have generics
       return CachedValuesManager.getProjectPsiDependentCache(haxeMethod,  HaxeMethodModel::getReturnTypeCacheProvider);
     }else {
-      Boolean data = haxeMethod.getUserData(isVoidReturn);
-      if (data == Boolean.TRUE) {
-        return SpecificHaxeClassReference.getVoid(haxeMethod).createHolder();
-      }else {
-        ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
-        if(type.isVoid() && haxeMethod instanceof AbstractHaxeNamedComponent component) {
-          component.registerCacheKey(isVoidReturn);
-          component.putUserData(isVoidReturn, Boolean.TRUE);
-        }
-        return type;
-      }
+      return HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
+
+      //TODO this way of caching seems to be unreliable for some reason
+
+      //Boolean data = haxeMethod.getUserData(isVoidReturn);
+      //if (data == Boolean.TRUE) {
+      //  return SpecificHaxeClassReference.getVoid(haxeMethod).createHolder();
+      //}else {
+      //  ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
+      //  if(type.isVoid() && haxeMethod instanceof AbstractHaxeNamedComponent component) {
+      //    component.registerCacheKey(isVoidReturn);
+      //    component.putUserData(isVoidReturn, Boolean.TRUE);
+      //  }
+      //  return type;
+      //}
     }
   }
 
@@ -185,11 +190,11 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
-    LinkedList<Argument> args = new LinkedList<>();
+    LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = this.getParameters();
     for (int i = 0; i < parameters.size(); i++) {
       HaxeParameterModel param = parameters.get(i);
-      args.add(new Argument(i, param.isOptional(),param.isRest(), param.getType(resolver), param.getName()));
+      args.add(new HaxeArgument(i, param.isOptional(), param.isRest(), param.getType(resolver), param.getName()));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, haxeMethod);
   }
@@ -234,7 +239,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     if (haxeMethod.getGenericParam() != null) {
       int index = 0;
       for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
-        out.add(new HaxeGenericParamModel(part, index));
+        out.add((HaxeGenericParamModel)part.getModel());
         index++;
       }
     }
@@ -251,12 +256,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     if (haxeMethod.getGenericParam() != null) {
       for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
-        HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
+        HaxeGenericParamModel model = part.getModel();
         ResultHolder constraint = model.getConstraint(parentResolver);
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.addConstraint(model.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+        resolver.addConstraint(model.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
       }
     }
     return resolver;
@@ -265,5 +270,28 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public boolean HasNoUsingMeta() {
     return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.NO_USING);
   }
+
+  //// TODO make it support optional args and varargs
+  //// attempts at evaluating generic resolver values when arguments can override
+  //public HaxeGenericResolver getGenericResolver(HaxeGenericResolver parentResolver, List<ResultHolder> arguments) {
+  //  HaxeGenericResolver genericResolver = getGenericResolver(parentResolver);
+  //  List<HaxeParameterModel> parameters = this.getParameters();
+  //  TypeParameterTable typeParamTable = createTypeParameterConstraintTable(haxeMethod, genericResolver, true);
+  //  for (int i = 0; i < parameters.size(); i++) {
+  //    if (i >= arguments.size()) break;
+  //
+  //    HaxeParameterModel parameter = parameters.get(i);
+  //    ResultHolder param = parameter.getType();
+  //    ResultHolder arg = arguments.get(i);
+  //    // not including implicit cast here as it easily cause stack overflows
+  //    boolean canAssign = HaxeTypeCompatible.canAssignToFrom(param.getType(), arg.getType(), false, null);
+  //    if (canAssign) {
+  //      genericResolver.translateFromTo(param.getType(), arg.getType())
+  //      return findTypeParametersToInherit(param.getType(), arg.getType(), genericResolver, typeParamTable);
+  //    }
+  //  }
+  //
+  //  return genericResolver;
+  //}
 }
 

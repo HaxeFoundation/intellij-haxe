@@ -25,11 +25,11 @@ import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorReturnInfo;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -45,6 +45,7 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.isDynamicBecauseOfNullValueInit;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
+import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 
 public class HaxeTypeResolver {
   @NotNull
@@ -77,7 +78,7 @@ public class HaxeTypeResolver {
       resolver = resolver == null ? null : resolver.withoutUnknowns();
       HaxeGenericResolver methodResolver = method.getModel().getGenericResolver(null);
       methodResolver.addAll(resolver);
-      methodResolver = methodResolver.removeClassScopeIfMethodIsPresent().withoutUnknowns();
+      methodResolver = methodResolver.withoutUnknowns();
       return method.getModel().getFunctionType(methodResolver).createHolder();
     }
     // @TODO: error
@@ -146,6 +147,7 @@ public class HaxeTypeResolver {
     if (comp instanceof HaxePsiField psiField) {
       ResultHolder result = null;
       ResultHolder initType = null;
+
       HaxeVarInit init = psiField.getVarInit();
       if (init != null) {
         PsiElement child = init.getExpression();
@@ -181,13 +183,7 @@ public class HaxeTypeResolver {
         return result;
       }
     }
-    if (comp instanceof  HaxeGenericListPart genericListPart) {
-      HaxeComponentName componentName = genericListPart.getComponentName();
-      if(componentName != null) {
-        HaxeClassReference reference = new HaxeClassReference(genericListPart.getName(), componentName, true);
-        return SpecificHaxeClassReference.withoutGenerics(reference).createHolder();
-      }
-    }
+
 
     return SpecificTypeReference.getUnknown(comp).createHolder();
   }
@@ -245,7 +241,7 @@ public class HaxeTypeResolver {
       for (HaxeGenericParamModel param : genericParams) {
         ResultHolder resolved = null;
         if (null != resolver) {
-          resolved = resolver.resolve(param.getName());  // Null if no name match.
+          resolved = resolver.resolve(param.getTypeParameter());  // Null if no name match.
         }
         if (null == resolved && resolveElementTypes) {
           resolved = getPsiElementType(param.getPsi(), comp, resolver);
@@ -254,8 +250,7 @@ public class HaxeTypeResolver {
         if (resolved != null && !resolved.isUnknown()) {
           result = resolved;
         }else if (resolveElementTypes && !isDynamic(comp)) { // hiding typeParameters for dynamic
-          HaxeClassReference clazz = new HaxeClassReference(param.getName(), param.getPsi(), true);
-          result = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(clazz));
+          result = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(param.getReference()));
         }else {
           result = new ResultHolder(SpecificTypeReference.getUnknown(param.getPsi()));
         }
@@ -275,10 +270,8 @@ public class HaxeTypeResolver {
     if (null != param) {
       List<HaxeGenericListPart> list = param.getGenericListPartList();
       genericParams = new ArrayList<>(list.size());
-      int index = 0;
       for (HaxeGenericListPart listPart : list) {
-        genericParams.add(new HaxeGenericParamModel(listPart, index));
-        index++;
+        genericParams.add((HaxeGenericParamModel)listPart.getModel());
       }
     }
     return genericParams;
@@ -304,26 +297,21 @@ public class HaxeTypeResolver {
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver, boolean returnType) {
     SpecificTypeReference typeReference = result.getType();
     if (resolver != null) {
+      // if type Param
       if (typeReference instanceof SpecificHaxeClassReference haxeClassReference && typeReference.isTypeParameter()) {
-        String className = haxeClassReference.getClassName();
-        ResultHolder resolved = returnType ? resolver.resolveReturnType(haxeClassReference) : resolver.resolve(className);
-        if (null != resolved && !resolved.isUnknown()) {
-          result = resolved;
-          // removing from resolver to avoid attempting to propagate to the resolved class
-          // if T = Array<T> and we continue to propagate T into Array<T>, then it will go on forever Array<Array<Array<...>>
-          resolver = resolver.without(className).withoutUnknowns();
-        }
+        ResultHolder resolved = returnType ? resolver.resolve(haxeClassReference.getHaxeClass()) : null;
+        if (!nullOrUnknown(resolved)) result = resolved;
+      }
+
+      // Resolve any generics on the resolved type as well. myVar:Array<Map<String, Q>> where Q is known
+      if (result.getType() instanceof SpecificHaxeClassReference classReference  && !result.isTypeParameter() && result.containsTypeParameters()) {
+
+        ResultHolder holder = propagateRecursionGuard.computePreventingRecursion(result, true, () ->
+           SpecificHaxeClassReference.propagateGenericsToType(classReference.createHolder(), resolver, returnType)
+        );
+        if (holder != null) result = holder;
       }
     }
-    final HaxeGenericResolver finalResolver = resolver;
-    // Resolve any generics on the resolved type as well.
-    typeReference = result.getType();
-    if (typeReference instanceof SpecificHaxeClassReference classReference) {
-      ResultHolder holder = propagateRecursionGuard.computePreventingRecursion(result, true, () ->
-        SpecificHaxeClassReference.propagateGenericsToType(classReference.createHolder(), finalResolver, returnType));
-      if (holder != null) result = holder;
-    }
-
     return result;
   }
 
@@ -346,7 +334,13 @@ public class HaxeTypeResolver {
             }
           }
         }
-        return resolveParameterizedType(getTypeFromTypeTag(typeTag, comp), resolver, true);
+        ResultHolder fromTypeTag = getTypeFromTypeTag(typeTag, comp);
+        if (resolver != null) {
+          ResultHolder resolved = resolver.resolve(fromTypeTag);
+          if (resolved != null && !resolved.isUnknown()) {
+            return resolved;
+          }
+        }
       }
     }
     if (comp instanceof HaxeConstructor constructor) {
@@ -362,6 +356,10 @@ public class HaxeTypeResolver {
       HaxeMethodModel methodModel = method.getModel();
       PsiElement psi = methodModel.getBodyPsi();
       if (psi == null) psi = methodModel.getBasePsi();
+      // if we got a returnTypeTag use it, otherwise search return statements
+      if(methodModel.getReturnTypeTagPsi() != null) {
+        return HaxeTypeResolver.getTypeFromTypeTag(methodModel.getReturnTypeTagPsi(), methodModel.getBasePsi());
+      }
 
       // local  function declarations  must use return statements as opposite to HaxeFunctionLiteral and lambda expressions
       // witch can use the last expression as return value
@@ -387,7 +385,8 @@ public class HaxeTypeResolver {
       ResultHolder holder = HaxeTypeUnifier.unifyHolders(returnTypes, psi, UnificationRules.PREFER_VOID);
 
       // method typeParameters should have been used when resolving returnTypes, we want to avoid double resolve
-      return resolveParameterizedType(holder, resolver == null ? null : resolver.withoutMethodTypeParameters());
+      //return resolveParameterizedType(holder, resolver == null ? null : resolver.withoutMethodTypeParameters());
+      return holder;
 
     }
     else if (comp instanceof HaxeFunctionLiteral) {
@@ -420,15 +419,6 @@ public class HaxeTypeResolver {
     }
   }
 
-  private static boolean isVoidReturn(HaxeReturnStatement statement) {
-    //instead of checking all possible types that a return statement might have
-    // we just check if its only child is ";" to determine if its a void return
-    PsiElement child = statement.getFirstChild();
-    if (child == null || child.getNextSibling() == null || child.getNextSibling().textMatches(";")) {
-      return true;
-    }
-    return false;
-  }
 
   @NotNull
   static public ResultHolder getTypeFromTypeTag(@Nullable final HaxeTypeTag typeTag, @NotNull PsiElement context) {
@@ -453,9 +443,17 @@ public class HaxeTypeResolver {
     return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
   }
 
-  @NotNull
+  @Nullable
+  static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type, @Nullable HaxeGenericResolver resolver) {
+    ResultHolder functionType = getTypeFromFunctionType(type);
+    if(resolver != null && functionType != null) {
+      return resolver.resolve(functionType);
+    }else {
+      return functionType;
+    }
+  }
   static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type) {
-    ArrayList<Argument> args = new ArrayList<>();
+    ArrayList<HaxeArgument> args = new ArrayList<>();
 
     List<HaxeFunctionArgument> list = type.getFunctionArgumentList();
     for (int i = 0; i < list.size(); i++) {
@@ -463,7 +461,7 @@ public class HaxeTypeResolver {
       ResultHolder argumentType = getTypeFromFunctionArgument(argument);
       boolean optional = argument.getOptionalMark() != null;
       boolean rest = argument.getRestArgumentType() != null;
-      args.add(new Argument(i, optional, rest, argumentType, getArgumentName(argument)));
+      args.add(new HaxeArgument(i, optional, rest, argumentType, getArgumentName(argument)));
     }
 
     if (args.size() == 1 && args.get(0).isVoid()) {
@@ -559,9 +557,12 @@ public class HaxeTypeResolver {
 
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver, boolean useAssignHint) {
     if (resolver != null && !resolver.isEmpty()) {
-      ResultHolder resolve = resolver.resolve(type, useAssignHint);
-      if (resolve != null && !resolve.isUnknown()) {
-        return resolve;
+      PsiElement resolved = type.getReferenceExpression().resolve();
+      if (resolved instanceof HaxeTypeParameterDeclaration typeParameter) {
+        ResultHolder resolve = resolver.resolve(typeParameter);
+        if (resolve != null && !resolve.isUnknown()) {
+          return resolve;
+        }
       }
     }
 
@@ -582,8 +583,18 @@ public class HaxeTypeResolver {
     if (param != null) {
       for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
         ResultHolder partResult = null;
+        HaxeTypeOrAnonymous typeOrAnonymous = part.getTypeOrAnonymous();
         if (resolver != null && !resolver.isEmpty()) {
-          partResult = resolver.resolve(part, useAssignHint);
+          if(typeOrAnonymous != null) {
+            ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous);
+            partResult = resolver.resolve(holder, useAssignHint);
+          }else if(part.getFunctionType()  instanceof  HaxeSpecificFunction function) {
+            SpecificFunctionReference functionReference = SpecificFunctionReference.create(function);
+            SpecificFunctionReference resolved = resolver.resolve(functionReference, useAssignHint);
+            if(resolved != null) {
+              partResult = resolved.createHolder();
+            }
+          }
         }
         if (null == partResult) {
           HaxeFunctionType fnType = part.getFunctionType();
@@ -591,7 +602,7 @@ public class HaxeTypeResolver {
             partResult = getTypeFromFunctionType(fnType);
           }
           else {
-            HaxeTypeOrAnonymous toa = part.getTypeOrAnonymous();
+            HaxeTypeOrAnonymous toa = typeOrAnonymous;
             if (toa != null) {
               partResult = getTypeFromTypeOrAnonymous(toa, resolver);
             }

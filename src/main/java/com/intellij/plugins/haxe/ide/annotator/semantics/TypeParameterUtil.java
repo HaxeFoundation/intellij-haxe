@@ -1,15 +1,14 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
+import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -28,7 +27,7 @@ public class TypeParameterUtil {
       List<HaxeGenericParamModel> params = methodModel.getGenericParams();
       for (HaxeGenericParamModel model : params) {
         ResultHolder constraint = model.getConstraint(resolver);
-        typeParamTable.put(model.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+        typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
       }
       if (method.isConstructor()) {
         HaxeClassModel declaringClass = method.getModel().getDeclaringClass();
@@ -36,7 +35,7 @@ public class TypeParameterUtil {
           params = declaringClass.getGenericParams();
           for (HaxeGenericParamModel model : params) {
             ResultHolder constraint = model.getConstraint(resolver);
-            typeParamTable.put(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+            typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
           }
         }
       }
@@ -47,9 +46,9 @@ public class TypeParameterUtil {
         for (HaxeGenericParamModel model : classParams) {
           ResultHolder constraint = model.getConstraint(resolver);
           // make sure we do not add if method type parameter with the same name is present
-          if(!typeParamTable.contains(model.getName(), ResolveSource.METHOD_TYPE_PARAMETER)) {
+          if(!typeParamTable.contains(model.getTypeParameter(), ResolveSource.METHOD_TYPE_PARAMETER)) {
             if(!prohibitClassTypeParameters) {
-              typeParamTable.put(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+              typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
             }
           }
         }
@@ -60,12 +59,13 @@ public class TypeParameterUtil {
 
   public static void applyCallieConstraints(TypeParameterTable table, HaxeGenericResolver callieResolver) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    resolver.addAll(callieResolver, ResolveSource.CLASS_TYPE_PARAMETER);
+    resolver.addOnly(callieResolver, ResolveSource.CLASS_TYPE_PARAMETER);
 
-    for (String name : resolver.names()) {
-      if(table.contains(name, ResolveSource.CLASS_TYPE_PARAMETER)) {
-        ResultHolder resolve = resolver.resolve(name);
-        table.put(name, resolve, ResolveSource.CLASS_TYPE_PARAMETER);
+    for (ResolverEntry entry : resolver.entries()) {
+      HaxeTypeParameterDeclaration typeParameter = entry.typeParameter();
+      if(table.contains(typeParameter, ResolveSource.CLASS_TYPE_PARAMETER)) {
+        ResultHolder resolve = resolver.resolve(typeParameter);
+        table.put(typeParameter, resolve, ResolveSource.CLASS_TYPE_PARAMETER);
       }
     }
   }
@@ -78,20 +78,18 @@ public class TypeParameterUtil {
     for (HaxeGenericParamModel model : modelList) {
       ResultHolder constraint = model.getConstraint(resolver);
       if (constraint != null && constraint.isUnknown()) {
-        typeParamTable.put(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+        typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
       }
     }
     return typeParamTable;
   }
 
   static boolean containsTypeParameter(@NotNull ResultHolder parameterType, @NotNull TypeParameterTable typeParamTable) {
-    if (parameterType.getClassType() != null) {
-      if (parameterType.getClassType().isTypeParameter()) return true;
+    SpecificHaxeClassReference classType = parameterType.getClassType();
+    if (classType != null) {
+      if (classType.isTypeParameter()) return true;
 
-      ResultHolder[] specifics = parameterType.getClassType().getSpecifics();
-      if (specifics.length == 0) {
-        return typeParamTable.contains(parameterType.getClassType().getClassName());
-      }
+      ResultHolder[] specifics = classType.getSpecifics();
       List<ResultHolder> recursionGuard = new ArrayList<>();
 
       for (ResultHolder specific : specifics) {
@@ -99,7 +97,10 @@ public class TypeParameterUtil {
           recursionGuard.add(specific);
           List<ResultHolder> list = getSpecificsIfClass(specific, recursionGuard);
           if (list.stream()
-            .map(holder -> holder.getClassType().getClassName())
+            .map(ResultHolder::getClassType)
+            .filter(Objects::nonNull)
+            .filter(SpecificTypeReference::isTypeParameter)
+            .map(classReference -> (HaxeTypeParameterDeclaration)classReference.getHaxeClass())
             .anyMatch(typeParamTable::contains)) {
             return true;
           }
@@ -107,7 +108,7 @@ public class TypeParameterUtil {
       }
     }else if (parameterType.getFunctionType() != null) {
       SpecificFunctionReference fn = parameterType.getFunctionType();
-      List<SpecificFunctionReference.Argument> arguments = fn.getArguments();
+      List<HaxeArgument> arguments = fn.getArguments();
       if (arguments != null) {
         boolean anyMatch = arguments.stream().anyMatch(argument -> containsTypeParameter(argument.getType(), typeParamTable));
         if(anyMatch) return true;
@@ -120,10 +121,11 @@ public class TypeParameterUtil {
   static Optional<ResultHolder> findConstraintForTypeParameter(HaxeParameterModel parameter, @NotNull ResultHolder parameterType, @NotNull TypeParameterTable typeParamTable) {
     if (!parameterType.isClassType()) return Optional.empty();
 
-    ResultHolder[] specifics = parameterType.getClassType().getSpecifics();
-    if (specifics.length == 0){
-      String className = parameterType.getClassType().getClassName();
-      return typeParamTable.contains(className) ? Optional.ofNullable(typeParamTable.get(className)) : Optional.empty();
+    SpecificHaxeClassReference classReference = parameterType.getClassType();
+    ResultHolder[] specifics = classReference.getSpecifics();
+    if (classReference instanceof HaxeTypeParameterDeclaration typeParameter){
+      String className = classReference.getClassName();
+      return typeParamTable.contains(typeParameter) ? Optional.ofNullable(typeParamTable.get(typeParameter)) : Optional.empty();
     }
     List<ResultHolder> result = new ArrayList<>();
     List<ResultHolder> recursionGuard = new ArrayList<>();
@@ -136,11 +138,24 @@ public class TypeParameterUtil {
     }
 
 
-
-    result.stream().map(holder -> holder.getClassType().getClassName())
-      .filter(typeParamTable::contains)
-      .filter( s ->  typeParamTable.get(s) != null)
-      .forEach( s ->  resolver.addConstraint(s, typeParamTable.get(s), ResolveSource.CLASS_TYPE_PARAMETER));
+    for (ResultHolder holder : result) {
+      SpecificHaxeClassReference classType = holder.getClassType();
+      if (classType != null) {
+        if (classType.isTypeParameter()) {
+          HaxeClassModel model = classType.getHaxeClassModel();
+          if (model != null) {
+            HaxeGenericParamModel paramModel = (HaxeGenericParamModel)model;
+            HaxeTypeParameterDeclaration typeParameter = paramModel.getTypeParameter();
+            if (typeParamTable.contains(typeParameter)) {
+              ResultHolder value = typeParamTable.get(typeParameter);
+              if (value != null) {
+                resolver.addConstraint(typeParameter, value, ResolveSource.CLASS_TYPE_PARAMETER);
+              }
+            }
+          }
+        }
+      }
+    }
 
     ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTagPsi(), parameter.getNamePsi());
     if (type.isTypeParameter()) {

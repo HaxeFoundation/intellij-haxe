@@ -163,9 +163,9 @@ public class HaxeEnumExtractorModel implements HaxeModel {
                   Optional<HaxeParameterModel> first =
                     valueConstructorModel.getParameters().stream().filter(p -> p.getName().equals(parameterName)).findFirst();
                   if (first.isPresent()) {
-                    HaxeGenericResolver resolver = classType.getGenericResolver();
+                    pathResolver = classType.getGenericResolver();
                     HaxeParameterModel parameterModel = first.get();
-                    ResultHolder resolved = resolver.withoutUnknowns().resolve(parameterModel.getType());
+                    ResultHolder resolved = pathResolver.withoutUnknowns().resolve(parameterModel.getType());
                     if(resolved == null) return createUnknown(extractedValue);
                     classType = resolved.getClassType();
                   }
@@ -173,7 +173,7 @@ public class HaxeEnumExtractorModel implements HaxeModel {
                 }
               }
               if(classType != null) {
-                pathResolver =  classType.getGenericResolver();
+                return classType.createHolder();
               }
             }
             ResultHolder resolve = pathResolver.resolve(parameterType);

@@ -818,6 +818,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestSkippingAnnotators(new HashSet<>());
   }
   @Test
+  public void testTypeParameterInheritConstraints() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testTypeParameterArguments() throws Throwable {
     // unresolved symbols are used to confirm correct returned type
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);

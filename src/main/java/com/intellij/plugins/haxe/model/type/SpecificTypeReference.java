@@ -60,6 +60,7 @@ public abstract class SpecificTypeReference {
   public static final String STRING_MAP = "haxe.ds.StringMap";
   public static final String OBJECT_MAP = "haxe.ds.ObjectMap";
   public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
+  public static final String MAP_INTERFACE = "haxe.Constraints.IMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
 
   /**
@@ -71,12 +72,12 @@ public abstract class SpecificTypeReference {
     this.context = context;
   }
 
-  public static SpecificTypeReference createArray(@NotNull ResultHolder elementType, PsiElement context) {
+  public static SpecificHaxeClassReference createArray(@NotNull ResultHolder elementType, PsiElement context) {
     final HaxeClassReference classReference = getStdClassReference(ARRAY, context);
     return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{elementType}, null);
   }
 
-  public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType, final PsiElement context) {
+  public static SpecificHaxeClassReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType, final PsiElement context) {
     // The code for this function *should* be 'return getExpectedMapType(keyType, valueType);'.  It is not; because the compiler
     // doesn't *really* map to the other types, though it is documented as such.  A 'trace' of an inferred type *will* output
     // the expected target map type (StringMap, IntMap, etc.).  However, with any map of an inferred target type,
@@ -272,9 +273,21 @@ public abstract class SpecificTypeReference {
     return isNamedType(ARRAY);
   }
 
-  final public boolean isMap() {
-    if (this instanceof SpecificHaxeClassReference) {
-      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
+  final public boolean isMapType() {
+    if (this instanceof SpecificHaxeClassReference reference) {
+      // try to check for map interface first
+      HaxeClassModel refModel = reference.getHaxeClassModel();
+      if(refModel != null) {
+        List<HaxeClassReferenceModel> interfaces = refModel.getImplementingInterfaces();
+        for (HaxeClassReferenceModel anInterface : interfaces) {
+          HaxeClassModel classModel = anInterface.getHaxeClassModel();
+          if (classModel != null) {
+            String qualifiedName = classModel.haxeClass.getQualifiedName();
+            if (MAP_INTERFACE.equals(qualifiedName)) return true;
+          }
+        }
+      }
+      // fallback checking common maps (useful when std ins not configured)
       String name = reference.getHaxeClassReference().getName();
       return MAP.equals(name)
         || INT_MAP.equals(name)
@@ -491,7 +504,7 @@ public abstract class SpecificTypeReference {
     return (isArray() && context instanceof HaxeArrayLiteral);
   }
   public boolean isLiteralMap() {
-    return ( isMap() &&  context instanceof  HaxeMapLiteral);
+    return (isMapType() && context instanceof  HaxeMapLiteral);
   }
 
 

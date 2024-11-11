@@ -21,7 +21,6 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference.Argument;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -135,15 +134,15 @@ public class HaxeTypeUnifier {
   static public SpecificTypeReference unifyFunctions(SpecificFunctionReference a,
                                                      SpecificFunctionReference b,
                                                      @NotNull PsiElement context) {
-    final List<Argument> pa = a.getArguments();
-    final List<Argument> pb = b.getArguments();
+    final List<HaxeArgument> pa = a.getArguments();
+    final List<HaxeArgument> pb = b.getArguments();
     if (pa.size() != pb.size()) return SpecificTypeReference.getInvalid(a.getElementContext());
-    final ArrayList<Argument> arguments = new ArrayList<>();
+    final ArrayList<HaxeArgument> arguments = new ArrayList<>();
 
     int size = pa.size();
     for (int n = 0; n < size; n++) {
       //final Argument unifiedArgument = unify(pa.get(n), pb.get(n), UnificationRules.IGNORE_VOID);
-      final Argument unifiedArgument = unify(pa.get(n), pb.get(n),  UnificationRules.DEFAULT);
+      final HaxeArgument unifiedArgument = unify(pa.get(n), pb.get(n), UnificationRules.DEFAULT);
       if (unifiedArgument.isInvalid()) return SpecificTypeReference.getInvalid(a.getElementContext());
       arguments.add(unifiedArgument);
     }
@@ -153,13 +152,13 @@ public class HaxeTypeUnifier {
   }
 
   @NotNull
-  private static Argument unify(Argument a, Argument b, @NotNull UnificationRules rules) {
+  private static HaxeArgument unify(HaxeArgument a, HaxeArgument b, @NotNull UnificationRules rules) {
     if (a.isOptional() != b.isOptional()) {
       ResultHolder invalidType = SpecificTypeReference.getInvalid(a.getType().getElementContext()).createHolder();
-      return new Argument(a.getIndex(), a.isOptional(),false, invalidType, a.getName());
+      return new HaxeArgument(a.getIndex(), a.isOptional(), false, invalidType, a.getName());
     }
 
-    return new Argument(a.getIndex(), a.isOptional(),false, unify(a.getType(), b.getType(), rules), a.getName());
+    return new HaxeArgument(a.getIndex(), a.isOptional(), false, unify(a.getType(), b.getType(), rules), a.getName());
   }
 
   @NotNull

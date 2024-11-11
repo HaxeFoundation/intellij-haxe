@@ -27,11 +27,11 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.NotImplementedException;
@@ -134,6 +134,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return typeOf(haxeClass) == TYPEDEF;
   }
 
+  public boolean isTypeParameter() {
+    return  haxeClass instanceof HaxeGenericListPart;
+  }
   public boolean isAbstractType() {
     return haxeClass instanceof HaxeAbstractTypeDeclaration;
   }
@@ -283,7 +286,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
           HaxeClass aClass = classType.getHaxeClass();
           if (aClass != null) {
             ResultHolder[] specifics = HaxeTypeResolver.resolveDeclarationParametersToTypes(aClass, localResolver);
-            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), aClass.getModel().haxeClass), specifics, element);
+            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), aClass.getModel().haxeClass), specifics);
           }
         }
       } else { // Anonymous type
@@ -294,10 +297,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
             HaxeGenericResolver memberResolver = typedefDeclaration.getMemberResolver(null);
             if(memberResolver != null) {
               HaxeClassReference classReference = new HaxeClassReference(anon.getModel(), element);
-              return SpecificHaxeClassReference.withGenerics(classReference, memberResolver.getSpecificsFor(classReference), element);
+              return SpecificHaxeClassReference.withGenerics(classReference, memberResolver.getSpecificsFor(classReference));
             }
           }
-          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics(), element);
+          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics());
         }
       }
     } else {
@@ -306,7 +309,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         List<HaxeGenericParamModel> typeParams = getGenericParams();
         if (typeParams.size() == 1) {
           HaxeGenericParamModel param = typeParams.get(0);
-          ResultHolder result = resolver.resolve(param.getName());
+          ResultHolder result = resolver.resolveTypeParameter(param.getTypeParameter());
           if (result != null) {
             return result.getClassType();
           }
@@ -328,7 +331,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         List<HaxeGenericParamModel> typeParams = getGenericParams();
         if (typeParams.size() == 1) {
           HaxeGenericParamModel param = typeParams.get(0);
-          ResultHolder result = resolver.resolve(param.getName());
+          ResultHolder result = resolver.resolveTypeParameter(param.getTypeParameter());
           if (result != null) {
             return result.getFunctionType();
           }
@@ -370,9 +373,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     List<SpecificTypeReference> list = new ArrayList<>();
     for (HaxeMethodModel methodModel : methodsWithMetadata) {
       if (castMethodAcceptsSource(sourceType, methodModel)) {
+        //TODO get correct returnType based on input param (input argument might change / override Methods typeParameter)
         SpecificTypeReference returnType = getReturnType(methodModel);
         if (returnType.isTypeParameter()) {
-          ResultHolder resolve = sourceType.getGenericResolver().resolve(((SpecificHaxeClassReference)returnType).getClassName());
+          ResultHolder resolve = sourceType.getGenericResolver().resolve((returnType));
           if (resolve!= null && !resolve.isUnknown()) {
             returnType = resolve.getType();
           }
@@ -455,7 +459,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         for (int i = 0; i < specifics.length; i++) {
           ResultHolder specific = specifics[i];
           ResultHolder resolved = resolver.resolve(specific);
-          if (!resolved.isUnknown() && canAssignToFrom(newSpecifics[i], resolved)) {
+          if (resolved!= null && !resolved.isUnknown() && canAssignToFrom(newSpecifics[i], resolved)) {
             newSpecifics[i] = resolved;
           }
         }
@@ -495,7 +499,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @Nullable
   private SpecificTypeReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
-    List<SpecificFunctionReference.Argument> arguments = model.getFunctionType().getArguments();
+    List<HaxeArgument> arguments = model.getFunctionType().getArguments();
     if (arguments.isEmpty()) return null;
 
     return arguments.get(0).getType().getType();
@@ -861,12 +865,12 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
       HaxeGenericResolver resolver = new HaxeGenericResolver();
       for (HaxeGenericListPart part : param.getGenericListPartList()) {
-        HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
+        HaxeGenericParamModel model = part.getModel();
         ResultHolder constraint = model.getConstraint(parentResolver);
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.addConstraint(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+        resolver.addConstraint(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
       }
 
       return resolver;

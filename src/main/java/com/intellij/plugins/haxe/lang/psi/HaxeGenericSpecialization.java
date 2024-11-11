@@ -18,9 +18,9 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
-import com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
+import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -64,21 +64,6 @@ public class HaxeGenericSpecialization implements Cloneable {
   }
 
 
-  //EXPERIMENTAL!
-  public HaxeGenericSpecialization softMerge(HaxeGenericSpecialization specialization) {
-    final LinkedHashMap<String, HaxeResolveResult> mergedMap = new LinkedHashMap<String, HaxeResolveResult>();
-
-    for (String key : map.keySet()) {
-      mergedMap.put(key, map.get(key));
-    }
-
-    for (String key : specialization.map.keySet()) {
-      if(!mergedMap.containsKey(key)) {
-        mergedMap.put(key, specialization.map.get(key));
-      }
-    }
-    return new HaxeGenericSpecialization(mergedMap);
-  }
 
   protected HaxeGenericSpecialization(LinkedHashMap<String, HaxeResolveResult> map) {
     this.map = map;
@@ -144,8 +129,8 @@ public class HaxeGenericSpecialization implements Cloneable {
         HaxeClass haxeClass = SpecificHaxeClassReference.getUnknown(element).getHaxeClass();
         resultHolder = resolveResult.getSpecificClassReference(haxeClass, null).createHolder();
       }
-
-      resolver.add(key, resultHolder, ResolveSource.CLASS_TYPE_PARAMETER);
+//TODO
+      //resolver.addNamed(key, resultHolder, ResolveSource.CLASS_TYPE_PARAMETER);
     }
     return resolver;
 
@@ -155,8 +140,9 @@ public class HaxeGenericSpecialization implements Cloneable {
   public static HaxeGenericSpecialization fromGenericResolver(@Nullable PsiElement element, @Nullable HaxeGenericResolver resolver) {
     HaxeGenericSpecialization specialization = new HaxeGenericSpecialization();
     if (null != resolver) {
-      for (String name : resolver.names()) {
-        ResultHolder holder = resolver.resolve(name);
+      for (ResolverEntry entry : resolver.entries()) {
+        ResultHolder holder = entry.type();
+        String name = entry.name();
         PsiElement context = holder.getElementContext();
         if (context == element) {
           // Going circular. Happens on a function with type parameters.  Skip this one
@@ -164,15 +150,19 @@ public class HaxeGenericSpecialization implements Cloneable {
           continue;
         }
 
+
         //NOTE: AnonymousHaxeTypeImpl can be manually created and wont necessarily share the same instance
         // (see, HaxeTypeParameterMultiType, HaxeClassWrapperForTypeParameter)
         // we can however check if their from the same node
         if (element != null && element.getNode() == context.getNode()) continue;
 
         SpecificHaxeClassReference classType = holder.getClassType();
-        if (context instanceof HaxeClass haxeClass && classType != null) {
+        //if (context instanceof HaxeClass haxeClass && classType != null) {
+        if (classType != null) {
+          HaxeClass haxeClass =classType.getHaxeClass();
           HaxeGenericResolver genericResolver = classType.getGenericResolver();
           HaxeResolveResult resolved = HaxeResolveResult.create(haxeClass, fromGenericResolver(context, genericResolver));
+
           specialization.put(element, name, resolved);
         } else if (classType != null && !holder.isUnknown()) {
           HaxeClass clazz = classType.getHaxeClass();

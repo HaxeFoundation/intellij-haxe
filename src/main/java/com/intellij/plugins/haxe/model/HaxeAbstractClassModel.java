@@ -17,13 +17,15 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,7 +61,8 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         }
         List<HaxeGenericParamModel> params = getGenericParams();
         if (!params.isEmpty()) {
-          return resolveGeneric(params.get(0).getName(), resolver);
+          ResultHolder holder = resolver.resolveTypeParameter(params.get(0).getTypeParameter());
+          if(holder != null && holder.getClassType() != null )return holder.getClassType().getHaxeClass();
         }
       }
       return null;
@@ -68,22 +71,26 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
       HaxeReferenceExpression referenceExpression = underlyingType.getReferenceExpression();
-      final HaxeResolveResult result = referenceExpression.resolveHaxeClass();
-      HaxeClass resultClass = result.getHaxeClass();
-      return null != resultClass ? resultClass : resolveGeneric(referenceExpression.getIdentifier().getText(), resolver);
+      PsiElement resolve = referenceExpression.resolve();
+      if(resolve instanceof HaxeTypeParameterDeclaration typeParameter) {
+        ResultHolder holder = resolver == null ? null : resolver.resolveTypeParameter(typeParameter);
+        if(holder != null && holder.getClassType() != null )return holder.getClassType().getHaxeClass();
+      }else if (resolve instanceof  HaxeClass underlHaxeClass) {
+        if(resolver != null) {
+          ResultHolder resolvedUnderlyingClass = resolver.resolve(underlHaxeClass);
+          if(resolvedUnderlyingClass != null && !resolvedUnderlyingClass.isUnknown()) {
+            if(resolvedUnderlyingClass.getClassType() != null) {
+              return resolvedUnderlyingClass.getClassType().getHaxeClass();
+            }
+          }
+        }
+        return  underlHaxeClass;
+      }
     }
 
     return null;
   }
 
-  @Nullable
-  private HaxeClass resolveGeneric(@Nullable String name, @Nullable HaxeGenericResolver resolver) {
-    if (null == name || null == resolver) return null;
-    ResultHolder result = resolver.resolve(name);
-    SpecificHaxeClassReference ref = null != result ? result.getClassType() : null;
-    HaxeClass underlyingClass = ref != null ? ref.getHaxeClass() : null;
-    return underlyingClass;
-  }
 
   public HaxeAbstractTypeDeclaration getAbstractClass() {
     return (HaxeAbstractTypeDeclaration)getBasePsi();

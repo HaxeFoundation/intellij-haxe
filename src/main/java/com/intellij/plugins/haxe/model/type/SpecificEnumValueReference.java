@@ -20,7 +20,6 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -155,7 +154,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
         HaxeClassModel declaringEnum = constructorModel.getDeclaringEnum();
         if (declaringEnum != null) {
           ResultHolder resultHolder = declaringEnum.getInstanceType();
-          List<SpecificFunctionReference.Argument> arguments = convertParameterList(constructorModel);
+          List<HaxeArgument> arguments = convertParameterList(constructorModel);
           constructor = new SpecificFunctionReference(arguments, resultHolder, null, context, null);
         }
       }
@@ -163,8 +162,8 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   return constructor;
   }
 
-  private static List<SpecificFunctionReference.Argument> convertParameterList(HaxeEnumValueConstructorModel model) {
-    List<SpecificFunctionReference.Argument> arguments = new ArrayList<>();
+  private static List<HaxeArgument> convertParameterList(HaxeEnumValueConstructorModel model) {
+    List<HaxeArgument> arguments = new ArrayList<>();
     @NotNull List<HaxeParameter> list = model.getConstructorParameters().getParameterList();
     for (int i = 0; i < list.size(); i++) {
       HaxeParameter parameter = list.get(i);
@@ -173,11 +172,14 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     return arguments;
   }
 
-  private static SpecificFunctionReference.Argument mapToArgument(HaxeParameter parameter, int index) {
+  private static HaxeArgument mapToArgument(HaxeParameter parameter, int index) {
     boolean optional = parameter.getOptionalMark() != null;
     String name = parameter.getComponentName().getName();
     ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
-    return new SpecificFunctionReference.Argument(index, optional, false, type, name);
+    return new HaxeArgument(index, optional, false, type, name);
+  }
+  public SpecificEnumValueReference withResolver(HaxeGenericResolver resolver) {
+    return new SpecificEnumValueReference( declaration, context, resolver,  constantValue) ;
   }
 
   @Override

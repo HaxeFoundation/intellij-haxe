@@ -7,7 +7,7 @@ class Test {
     }
 
     static function fromParameter0(arr:Iterable<Dynamic>){
-        for (val/*<# :Dynamic<T> #>*/ in arr) {
+        for (val/*<# :Dynamic #>*/ in arr) {
             var x = val;
         }
     }

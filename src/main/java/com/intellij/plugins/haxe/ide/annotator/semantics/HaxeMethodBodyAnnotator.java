@@ -48,7 +48,7 @@ public class HaxeMethodBodyAnnotator implements Annotator {
       if (null == constraint) {
         constraint = new ResultHolder(SpecificHaxeClassReference.getDynamic(param.getPsi()));
       }
-      resolver.addConstraint(param.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+      resolver.addConstraint(param.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
     }
     return resolver;
   }

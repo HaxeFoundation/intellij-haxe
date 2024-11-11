@@ -560,12 +560,14 @@ typeList ::= typeListPart (',' typeListPart)*
 haxe4typeList ::= typeListPart ('&' typeListPart)+
 {extends=typeList}
 
-//TODO mlo:  separate "type-generics" and "method-generics" as they have different rules
-//typeGenericParam ::= '<' defaultGenericListPart (',' defaultGenericListPart)* '>'
-//methodGenericParam ::= '<' genericListPart (',' genericListPart)* '>'
+
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 genericListPart ::= normalGenericListPart  | constGenericListPart
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{
+  implements="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclarationPsiMixinImpl"
+}
+
 genericDefaultType ::= typeWrapper
 genericConstraintPart ::=  ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart )
 private normalGenericListPart ::= componentName (':' genericConstraintPart)? ('=' genericDefaultType)?

@@ -124,6 +124,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         _model = new HaxeExternClassModel(externClassDeclaration);
       } else if (this instanceof HaxeObjectLiteralImpl objectLiteral) {
         _model =  new HaxeObjectLiteralClassModel(objectLiteral);
+      } else if (this instanceof HaxeGenericListPart genericListPart) {
+        _model = new HaxeGenericParamModel(genericListPart);
       } else if (this instanceof HaxeAbstractTypeDeclaration abstractDeclaration) {
         if (abstractDeclaration.isEnum()) {
           _model = new HaxeAbstractEnumModel(abstractDeclaration);
@@ -176,6 +178,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
   @Override
   public boolean isAnonymousType() {
+    return  false;
+  }
+
+  public boolean isTypeParameter() {
     return  false;
   }
 

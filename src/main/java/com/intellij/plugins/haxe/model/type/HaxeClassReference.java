@@ -20,15 +20,11 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,20 +43,20 @@ public class HaxeClassReference {
     this.name = getClassName(classModel);
     this.elementContext = elementContext;
     this.classModel = classModel;
-    this.isTypeParameter =  elementContext instanceof HaxeClassWrapperForTypeParameter;
+    this.isTypeParameter =  classModel.isTypeParameter();
   }
   protected HaxeClassReference(String name, @NotNull HaxeClassModel classModel, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
     this.classModel = classModel;
-    this.isTypeParameter =  elementContext instanceof HaxeClassWrapperForTypeParameter;
+    this.isTypeParameter = classModel.isTypeParameter();
   }
 
   public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
     this.classModel = null;
-    this.isTypeParameter =  elementContext instanceof HaxeClassWrapperForTypeParameter;
+    this.isTypeParameter =  elementContext instanceof HaxeGenericListPart;
   }
   public HaxeClassReference(String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
     this.name = name;
@@ -70,7 +66,7 @@ public class HaxeClassReference {
   }
 
   private String getClassName(HaxeClassModel clazz) {
-    if(clazz.getPsi().getParent() != null) {
+    if(clazz!= null && clazz.getPsi().getParent() != null) {
       return CachedValuesManager.getProjectPsiDependentCache(clazz.getPsi(), HaxeClassReference::getNameCached);
     }else {
       return getClassNameInternal(clazz.getPsi().getModel());

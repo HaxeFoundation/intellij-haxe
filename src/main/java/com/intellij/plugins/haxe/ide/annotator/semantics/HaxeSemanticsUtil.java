@@ -113,7 +113,7 @@ public class HaxeSemanticsUtil {
         return abstractEnumFieldInitType;
       }
       if (assignType != null) {
-        resolver.add("", assignType, ResolveSource.ASSIGN_TYPE);
+        resolver.setAssignHint(assignType);
       }
 
       // fallback to simple init expression

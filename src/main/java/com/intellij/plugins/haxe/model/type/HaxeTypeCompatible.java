@@ -33,6 +33,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.MULTI_TYPE;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getStdClass;
 
 @CustomLog
@@ -326,8 +327,8 @@ public class HaxeTypeCompatible {
         return false;
       }
       for (int n = 0; n < toArgSize; n++) {
-        SpecificFunctionReference.Argument fromArg = from.arguments.get(n);
-        SpecificFunctionReference.Argument toArg = to.arguments.get(n);
+        HaxeArgument fromArg = from.arguments.get(n);
+        HaxeArgument toArg = to.arguments.get(n);
 
         if (!toArg.getType().isUnknown() && !toArg.getType().isMissingClassModel()) {
           if (!toArg.canAssignToFrom(fromArg))
@@ -511,8 +512,24 @@ public class HaxeTypeCompatible {
       }
     }
 
+
     compatibleTypes = from.getCompatibleTypes(SpecificHaxeClassReference.Compatibility.ASSIGNABLE_TO);
-    if (from.isAbstractType() && includeImplicitCast) compatibleTypes.addAll(from.getHaxeClassModel().getImplicitCastToTypesListClassOnly(from));
+    if (from.isAbstractType()) {
+
+      boolean isMultiType = from.getHaxeClass().hasCompileTimeMeta(MULTI_TYPE);
+      if (isMultiType || includeImplicitCast) {
+        HaxeClassModel classModel = from.getHaxeClassModel();
+        if (classModel != null) {
+          List<SpecificHaxeClassReference> implicitCastList = classModel.getImplicitCastToTypesListClassOnly(from);
+          if (isMultiType) {
+            if (canAssignMultiType(to, from, context, implicitCastList)) return true;
+          }
+          if (includeImplicitCast) {
+            compatibleTypes.addAll(implicitCastList);
+          }
+        }
+      }
+    }
     for (SpecificHaxeClassReference compatibleType : compatibleTypes) {
       SpecificTypeReference compatibleTypeResolved = compatibleType.fullyResolveTypeDefAndUnwrapNullTypeReference();
       if (compatibleTypeResolved instanceof SpecificHaxeClassReference classReference) {
@@ -534,6 +551,35 @@ public class HaxeTypeCompatible {
 
     // Last ditch effort...
     return to.toStringWithoutConstant().equals(from.toStringWithoutConstant());
+  }
+
+  private static boolean canAssignMultiType(@NotNull SpecificHaxeClassReference to,
+                                   @NotNull SpecificHaxeClassReference from,
+                                   @Nullable HaxeAssignContext context,
+                                   List<SpecificHaxeClassReference> implicitCastList) {
+    HaxeGenericResolver genericResolver = from.getGenericResolver();
+    SpecificTypeReference underlyingType = from.getHaxeClassModel().getUnderlyingType();
+
+    if (underlyingType instanceof SpecificHaxeClassReference underlyingClassReference) {
+      HaxeClass underlyingClass = underlyingClassReference.getHaxeClass();
+      HaxeGenericResolver underlyingResolver = genericResolver.translateFromTo(from.getHaxeClass(), underlyingClass);
+      ResultHolder underlyingResult = underlyingResolver.resolve(underlyingType);
+
+      if(underlyingResult != null && underlyingResult.getClassType() != null) {
+        for (SpecificHaxeClassReference reference : implicitCastList) {
+          HaxeClassReference classReference = reference.getHaxeClassReference();
+          HaxeClass castClass = classReference.getHaxeClass();
+          HaxeGenericResolver resolverForImplicitCast = underlyingResolver.translateFromTo(underlyingClass, castClass);
+
+          @NotNull ResultHolder[] implicitCastSpecifics = resolverForImplicitCast.getSpecifics();
+          SpecificHaxeClassReference multiTypeCast = SpecificHaxeClassReference.withGenerics(classReference, implicitCastSpecifics);
+          if (canAssignToFrom(to, multiTypeCast, false, context)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private static boolean checkStructInitConstructor(SpecificHaxeClassReference to, SpecificHaxeClassReference from,
@@ -719,7 +765,7 @@ public class HaxeTypeCompatible {
       }
 
       if (!ignored && !memberExists && !optional){
-        String missingFieldName = toMember.getPresentableText(null);
+        String missingFieldName = toMember.getPresentableText(null, toResolver);
         if(context != null)context.addMissingMember(missingFieldName);
         allMembersMatches = false;
       }
@@ -901,6 +947,15 @@ public class HaxeTypeCompatible {
     if (to.isAnonymousType() || from.isAnonymousType()) {
       return to.getHaxeClass() == from.getHaxeClass();
     }
+    // make sure no typedef
+    if(to.isTypeDefOfClass()) {
+      SpecificTypeReference resolvedTo = to.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      if (resolvedTo instanceof SpecificHaxeClassReference classReference) to = classReference;
+    }
+    if(from.isTypeDefOfClass()) {
+      SpecificTypeReference resolvedfrom = from.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      if (resolvedfrom instanceof SpecificHaxeClassReference classReference) from = classReference;
+    }
 
     if (to.getHaxeClassReference().refersToSameClass(from.getHaxeClassReference())) {
       if (to.getSpecifics().length == from.getSpecifics().length) {
@@ -961,6 +1016,7 @@ public class HaxeTypeCompatible {
       if (to.getHaxeClass() != null && to.getHaxeClass().isInterface()) {
         Set<SpecificHaxeClassReference> fromInferTypes = from.getInferTypes();
         for (SpecificHaxeClassReference fromInterface : fromInferTypes) {
+          if(fromInterface == from) continue;
           HaxeClassModel classModel = fromInterface.getHaxeClassModel();
           if (recursionGuard == null) recursionGuard = new ArrayList<>();
           if (!recursionGuard.contains(classModel)) {
@@ -971,8 +1027,8 @@ public class HaxeTypeCompatible {
       }
       HaxeClass haxeClass = from.getHaxeClass();
       if (haxeClass != null) {
-
-          List<HaxeType> extendsList = !haxeClass.isAbstractType() ? haxeClass.getHaxeExtendsList() : haxeClass.getModel().getAbstractToList() ;
+        boolean isAbstract = haxeClass.isAbstractType();
+        List<HaxeType> extendsList = !isAbstract ? haxeClass.getHaxeExtendsList() : haxeClass.getModel().getAbstractToList() ;
           for (HaxeType type : extendsList) {
             PsiElement resolve = type.getReferenceExpression().resolve();
             if (resolve instanceof HaxeClass fromClass) {

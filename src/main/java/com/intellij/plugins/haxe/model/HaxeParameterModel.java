@@ -22,9 +22,11 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -124,8 +126,8 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     if (resolver != null) {
       SpecificTypeReference type = typeResult.getType();
       if(type instanceof SpecificHaxeClassReference classReference) {
-        if (type.isTypeParameter()) {
-          ResultHolder resolve = resolver.resolve(classReference.getClassName());
+        if (classReference.getHaxeClass() instanceof HaxeTypeParameterDeclaration typeParameter) {
+          ResultHolder resolve = resolver.resolve(typeParameter);
           if (resolve != null && !resolve.isUnknown()) return resolve;
         }
         return propagateGenericsToType(classReference.createHolder(), resolver);
@@ -141,9 +143,10 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   private SpecificFunctionReference propagateGenericsToFunction(SpecificFunctionReference reference, HaxeGenericResolver resolver) {
     // copy so we dont break other logic
 
-    List<SpecificFunctionReference.Argument> arguments = reference.getArguments().stream().map(argument -> resolverArgument(argument, resolver)).toList();
+    List<HaxeArgument> arguments = reference.getArguments().stream().map(argument -> resolverArgument(argument, resolver)).toList();
     ResultHolder returnType = reference.getReturnType();
-    ResultHolder resolvedReturnType = resolver.resolveReturnType(returnType);
+    //ResultHolder resolvedReturnType = resolver.resolveReturnType(returnType);
+    ResultHolder resolvedReturnType = resolver.resolve(returnType);
     if (resolvedReturnType != null && !resolvedReturnType.isUnknown()) returnType = resolvedReturnType;
     if (reference.method != null) {
       return new SpecificFunctionReference(arguments, returnType, reference.method, reference.getElementContext());
@@ -152,7 +155,7 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     }
   }
 
-  private SpecificFunctionReference.Argument resolverArgument(SpecificFunctionReference.Argument argument, HaxeGenericResolver resolver) {
+  private HaxeArgument resolverArgument(HaxeArgument argument, HaxeGenericResolver resolver) {
     ResultHolder type = argument.getType();
     ResultHolder resolve = resolver.resolve(type);
     if (resolve != null && !resolve.isUnknown()) type = resolve;

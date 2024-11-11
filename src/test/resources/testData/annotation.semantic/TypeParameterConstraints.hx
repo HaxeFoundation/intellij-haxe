@@ -8,7 +8,7 @@ class TypeParameterConstraints {
          trace(haxe3Syntax([]));
          trace(haxe3Syntax(["bar", "foo"]));
 
-         haxe3Syntax(<error descr="Type mismatch, missing member(s) (iterator():Iterator<T>)">"foo"</error>); // should fail: String should be Iterable<String>
+         haxe3Syntax(<error descr="Type mismatch, missing member(s) (iterator():Iterator<String>)">"foo"</error>); // should fail: String should be Iterable<String>
      }
 
      function haxe3Syntax<T:(Iterable<String>, Measurable)>(a:T) {

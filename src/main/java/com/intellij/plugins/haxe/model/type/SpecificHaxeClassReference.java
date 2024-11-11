@@ -24,7 +24,7 @@ import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
@@ -42,7 +42,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.createInheritedClassResolver;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 import static java.util.function.Predicate.not;
 
@@ -111,8 +110,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       clazz = reference.getHaxeClass();
       if(clazz == null && reference.isTypeParameter()) {
         PsiElement element = reference.elementContext;
-        if(element instanceof HaxeType haxeType)
-          clazz =  new HaxeClassWrapperForTypeParameter(element.getNode(), List.of(haxeType));
+        if(element instanceof HaxeClass haxeClass) {
+          return haxeClass;
+        }
       }
     }
     return clazz;
@@ -249,10 +249,16 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         List<HaxeGenericParamModel> params = model.getGenericParams();
         for (int n = 0; n < params.size(); n++) {
           HaxeGenericParamModel paramModel = params.get(n);
-          ResultHolder specific = (n < getSpecifics().length) ? this.getSpecifics()[n] : getUnknown(context).createHolder();
+          boolean enoughParams = n < getSpecifics().length;
+          ResultHolder specific = null;
+          if (enoughParams) {
+            specific = this.getSpecifics()[n];
+          }else {
+            specific = paramModel.getDefaultType(null);
+          }
           if (specific == null) specific = getUnknown(context).createHolder();// null safety
           //TODO check constraints
-          resolver.add(paramModel.getName(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
+          resolver.add(paramModel.getTypeParameter(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
         }
       }
     }
@@ -276,10 +282,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeGenericResolver localResolver = new HaxeGenericResolver();
     localResolver.addAll(resolver);
     if (aClass.isTypeDef()) {
-      HaxeResolveResult result = HaxeResolver.fullyResolveTypedef(aClass, resolver.getSpecialization(aClass));
-      if (result.isHaxeClass()) {
-        aClass = result.getHaxeClass();
-        localResolver.addAll(result.getGenericResolver());
+      SpecificTypeReference reference = this.fullyResolveTypeDefReference();
+      if(reference instanceof  SpecificHaxeClassReference resolvedClass) {
+        localResolver.addAll(resolvedClass.getGenericResolver());
       }
     }
     HaxeNamedComponent namedComponent = aClass.findHaxeMethodByName(name, localResolver);
@@ -292,7 +297,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
       // if inherited method map resolver to match declaring class
       if(method.getContainingClass() instanceof  HaxeClass methodTypeClassType){
-        localResolver = HaxeGenericResolverUtil.createInheritedClassResolver(methodTypeClassType, clazz, localResolver);
+        localResolver = localResolver.translateFromTo(aClass, methodTypeClassType);
       }
 
       return HaxeTypeResolver.getMethodFunctionType(method, localResolver);
@@ -302,8 +307,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (field instanceof HaxePsiField haxePsiField) {
       if (context.root == field) return null;
       HaxeClass containingClass = (HaxeClass)haxePsiField.getContainingClass();
-      if (containingClass != aClass) {
-        localResolver.addAll(createInheritedClassResolver(containingClass, aClass, localResolver));
+      if (containingClass!= null && containingClass != aClass) {
+        HaxeGenericResolver resolver1 = localResolver.translateFromTo(aClass, containingClass);
+        localResolver.addAll(resolver1);
       }
       return HaxeTypeResolver.getFieldOrMethodReturnType(field, localResolver);
     }
@@ -774,7 +780,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
 
   public SpecificTypeReference unwrapNullType() {
-    if (specifics.length == 1) {
+    if (isNullType() && specifics.length == 1) {
       return specifics[0].getType();
     }else {
       // should not happen!?
@@ -878,6 +884,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return list;
   }
 
+  //TODO mlo: get rid of propagate logic if possible
   public static ResultHolder propagateGenericsToType(@Nullable HaxeType type, HaxeGenericResolver genericResolver) {
     if (type == null) return null;
     ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type, genericResolver);
@@ -895,24 +902,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
     SpecificTypeReference type = typeHolder.getType();
 
-    if (type.isTypeParameter()) {
-      SpecificHaxeClassReference typeParameter = (SpecificHaxeClassReference)type;
-      String typeParameterName = typeParameter.getClassName();
+    if (type instanceof HaxeTypeParameterDeclaration typeParameter) {
 
       ResultHolder possibleValue = isReturnType
-                                   ? genericResolver.resolveReturnType(typeHolder)
-                                   : genericResolver.resolve(typeParameterName);
+                                   ? genericResolver.resolve(typeHolder)
+                                   : genericResolver.resolveTypeParameter(typeParameter);
 
       if (possibleValue != null && !possibleValue.isUnknown()) {
-        // TODO considder?
-        //HaxeGenericResolver resolverWithoutCurrentTypeParam = genericResolver.without(typeParameterName);
-        //ResultHolder holder = propagateGenericsToType(possibleValue, resolverWithoutCurrentTypeParam);
-
         return possibleValue;
+      }else {
+        return typeHolder;
+      }
     }
-    return typeHolder;
-
-  }
     // we want to use our resolver to update any Type parameters in a type "downstream" as long as its a "real"/"Visible" type parameter
     // type structures can be quite complex  ex. Array<Null<Map<Array<Null<T>>,(int,Q)->T>>>
     // in this case the class Array normally contains a type Parameter T, but the one we got in our resolver is not meant to resolve

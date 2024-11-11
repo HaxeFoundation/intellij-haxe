@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -79,11 +80,11 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
 
   @Override
   public SpecificFunctionReference getFunctionType(@Nullable HaxeGenericResolver resolver) {
-    LinkedList<SpecificFunctionReference.Argument> args = new LinkedList<>();
+    LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = this.getParameters();
     for (int i = 0; i < parameters.size(); i++) {
       HaxeParameterModel param = parameters.get(i);
-      args.add(new SpecificFunctionReference.Argument(i, param.isOptional(), param.isRest(), param.getType(resolver), param.getName()));
+      args.add(new HaxeArgument(i, param.isOptional(), param.isRest(), param.getType(resolver), param.getName()));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, getEnumValuePsi());
   }
@@ -111,16 +112,21 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
     List<ResultHolder> parameters = getParameterTypes();
     if (index >= parameters.size()) return null;
     ResultHolder holder = parameters.get(index);
-    if (holder.isTypeParameter()) return  resolver.resolve(holder);
+    if (holder.isTypeParameter()){
+      ResultHolder resolve = resolver.resolve(holder);
+      if(resolve != null && !resolve.isUnknown()) return resolve;
+      return holder;
+    }
     @NotNull ResultHolder[] specifics = resolver.getSpecifics();
     if (specifics.length> 0) {
-      // drop one level of resolver as we need the resolver for the constrcutor argument not the result of enumValues
-      HaxeGenericResolver subResolver = specifics[0].getClassType().getGenericResolver();
-      return subResolver.resolve(holder);
-    }else {
-      ResultHolder resolve = resolver.resolve(holder);
-      return resolve;
+      // drop one level of resolver as we need the resolver for the constructor argument not the result of enumValues
+      SpecificHaxeClassReference classType = specifics[0].getClassType();
+      if(classType != null) {
+        HaxeGenericResolver subResolver = classType.getGenericResolver();
+        return subResolver.resolve(holder);
+      }
     }
+    return resolver.resolve(holder);
   }
 
   private List<ResultHolder> getParameterTypes() {
@@ -134,6 +140,6 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
   @Nullable
   public HaxeParameterList getConstructorParameters() {
     HaxeEnumValueDeclarationConstructor declaration = getEnumValuePsi();
-    return null != declaration ? declaration.getParameterList() : null;
+    return declaration.getParameterList();
   }
 }

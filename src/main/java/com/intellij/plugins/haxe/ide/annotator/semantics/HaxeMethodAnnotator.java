@@ -371,9 +371,9 @@ public class HaxeMethodAnnotator implements Annotator {
         ResultHolder constraint = paramModel.getConstraint(null);
         if (constraint == null) {
           ResultHolder resultHolder = new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi()));
-          resolver.add(paramModel.getName(), resultHolder, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.add(paramModel.getTypeParameter(), resultHolder, ResolveSource.METHOD_TYPE_PARAMETER);
         }else {
-          resolver.addConstraint(paramModel.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.addConstraint(paramModel.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
         }
       }
     }

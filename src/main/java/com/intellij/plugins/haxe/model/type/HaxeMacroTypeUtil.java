@@ -4,6 +4,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericListPart;
+import com.intellij.plugins.haxe.lang.psi.HaxeGenericParam;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValueProvider;
@@ -32,9 +34,13 @@ public class HaxeMacroTypeUtil {
           // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
           || aClass.getQualifiedName().equals(HaxeMacroTypeUtil.EXPR)) {
         HaxeGenericResolver resolver = haxeClassReference.getGenericResolver();
-        ResultHolder resolve = resolver.resolve("T");
-        if (resolve != null && !resolve.isUnknown()) {
-          return resolve.getType();
+        HaxeGenericParam genericParam = aClass.getGenericParam();
+        if(genericParam != null) {
+          HaxeGenericListPart part = genericParam.getGenericListPartList().get(0);
+          ResultHolder resolve = resolver.resolve(part);
+          if (resolve != null && !resolve.isUnknown()) {
+            return resolve.getType();
+          }
         }
       }
     }

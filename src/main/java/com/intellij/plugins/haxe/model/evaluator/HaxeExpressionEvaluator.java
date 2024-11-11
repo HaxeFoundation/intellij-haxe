@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.psi.*;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.PsiSearchHelper;
@@ -392,6 +393,9 @@ public class HaxeExpressionEvaluator {
       return handleTypeCheckExpr(context, resolver, typeCheckExpr);
     }
 
+    if (element instanceof HaxeGenericListPart genericListPart) {
+      return genericListPart.getModel().getInstanceType();
+    }
     if (element instanceof AbstractHaxeNamedComponent namedComponent) {
       return HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
     }
@@ -486,8 +490,8 @@ public class HaxeExpressionEvaluator {
 
   private static boolean containsUnknowns(SpecificFunctionReference type) {
     if (type.getReturnType().isUnknown()) return true;
-    List<SpecificFunctionReference.Argument> arguments = type.getArguments();
-    for (SpecificFunctionReference.Argument argument : arguments) {
+    List<HaxeArgument> arguments = type.getArguments();
+    for (HaxeArgument argument : arguments) {
       if(argument.getType().isUnknown()) return true;
     }
     return false;
@@ -687,18 +691,18 @@ public class HaxeExpressionEvaluator {
             parameterToArgument.put(entry.getValue(), entry.getKey());
           }
 
-          List<SpecificFunctionReference.Argument> newArgList = new ArrayList<>();
+          List<HaxeArgument> newArgList = new ArrayList<>();
 
           Map<Integer, ResultHolder> argMap = validation.getArgumentIndexToType();
 
-          List<SpecificFunctionReference.Argument> arguments = type.getArguments();
-          for (SpecificFunctionReference.Argument argument : arguments) {
+          List<HaxeArgument> arguments = type.getArguments();
+          for (HaxeArgument argument : arguments) {
             int index = argument.getIndex();
             Integer argumentIndex = parameterToArgument.get(index);
             ResultHolder newValue = argMap.get(argumentIndex);
             // if not found use old value
             if (newValue == null) newValue = argument.getType();
-            newArgList.add(new SpecificFunctionReference.Argument(argument.getIndex(), argument.isOptional(), argument.isRest(), newValue, argument.getName()));
+            newArgList.add(new HaxeArgument(argument.getIndex(), argument.isOptional(), argument.isRest(), newValue, argument.getName()));
           }
 
           return new SpecificFunctionReference(newArgList, type.returnValue ,type.functionType,  type.context).createHolder();

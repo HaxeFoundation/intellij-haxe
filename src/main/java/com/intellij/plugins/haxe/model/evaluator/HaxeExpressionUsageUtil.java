@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.PsiSearchHelper;
@@ -202,7 +203,7 @@ public class HaxeExpressionUsageUtil {
           HaxeTypeTag valueParamPsi = parameters.get(1).getTypeTagPsi();
 
 
-          @NotNull String[] specificNames = classResolver.names();
+          @NotNull String[] specificNames = classResolver. names();
           for (int i = 0; i < specificNames.length; i++) {
             String keyPsiName = keyParamPsi.getTypeOrAnonymous().getType().getText();
             // key
@@ -310,12 +311,14 @@ public class HaxeExpressionUsageUtil {
 
       HaxeGenericResolver resolverFromCallExpression = validation.getResolver();
       if (resolverFromCallExpression != null) {
-        // removing any typeParameters that are local to the method (we only want type parameters that are class specific)
-        resolverFromCallExpression.removeAll(methodModel.getGenericResolver(null).names());
-        // bit of a hack to get rid of any unknowns
-        ResultHolder resolve = resolverFromCallExpression.resolve(resultHolder.getClassType().replaceUnknownsWithTypeParameter());
-        if (resolve != null && !resolve.isUnknown()) {
-          return resolve;
+        HaxeClass expressionsClass = PsiTreeUtil.getParentOfType(referenceExpression, HaxeClass.class);
+        SpecificHaxeClassReference classType = resultHolder.getClassType();
+        if(classType != null) {
+          HaxeGenericResolver translatedResolver = resolverFromCallExpression.translateFromTo(expressionsClass, classType.getHaxeClass());
+          ResultHolder resolve = translatedResolver.resolve(classType.replaceUnknownsWithTypeParameter());
+          if (resolve != null && !resolve.isUnknown()) {
+            return resolve;
+          }
         }
       }
     }

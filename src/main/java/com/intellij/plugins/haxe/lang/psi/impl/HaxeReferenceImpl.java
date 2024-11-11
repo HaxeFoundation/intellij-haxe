@@ -42,6 +42,7 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.JavaSourceUtil;
@@ -383,7 +384,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
           || aClass.getQualifiedName().equals(HaxeMacroTypeUtil.EXPR)) {
         HaxeGenericResolver resolver = result.getGenericResolver();
-        ResultHolder resolve = resolver.resolve("T");
+        HaxeGenericListPart part = aClass.getGenericParam().getGenericListPartList().get(0);
+        ResultHolder resolve = resolver.resolve(part);
         if (resolve != null && !resolve.isUnknown()) {
           SpecificHaxeClassReference type = resolve.getClassType();
           if (type != null) return type.asResolveResult();
@@ -986,8 +988,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             if (functionType == null) return null;
             int index = findParameterIndex(literal, parameter);
             if (index > -1 ) {
-              List<SpecificFunctionReference.Argument> arguments = functionType.getArguments();
-              SpecificFunctionReference.Argument argument = arguments.get(index);
+              List<HaxeArgument> arguments = functionType.getArguments();
+              HaxeArgument argument = arguments.get(index);
 
               ResultHolder resolved = validation.getResolver().withoutUnknowns().resolve(argument.getType());
               if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
@@ -1245,6 +1247,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       ResultHolder leftResult = HaxeTypeResolver.getPsiElementType(leftReference, resolver);
       if (leftResult.getClassType() != null) {
         SpecificTypeReference reference = leftResult.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+        if(reference instanceof  SpecificHaxeClassReference classReference) {
+          resolver.addAll(classReference.getGenericResolver());
+        }
         result = reference.asResolveResult();
         }else {
         result = leftResult.getType().asResolveResult();
@@ -1254,6 +1259,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeClass haxeClass = null;
     String name = null;
 
+    // TODO remove and use data from ResultHolder
     if (result != null) {
       if (result != HaxeResolveResult.EMPTY) {
         haxeClass = result.getHaxeClass();
@@ -1497,10 +1503,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
     }
     // if type parameter, try to find constraints and use  those ?
-    if(haxeClass instanceof HaxeClassWrapperForTypeParameter typeParameter) {
-      ResultHolder resolved = resolver.resolve(typeParameter);
-      if (resolved != null && resolved.isClassType()) {
+    if(haxeClass instanceof HaxeGenericListPart genericType) {
+      ResultHolder resolved = resolver.resolveTypeParameter(genericType);
+      if (resolved != null && !resolved.isUnknown() && resolved.isClassType()) {
         haxeClass = resolved.getClassType().getHaxeClass();
+      }else {
+      //TODO fix so it only checks if missing
+        HaxeGenericDefaultType defaultType = genericType.getGenericDefaultType();
+        if(defaultType != null && defaultType.getTypeOrAnonymous() != null) {
+          ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(defaultType.getTypeOrAnonymous());
+          if (holder.getClassType() != null) {
+            haxeClass = holder.getClassType().getHaxeClass();
+          }
+        }
       }
     }
     for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(resolver, haxeClass)) {

@@ -37,7 +37,7 @@ public class HaxeTypeCheckExprAnnotator implements Annotator {
       ResultHolder assertionResult = SpecificTypeReference.getUnknown(expr).createHolder();
       if (children[1] instanceof HaxeTypeOrAnonymous) {
         assertionResult = HaxeTypeResolver.getTypeFromTypeOrAnonymous((HaxeTypeOrAnonymous)children[1]);
-        ResultHolder resolveResult = resolver.resolve(assertionResult.getType().toStringWithoutConstant());
+        ResultHolder resolveResult = resolver.resolve(assertionResult);
         if (null != resolveResult) {
           assertionResult = resolveResult;
         }
