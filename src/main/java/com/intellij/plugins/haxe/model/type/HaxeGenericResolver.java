@@ -20,10 +20,9 @@ package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import lombok.Getter;
@@ -35,7 +34,6 @@ import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.*;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
-import static com.intellij.plugins.haxe.model.type.resolver.ResolveSource.*;
 
 
 @CustomLog
@@ -54,25 +52,27 @@ public class HaxeGenericResolver {
     this.arguments = new LinkedList<>();
   }
 
-  public void add(@NotNull HaxeTypeParameterDeclaration typeParameter, @NotNull ResultHolder specificType, @NotNull ResolveSource resolveSource) {
+  public void add(@NotNull HaxeTypeParameterDeclaration typeParameter, @NotNull ResultHolder specificType) {
     String name = typeParameter.getQualifiedName();
     specificType = replaceAnyEnumValueWithEnumClass(specificType);
-    resolvers.removeIf(entry -> entry.typeParameter().equals(typeParameter) && entry.resolveSource() == resolveSource);
-    resolvers.add(new ResolverEntry(name, typeParameter, specificType, resolveSource));
+    HaxeTypeParameterScope scope = typeParameter.getTypeParameterScope();
+    resolvers.removeIf(entry -> entry.typeParameter().equals(typeParameter) && entry.scope() == scope);
+    resolvers.add(new ResolverEntry(name, typeParameter, specificType, scope));
   }
 
-  public void addConstraint(@NotNull HaxeTypeParameterDeclaration typeParameter, @NotNull ResultHolder specificType, @NotNull ResolveSource resolveSource) {
+  public void addConstraint(@NotNull HaxeTypeParameterDeclaration typeParameter, @NotNull ResultHolder specificType) {
     String name = typeParameter.getQualifiedName();
     specificType = replaceAnyEnumValueWithEnumClass(specificType);
-    constaints.removeIf(entry -> entry.typeParameter().equals(typeParameter) && entry.resolveSource() == resolveSource);
-    constaints.add(new ResolverEntry(name,typeParameter,  specificType, resolveSource));
+    HaxeTypeParameterScope scope = typeParameter.getTypeParameterScope();
+    constaints.removeIf(entry -> entry.typeParameter().equals(typeParameter) && entry.scope() == scope);
+    constaints.add(new ResolverEntry(name,typeParameter,  specificType, scope));
   }
 
   public void addArgument(@NotNull HaxeTypeParameterDeclaration typeParameter, @NotNull ResultHolder specificType) {
     String name = typeParameter.getQualifiedName();
     specificType = replaceAnyEnumValueWithEnumClass(specificType);
     arguments.removeIf(entry -> entry.typeParameter().equals(typeParameter));
-    arguments.add(new ResolverEntry(name,typeParameter,  specificType, ARGUMENT_TYPE));
+    arguments.add(new ResolverEntry(name,typeParameter,  specificType, null));
   }
 
   public void addArguments(@NotNull HaxeGenericResolver otherResolver) {
@@ -84,10 +84,10 @@ public class HaxeGenericResolver {
 
 
   private void add(@NotNull ResolverEntry entry) {
-    add(entry.typeParameter(), entry.type(), entry.resolveSource());
+    add(entry.typeParameter(), entry.type());
   }
   private void addConstraint(@NotNull ResolverEntry entry) {
-    addConstraint(entry.typeParameter(), entry.type(), entry.resolveSource());
+    addConstraint(entry.typeParameter(), entry.type());
   }
   private void addArgument(@NotNull ResolverEntry entry) {
     addArgument(entry.typeParameter(), entry.type());
@@ -100,10 +100,10 @@ public class HaxeGenericResolver {
       assignHint = parentResolver.assignHint;
       // not using "collection.addAll" because there is extra logic in add() that we need to execute
       for (ResolverEntry resolver : parentResolver.resolvers) {
-        this.add(resolver.typeParameter(), resolver.type(), resolver.resolveSource());
+        this.add(resolver.typeParameter(), resolver.type());
       }
       for (ResolverEntry entry : parentResolver.constaints) {
-        this.addConstraint(entry.typeParameter(), entry.type(), entry.resolveSource());
+        this.addConstraint(entry.typeParameter(), entry.type());
       }
       for (ResolverEntry entry : parentResolver.arguments) {
         this.addArgument(entry.typeParameter(), entry.type());
@@ -112,17 +112,17 @@ public class HaxeGenericResolver {
     return this;
   }
 
-  public void addOnly(@Nullable HaxeGenericResolver parentResolver, @NotNull ResolveSource filter) {
+  public void addOnly(@Nullable HaxeGenericResolver parentResolver, @NotNull HaxeTypeParameterScope scope) {
     if (null != parentResolver && parentResolver != this) {
       // not using "collection.addAll" because there is extra logic in add() that we need to execute
       for (ResolverEntry resolver : parentResolver.resolvers) {
-        if (resolver.resolveSource() == filter) this.add(resolver);
+        if (resolver.scope() == scope) this.add(resolver);
       }
       for (ResolverEntry entry : parentResolver.constaints) {
-        if (entry.resolveSource() == filter)  this.addConstraint(entry);
+        if (entry.scope() == scope)  this.addConstraint(entry);
       }
       for (ResolverEntry entry : parentResolver.arguments) {
-        if (entry.resolveSource() == filter)  this.addArgument(entry);
+        if (entry.scope() == scope)  this.addArgument(entry);
       }
     }
   }
@@ -468,12 +468,12 @@ public class HaxeGenericResolver {
     builder.append("resolvers:[");
     for (ResolverEntry resolver : resolvers) {
       builder.append(resolver.name()).append(":").append(resolver.type().toPresentationString()).append(":")
-        .append(resolver.resolveSource());
+        .append(resolver.scope());
     }
 
     builder.append("], constraints: [");
     for (ResolverEntry entry : constaints) {
-      builder.append(entry.name()).append(":").append(entry.type().toPresentationString()).append(":").append(entry.resolveSource());
+      builder.append(entry.name()).append(":").append(entry.type().toPresentationString()).append(":").append(entry.scope());
     }
     builder.append("]");
     //TODO assign hint ?
@@ -483,22 +483,23 @@ public class HaxeGenericResolver {
   }
 
   public HaxeGenericResolver withoutMethodTypeParameters() {
-    return without(METHOD_TYPE_PARAMETER);
-  }
-
-  public HaxeGenericResolver withoutArgumentType() {
-    return without(ARGUMENT_TYPE);
+    return without(HaxeTypeParameterScope.METHOD);
   }
 
   public HaxeGenericResolver withoutClassTypeParameters() {
-    return without(CLASS_TYPE_PARAMETER);
+    return without(HaxeTypeParameterScope.CLASS);
   }
 
-  public HaxeGenericResolver without(ResolveSource source) {
+  public HaxeGenericResolver without(HaxeTypeParameterScope scope) {
     HaxeGenericResolver copy = copy();
-    copy.resolvers.removeIf(entry -> entry.resolveSource() == source);
-    copy.constaints.removeIf(entry -> entry.resolveSource() == source);
-    copy.arguments.removeIf(entry -> entry.resolveSource() == source);
+    copy.resolvers.removeIf(entry -> entry.scope() == scope);
+    copy.constaints.removeIf(entry -> entry.scope() == scope);
+    return copy;
+  }
+
+  public HaxeGenericResolver withoutArgumentType() {
+    HaxeGenericResolver copy = copy();
+    copy.arguments.clear();
     return copy;
   }
 
@@ -552,24 +553,25 @@ public class HaxeGenericResolver {
       if(match.isPresent()) {
         HaxeClassReference classReference = new HaxeClassReference(name, param.getPsi(), true);
         ResultHolder holder = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(classReference));
-        resolver.resolvers.add(new ResolverEntry(name, param.getTypeParameter(), holder, match.get().resolveSource()));
+        resolver.resolvers.add(new ResolverEntry(name, param.getTypeParameter(), holder, match.get().scope()));
       }
     }
     resolver.constaints.addAll(constaints);
     return resolver;
   }
 
+  //TODO remove
   //TODO probably should not rely on this
   public HaxeClass resolversClass() {
     for (ResolverEntry resolver : resolvers) {
-      if(resolver.resolveSource() == CLASS_TYPE_PARAMETER) {
+      if(resolver.scope() == HaxeTypeParameterScope.CLASS) {
         if(resolver.typeParameter().getOwner() instanceof  HaxeClass haxeClass) {
           return haxeClass;
         }
       }
     }
     for (ResolverEntry resolver : constaints) {
-      if(resolver.resolveSource() == CLASS_TYPE_PARAMETER) {
+      if(resolver.scope() == HaxeTypeParameterScope.CLASS) {
         if(resolver.typeParameter().getOwner() instanceof  HaxeClass haxeClass) {
           return haxeClass;
         }
@@ -602,6 +604,24 @@ public class HaxeGenericResolver {
     if(target == source) return this;
 
     HaxeGenericResolver newResolver = withoutClassTypeParameters();
+    boolean sourceToTarget = !findClassHierarchy(source, target).isEmpty();
+    boolean targetToSource = !findClassHierarchy(target, source).isEmpty();
+
+      if (sourceToTarget) {
+        newResolver.addAll(createInheritedClassResolver(this, target, source));
+        return newResolver;
+      }
+      else if(targetToSource) {
+        newResolver.addAll(createExtendingClassResolver(this, source, target));
+        return newResolver;
+      }else {
+        // no change
+        return this;
+      }
+  }
+
+  private HaxeGenericResolver TranslateAbstractToUnderlying(@NotNull HaxeClass source) {
+    HaxeGenericResolver newResolver = withoutClassTypeParameters();
     //TODO move  to its own method and add support for recursion, ( underlying type might be another abstract with underlying type)
     // mapping  abstract to underlying  type
     if (source instanceof HaxeAbstractTypeDeclaration declaration) {
@@ -629,25 +649,10 @@ public class HaxeGenericResolver {
             }
           }
         }
-        return newResolver;
       }
     }
-
-      boolean targetExtendsCurrent = !findClassHierarchy(source, target).isEmpty();
-      if (targetExtendsCurrent) {
-        //TODO want to translate each member not entire resolver
-        newResolver.addAll(createInheritedClassResolver(target, source, this));
-      }
-      else {
-        // TODO should probably clean up this so we dont need instanceReference ?
-        HaxeClassModel model = target.getModel();
-        newResolver.addAll(mapResolverToClass(this, model.getInstanceReference()));
-      }
-      return newResolver;
+    return newResolver;
   }
-
-
-
 
 
   @Override
@@ -689,4 +694,19 @@ public class HaxeGenericResolver {
     return false;
   }
 
+  public boolean contains(HaxeTypeParameterDeclaration parameter) {
+    return listSearch(resolvers, parameter) != null;
+  }
+
+  public void update(HaxeTypeParameterDeclaration typeParameter, ResultHolder resultHolder) {
+    Optional<ResolverEntry> match = resolvers.stream()
+      .filter(entry -> entry.typeParameter() == typeParameter)
+      .findFirst();
+
+    if (match.isPresent()) {
+      ResolverEntry old = match.get();
+      resolvers.remove(old);
+      resolvers.add(old.withType(resultHolder));
+    }
+  }
 }

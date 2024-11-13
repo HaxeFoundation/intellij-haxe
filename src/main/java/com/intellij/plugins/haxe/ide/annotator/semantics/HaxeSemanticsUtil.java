@@ -11,7 +11,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;

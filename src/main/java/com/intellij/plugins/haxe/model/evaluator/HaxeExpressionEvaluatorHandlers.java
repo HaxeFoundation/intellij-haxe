@@ -18,7 +18,6 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
@@ -98,8 +97,8 @@ public class HaxeExpressionEvaluatorHandlers {
         left = resolveAnyTypeDefs(left);
         right = resolveAnyTypeDefs(right);
         // we might have constraints that help up here
-        if(left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
-        if(right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
+        if(left!= null && left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
+        if(right!= null && right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
 
         return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operatorText, context).createHolder();
       }
@@ -1296,7 +1295,7 @@ public class HaxeExpressionEvaluatorHandlers {
         if (callieType != null && methodTypeClassType != null) {
 
           localResolver.addAll(callieResolver);
-          localResolver = HaxeGenericResolverUtil.createInheritedClassResolver(methodTypeClassType, callieType, localResolver);
+          localResolver = localResolver.translateFromTo(callieType, methodTypeClassType);
         }
       }
 
@@ -1398,7 +1397,7 @@ public class HaxeExpressionEvaluatorHandlers {
         String name = paramModel.getName();
         List<ResultHolder> holders = genericsMap.get(name);
         ResultHolder unified = HaxeTypeUnifier.unifyHolders(holders, callExpression, UnificationRules.DEFAULT);
-        enumResolver.add(paramModel.getTypeParameter(), unified, ResolveSource.CLASS_TYPE_PARAMETER);
+        enumResolver.add(paramModel.getTypeParameter(), unified);
         specifics[i] = unified;
       }
       return holder;

@@ -36,6 +36,7 @@ public class HaxeImportAliasPsiMixinImpl extends HaxeStatementPsiMixinImpl imple
       if (expression != null) {
         ResultHolder evaluationResult = HaxeExpressionEvaluator.evaluate(expression, null).result;
         if(!evaluationResult.isUnknown()){
+          // TODO looks like Haxe 4.1 and never can import functions (ex import Std.isOfType as is;)
           SpecificHaxeClassReference classReference = evaluationResult.getClassType();
           HaxeClass haxeClass = classReference.getHaxeClass();
           HaxeClassModel model = haxeClass.getModel();

@@ -9,6 +9,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractHaxePsiClass implements HaxeTypeParameterDeclaration {
+  private HaxeTypeParameterScope scope;
+
   public HaxeTypeParameterDeclarationPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
   }
@@ -30,8 +32,20 @@ public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractH
     return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
   }
 
+
   public @NotNull HaxeGenericParamModel getModel() {
     return (HaxeGenericParamModel)super.getModel();
+  }
+
+  @Override
+  public HaxeTypeParameterScope getTypeParameterScope() {
+    if(scope != null) return scope;
+    if(getOwner() instanceof HaxeMethod) {
+      scope =  HaxeTypeParameterScope.METHOD;
+    }else {
+      scope = HaxeTypeParameterScope.CLASS;
+    }
+    return scope;
   }
 
   @Override

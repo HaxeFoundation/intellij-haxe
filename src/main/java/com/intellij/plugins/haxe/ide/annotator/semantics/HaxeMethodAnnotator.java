@@ -9,7 +9,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -371,9 +370,9 @@ public class HaxeMethodAnnotator implements Annotator {
         ResultHolder constraint = paramModel.getConstraint(null);
         if (constraint == null) {
           ResultHolder resultHolder = new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi()));
-          resolver.add(paramModel.getTypeParameter(), resultHolder, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.add(paramModel.getTypeParameter(), resultHolder);
         }else {
-          resolver.addConstraint(paramModel.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.addConstraint(paramModel.getTypeParameter(), constraint);
         }
       }
     }

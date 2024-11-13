@@ -11,7 +11,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeAssignExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMapLiteral;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;

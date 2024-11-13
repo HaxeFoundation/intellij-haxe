@@ -14,4 +14,6 @@ public interface HaxeTypeParameterDeclaration extends HaxeClass {
 
   HaxeGenericParamModel getModel();
 
+  HaxeTypeParameterScope getTypeParameterScope();
+
 }

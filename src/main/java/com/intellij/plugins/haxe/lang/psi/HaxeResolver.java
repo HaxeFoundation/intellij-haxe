@@ -36,7 +36,6 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -1738,12 +1737,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeTypeListPart part = typeParameterList.get(i);
           if (part.getTypeOrAnonymous() != null) {
             ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(part.getTypeOrAnonymous(), localResolver);
-            genericResolver.add(parameter, holder, ResolveSource.CLASS_TYPE_PARAMETER);
+            genericResolver.add(parameter, holder);
           }
           else if (part.getFunctionType() != null) {
             //TODO resolve  with resolver ?
             ResultHolder type1 = HaxeTypeResolver.getTypeFromFunctionType(part.getFunctionType());
-            genericResolver.add(parameter, type1, ResolveSource.CLASS_TYPE_PARAMETER);
+            genericResolver.add(parameter, type1);
           }
         }
       }

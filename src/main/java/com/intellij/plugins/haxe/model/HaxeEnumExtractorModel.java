@@ -183,9 +183,16 @@ public class HaxeEnumExtractorModel implements HaxeModel {
           }
 
           ResultHolder result = evaluate(lookupElement, parentResolver).result;
-          if (result.getClassType() != null) {
-            ResultHolder resolve = result.getClassType().getGenericResolver().withoutUnknowns().resolve(parameterType);
-            if(resolve != null) return resolve;
+          SpecificHaxeClassReference classType = result.getClassType();
+          if (!result.isUnknown() && classType != null) {
+            // TODO null safety, resolveTypeDefClass can be null if model is unknown
+            if(classType.isTypeDefOfClass()) classType = classType.resolveTypeDefClass();
+            ResultHolder resolve = classType.getGenericResolver().withoutUnknowns().resolve(parameterType);
+            if(resolve != null && !resolve.isUnknown()) {
+              return resolve;
+            }else {
+              return parameterType;
+            }
           }
           else {
             return parameterType;

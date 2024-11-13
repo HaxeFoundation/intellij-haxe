@@ -2,12 +2,12 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,17 +17,16 @@ import java.util.*;
 public class TypeParameterUtil {
 
   @NotNull
-  public static TypeParameterTable createTypeParameterConstraintTable(HaxeMethod method, HaxeGenericResolver resolver,
+  public static HashMap<HaxeTypeParameterDeclaration, ResultHolder> createTypeParameterConstraintTable(HaxeMethod method, HaxeGenericResolver resolver,
                                                                       boolean prohibitClassTypeParameters) {
-
-    TypeParameterTable typeParamTable = new TypeParameterTable();
+    HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable = new HashMap<>();
 
     HaxeMethodModel methodModel = method.getModel();
     if (methodModel != null) {
       List<HaxeGenericParamModel> params = methodModel.getGenericParams();
       for (HaxeGenericParamModel model : params) {
         ResultHolder constraint = model.getConstraint(resolver);
-        typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+        typeParamTable.put(model.getTypeParameter(), constraint);
       }
       if (method.isConstructor()) {
         HaxeClassModel declaringClass = method.getModel().getDeclaringClass();
@@ -35,7 +34,7 @@ public class TypeParameterUtil {
           params = declaringClass.getGenericParams();
           for (HaxeGenericParamModel model : params) {
             ResultHolder constraint = model.getConstraint(resolver);
-            typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+            typeParamTable.put(model.getTypeParameter(), constraint);
           }
         }
       }
@@ -46,9 +45,9 @@ public class TypeParameterUtil {
         for (HaxeGenericParamModel model : classParams) {
           ResultHolder constraint = model.getConstraint(resolver);
           // make sure we do not add if method type parameter with the same name is present
-          if(!typeParamTable.contains(model.getTypeParameter(), ResolveSource.METHOD_TYPE_PARAMETER)) {
+          if(!typeParamTable.containsKey(model.getTypeParameter())) {
             if(!prohibitClassTypeParameters) {
-              typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+              typeParamTable.put(model.getTypeParameter(), constraint);
             }
           }
         }
@@ -57,34 +56,21 @@ public class TypeParameterUtil {
     return typeParamTable;
   }
 
-  public static void applyCallieConstraints(TypeParameterTable table, HaxeGenericResolver callieResolver) {
+  public static void applyCallieConstraints(HashMap<HaxeTypeParameterDeclaration, ResultHolder> table, HaxeGenericResolver callieResolver) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    resolver.addOnly(callieResolver, ResolveSource.CLASS_TYPE_PARAMETER);
+    resolver.addOnly(callieResolver, HaxeTypeParameterScope.CLASS);
 
     for (ResolverEntry entry : resolver.entries()) {
       HaxeTypeParameterDeclaration typeParameter = entry.typeParameter();
-      if(table.contains(typeParameter, ResolveSource.CLASS_TYPE_PARAMETER)) {
+      if(table.containsKey(typeParameter)) {
         ResultHolder resolve = resolver.resolve(typeParameter);
-        table.put(typeParameter, resolve, ResolveSource.CLASS_TYPE_PARAMETER);
+        table.put(typeParameter, resolve);
       }
     }
   }
 
 
-  @NotNull
-  static TypeParameterTable  createTypeParameterConstraintTable(List<HaxeGenericParamModel> modelList,
-                                                                           HaxeGenericResolver resolver) {
-    TypeParameterTable typeParamTable = new TypeParameterTable();
-    for (HaxeGenericParamModel model : modelList) {
-      ResultHolder constraint = model.getConstraint(resolver);
-      if (constraint != null && constraint.isUnknown()) {
-        typeParamTable.put(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
-      }
-    }
-    return typeParamTable;
-  }
-
-  static boolean containsTypeParameter(@NotNull ResultHolder parameterType, @NotNull TypeParameterTable typeParamTable) {
+  static boolean containsTypeParameter(@NotNull ResultHolder parameterType, @NotNull HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable) {
     SpecificHaxeClassReference classType = parameterType.getClassType();
     if (classType != null) {
       if (classType.isTypeParameter()) return true;
@@ -101,7 +87,7 @@ public class TypeParameterUtil {
             .filter(Objects::nonNull)
             .filter(SpecificTypeReference::isTypeParameter)
             .map(classReference -> (HaxeTypeParameterDeclaration)classReference.getHaxeClass())
-            .anyMatch(typeParamTable::contains)) {
+            .anyMatch(typeParamTable::containsKey)) {
             return true;
           }
         }
@@ -118,14 +104,14 @@ public class TypeParameterUtil {
 
     return false;
   }
-  static Optional<ResultHolder> findConstraintForTypeParameter(HaxeParameterModel parameter, @NotNull ResultHolder parameterType, @NotNull TypeParameterTable typeParamTable) {
+  static Optional<ResultHolder> findConstraintForTypeParameter(HaxeParameterModel parameter, @NotNull ResultHolder parameterType, @NotNull HashMap<HaxeTypeParameterDeclaration, ResultHolder>  typeParamTable) {
     if (!parameterType.isClassType()) return Optional.empty();
 
     SpecificHaxeClassReference classReference = parameterType.getClassType();
     ResultHolder[] specifics = classReference.getSpecifics();
     if (classReference instanceof HaxeTypeParameterDeclaration typeParameter){
       String className = classReference.getClassName();
-      return typeParamTable.contains(typeParameter) ? Optional.ofNullable(typeParamTable.get(typeParameter)) : Optional.empty();
+      return typeParamTable.containsKey(typeParameter) ? Optional.ofNullable(typeParamTable.get(typeParameter)) : Optional.empty();
     }
     List<ResultHolder> result = new ArrayList<>();
     List<ResultHolder> recursionGuard = new ArrayList<>();
@@ -146,10 +132,10 @@ public class TypeParameterUtil {
           if (model != null) {
             HaxeGenericParamModel paramModel = (HaxeGenericParamModel)model;
             HaxeTypeParameterDeclaration typeParameter = paramModel.getTypeParameter();
-            if (typeParamTable.contains(typeParameter)) {
+            if (typeParamTable.containsKey(typeParameter)) {
               ResultHolder value = typeParamTable.get(typeParameter);
               if (value != null) {
-                resolver.addConstraint(typeParameter, value, ResolveSource.CLASS_TYPE_PARAMETER);
+                resolver.addConstraint(typeParameter, value);
               }
             }
           }

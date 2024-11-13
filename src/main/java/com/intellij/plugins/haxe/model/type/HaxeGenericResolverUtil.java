@@ -20,7 +20,6 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
@@ -263,21 +262,22 @@ public class HaxeGenericResolverUtil {
     }
   }
 
-  public static HaxeGenericResolver createInheritedClassResolver(@NotNull HaxeClass targetClass, @NotNull HaxeClass currentClass,
-                                                                  @Nullable HaxeGenericResolver localResolver) {
+  public static HaxeGenericResolver createInheritedClassResolver(@Nullable HaxeGenericResolver localResolver,
+                                                                 @NotNull HaxeClass targetClass,
+                                                                 @NotNull HaxeClass sourceClass) {
 
-    if(targetClass == currentClass) return localResolver;
+    if(targetClass == sourceClass) return localResolver;
     List<SpecificHaxeClassReference> path = new ArrayList<>();
-    findClassHierarchy(currentClass, targetClass, path);
+    findClassHierarchy(sourceClass, targetClass, path);
 
     Collections.reverse(path);
 
     // typdefs `getMemberResolver` converts resolver to resolver for underlying type
     // while this is useful when resolving for members, it would break our logic here
     // as it would skip one level, so we stick with localResolver in this case
-    HaxeGenericResolver resolver = (currentClass instanceof HaxeTypedefDeclaration)
+    HaxeGenericResolver resolver = (sourceClass instanceof HaxeTypedefDeclaration)
                                    ? localResolver
-                                   : currentClass.getMemberResolver(localResolver);
+                                   : sourceClass.getMemberResolver(localResolver);
 
 
     if(resolver == null) resolver = new HaxeGenericResolver();
@@ -289,6 +289,9 @@ public class HaxeGenericResolverUtil {
         resolver = genericResolver;
       }
     }
+
+    // todo TranslateAbstractToUnderlying(source);
+
     return resolver;
   }
 
@@ -318,7 +321,11 @@ public class HaxeGenericResolverUtil {
             return findClassHierarchy(childClass, to, path);
           }
         }else {
-          if (reference.getHaxeClass() == to) {
+          HaxeClass underlyingClass = reference.getHaxeClass();
+          if (underlyingClass == to) {
+            path.add(reference);
+            return true;
+          }else if (findClassHierarchy(underlyingClass, to, path)) {
             path.add(reference);
             return true;
           }
@@ -343,14 +350,21 @@ public class HaxeGenericResolverUtil {
     return false;
   }
 
-  public static HaxeGenericResolver mapResolverToClass(@NotNull HaxeGenericResolver resolver, SpecificHaxeClassReference target) {
-    HaxeClass from = resolver.resolversClass();
-    HaxeClass to = target.getHaxeClass();
-    if (from == null || from == to) return  resolver;
+  @Nullable
+  public static HaxeGenericResolver createExtendingClassResolver(@NotNull HaxeGenericResolver resolver,
+                                                                 @NotNull HaxeClass from,
+                                                                 @NotNull HaxeClass to) {
+    if (from == to) return  resolver;
+
+    HaxeClassModel toModel = to.getModel();
+    ResultHolder type = toModel.getInstanceType();
+    SpecificHaxeClassReference toInstance = type.getClassType();
+    if(toInstance == null) return null;
+
 
     List<SpecificHaxeClassReference> path = new ArrayList<>();
     if(findClassHierarchy(to, from, path)) {
-      path.add(target);// TODO write test to verify  (need 3 or more levels of inheritance to know if first or last)
+      path.add(toInstance);// TODO write test to verify  (need 3 or more levels of inheritance to know if first or last)
     }else {
       return resolver;
     }
@@ -368,7 +382,7 @@ public class HaxeGenericResolverUtil {
           if (replaced instanceof HaxeTypeParameterDeclaration replacedTypeParameter) {
             ResultHolder resolve = mappedResolver.resolve(replacedTypeParameter);
             if (resolve != null) {
-              nextResolver.add(typeParameter, resolve, ResolveSource.CLASS_TYPE_PARAMETER);
+              nextResolver.add(typeParameter, resolve);
             }
           }
         }

@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
@@ -244,11 +243,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     if (!isAbstractType() && !isTypedef()) return null;
     HaxeTypeOrAnonymous typeOrAnon = getUnderlyingTypeOrAnonymous();
     if (typeOrAnon != null) {
-      HaxeType type = typeOrAnon.getType();
-      if (type != null) {
-        ResultHolder resultHolder = HaxeTypeResolver.getTypeFromType(type);
-        if (!resultHolder.isUnknown()) return resultHolder.getType();
-      }
+      ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnon);
+      if (!resultHolder.isUnknown()) return resultHolder.getType();
     }
     HaxeFunctionType type = getUnderlyingFunctionType();
     if (type != null){
@@ -825,11 +821,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // anonymous structures does not have TypeParameters on their own, but their parent may declar them.
       HaxeGenericParam genericParam = getGenericParamPsi();
       if (genericParam != null) {
-        int index = 0;
         for (HaxeGenericListPart part : genericParam.getGenericListPartList()) {
-          // TODO try to avoid recreating this  model every time
-          out.add(new HaxeGenericParamModel(part, index));
-          index++;
+          out.add(part.getModel());
         }
       }
     return out;
@@ -870,7 +863,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.addConstraint(model.getTypeParameter(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+        resolver.addConstraint(model.getTypeParameter(), constraint);
       }
 
       return resolver;

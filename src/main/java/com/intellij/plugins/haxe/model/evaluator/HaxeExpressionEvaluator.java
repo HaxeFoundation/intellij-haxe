@@ -610,12 +610,14 @@ public class HaxeExpressionEvaluator {
 
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @NotNull final SearchScope searchScope) {
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();
-    return new ArrayList<>(ReferencesSearch.search(componentName, searchScope).findAll()).stream()
-      .sorted((r1, r2) -> {
-        int i1 = getDistance(r1, offset);
-        int i2 = getDistance(r2, offset);
-        return i1 - i2;
-      }).toList();
+    return ProgressManager.getInstance().runProcess( () -> {
+      return new ArrayList<>(ReferencesSearch.search(componentName, searchScope).findAll()).stream()
+        .sorted((r1, r2) -> {
+          int i1 = getDistance(r1, offset);
+          int i2 = getDistance(r2, offset);
+          return i1 - i2;
+        }).toList();
+    }, new EmptyProgressIndicator());
   }
 
   private static final RecursionGuard<PsiElement>
@@ -719,11 +721,11 @@ public class HaxeExpressionEvaluator {
           if (paramType != null) return paramType;
           // check if our reference is the callie
           final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
-          if (leftReference == reference) {
+          if (hint != null && leftReference == reference) {
             if (resolved instanceof HaxeMethod method ) {
               HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, method, firstReference);
               ResultHolder hintResolved = validation.getResolver().resolve(hint);
-              if (hintResolved != null && hintResolved.getType() != hintResolved.getType()) return hintResolved;
+              if (hintResolved != null) return hintResolved;
             }
           }
         }

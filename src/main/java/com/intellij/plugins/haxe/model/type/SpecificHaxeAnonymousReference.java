@@ -19,17 +19,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
-import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.*;
 import lombok.CustomLog;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;

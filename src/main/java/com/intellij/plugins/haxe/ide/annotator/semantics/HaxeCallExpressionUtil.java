@@ -10,13 +10,13 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -32,6 +32,9 @@ public class HaxeCallExpressionUtil {
     return checkMethodCall(callExpression, method, false);
   }
   public static CallExpressionValidation checkMethodCall(@NotNull HaxeCallExpression callExpression, @NotNull HaxeMethod method, boolean isFirstRef) {
+    return checkMethodCall(callExpression, method, null, false);
+  }
+  public static CallExpressionValidation checkMethodCall(@NotNull HaxeCallExpression callExpression, @NotNull HaxeMethod method, ResultHolder callieType, boolean isFirstRef) {
     CallExpressionValidation validation  = new CallExpressionValidation();
     validation.isMethod = true;
 
@@ -89,7 +92,7 @@ public class HaxeCallExpressionUtil {
 
     // generics and type parameter
     HaxeGenericResolver classTypeResolver =  new HaxeGenericResolver();
-    ResultHolder callieType = tryGetCallieType(callExpression).tryUnwrapNullType();
+     callieType = callieType != null ? callieType :  tryGetCallieType(callExpression, method, validation.isStaticExtension).tryUnwrapNullType();
     // if  this is not a static extension method we can inherit callie's class type parameter
     if(!validation.isStaticExtension) {
       if (callieType.isClassType() && !callieType.isUnknown()) {
@@ -104,6 +107,8 @@ public class HaxeCallExpressionUtil {
         }
       }
     }
+    validation.setCallie(callieType);
+
     if(callieType.isUnknown() && !validation.isStaticExtension && !isFirstRef ) {
       //TODO hack?
       // if callie is unknown we prohibit class TypeParameters  unless first reference flag
@@ -129,7 +134,7 @@ public class HaxeCallExpressionUtil {
     // when resolving parameters
     HaxeGenericResolver parameterResolver = resolver.withoutUnknowns();
 
-    TypeParameterTable typeParamTable = createTypeParameterConstraintTable(method, resolver, validation.unknownCallie);
+    HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable = createTypeParameterConstraintTable(method, resolver, validation.unknownCallie);
 
     if (validation.isStaticExtension) {
       // this might not work for literals, need to handle those in a different way
@@ -556,7 +561,7 @@ public class HaxeCallExpressionUtil {
 
     resolver = HaxeGenericResolverUtil.appendCallExpressionGenericResolver(newExpression, resolver);
 
-    TypeParameterTable typeParamTable = createTypeParameterConstraintTable(constructor.getMethod(), resolver, validation.unknownCallie);
+    HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable = createTypeParameterConstraintTable(constructor.getMethod(), resolver, validation.unknownCallie);
 
 
     int parameterCounter = 0;
@@ -696,33 +701,32 @@ public class HaxeCallExpressionUtil {
   private static void inheritTypeParametersFromArgument(ResultHolder parameterType,
                                                         ResultHolder argumentType,
                                                         HaxeGenericResolver argumentResolver,
-                                                        HaxeGenericResolver parentResolver, TypeParameterTable typeParamTable) {
+                                                        HaxeGenericResolver parentResolver,
+                                                        HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable) {
     if (argumentType == null) return; // this should not happen, we should have an argument
     HaxeGenericResolver inherit = findTypeParametersToInherit(parameterType.getType(), argumentType.getType().withoutConstantValue(), new HaxeGenericResolver(), typeParamTable);
     for (ResolverEntry entry : inherit.entries()) {
       HaxeTypeParameterDeclaration typeParameter = entry.typeParameter();
 
       // TODO needs clean up
-      for(ResolveSource resolveSource : List.of(ResolveSource.METHOD_TYPE_PARAMETER, ResolveSource.CLASS_TYPE_PARAMETER)) {
-        if (typeParamTable.contains(typeParameter, resolveSource)) {
+        if (typeParamTable.containsKey(typeParameter)) {
           ResultHolder constraint = typeParamTable.get(typeParameter);
           ResultHolder type = inherit.resolve(typeParameter);
           if (type == null) continue;
           // if TypeParameter without constraint
           if (constraint == null) {
-            typeParamTable.put(typeParameter, type, resolveSource);
+            typeParamTable.put(typeParameter, type);
           }
           else if (type.isTypeParameter() && !constraint.isTypeParameter()) {
             continue;// skipping as we dont want to replace a real type with typeParameter
           }
           else if (constraint.canAssign(type)) {
-            typeParamTable.put(typeParameter, type, resolveSource);
+            typeParamTable.put(typeParameter, type);
           }
-          argumentResolver.add(typeParameter, type, resolveSource);
-          parentResolver.add(typeParameter, type, resolveSource);
-          break;
+          argumentResolver.add(typeParameter, type);
+          parentResolver.add(typeParameter, type);
+          //break;
         }
-      }
     }
   }
 
@@ -815,7 +819,8 @@ public class HaxeCallExpressionUtil {
 
   public static HaxeGenericResolver findTypeParametersToInherit(SpecificTypeReference parameter,
                                                                  SpecificTypeReference argument,
-                                                                 HaxeGenericResolver resolver, TypeParameterTable typeParamTable) {
+                                                                 HaxeGenericResolver resolver,
+                                                                HashMap<HaxeTypeParameterDeclaration, ResultHolder> typeParamTable) {
 
     //fully resolving to make sure we dont have issues with Null<T> vs just T etc.
     if (parameter instanceof SpecificHaxeClassReference parameterReference) {
@@ -844,10 +849,10 @@ public class HaxeCallExpressionUtil {
 
               HaxeTypeParameterDeclaration typeParameter = classModel.getTypeParameter();
 
-              if (typeParameter != null && typeParamTable.contains(typeParameter)) {
+              if (typeParameter != null && typeParamTable.containsKey(typeParameter)) {
                 ResultHolder argResolved = argResolver.resolve(typeParameter);
                 if (argResolved != null) {
-                  resolver.add(typeParameter, argResolved, ResolveSource.ARGUMENT_TYPE);
+                  resolver.add(typeParameter, argResolved);// TODO mlo: was Argument scope
                 }
               }
             }
@@ -875,7 +880,7 @@ public class HaxeCallExpressionUtil {
     if (parameter.isTypeParameter() && !argument.isTypeParameter() && !argument.isUnknown()) {
       if (parameter instanceof  SpecificHaxeClassReference classReference && classReference.isTypeParameter()) {
         if (classReference.getHaxeClassModel() instanceof HaxeGenericParamModel classModel) {
-          resolver.add(classModel.getTypeParameter(), argument.createHolder(), ResolveSource.ARGUMENT_TYPE);
+          resolver.add(classModel.getTypeParameter(), argument.createHolder());// TODO mlo: was Argument scope
         }
       }
     }
@@ -1007,6 +1012,7 @@ public class HaxeCallExpressionUtil {
   @Data
   public static class CallExpressionValidation {
     public boolean unknownCallie = false;
+    public ResultHolder Callie = null;
     Map<Integer, Integer> argumentToParameterIndex = new HashMap<>();
     Map<Integer, ResultHolder> argumentIndexToType = new HashMap<>();
     Map<Integer, ResultHolder> parameterIndexToType = new HashMap<>();
@@ -1043,27 +1049,34 @@ public class HaxeCallExpressionUtil {
   public record WarningRecord (TextRange range, String message){};
 
 
-  public static ResultHolder tryGetCallieType(HaxeCallExpression callExpression) {
+  public static ResultHolder tryGetCallieType(@NotNull HaxeCallExpression callExpression) {
+    return tryGetCallieType(callExpression, null, false);
+  }
+  public static ResultHolder tryGetCallieType(@NotNull HaxeCallExpression callExpression,  @Nullable HaxeMethod method, boolean extensionMethod) {
 
     HaxeExpression expression = callExpression.getExpression();
     if (expression != null) {
       @NotNull PsiElement[] children = expression.getChildren();
+      // if we got more then one child we are a chain and need to resolve the chain to know correct class
       if (children.length > 1) {
-
         PsiElement child = children[children.length - 2];
         HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(child);
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(child, evaluatorContext, null).result;
-
         if (!result.isUnknown()) return result;
+
       }else {
+        // if only 1 child then we are calling on default "this" class reference
         HaxeClass type = PsiTreeUtil.getParentOfType(callExpression.getExpression(), HaxeClass.class);
         if(type != null) {
           HaxeClassModel model = type.getModel();
-          if(model != null) {
-            return model.getInstanceType();
-          }
+          return model.getInstanceType();
         }
       }
+    }
+    // fallback: if we know the method we know its class (but need to check if used as extension method)
+    if (! extensionMethod && method !=  null) {
+      HaxeClassModel classModel = method.getModel().getDeclaringClass();
+      if(classModel != null) return classModel.getInstanceType();
     }
 
     return SpecificTypeReference.getUnknown(callExpression).createHolder();

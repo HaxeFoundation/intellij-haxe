@@ -31,7 +31,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.*;
@@ -256,9 +255,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           }else {
             specific = paramModel.getDefaultType(null);
           }
-          if (specific == null) specific = getUnknown(context).createHolder();// null safety
+          if (specific == null) {
+            // null safety
+            if(this.isDynamic()) {
+              // hides type parameter for dynamic when not used
+              specific = getUnknown(context).createHolder();
+            }else {
+              specific = paramModel.getInstanceType();
+            }
+          }
           //TODO check constraints
-          resolver.add(paramModel.getTypeParameter(), specific, ResolveSource.CLASS_TYPE_PARAMETER);
+          resolver.add(paramModel.getTypeParameter(), specific);
         }
       }
     }
@@ -618,7 +625,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (isTypeDef()) {
       HaxeClassModel model = getHaxeClassModel();
       if (model != null) {
-        return model.getUnderlyingClassReference(this.getGenericResolver());
+        HaxeGenericResolver genericResolver = this.getGenericResolver();
+        if(model.getUnderlyingType() instanceof  SpecificHaxeClassReference classReference) {
+          HaxeGenericResolver underlyingResolver = genericResolver.translateFromTo(this.getHaxeClass(), classReference.getHaxeClass());
+          return model.getUnderlyingClassReference(underlyingResolver);
+        }
       }
     }
     return null;
