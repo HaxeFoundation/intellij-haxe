@@ -50,6 +50,16 @@ public class HaxeEnumExtractorModel implements HaxeModel {
       }
     return -1;
   }
+  public int findExtractValueParentIndex(PsiElement value) {
+      PsiElement[] extractorArguments = getChildrenCached();
+      for (int i = 0; i < extractorArguments.length; i++) {
+        PsiElement argument = extractorArguments[i];
+        if(value == argument) {
+          return i;
+        }
+      }
+    return -1;
+  }
   public int findArgumentIndex(PsiElement value, boolean deepSearch) {
       PsiElement[] extractorArguments = getChildrenCached();
       for (int i = 0; i < extractorArguments.length; i++) {
@@ -108,12 +118,12 @@ public class HaxeEnumExtractorModel implements HaxeModel {
   public ResultHolder resolveExtractedValueType(@NotNull HaxeEnumExtractedValueReference extractedValue, @NotNull HaxeGenericResolver parentResolver) {
     HaxeEnumValueModel enumValueModel = getEnumValueModel();
     if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel) {
-      // check if in literal array (inside am extractor)
+      // check if in literal array (inside an extractor)
       HaxeSwitchExtractorExpressionArrayLiteral arrayLiteral =
         PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchExtractorExpressionArrayLiteral.class, true, HaxeEnumArgumentExtractor.class);
       if (arrayLiteral != null) {
 
-        int index = findExtractValueIndex(arrayLiteral);
+        int index = findExtractValueParentIndex(arrayLiteral); // find arrays index
         HaxeGenericResolver extractorResolver = getGenericResolver();
         ResultHolder parameterType = constructorModel.getParameterType(index, extractorResolver);
         if (parameterType != null && parameterType.getClassType() != null) {

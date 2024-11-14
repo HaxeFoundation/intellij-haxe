@@ -150,7 +150,7 @@ public class HaxeGenericResolver {
     if (holder == null) holder = listSearch(resolvers, typeParameter);
     if (nullOrUnknown(holder)) {
       ResultHolder constraint = listSearch(constaints, typeParameter);
-      if(constraint != null) holder = constraint;
+      if(!nullOrUnknown(constraint)) holder = constraint;
     }
 
     // if none of the method parameters specifies the type parameter
