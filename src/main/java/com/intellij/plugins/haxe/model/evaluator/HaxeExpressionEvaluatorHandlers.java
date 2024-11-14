@@ -1695,8 +1695,8 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeExpressionEvaluatorContext context,
     HaxeGenericResolver resolver,
     HaxeSwitchCaseBlock caseBlock) {
-    List<HaxeReturnStatement> list = caseBlock.getReturnStatementList();
-    for (HaxeReturnStatement  statement : list) {
+    List<HaxeReturnStatement> returnStatements = caseBlock.getReturnStatementList();
+    for (HaxeReturnStatement  statement : returnStatements) {
       ResultHolder returnType = handle(statement, context, resolver);
       context.addReturnType(returnType, statement);
     }
@@ -1704,6 +1704,13 @@ public class HaxeExpressionEvaluatorHandlers {
     if (!expressions.isEmpty()) {
       HaxeExpression lastExpression = expressions.get(expressions.size() - 1);
       return handle(lastExpression, context, resolver);
+    }
+    // if block only has one expression (for some reason getExpressionList returns empty list)
+    if(returnStatements.isEmpty() && expressions.isEmpty()) {
+      @NotNull PsiElement[] children = caseBlock.getChildren();
+      if(children.length == 1) {
+        return handle(children[0], context, resolver);
+      }
     }
     return new ResultHolder(SpecificHaxeClassReference.getVoid(caseBlock));
   }
