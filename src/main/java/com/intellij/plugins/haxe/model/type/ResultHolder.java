@@ -131,6 +131,7 @@ public class ResultHolder {
   }
 
 
+
   public void disableMutating() {
     this.canMutate = false;
   }
@@ -164,6 +165,9 @@ public class ResultHolder {
 
   public void removeConstant() {
     setType(getType().withoutConstantValue());
+  }
+  public Object getConstant() {
+    return getType().getConstant();
   }
 
   public String toString() {

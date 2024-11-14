@@ -1,5 +1,7 @@
 package com.intellij.plugins.haxe.ide.refactoring.extractMethod;
 
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.TextRange;
@@ -185,14 +187,15 @@ public class ExtractMethodBuilder {
       HaxeComponentName componentName = varDeclaration.getComponentName();
       SearchScope useScope = PsiSearchHelper.getInstance(componentName.getProject()).getUseScope(componentName);
 
-
-      List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll());
-      for (PsiReference reference : references) {
-        TextRange range = reference.getElement().getTextRange();
-        if (!markedText.contains(range)) {
-          outside.put(reference, varDeclaration);
+      ProgressManager.getInstance().runProcess(() -> {
+        List<PsiReference> references = new ArrayList<>(ReferencesSearch.search(componentName, useScope).findAll());
+        for (PsiReference reference : references) {
+          TextRange range = reference.getElement().getTextRange();
+          if (!markedText.contains(range)) {
+            outside.put(reference, varDeclaration);
+          }
         }
-      }
+      }, new EmptyProgressIndicator());
     }
     return outside;
   }

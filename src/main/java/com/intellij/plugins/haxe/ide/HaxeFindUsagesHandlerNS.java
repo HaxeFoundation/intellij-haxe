@@ -21,6 +21,8 @@ import com.intellij.find.findUsages.FindUsagesHandler;
 import com.intellij.find.findUsages.FindUsagesOptions;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.application.ReadActionProcessor;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
@@ -91,7 +93,11 @@ public abstract class HaxeFindUsagesHandlerNS extends FindUsagesHandler {
 
       final ReferencesSearch.SearchParameters parameters =
         new ReferencesSearch.SearchParameters(searchElement, scope, false, fastTrack ? options.fastTrack : null);
-      final boolean success = ReferencesSearch.search(parameters).forEach(searchProcessor);
+      final ReadActionProcessor<PsiReference> finalSearchProcessor = searchProcessor;
+      final boolean success = ProgressManager.getInstance().runProcess(() -> {
+        return ReferencesSearch.search(parameters).forEach(finalSearchProcessor);
+      }, new EmptyProgressIndicator());
+
 
       if (!success) return false;
     }

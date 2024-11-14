@@ -108,6 +108,8 @@ public class HaxeExpressionUsageUtil {
     boolean isFirst = true;
     for (int i = continueFrom, size = references.size(); i < size; i++) {
       PsiReference reference = references.get(i);
+      boolean nullValueAssign = false;
+
       if (reference instanceof HaxeExpression expression) {
         PsiElement parent = expression.getParent();
 
@@ -119,9 +121,17 @@ public class HaxeExpressionUsageUtil {
 
         if (parent instanceof HaxeAssignExpression assignExpression) {
           ResultHolder result = tryTypeFromAssignExpression(context, resolver, resultHolder, assignExpression, componentName);
-          if (result != null) resultHolder = mapTypeParameter(resultHolder, result);
+          if (result != null){
+            if (result.getConstant()  instanceof  HaxeNull) {
+              // we want to ignore assign to null value (flag to not change isFirst)
+              nullValueAssign = true;
+            }else {
+              resultHolder = mapTypeParameter(resultHolder, result);
+            }
+          }
           if(!resultHolder.containsUnknownTypes()) return resultHolder;
         }
+
         if (parent instanceof HaxeReferenceExpression referenceExpression) {
           ResultHolder result = tryFindTypeFromMethodCallOnReference(resultHolder, referenceExpression, isFirst);
           if (result != null) resultHolder = mapTypeParameter(resultHolder, result);
@@ -146,7 +156,7 @@ public class HaxeExpressionUsageUtil {
           if(!resultHolder.containsUnknownTypes()) return resultHolder;
         }
       }
-      isFirst = false;
+     if(!nullValueAssign) isFirst = false;
     }
     return  resultHolder;
   }
@@ -360,6 +370,8 @@ public class HaxeExpressionUsageUtil {
       if (resultResolver.entries().length == resultResolverWithoutUnknowns.entries().length) {
         return result;
       }
+    }else if (result != null && result.isDynamic() && result.getConstant() instanceof HaxeNull) {
+      return result;
     }
   }
 
