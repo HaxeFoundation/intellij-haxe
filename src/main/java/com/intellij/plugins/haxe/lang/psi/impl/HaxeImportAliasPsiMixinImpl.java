@@ -36,15 +36,18 @@ public class HaxeImportAliasPsiMixinImpl extends HaxeStatementPsiMixinImpl imple
       if (expression != null) {
         ResultHolder evaluationResult = HaxeExpressionEvaluator.evaluate(expression, null).result;
         if(!evaluationResult.isUnknown()){
-          // TODO looks like Haxe 4.1 and never can import functions (ex import Std.isOfType as is;)
-          SpecificHaxeClassReference classReference = evaluationResult.getClassType();
-          HaxeClass haxeClass = classReference.getHaxeClass();
-          HaxeClassModel model = haxeClass.getModel();
-          @NotNull ResultHolder[] specifics = classReference.getGenericResolver().getSpecificsFor(haxeClass);
-          SpecificHaxeClassReference reference = SpecificHaxeClassReference.withGenerics(model.getReference(), specifics);
-          if (reference.isClass() && specifics.length == 1) {
-            // extract type from Class<T>
-            return specifics[0].getClassType().asResolveResult();
+          if (evaluationResult.isFunctionType()) {
+            return evaluationResult.getFunctionType().asResolveResult();
+          }else {
+            SpecificHaxeClassReference classReference = evaluationResult.getClassType();
+            HaxeClass haxeClass = classReference.getHaxeClass();
+            HaxeClassModel model = haxeClass.getModel();
+            @NotNull ResultHolder[] specifics = classReference.getGenericResolver().getSpecificsFor(haxeClass);
+            SpecificHaxeClassReference reference = SpecificHaxeClassReference.withGenerics(model.getReference(), specifics);
+            if (reference.isClass() && specifics.length == 1) {
+              // extract type from Class<T>
+              return specifics[0].getClassType().asResolveResult();
+            }
           }
         }
       }
