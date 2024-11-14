@@ -65,7 +65,8 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
       }
     }
     // hack for String since its not a class with operator overloads but can have any object added to it;
-    if (lhsType.getType().isString() &&  assignOperation.textMatches("+=")) {
+    ResultHolder unwrap = lhsType.tryUnwrapNullType();
+    if (unwrap.getType().isString() && assignOperation.textMatches("+=")) {
       return;
     }
     HaxeAssignContext  context = new HaxeAssignContext(lhs, rhs);
