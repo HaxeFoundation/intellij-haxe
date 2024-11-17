@@ -1,4 +1,3 @@
-import com.jetbrains.plugin.structure.intellij.problems.ignore
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.grammarkit.tasks.GenerateLexerTask
@@ -15,9 +14,9 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.9.21"
+    id("org.jetbrains.kotlin.jvm") version "2.0.21"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.0.0-rc1"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.0.0"
     // Gradle Qodana Plugin

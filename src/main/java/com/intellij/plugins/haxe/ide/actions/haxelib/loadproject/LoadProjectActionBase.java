@@ -17,7 +17,7 @@ public abstract class LoadProjectActionBase extends AnAction {
 
   @Override
   public void actionPerformed(@NotNull AnActionEvent e) {
-    VirtualFile file = (VirtualFile)e.getDataContext().getData("virtualFile");
+    VirtualFile file = e.getDataContext().getData(PlatformDataKeys.VIRTUAL_FILE);
     performProjectImport(e.getProject(), file);
   }
 
@@ -42,12 +42,12 @@ public abstract class LoadProjectActionBase extends AnAction {
 
 
   private static boolean hasHaxeModuleLoaded(AnActionEvent e) {
-    Module module = (Module)e.getDataContext().getData("module");
+    Module module = e.getDataContext().getData(PlatformDataKeys.MODULE);
     return module!= null && ModuleType.get(module) == HaxeModuleType.getInstance();
   }
 
   private boolean isProjectFile(AnActionEvent e) {
-    VirtualFile data = (VirtualFile)e.getDataContext().getData("virtualFile");
+    VirtualFile data = e.getDataContext().getData(PlatformDataKeys.VIRTUAL_FILE);
     return isProjectFile(data);
   }
 

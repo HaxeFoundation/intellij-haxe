@@ -128,6 +128,7 @@ public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTes
     //seems to be an issue with windows line endings and inlays so to avoid any issues we replace them here.
     data = data.replaceAll("\\r\\n?", "\n");
 
-    doTestProvider("testFile.hx", data, inlayHintsProvider, Map.of(), false);
+    //doTestProvider("testFile.hx", data, inlayHintsProvider, Map.of(),  true);
+    doTestProvider("testFile.hx", data, inlayHintsProvider, Map.of(), null, true);
   }
 }

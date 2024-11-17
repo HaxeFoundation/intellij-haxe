@@ -245,8 +245,8 @@ public class HaxeCommonCompilerUtil {
     String workingPath = null;
 
     if (settings.isUseOpenFLToBuild()) {
-      // Use the module directory...
-      workingPath = context.getModuleDirPath();
+      String openFLPath = settings.getOpenFLPath();
+      workingPath = PathUtil.getParentPath(openFLPath);
     } else if (settings.isUseNmmlToBuild()) {
       String nmmlPath = settings.getNmmlPath();
       workingPath = PathUtil.getParentPath(nmmlPath);

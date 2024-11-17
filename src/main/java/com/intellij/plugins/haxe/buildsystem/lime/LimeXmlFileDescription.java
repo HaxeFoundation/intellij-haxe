@@ -21,13 +21,20 @@ public class LimeXmlFileDescription extends DomFileDescription<ProjectXml> {
     }
 
     @Override
-    public Icon getFileIcon(@Iconable.IconFlags int flags) {
-        return HaxeIcons.LIME_LOGO;
+    public @Nullable Icon getFileIcon(@NotNull XmlFile file, @Iconable.IconFlags int flags) {
+        if(isLimeFile(file)) {
+            return HaxeIcons.LIME_LOGO;
+        }
+        return null;
     }
 
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
+        return isLimeFile(file);
+    }
+
+    private boolean isLimeFile(@NotNull XmlFile file) {
         return LimeOpenFlUtil.isLimeFile(file);
     }
 

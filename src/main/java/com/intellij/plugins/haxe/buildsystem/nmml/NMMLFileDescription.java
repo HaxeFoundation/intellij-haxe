@@ -21,14 +21,21 @@ public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
         super(ProjectXml.class, ProjectXml.TAG_NAME);
     }
     @Override
-    public Icon getFileIcon(@Iconable.IconFlags int flags) {
-        return HaxeIcons.NMML_LOGO;
+    public @Nullable Icon getFileIcon(@NotNull XmlFile file, @Iconable.IconFlags int flags) {
+        if(isNmmlFile(file)) {
+            return HaxeIcons.NMML_LOGO;
+        }
+        return null;
     }
+
 
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {
+        return isNmmlFile(file);
+    }
 
+    private static boolean isNmmlFile(@NotNull XmlFile file) {
         XmlDocument document = file.getDocument();
         if(document == null) return false;
 
@@ -37,5 +44,4 @@ public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
 
         return FileUtilRt.extensionEquals(file.getName(), NMMLFileType.INSTANCE.getDefaultExtension());
     }
-
 }

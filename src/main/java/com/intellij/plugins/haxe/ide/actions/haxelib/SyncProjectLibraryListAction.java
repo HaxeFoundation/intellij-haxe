@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.haxelib.HaxelibProjectUpdater;
 import com.intellij.plugins.haxe.haxelib.HaxelibUtil;
 import com.intellij.plugins.haxe.haxelib.ModuleLibraryCache;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.xml.XmlFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,7 +77,7 @@ public class SyncProjectLibraryListAction extends AnAction implements DumbAware 
   }
 
   private static boolean isProjectFile(AnActionEvent e) {
-    Object file = e.getDataContext().getData("psi.File");
+    PsiFile file = e.getDataContext().getData(PlatformDataKeys.PSI_FILE);
     if (file instanceof  XmlFile xmlFile) {
       return LimeOpenFlUtil.isLimeFile(xmlFile) || LimeOpenFlUtil.isOpenFlFile(xmlFile);
     }

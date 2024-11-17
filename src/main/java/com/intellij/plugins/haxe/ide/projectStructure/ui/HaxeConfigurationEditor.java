@@ -208,17 +208,16 @@ public class HaxeConfigurationEditor {
       public void actionPerformed(ActionEvent e) {
         final boolean isNMML = myNmmlFileRadioButton.isSelected();
         final boolean isOpenFL = myOpenFLFileRadioButton.isSelected();
-        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false) {
-          public boolean isFileVisible(VirtualFile file, boolean showHiddenFiles) {
-            return super.isFileVisible(file, showHiddenFiles) &&
-                   (file.isDirectory()
-                    || (!isNMML && !isOpenFL && "hxml".equalsIgnoreCase(file.getExtension()))
-                    || (isNMML && "nmml".equalsIgnoreCase(file.getExtension()))
-                    || (isOpenFL && "xml".equalsIgnoreCase(file.getExtension()))
-                    || (isOpenFL && "lime".equalsIgnoreCase(file.getExtension()))
-                   );
-          }
-        };
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, true, false, false)
+          .withFileFilter((file) -> {
+            return  (file.isDirectory()
+             || (!isNMML && !isOpenFL && "hxml".equalsIgnoreCase(file.getExtension()))
+             || (isNMML && "nmml".equalsIgnoreCase(file.getExtension()))
+             || (isOpenFL && "xml".equalsIgnoreCase(file.getExtension()))
+             || (isOpenFL && "lime".equalsIgnoreCase(file.getExtension()))
+            );
+          });
+
         final VirtualFile file = FileChooser.chooseFile(descriptor, getMainPanel(), null, ProjectUtil.guessModuleDir(myModule));
         if (file != null) {
           String path = FileUtil.toSystemIndependentName(file.getPath());
