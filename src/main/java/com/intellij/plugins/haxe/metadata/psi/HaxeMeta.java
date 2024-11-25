@@ -50,8 +50,8 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   boolean isType(String name);
 
   // Metadata classes.
-  Class COMPILE_TIME = HaxeMetadataCompileTimeMeta.class;
-  Class RUN_TIME = HaxeMetadataRunTimeMeta.class;
+  Class<HaxeMetadataCompileTimeMeta> COMPILE_TIME = HaxeMetadataCompileTimeMeta.class;
+  Class<HaxeMetadataRunTimeMeta> RUN_TIME = HaxeMetadataRunTimeMeta.class;
 
   // Metadata types.
 
