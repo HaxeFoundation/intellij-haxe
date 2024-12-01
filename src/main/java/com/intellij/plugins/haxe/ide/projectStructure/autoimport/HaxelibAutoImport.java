@@ -57,9 +57,12 @@ public class HaxelibAutoImport implements ExternalSystemProjectAware, Disposable
 
   @Override
   public boolean isIgnoredSettingsFileEvent(@NotNull String path, @NotNull ExternalSystemSettingsFilesModificationContext context) {
-    Set<String> files = getSettingsFiles();
-    if(files.contains(path)){
-      return false;
+    // TODO: this "if" is just an attempt to prevent Project reload from marking settings files as changed when reloaded
+    if(context.getReloadStatus() == ExternalSystemSettingsFilesModificationContext.ReloadStatus.IDLE) {
+      Set<String> files = getSettingsFiles();
+      if (files.contains(path)) {
+        return false;
+      }
     }
     return true;
   }

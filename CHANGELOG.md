@@ -1,5 +1,8 @@
 # Changelog
 ## 1.5.12
+* Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
+
+## 1.5.12
 * Changed: support for intellij 2024.3  & dropping support for 2023.x
 * Bugfix: Errors where not navigable  when OpenFL project file was outside module dir (Fixed by fstrace4)
 * Bugfix: Function types for inherited methods could in some cases show wrong signature when type parameters where used.
