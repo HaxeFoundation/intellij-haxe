@@ -49,22 +49,22 @@ jobs:
     strategy:
       fail-fast: true # cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [ 2024.1 ]
+        IDEA_VERSION: [ 2024.3 ]
     needs: prepare
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           distribution: 'zulu'
-          java-version: 17
+          java-version: 21
           architecture: x64
 
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
         with:
-          haxe-version: 4.3.0
+          haxe-version: 4.3.4
 
       - name: Test haxe
         run: haxe -version
