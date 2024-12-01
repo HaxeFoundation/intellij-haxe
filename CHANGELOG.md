@@ -1,5 +1,5 @@
 # Changelog
-## 1.5.12
+## 1.5.13
 * Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
 
 ## 1.5.12
