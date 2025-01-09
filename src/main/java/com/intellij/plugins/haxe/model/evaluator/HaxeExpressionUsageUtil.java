@@ -207,11 +207,17 @@ public class HaxeExpressionUsageUtil {
     }
     return current;
   }
+
   private static @NotNull ResultHolder mapTypeParameter(ResultHolder current, ResultHolder found) {
-      SpecificHaxeClassReference foundType = found.getClassType();
-      if (foundType == null) return found;
-      HaxeGenericResolver foundResolver = foundType.getGenericResolver();
-      HaxeGenericResolver mappedResolver = foundResolver.translateFromTo(foundType.getHaxeClass(), current.getClassType().getHaxeClass());
+    SpecificHaxeClassReference foundType = found.getClassType();
+    if (foundType == null) return current;
+
+    // if class try to cast before attempting to  extract generics (Dynamic, Any  etc will get passed canAssign checks)
+    foundType = foundType.tryCastTo(current.getClassType());
+    if (foundType == null) return current;
+
+    HaxeGenericResolver foundResolver = foundType.getGenericResolver();
+    HaxeGenericResolver mappedResolver = foundResolver.translateFromTo(foundType.getHaxeClass(), current.getClassType().getHaxeClass());
 
     @NotNull ResultHolder[] currentSpecifics = current.getClassType().getSpecifics();
     @NotNull ResultHolder[] foundSpecifics = mappedResolver.getSpecifics();
