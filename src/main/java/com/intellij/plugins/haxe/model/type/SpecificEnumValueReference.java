@@ -102,7 +102,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   }
 
   @Override
-  public String toPresentationString() {
+  public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
     StringBuilder out = new StringBuilder(this.enumClass.getClassName());
     out.append(".");
     out.append(toShortPresentationString());
@@ -176,7 +176,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     boolean optional = parameter.getOptionalMark() != null;
     String name = parameter.getComponentName().getName();
     ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(parameter.getTypeTag(), parameter.getContext());
-    return new HaxeArgument(index, optional, false, type, name);
+    return new HaxeArgument(parameter, index, optional, false, type, name);
   }
   public SpecificEnumValueReference withResolver(HaxeGenericResolver resolver) {
     return new SpecificEnumValueReference( declaration, context, resolver,  constantValue) ;

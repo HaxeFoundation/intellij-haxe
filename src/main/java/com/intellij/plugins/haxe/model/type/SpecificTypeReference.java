@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -342,6 +343,19 @@ public abstract class SpecificTypeReference {
     return false;
   }
 
+  final public boolean isTypeParameterWithConstraints() {
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      HaxeClassReference haxeClassReference = specificHaxeClassReference.getHaxeClassReference();
+      HaxeClass haxeClass = haxeClassReference.getHaxeClass();
+      if(haxeClass != null) {
+      if (haxeClass.getModel() instanceof HaxeGenericParamModel model) {
+        return model.hasConstraint();
+      }
+    }
+      }
+    return false;
+  }
+
   /**
    * checks if type reference is from a typeParameter (ex. `Array<TypeParameter>`)
    * or if its a normal reference (ex `var x = String;` or `MyType.staticMethod()`)
@@ -376,6 +390,14 @@ public abstract class SpecificTypeReference {
 
   final public boolean isEnumValueClass() {
     return isNamedType(ENUM_VALUE);
+  }
+
+  public  boolean isEnumReference() {
+    if (this instanceof  SpecificHaxeClassReference classReference) {
+      HaxeClassModel classModel = classReference.getHaxeClassModel();
+      return classModel != null && classModel.isEnum();
+    }
+    return false;
   }
 
   private boolean isNamedType(String typeName) {
@@ -451,7 +473,10 @@ public abstract class SpecificTypeReference {
     return context;
   }
 
-  abstract public String toPresentationString();
+  public String toPresentationString() {
+    return toPresentationString(false);
+  }
+  abstract public String toPresentationString(boolean showOnlyConstraintForTypeParam);
 
   abstract public String toString();
 
@@ -466,11 +491,11 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean canAssign(SpecificTypeReference type2) {
-    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+    return HaxeTypeCompatible.canAssignToFromReference(this, type2);
   }
 
   final public boolean canAssign(ResultHolder type2) {
-    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+    return canAssign(type2.getType());
   }
 
   public ResultHolder createHolder() {
@@ -502,6 +527,9 @@ public abstract class SpecificTypeReference {
 
   public boolean isLiteralArray() {
     return (isArray() && context instanceof HaxeArrayLiteral);
+  }
+  public boolean isEmptyLiteralCollection() {
+    return (isArray() && context instanceof HaxeArrayLiteral literal) && literal.getExpressionList() == null;
   }
   public boolean isLiteralMap() {
     return (isMapType() && context instanceof  HaxeMapLiteral);
@@ -582,7 +610,8 @@ public abstract class SpecificTypeReference {
     return typeParams;
   }
 
-  public SpecificHaxeClassReference wrapInNullType() {
-    return SpecificHaxeClassReference.getNull(this.getElementContext(), this.createHolder());
+  // context is important for recursion guards, make sure you dont use the same context for type and null-wrapped type
+  public SpecificHaxeClassReference wrapInNullType(@NotNull PsiElement context) {
+    return SpecificHaxeClassReference.getNull(context, this.createHolder());
   }
 }

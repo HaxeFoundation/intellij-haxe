@@ -26,7 +26,7 @@ class MonomorphTest {
         arrayDelayed = [];
         arrayDelayed.push("Test");
         // Wrong already morphed to Array<String>
-        arrayDelayed.push(1);
+        arrayDelayed.push(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>);
 
 
         var mapDelayed;
@@ -34,6 +34,12 @@ class MonomorphTest {
         mapDelayed.set("test", 1);
         // Wrong already morphed to Map<String, Int>
         mapDelayed.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
+
+        var mapDelayed2 = new Map();
+        mapDelayed2.clear();// verify that accessing member without type parameter(s) wont affect monomorph
+        mapDelayed2.set("test", 1);
+        // Wrong already morphed to Map<String, Int>
+        mapDelayed2.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
     }
 
     var myMap = new Map<String,Int>();

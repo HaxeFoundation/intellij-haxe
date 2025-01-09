@@ -231,7 +231,7 @@ public class HaxePresentableUtil {
     final HaxeTypeParam typeParam = type.getTypeParam();
     if (typeParam != null) {
       result.append("<");
-      for (HaxeTypeListPart typeListPart : typeParam.getTypeList().getTypeListPartList()) {
+      for (HaxeTypeListPart typeListPart : typeParam.getTypeList()) {
         result.append(buildTypeText(element, typeListPart, specializations));
       }
       result.append(">");

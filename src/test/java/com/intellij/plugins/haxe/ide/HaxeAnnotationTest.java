@@ -155,6 +155,7 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
 
   @Test
   public void testForLoopVariableType() throws Exception {
+    usingHaxeToolkit(); // need ArrayAccess & ArrayIterator from std
     doUnresolvedSymbolTest();
   }
 }

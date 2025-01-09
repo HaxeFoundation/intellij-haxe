@@ -28,8 +28,8 @@ class Test {
             mapAnyAny([""=> ""]) ;
             mapAnyAny([""=> 1]) ;
 
-            mapAnyAny([new Test()]) ; //WRONG not map literal
-            mapAnyAny([1]) ; //WRONG not map literal
+            mapAnyAny(<error descr="Type mismatch (Expected: 'Map<Any, Any>' got: 'Array<Test>')">[new Test()]</error>) ; //WRONG not map literal
+            mapAnyAny(<error descr="Type mismatch (Expected: 'Map<Any, Any>' got: 'Array<Int>')">[1]</error>) ; //WRONG not map literal
 
             mapStringAny([""=> ""]) ;
             mapStringAny(<error descr="Type mismatch (Expected: 'Map<String, Any>' got: 'haxe.ds.Map<Int, String>')">[1=> ""]</error>) ; // WRONG

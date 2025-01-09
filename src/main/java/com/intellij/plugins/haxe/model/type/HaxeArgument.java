@@ -1,17 +1,20 @@
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.psi.PsiElement;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeArgument {
+  @Getter final private PsiElement element;
   @Getter final private int index;
   @Getter final private boolean optional;
   @Getter final private boolean isRest;
   @Getter final private String name;
   @Getter final private ResultHolder type;
 
-  public HaxeArgument(int index, boolean optional, boolean rest, @NotNull ResultHolder type, @Nullable String name) {
+  public HaxeArgument(PsiElement element, int index, boolean optional, boolean rest, @NotNull ResultHolder type, @Nullable String name) {
+    this.element = element;
     this.index = index;
     this.optional = optional;
     this.isRest = rest;
@@ -69,9 +72,9 @@ public class HaxeArgument {
   }
 
   public HaxeArgument withType(ResultHolder newType) {
-    return new HaxeArgument(this.index, this.optional, this.isRest, newType, this.name);
+    return new HaxeArgument(this.element, this.index, this.optional, this.isRest, newType, this.name);
   }
   public HaxeArgument copy() {
-    return new HaxeArgument(this.index, this.optional, this.isRest, this.type, this.name);
+    return new HaxeArgument(this.element,this.index, this.optional, this.isRest, this.type, this.name);
   }
 }

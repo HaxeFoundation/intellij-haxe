@@ -30,13 +30,12 @@ Haxe File
                     HaxePsiToken:ID('Test')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('String')
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('String')
                   HaxePsiToken:>('>')
               HaxePsiToken:(('(')
               HaxePsiToken:)(')')
@@ -95,12 +94,11 @@ Haxe File
                           HaxePsiToken:ID('Test')
                       TYPE_PARAM
                         HaxePsiToken:<('<')
-                        TYPE_LIST
-                          TYPE_LIST_PART
-                            STRING_LITERAL_EXPRESSION
-                              HaxePsiToken:OPEN_QUOTE(''')
-                              HaxePsiToken:REGULAR_STRING_PART('string.ml')
-                              HaxePsiToken:CLOSING_QUOTE(''')
+                        TYPE_LIST_PART
+                          STRING_LITERAL_EXPRESSION
+                            HaxePsiToken:OPEN_QUOTE(''')
+                            HaxePsiToken:REGULAR_STRING_PART('string.ml')
+                            HaxePsiToken:CLOSING_QUOTE(''')
                         HaxePsiToken:>('>')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')

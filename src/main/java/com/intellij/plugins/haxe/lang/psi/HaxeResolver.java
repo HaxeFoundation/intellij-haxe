@@ -24,7 +24,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
-import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
@@ -34,6 +33,9 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
@@ -302,8 +304,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private static boolean testAsEnumValueConstructor(@NotNull HaxeEnumValueDeclarationConstructor enumValueDeclaration, @NotNull HaxeReference reference) {
       if (reference.getParent() instanceof HaxeCallExpression haxeCallExpression) {
         HaxeMethod method = enumValueDeclaration.getModel().getMethod();
-        HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(haxeCallExpression, method);
-        return validation.isCompleted() && validation.getErrors().isEmpty();
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(haxeCallExpression, method);
+        HaxeCallExpressionEvaluation validation = context.evaluate();
+        return validation.isCompleted() && validation.isValid();
       }
     return false;
   }
@@ -530,11 +533,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (argumentList != null) {
             int argumentIndex = argumentList.getExpressionList().indexOf(argument);
             if (argumentIndex > -1) {
-            HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(methodCallCall, haxeMethod);
-              Integer parameter = validation.getArgumentToParameterIndex().get(argumentIndex);
-              ResultHolder holder = validation.getParameterIndexToType().get(parameter);
-              if (holder != null) {
-                SpecificHaxeClassReference possibleType = holder.getClassType();
+              HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(methodCallCall, haxeMethod);
+              HaxeCallExpressionEvaluation validation = context.evaluate();
+              int parameterIndex = validation.getParameterForArgument(argumentIndex);
+              ResultHolder parameterType = validation.getParameterType(parameterIndex);
+              if (parameterType != null) {
+                SpecificHaxeClassReference possibleType = parameterType.getClassType();
                 if (possibleType != null && possibleType.isEnumType()) {
                   List<HaxeComponentName> member = findEnumMember(reference, possibleType);
                   if (member != null) return member;
@@ -549,14 +553,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<HaxeExpression> argumentList = constructorCall.getExpressionList();
       int argumentIndex = argumentList.indexOf(argument);
       if (argumentIndex> -1) {
-        HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkConstructor(constructorCall);
-        Integer parameter = validation.getArgumentToParameterIndex().get(argumentIndex);
-        ResultHolder holder = validation.getParameterIndexToType().get(parameter);
-        if (holder != null) {
-          SpecificHaxeClassReference possibleType = holder.getClassType();
-          if (possibleType != null && possibleType.isEnumType()) {
-            List<HaxeComponentName> member = findEnumMember(reference, possibleType);
-            if (member != null) return member;
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(constructorCall);
+        if (context != null) {
+          HaxeCallExpressionEvaluation validation = context.evaluate();
+          int parameterIndex = validation.getParameterForArgument(argumentIndex);
+          ResultHolder parameterType = validation.getParameterType(parameterIndex);
+          if (parameterType != null) {
+            SpecificHaxeClassReference possibleType = parameterType.getClassType();
+            if (possibleType != null && possibleType.isEnumType()) {
+              List<HaxeComponentName> member = findEnumMember(reference, possibleType);
+              if (member != null) return member;
+            }
           }
         }
       }
@@ -1730,7 +1737,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if(param != null ) {
         HaxeGenericResolver localResolver = specialization.toGenericResolver(type);
           List<HaxeTypeParameterDeclaration> typeparameters = getTypeParameters(nakedResult);
-          List<HaxeTypeListPart> typeParameterList = param.getTypeList().getTypeListPartList();
+          List<HaxeTypeListPart> typeParameterList = param.getTypeList();
         for (int i = 0; i < typeParameterList.size(); i++) {
           if (typeparameters.size() -1 < i) break;
           HaxeTypeParameterDeclaration parameter = typeparameters.get(i);

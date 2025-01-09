@@ -19,6 +19,7 @@ class CallExpressionTest {
     function functionArgs2(arg1:String,  arg3:(String->Int)->(Int->String)->Float) {}
     function varArgs(arg1:String, extra:Array<haxe.macro.Expr>) {}
     function restArgs(arg1:String, extra:haxe.extern.Rest<String>) {}
+    function restSyntaxArgs(arg1:String, ...extra:String) {}
     function typeDefArg(arg1:MyStruct) {}
     function classInheritArgs(arg1:A) {}
     function interfaceInheritArgs(arg1:C) {}
@@ -71,6 +72,10 @@ class CallExpressionTest {
         restArgs("Stirng1", "String2", "String3", "String4"); //CORRECT
         restArgs("Stirng1"); //CORRECT ( when using Rest, arguments are optional)
         restArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; //WRONG  normal arguments are still required
+
+        restSyntaxArgs("Stirng1", "String2", "String3", "String4"); //CORRECT
+        restSyntaxArgs("Stirng1"); //CORRECT ( when using Rest, arguments are optional)
+        restSyntaxArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; //WRONG  normal arguments are still required
 
         classInheritArgs(new A()); // CORRECT
         classInheritArgs(new B() ); // CORRECT B extends A

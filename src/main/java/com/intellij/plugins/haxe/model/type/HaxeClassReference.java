@@ -29,6 +29,9 @@ import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+// TODO mlo: consider creating different reference types for  class, abstract, enum, typeParameter?, anonymous, etc
+// and then move to new package for References, functions/ functionTypes might need something too.
+
 public class HaxeClassReference {
   public final String name;
   @NotNull

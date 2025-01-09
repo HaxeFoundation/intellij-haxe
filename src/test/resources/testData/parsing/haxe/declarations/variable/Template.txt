@@ -22,13 +22,12 @@ Haxe File
                     HaxePsiToken:ID('Bar')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('int')
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('int')
                   HaxePsiToken:>('>')
           HaxePsiToken:;(';')
         HaxePsiToken:}('}')

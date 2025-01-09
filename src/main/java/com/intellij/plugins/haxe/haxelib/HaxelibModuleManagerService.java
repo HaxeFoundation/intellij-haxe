@@ -41,10 +41,10 @@ import java.util.List;
  */
 @Service
 @CustomLog
-public final class HaxelibModuleManagerService implements ProjectManagerListener, ModuleListener, Disposable {
+public final class HaxelibModuleManagerService implements ProjectManagerListener, ModuleListener {
 
   static {      // Take this out when finished debugging.
-    log.setLevel(LogLevel.DEBUG);
+    log.setLevel(LogLevel.INFO);
   }
 
   public HaxelibModuleManagerService() { }
@@ -74,11 +74,6 @@ public final class HaxelibModuleManagerService implements ProjectManagerListener
     HaxeDefineDetectionManager.getInstance(project).removeDetectedDefinitions(module);
     HaxelibProjectUpdater.getInstance().findProjectTracker(project).moduleRemoved(module);
     ExternalSystemProjectTracker.getInstance(project).scheduleProjectRefresh();
-  }
-
-  @Override
-  public void dispose() {
-    log.debug("disposeComponent()" );
   }
 
 }

@@ -41,7 +41,7 @@ public class HaxeTypeParameterModel {
   public static List<HaxeTypeParameterModel> fromParameterSet(@Nullable HaxeTypeParam param) {
     if (null == param) return EMPTY_LIST;
 
-    List<HaxeTypeListPart> parts = param.getTypeList().getTypeListPartList();
+    List<HaxeTypeListPart> parts = param.getTypeList();
     if (!parts.isEmpty()) {
       List<HaxeTypeParameterModel> models = new ArrayList<>();
       int i = 0;

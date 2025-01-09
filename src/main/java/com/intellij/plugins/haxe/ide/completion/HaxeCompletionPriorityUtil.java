@@ -5,11 +5,13 @@ import com.intellij.codeInsight.completion.CompletionResult;
 import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -234,7 +236,7 @@ public class HaxeCompletionPriorityUtil {
     if (newExpression == null &&  callExpression == null) return false;
 
     int argumentIndex = 0;
-    HaxeCallExpressionUtil.CallExpressionValidation validation = null;
+    HaxeCallExpressionEvaluation validation = null;
     if (callExpression != null) {
       validation = getValidationForMethod(callExpression);
       HaxeCallExpressionList type = PsiTreeUtil.getParentOfType(position, HaxeCallExpressionList.class);
@@ -254,12 +256,15 @@ public class HaxeCompletionPriorityUtil {
         return true;
       }else {
         // else if completing parameters
-        validation = HaxeCallExpressionUtil.checkConstructor(newExpression);
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+        if (context != null) {
+          validation = context.evaluate();
+        }
       }
     }
 
     if (validation!= null) {
-      List<ResultHolder> parameterTypes = List.copyOf(validation.getParameterIndexToType().values());
+      List<ResultHolder> parameterTypes = validation.getParameterTypes();
       List<String> names = validation.getParameterNames();
 
 
@@ -286,11 +291,11 @@ public class HaxeCompletionPriorityUtil {
 
 
 
-  private static HaxeCallExpressionUtil.CallExpressionValidation getValidationForMethod(HaxeCallExpression callExpression) {
+  private static HaxeCallExpressionEvaluation getValidationForMethod(HaxeCallExpression callExpression) {
     if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
       PsiElement resolve = referenceExpression.resolve();
       if (resolve instanceof HaxeMethod method) {
-        return HaxeCallExpressionUtil.checkMethodCall(callExpression, method);
+        return HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method).evaluate();
       }
     }
     return null;

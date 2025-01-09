@@ -22,10 +22,12 @@ class ClassTypeAssignmentTest {
         //Class<Any>
 	var anyClass1:Class<Any> = null;                    // [OK] Null allowed
 
-        var <error descr="Incompatible type: Class<TestClass> should be Class<Any>">anyClass2:Class<Any> = TestClass</error>;                    // [Wrong] type need to be casted
-        var <error descr="Incompatible type: Class<TestExtended> should be Class<Any>">anyClass3:Class<Any> = TestExtended</error>;              // [Wrong] type need to be casted
-        var <error descr="Incompatible type: Class<String> should be Class<Any>">anyClass4:Class<Any> = String</error>;                          // [Wrong] type need to be casted
-        var <error descr="Incompatible type: Class<OtherClass> should be Class<Any>">anyClass5:Class<Any> = OtherClass</error>;                  // [Wrong] type need to be casted
+        // Any(Dynamic) got changed in 4.3 and "from Dynamic" was added allowing any class
+        var anyClass2:Class<Any> = TestClass;      // [Correct for 4.3 and newer]
+        var anyClass3:Class<Any> = TestExtended;   // [Correct for 4.3 and newer]
+        var anyClass4:Class<Any> = String;         // [Correct for 4.3 and newer]
+        var anyClass5:Class<Any> = OtherClass;     // [Correct for 4.3 and newer]
+
         var <error descr="Incompatible type: String should be Class<Any>">anyClass6:Class<Any> = ""</error>;                                     // [Wrong] not a Class
         var <error descr="Incompatible type: String should be Class<Any>">anyClass7:Class<Any> = myString</error>;                               // [Wrong] not a Class
         var <error descr="Incompatible type: ClassTypeAssignmentTest should be Class<Any>">anyClass8:Class<Any> = myClassObject</error>;         // [Wrong] not a Class

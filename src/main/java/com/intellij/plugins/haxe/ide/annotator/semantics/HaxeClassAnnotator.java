@@ -15,7 +15,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +28,7 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspe
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkIfMethodSignatureDiffers;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkMethodsSignatureCompatibility;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.toList;
 
@@ -452,7 +451,7 @@ public class HaxeClassAnnotator implements Annotator {
             HaxeGenericResolver interfaceFieldResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(intField.getBasePsi());
 
             boolean typesAreCompatible =
-              canAssignToFrom(intField.getResultType(interfaceFieldResolver), model.getResultType(classFieldResolver));
+                    canAssignToFromReference(intField.getResultType(interfaceFieldResolver), model.getResultType(classFieldResolver));
 
             if (!typesAreCompatible) {
               annotateDifferentType(intReference, holder, fieldDeclaration);

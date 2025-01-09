@@ -35,22 +35,27 @@ class Test {
         }
 
         for (key => value in arr1) {
-            //TODO mlo: fix test standard lib so this works (added after 4.0.5)
-          value.<warning descr="Unresolved symbol">length</warning> * key;
+          value.length * key;
         }
         for (key => value in arr2) {
-            //TODO mlo: fix test standard lib so this works (added after 4.0.5)
-          value.<warning descr="Unresolved symbol">length</warning> * key;
+          value.length * key;
         }
         // iterate string
         var str:String;
+
+        //strings can be iterated if we have using StringTools  (extension method)
+
         for (value in str) {
-            //TODO mlo: fix test standard lib so this works
-          value.<warning descr="Unresolved symbol">length</warning>;
+            // value is character code
+            var ok:Int = value;
+            var wrong:String = value;
         }
 
         for (key => value in str) {
-          value.length * key;
+            var ok:Int = value * key;
+            // both key and value are Ints (ofset and character code)
+            var wrongKey:String = key;
+            var wrongValue:String = value;
         }
 
   }

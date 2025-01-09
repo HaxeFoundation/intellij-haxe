@@ -25,6 +25,10 @@ public class HaxeMacroTypeUtil {
   public static final String COMPLEX_TYPE = "haxe.macro.Expr.ComplexType";
   public static final String TYPE_DEFINITION = "haxe.macro.Expr.TypeDefinition";
 
+  // legacy vararg support
+  public static final String REST = "haxe.Rest";
+  public static final String EXTERN_REST = "haxe.extern.Rest";
+
 
   public static SpecificTypeReference extractTypeFromExprOf(SpecificHaxeClassReference haxeClassReference) {
     if(haxeClassReference == null) return null;
@@ -65,7 +69,6 @@ public class HaxeMacroTypeUtil {
     return SpecificHaxeClassReference.withGenerics(reference, new ResultHolder[]{specific});
   }
 
-
   public static SpecificTypeReference getComplexType(@NotNull PsiElement context) {
     HaxeClass classByQName = getCachedComplexType(context, context.getProject());
     HaxeClassReference reference = classByQName != null
@@ -86,14 +89,12 @@ public class HaxeMacroTypeUtil {
 
 
 
-
   private static HaxeClass getCachedExprOf(@NotNull PsiElement context, Project project) {
     return CachedValuesManager.getManager(project).getParameterizedCachedValue(project, EXPR_OF_KEY, c -> {
       HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(EXPR_OF, c);
       return new CachedValueProvider.Result<>(haxeClass, ModificationTracker.EVER_CHANGED);
     }, false, context);
   }
-
 
   private static HaxeClass getCachedExpr(@NotNull PsiElement context, Project project) {
     return CachedValuesManager.getManager(project).getParameterizedCachedValue(project, EXPR_KEY, c -> {
@@ -108,11 +109,81 @@ public class HaxeMacroTypeUtil {
       return new CachedValueProvider.Result<>(haxeClass, ModificationTracker.EVER_CHANGED);
     }, false, context);
   }
+
   private static HaxeClass getCachedTypeDefinition(@NotNull PsiElement context, Project project) {
     return CachedValuesManager.getManager(project).getParameterizedCachedValue(project, TYPE_DEFINITION_KEY, c -> {
       HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(TYPE_DEFINITION, c);
       return new CachedValueProvider.Result<>(haxeClass, ModificationTracker.EVER_CHANGED);
     }, false, context);
+  }
+
+  //Legacy solutions for rest arguments
+  public static boolean isMacroVarArgOrRestType(SpecificTypeReference typeReference) {
+    // Array<haxe.macro.Expr> // macro rest expression
+    // haxe.Rest<Float> // rest typ
+    // haxe.extern.Rest<Float> // deprecated rest type
+    if (typeReference instanceof SpecificHaxeClassReference classType) {
+      if (classType.getHaxeClass() != null) {
+        ResultHolder[] specifics = classType.getSpecifics();
+        if (specifics.length == 1) {
+          SpecificTypeReference type = specifics[0].getType();
+          if (type instanceof SpecificHaxeClassReference specificType) {
+            if (specificType.getHaxeClass() != null) {
+              // Array<haxe.macro.Expr>
+              if (classType.isArray() && isMacroExpr(specificType)) {
+                return true;
+              }
+              // haxe.extern.Rest<> / haxe.Rest<>
+              return isExternRestClass(classType) || isRestClass(classType);
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+  //Legacy solutions for rest arguments
+  @NotNull
+  public static SpecificTypeReference getTypeFromMacroVarArgOrRestType(SpecificTypeReference typeReference) {
+    // Array<haxe.macro.Expr> // macro rest expression
+    // haxe.Rest<Float> // rest typ
+    // haxe.extern.Rest<Float> // deprecated rest type
+    if (typeReference instanceof SpecificHaxeClassReference classType) {
+      if (classType.getHaxeClass() != null) {
+        ResultHolder[] specifics = classType.getSpecifics();
+        if (specifics.length == 1) {
+          SpecificTypeReference type = specifics[0].getType();
+          if (type instanceof SpecificHaxeClassReference specificType) {
+            if (specificType.getHaxeClass() != null) {
+              // Array<haxe.macro.Expr>
+              if (classType.isArray() && isMacroExpr(specificType)) {
+                return  SpecificTypeReference.getDynamic(typeReference.context);
+              }
+              // haxe.extern.Rest<> / haxe.Rest<>
+              if(isExternRestClass(classType) || isRestClass(classType)) {
+                  return specifics[0].getType();
+              }
+            }
+          }
+        }
+      }
+    }
+    //return original type (used for the "..." syntax)
+    return typeReference;
+  }
+
+  private static boolean isMacroExpr(SpecificHaxeClassReference classReference) {
+    if (classReference.getHaxeClass() == null) return false;
+    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.EXPR);
+  }
+
+  private static boolean isRestClass(SpecificHaxeClassReference classReference) {
+    if (classReference.getHaxeClass() == null) return false;
+    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.REST);
+  }
+  private static boolean isExternRestClass(SpecificHaxeClassReference classReference) {
+    if (classReference.getHaxeClass() == null) return false;
+    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.EXTERN_REST);
   }
 
 

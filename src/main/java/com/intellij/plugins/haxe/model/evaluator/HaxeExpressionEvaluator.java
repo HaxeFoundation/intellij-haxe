@@ -23,11 +23,13 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
-import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.psi.*;
@@ -41,7 +43,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 import  static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.*;
@@ -56,6 +57,10 @@ public class HaxeExpressionEvaluator {
 
 
   @NotNull
+  static public HaxeExpressionEvaluatorContext evaluate(PsiElement element) {
+    return evaluate(element, null);
+  }
+  @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeGenericResolver resolver) {
     ProgressIndicatorProvider.checkCanceled();
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
@@ -63,54 +68,28 @@ public class HaxeExpressionEvaluator {
     return context;
   }
 
-  // evaluation of complex expressions can in some cases result in needing the type for a psiElement multiple times
-  // untyped parameters and variables can cause a lot of unnecessary computation if we have to re-evaluate them
-  // in order to avoid this we put any useful results in a thread-local map that we clear once we are done with the evaluation
-  record CacheRecord(ResultHolder holder, String resolverAsString){}
-  private static final ThreadLocal<Map<PsiElement, CacheRecord>> resultCache = ThreadLocal.withInitial(HashMap::new);
-  private static final ThreadLocal<Map<PsiElement, AtomicInteger>> resultCacheHits = ThreadLocal.withInitial(HashMap::new);
-  private static final ThreadLocal<Stack<PsiElement>> processingStack = ThreadLocal.withInitial(Stack::new);
-
-
-
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context,
                                                         HaxeGenericResolver resolver) {
-    try {
-      processingStack.get().push(element);
       ProgressIndicatorProvider.checkCanceled();
       context.result = handle(element, context, resolver);
       return context;
-    }
-    finally {
-      cleanUp();
-    }
   }
   @NotNull
   static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(PsiElement element, HaxeExpressionEvaluatorContext context,
                                                                           HaxeGenericResolver resolver) {
-    try {
-      processingStack.get().push(element);
       ResultHolder result = handleWithRecursionGuard(element, context, resolver);
       context.result = result != null ? result : createUnknown(element);
       return context;
-    }
-    finally {
-      cleanUp();
-    }
   }
-
-  private static void cleanUp() {
-    Stack<PsiElement> processing = processingStack.get();
-    processing.pop();
-    if (processing.isEmpty()) {
-      //if (!resultCache.get().isEmpty()) {
-      //  log.info(" cached references" + resultCache.get().size());
-      //}
-      resultCache.set(new HashMap<>());
-    }
+  @NotNull
+  static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(PsiElement element) {
+    ProgressIndicatorProvider.checkCanceled();
+      HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
+      ResultHolder result = handleWithRecursionGuard(element, context, null);
+      context.result = result != null ? result : createUnknown(element);
+      return context;
   }
-
 
 
   // keep package protected, don't use this one outside code running from evaluate()
@@ -517,14 +496,6 @@ public class HaxeExpressionEvaluator {
 
     HaxeClassModel classModel = iteratorType.getHaxeClassModel();
     if (classModel == null) return createUnknown(iteratorElement);;
-    // NOTE if "String" we need to add iterator types manually as  std string class does not have this method
-    if (iteratorType.isString()) {
-      if (iteratorElement instanceof HaxeIteratorkey ) {
-        return SpecificTypeReference.getInt(iteratorElement).createHolder();
-      }else  if (iteratorElement instanceof  HaxeIteratorValue){
-        return SpecificTypeReference.getString(iteratorElement).createHolder();
-      }
-    }
 
     HaxeMethodModel iteratorReturnType = (HaxeMethodModel)classModel.getMember("next", iteratorTypeResolver);
     if (iteratorReturnType == null) return createUnknown(iteratorElement);;
@@ -540,10 +511,15 @@ public class HaxeExpressionEvaluator {
       genericResolver.addAll(keyValueIteratorType.getClassType().getGenericResolver());
     }
 
-    if (iteratorElement instanceof HaxeIteratorkey ) {
-      return type.getHaxeClassModel().getMember("key", null).getResultType(genericResolver);
-    }else  if (iteratorElement instanceof  HaxeIteratorValue){
-      return type.getHaxeClassModel().getMember("value", null).getResultType(genericResolver);
+    HaxeClassModel model = type.getHaxeClassModel();
+    if (model != null) {
+      if (iteratorElement instanceof HaxeIteratorkey) {
+        HaxeBaseMemberModel member = model.getMember("key", null);
+        if (member != null) return member.getResultType(genericResolver);
+      } else if (iteratorElement instanceof HaxeIteratorValue) {
+        HaxeBaseMemberModel member = model.getMember("value", null);
+        if (member != null) return member.getResultType(genericResolver);
+      }
     }
     return createUnknown(iteratorElement);
   }
@@ -631,13 +607,6 @@ public class HaxeExpressionEvaluator {
     if (originalComponent.getParent() == reference) return  null;
     if (reference instanceof HaxeExpression expression) {
       if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
-        HaxeExpression rightExpression = assignExpression.getRightExpression();
-        if(rightExpression != null) {
-          ResultHolder result = handle(rightExpression, context, resolver);
-          if (!result.isUnknown()) {
-            return result;
-          }
-        }
         HaxeExpression leftExpression = assignExpression.getLeftExpression();
         if (leftExpression instanceof HaxeReferenceExpression referenceExpression) {
           PsiElement resolve = referenceExpression.resolve();
@@ -649,6 +618,13 @@ public class HaxeExpressionEvaluator {
                 return holder;
               }
             }
+          }
+        }
+        HaxeExpression rightExpression = assignExpression.getRightExpression();
+        if(rightExpression != null) {
+          ResultHolder result = handle(rightExpression, context, resolver);
+          if (!result.isUnknown()) {
+            return result;
           }
         }
       }
@@ -682,11 +658,10 @@ public class HaxeExpressionEvaluator {
     if (reference instanceof HaxeReferenceExpression referenceExpression) {
       // reference is callExpression
       if (referenceExpression.getParent() instanceof HaxeCallExpression callExpression) {
-        SpecificFunctionReference type = hint != null ? hint.getFunctionType() : null;
-        if (type != null ) {
-            HaxeCallExpressionUtil.CallExpressionValidation validation =
-              HaxeCallExpressionUtil.checkFunctionCall(callExpression, type);
-
+        SpecificFunctionReference functionReference = hint != null ? hint.getFunctionType() : null;
+        if (functionReference != null ) {
+          HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForFunctionCall(callExpression, functionReference);
+          HaxeCallExpressionEvaluation validation  = callExpressionContext.evaluate();
 
           Map<Integer, Integer> parameterToArgument = new HashMap<>();
           for(Map.Entry<Integer, Integer> entry : validation.getArgumentToParameterIndex().entrySet()){
@@ -697,17 +672,17 @@ public class HaxeExpressionEvaluator {
 
           Map<Integer, ResultHolder> argMap = validation.getArgumentIndexToType();
 
-          List<HaxeArgument> arguments = type.getArguments();
+          List<HaxeArgument> arguments = functionReference.getArguments();
           for (HaxeArgument argument : arguments) {
             int index = argument.getIndex();
             Integer argumentIndex = parameterToArgument.get(index);
             ResultHolder newValue = argMap.get(argumentIndex);
             // if not found use old value
             if (newValue == null) newValue = argument.getType();
-            newArgList.add(new HaxeArgument(argument.getIndex(), argument.isOptional(), argument.isRest(), newValue, argument.getName()));
+            newArgList.add(new HaxeArgument(argument.getElement(), argument.getIndex(), argument.isOptional(), argument.isRest(), newValue, argument.getName()));
           }
 
-          return new SpecificFunctionReference(newArgList, type.returnValue ,type.functionType,  type.context).createHolder();
+          return new SpecificFunctionReference(newArgList, functionReference.returnValue ,functionReference.functionType,  functionReference.context).createHolder();
         }
 
       }
@@ -723,8 +698,9 @@ public class HaxeExpressionEvaluator {
           final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
           if (hint != null && leftReference == reference) {
             if (resolved instanceof HaxeMethod method ) {
-              HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, method, firstReference);
-              ResultHolder hintResolved = validation.getResolver().resolve(hint);
+              HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+              HaxeCallExpressionEvaluation validation  = callExpressionContext.evaluate();
+              ResultHolder hintResolved = validation.getCallExpressionResolver().resolve(hint);
               if (hintResolved != null) return hintResolved;
             }
           }

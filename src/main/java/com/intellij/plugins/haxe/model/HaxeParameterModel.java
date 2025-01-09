@@ -77,8 +77,21 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return this.hasOptionalPsi() || this.hasInit();
   }
 
+  public boolean isRestOrMacroVarArg() {
+    return isRest() || isMacroVarArg();
+  }
+
   public boolean isRest() {
     return basePsi instanceof  HaxeRestParameter;
+  }
+
+  public boolean isMacroVarArg() {
+    SpecificHaxeClassReference classType = getType().getClassType();
+    if(classType != null) {
+      return HaxeMacroTypeUtil.isMacroVarArgOrRestType(classType);
+    }else {
+      return false;
+    }
   }
 
   public boolean hasInit() {

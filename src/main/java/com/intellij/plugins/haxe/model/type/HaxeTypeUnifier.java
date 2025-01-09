@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -67,10 +68,10 @@ public class HaxeTypeUnifier {
     // `var x = 1 + null`, if we unify null here we would get Null<Int> but this expression should not be allowed
     if(rules == UNIFY_NULL) {
       if (constantIsNullValue(a) && !b.isUnknown() && !b.isNullType()) {
-        return b.wrapInNullType();
+        return b.wrapInNullType(a.context);
       }
       if (constantIsNullValue(b) && !a.isUnknown() && !a.isNullType()) {
-        return a.wrapInNullType();
+        return a.wrapInNullType(b.context);
       }
     }
     if ((a.isDynamic() || a.isExpr()) && constantIsNullValue(a) && !b.isUnknown()) return b;
@@ -90,7 +91,7 @@ public class HaxeTypeUnifier {
         }
       }
       SpecificTypeReference reference = unifyTypes(classReferenceA, classReferenceB, context, rules);
-      return isNullWrapped?  reference.wrapInNullType() : reference;
+      return isNullWrapped?  reference.wrapInNullType(a.isNullType() ? a.context :  b.context) : reference;
     }
     if (a instanceof SpecificFunctionReference && b instanceof SpecificFunctionReference) {
       // TODO suggested type support for functions
@@ -155,18 +156,21 @@ public class HaxeTypeUnifier {
   private static HaxeArgument unify(HaxeArgument a, HaxeArgument b, @NotNull UnificationRules rules) {
     if (a.isOptional() != b.isOptional()) {
       ResultHolder invalidType = SpecificTypeReference.getInvalid(a.getType().getElementContext()).createHolder();
-      return new HaxeArgument(a.getIndex(), a.isOptional(), false, invalidType, a.getName());
+      return new HaxeArgument(a.getElement(), a.getIndex(), a.isOptional(), false, invalidType, a.getName());
     }
 
-    return new HaxeArgument(a.getIndex(), a.isOptional(), false, unify(a.getType(), b.getType(), rules), a.getName());
+    return new HaxeArgument(a.getElement(),a.getIndex(), a.isOptional(), false, unify(a.getType(), b.getType(), rules), a.getName());
   }
 
   @NotNull
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b, @NotNull PsiElement context, @NotNull UnificationRules rules) {
     if (a.isDynamic()) return a.withoutConstantValue();
     if (b.isDynamic()) return b.withoutConstantValue();
-    if (a.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
-    if (b.getHaxeClassModel() == null) return SpecificTypeReference.getDynamic(context);
+
+    HaxeClassModel modelA = a.getHaxeClassModel();
+    if (modelA == null) return SpecificTypeReference.getDynamic(context);
+    HaxeClassModel modelB = b.getHaxeClassModel();
+    if (modelB == null) return SpecificTypeReference.getDynamic(context);
 
     // if not same type but typedef, resolve typdefs and try to unify real type
     if (!a.isSameType(b) && (a.isTypeDef() || b.isTypeDef())) {
@@ -195,9 +199,16 @@ public class HaxeTypeUnifier {
     if (unifiedAnonymousType != null) {
       return unifiedAnonymousType;
     }
+    // type parameter constraints check
+    if (modelA instanceof HaxeGenericParamModel genericParamModel) {
+      if (genericParamModel.hasConstraint()) {
+        ResultHolder constraint = genericParamModel.getConstraint(null);
+        if (constraint!= null && constraint.canAssign(b.createHolder())) return b;
+      }
+    }
 
-    final Set<HaxeClassModel> atypes = a.getHaxeClassModel().getCompatibleTypes();
-    final Set<HaxeClassModel> btypes = b.getHaxeClassModel().getCompatibleTypes();
+    final Set<HaxeClassModel> atypes = modelA.getCompatibleTypes();
+    final Set<HaxeClassModel> btypes = modelB.getCompatibleTypes();
     // @TODO: this could be really slow, hotspot for optimizing
 
     for (HaxeClassModel type : atypes) {

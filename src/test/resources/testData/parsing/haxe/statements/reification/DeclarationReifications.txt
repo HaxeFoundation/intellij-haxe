@@ -44,13 +44,12 @@ Haxe File
                         HaxePsiToken:ID('Null')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('ComplexType')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('ComplexType')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           TYPE_TAG
@@ -80,12 +79,11 @@ Haxe File
                             HaxePsiToken:ID('T')
                         HaxePsiToken::(':')
                         GENERIC_CONSTRAINT_PART
-                          TYPE_LIST_PART
-                            TYPE_OR_ANONYMOUS
-                              TYPE
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:MACRO_ID('$typeParameter')
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:MACRO_ID('$typeParameter')
                       HaxePsiToken:>('>')
                     CLASS_BODY
                       HaxePsiToken:{('{')
@@ -104,13 +102,12 @@ Haxe File
                                   HaxePsiToken:ID('Array')
                               TYPE_PARAM
                                 HaxePsiToken:<('<')
-                                TYPE_LIST
-                                  TYPE_LIST_PART
-                                    TYPE_OR_ANONYMOUS
-                                      TYPE
-                                        REFERENCE_EXPRESSION
-                                          IDENTIFIER
-                                            HaxePsiToken:MACRO_ID('$typeParameter')
+                                TYPE_LIST_PART
+                                  TYPE_OR_ANONYMOUS
+                                    TYPE
+                                      REFERENCE_EXPRESSION
+                                        IDENTIFIER
+                                          HaxePsiToken:MACRO_ID('$typeParameter')
                                 HaxePsiToken:>('>')
                         HaxePsiToken:;(';')
                       CONSTRUCTOR_DECLARATION
@@ -272,13 +269,12 @@ Haxe File
                         HaxePsiToken:ID('Null')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('ComplexType')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('ComplexType')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           TYPE_TAG
@@ -328,13 +324,12 @@ Haxe File
                                       HaxePsiToken:ID('Array')
                                   TYPE_PARAM
                                     HaxePsiToken:<('<')
-                                    TYPE_LIST
-                                      TYPE_LIST_PART
-                                        TYPE_OR_ANONYMOUS
-                                          TYPE
-                                            REFERENCE_EXPRESSION
-                                              IDENTIFIER
-                                                HaxePsiToken:MACRO_ID('$typeParameter')
+                                    TYPE_LIST_PART
+                                      TYPE_OR_ANONYMOUS
+                                        TYPE
+                                          REFERENCE_EXPRESSION
+                                            IDENTIFIER
+                                              HaxePsiToken:MACRO_ID('$typeParameter')
                                     HaxePsiToken:>('>')
                             HaxePsiToken:;(';')
                           CONSTRUCTOR_DECLARATION
@@ -502,13 +497,12 @@ Haxe File
                         HaxePsiToken:ID('Null')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('ComplexType')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('ComplexType')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           TYPE_TAG

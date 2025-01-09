@@ -43,6 +43,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluateWithRecursionGuard;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.isDynamicBecauseOfNullValueInit;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
@@ -149,12 +150,6 @@ public class HaxeTypeResolver {
       ResultHolder initType = null;
 
       HaxeVarInit init = psiField.getVarInit();
-      if (init != null) {
-        PsiElement child = init.getExpression();
-        initType = HaxeTypeResolver.getPsiElementType(child, resolver);
-        boolean isConstant = psiField.hasModifierProperty(HaxePsiModifier.INLINE) && psiField.isStatic();
-        result = isConstant ? initType : initType.withConstantValue(null);
-      }
 
       HaxeTypeTag typeTag = psiField.getTypeTag();
       if (typeTag != null) {
@@ -163,7 +158,7 @@ public class HaxeTypeResolver {
           ResultHolder resolved = resolver.resolve(typeFromTag);
           if (resolved != null) typeFromTag = resolved;
           if (psiField.isOptional() && !typeFromTag.isNullWrappedType()) {
-            typeFromTag = typeFromTag.wrapInNullType();
+            typeFromTag = typeFromTag.wrapInNullType(psiField);
           }
         }
         final Object initConstant = result != null ? result.getType().getConstant() : null;
@@ -171,6 +166,13 @@ public class HaxeTypeResolver {
           result = typeFromTag.withConstantValue(initConstant);
         }
       }
+      if (typeTag == null && init != null) {
+        PsiElement child = init.getExpression();
+        initType = HaxeTypeResolver.getPsiElementType(child, resolver);
+        boolean isConstant = psiField.hasModifierProperty(HaxePsiModifier.INLINE) && psiField.isStatic();
+        result = isConstant ? initType : initType.withConstantValue(null);
+      }
+
       // look for usage (only relevant for  localVars)
       if (init == null && typeTag == null) {
         HaxeTypeResolver.getPsiElementType(psiField, null);
@@ -292,6 +294,7 @@ public class HaxeTypeResolver {
 
 
   private static final RecursionGuard<ResultHolder> propagateRecursionGuard = RecursionManager.createGuard("propagateRecursionGuard");
+  private static final RecursionGuard<HaxeReturnStatement> getReturnTypeRecursionGuard = RecursionManager.createGuard("getReturnTypeRecursionGuard");
 
   @NotNull
   static public ResultHolder resolveParameterizedType(@NotNull ResultHolder result, HaxeGenericResolver resolver, boolean returnType) {
@@ -323,12 +326,11 @@ public class HaxeTypeResolver {
         if (resolver != null) {
           HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
           if (typeOrAnonymous != null) {
-            HaxeClass aClass = (HaxeClass)method.getContainingClass();
-            HaxeGenericResolver localResolver = new HaxeGenericResolver();
-            HaxeGenericResolver classSpecificResolver = HaxeGenericSpecialization.fromGenericResolver(null, resolver).toGenericResolver(aClass).withoutUnknowns();
-            localResolver.addAll(resolver);
-            localResolver.addAll(classSpecificResolver); // overwrite any existing typeParameters with specifics for class
-            ResultHolder resolve = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, localResolver, true);
+            HaxeGenericResolver methodResolver = method.getModel().getGenericResolver(resolver);
+            methodResolver.addAll(resolver);
+            methodResolver.setAssignHint(resolver.getAssignHint());
+
+            ResultHolder resolve = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous, methodResolver, true);
             if (resolve != null && !resolve.isUnknown()) {
               return resolve;
             }
@@ -366,14 +368,10 @@ public class HaxeTypeResolver {
       final PsiElement methodBody = psi;
       List<HaxeReturnStatement> returnStatementList =
         CachedValuesManager.getCachedValue(methodBody, () -> HaxeTypeResolver.findReturnStatementsForMethod(methodBody));
-      List<ResultHolder> returnTypes = returnStatementList.stream().map(statement ->  {
-        if (processedElements.get().contains(statement)) {
-          return null; // possible recursion, ignore this return statement
-        }else {
-          return getPsiElementType(statement, resolver);
-        }
-      }).filter(Objects::nonNull)
-        .toList();
+      List<ResultHolder> returnTypes = returnStatementList.stream().map(statement ->
+                      getReturnTypeRecursionGuard.computePreventingRecursion(statement, true, () ->
+                              getPsiElementType(statement, resolver))).filter(Objects::nonNull)
+              .toList();
 
       if (returnTypes.isEmpty() && returnStatementList.isEmpty()) {
         return SpecificHaxeClassReference.getVoid(psi).createHolder();
@@ -381,7 +379,6 @@ public class HaxeTypeResolver {
       if (returnStatementList.isEmpty()) {
         return SpecificHaxeClassReference.getDynamic(psi).createHolder();
       }
-
       ResultHolder holder = HaxeTypeUnifier.unifyHolders(returnTypes, psi, UnificationRules.PREFER_VOID);
 
       // method typeParameters should have been used when resolving returnTypes, we want to avoid double resolve
@@ -396,6 +393,10 @@ public class HaxeTypeResolver {
     else {
       throw new RuntimeException("Can't determine function type if the element isn't a method or function literal.");
     }
+  }
+
+  private static boolean isMethodTypeParameter(HaxeMethodImpl method, ResultHolder resolve) {
+    return method.getGenericParam().getGenericListPartList().getFirst() == ((SpecificHaxeClassReference) resolve.getType()).getHaxeClass();
   }
 
   @NotNull
@@ -461,7 +462,7 @@ public class HaxeTypeResolver {
       ResultHolder argumentType = getTypeFromFunctionArgument(argument);
       boolean optional = argument.getOptionalMark() != null;
       boolean rest = argument.getRestArgumentType() != null;
-      args.add(new HaxeArgument(i, optional, rest, argumentType, getArgumentName(argument)));
+      args.add(new HaxeArgument(argument, i, optional, rest, argumentType, getArgumentName(argument)));
     }
 
     if (args.size() == 1 && args.get(0).isVoid()) {
@@ -581,7 +582,7 @@ public class HaxeTypeResolver {
     HaxeTypeParam param = type.getTypeParam();
     ArrayList<ResultHolder> references = new ArrayList<>();
     if (param != null) {
-      for (HaxeTypeListPart part : param.getTypeList().getTypeListPartList()) {
+      for (HaxeTypeListPart part : param.getTypeList()) {
         ResultHolder partResult = null;
         HaxeTypeOrAnonymous typeOrAnonymous = part.getTypeOrAnonymous();
         if (resolver != null && !resolver.isEmpty()) {
@@ -687,64 +688,28 @@ public class HaxeTypeResolver {
     return getPsiElementType(element, (AnnotationHolder)null, resolver).result;
   }
 
-  static private void checkMethod(PsiElement element, HaxeExpressionEvaluatorContext context) {
-    if (!(element instanceof HaxeMethod)) return;
-    final HaxeTypeTag typeTag = UsefulPsiTreeUtil.getChild(element, HaxeTypeTag.class);
-    ResultHolder expectedType = SpecificTypeReference.getDynamic(element).createHolder();
-    if (typeTag == null) {
-      final List<HaxeExpressionEvaluatorReturnInfo> infos = context.getReturnInfos();
-      if (!infos.isEmpty()) {
-        expectedType = infos.get(0).type();
-      }
-    }
-    else {
-      expectedType = getTypeFromTypeTag(typeTag, element);
-    }
-
-    if (expectedType == null) return;
-    for (HaxeExpressionEvaluatorReturnInfo retinfo : context.getReturnInfos()) {
-      if (context.holder != null) {
-        if (expectedType.canAssign(retinfo.type())) continue;
-        context.addError(
-          retinfo.element(),
-          "Can't return " + retinfo.type() + ", expected " + expectedType.toStringWithoutConstant()
-        );
-      }
-    }
-  }
 
   @NotNull
   static public HaxeExpressionEvaluatorContext getPsiElementType(@NotNull PsiElement element, @Nullable AnnotationHolder holder,
                                                                  HaxeGenericResolver resolver) {
-    return evaluateFunction(new HaxeExpressionEvaluatorContext(element, holder), resolver);
+    return evaluateWithRecursionGuard(element, new HaxeExpressionEvaluatorContext(element, holder), resolver);
   }
 
-  // @TODO: hack to avoid stack overflow, until a proper non-static fix is done
-  //        At least, we've made it thread local, so the threads aren't stomping on each other any more.
-  static private ThreadLocal<? extends Set<PsiElement>> processedElements = ThreadLocal.withInitial(HashSet::new);
 
-  @NotNull
-  static public HaxeExpressionEvaluatorContext evaluateFunction(@NotNull HaxeExpressionEvaluatorContext context,
-                                                                HaxeGenericResolver resolver) {
-    PsiElement element = context.root;
-    if (processedElements.get().contains(element)) {
-      context.result = SpecificHaxeClassReference.getUnknown(element).createHolder();
-      return context;
-    }
+  @Nullable
+  public static ResultHolder getTypeFromGenericConstraint(HaxeGenericConstraintPart constraint) {
+    HaxeTypeOrAnonymous typeOrAnonymous = constraint.getTypeOrAnonymous();
+    if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
 
-    processedElements.get().add(element);
-    try {
-      HaxeExpressionEvaluator.evaluate(element, context, resolver);
-      checkMethod(element.getParent(), context);
+    HaxeFunctionType functionType = constraint.getFunctionType();
+    if (functionType != null) return getTypeFromFunctionType(functionType);
 
-      for (HaxeExpressionEvaluatorContext lambda : context.lambdas) {
-        evaluateFunction(lambda, resolver);
-      }
+    HaxeConstraintTypeList constraintTypeList = constraint.getConstraintTypeList();
+    if (constraintTypeList != null) return constraintTypeList.getModel().getInstanceType();
 
-      return context;
-    }
-    finally {
-      processedElements.get().remove(element);
-    }
+    HaxeExpression expression = constraint.getConstExpression();
+    if (expression != null) return HaxeExpressionEvaluator.evaluate(expression).result;
+
+    return null;
   }
 }

@@ -25,7 +25,6 @@ import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
@@ -42,7 +41,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
-import static java.util.function.Predicate.not;
+import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil.findCastPath;
+import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil.findClassHierarchy;
 
 @CustomLog
 @EqualsAndHashCode
@@ -154,9 +154,25 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public String toPresentationString() {
+    return toPresentationString(false);
+  }
+  public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
     Stack<SpecificHaxeClassReference> stack = processedElementsToString.get();
     try {
       HaxeClassModel classModel = getHaxeClassModel();
+
+      if(showOnlyConstraintForTypeParam) {
+        // Inlays, errors and warnings usually makes more sense to the end-user when displaying just the constraints
+        if (isTypeParameterWithConstraints()) {
+          if (classModel instanceof HaxeGenericParamModel genericParamModel) {
+            ResultHolder constraint = genericParamModel.getConstraint(null);
+            if (constraint != null) {
+              return constraint.toPresentationString(true);
+            }
+          }
+        }
+      }
+
       // stack overflow guard
       if (stack.contains(this) && classModel != null) {
         List<HaxeGenericParamModel> params = classModel.getGenericParams();
@@ -190,11 +206,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
               log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
             }
             else {
-              out.append(specific.toStringWithoutConstant());
+//              out.append(specific.toStringWithoutConstant());
+              out.append(specific.toPresentationString(showOnlyConstraintForTypeParam));
             }
           }
           out.append(">");
         }
+      }
+      if (this.getHaxeClassModel() instanceof HaxeGenericParamModel genericParamModel) {
+        if (genericParamModel.hasConstraint()) {
+          return getClassName() + ":"+ genericParamModel.getConstraintPsi().getText();
+        }
+        return getClassName();
       }
       String result = out.toString();
       if (result.equals("Dynamic<Dynamic>")) return "Dynamic";
@@ -206,7 +229,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public String toStringWithoutConstant() {
-    return toPresentationString();
+    return toPresentationString(false);
   }
 
   public String toStringWithConstant() {
@@ -232,16 +255,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     HaxeClassModel model = getHaxeClassModel();
     if (model != null) {
-      if (model instanceof HaxeAnonymousTypeModel anonymousTypeModel
-          && anonymousTypeModel.haxeClass instanceof HaxeTypeParameterMultiType multiType) {
-        //TODO move into HaxeAnonymousTypeModel or HaxeTypeParameterMultiType maybe solve as getGenericParam
+      if (model instanceof HaxeConstraintTypeListModel constraintModel) {
+        //TODO mlo: move into this stream/logic to method in HaxeConstraintTypeListModel
         List<HaxeGenericResolver> list =
-          multiType.getHaxeExtendsList().stream()
-            .map(HaxeTypeResolver::getTypeFromType)
-            .filter(not(ResultHolder::isUnknown))
-            .filter(ResultHolder::isClassType)
-            .map(resultHolder -> resultHolder.getClassType().getGenericResolver())
-            .toList();
+                constraintModel.getCompositeTypes().stream()
+                        .filter(ResultHolder::isClassType)
+                        .map(ResultHolder::getClassType)
+                        .filter(Objects::nonNull)
+                        .map(SpecificHaxeClassReference::getGenericResolver)
+                        .toList();
 
         list.forEach(resolver::addAll);
       } else {
@@ -264,8 +286,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
               specific = paramModel.getInstanceType();
             }
           }
-          //TODO check constraints
           resolver.add(paramModel.getTypeParameter(), specific);
+          resolver.addConstraint(paramModel.getTypeParameter(), specific);
         }
       }
     }
@@ -339,13 +361,73 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new ResultHolder(SpecificHaxeClassReference.withGenerics(classReference, newSpecifics));
   }
 
+  public SpecificHaxeClassReference tryCastTo(SpecificHaxeClassReference targetClass) {
+    if (targetClass == null) return null;
+    SpecificHaxeClassReference specificHaxeClassReference = tryCastToClass(targetClass);
+    if (specificHaxeClassReference == null) {
+      specificHaxeClassReference = tryAbstractCast(targetClass);
+    }
+    return specificHaxeClassReference;
+  }
+
+  @Nullable
+  public SpecificHaxeClassReference tryCastToClass(SpecificHaxeClassReference targetClass) {
+    if (targetClass == null) return null;
+    HaxeClass targetHaxeClass = targetClass.getHaxeClass();
+    HaxeClass sourceHaxeClass = this.getHaxeClass();
+
+    if (targetHaxeClass == null || sourceHaxeClass == null){
+      return null;
+    }  else if (targetHaxeClass.getQualifiedName().equals(sourceHaxeClass.getQualifiedName())) {
+      return this;
+    }
+    HaxeClassModel classModel = targetClass.getHaxeClassModel();
+    if (classModel != null) {
+      //  our plugin code can cast both ways,  so we need to make sure there is a legal way to cast before attempting
+      if (!findClassHierarchy(sourceHaxeClass, targetHaxeClass).isEmpty()) {
+        ResultHolder instanceType = classModel.getInstanceType();
+        HaxeGenericResolver genericResolver = getGenericResolver().translateFromTo(sourceHaxeClass, targetHaxeClass);
+        ResultHolder resolved = genericResolver.resolve(instanceType);
+        if (resolved != null) {
+          return resolved.getClassType();
+        }
+      }
+    }
+    return null;
+  }
+  @Nullable
+  public SpecificHaxeClassReference tryAbstractCast(SpecificHaxeClassReference targetClass) {
+    if(targetClass == null) return null;
+    HaxeClass targetHaxeClass = targetClass.getHaxeClass();
+    HaxeClass sourceHaxeClass = this.getHaxeClass();
+
+    if (targetHaxeClass == null || sourceHaxeClass == null){
+      return null;
+    }  else if (targetHaxeClass.getQualifiedName().equals(sourceHaxeClass.getQualifiedName())) {
+      return this;
+    }
+    HaxeClassModel classModel = targetClass.getHaxeClassModel();
+    if (classModel != null) {
+      //  make sure there is a legal way to cast
+      if (!findCastPath(sourceHaxeClass, targetHaxeClass).isEmpty()) {
+        ResultHolder instanceType = classModel.getInstanceType();
+        HaxeGenericResolver genericResolver = getGenericResolver().translateFromTo(sourceHaxeClass, targetHaxeClass);
+        ResultHolder resolved = genericResolver.resolve(instanceType);
+        if (resolved != null) {
+          return resolved.getClassType();
+        }
+      }
+    }
+    return null;
+  }
+
 
   public enum Compatibility {
     ASSIGNABLE_TO,   // Assignable via @:to or "to <Type>" on an abstract.
     ASSIGNABLE_FROM  // Assignable via @:from or "from <Type>" on an abstract.
   }
 
-  Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
+  public Set<SpecificHaxeClassReference> getCompatibleTypes(Compatibility direction) {
       Set<SpecificHaxeClassReference>result = getCompatibleTypesIInternalCached(direction);
       result.add(this); // adding this only for the type that is being checked (we don't want this done recursively)
       return result;
@@ -662,11 +744,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return reference;
   }
 
-  private static RecursionGuard<PsiElement> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyresolveRecursionGuard");
+  private static final RecursionGuard<PsiElement> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyresolveRecursionGuard");
 
+  @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference() {
     return fullyResolveTypeDefAndUnwrapNullTypeReference(false);
   }
+  @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference(boolean unwrapExprOf) {
     SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(this.context, true, () ->
     {
@@ -674,7 +758,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       if (isNullType()) {
         SpecificTypeReference typeReference = unwrapNullType();
         if (typeReference instanceof SpecificHaxeClassReference reference) {
-          if (reference.isTypeDef()) return reference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+          if (reference.isTypeDef()) return reference.fullyResolveTypeDefAndUnwrapNullTypeReference(unwrapExprOf);
         }
         return typeReference;
       }
@@ -695,8 +779,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
         HaxeClass haxeClass = getHaxeClass();
         HaxeGenericResolver resolver = getGenericResolver();
-
+        List<HaxeClass> processed = new ArrayList<>();
         while (haxeClass instanceof AbstractHaxeTypeDefImpl typeDef) {
+          // infinitive loop guard
+          if (processed.contains(haxeClass)) break;
+          processed.add(haxeClass);
+
           HaxeFunctionType functionType = typeDef.getFunctionType();
           if (functionType != null) {
             SpecificFunctionReference reference1 = reference.resolveTypeDefFunction();
@@ -745,7 +833,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       }
       return this;
     });
-    return result == null ? this :  result;
+      if (result == null){
+        log.warn("Failed to fully resolve, recursion-guard");
+        return this;
+      }
+      return result;
   }
 
   public SpecificTypeReference fullyResolveUnderlyingTypeUnwrapNullTypeReference() {
@@ -1030,4 +1122,37 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public SpecificTypeReference withElementContext(PsiElement element) {
     return new SpecificHaxeClassReference(classReference, specifics, constantValue, rangeConstraint, element);
   }
+
+// TODO mlo: should be moved to a "SpecificAbstractReference" like class
+//   explicit and implicit casts are only relevant for abstracts  and should not be inherited
+//   by classes, enums, and anonymous structures
+  public List<SpecificTypeReference> getExplicitCastToTypes() {
+    if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
+      return abstractModel.getExplicitCastToTypes(getGenericResolver());
+    }
+    return List.of();
+  }
+  public List<SpecificTypeReference> getExplicitCastFromTypes() {
+    if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
+      return abstractModel.getExplicitCastFromTypes(getGenericResolver());
+    }
+    return List.of();
+  }
+
+  public List<SpecificTypeReference> getImplicitCastToTypes(SpecificTypeReference typeHint) {
+    if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
+      HaxeGenericResolver genericResolver = getGenericResolver();
+      genericResolver.setAssignHint(typeHint.createHolder());
+      return abstractModel.getImplicitCastToTypes(this, genericResolver);
+    }
+    return List.of();
+  }
+
+  public List<SpecificTypeReference> getImplicitCastFromTypes(SpecificTypeReference argument) {
+    if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
+      return abstractModel.getImplicitCastFromTypes(argument, this);
+    }
+    return List.of();
+  }
+
 }

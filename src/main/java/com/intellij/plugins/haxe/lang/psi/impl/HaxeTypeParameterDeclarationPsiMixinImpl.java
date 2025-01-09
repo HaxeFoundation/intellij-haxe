@@ -61,4 +61,10 @@ public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractH
     }
     return HaxeComponentType.getPresentableName(this);
   }
+
+// when debugging its useful to se the q-name so keeping this  around for now
+//  @Override
+//  public String toString() {
+//    return super.toString() + "(" + getQualifiedName() + ")";
+//  }
 }

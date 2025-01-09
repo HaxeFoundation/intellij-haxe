@@ -42,13 +42,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           BLOCK_STATEMENT
@@ -232,13 +231,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           BLOCK_STATEMENT

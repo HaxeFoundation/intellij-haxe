@@ -48,13 +48,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           TYPE_TAG
@@ -66,13 +65,12 @@ Haxe File
                     HaxePsiToken:ID('Array')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('Field')
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Field')
                   HaxePsiToken:>('>')
           BLOCK_STATEMENT
             HaxePsiToken:{('{')
@@ -92,13 +90,12 @@ Haxe File
                           HaxePsiToken:ID('Array')
                       TYPE_PARAM
                         HaxePsiToken:<('<')
-                        TYPE_LIST
-                          TYPE_LIST_PART
-                            TYPE_OR_ANONYMOUS
-                              TYPE
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('Expr')
+                        TYPE_LIST_PART
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('Expr')
                         HaxePsiToken:>('>')
                 VAR_INIT
                   HaxePsiToken:=('=')

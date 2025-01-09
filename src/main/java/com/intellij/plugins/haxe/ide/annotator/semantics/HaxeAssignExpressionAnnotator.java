@@ -9,6 +9,8 @@ import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.psi.HaxeArrayLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeAssignExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMapLiteral;
+import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -69,17 +71,18 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
     if (unwrap.getType().isString() && assignOperation.textMatches("+=")) {
       return;
     }
-    HaxeAssignContext  context = new HaxeAssignContext(lhs, rhs);
-    if (!lhsType.canAssign(rhsType, context)) {
+    HaxeAssignEvaluation assignEvaluation = lhsType.canAssignEvaluation(rhsType);
+    if (!assignEvaluation.result) {
       List<HaxeExpressionConversionFixer> fixers = HaxeExpressionConversionFixer.createStdTypeFixers(rhs, rhsType.getType(), lhsType.getType());
 
-      if(context.hasMissingMembers() || context.hasWrongTypeMembers()) {
-        if(context.hasMissingMembers()) {
-          HaxeStandardAnnotation.typeMismatchMissingMembers(holder, rhs, context)
+      AssignExplanation messages = assignEvaluation.explanations;
+      if(messages.hasMissingMembers() || messages.hasWrongTypeMembers()) {
+        if(messages.hasMissingMembers()) {
+          HaxeStandardAnnotation.typeMismatchMissingMembers(holder, rhs, messages)
             .create();
         }
-        if(context.hasWrongTypeMembers()) {
-          HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, rhs, context);
+        if(messages.hasWrongTypeMembers()) {
+          HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, rhs, messages);
         }
       }else {
         AnnotationBuilder builder = typeMismatch(holder, rhs, rhsType.toPresentationString(), lhsType.toPresentationString());

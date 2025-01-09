@@ -32,6 +32,9 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromTypeOrAnonymous;
 
+//TODO mlo: consider spliting this class into 2, one for method references and one for functionType signatures.
+//should probably also create a model for HaxeFunctionType psi.
+
 public class SpecificFunctionReference extends SpecificTypeReference {
   private static final String DELIMITER = "->";
 
@@ -123,12 +126,13 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
     if (parameters.isEmpty()) {
-      SpecificTypeReference voidArg = SpecificTypeReference.getVoid((model.getMethodPsi()));
-      args.add(new HaxeArgument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      HaxeMethodPsiMixin methodPsi = model.getMethodPsi();
+      SpecificTypeReference voidArg = SpecificTypeReference.getVoid(methodPsi);
+      args.add(new HaxeArgument(methodPsi,0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < parameters.size(); i++) {
         HaxeParameterModel parameterModel = parameters.get(i);
-        args.add(new HaxeArgument(i, parameterModel.isOptional(), parameterModel.isRest(), parameterModel.getResultType(), parameterModel.getName()));
+        args.add(new HaxeArgument(parameterModel.getParameterPsi(), i, parameterModel.isOptional(), parameterModel.isRest(), parameterModel.getResultType(), parameterModel.getName()));
       }
     }
     return new SpecificFunctionReference(args, model.getReturnType(null), model, model.getMethodPsi());
@@ -152,12 +156,12 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     List<HaxeFunctionArgument> arguments = func.getFunctionArgumentList();
     if (arguments.isEmpty()) {
       SpecificTypeReference voidArg = SpecificTypeReference.getVoid((func));
-      args.add(new HaxeArgument(0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
+      args.add(new HaxeArgument(func,0, false, false, voidArg.createHolder(), voidArg.toStringWithoutConstant()));
     } else {
       for (int i = 0; i < arguments.size(); i++) {
         HaxeFunctionArgument arg = arguments.get(i);
         ResultHolder result = determineType(func, resolver, arg.getFunctionType(), arg.getTypeOrAnonymous());
-        args.add(new HaxeArgument(i, null != arg.getOptionalMark(), null != arg.getRestArgumentType(), result, arg.getName()));
+        args.add(new HaxeArgument(arg, i, null != arg.getOptionalMark(), null != arg.getRestArgumentType(), result, arg.getName()));
       }
     }
 
@@ -236,7 +240,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return out.toString();
   }
 
-  public String toPresentationString() {
+  public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
     return toFunctionDescription(true, arguments, returnValue);
   }
 
@@ -247,12 +251,12 @@ public class SpecificFunctionReference extends SpecificTypeReference {
 
   @Override
   public String toStringWithoutConstant() {
-    return toPresentationString();
+    return toPresentationString(false);
   }
 
   @Override
   public String toStringWithConstant() {
-    return toPresentationString(); // XXX: If there's an anonymous function, should we be adding it here?
+    return toPresentationString(false); // XXX: If there's an anonymous function, should we be adding it here?
   }
 
   public SpecificFunctionReference withTypes(@NotNull List<HaxeArgument> newArgs, @NotNull ResultHolder newReturnType) {

@@ -37,12 +37,12 @@ public class HaxeGenericResolverUtil {
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 
-
     appendClassGenericResolver(element, resolver);
-
     appendMethodGenericResolver(element, resolver);
+
     appendStatementGenericResolver(HaxeResolveUtil.getLeftReference(element), resolver);
     appendCallExpressionGenericResolver(element, resolver);
+
     return resolver;
   }
 
@@ -262,137 +262,6 @@ public class HaxeGenericResolverUtil {
     }
   }
 
-  public static HaxeGenericResolver createInheritedClassResolver(@Nullable HaxeGenericResolver localResolver,
-                                                                 @NotNull HaxeClass targetClass,
-                                                                 @NotNull HaxeClass sourceClass) {
-
-    if(targetClass == sourceClass) return localResolver;
-    List<SpecificHaxeClassReference> path = new ArrayList<>();
-    findClassHierarchy(sourceClass, targetClass, path);
-
-    Collections.reverse(path);
-
-    // typdefs `getMemberResolver` converts resolver to resolver for underlying type
-    // while this is useful when resolving for members, it would break our logic here
-    // as it would skip one level, so we stick with localResolver in this case
-    HaxeGenericResolver resolver = (sourceClass instanceof HaxeTypedefDeclaration)
-                                   ? localResolver
-                                   : sourceClass.getMemberResolver(localResolver);
-
-
-    if(resolver == null) resolver = new HaxeGenericResolver();
-    for (SpecificHaxeClassReference reference : path) {
-      ResultHolder resolved = resolver.resolve(reference.createHolder());
-      if(resolved != null && resolved.isClassType()) {
-        HaxeGenericResolver genericResolver = resolved.getClassType().getGenericResolver();
-        genericResolver.setAssignHint(resolver.getAssignHint());
-        resolver = genericResolver;
-      }
-    }
-
-    // todo TranslateAbstractToUnderlying(source);
-
-    return resolver;
-  }
-
-  public static List<SpecificHaxeClassReference> findClassHierarchy(HaxeClass from, HaxeClass to) {
-    List<SpecificHaxeClassReference> path = new ArrayList<>();
-    findClassHierarchy(from,to, path);
-    return path;
-  }
-  private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
-    // stop if "from" is typeParameter
-    if(from instanceof HaxeGenericListPart)return false;
-
-    HaxeClassModel fromModel = from.getModel();
-    if (fromModel.isTypedef()) {
-      SpecificHaxeClassReference reference = fromModel.getUnderlyingClassReference(fromModel.getGenericResolver(null));
-      if (reference!= null) {
-        // NOTE: anonymous types can extend/ combine multiple definitions
-        // we therefor only add to path when we have found and reached the target (when the recursive calls returns true)
-        SpecificHaxeClassReference resolvedTypeDef = reference.resolveTypeDefClass();
-        if (resolvedTypeDef != null) {
-          HaxeClass childClass = resolvedTypeDef.getHaxeClass();
-          if (childClass == to){
-            path.add(reference);
-            return true;
-          }
-          if (childClass != null){
-            return findClassHierarchy(childClass, to, path);
-          }
-        }else {
-          HaxeClass underlyingClass = reference.getHaxeClass();
-          if (underlyingClass == to) {
-            path.add(reference);
-            return true;
-          }else if (findClassHierarchy(underlyingClass, to, path)) {
-            path.add(reference);
-            return true;
-          }
-        }
-      }
-    }
-    List<HaxeClassReferenceModel> types = fromModel.getExtendingTypes();
-    for (HaxeClassReferenceModel model : types) {
-      HaxeClassModel classModel = model.getHaxeClassModel();
-      if (classModel != null) {
-        HaxeClass childClass = classModel.haxeClass;
-        if (childClass == to) {
-          return path.add(model.getSpecificHaxeClassReference());
-        } else {
-          if (findClassHierarchy(childClass, to, path)) {
-            path.add(model.getSpecificHaxeClassReference());
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  @Nullable
-  public static HaxeGenericResolver createExtendingClassResolver(@NotNull HaxeGenericResolver resolver,
-                                                                 @NotNull HaxeClass from,
-                                                                 @NotNull HaxeClass to) {
-    if (from == to) return  resolver;
-
-    HaxeClassModel toModel = to.getModel();
-    ResultHolder type = toModel.getInstanceType();
-    SpecificHaxeClassReference toInstance = type.getClassType();
-    if(toInstance == null) return null;
-
-
-    List<SpecificHaxeClassReference> path = new ArrayList<>();
-    if(findClassHierarchy(to, from, path)) {
-      path.add(toInstance);// TODO write test to verify  (need 3 or more levels of inheritance to know if first or last)
-    }else {
-      return resolver;
-    }
-
-    path.remove(0);// remove first as it is resolver from parameter
-    HaxeGenericResolver mappedResolver = resolver.withoutMethodTypeParameters();
-    for (SpecificHaxeClassReference reference : path) {
-      HaxeClassModel classModel = reference.getHaxeClassModel();
-      if(classModel!= null) {
-        HaxeGenericResolver nextResolver = reference.getGenericResolver();
-        List<HaxeGenericParamModel> params = classModel.getGenericParams();
-        for (HaxeGenericParamModel param : params) {
-          HaxeTypeParameterDeclaration typeParameter = param.getTypeParameter();
-          HaxeClass replaced = param.getReplacedTypeParameter();
-          if (replaced instanceof HaxeTypeParameterDeclaration replacedTypeParameter) {
-            ResultHolder resolve = mappedResolver.resolve(replacedTypeParameter);
-            if (resolve != null) {
-              nextResolver.add(typeParameter, resolve);
-            }
-          }
-        }
-        mappedResolver = nextResolver;
-      }
-
-
-    }
-    return mappedResolver;
-  }
 
 
 

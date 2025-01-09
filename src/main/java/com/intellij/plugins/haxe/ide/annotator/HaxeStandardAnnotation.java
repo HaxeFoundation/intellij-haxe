@@ -20,7 +20,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.model.type.HaxeAssignContext;
+import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,15 +46,15 @@ public class HaxeStandardAnnotation {
 
   public static @NotNull AnnotationBuilder typeMismatchMissingMembers(@NotNull AnnotationHolder holder,
                                                                       @NotNull PsiElement incompatibleElement,
-                                                                      HaxeAssignContext context) {
+                                                                      AssignExplanation context) {
 
     String message = HaxeBundle.message("haxe.semantic.incompatible.type.missing.members.0",
-                                        context.getMissingMembersString());
+                                        context.createMissingMembersMessage());
     return holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement);
   }
   public static @NotNull void addtypeMismatchWrongTypeMembersAnnotations(@NotNull AnnotationHolder holder,
                                                                          @NotNull PsiElement incompatibleElement,
-                                                                         HaxeAssignContext context) {
+                                                                         AssignExplanation context) {
 
     TextRange expectedRange = incompatibleElement.getTextRange();
     Map<PsiElement, String> wrongTypeMap = context.getWrongTypeMap();
@@ -62,7 +62,7 @@ public class HaxeStandardAnnotation {
     if (allInRange) {
       wrongTypeMap.forEach((key, value) -> holder.newAnnotation(HighlightSeverity.ERROR, value).range(key).create());
     }else {
-      String message = HaxeBundle.message("haxe.semantic.incompatible.type.wrong.member.types.0",  context.geWrongTypeMembersString());
+      String message = HaxeBundle.message("haxe.semantic.incompatible.type.wrong.member.types.0",  context.createWrongTypeMembersMessage());
       holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement).create();
     }
   }

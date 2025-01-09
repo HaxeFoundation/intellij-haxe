@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -32,15 +33,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil.*;
-import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 
 
 @CustomLog
 public class HaxeGenericResolver {
-  final private LinkedList<ResolverEntry> resolvers;
-  final private LinkedList<ResolverEntry> constaints;
-  final private LinkedList<ResolverEntry> arguments;
+  @Getter final private LinkedList<ResolverEntry> resolvers;
+  @Getter final private LinkedList<ResolverEntry> constaints;
+  @Getter final private LinkedList<ResolverEntry> arguments;
 
   @Getter
   @Setter
@@ -83,13 +82,13 @@ public class HaxeGenericResolver {
 
 
 
-  private void add(@NotNull ResolverEntry entry) {
+  public void add(@NotNull ResolverEntry entry) {
     add(entry.typeParameter(), entry.type());
   }
-  private void addConstraint(@NotNull ResolverEntry entry) {
+  public void addConstraint(@NotNull ResolverEntry entry) {
     addConstraint(entry.typeParameter(), entry.type());
   }
-  private void addArgument(@NotNull ResolverEntry entry) {
+  public void addArgument(@NotNull ResolverEntry entry) {
     addArgument(entry.typeParameter(), entry.type());
   }
 
@@ -148,10 +147,6 @@ public class HaxeGenericResolver {
     // arguments has higher precedence than normal resolver values, normal resolver values have higher precedence than constraints
     ResultHolder holder = listSearch(arguments, typeParameter);
     if (holder == null) holder = listSearch(resolvers, typeParameter);
-    if (nullOrUnknown(holder)) {
-      ResultHolder constraint = listSearch(constaints, typeParameter);
-      if(!nullOrUnknown(constraint)) holder = constraint;
-    }
 
     // if none of the method parameters specifies the type parameter
     // in a call expression and only the return type uses the type parameter
@@ -283,10 +278,9 @@ public class HaxeGenericResolver {
 
   @Nullable
   public SpecificTypeReference resolve(SpecificHaxeClassReference classReference) {
-    HaxeClass referenceHaxeClass = classReference.getHaxeClass();
-    if (referenceHaxeClass == null) return null;
-    ResultHolder resolve = resolve(referenceHaxeClass);
-    if(resolve == null ) return null;
+    ResultHolder holder = classReference.createHolder();
+    ResultHolder resolve = resolve(holder);
+    if(resolve == null) return null;
     return resolve.getType();
   }
 
@@ -444,7 +438,7 @@ public class HaxeGenericResolver {
       HaxeArgument argument = originalArguments.get(i);
       if (argument.isTypeParameter() && i < hintArgumentCount) {
         HaxeArgument hint = hintArguments.get(i);
-        args.add(new HaxeArgument(i, argument.isOptional(), argument.isRest(), hint.getType(), argument.getName()));
+        args.add(new HaxeArgument(argument.getElement(), i, argument.isOptional(), argument.isRest(), hint.getType(), argument.getName()));
       }else {
         args.add(argument);
       }
@@ -581,77 +575,9 @@ public class HaxeGenericResolver {
   }
 
 
-
-  //TODO all members needing resolver should do a remap of resolver results
-  // reference should get resolver as it got spesifics
-  // TODO also move to generic resolver so we dont neeed to pass resolver
-  //@NotNull
-  //public HaxeGenericResolver translateTo(@NotNull SpecificHaxeClassReference reference) {
-  //  HaxeClassModel classModel = reference.getHaxeClassModel();
-  //  if(classModel != null) {
-  //    return translateTo(classModel);
-  //  }else {
-  //    log.warn("Unable to get classModel for " + reference);
-  //    return this;
-  //  }
-  //}
-  //TODO !!!! does not work if our resolver id empty, not able to find current class
-  // write up some javadoc explanation
   @NotNull
   public HaxeGenericResolver translateFromTo(@Nullable HaxeClass source, @Nullable HaxeClass target) {
-    if(source == null) return this;
-    if(target == null) return this;
-    if(target == source) return this;
-
-    HaxeGenericResolver newResolver = withoutClassTypeParameters();
-    boolean sourceToTarget = !findClassHierarchy(source, target).isEmpty();
-    boolean targetToSource = !findClassHierarchy(target, source).isEmpty();
-
-      if (sourceToTarget) {
-        newResolver.addAll(createInheritedClassResolver(this, target, source));
-        return newResolver;
-      }
-      else if(targetToSource) {
-        newResolver.addAll(createExtendingClassResolver(this, source, target));
-        return newResolver;
-      }else {
-        // no change
-        return this;
-      }
-  }
-
-  private HaxeGenericResolver TranslateAbstractToUnderlying(@NotNull HaxeClass source) {
-    HaxeGenericResolver newResolver = withoutClassTypeParameters();
-    //TODO move  to its own method and add support for recursion, ( underlying type might be another abstract with underlying type)
-    // mapping  abstract to underlying  type
-    if (source instanceof HaxeAbstractTypeDeclaration declaration) {
-      HaxeUnderlyingType type = declaration.getUnderlyingType();
-      if(type != null && type.getTypeOrAnonymous() != null) {
-        ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(type.getTypeOrAnonymous());
-        SpecificHaxeClassReference classType = holder.getClassType();
-        if(classType != null) {
-          HaxeGenericResolver genericResolver = classType.getGenericResolver();
-
-          for (@NotNull ResolverEntry entry : genericResolver.entries()) {
-            String lookupName = entry.typeParameter().getName();
-            for (ResolverEntry resolverEntry : resolvers) {
-              if(Objects.equals(resolverEntry.typeParameter().getName(), lookupName)) {
-                newResolver.add(entry.withType(resolverEntry.type()));
-              }
-            }
-          }
-          for (@NotNull ResolverEntry entry : genericResolver.constaints) {
-            String lookupName = entry.typeParameter().getName();
-            for (ResolverEntry constraintEntry : constaints) {
-              if(Objects.equals(constraintEntry.typeParameter().getName(), lookupName)) {
-                newResolver.addConstraint(entry.withType(constraintEntry.type()));
-              }
-            }
-          }
-        }
-      }
-    }
-    return newResolver;
+    return HaxeGenericResolverCastUtil.translateFromTo(this, source, target);
   }
 
 
@@ -696,6 +622,9 @@ public class HaxeGenericResolver {
 
   public boolean contains(HaxeTypeParameterDeclaration parameter) {
     return listSearch(resolvers, parameter) != null;
+  }
+  public boolean containsConstraint(HaxeTypeParameterDeclaration parameter) {
+    return listSearch(constaints, parameter) != null;
   }
 
   public void update(HaxeTypeParameterDeclaration typeParameter, ResultHolder resultHolder) {

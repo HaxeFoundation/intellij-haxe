@@ -486,8 +486,16 @@ public class HaxeResolveUtil {
     }
 
     final List<HaxeNamedComponent> result = new ArrayList<>();
-    if (element instanceof HaxeTypeParameterMultiType multiType) {
-      HaxeTypeParameterMultiTypeModel model = (HaxeTypeParameterMultiTypeModel) multiType.getModel();
+    if (element instanceof HaxeGenericConstraintPart constraintPart) {
+      ResultHolder constraint = HaxeTypeResolver.getTypeFromGenericConstraint(constraintPart);
+      if (constraint != null && constraint.getClassType() != null) {
+        HaxeClassModel model = constraint.getClassType().getHaxeClassModel();
+        if (model != null)
+          result.addAll(getNamedSubComponents(model.haxeClass));
+      }
+
+    } else if (element instanceof HaxeConstraintTypeList constraintTypeList) {
+      HaxeConstraintTypeListModel model = (HaxeConstraintTypeListModel) constraintTypeList.getModel();
       List<ResultHolder> types = model.getCompositeTypes();
       for (ResultHolder holder : types) {
         if (holder.getClassType() != null) {

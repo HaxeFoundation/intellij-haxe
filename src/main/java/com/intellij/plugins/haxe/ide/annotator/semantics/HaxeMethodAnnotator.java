@@ -24,7 +24,7 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typ
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.OVERRIDE;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 
 @CustomLog
 public class HaxeMethodAnnotator implements Annotator {
@@ -281,7 +281,7 @@ public class HaxeMethodAnnotator implements Annotator {
       ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? resolverWithConstraints : resolvedParent.getGenericResolver());
 
 
-      if (!canAssignToFrom(parentParamType, currentParamType)) {
+      if (!canAssignToFromReference(parentParamType, currentParamType)) {
 
         typeMismatch(holder, currentParam.getBasePsi(), currentParamType.toString(), parentParamType.toString())
           .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), () -> {
@@ -341,7 +341,7 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
 
     // Order of assignment compatibility is to parent, from subclass.
-    if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
+    if (!canAssignToFromReference(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       if (parentResult.getType().isUnknown()) {
         if (parentResult.getType() instanceof SpecificHaxeClassReference classReference) {
@@ -417,7 +417,7 @@ public class HaxeMethodAnnotator implements Annotator {
     for (int n = 0; n < parametersCount; n++) {
       final HaxeParameterModel sourceParam = sourceParameters.get(n);
       final HaxeParameterModel prototypeParam = prototypeParameters.get(n);
-      if (!canAssignToFrom(prototypeParam.getType(), sourceParam.getType()) ||
+      if (!canAssignToFromReference(prototypeParam.getType(), sourceParam.getType()) ||
           sourceParam.isOptional() != prototypeParam.isOptional()) {
         return true;
       }

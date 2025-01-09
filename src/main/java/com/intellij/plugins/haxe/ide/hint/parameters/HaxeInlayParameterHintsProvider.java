@@ -4,9 +4,11 @@ import com.intellij.codeInsight.hints.InlayInfo;
 import com.intellij.codeInsight.hints.InlayParameterHintsProvider;
 import com.intellij.codeInsight.hints.Option;
 import com.intellij.plugins.haxe.HaxeHintBundle;
-import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -91,9 +93,10 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
     if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel && constructorModel.getConstructorParameters() != null) {
-      HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, constructorModel.getMethod());
+      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, constructorModel.getMethod());
+      HaxeCallExpressionEvaluation validation = context.evaluate();
       List<HaxeParameterModel> parameters = MapParametersToModel(constructorModel.getConstructorParameters());
-      processArguments(validation.getArgumentToParameterIndex(), expressions, parameters, infoList);
+      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList);
     }
   }
 
@@ -101,23 +104,27 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     HaxeCallExpressionList expressionList = callExpression.getExpressionList();
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
-    HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, model.getMethod());
+    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, model.getMethod());
+    HaxeCallExpressionEvaluation validation = context.evaluate();
 
     if (validation.isCompleted()) {
       List<HaxeParameterModel> parameters = model.getParameters();
-      processArguments(validation.getArgumentToParameterIndex(), expressions, parameters, infoList);
+      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList);
     }
   }
 
   @Nullable
   private void handleNewExpressions(HaxeNewExpression newExpression, List<InlayInfo> infoList) {
-    HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkConstructor(newExpression);
-    HaxeMethodModel model = getMethodModel(newExpression);
-    if (validation.isCompleted()) {
-      if (model == null) return;
-      List<HaxeExpression> expressionList = newExpression.getExpressionList();
-      List<HaxeParameterModel> parameters = model.getParameters();
-      processArguments(validation.getArgumentToParameterIndex(), expressionList, parameters, infoList);
+    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+    if (context != null) {
+      HaxeCallExpressionEvaluation validation = context.evaluate();
+      HaxeMethodModel model = getMethodModel(newExpression);
+      if (validation.isCompleted()) {
+        if (model == null) return;
+        List<HaxeExpression> expressionList = newExpression.getExpressionList();
+        List<HaxeParameterModel> parameters = model.getParameters();
+        processArguments(validation.getArgumentToParameterMapping(), expressionList, parameters, infoList);
+      }
     }
   }
 

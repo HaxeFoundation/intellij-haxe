@@ -86,7 +86,6 @@ dependencies {
         bundledPlugins(properties("platformBundledPlugins").map { it.split(',') })
 
         // TODO upgrade to JUnit5
-        //testFramework(TestFrameworkType.JUnit5)
         testFramework(TestFrameworkType.Bundled)
 
     }

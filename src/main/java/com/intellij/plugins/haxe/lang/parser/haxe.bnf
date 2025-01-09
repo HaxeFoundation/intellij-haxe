@@ -555,10 +555,14 @@ oldFunctionTypeArgument ::=   (optionalMark? ('(' functionType ')' |  ('(' typeO
  */
 
 typeTag ::= ':' typeWrapper
-typeParam ::= '<' typeList '>'  {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"}
-typeList ::= typeListPart (',' typeListPart)*
-haxe4typeList ::= typeListPart ('&' typeListPart)+
-{extends=typeList}
+typeParam ::= '<' typeList '>'
+{
+methods=[typeList="typeListPart"]
+mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl"
+implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"
+}
+private typeList ::= typeListPart (',' typeListPart)*
+private haxe4typeList ::= typeListPart ('&' typeListPart)+ {extends=typeList}
 
 
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
@@ -569,7 +573,21 @@ genericListPart ::= normalGenericListPart  | constGenericListPart
 }
 
 genericDefaultType ::= typeWrapper
-genericConstraintPart ::=  ('(' (haxe4typeList | typeList) ')' | haxe4typeList | typeListPart )
+constraintTypeList ::= ('(' (haxe4typeList | typeList) ')' | haxe4typeList )
+{
+    methods=[constraintTypes="typeListPart"]
+    mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeConstraintTypeListImplMixin"
+    implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+}
+
+//NOTE: We must accept "expression" here because  "@:const" in type parameters allow constants like integers and string.
+// https://haxe.org/manual/cr-metadata.html
+// @:const -> Allows a type parameter to accept expression values.
+
+private genericConstraintType ::=  constraintTypeList |  typeOrAnonymous !'->' | functionType | expression
+genericConstraintPart ::= genericConstraintType {methods=[constExpression="expression"]}
+
+
 private normalGenericListPart ::= componentName (':' genericConstraintPart)? ('=' genericDefaultType)?
 // constGenericListPart is only available when the macroMember is '@:const' (constMeta).  It's only useful in macros.
 // We can't use constMeta here until the lexer returns a string for macros instead of META_ID.
@@ -963,7 +981,11 @@ componentName ::= identifier
 //newExpression ::= 'new' type newCallExpression
 private newExpressionArgumentsList ::= '(' [!')' (spreadExpression | (expression (',' expression)* (',' spreadExpression)?))] ')' {pin(".*")=1}
 newExpression ::= 'inline'? 'new' type newExpressionArgumentsList
-{pin=2 recoverWhile="expression_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{
+    pin=3 recoverWhile="expression_recover"
+    mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl"
+    implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"
+}
 
 castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}

@@ -66,13 +66,12 @@ Haxe File
                         HaxePsiToken:ID('Tree')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('T')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -88,13 +87,12 @@ Haxe File
                         HaxePsiToken:ID('Tree')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('T')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           HaxePsiToken:;(';')
@@ -1305,12 +1303,11 @@ Haxe File
               HaxePsiToken:ID('T')
           HaxePsiToken::(':')
           GENERIC_CONSTRAINT_PART
-            TYPE_LIST_PART
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('EnumValue')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('EnumValue')
         HaxePsiToken:>('>')
       UNDERLYING_TYPE
         HaxePsiToken:(('(')
@@ -1346,13 +1343,12 @@ Haxe File
                 HaxePsiToken:ID('VectorData')
             TYPE_PARAM
               HaxePsiToken:<('<')
-              TYPE_LIST
-                TYPE_LIST_PART
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('T')
+              TYPE_LIST_PART
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('T')
               HaxePsiToken:>('>')
         HaxePsiToken:)(')')
       ABSTRACT_BODY
@@ -1374,13 +1370,12 @@ Haxe File
                 HaxePsiToken:ID('Array')
             TYPE_PARAM
               HaxePsiToken:<('<')
-              TYPE_LIST
-                TYPE_LIST_PART
-                  TYPE_OR_ANONYMOUS
-                    TYPE
-                      REFERENCE_EXPRESSION
-                        IDENTIFIER
-                          HaxePsiToken:ID('String')
+              TYPE_LIST_PART
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('String')
               HaxePsiToken:>('>')
         HaxePsiToken:)(')')
       ABSTRACT_BODY
@@ -1407,13 +1402,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           ASSIGN_EXPRESSION

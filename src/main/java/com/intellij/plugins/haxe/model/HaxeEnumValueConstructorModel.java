@@ -84,7 +84,7 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
     List<HaxeParameterModel> parameters = this.getParameters();
     for (int i = 0; i < parameters.size(); i++) {
       HaxeParameterModel param = parameters.get(i);
-      args.add(new HaxeArgument(i, param.isOptional(), param.isRest(), param.getType(resolver), param.getName()));
+      args.add(new HaxeArgument(param.getParameterPsi(), i, param.isOptional(), param.isRestOrMacroVarArg(), param.getType(resolver), param.getName()));
     }
     return new SpecificFunctionReference(args, getReturnType(resolver), this, getEnumValuePsi());
   }
