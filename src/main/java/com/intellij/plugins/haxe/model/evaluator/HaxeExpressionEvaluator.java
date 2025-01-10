@@ -130,6 +130,9 @@ public class HaxeExpressionEvaluator {
   static  ResultHolder _handle(final PsiElement element,
                                       final HaxeExpressionEvaluatorContext context,
                                       HaxeGenericResolver optionalResolver) {
+
+    ProgressIndicatorProvider.checkCanceled();
+
     if (element == null) {
       return createUnknown(context.root);
     }
@@ -550,7 +553,10 @@ public class HaxeExpressionEvaluator {
     for (int i = 0, size = references.size(); i < size; i++) {
       PsiReference reference = references.get(i);
       ResultHolder possibleType = checkSearchResult(context, resolver, reference, componentName, hint, i == 0);
-      if (possibleType != null) {
+      if (possibleType == null) {
+        // if we get "null" we might be hitting a recursion guard and should probably not return any types found past this reference
+        return createUnknown(componentName);
+      } else {
         if (!possibleType.isUnknown()) {
           if (lastValue == null) {
             lastValue = possibleType;
@@ -735,10 +741,17 @@ public class HaxeExpressionEvaluator {
       if (callExpression.getExpression() instanceof HaxeReference callExpressionReference) {
         PsiElement resolve = callExpressionReference.resolve();
         ResultHolder holder = handleWithRecursionGuard(resolve, context, resolver);
+        SpecificFunctionReference functionType = null;
+
         if (holder != null && holder.getFunctionType() != null) {
-          SpecificFunctionReference functionCall = holder.getFunctionType();
+          functionType = holder.getFunctionType();
+        }else if (resolve instanceof HaxeMethod method) {
+          functionType = method.getModel().getFunctionType(resolver);
+        }
+
+        if (functionType != null) {
           HaxeCallExpressionList list = callExpression.getExpressionList();
-          objectLiteralType = findUsageAsParameterInFunctionCall(objectLiteral, callExpression, list, functionCall);
+          objectLiteralType = findUsageAsParameterInFunctionCall(objectLiteral, callExpression, list, functionType);
         }
       }
     }

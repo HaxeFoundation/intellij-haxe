@@ -102,7 +102,7 @@ public class HaxeExpressionUsageUtil {
     // AND stop any other logic picking up typeParameters from later reference when current reference is skipped by the recursion guard.
     // This is a common problem when you got a variable that gets its typeParameters from method calls on that instance,
     // and our code will try to find callie type
-    var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, true, () -> {
+    var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, false, () -> {
       ResultHolder originalType = resultHolder.duplicate();
       SpecificHaxeClassReference classType = originalType.getClassType();
       // TODO mlo: should we add some kind of support for functions here ?
@@ -113,26 +113,39 @@ public class HaxeExpressionUsageUtil {
       final SearchScope useScope = searchHelper.getCodeUsageScope(componentName);
 
       List<PsiReference> references = referenceSearch(componentName, useScope);
-      // search until all typeParams are found or we dont have any more references
-
+      // search until all typeParams are found or we dont have any more references or we stop due to recursion guard.
+      //
+      // a few notes on this loop and the method it calls
+      // - if information found they return a real type
+      // - if no information is found they return unknown
+      // - if stopped by recursion guard og result point it itself we return null
+      //
+      // when we get a null we break the loop as any reference occurring later can not guarantee that it wont
+      // provide other type parameters that are not compatible with our current reference that we are still
+      // trying to evaluate.
       for (int i = continueFrom, size = references.size(); i < size; i++) {
 
         PsiReference reference = references.get(i);
+
+        // if we are trying to resolve type for objectLiteral reference and have reach ourselves, we stop to prevent later references.
+        if (context.root.getParent() instanceof HaxeObjectLiteralElement) {
+          if (context.root == references.get(0)) return null;
+        }
 
         if (reference instanceof HaxeExpression expression) {
           PsiElement parent = expression.getParent();
 
           if (reference instanceof HaxeReferenceExpression referenceExpression) {
             ResultHolder result = tryFindTypeWhenUsedAsParameterInCallExpression(originalType, referenceExpression, parent);
-            if (result != null) originalType = mapTypeParameterIfAssignable(originalType, result);
+            if (result == null) return null;
+            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
             if (!originalType.containsUnknownTypes()) return originalType;
           }
 
           if (parent instanceof HaxeAssignExpression assignExpression) {
             ResultHolder assignType = tryTypeFromAssignExpression(context, resolver, originalType, assignExpression, componentName);
-
-
-            if (assignType != null) {
+            if (assignType == null) return null;
+            if (!assignType.isUnknown()) {
               // we want to ignore assign to null value (flag to not change isFirst)
               if (!(assignType.getConstant() instanceof HaxeNull)) {
                 boolean isRightExpresion = false;
@@ -143,7 +156,6 @@ public class HaxeExpressionUsageUtil {
                   if (resolve instanceof HaxeNamedComponent namedComponent) {
                     if (namedComponent.getComponentName() == componentName) {
                       isRightExpresion = true;
-
                     }
                   }
                 }
@@ -157,7 +169,6 @@ public class HaxeExpressionUsageUtil {
                     originalType = mapTypeParameter(originalType, assignType);
                   }
                 }
-
               }
             }
             if (!originalType.containsUnknownTypes()) return originalType;
@@ -165,25 +176,29 @@ public class HaxeExpressionUsageUtil {
 
           if (parent instanceof HaxeReferenceExpression referenceExpression) {
             ResultHolder result = tryFindTypeFromMethodCallOnReference(originalType, referenceExpression);
-            if (result != null) originalType = mapTypeParameterIfAssignable(originalType, result);
+            if (result == null) return null;
+            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
             if (!originalType.containsUnknownTypes()) return originalType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryTypeFromObjectLiteral(context, resolver, literalElement);
-            if (result != null) originalType = mapTypeParameterIfAssignable(originalType, result);
+            if (result == null) return null;
+            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
             if (!originalType.containsUnknownTypes()) return originalType;
           }
 
           if (parent instanceof HaxeArrayAccessExpression arrayAccessExpression) {
             ResultHolder result = tryUpdateTypeParamFromArrayAccess(context, resolver, arrayAccessExpression, classType, classResolver, classType);
-            if (result != null) originalType = mapTypeParameterIfAssignable(originalType, result);
+            if (result == null) return null;
+            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
             if (!originalType.containsUnknownTypes()) return originalType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryUpdateTypeParamFromObjectLiteral(context, resolver, literalElement, classType);
-            if (result != null) originalType = mapTypeParameterIfAssignable(originalType, result);
+            if (result == null) return null;
+            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
             if (!originalType.containsUnknownTypes()) return originalType;
           }
         }
@@ -240,7 +255,7 @@ public class HaxeExpressionUsageUtil {
                                                                   HaxeObjectLiteralElement literalElement,
                                                                   SpecificHaxeClassReference type) {
     HaxeObjectLiteral objectLiteral = PsiTreeUtil.getParentOfType(literalElement, HaxeObjectLiteral.class);
-    if (objectLiteral == null) return null;
+    if (objectLiteral == null) return createUnknown(literalElement);
 
     ResultHolder objectLiteralType = findObjectLiteralType(context, resolver, objectLiteral);
 
@@ -254,12 +269,13 @@ public class HaxeExpressionUsageUtil {
           ResultHolder objectLiteralElementType = objectLiteralElementAsMember.getResultType(resolver);
           if (objectLiteralElementType.getClassType() != null) {
             HaxeGenericResolver genericResolver = objectLiteralElementType.getClassType().getGenericResolver();
-            return genericResolver.resolve(type.createHolder());
+            ResultHolder resolve = genericResolver.resolve(type.createHolder());
+            if (resolve != null) return resolve;
           }
         }
       }
     }
-    return null;
+    return createUnknown(literalElement);
   }
 
   private static ResultHolder tryUpdateTypeParamFromArrayAccess(HaxeExpressionEvaluatorContext context,
@@ -301,7 +317,8 @@ public class HaxeExpressionUsageUtil {
           }
         }
         HaxeGenericResolver resolverForClass = localResolver.translateFromTo(target, classType.getHaxeClass());
-        return resolverForClass.resolve(classType.createHolder());
+        ResultHolder resolve = resolverForClass.resolve(classType.createHolder());
+        if (resolve != null)return resolve;
 
       } else {
         HaxeNamedComponent arrayAccessGetter = classType.getHaxeClass().findArrayAccessGetter(resolver);
@@ -323,11 +340,12 @@ public class HaxeExpressionUsageUtil {
             }
           }
           HaxeGenericResolver resolverForClass = localResolver.translateFromTo(target, classType.getHaxeClass());
-          return resolverForClass.resolve(classType.createHolder());
+          ResultHolder resolve = resolverForClass.resolve(classType.createHolder());
+          if (resolve != null) return resolve;
         }
       }
     }
-    return null;
+    return createUnknown(arrayAccessExpression);
   }
 
   private static @Nullable HaxeTypeParameterDeclaration tryGetTypeParameterFromTypeTag(HaxeTypeTag keyParamPsi) {
@@ -340,6 +358,7 @@ public class HaxeExpressionUsageUtil {
     return null;
   }
 
+  // if returns null if stopped because of recursion, else real type or unknown
   private static @Nullable ResultHolder tryTypeFromObjectLiteral(HaxeExpressionEvaluatorContext context,
                                                   HaxeGenericResolver resolver,
                                                   HaxeObjectLiteralElement literalElement) {
@@ -356,14 +375,14 @@ public class HaxeExpressionUsageUtil {
               HaxeBaseMemberModel member = classModel.getMember(literalElement.getName(), genericResolver);
               if (member != null) {
                 ResultHolder resultType = member.getResultType(genericResolver);
-                if (resultType != null && !resultType.isUnknown()) {
+                if (resultType != null) {
                   return resultType;
                 }
               }
             }
           }
         }
-        return null;
+        return createUnknown(context.root);
       });
       if (result != null) return result;
     }
@@ -387,13 +406,13 @@ public class HaxeExpressionUsageUtil {
           HaxeClass methodDeclaringClass = methodModel.getDeclaringClass().haxeClass;
           HaxeGenericResolver translatedResolver = resolverFromCallExpression.translateFromTo(methodDeclaringClass, classType.getHaxeClass());
           ResultHolder resolve = translatedResolver.resolve(classType.replaceUnknownsWithTypeParameter());
-          if (resolve != null && !resolve.isUnknown()) {
+          if (resolve != null) {
             return resolve;
           }
         }
       }
     }
-    return null;
+    return createUnknown(referenceExpression);
   }
 
   private static @Nullable ResultHolder tryTypeFromAssignExpression(HaxeExpressionEvaluatorContext context,
@@ -440,8 +459,9 @@ public class HaxeExpressionUsageUtil {
     }
   }
 
-    return null;
+    return createUnknown(assignExpression);
   }
+
 
   private static @Nullable ResultHolder tryFindTypeWhenUsedAsParameterInCallExpression(ResultHolder resultHolder,
                                                                                        HaxeReferenceExpression referenceExpression,
@@ -454,12 +474,11 @@ public class HaxeExpressionUsageUtil {
         ResultHolder paramType = findUsageAsParameterInFunctionCall(referenceExpression, callExpression, list, resolved);
         if (paramType != null) {
           // probably not the best solution, but the goal is to keep the original type and only update typeParameters
-          ResultHolder unified = HaxeTypeUnifier.unify(resultHolder, paramType);
-          if (!unified.isUnknown()) return unified;
+            return HaxeTypeUnifier.unify(resultHolder, paramType);
         }
       }
     }
-    return null;
+    return createUnknown(referenceExpression);
   }
 
 
