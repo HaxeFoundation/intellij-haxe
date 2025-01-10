@@ -38,6 +38,7 @@ import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,6 +120,7 @@ public class HaxeExpressionEvaluator {
       //log.warn("Error evaluating expression type for element " + (null == element ? "<null>" : element.toString()), t);
       //throw t;
     }
+    PsiUtilCore.ensureValid(element);
     return createUnknown(element.getNode() != null ? element : context.root);
   }
 

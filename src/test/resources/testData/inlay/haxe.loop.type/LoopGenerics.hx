@@ -4,6 +4,12 @@ class Test {
         for (myChar/*<# :String #>*/ in array) {
             trace("myChar");
         }
+
+        // verify that we can find iterator when wrapped in null
+        var nullTest:Null<Array<String>> = new Array();
+        for (nullMyChar/*<# :String #>*/ in nullTest) {
+            trace("myChar");
+        }
     }
 
     static function fromParameter0(arr:Iterable<Dynamic>){

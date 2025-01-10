@@ -1889,10 +1889,10 @@ public class HaxeExpressionEvaluatorHandlers {
           }
 
             if (parentForLoop.getKeyValueIterator() != null) {
-              ResultHolder iteratorType = searchForIteratorType(haxeClassReference, "keyValueIterator", localResolver, parentForLoop);
+              ResultHolder iteratorType = searchForIteratorType(haxeClassReference, "keyValueIterator",  parentForLoop);
               if (iteratorType != null) return  iteratorType;
             } else {
-              ResultHolder iteratorType = searchForIteratorType(haxeClassReference, "iterator", localResolver, parentForLoop);
+              ResultHolder iteratorType = searchForIteratorType(haxeClassReference, "iterator",  parentForLoop);
               if (iteratorType != null) return  iteratorType;
 
 
@@ -1910,14 +1910,20 @@ public class HaxeExpressionEvaluatorHandlers {
               if (!hasArrayAccess && haxeClassReference.isAbstractType()) {
                 SpecificTypeReference underlyingType = haxeClassReference.getHaxeClassModel().getUnderlyingType();
                 if (underlyingType instanceof SpecificHaxeClassReference underlyingClassReference) {
-                  hasArrayAccess = underlyingClassReference.getHaxeClassModel().getImplementingInterfaces().stream()
-                          .anyMatch(i -> i.getSpecificHaxeClassReference().getHaxeClass() == arrayAccess);
+                  SpecificTypeReference resolvedUnderlyingClass = localResolver.resolve(underlyingClassReference);
+                  if (resolvedUnderlyingClass instanceof SpecificHaxeClassReference fullyResolvedClass) {
+                    hasArrayAccess = fullyResolvedClass.getHaxeClassModel().getImplementingInterfaces().stream()
+                            .anyMatch(i -> i.getSpecificHaxeClassReference().getHaxeClass() == arrayAccess);
 
-                  if (!hasArrayAccess) {
-                    // mlo: this feels a bit wrong, but to get Vector class iteration to work we need to check  underlying types for both ArrayAccess and iterator methods
-                    HaxeGenericResolver translated = localResolver.translateFromTo(haxeClassReference.getHaxeClass(), underlyingClassReference.getHaxeClass());
-                    ResultHolder iteratorTypeFromUnderlying = searchForIteratorType(underlyingClassReference, "iterator", translated, parentForLoop);
-                    if (iteratorTypeFromUnderlying != null) return  iteratorTypeFromUnderlying;
+                    if (!hasArrayAccess) {
+                      // mlo: this feels a bit wrong, but to get Vector class iteration to work we need to check  underlying types for both ArrayAccess and iterator methods
+                      HaxeGenericResolver translated = localResolver.translateFromTo(haxeClassReference.getHaxeClass(), fullyResolvedClass.getHaxeClass());
+                      SpecificTypeReference underlyingTypeResolved = translated.resolve(fullyResolvedClass);
+                      if (underlyingTypeResolved instanceof SpecificHaxeClassReference underlyingClassResolved) {
+                        ResultHolder iteratorTypeFromUnderlying = searchForIteratorType(underlyingClassResolved, "iterator", parentForLoop);
+                        if (iteratorTypeFromUnderlying != null) return iteratorTypeFromUnderlying;
+                      }
+                    }
                   }
                 }
               }
@@ -1934,28 +1940,31 @@ public class HaxeExpressionEvaluatorHandlers {
     return handle(iterable.getExpression(), context, resolver);
   }
 
-  private static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, HaxeGenericResolver resolver, HaxeForStatement parentForLoop) {
-    HaxeBaseMemberModel iterator = haxeClassReference.getHaxeClassModel().getMember(iteratorName, resolver);
+  private static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, HaxeForStatement parentForLoop) {
+    SpecificTypeReference typeReference = haxeClassReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+    if (typeReference instanceof SpecificHaxeClassReference resolvedClassReference) {
+      HaxeGenericResolver referenceGenericResolver = resolvedClassReference.getGenericResolver();
+      HaxeBaseMemberModel iterator = resolvedClassReference.getHaxeClassModel().getMember(iteratorName, referenceGenericResolver);
 
-    if (iterator == null) {
-      // look for extension method iterator
-      List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parentForLoop).getUsingModels();
-      for (HaxeUsingModel usingModel : usingModels) {
-        HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, haxeClassReference);
-        if (extensionMethod != null) iterator = extensionMethod;
+      if (iterator == null) {
+        // look for extension method iterator
+        List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parentForLoop).getUsingModels();
+        for (HaxeUsingModel usingModel : usingModels) {
+          HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, resolvedClassReference);
+          if (extensionMethod != null) iterator = extensionMethod;
+        }
+      }
+
+
+      if (iterator instanceof HaxeMethodModel methodModel) {
+        HaxeClassModel declaringClass = methodModel.getDeclaringClass();
+        if (declaringClass != null) {
+          HaxeGenericResolver translatedResolver = referenceGenericResolver.translateFromTo(resolvedClassReference.getHaxeClass(), declaringClass.haxeClass);
+          return methodModel.getReturnType(translatedResolver);
+        }
+        return methodModel.getReturnType(referenceGenericResolver);
       }
     }
-
-
-    if (iterator instanceof HaxeMethodModel methodModel) {
-      HaxeClassModel declaringClass = methodModel.getDeclaringClass();
-      if (declaringClass != null) {
-        HaxeGenericResolver translatedResolver = resolver.translateFromTo(haxeClassReference.getHaxeClass(), declaringClass.haxeClass);
-        return methodModel.getReturnType(translatedResolver);
-      }
-      return methodModel.getReturnType(resolver);
-    }
-
     return null;
   }
 

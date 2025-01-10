@@ -29,6 +29,12 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
   public void testSimpleVarHints() throws Exception {
     doTest(hintsProvider);
   }
+
+  @Test
+  public void testComplexVarHints() throws Exception {
+    doTest(hintsProvider);
+  }
+
   @Test
   public void testLocalVarMacros() throws Exception {
     doTest(hintsProvider);
@@ -37,5 +43,6 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
   public void testOptionalFieldsHints() throws Exception {
     doTest(hintsProvider);
   }
+
 
 }

@@ -93,6 +93,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return out;
   }
 
+  @NotNull
   public List<HaxeClassReferenceModel> getImplementingInterfaces() {
     List<HaxeType> list = getImplementsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();

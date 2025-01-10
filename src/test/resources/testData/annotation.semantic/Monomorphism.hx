@@ -40,6 +40,12 @@ class MonomorphTest {
         mapDelayed2.set("test", 1);
         // Wrong already morphed to Map<String, Int>
         mapDelayed2.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
+
+        var delayedinferMap3 = new Map();
+        delayedinferMap3.clear();
+        delayedinferMap3.get(1);
+        //wrong FirstTypeParameter should be Int (second is still unknown)
+        delayedinferMap3.set(<error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>, 1);
     }
 
     var myMap = new Map<String,Int>();
