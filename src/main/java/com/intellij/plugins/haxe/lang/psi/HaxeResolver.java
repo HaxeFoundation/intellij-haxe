@@ -232,8 +232,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
 
               // check type hinting for enumValues
-              for (PsiElement element : matchesInImport) {
-                if (element instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
+              for (PsiElement importElement : matchesInImport) {
+                if (importElement.getParent() instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
                   PsiElement typeHintPsi = reference;
 
                   if (reference.getParent() instanceof  HaxeCallExpression expression) {
@@ -243,25 +243,26 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                   String data = typeHintPsi.getUserData(typeHintKey);
                   if (currentQname != null && currentQname.equals(data)) {
                     LogResolution(reference, "via import & typeHintKey");
-                    return List.of(element);
+                    return List.of(importElement);
                   }
                 }
               }
+
               // test  call expression if possible
               for (PsiElement importElement : matchesInImport) {
-                if (importElement instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+                if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
                   boolean isValidConstructor = testAsEnumValueConstructor(enumValueDeclaration, reference);
                   if (isValidConstructor) return List.of(importElement);
                 }
               }
               // fallback, check method parameters (needs work , optional are not handled)
-              for (PsiElement element : matchesInImport) {
-                if (element instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+              for (PsiElement importElement : matchesInImport) {
+                if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
                   int currentSize =
                     Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
                   if (expectedSize == currentSize) {
                     LogResolution(reference, "via import  & enum value declaration");
-                    return List.of(element);
+                    return List.of(importElement);
                   }
                 }
               }
