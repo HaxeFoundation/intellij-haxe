@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import static com.intellij.plugins.haxe.model.type.UnificationRules.UNIFY_NULL;
+import static com.intellij.plugins.haxe.model.type.UnificationRules.*;
 
 public class HaxeTypeUnifier {
   @NotNull
@@ -60,8 +60,10 @@ public class HaxeTypeUnifier {
       return a.withoutConstantValue();
     }
     // if dynamic and the result is not from constant (ex constant = null) use dynamic
-    if (a.isDynamic() && a.getConstant() == null) return a;
-    if (b.isDynamic() && b.getConstant() == null) return b;
+    if (rules == PREFER_DYNAMIC) {
+      if (a.isDynamic() && a.getConstant() == null) return a;
+      if (b.isDynamic() && b.getConstant() == null) return b;
+    }
 
 
     // Using UnificationRules to make sure we only unify when assigned and not other cases like for instance
@@ -164,8 +166,13 @@ public class HaxeTypeUnifier {
 
   @NotNull
   static public SpecificTypeReference unifyTypes(SpecificHaxeClassReference a, SpecificHaxeClassReference b, @NotNull PsiElement context, @NotNull UnificationRules rules) {
-    if (a.isDynamic()) return a.withoutConstantValue();
-    if (b.isDynamic()) return b.withoutConstantValue();
+    if(rules == PREFER_DYNAMIC) {
+      if (a.isDynamic()) return a.withoutConstantValue();
+      if (b.isDynamic()) return b.withoutConstantValue();
+    }else {
+      if (a.isDynamic()) return b.withoutConstantValue();
+      if (b.isDynamic()) return a.withoutConstantValue();
+    }
 
     HaxeClassModel modelA = a.getHaxeClassModel();
     if (modelA == null) return SpecificTypeReference.getDynamic(context);
@@ -237,6 +244,11 @@ public class HaxeTypeUnifier {
         return a;
       }
     }
+    // we prefer specific type here (makes it easier to unify Enums where some values have typeParameters and other not)
+    //TODO  handle constraints
+    if (a.isTypeParameter() && !b.isTypeParameter()) return b;
+    if (b.isTypeParameter() && !a.isTypeParameter()) return a;
+
     // @TODO: Do a proper unification
     return SpecificTypeReference.getUnknown(a.getElementContext());
   }

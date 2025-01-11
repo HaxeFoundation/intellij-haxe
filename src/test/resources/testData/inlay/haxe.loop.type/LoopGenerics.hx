@@ -1,3 +1,6 @@
+import haxe.DynamicAccess;
+using StringTools;
+
 class Test {
     static function fromVariable() {
         var array = ["A", "B", "C"];
@@ -32,4 +35,27 @@ class Test {
             var x = val;
         }
     }
+    static function fromExtensionMethod() {
+        var myString = "some stirng";
+        for (myChar/*<# :Int #>*/ in myString) {
+            trace("myChar");
+        }
+        for (pos/*<# :Int #>*/ => char/*<# :Int #>*/ in myString) {
+            trace("myChar");
+        }
+
+        // make sure extension method does not match on references of type dynamic
+        // since canAssign will always be true on dynamic
+        var dynamicVar:Dynamic;
+        for (itr  in dynamicVar) { // should fail
+        }
+        // DynamicAccess should still work
+        var dynamicVar2:DynamicAccess<Dynamic>;
+        for (itr/*<# :Dynamic #>*/ in dynamicVar2) {
+
+        }
+    }
+
+
+
 }

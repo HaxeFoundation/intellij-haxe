@@ -837,7 +837,7 @@ public class HaxeExpressionEvaluatorHandlers {
 
     // No 'else' clause means the if results in a Void type.
     if (null == tFalse) tFalse = SpecificHaxeClassReference.getVoid(ifStatement);
-
+    // TODO create rule use first on unknown
     return HaxeTypeUnifier.unify(tTrue, tFalse, ifStatement, context.getScope().unificationRules).createHolder();
   }
 
@@ -1941,6 +1941,8 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
   private static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, HaxeForStatement parentForLoop) {
+    // ignore "Dynamic" as it can assign to anything and will in most cases incorrectly be matched with itterators for other types
+    if (haxeClassReference.isDynamic()) return null;
     SpecificTypeReference typeReference = haxeClassReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
     if (typeReference instanceof SpecificHaxeClassReference resolvedClassReference) {
       HaxeGenericResolver referenceGenericResolver = resolvedClassReference.getGenericResolver();
