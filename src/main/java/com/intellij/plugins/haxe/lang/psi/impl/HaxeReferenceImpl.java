@@ -968,8 +968,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               List<HaxeArgument> arguments = functionType.getArguments();
               HaxeArgument argument = arguments.get(index);
 
-              ResultHolder resolved = validation.getCallExpressionResolver().withoutUnknowns().resolve(argument.getType());
-              if (resolved != null && !resolved.isUnknown()) return resolved.getType().createHolder();
+              ResultHolder argumentType = argument.getType();
+              ResultHolder resolved = validation.getCallExpressionResolver().withoutUnknowns().resolve(argumentType);
+              if (resolved != null && !resolved.isUnknown()){
+                return resolved.getType().createHolder();
+              }
+              if (argumentType.isTypeParameter()) {
+                return argumentType;
+              }
             }
           }
         }

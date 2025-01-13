@@ -22,6 +22,10 @@ public class HaxeTypeCompatible {
         if (to == null || from == null) return false;
         return canAssignToFromReference(to.createHolder(), from.createHolder());
     }
+    static public boolean canAssignToFromReference(HaxeAssignEvaluation context, @Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from) {
+        if (to == null || from == null) return false;
+        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), false,true, true, context).result;
+    }
 
     static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
@@ -134,9 +138,11 @@ public class HaxeTypeCompatible {
         }
 
         evaluation.testBasicAssignRules(strictBasicCheck);
-        // prevent recrusion in the case of typedef and class hieriarchy loops, casting lopps etc
+        // prevent recursion in the case of typedef and class hierarchy loops, casting loops etc
         if(!evaluation.completed) {
-            Boolean done = canAssignRecursionGuard.doPreventingRecursion(evaluation.recursionGuardKey(), true, () -> {
+            // NOTE: memoize can not be used as the context elements does not necessarily represent the type
+            // (could maybe do some tricks with fully qualified names but recursive typeParameter constraints will be problematic)
+            Boolean done = canAssignRecursionGuard.doPreventingRecursion(evaluation.recursionGuardKey(), false, () -> {
                 if (!evaluation.completed) evaluation.testClassAssignRules();
                 if (!evaluation.completed) evaluation.testEnumAssignRules();
                 if (!evaluation.completed) evaluation.testFunctionAssignRules();
@@ -145,8 +151,17 @@ public class HaxeTypeCompatible {
                 if (!evaluation.completed) evaluation.testTypeParameterConstraints(strictBasicCheck, checkExplicitCasts, checkImplicitCasts);
                 return true;
             });
-            if(done == null) {
-                evaluation.complete(false, "Stopped by recursion guard");
+            if (done == null) {
+                // stopped by recursion guard.
+
+                // we allow assign when recursion guard is triggered and the recursive types are typeParameter,
+                // anything else should fail the assign test. (this might not be the best solution but works for now)
+
+                // we allow type parameters as recursive constraints in typeParameters would always fail the assign test.
+                // Ex. the typeParameter for linkedList sort. T:{prev:T, next:T}  (anonymous member check would fail)
+                // Note: this can probably fail for other complex cases of anonymous member checks as well.
+                boolean isRecursiveTypeParameter = to.isTypeParameter() || from.isTypeParameter();
+                evaluation.complete(isRecursiveTypeParameter, "Stopped by recursion guard");
             }
         }
         return evaluation;
