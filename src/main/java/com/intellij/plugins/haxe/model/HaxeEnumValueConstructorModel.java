@@ -91,18 +91,18 @@ public class HaxeEnumValueConstructorModel extends HaxeMethodModel implements  H
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
     HaxeClassModel declaringEnum = getDeclaringEnum();
-
+    if (declaringEnum != null) {
       HaxeClassReference superclassReference = new HaxeClassReference(declaringEnum, declaringEnum.haxeClass);
       if (resolver != null) {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withGenerics(superclassReference, resolver.getSpecificsFor(declaringEnum.haxeClass));
-
+        @NotNull ResultHolder[] specificsFor = resolver.getSpecificsFor(declaringEnum.haxeClass);
+        SpecificHaxeClassReference reference = SpecificHaxeClassReference.withGenerics(superclassReference, specificsFor);
         return reference.createHolder();
       } else {
-        SpecificHaxeClassReference reference =
-          SpecificHaxeClassReference.withoutGenerics(superclassReference);
-        return reference.createHolder();
+        return declaringEnum.getInstanceType();
       }
+    }
+
+    return SpecificHaxeClassReference.getUnknown(basePsi).createHolder();
   }
 
 

@@ -96,7 +96,10 @@ public class HaxeGenericResolver {
 
   public HaxeGenericResolver addAll(@Nullable HaxeGenericResolver parentResolver) {
     if (null != parentResolver && parentResolver != this) {
-      assignHint = parentResolver.assignHint;
+      ResultHolder parentHint = parentResolver.assignHint;
+      if (parentHint != null  && !parentHint.isUnknown()) {
+        assignHint = parentHint;
+      }
       // not using "collection.addAll" because there is extra logic in add() that we need to execute
       for (ResolverEntry resolver : parentResolver.resolvers) {
         this.add(resolver.typeParameter(), resolver.type());

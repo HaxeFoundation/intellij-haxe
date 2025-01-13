@@ -69,6 +69,13 @@ public class HaxeCallExpressionUtil {
   @NotNull
   public static HaxeCallExpressionContext createContextForMethodCall(@NotNull HaxeCallExpression callExpression,
                                                                               @NotNull HaxeMethod method) {
+    return createContextForMethodCall(callExpression, null, method);
+  }
+  @NotNull
+  public static HaxeCallExpressionContext createContextForMethodCall(@NotNull HaxeCallExpression callExpression,
+                                                                     @Nullable SpecificTypeReference assignHint,
+                                                                    @NotNull HaxeMethod method
+  ) {
     HaxeMethodModel methodModel = method.getModel();
 
     HaxeGenericResolver genericResolver = new HaxeGenericResolver();
@@ -98,6 +105,7 @@ public class HaxeCallExpressionUtil {
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
     evaluation.isStaticExtension = isStaticExtension;
     evaluation.isMacroFunction = isMacroFunction;
+    evaluation.assignHint = assignHint;
     evaluation.callie = callie;
 
 

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.model.evaluator;
 
+import com.esotericsoftware.kryo.kryo5.util.Null;
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.openapi.util.RecursionGuard;
@@ -1370,6 +1371,9 @@ public class HaxeExpressionEvaluatorHandlers {
     // generateResolverFromScopeParents -  making sure we got typeParameters from arguments/parameters
     HaxeGenericResolver localResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
     localResolver.addAll(resolver);
+    if(resolver.getAssignHint() != null) {
+      localResolver.setAssignHint(resolver.getAssignHint());
+    }
 
     SpecificTypeReference functionType;
     if (callExpressionRef != null) {   // can be null if the entire expression is a macro  of callExpression
@@ -1386,13 +1390,22 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
 
-      functionType = handle(callExpressionRef, context, localResolver).getType();
-      boolean varIsMacroFunction = isCallExpressionToMacroMethod(callExpressionRef);
-      boolean callIsFromMacroContext = isInMacroFunction(callExpressionRef);
-      if (varIsMacroFunction && !callIsFromMacroContext) {
-        ResultHolder holder = resolveMacroTypesForFunction(functionType.createHolder());
-        functionType = holder.getFunctionType();
+      HaxeMethodModel methodModel = tryGetMethodModel(callExpression);
+      if(methodModel != null) {
+        ResultHolder assignHint = resolver.getAssignHint();
+        SpecificTypeReference assignHintType = assignHint == null ? null : assignHint.getType();
+        HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
+        HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
+        functionType = evaluate.getFunctionType(methodModel);
+      }else {
+        functionType = handle(callExpressionRef, context, localResolver).getType();
       }
+        boolean varIsMacroFunction = isCallExpressionToMacroMethod(callExpressionRef);
+        boolean callIsFromMacroContext = isInMacroFunction(callExpressionRef);
+        if (varIsMacroFunction && !callIsFromMacroContext) {
+          ResultHolder holder = resolveMacroTypesForFunction(functionType.createHolder());
+          functionType = holder.getFunctionType();
+        }
     }else  if (callExpression.getMacroExpressionReification() != null) {
       functionType = SpecificTypeReference.getUnknown(callExpression.getMacroExpressionReification());
     }else {
@@ -1537,16 +1550,23 @@ public class HaxeExpressionEvaluatorHandlers {
     return createUnknown(callExpression);
   }
 
-  private static HaxeClass tryGetMethodDeclaringClass(HaxeCallExpression expression) {
+  @Nullable
+  private static HaxeMethodModel tryGetMethodModel(HaxeCallExpression expression) {
     if (expression.getExpression() instanceof HaxeReference reference) {
       final PsiElement resolved = reference.resolve();
       if (resolved instanceof HaxeMethod method) {
-        HaxeMethodModel model = method.getModel();
-        if(model != null) {
-          HaxeClassModel classModel = model.getDeclaringClass();
-          if(classModel != null) return classModel.haxeClass;
-        }
+        return method.getModel();
       }
+    }
+    return null;
+  }
+
+  @Null
+  private static HaxeClass tryGetMethodDeclaringClass(HaxeCallExpression expression) {
+    HaxeMethodModel model = tryGetMethodModel(expression);
+    if (model != null) {
+      HaxeClassModel classModel = model.getDeclaringClass();
+      if (classModel != null) return classModel.haxeClass;
     }
     return null;
   }

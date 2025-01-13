@@ -39,6 +39,7 @@ public class HaxeCallExpressionContext {
     @Setter
     @Nullable
     SpecificHaxeClassReference callie;
+    SpecificTypeReference assignHint;
 
     @Nullable
     private PsiElement sourceExpression;
@@ -124,6 +125,8 @@ public class HaxeCallExpressionContext {
 
         parameterResolver.addAll(methodResolver);
         parameterResolver.addAll(callExpressionScopeResolver);
+
+        applyAssignHint(argumentResolver, parameterResolver);
 
         // we use a third resolver that combines callie and method parameter values to correctly resolve parameter type
         // we do this because we want the parameter resolver to only keep track the values used in the callExpression
@@ -243,9 +246,25 @@ public class HaxeCallExpressionContext {
 
         }
         // update callExpressionResolver with any new resolve values from argument-parameter types
-        evaluation.callExpressionResolver.addAll(parameterResolver);
+        evaluation.callExpressionResolver.addAll(combinedResolver);
         evaluation.setCompleted(true);
         return evaluation;
+    }
+
+    private void applyAssignHint(HaxeGenericResolver argumentResolver, HaxeGenericResolver parameterResolver) {
+        if (assignHint != null && returnType != null) {
+            SpecificTypeReference _assignHint = assignHint;
+            if(_assignHint instanceof  SpecificHaxeClassReference classReference) {
+                _assignHint = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+            }
+
+            SpecificTypeReference _returnType = returnType.getType();
+            if(_returnType instanceof  SpecificHaxeClassReference classReference) {
+                _returnType = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+            }
+
+            updateResolverIfNecessary(_assignHint, argumentResolver,_returnType, parameterResolver);
+        }
     }
 
     private static @NotNull HaxeGenericResolver getCallieResolver(SpecificTypeReference resolvedCallie) {
@@ -268,7 +287,9 @@ public class HaxeCallExpressionContext {
                 if(parameterResolver.containsConstraint(typeParameter)) {
                     ResultHolder resolve = parameterResolver.resolve(typeParameter);
                     if (resolve == null || resolve.isUnknown()  || resolve.isTypeParameter()) {
-                        parameterResolver.add(typeParameter, argumentType.createHolder());
+                        if (parameterClassReference.canAssign(argumentType)) {
+                            parameterResolver.add(typeParameter, argumentType.createHolder());
+                        }
                     }
                 }
             }
@@ -280,9 +301,9 @@ public class HaxeCallExpressionContext {
                         @NotNull ResultHolder[] argumentSpecifics = downCastedType.getSpecifics();
                         int argumentsToCheck = Math.min(argumentSpecifics.length, parameterSpecifics.length);
                         for (int i = 0; i < argumentsToCheck; i++) {
-                            ResultHolder parameterSpecific = parameterSpecifics[i];
-                            ResultHolder argumentSpecific = argumentResolver.resolve(argumentSpecifics[i]);
-                            if (argumentSpecific != null) {
+                            ResultHolder parameterSpecific = tryUnwrapNull(parameterSpecifics[i]);
+                            ResultHolder argumentSpecific = tryUnwrapNull(argumentResolver.resolve(argumentSpecifics[i]));
+                            if (argumentSpecific != null && parameterSpecific.canAssign(argumentSpecific)) {
                                 updateResolverIfNecessary(
                                         argumentSpecific.getType(), argumentResolver,
                                         parameterSpecific.getType(), parameterResolver);
@@ -332,6 +353,14 @@ public class HaxeCallExpressionContext {
             }
 
         }
+    }
+
+    private ResultHolder tryUnwrapNull(@Nullable ResultHolder holder) {
+        if(holder == null) return null;
+        if(holder.isNullWrappedType()) {
+            return holder.getClassType().unwrapNullType().createHolder();
+        }
+        return holder;
     }
 
     private static @NotNull SpecificTypeReference tryResolve(HaxeGenericResolver callExpressionResolver, SpecificTypeReference type) {

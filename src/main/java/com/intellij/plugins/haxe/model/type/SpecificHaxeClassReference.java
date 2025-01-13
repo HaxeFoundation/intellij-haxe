@@ -255,6 +255,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
     HaxeClassModel model = getHaxeClassModel();
     if (model != null) {
+      if(model instanceof  HaxeGenericParamModel genericParamModel) {
+        ResultHolder constraint = genericParamModel.getConstraint(null);
+        if (constraint != null && constraint.getClassType() != null) {
+          // TODO might need a recursion guard ?
+          return constraint.getClassType().getGenericResolver();
+        }
+      }
       if (model instanceof HaxeConstraintTypeListModel constraintModel) {
         //TODO mlo: move into this stream/logic to method in HaxeConstraintTypeListModel
         List<HaxeGenericResolver> list =

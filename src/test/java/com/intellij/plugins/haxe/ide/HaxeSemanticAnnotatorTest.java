@@ -937,4 +937,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testUnificationRules() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testAssignFromTypeParameterConstraints() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }

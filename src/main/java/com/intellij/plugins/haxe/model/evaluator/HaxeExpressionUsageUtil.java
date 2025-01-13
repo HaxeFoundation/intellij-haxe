@@ -103,10 +103,10 @@ public class HaxeExpressionUsageUtil {
     // This is a common problem when you got a variable that gets its typeParameters from method calls on that instance,
     // and our code will try to find callie type
     var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, false, () -> {
-      ResultHolder originalType = resultHolder.duplicate();
-      SpecificHaxeClassReference classType = originalType.getClassType();
+      ResultHolder updatedType = resultHolder.duplicate();
+      SpecificHaxeClassReference classType = updatedType.getClassType();
       // TODO mlo: should we add some kind of support for functions here ?
-      if (classType == null) return originalType;
+      if (classType == null) return updatedType;
 
       HaxeGenericResolver classResolver = classType.getGenericResolver();
       PsiSearchHelper searchHelper = PsiSearchHelper.getInstance(componentName.getProject());
@@ -136,14 +136,14 @@ public class HaxeExpressionUsageUtil {
           PsiElement parent = expression.getParent();
 
           if (reference instanceof HaxeReferenceExpression referenceExpression) {
-            ResultHolder result = tryFindTypeWhenUsedAsParameterInCallExpression(originalType, referenceExpression, parent);
+            ResultHolder result = tryFindTypeWhenUsedAsParameterInCallExpression(updatedType, referenceExpression, parent);
             if (result == null) return null;
-            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeAssignExpression assignExpression) {
-            ResultHolder assignType = tryTypeFromAssignExpression(context, resolver, originalType, assignExpression, componentName);
+            ResultHolder assignType = tryTypeFromAssignExpression(context, resolver, updatedType, assignExpression, componentName);
             if (assignType == null) return null;
             if (!assignType.isUnknown()) {
               // we want to ignore assign to null value (flag to not change isFirst)
@@ -160,50 +160,50 @@ public class HaxeExpressionUsageUtil {
                   }
                 }
                 if (isRightExpresion) {
-                  ResultHolder instanceType = getInstanceTypeWithDefaultTypeParameters(originalType);
+                  ResultHolder instanceType = getInstanceTypeWithDefaultTypeParameters(updatedType);
                   if (instanceType.canAssign(assignType)) {
-                    originalType = mapTypeParameter(originalType, assignType);
+                    updatedType = mapTypeParameter(updatedType, assignType);
                   }
                 } else {
-                  if (assignType.canAssign(originalType)) {
-                    originalType = mapTypeParameter(originalType, assignType);
+                  if (assignType.canAssign(updatedType)) {
+                    updatedType = mapTypeParameter(updatedType, assignType);
                   }
                 }
               }
             }
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeReferenceExpression referenceExpression) {
-            ResultHolder result = tryFindTypeFromMethodCallOnReference(originalType, referenceExpression);
+            ResultHolder result = tryFindTypeFromMethodCallOnReference(updatedType, referenceExpression);
             if (result == null) return null;
-            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryTypeFromObjectLiteral(context, resolver, literalElement);
             if (result == null) return null;
-            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeArrayAccessExpression arrayAccessExpression) {
             ResultHolder result = tryUpdateTypeParamFromArrayAccess(context, resolver, arrayAccessExpression, classType, classResolver, classType);
             if (result == null) return null;
-            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryUpdateTypeParamFromObjectLiteral(context, resolver, literalElement, classType);
             if (result == null) return null;
-            if (!result.isUnknown()) originalType = mapTypeParameterIfAssignable(originalType, result);
-            if (!originalType.containsUnknownTypes()) return originalType;
+            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+            if (!updatedType.containsUnknownTypes()) return updatedType;
           }
         }
       }
-      return originalType;
+      return updatedType;
     });
     return newValues != null ? newValues.noCache() : resultHolder.noCache();
   }

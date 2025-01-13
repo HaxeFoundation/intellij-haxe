@@ -113,7 +113,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
         List<? extends PsiElement>  elements  = skipCaching ? doResolve(reference, incompleteCode)
                          : ResolveCache.getInstance(reference.getProject())
-                       .resolveWithCaching(reference, this::doResolve, false, incompleteCode);
+                       .resolveWithCaching(reference, this::doResolve, true, incompleteCode);
 
        if (reportCacheMetrics) {
          if (skipCachingForDebug) {
@@ -182,7 +182,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceText) {
-    RecursionManager.markStack();
+
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
     }
@@ -195,13 +195,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     boolean isType = reference.getParent() instanceof HaxeType ||  PsiTreeUtil.getParentOfType(reference, HaxeTypeTag.class) != null;
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
 
+    if (result == null) result = checkIsChain(reference);
+
     if (result == null) result = checkIsAlias(reference);
     if (result == null) result = checkEnumMemberHints(reference);
     if (result == null) result = checkIsType(reference);
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkMacroIdentifier(reference);
-    if (result == null) result = checkIsChain(reference);
+//    if (result == null) result = checkIsChain(reference);
     if (result == null) result = checkIsAccessor(reference);
     if (result == null) result = checkIsSwitchVar(reference);
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.

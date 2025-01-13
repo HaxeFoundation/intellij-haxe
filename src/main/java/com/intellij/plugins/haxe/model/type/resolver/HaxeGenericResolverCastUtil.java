@@ -340,7 +340,16 @@ public class HaxeGenericResolverCastUtil {
                     if (replaced instanceof HaxeTypeParameterDeclaration replacedTypeParameter) {
                         ResultHolder resolve = mappedResolver.resolve(replacedTypeParameter);
                         if (resolve != null) {
-                            nextResolver.add(typeParameter, resolve);
+                            if (resolve.getClassType() != null &&  resolve.getClassType().getHaxeClass() == replaced) {
+                                // if the typeParameter we are updating is pointing to itself we update the type to new typeParameter as well
+                                // we dont want to update just typeParameter and keep type as that would cause issues down the line.
+
+                                // TODO  need some deeper research, might check if class is same ?
+                                // also do we need to do something regarding constraints  now being lost?
+                                nextResolver.add(typeParameter, typeParameter.getModel().getInstanceType());
+                            }else {
+                                nextResolver.add(typeParameter, resolve);
+                            }
                         }
                     }
                 }

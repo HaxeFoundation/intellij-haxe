@@ -1,19 +1,16 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HaxeCallExpressionEvaluation {
 
@@ -101,7 +98,8 @@ public class HaxeCallExpressionEvaluation {
 
 
     public ResultHolder getReturnType() {
-        return callExpressionResolver.resolve(returnType);
+        ResultHolder resolve = callExpressionResolver.resolve(returnType);
+        return resolve != null ? resolve : returnType;
     }
     public ResultHolder getCallie() {
         return callExpressionResolver.resolve(callie);
@@ -112,6 +110,13 @@ public class HaxeCallExpressionEvaluation {
         return this;
     }
 
-
-
+    public SpecificFunctionReference getFunctionType(HaxeMethodModel haxeMethod) {
+        LinkedList<HaxeArgument> args = new LinkedList<>();
+        List<HaxeParameterModel> parameters = haxeMethod.getParameters();
+        for (int i = 0; i < parameters.size(); i++) {
+            HaxeParameterModel param = parameters.get(i);
+            args.add(new HaxeArgument(param.getParameterPsi(), i, param.isOptional(), param.isRest(), param.getType(callExpressionResolver), param.getName()));
+        }
+        return new SpecificFunctionReference(args, getReturnType(),  haxeMethod, haxeMethod.getMethod());
+    }
 }
