@@ -23,7 +23,8 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatibl
 
 public class HaxeCallExpressionContext {
 
-    private static final RecursionGuard<PsiElement> canAssignRecursionGuard = RecursionManager.createGuard("canAssignRecursionGuard");
+    private static final RecursionGuard<RecursionKey> canAssignRecursionGuard = RecursionManager.createGuard("canAssignRecursionGuard");
+    private record RecursionKey(PsiElement argumentContext, PsiElement parameterContext){}
 
     @NotNull
     final List<CallExpressionArgumentModel> arguments;
@@ -78,6 +79,8 @@ public class HaxeCallExpressionContext {
     public HaxeCallExpressionEvaluation evaluateWithAnnotationData(@NotNull PsiElement callExpression) {
         return evaluate(true, callExpression);
     }
+
+
 
     /**
      * @param trackErrors      makes a list of elements errors and the psi elements causing them
@@ -205,7 +208,8 @@ public class HaxeCallExpressionContext {
             final SpecificTypeReference finalParameterType = parameterType;
             final SpecificTypeReference finalArgumentType = argumentType;
 
-            assignEvaluation = canAssignRecursionGuard.doPreventingRecursion(argumentType.getElementContext(), true,
+            RecursionKey recursionKey = new RecursionKey(argumentType.getElementContext(), parameterType.getElementContext());
+            assignEvaluation = canAssignRecursionGuard.doPreventingRecursion(recursionKey, true,
                     () -> evaluateAssignToFrom(finalParameterType.createHolder(), finalArgumentType.createHolder()));
 
 
