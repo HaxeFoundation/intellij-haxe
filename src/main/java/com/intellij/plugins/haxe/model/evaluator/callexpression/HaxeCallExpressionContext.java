@@ -124,6 +124,7 @@ public class HaxeCallExpressionContext {
         argumentResolver.addAll(callExpressionScopeResolver);
 
         parameterResolver.addAll(methodResolver);
+        parameterResolver.addAll(evaluation.callieResolver);
         parameterResolver.addAll(callExpressionScopeResolver);
 
         applyAssignHint(argumentResolver, parameterResolver);

@@ -35,6 +35,10 @@ class MonomorphTest {
         // Wrong already morphed to Map<String, Int>
         mapDelayed.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
 
+        // verify we are using callies typeParameter for typeParameter not specified in call expression
+        var returnValue:Int = mapDelayed.get("1"); // correct
+        var <error descr="Incompatible type: Null<Int> should be String">returnValue:String = mapDelayed.get("1")</error>;// wrong
+
         var mapDelayed2 = new Map();
         mapDelayed2.clear();// verify that accessing member without type parameter(s) wont affect monomorph
         mapDelayed2.set("test", 1);
