@@ -249,7 +249,11 @@ public class HaxeExpressionEvaluatorHandlers {
           }
 
         }
-        if (access != null) typeHolder = access;
+        if (access != null){
+          typeHolder = access;
+        }else {
+          typeHolder = createUnknown(child);
+        }
       }
     }
 

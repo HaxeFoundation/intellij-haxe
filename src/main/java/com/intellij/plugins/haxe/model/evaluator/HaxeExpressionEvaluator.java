@@ -659,7 +659,7 @@ public class HaxeExpressionEvaluator {
             }
             return null;
           });
-          if(result != null) return result;
+           return result;
         }
       }
     }
@@ -715,7 +715,7 @@ public class HaxeExpressionEvaluator {
         }
       }
     }
-    return null;
+    return createUnknown(reference.getElement());
   }
 
 
