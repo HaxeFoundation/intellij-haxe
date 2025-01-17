@@ -148,7 +148,7 @@ public class HaxeTypeCompatible {
                 if (!evaluation.completed) evaluation.testFunctionAssignRules();
                 if (!evaluation.completed) evaluation.testAnonymousAssignRules();
                 if (!evaluation.completed) evaluation.testAbstractAssignRules(checkExplicitCasts, checkImplicitCasts);
-                if (!evaluation.completed) evaluation.testTypeParameterConstraints(strictBasicCheck, checkExplicitCasts, checkImplicitCasts);
+                if (!evaluation.completed) evaluation.testTypeParameterConstraints(checkExplicitCasts, checkImplicitCasts);
                 return true;
             });
             if (done == null) {

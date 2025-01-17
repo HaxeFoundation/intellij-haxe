@@ -290,7 +290,7 @@ public class HaxeAssignEvaluation {
     }
   }
   // if to target is typeParameter with constraints, extract constraint and test
-  public void testTypeParameterConstraints(boolean strictDynamic, boolean checkExplicitCasts, boolean checkImplicitCasts) {
+  public void testTypeParameterConstraints(boolean checkExplicitCasts, boolean checkImplicitCasts) {
     if (to instanceof SpecificHaxeClassReference toClassReference) {
       // check if to is a typeParameter constraint and extract constraint before checking enums
       if (toClassReference.getHaxeClassModel() instanceof HaxeGenericParamModel model) {
@@ -303,9 +303,28 @@ public class HaxeAssignEvaluation {
               complete(true, "typeParameter constraint could assign");
             }
           }
+        }else {
+            complete(true, "No constraints for type parameter");
         }
       }
     }
+    if (from instanceof SpecificHaxeClassReference fromClassReference) {
+      if (fromClassReference.getHaxeClassModel() instanceof HaxeGenericParamModel model) {
+        ResultHolder constraint = model.getConstraint(fromClassReference.getGenericResolver());
+        if (constraint != null) {
+          SpecificHaxeClassReference constraintClassType = constraint.getClassType();
+          if (constraintClassType != null) {
+            HaxeAssignEvaluation constraintAssign = canAssignToFromEvaluation(constraintClassType.createHolder(), to.createHolder(), false, checkExplicitCasts, checkImplicitCasts);
+            if(constraintAssign.result) {
+              complete(true, "typeParameter constraint could assign");
+            }
+          }
+        }else {
+          complete(true, "No constraints for type parameter");
+        }
+      }
+    }
+
   }
 
 

@@ -138,8 +138,9 @@ public class HaxeExpressionUsageUtil {
           if (reference instanceof HaxeReferenceExpression referenceExpression) {
             ResultHolder result = tryFindTypeWhenUsedAsParameterInCallExpression(updatedType, referenceExpression, parent);
             if (result == null) return null;
+            if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownTypes() || updatedType.isDynamic()) return updatedType;
           }
 
           if (parent instanceof HaxeAssignExpression assignExpression) {
@@ -177,6 +178,7 @@ public class HaxeExpressionUsageUtil {
           if (parent instanceof HaxeReferenceExpression referenceExpression) {
             ResultHolder result = tryFindTypeFromMethodCallOnReference(updatedType, referenceExpression);
             if (result == null) return null;
+            if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
             if (!updatedType.containsUnknownTypes()) return updatedType;
           }
@@ -184,6 +186,7 @@ public class HaxeExpressionUsageUtil {
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryTypeFromObjectLiteral(context, resolver, literalElement);
             if (result == null) return null;
+            if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
             if (!updatedType.containsUnknownTypes()) return updatedType;
           }
@@ -191,6 +194,7 @@ public class HaxeExpressionUsageUtil {
           if (parent instanceof HaxeArrayAccessExpression arrayAccessExpression) {
             ResultHolder result = tryUpdateTypeParamFromArrayAccess(context, resolver, arrayAccessExpression, classType, classResolver, classType);
             if (result == null) return null;
+            if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
             if (!updatedType.containsUnknownTypes()) return updatedType;
           }
@@ -198,6 +202,7 @@ public class HaxeExpressionUsageUtil {
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
             ResultHolder result = tryUpdateTypeParamFromObjectLiteral(context, resolver, literalElement, classType);
             if (result == null) return null;
+            if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
             if (!updatedType.containsUnknownTypes()) return updatedType;
           }
@@ -247,7 +252,7 @@ public class HaxeExpressionUsageUtil {
           }
       }
 
-    return SpecificHaxeClassReference.withGenerics(found.getClassType().getHaxeClassReference(), newSpecifics).createHolder();
+    return SpecificHaxeClassReference.withGenerics(current.getClassType().getHaxeClassReference(), newSpecifics).createHolder();
   }
 
   private static ResultHolder tryUpdateTypeParamFromObjectLiteral(HaxeExpressionEvaluatorContext context,
