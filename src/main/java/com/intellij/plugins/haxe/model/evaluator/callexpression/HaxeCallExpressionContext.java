@@ -201,8 +201,8 @@ public class HaxeCallExpressionContext {
             }
             //
             SpecificTypeReference originalParameterType = reachedRestParameter ? parameterModel.getRestType() : parameterModel.getType();
-            parameterType = tryResolve(combinedResolver, originalParameterType);
-            argumentType = tryResolve(argumentResolver, argumentModel.getType());
+            parameterType = tryResolve(combinedResolver, originalParameterType, null);
+            argumentType = tryResolve(argumentResolver, argumentModel.getType(), parameterType);
 
             //making final instances so we can use them in  recursion-guard lambda.
             final SpecificTypeReference finalParameterType = parameterType;
@@ -368,12 +368,53 @@ public class HaxeCallExpressionContext {
         return holder;
     }
 
-    private static @NotNull SpecificTypeReference tryResolve(HaxeGenericResolver callExpressionResolver, SpecificTypeReference type) {
+    private static @NotNull SpecificTypeReference tryResolve(HaxeGenericResolver callExpressionResolver, SpecificTypeReference type, @Nullable SpecificTypeReference hint) {
+
         ResultHolder resolvedParameterType = callExpressionResolver.resolve(type);
         if (resolvedParameterType != null && !resolvedParameterType.isUnknown()) {
             type = resolvedParameterType.getType();
+            if(hint != null) {
+                type = addHintValuesToResolver(hint, type);
+            }
+
         }
+
         return type;
+    }
+    //when we have arguments that do not contain all typeParameters  for instance other callExpressions
+    // we try to inherit the "expected" values from the parameter type (monomorphism i guess).
+    //
+    // This sometimes necessary when doing the argument-parameter assign check (DisplayObjectRecycler in feathersUI is a good example)
+    // if one of our parameters got typeParameters with constraints and the input arguments typeParameters
+    // does not fulfill these constraints.
+    private static SpecificTypeReference addHintValuesToResolver(@Nullable SpecificTypeReference hint, SpecificTypeReference expected) {
+        //TODO solve this for functions (and other types?)
+        if (expected instanceof SpecificHaxeClassReference currentClass) {
+            if (hint instanceof SpecificHaxeClassReference hintClass) {
+                SpecificHaxeClassReference castedHint = hintClass.tryCastToClass(currentClass);
+                if (castedHint != null) {
+                    @NotNull ResultHolder[] currentSpecifics = currentClass.getSpecifics();
+                    @NotNull ResultHolder[] hintSpecifics = castedHint.getSpecifics();
+                    @NotNull ResultHolder[] newSpecifics = new ResultHolder[currentSpecifics.length];
+                    for (int i = 0; i < currentSpecifics.length; i++) {
+                        ResultHolder currentSpecific = currentSpecifics[i];
+                        ResultHolder hintSpecific = hintSpecifics[i];
+                        // TODO should probably traverse types instead of  substituting when containsTypeParameters is true
+                        if(currentSpecific.isTypeParameter() || currentSpecific.containsTypeParameters()) {
+                            if (currentSpecific.canAssign(hintSpecific)) {
+                                newSpecifics[i] = hintSpecific;
+                            } else {
+                                newSpecifics[i] = currentSpecific;
+                            }
+                        }else {
+                            newSpecifics[i] = currentSpecific;
+                        }
+                    }
+                    return SpecificHaxeClassReference.withGenerics(currentClass.getHaxeClassReference(), newSpecifics);
+                }
+            }
+        }
+        return expected;
     }
 
 
