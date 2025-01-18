@@ -288,8 +288,14 @@ public abstract class SpecificTypeReference {
           }
         }
       }
+      // TODO consider checking underlying type of abstract for MAP_INTERFACE
+
+      HaxeClass haxeClass = reference.getHaxeClass();
+      String name = haxeClass != null
+              ? haxeClass.getQualifiedName()
+              : reference.getHaxeClassReference().getName();
+
       // fallback checking common maps (useful when std ins not configured)
-      String name = reference.getHaxeClassReference().getName();
       return MAP.equals(name)
         || INT_MAP.equals(name)
         || OBJECT_MAP.equals(name)
