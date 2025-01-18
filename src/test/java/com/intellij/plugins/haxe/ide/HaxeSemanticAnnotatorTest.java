@@ -771,6 +771,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testAssignDynamicMethod() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignTypeToEnum() throws Exception {
     doTestNoFixWithWarnings();
   }

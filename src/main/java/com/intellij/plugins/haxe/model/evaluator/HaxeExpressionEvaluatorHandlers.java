@@ -928,10 +928,11 @@ public class HaxeExpressionEvaluatorHandlers {
         // If there is not a block, but there is a statement, then return the type of that statement.
         HaxeBlockStatement block = function.getBlockStatement();
         if (null != block) {
-
+          // make sure we do not carry assign hint into a new block of code
+          HaxeGenericResolver blockResolver = resolver.withoutAssignHint();
           List<HaxeReturnStatement> returnStatementList =
             CachedValuesManager.getCachedValue(block,  () -> HaxeTypeResolver.findReturnStatementsForMethod(block));
-          List<ResultHolder> returnTypes = returnStatementList.stream().map(statement -> HaxeTypeResolver.getPsiElementType(statement, resolver)).toList();
+          List<ResultHolder> returnTypes = returnStatementList.stream().map(statement -> HaxeTypeResolver.getPsiElementType(statement, blockResolver)).toList();
           if (!returnTypes.isEmpty())  {
             returnType = HaxeTypeUnifier.unifyHolders(returnTypes, block, UnificationRules.PREFER_VOID);
           } else {
@@ -947,7 +948,7 @@ public class HaxeExpressionEvaluatorHandlers {
                   returnType = SpecificFunctionReference.getVoid(block).createHolder();
                 }
               }
-              if (!filtered) returnType = HaxeTypeResolver.getPsiElementType(lastExpression, resolver);
+              if (!filtered) returnType = HaxeTypeResolver.getPsiElementType(lastExpression, blockResolver);
             }else {
               returnType = SpecificFunctionReference.getVoid(block).createHolder();
             }

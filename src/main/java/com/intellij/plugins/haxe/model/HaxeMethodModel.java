@@ -209,9 +209,14 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return (aClass != null) ? aClass.getMethod(this.getName(), resolver) : null;
   }
 
+  public boolean isDynamic() {
+    return hasModifier(HaxePsiModifier.DYNAMIC);
+  }
+
   public boolean isAbstract() {
     return hasModifier(HaxePsiModifier.ABSTRACT);
   }
+
   public boolean isMacro() {
     return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO2);
   }
