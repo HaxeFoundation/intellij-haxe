@@ -5,8 +5,9 @@ Lots of old hacks and workarounds removed and hopefully this release will improv
 and do more correct type checking.  
 
 known issues:
- - abstracts of function types with casting can in some cases  report incorrect type.
- - type-inference / monomorphism does not cover all cases.
+ - bind on functions does not return correct function type
+ - PSI error when editing anonymous types
+ - idempotence errors
 
 ## 1.5.13
 * Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
