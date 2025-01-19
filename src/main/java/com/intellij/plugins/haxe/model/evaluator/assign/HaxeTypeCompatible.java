@@ -98,10 +98,11 @@ public class HaxeTypeCompatible {
 
     /**
      * Evaluates strict assign operations (ex. typeParameters/generics).
-     * Used for typeParameters and situations where implicit casts are not allowed
+     * Used for typeParameters and situations where implicit and explicit casts are not allowed
      */
     private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from) {
-        return canAssignToFromEvaluation(to, from, true, true, false, context);
+        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
+        return canAssignToFromEvaluation(to, from, true, false, false, context);
     }
 
 

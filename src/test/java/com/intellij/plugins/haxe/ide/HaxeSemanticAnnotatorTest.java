@@ -953,7 +953,22 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
-  public void testAssignFromTypeParameterConstraints() throws Exception {
+  public void testAssignFunctionType1() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType2() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType3() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType4() throws Exception {
     doTestNoFixWithWarnings();
   }
 }

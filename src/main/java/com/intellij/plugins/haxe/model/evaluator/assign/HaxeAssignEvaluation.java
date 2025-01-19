@@ -118,6 +118,8 @@ public class HaxeAssignEvaluation {
       if (toModel == null) {
         log.warn("Unable to evaluate class assign due to missing model (code:"+to.context.getText()+")");
         complete(false, "model(s) missing");
+//        TODO add as warnings as error seems a bit to strict
+//        this.explanations.addWrongTypeMember();
         return;
       }
       if (fromModel == null) {
@@ -424,6 +426,25 @@ public class HaxeAssignEvaluation {
         if(checkImplicitCasts) {
           Boolean match = canAssignUsingImplicitCastFrom(toClassReference, fromClassReference);
           if (match == Boolean.TRUE) return;
+        }
+
+        //Hack
+        // workaround for abstracts with explicit from dynamic (ignoring checkImplicitCasts)
+        // this workaround is here so that we dont need to make special logic for typeParameters with abstracts
+        // that contains "from Dynamic" like for instance Any.
+        // TODO look into @:forward.variance
+        SpecificTypeReference underlyingType = toModel.getUnderlyingType();
+        if(underlyingType != null && fullyResolve(underlyingType, false).isDynamic()) {
+
+          boolean hasExplicitCastFromDynamic = toClassReference.getExplicitCastFromTypes().stream()
+                  .filter(SpecificHaxeClassReference.class::isInstance)
+                  .map(SpecificHaxeClassReference.class::cast)
+                  .map(SpecificHaxeClassReference::fullyResolveTypeDefAndUnwrapNullTypeReference)
+                  .anyMatch(SpecificTypeReference::isDynamic);
+
+          if (hasExplicitCastFromDynamic) {
+            complete(true, "Abstract has explicit from Dynamic cast");
+          }
         }
 
 

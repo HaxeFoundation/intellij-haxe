@@ -300,8 +300,9 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
       List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
       for (HaxeAbstractToType toType : list) {
-        if (toType.getTypeOrAnonymous() != null) {
-          types.add(toType.getTypeOrAnonymous().getType());
+        HaxeTypeOrAnonymous typeOrAnonymous = toType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null && typeOrAnonymous.getType() != null) {
+          types.add(typeOrAnonymous.getType());
         }
       }
     }
@@ -326,8 +327,9 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
       List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
       for (HaxeAbstractFromType fromType : list) {
-        if (fromType.getTypeOrAnonymous() != null) {
-          types.add(fromType.getTypeOrAnonymous().getType());
+        HaxeTypeOrAnonymous typeOrAnonymous = fromType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null && typeOrAnonymous.getType() != null) {
+          types.add(typeOrAnonymous.getType());
         }
       }
     }
