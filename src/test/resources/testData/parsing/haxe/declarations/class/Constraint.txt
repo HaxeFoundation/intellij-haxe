@@ -13,8 +13,8 @@ Haxe File
               HaxePsiToken:ID('T')
           HaxePsiToken::(':')
           GENERIC_CONSTRAINT_PART
-            HaxePsiToken:(('(')
-            TYPE_LIST
+            CONSTRAINT_TYPE_LIST
+              HaxePsiToken:(('(')
               TYPE_LIST_PART
                 TYPE_OR_ANONYMOUS
                   TYPE
@@ -28,7 +28,7 @@ Haxe File
                     REFERENCE_EXPRESSION
                       IDENTIFIER
                         HaxePsiToken:ID('EventDispatcher')
-            HaxePsiToken:)(')')
+              HaxePsiToken:)(')')
         HaxePsiToken:>('>')
       CLASS_BODY
         HaxePsiToken:{('{')
@@ -60,12 +60,11 @@ Haxe File
               HaxePsiToken:ID('T')
           HaxePsiToken::(':')
           GENERIC_CONSTRAINT_PART
-            TYPE_LIST_PART
-              TYPE_OR_ANONYMOUS
-                TYPE
-                  REFERENCE_EXPRESSION
-                    IDENTIFIER
-                      HaxePsiToken:ID('EventDispatcher')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('EventDispatcher')
         HaxePsiToken:>('>')
       CLASS_BODY
         HaxePsiToken:{('{')

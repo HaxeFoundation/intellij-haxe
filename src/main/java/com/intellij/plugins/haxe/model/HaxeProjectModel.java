@@ -107,7 +107,20 @@ public class HaxeProjectModel {
       if (resolvedValue != null) result.add(resolvedValue);
     }
 
-    if (result.isEmpty()) {
+    HaxeSourceRootModel sdkRoot = getSdkRoot();
+    if (searchScope != null && sdkRoot.root != null && searchScope.contains(sdkRoot.root)) {
+        String ref = info.getPresentableText();
+      // hack to fix issue where standard lib members are referenced with "std" prefix in code even though "std" is not part of the package
+      // ex. "std.Any", "std.haxe.Json" etc should be resolved correctly even if package does not match (haxe compiler accepts these)
+       if (ref.startsWith("std.")) {
+         resolvedValue = sdkRoot.resolve(new FullyQualifiedInfo(ref.replaceFirst("std.","")));
+       }else {
+         resolvedValue = sdkRoot.resolve(info);
+       }
+      if (resolvedValue != null) result.add(resolvedValue);
+    }
+
+      if (result.isEmpty()) {
       resolvedValue = getStdPackage().resolve(info);
       if (resolvedValue != null) result.add(resolvedValue);
     }

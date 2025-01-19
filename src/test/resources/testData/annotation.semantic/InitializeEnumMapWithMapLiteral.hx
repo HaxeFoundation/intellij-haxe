@@ -19,6 +19,8 @@ class InitializeEnumMapWithMapLiteral {
         var t = new InitializeEnumMapWithMapLiteral();
         var m : Map<MyEnum, String> = t.map;
 
+        // the haxe.ds.Map<> type is an abstract "multiType", assign operations are based on the "@:to/@:from" functions
+
         t.enummap = m;
         t.enummap = t.map;
         t.enummap = t.mape;

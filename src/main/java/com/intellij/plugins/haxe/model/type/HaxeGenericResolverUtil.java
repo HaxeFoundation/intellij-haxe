@@ -16,11 +16,10 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeClassWrapperForTypeParameter;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
@@ -38,12 +37,12 @@ public class HaxeGenericResolverUtil {
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 
-
     appendClassGenericResolver(element, resolver);
-
     appendMethodGenericResolver(element, resolver);
+
     appendStatementGenericResolver(HaxeResolveUtil.getLeftReference(element), resolver);
     appendCallExpressionGenericResolver(element, resolver);
+
     return resolver;
   }
 
@@ -109,7 +108,7 @@ public class HaxeGenericResolverUtil {
     }
     return resolver;
   }
-
+// todo replace  with proper recursion guard
   private static final ThreadLocal<Stack<HaxeCallExpression>> processingCallExpressions = ThreadLocal.withInitial(Stack::new);
   @NotNull public static HaxeGenericResolver appendCallExpressionGenericResolver(@Nullable PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
@@ -163,22 +162,23 @@ public class HaxeGenericResolverUtil {
 
               ResultHolder parameterType = entry.getValue().parameter().getType();
               ResultHolder argumentType = entry.getValue().argumentType();
-              Map<String, ResultHolder> typeParameterMap = new HashMap<>();
+              Map<HaxeTypeParameterDeclaration, ResultHolder> typeParameterMap = new HashMap<>();
               mapTypeParameters(typeParameterMap, parameterType, argumentType);
 
-              for (Map.Entry<String, ResultHolder> tpEntry : typeParameterMap.entrySet()) {
-                String typeParameterName = tpEntry.getKey();
+              for (Map.Entry<HaxeTypeParameterDeclaration, ResultHolder> tpEntry : typeParameterMap.entrySet()) {
+                HaxeTypeParameterDeclaration typeParameter = tpEntry.getKey();
+
                 ResultHolder typeParameterType = tpEntry.getValue();
-                ResultHolder existingType = methodResolver.resolveArgument(typeParameterName);
+                ResultHolder existingType = methodResolver.resolveArgument(typeParameter);
                 if (existingType == null || typeParameterType.canAssign(existingType)) {
                   if (existingType != null) {
                     typeParameterType = HaxeTypeUnifier.unify(existingType, typeParameterType);
                   }
-                  ResultHolder constraint = methodResolver.resolveConstraint(typeParameterName);
+                  ResultHolder constraint = methodResolver.resolveConstraint(typeParameter);
                   // resolve constraint if type parameter ex. (T:B, B:DisplayObject)
                   if (constraint != null && constraint.isTypeParameter()) constraint = methodResolver.resolve(constraint);
                   if (constraint == null || constraint.canAssign(typeParameterType)) {
-                    methodResolver.add(typeParameterName, typeParameterType, ResolveSource.ARGUMENT_TYPE);
+                    methodResolver.addArgument(typeParameter, typeParameterType);
                   }
                 }
               }
@@ -203,7 +203,7 @@ public class HaxeGenericResolverUtil {
         HaxeGenericParam param = abstractClassModel.getAbstractClass().getGenericParam();
         if (param != null) {
           HaxeGenericListPart generic = param.getGenericListPartList().get(0);
-          ResultHolder resolve = resolver.resolve(generic);
+          ResultHolder resolve = resolver.resolveTypeParameter(generic);
           return resolve == null || resolve.getClassType() == null ? resolver : resolve.getClassType().getGenericResolver();
         }
       }
@@ -213,7 +213,7 @@ public class HaxeGenericResolverUtil {
 
 
 
-  private static void mapTypeParameters(Map<String, ResultHolder> map, ResultHolder parameter, ResultHolder argument) {
+  private static void mapTypeParameters(Map<HaxeTypeParameterDeclaration, ResultHolder> map, ResultHolder parameter, ResultHolder argument) {
     if (parameter == null || argument == null) return;
 
     SpecificTypeReference paramType = parameter.getType();
@@ -227,7 +227,10 @@ public class HaxeGenericResolverUtil {
     }
 
     if (paramType.isTypeParameter() && !argType.isTypeParameter() ) {
-      map.put(parameter.getClassType().getClassName(), argument);
+      HaxeClass aClass = parameter.tryUnwrapNullType().getClassType().getHaxeClass();
+      if(aClass instanceof HaxeTypeParameterDeclaration typeParameter) {
+        map.put(typeParameter, argument);
+      }
       return;
     }
 
@@ -247,80 +250,19 @@ public class HaxeGenericResolverUtil {
     }
   }
 
-  private static void mapTypeParametersFunction(Map<String, ResultHolder> map, SpecificFunctionReference parameter, SpecificFunctionReference argument) {
-    List<SpecificFunctionReference.Argument> paramArgs = parameter.getArguments();
-    List<SpecificFunctionReference.Argument> argArgs = argument.getArguments();
+  private static void mapTypeParametersFunction(Map<HaxeTypeParameterDeclaration, ResultHolder> map, SpecificFunctionReference parameter, SpecificFunctionReference argument) {
+    List<HaxeArgument> paramArgs = parameter.getArguments();
+    List<HaxeArgument> argArgs = argument.getArguments();
     if (paramArgs.size() == argArgs.size()) {
       for (int i = 0; i < paramArgs.size(); i++) {
-        SpecificFunctionReference.Argument paramArg = paramArgs.get(i);
-        SpecificFunctionReference.Argument argArg = argArgs.get(i);
+        HaxeArgument paramArg = paramArgs.get(i);
+        HaxeArgument argArg = argArgs.get(i);
         mapTypeParameters(map, paramArg.getType(), argArg.getType());
       }
     }
   }
 
-  public static HaxeGenericResolver createInheritedClassResolver(@NotNull HaxeClass targetClass, @NotNull HaxeClass currentClass,
-                                                                  @Nullable HaxeGenericResolver localResolver) {
 
-    List<SpecificHaxeClassReference> path = new ArrayList<>();
-    findClassHierarchy(currentClass, targetClass, path);
 
-    Collections.reverse(path);
 
-    HaxeGenericResolver resolver = currentClass.getMemberResolver(localResolver);
-    if(resolver == null) resolver = new HaxeGenericResolver();
-    for (SpecificHaxeClassReference reference : path) {
-      ResultHolder resolved = resolver.resolve(reference.createHolder());
-      if(resolved.isClassType()) {
-        resolver = resolved.getClassType().getGenericResolver();
-      }
-    }
-    return resolver;
-  }
-
-  private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
-    // stop if "from" is typeParameter
-    if(from instanceof HaxeClassWrapperForTypeParameter)return false;
-
-    HaxeClassModel fromModel = from.getModel();
-    if (fromModel.isTypedef()) {
-      SpecificHaxeClassReference reference = fromModel.getUnderlyingClassReference(fromModel.getGenericResolver(null));
-      if (reference!= null) {
-        // NOTE: anonymous types can extend/ combine multiple definitions
-        // we therefor only add to path when we have found and reached the target (when the recursive calls returns true)
-        SpecificHaxeClassReference resolvedTypeDef = reference.resolveTypeDefClass();
-        if (resolvedTypeDef != null) {
-          HaxeClass childClass = resolvedTypeDef.getHaxeClass();
-          if (childClass == to){
-            path.add(reference);
-            return true;
-          }
-          if (childClass != null){
-            return findClassHierarchy(childClass, to, path);
-          }
-        }else {
-          if (reference.getHaxeClass() == to) {
-            path.add(reference);
-            return true;
-          }
-        }
-      }
-    }
-    List<HaxeClassReferenceModel> types = fromModel.getExtendingTypes();
-    for (HaxeClassReferenceModel model : types) {
-      HaxeClassModel classModel = model.getHaxeClassModel();
-      if (classModel != null) {
-        HaxeClass childClass = classModel.haxeClass;
-        if (childClass == to) {
-          return path.add(model.getSpecificHaxeClassReference());
-        } else {
-          if (findClassHierarchy(childClass, to, path)) {
-            path.add(model.getSpecificHaxeClassReference());
-            return true;
-          }
-        }
-      }
-    }
-    return false;
-  }
 }

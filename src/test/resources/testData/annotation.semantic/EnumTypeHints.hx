@@ -5,9 +5,9 @@ enum EnumForHints {
     NotClass;
 }
 
-enum EnumForExtractorHints<T> {
+enum EnumForExtractorHints<T, Q> {
     ExtractableEnum(x:T);
-    ExtractableEnum2(x:T, y:T);
+    ExtractableEnum2(x:T, y:Q);
 }
 
 class TestAssignHints {
@@ -31,6 +31,8 @@ class TestAssignHints {
 
         var enumVarA = ExtractableEnum("StringVal");
         var enumVarB = ExtractableEnum2(1,2);
+        var enumVarC  = ExtractableEnum2(1, enumVarA);
+
         switch (enumVarA) {
             case ExtractableEnum(myVal) : str = myVal;
         }
@@ -42,6 +44,17 @@ class TestAssignHints {
 
                     // wrong type
                 flt = <error descr="Incompatible type: String should be Float">myValA</error>;
+            }
+        }
+
+        switch (enumVarC) {
+            case ExtractableEnum2(myIntVal, ExtractableEnum(myStrVal)) :
+            {
+                num =  myIntVal; // correct
+                str =  myStrVal; // correct
+
+                str = <error descr="Incompatible type: Int should be String">myIntVal</error>; // wrong type
+                flt = <error descr="Incompatible type: String should be Float">myStrVal</error>; // wrong type
             }
         }
 

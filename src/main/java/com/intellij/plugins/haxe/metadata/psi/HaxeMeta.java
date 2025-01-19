@@ -50,8 +50,8 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   boolean isType(String name);
 
   // Metadata classes.
-  Class COMPILE_TIME = HaxeMetadataCompileTimeMeta.class;
-  Class RUN_TIME = HaxeMetadataRunTimeMeta.class;
+  Class<HaxeMetadataCompileTimeMeta> COMPILE_TIME = HaxeMetadataCompileTimeMeta.class;
+  Class<HaxeMetadataRunTimeMeta> RUN_TIME = HaxeMetadataRunTimeMeta.class;
 
   // Metadata types.
 
@@ -128,6 +128,7 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   HaxeMetadataTypeName UNREFLECTIVE = new HaxeMetadataTypeName("unreflective");
   HaxeMetadataTypeName USING = new HaxeMetadataTypeName("using");
   HaxeMetadataTypeName VALUE = new HaxeMetadataTypeName("value");
+  HaxeMetadataTypeName TRANSITIVE = new HaxeMetadataTypeName("transitive");
 
   HaxeMetadataTypeName CALLABLE = new HaxeMetadataTypeName("callable");
 

@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.psi.PsiElement;
 
 import java.util.ArrayList;
@@ -52,11 +53,11 @@ public class HaxeOperatorResolver {
     SpecificHaxeClassReference intRef = SpecificHaxeClassReference.getInt(elementContext);
     SpecificHaxeClassReference boolRef = SpecificHaxeClassReference.getBool(elementContext);
 
-    boolean canAssignLeftToInt = HaxeTypeCompatible.canAssignToFrom(intRef, left);
-    boolean canAssignRightToInt = HaxeTypeCompatible.canAssignToFrom(intRef, right);
+    boolean canAssignLeftToInt = HaxeTypeCompatible.canAssignToFromReference(intRef, left);
+    boolean canAssignRightToInt = HaxeTypeCompatible.canAssignToFromReference(intRef, right);
 
-    boolean canAssignLeftToBool = HaxeTypeCompatible.canAssignToFrom(boolRef, left);
-    boolean canAssignRightToBool = HaxeTypeCompatible.canAssignToFrom(boolRef, right);
+    boolean canAssignLeftToBool = HaxeTypeCompatible.canAssignToFromReference(boolRef, left);
+    boolean canAssignRightToBool = HaxeTypeCompatible.canAssignToFromReference(boolRef, right);
 
     if (left.isNumeric() || right.isNumeric()) {
       if (operator.equals("+")

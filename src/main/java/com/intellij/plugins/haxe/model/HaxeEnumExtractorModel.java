@@ -50,6 +50,16 @@ public class HaxeEnumExtractorModel implements HaxeModel {
       }
     return -1;
   }
+  public int findExtractValueParentIndex(PsiElement value) {
+      PsiElement[] extractorArguments = getChildrenCached();
+      for (int i = 0; i < extractorArguments.length; i++) {
+        PsiElement argument = extractorArguments[i];
+        if(value == argument) {
+          return i;
+        }
+      }
+    return -1;
+  }
   public int findArgumentIndex(PsiElement value, boolean deepSearch) {
       PsiElement[] extractorArguments = getChildrenCached();
       for (int i = 0; i < extractorArguments.length; i++) {
@@ -108,12 +118,12 @@ public class HaxeEnumExtractorModel implements HaxeModel {
   public ResultHolder resolveExtractedValueType(@NotNull HaxeEnumExtractedValueReference extractedValue, @NotNull HaxeGenericResolver parentResolver) {
     HaxeEnumValueModel enumValueModel = getEnumValueModel();
     if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel) {
-      // check if in literal array (inside am extractor)
+      // check if in literal array (inside an extractor)
       HaxeSwitchExtractorExpressionArrayLiteral arrayLiteral =
         PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchExtractorExpressionArrayLiteral.class, true, HaxeEnumArgumentExtractor.class);
       if (arrayLiteral != null) {
 
-        int index = findExtractValueIndex(arrayLiteral);
+        int index = findExtractValueParentIndex(arrayLiteral); // find arrays index
         HaxeGenericResolver extractorResolver = getGenericResolver();
         ResultHolder parameterType = constructorModel.getParameterType(index, extractorResolver);
         if (parameterType != null && parameterType.getClassType() != null) {
@@ -152,6 +162,10 @@ public class HaxeEnumExtractorModel implements HaxeModel {
             HaxeGenericResolver pathResolver =  switchExpressionType.getClassType().getGenericResolver();
             SpecificHaxeClassReference classType = switchExpressionType.getClassType();
             if (classType != null) {
+              //unwrap null so we can resolve members correctly
+              if(classType.isNullType() && classType.unwrapNullType() instanceof SpecificHaxeClassReference classReference) {
+                classType = classReference;
+              }
               // LinkedHashMap because order matters
               LinkedHashMap<String, String> memberPath = createSwitchExpressionMemberPath(extractedValue);
               for (Map.Entry<String, String> path : memberPath.entrySet()) {
@@ -163,17 +177,14 @@ public class HaxeEnumExtractorModel implements HaxeModel {
                   Optional<HaxeParameterModel> first =
                     valueConstructorModel.getParameters().stream().filter(p -> p.getName().equals(parameterName)).findFirst();
                   if (first.isPresent()) {
-                    HaxeGenericResolver resolver = classType.getGenericResolver();
+                    pathResolver = classType.getGenericResolver();
                     HaxeParameterModel parameterModel = first.get();
-                    ResultHolder resolved = resolver.withoutUnknowns().resolve(parameterModel.getType());
+                    ResultHolder resolved = pathResolver.withoutUnknowns().resolve(parameterModel.getType());
                     if(resolved == null) return createUnknown(extractedValue);
                     classType = resolved.getClassType();
                   }
                 }
                 }
-              }
-              if(classType != null) {
-                pathResolver =  classType.getGenericResolver();
               }
             }
             ResultHolder resolve = pathResolver.resolve(parameterType);
@@ -182,9 +193,16 @@ public class HaxeEnumExtractorModel implements HaxeModel {
           }
 
           ResultHolder result = evaluate(lookupElement, parentResolver).result;
-          if (result.getClassType() != null) {
-            ResultHolder resolve = result.getClassType().getGenericResolver().withoutUnknowns().resolve(parameterType);
-            if(resolve != null) return resolve;
+          SpecificHaxeClassReference classType = result.getClassType();
+          if (!result.isUnknown() && classType != null) {
+            // TODO null safety, resolveTypeDefClass can be null if model is unknown
+            if(classType.isTypeDefOfClass()) classType = classType.resolveTypeDefClass();
+            ResultHolder resolve = classType.getGenericResolver().withoutUnknowns().resolve(parameterType);
+            if(resolve != null && !resolve.isUnknown()) {
+              return resolve;
+            }else {
+              return parameterType;
+            }
           }
           else {
             return parameterType;

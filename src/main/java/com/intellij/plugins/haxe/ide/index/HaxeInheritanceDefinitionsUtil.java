@@ -25,8 +25,9 @@ public class HaxeInheritanceDefinitionsUtil {
     if (dumbService.isDumb()) {
       dumbService.waitForSmartMode();
     }
-
-    return dumbService.runReadActionInSmartMode(() -> _getItemsByQNameFirstLevelChildrenOnly(haxeClass, project));
+    return dumbService.tryRunReadActionInSmartMode(
+            () -> _getItemsByQNameFirstLevelChildrenOnly(haxeClass, project),
+            "Collecting inheritance information");
   }
 
 

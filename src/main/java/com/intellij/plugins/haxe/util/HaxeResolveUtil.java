@@ -36,10 +36,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeParenthesizedExpressionReferenceImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterMultiType;
+import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -350,6 +347,25 @@ public class HaxeResolveUtil {
           localResolver.addAll(haxeClass.getMemberResolver(null));
         }
       }
+      //TODO not sure if needed if we fix resolve of constraint members (making get members give us all)
+      if (haxeClass instanceof  HaxeTypeParameterDeclaration typeParameter) {
+        ResultHolder resolve = parentResolver == null ? null : parentResolver.resolveTypeParameter(typeParameter);
+        if (resolve != null && !resolve.isUnknown()  && resolve.getClassType() != null) {
+          classes.add(resolve.getClassType().getHaxeClass());
+        }
+        // if resolve fails check and use constraints if available
+        HaxeGenericParamModel model = (HaxeGenericParamModel)haxeClass.getModel();
+        ResultHolder constraint = model.getConstraint(parentResolver);
+        if (constraint != null && constraint.getClassType() != null) {
+          classes.add(constraint.getClassType().getHaxeClass());
+        }
+
+        HaxeClass  replaced =  model.getReplacedTypeParameter();
+        if(replaced != null) {
+          classes.add(replaced);
+        }
+
+      }
       if (haxeClass.isAnonymousType()) {
         HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)haxeClass.getModel();
         List<ResultHolder> types = model.getCompositeTypes();
@@ -470,8 +486,16 @@ public class HaxeResolveUtil {
     }
 
     final List<HaxeNamedComponent> result = new ArrayList<>();
-    if (element instanceof HaxeTypeParameterMultiType multiType) {
-      HaxeTypeParameterMultiTypeModel model = (HaxeTypeParameterMultiTypeModel) multiType.getModel();
+    if (element instanceof HaxeGenericConstraintPart constraintPart) {
+      ResultHolder constraint = HaxeTypeResolver.getTypeFromGenericConstraint(constraintPart);
+      if (constraint != null && constraint.getClassType() != null) {
+        HaxeClassModel model = constraint.getClassType().getHaxeClassModel();
+        if (model != null)
+          result.addAll(getNamedSubComponents(model.haxeClass));
+      }
+
+    } else if (element instanceof HaxeConstraintTypeList constraintTypeList) {
+      HaxeConstraintTypeListModel model = (HaxeConstraintTypeListModel) constraintTypeList.getModel();
       List<ResultHolder> types = model.getCompositeTypes();
       for (ResultHolder holder : types) {
         if (holder.getClassType() != null) {
@@ -969,21 +993,8 @@ public class HaxeResolveUtil {
     if (haxeClass == null && type != null) {
       PsiElement resolve = type.getReferenceExpression().resolve();
       if (resolve instanceof HaxeGenericListPart listPart) {
-
-        HaxeGenericConstraintPart constraintPart = listPart.getGenericConstraintPart();
-        if (constraintPart != null && constraintPart.getTypeListPart() != null) {
-          HaxeTypeOrAnonymous typeOrAnonymous = constraintPart.getTypeListPart().getTypeOrAnonymous();
-          if (typeOrAnonymous != null) {
-            HaxeType haxeType = typeOrAnonymous.getType();
-            HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
-            if (haxeType != null) {
-              haxeClass = HaxeTypeParameterMultiType.withTypeList(resolve.getNode(), List.of(haxeType));
-            }
-            else if (anonymousType != null) {
-              haxeClass = anonymousType;
-            }
-          }
-        }
+        // TypeParameters does not have generics so just creating an instance is ok here
+        return  listPart.getModel().getInstanceType().getType().asResolveResult();
       }
     }
     if (null != haxeClass && haxeClass.isGeneric()) {

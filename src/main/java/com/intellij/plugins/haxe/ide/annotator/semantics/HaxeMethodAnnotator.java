@@ -9,7 +9,6 @@ import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
@@ -25,7 +24,7 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typ
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.OVERRIDE;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 
 @CustomLog
 public class HaxeMethodAnnotator implements Annotator {
@@ -282,7 +281,7 @@ public class HaxeMethodAnnotator implements Annotator {
       ResultHolder parentParamType = parentParam.getType(null == resolvedParent ? resolverWithConstraints : resolvedParent.getGenericResolver());
 
 
-      if (!canAssignToFrom(parentParamType, currentParamType)) {
+      if (!canAssignToFromReference(parentParamType, currentParamType)) {
 
         typeMismatch(holder, currentParam.getBasePsi(), currentParamType.toString(), parentParamType.toString())
           .withFix(HaxeFixer.create(HaxeBundle.message("haxe.semantic.change.type"), () -> {
@@ -342,7 +341,7 @@ public class HaxeMethodAnnotator implements Annotator {
     ResultHolder parentResult = parentMethod.getResultType(resolvedParent != null ? resolvedParent.getGenericResolver() : scopeResolver);
 
     // Order of assignment compatibility is to parent, from subclass.
-    if (!canAssignToFrom(parentResult.getType(), currentResult.getType())) {
+    if (!canAssignToFromReference(parentResult.getType(), currentResult.getType())) {
       PsiElement psi = currentMethod.getReturnTypeTagOrNameOrBasePsi();
       if (parentResult.getType().isUnknown()) {
         if (parentResult.getType() instanceof SpecificHaxeClassReference classReference) {
@@ -371,9 +370,9 @@ public class HaxeMethodAnnotator implements Annotator {
         ResultHolder constraint = paramModel.getConstraint(null);
         if (constraint == null) {
           ResultHolder resultHolder = new ResultHolder(SpecificHaxeClassReference.getDynamic(paramModel.getPsi()));
-          resolver.add(paramModel.getName(), resultHolder, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.add(paramModel.getTypeParameter(), resultHolder);
         }else {
-          resolver.addConstraint(paramModel.getName(), constraint, ResolveSource.METHOD_TYPE_PARAMETER);
+          resolver.addConstraint(paramModel.getTypeParameter(), constraint);
         }
       }
     }
@@ -418,7 +417,7 @@ public class HaxeMethodAnnotator implements Annotator {
     for (int n = 0; n < parametersCount; n++) {
       final HaxeParameterModel sourceParam = sourceParameters.get(n);
       final HaxeParameterModel prototypeParam = prototypeParameters.get(n);
-      if (!canAssignToFrom(prototypeParam.getType(), sourceParam.getType()) ||
+      if (!canAssignToFromReference(prototypeParam.getType(), sourceParam.getType()) ||
           sourceParam.isOptional() != prototypeParam.isOptional()) {
         return true;
       }

@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeResolveResult;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.util.HaxeDebugLogUtil;
@@ -38,10 +39,11 @@ import org.junit.Test;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
+public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
 
 
   public void setUp() throws Exception {
+    useHaxeToolkit();
     super.setUp();
   }
 
@@ -51,18 +53,17 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
     super.tearDown();
   }
 
-
-  @NotNull
   @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH + FileUtil.toSystemDependentName("/paramInfo/");
+  protected String getBasePath() {
+    return "/paramInfo/";
   }
 
+
   private void doTest(String infoText, int highlightedParameterIndex) throws Exception {
-    configureByFile(getTestName(false) + ".hx");
+    myFixture.configureByFile(getTestName(false) + ".hx");
 
     HaxeParameterInfoHandler parameterInfoHandler = new HaxeParameterInfoHandler();
-    MockCreateParameterInfoContext createContext = new MockCreateParameterInfoContext(getEditor(), getFile());
+    MockCreateParameterInfoContext createContext = new MockCreateParameterInfoContext(myFixture.getEditor(), myFixture.getFile());
     PsiElement elt = parameterInfoHandler.findElementForParameterInfo(createContext);
     assertNotNull(elt);
     parameterInfoHandler.showParameterInfo(elt, createContext);
@@ -74,7 +75,7 @@ public class HaxeParameterInfoTest extends LightPlatformCodeInsightTestCase {
     assertEquals(infoText, context.getText());
 
     // index check
-    MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(getEditor(), getFile());
+    MockUpdateParameterInfoContext updateContext = new MockUpdateParameterInfoContext(myFixture.getEditor(), myFixture.getFile());
     final PsiElement element = parameterInfoHandler.findElementForUpdatingParameterInfo(updateContext);
     assertNotNull(element);
     updateContext.setParameterOwner(elt);

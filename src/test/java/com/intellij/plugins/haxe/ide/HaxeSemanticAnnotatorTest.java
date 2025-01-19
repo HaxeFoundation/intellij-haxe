@@ -722,6 +722,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testInferredFunctionTypeAssignment() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testInheritUnspecifiedTypeParameters() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testParameterizedFunctions() throws Exception {
@@ -767,6 +771,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testAssignDynamicMethod() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignTypeToEnum() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -778,6 +787,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   @Test
   public void testAssignEmptyCollection() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignCollectionWithoutParameterTypes() throws Exception {
     doTestNoFixWithWarnings();
   }
 
@@ -817,6 +831,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testTypeParameterConstraints() throws Throwable {
     doTestSkippingAnnotators(new HashSet<>());
   }
+  @Test
+  public void testTypeParameterInheritConstraints() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+  }
+
   @Test
   public void testTypeParameterArguments() throws Throwable {
     // unresolved symbols are used to confirm correct returned type
@@ -929,6 +949,26 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
 
   @Test
   public void testUnificationRules() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType1() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType2() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType3() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType4() throws Exception {
     doTestNoFixWithWarnings();
   }
 }

@@ -7,11 +7,12 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeEnumModel;
+import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -34,13 +35,13 @@ public class HaxeSemanticsUtil {
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
       final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
       if (initType.isInvalid()) return;
-      HaxeAssignContext  context = new HaxeAssignContext(erroredElement, initExpression);
-      if (!varType.canAssign(initType, context)) {
-
-        if(context.hasMissingMembers()) {
-          typeMismatchMissingMembers(holder, erroredElement, context).create();
-        }else if(context.hasWrongTypeMembers()) {
-          addtypeMismatchWrongTypeMembersAnnotations(holder, erroredElement, context);
+      HaxeAssignEvaluation assignEvaluation = varType.canAssignEvaluation(initType);
+      if (!assignEvaluation.result) {
+        AssignExplanation messages = assignEvaluation.explanations;
+        if(messages.hasMissingMembers()) {
+          typeMismatchMissingMembers(holder, erroredElement, messages).create();
+        }else if(messages.hasWrongTypeMembers()) {
+          addtypeMismatchWrongTypeMembersAnnotations(holder, erroredElement, messages);
         }else {
           AnnotationBuilder builder = typeMismatch(holder, erroredElement, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
           if (null != initType.getClassType()) {
@@ -113,7 +114,7 @@ public class HaxeSemanticsUtil {
         return abstractEnumFieldInitType;
       }
       if (assignType != null) {
-        resolver.add("", assignType, ResolveSource.ASSIGN_TYPE);
+        resolver.setAssignHint(assignType);
       }
 
       // fallback to simple init expression

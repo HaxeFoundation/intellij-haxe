@@ -87,7 +87,7 @@ public class HaxeTypeAnnotator implements Annotator {
         String typeName = getTypeName(type.getReferenceExpression().getIdentifier());
         if (typeName.startsWith("$"))return; // ignore when type is from macro variable
 
-        int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().getTypeListPartList().size();
+        int typeParameterCount = type.getTypeParam() == null ? 0 : type.getTypeParam().getTypeList().size();
         int classParameterCountMin = minTypeParameters(haxeClass);
         int classParameterCountMax = maxTypeParameters(haxeClass);
 

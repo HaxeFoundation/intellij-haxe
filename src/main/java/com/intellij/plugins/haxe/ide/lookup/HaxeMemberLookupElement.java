@@ -95,7 +95,7 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
           if (classModel != null && leftReferenceResolveResult != null) {
             HaxeClass currentClass = leftReferenceResolveResult.getHaxeClass();
             HaxeClass membersClass = classModel.haxeClass;
-            resolver = HaxeGenericResolverUtil.createInheritedClassResolver(membersClass, currentClass, resolver);
+            if(currentClass != null)  resolver = resolver.translateFromTo(currentClass, membersClass);
           }
           if (model instanceof  HaxeMethodModel) {
             // adding functionType in addition to method call
@@ -164,7 +164,7 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
     ResultHolder type = model.getResultType(resolver);
     if (isFunctionType && model instanceof HaxeMethodModel methodModel) {
       SpecificFunctionReference functionType = methodModel.getFunctionType(resolver);
-      typeText =  functionType.toPresentationString();
+      typeText =  functionType.toPresentationString(false);
       return;
     }
     if (type != null && !type.isUnknown()) {

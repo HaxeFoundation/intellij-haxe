@@ -22,9 +22,9 @@ public abstract class HaxeSharedBypassCollector implements SharedBypassCollector
   protected static String getPresentationText(ResultHolder returnType) {
     // we dont want to show  enumValues as type info in inlays as its not an assignable type.
     if (returnType.getType() instanceof  SpecificEnumValueReference enumValueReference) {
-      return enumValueReference.getEnumClass().toPresentationString();
+      return enumValueReference.getEnumClass().toPresentationString(true);
     }else {
-      return returnType.getType().toPresentationString();
+      return returnType.getType().toPresentationString(true);
     }
   }
 

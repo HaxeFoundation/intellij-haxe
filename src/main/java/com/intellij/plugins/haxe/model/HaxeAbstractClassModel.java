@@ -17,18 +17,23 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
+import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.*;
 import java.util.logging.Logger;
+
+import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
 
 public class HaxeAbstractClassModel extends HaxeClassModel {
   private static final Logger LOG = Logger.getLogger("#HaxeAbstractClassModel");
@@ -59,7 +64,8 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         }
         List<HaxeGenericParamModel> params = getGenericParams();
         if (!params.isEmpty()) {
-          return resolveGeneric(params.get(0).getName(), resolver);
+          ResultHolder holder = resolver.resolveTypeParameter(params.get(0).getTypeParameter());
+          if(holder != null && holder.getClassType() != null )return holder.getClassType().getHaxeClass();
         }
       }
       return null;
@@ -68,22 +74,26 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     final HaxeType underlyingType = anonymous != null ? anonymous.getType() : null;
     if (underlyingType != null) {
       HaxeReferenceExpression referenceExpression = underlyingType.getReferenceExpression();
-      final HaxeResolveResult result = referenceExpression.resolveHaxeClass();
-      HaxeClass resultClass = result.getHaxeClass();
-      return null != resultClass ? resultClass : resolveGeneric(referenceExpression.getIdentifier().getText(), resolver);
+      PsiElement resolve = referenceExpression.resolve();
+      if(resolve instanceof HaxeTypeParameterDeclaration typeParameter) {
+        ResultHolder holder = resolver == null ? null : resolver.resolveTypeParameter(typeParameter);
+        if(holder != null && holder.getClassType() != null )return holder.getClassType().getHaxeClass();
+      }else if (resolve instanceof  HaxeClass underlHaxeClass) {
+        if(resolver != null) {
+          ResultHolder resolvedUnderlyingClass = resolver.resolve(underlHaxeClass);
+          if(resolvedUnderlyingClass != null && !resolvedUnderlyingClass.isUnknown()) {
+            if(resolvedUnderlyingClass.getClassType() != null) {
+              return resolvedUnderlyingClass.getClassType().getHaxeClass();
+            }
+          }
+        }
+        return  underlHaxeClass;
+      }
     }
 
     return null;
   }
 
-  @Nullable
-  private HaxeClass resolveGeneric(@Nullable String name, @Nullable HaxeGenericResolver resolver) {
-    if (null == name || null == resolver) return null;
-    ResultHolder result = resolver.resolve(name);
-    SpecificHaxeClassReference ref = null != result ? result.getClassType() : null;
-    HaxeClass underlyingClass = ref != null ? ref.getHaxeClass() : null;
-    return underlyingClass;
-  }
 
   public HaxeAbstractTypeDeclaration getAbstractClass() {
     return (HaxeAbstractTypeDeclaration)getBasePsi();
@@ -112,4 +122,233 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     }
     return allEmpty;
   }
+
+  public List<SpecificTypeReference> getExplicitCastToTypes(@NotNull HaxeGenericResolver resolver) {
+    List<HaxeFunctionType> functionTypes = getExplicitCastToPsiFunctionTypes();
+    List<HaxeType> classTypes = getExplicitCastToPsiTypes();
+
+    List<SpecificTypeReference> typeList = new ArrayList<>();
+
+    for (HaxeFunctionType functionType : functionTypes) {
+      ResultHolder typeFromFunctionType = HaxeTypeResolver.getTypeFromFunctionType(functionType);
+      SpecificTypeReference resultHolderType = typeFromFunctionType.getType();
+      typeList.add(resultHolderType);
+    }
+
+    for (HaxeType type : classTypes) {
+      ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(type, resolver);
+      SpecificTypeReference resultHolderType = typeFromType.getType();
+      typeList.add(resultHolderType);
+    }
+
+    return typeList;
+
+  }
+
+  public List<SpecificTypeReference> getExplicitCastFromTypes(@NotNull HaxeGenericResolver resolver) {
+    List<HaxeFunctionType> functionTypes = getExplicitCastFromPsiFunctionTypes();
+    List<HaxeType> classTypes = getExplicitCastFromPsiTypes();
+
+    List<SpecificTypeReference> typeList = new ArrayList<>();
+
+    for (HaxeFunctionType functionType : functionTypes) {
+      ResultHolder typeFromFunctionType = HaxeTypeResolver.getTypeFromFunctionType(functionType);
+      SpecificTypeReference resultHolderType = typeFromFunctionType.getType();
+      typeList.add(resultHolderType);
+    }
+
+    for (HaxeType type : classTypes) {
+      ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(type, resolver);
+      SpecificTypeReference resultHolderType = typeFromType.getType();
+      typeList.add(resultHolderType);
+    }
+
+    return typeList;
+  }
+
+  /**
+   * <code>@to</code> methods can be either static with input argument (<code>this type -> new type</code>) or member method  (<code> () -> new Type</code>)
+   */
+  public List<SpecificTypeReference> getImplicitCastToTypes(SpecificHaxeClassReference classReference, @NotNull HaxeGenericResolver resolver) {
+    List<SpecificTypeReference>  typeList = new ArrayList<>();
+    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), HaxeMeta.TO, HaxeMeta.COMPILE_TIME, resolver);
+    for (HaxeMethodModel method : castToMethods) {
+      List<HaxeParameterModel> parameters = method.getParameters();
+      // can be both static method with parameter and member method without any parameters
+      if(parameters.isEmpty()) {
+        // Note: // Note: should probably evaluate function, we need to correctly use typeHint  @:to method<T>():T
+        typeList.add(method.getReturnType(resolver).getType());
+      }else {
+        List<SpecificTypeReference> arguments = List.of(classReference);
+
+        SpecificTypeReference paramType = parameters.getFirst().getType().getType();
+        //  try to cast our class to parameter type if its a class (to get correct typeParameters)
+        if (paramType instanceof SpecificHaxeClassReference paramClass) {
+          SpecificHaxeClassReference casted = classReference.tryCastTo(paramClass);
+          // if we can not cast our type to match the parameter type then this method cant be used and we skip it
+          if (casted == null) continue;
+          arguments = List.of(casted);
+        }
+
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(arguments, method, null);
+        context.setCallie(classReference);
+        HaxeCallExpressionEvaluation evaluation = context.evaluate();
+        if (evaluation.isValid()) {
+          typeList.add(evaluation.getReturnType().getType());
+        }
+      }
+    }
+    return typeList;
+  }
+
+  public Map<SpecificFunctionReference, SpecificTypeReference> getImplicitCastToFunctionAndTypes(SpecificHaxeClassReference classReference, @NotNull HaxeGenericResolver resolver) {
+    Map<SpecificFunctionReference, SpecificTypeReference>  functionAndType = new HashMap<>();
+    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), HaxeMeta.TO, HaxeMeta.COMPILE_TIME, resolver);
+    for (HaxeMethodModel method : castToMethods) {
+      SpecificFunctionReference functionType = method.getFunctionType(null);
+      List<HaxeParameterModel> parameters = method.getParameters();
+      // can be both static method with parameter and member method without any parameters
+      if(parameters.isEmpty()) {
+        // Note: // Note: should probably evaluate function, we need to correctly use typeHint  @:to method<T>():T
+        functionAndType.put(functionType, method.getReturnType(resolver).getType());
+      }else {
+        List<SpecificTypeReference> arguments = List.of(classReference);
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(arguments, method, null);
+        HaxeCallExpressionEvaluation evaluation = context.evaluate();
+        if (evaluation.isValid()) {
+          functionAndType.put(functionType, evaluation.getReturnType().getType());
+        }
+      }
+    }
+    return functionAndType;
+  }
+
+  /**
+   * All <code>@:from</code> methods should have a parameter (some type -> this type),we want to collect the parameter
+   * types for methods that returns our type (important to check type parameters here as the type might be the same
+   * but the type parameters might be incompatible)
+   */
+  public List<SpecificTypeReference> getImplicitCastFromTypes(SpecificTypeReference argument, SpecificHaxeClassReference ourClassReference) {
+    List<SpecificTypeReference>  typeList = new ArrayList<>();
+    HaxeGenericResolver genericResolver = ourClassReference.getGenericResolver();
+    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), HaxeMeta.FROM, HaxeMeta.COMPILE_TIME, genericResolver);
+    for (HaxeMethodModel method : castToMethods) {
+      List<HaxeParameterModel> parameters = method.getParameters();
+      // should never be empty for @:from methods
+      if (!parameters.isEmpty()) {
+
+        List<SpecificTypeReference> arguments;
+        // if argument is a class and parameter is class,
+        // try to cast argument to parameter type so we get correct typeParameters
+        if (argument instanceof SpecificHaxeClassReference argumentAsClass) {
+          ResultHolder paramType = parameters.getFirst().getType();
+          if (paramType.isClassType()) {
+            SpecificHaxeClassReference classType = paramType.getClassType();
+            SpecificHaxeClassReference casted = argumentAsClass.tryCastTo(classType);
+            // if we can not cast to parameter type then this method cant be used and we skip it
+            if (casted == null) continue;
+            arguments = List.of(casted);
+
+          }else {
+            arguments = List.of(argument);
+          }
+        } else {
+          arguments = List.of(argument);
+        }
+        // checking that cast method accepts argument and that the result is compatible with our type;
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(arguments, method, null);
+        HaxeCallExpressionEvaluation evaluation = context.evaluate();
+        if (evaluation.isValid()) {
+          SpecificTypeReference type = evaluation.getReturnType().getType();
+          if (ourClassReference.createHolder().canAssign(type.createHolder())) {
+            typeList.add(arguments.getFirst());
+          }
+        }
+      }
+    }
+    return typeList;
+  }
+
+  public Map<SpecificFunctionReference, SpecificTypeReference> getImplicitCastFromFunctionAndTypes(SpecificTypeReference argument, SpecificHaxeClassReference ourClassReference) {
+    Map<SpecificFunctionReference, SpecificTypeReference> functionAndType = new HashMap<>();
+    HaxeGenericResolver genericResolver = ourClassReference.getGenericResolver();
+    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), HaxeMeta.FROM, HaxeMeta.COMPILE_TIME, genericResolver);
+    for (HaxeMethodModel method : castToMethods) {
+      SpecificFunctionReference functionType = method.getFunctionType(null);
+      List<HaxeParameterModel> parameters = method.getParameters();
+      // should never be empty for @:from methods
+      if (!parameters.isEmpty()) {
+        // checking that cast method accepts argument and that the result is compatible with our type
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(List.of(argument), method, null);
+        HaxeCallExpressionEvaluation evaluation = context.evaluate();
+        if (evaluation.isValid()) {
+          SpecificTypeReference type = evaluation.getReturnType().getType();
+          if (ourClassReference.createHolder().canAssign(type.createHolder())) {
+            // todo get parameter from evaluation ? (it should have correct typeParameters etc)
+            SpecificTypeReference acceptedType = parameters.getFirst().getType(genericResolver).getType();
+            functionAndType.put(functionType, acceptedType);
+          }
+        }
+      }
+    }
+    return functionAndType;
+  }
+
+  private @NotNull List<HaxeType> getExplicitCastToPsiTypes() {
+    //TODO cache
+    List<HaxeType> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
+      for (HaxeAbstractToType toType : list) {
+        HaxeTypeOrAnonymous typeOrAnonymous = toType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null && typeOrAnonymous.getType() != null) {
+          types.add(typeOrAnonymous.getType());
+        }
+      }
+    }
+    return types;
+  }
+  private @NotNull List<HaxeFunctionType> getExplicitCastToPsiFunctionTypes() {
+    //TODO cache
+    List<HaxeFunctionType> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
+      for (HaxeAbstractToType toType : list) {
+        if (toType.getFunctionType() != null) {
+          types.add(toType.getFunctionType());
+        }
+      }
+    }
+    return types;
+  }
+  private @NotNull List<HaxeType> getExplicitCastFromPsiTypes() {
+    //TODO mlo: cache
+    List<HaxeType> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
+      for (HaxeAbstractFromType fromType : list) {
+        HaxeTypeOrAnonymous typeOrAnonymous = fromType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null && typeOrAnonymous.getType() != null) {
+          types.add(typeOrAnonymous.getType());
+        }
+      }
+    }
+    return types;
+  }
+  private @NotNull List<HaxeFunctionType> getExplicitCastFromPsiFunctionTypes() {
+    //TODO mlo: cache
+    List<HaxeFunctionType> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
+      for (HaxeAbstractFromType fromType : list) {
+        if (fromType.getFunctionType() != null) {
+          types.add(fromType.getFunctionType());
+        }
+      }
+    }
+    return types;
+  }
+
+
+
 }

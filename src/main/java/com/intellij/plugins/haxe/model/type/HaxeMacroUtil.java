@@ -22,8 +22,10 @@ public class HaxeMacroUtil {
     if(type.isFunctionType()) {
       SpecificFunctionReference functionType = type.getFunctionType();
       if (functionType != null) {
-        List<SpecificFunctionReference.Argument>
-          argumentList = functionType.getArguments().stream().map(HaxeMacroUtil::resolveMacroTypeForArgument).toList();
+        List<HaxeArgument> argumentList = functionType.getArguments().stream()
+          .map(HaxeMacroUtil::resolveMacroTypeForArgument)
+          .toList();
+
         ResultHolder returnType = functionType.getReturnType();
         if (returnType.isClassType()) {
           ResultHolder resolvedReturnType = resolveMacroType(returnType);
@@ -37,7 +39,7 @@ public class HaxeMacroUtil {
     return type;
   }
 
-  private static SpecificFunctionReference.Argument resolveMacroTypeForArgument(SpecificFunctionReference.Argument argument) {
+  private static HaxeArgument resolveMacroTypeForArgument(HaxeArgument argument) {
     ResultHolder type = argument.getType();
     if (type.isClassType()) {
       ResultHolder holder = resolveMacroType(type);

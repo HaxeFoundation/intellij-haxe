@@ -48,13 +48,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           TYPE_TAG
@@ -66,23 +65,21 @@ Haxe File
                     HaxePsiToken:ID('ExprOf')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('Array')
-                          TYPE_PARAM
-                            HaxePsiToken:<('<')
-                            TYPE_LIST
-                              TYPE_LIST_PART
-                                TYPE_OR_ANONYMOUS
-                                  TYPE
-                                    REFERENCE_EXPRESSION
-                                      IDENTIFIER
-                                        HaxePsiToken:ID('String')
-                            HaxePsiToken:>('>')
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Array')
+                        TYPE_PARAM
+                          HaxePsiToken:<('<')
+                          TYPE_LIST_PART
+                            TYPE_OR_ANONYMOUS
+                              TYPE
+                                REFERENCE_EXPRESSION
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('String')
+                          HaxePsiToken:>('>')
                   HaxePsiToken:>('>')
           BLOCK_STATEMENT
             HaxePsiToken:{('{')
@@ -123,13 +120,12 @@ Haxe File
                     HaxePsiToken:ID('ExprOf')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      TYPE_OR_ANONYMOUS
-                        TYPE
-                          REFERENCE_EXPRESSION
-                            IDENTIFIER
-                              HaxePsiToken:ID('Int')
+                  TYPE_LIST_PART
+                    TYPE_OR_ANONYMOUS
+                      TYPE
+                        REFERENCE_EXPRESSION
+                          IDENTIFIER
+                            HaxePsiToken:ID('Int')
                   HaxePsiToken:>('>')
           BLOCK_STATEMENT
             HaxePsiToken:{('{')
@@ -267,13 +263,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('String')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('String')
                       HaxePsiToken:>('>')
           HaxePsiToken:)(')')
           BLOCK_STATEMENT
@@ -328,22 +323,21 @@ Haxe File
                     HaxePsiToken:ID('ExprOf')
                 TYPE_PARAM
                   HaxePsiToken:<('<')
-                  TYPE_LIST
-                    TYPE_LIST_PART
-                      FUNCTION_TYPE
-                        FUNCTION_ARGUMENT
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Void')
-                        HaxePsiToken:->('->')
-                        FUNCTION_RETURN_TYPE
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Dynamic')
+                  TYPE_LIST_PART
+                    FUNCTION_TYPE
+                      FUNCTION_ARGUMENT
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Void')
+                      HaxePsiToken:->('->')
+                      FUNCTION_RETURN_TYPE
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Dynamic')
                   HaxePsiToken:>('>')
           BLOCK_STATEMENT
             HaxePsiToken:{('{')

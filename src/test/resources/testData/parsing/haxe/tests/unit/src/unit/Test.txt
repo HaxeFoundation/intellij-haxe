@@ -285,13 +285,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('T')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -307,13 +306,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('T')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -699,13 +697,12 @@ Haxe File
                         HaxePsiToken:ID('Array')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('T')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('T')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -803,13 +800,12 @@ Haxe File
                         HaxePsiToken:ID('Class')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Dynamic')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Dynamic')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -906,13 +902,12 @@ Haxe File
                         HaxePsiToken:ID('Class')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Dynamic')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Dynamic')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -1009,13 +1004,12 @@ Haxe File
                         HaxePsiToken:ID('Class')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Dynamic')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Dynamic')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER
@@ -1112,13 +1106,12 @@ Haxe File
                         HaxePsiToken:ID('Class')
                     TYPE_PARAM
                       HaxePsiToken:<('<')
-                      TYPE_LIST
-                        TYPE_LIST_PART
-                          TYPE_OR_ANONYMOUS
-                            TYPE
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('Dynamic')
+                      TYPE_LIST_PART
+                        TYPE_OR_ANONYMOUS
+                          TYPE
+                            REFERENCE_EXPRESSION
+                              IDENTIFIER
+                                HaxePsiToken:ID('Dynamic')
                       HaxePsiToken:>('>')
             HaxePsiToken:,(',')
             PARAMETER

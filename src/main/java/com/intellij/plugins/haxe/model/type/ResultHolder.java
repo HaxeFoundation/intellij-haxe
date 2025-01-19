@@ -19,6 +19,10 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.psi.PsiElement;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -31,6 +35,8 @@ import java.util.List;
 @EqualsAndHashCode
 public class ResultHolder {
   static public ResultHolder[] EMPTY = new ResultHolder[0];
+
+  public  boolean cacheable = true;
 
   @Getter private final PsiElement origin;
 
@@ -83,7 +89,12 @@ public class ResultHolder {
     return (type instanceof SpecificHaxeClassReference classReference) && classReference.isTypeDef();
   }
   public boolean isEnum() {
-    return (type instanceof SpecificHaxeClassReference classReference) && classReference.isEnumType();
+    if (type instanceof SpecificHaxeClassReference classReference){
+      if(classReference.isEnumType()) return true;
+      HaxeClass aClass = classReference.getHaxeClass();
+      if(aClass != null)  return aClass.isEnum();
+    }
+    return false;
   }
 
   public boolean isEnumValueType() {
@@ -109,10 +120,10 @@ public class ResultHolder {
   }
 
   public boolean isTypeParameter() {
-    if(type instanceof  SpecificHaxeClassReference classReference) {
-      return classReference.getHaxeClassReference().isTypeParameter();
-    }
-    return false;
+    return type.isTypeParameter();
+  }
+  public boolean isTypeParameterWithConstraints() {
+    return type.isTypeParameterWithConstraints();
   }
 
   public ResultHolder setType(@Nullable SpecificTypeReference type) {
@@ -123,6 +134,7 @@ public class ResultHolder {
     mutationCount++;
     return this;
   }
+
 
 
   public void disableMutating() {
@@ -149,15 +161,18 @@ public class ResultHolder {
     return out;
   }
 
-  public boolean canAssign(ResultHolder that, HaxeAssignContext  context) {
-    return HaxeTypeCompatible.canAssignToFrom(this, that, context);
+  public HaxeAssignEvaluation canAssignEvaluation(ResultHolder that) {
+    return HaxeTypeCompatible.evaluateAssignToFrom(this, that);
   }
   public boolean canAssign(ResultHolder that) {
-    return HaxeTypeCompatible.canAssignToFrom(this, that, null);
+    return HaxeTypeCompatible.canAssignToFromReference(this, that);
   }
 
   public void removeConstant() {
     setType(getType().withoutConstantValue());
+  }
+  public Object getConstant() {
+    return getType().getConstant();
   }
 
   public String toString() {
@@ -169,11 +184,16 @@ public class ResultHolder {
   }
 
   public String toPresentationString() {
-    return this.getType().toPresentationString();
+    return this.getType().toPresentationString(false);
+  }
+  public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
+    return this.getType().toPresentationString(showOnlyConstraintForTypeParam);
   }
 
   public ResultHolder duplicate() {
-    return new ResultHolder(this.getType());
+    ResultHolder resultHolder = new ResultHolder(this.getType());
+    resultHolder.cacheable = cacheable;
+    return resultHolder;
   }
 
   public ResultHolder withConstantValue(Object constantValue) {
@@ -221,6 +241,14 @@ public class ResultHolder {
   public boolean containsUnknownTypeParameters() {
     return containsUnknownTypeParameters(this);
   }
+  public boolean containsUnknownTypes() {
+    if(isUnknown()) return true;
+    if(isFunctionType()) {
+      return containsUnknownTypeParameters(this) || getFunctionType().containsUnknownTypes();
+    }else {
+      return containsUnknownTypeParameters(this);
+    }
+  }
   public static boolean containsUnknownTypeParameters(ResultHolder holder) {
     if (holder.isUnknown()) return  false;
     if (holder.isTypeParameter()) return true;
@@ -254,7 +282,33 @@ public class ResultHolder {
     return classType != null && classType.isNullType();
   }
 
-  public ResultHolder wrapInNullType() {
-    return getType().wrapInNullType().createHolder();
+  // context is important for recursion guards, make sure you dont use the same context for type and nullwrapped type
+  public ResultHolder wrapInNullType(@NotNull PsiElement context) {
+    return getType().wrapInNullType(context).createHolder();
+  }
+
+  public static boolean nullOrUnknown(ResultHolder holder) {
+    return holder == null || holder.isUnknown();
+  }
+
+  @Nullable
+  public ResultHolder getTypeParameterConstraint() {
+    SpecificHaxeClassReference classType = getClassType();
+    if (classType != null) {
+      if (classType.getHaxeClassModel() instanceof HaxeGenericParamModel genericParamModel) {
+        return genericParamModel.getConstraint(null);
+      }
+    }
+    return null;
+  }
+
+  public @NotNull ResultHolder noCache() {
+    cacheable = false;
+    return this;
+  }
+
+  public PsiElement getContext() {
+    return getType().context;
+
   }
 }

@@ -27,11 +27,9 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.model.type.resolver.ResolveSource;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.NotImplementedException;
@@ -41,11 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.HaxeComponentType.*;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.canAssignToFrom;
-import static com.intellij.plugins.haxe.model.type.HaxeTypeCompatible.getUnderlyingClassIfAbstractNull;
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromFunctionType;
-import static com.intellij.plugins.haxe.util.HaxeGenericUtil.*;
-import static com.intellij.plugins.haxe.util.HaxeMetadataUtil.getMethodsWithMetadata;
 
 public class HaxeClassModel implements HaxeCommonMembersModel {
   public final HaxeClass haxeClass;
@@ -85,13 +79,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
   public SpecificHaxeClassReference getInstanceReference() {
     if (reference  == null) {
-      HaxeGenericResolver genericResolver = getGenericResolver(null);
-      if (genericResolver.isEmpty()) {
-        reference = SpecificHaxeClassReference.withoutGenerics(getReference());
-      }else {
-        reference = SpecificHaxeClassReference.withGenerics(getReference(),genericResolver.getSpecifics());
-
-      }
+        reference = SpecificHaxeClassReference.withGenerics(getReference(),getSpecifics());
     }
     return reference;
   }
@@ -105,6 +93,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return out;
   }
 
+  @NotNull
   public List<HaxeClassReferenceModel> getImplementingInterfaces() {
     List<HaxeType> list = getImplementsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
@@ -134,6 +123,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return typeOf(haxeClass) == TYPEDEF;
   }
 
+  public boolean isTypeParameter() {
+    return  haxeClass instanceof HaxeGenericListPart;
+  }
   public boolean isAbstractType() {
     return haxeClass instanceof HaxeAbstractTypeDeclaration;
   }
@@ -241,11 +233,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     if (!isAbstractType() && !isTypedef()) return null;
     HaxeTypeOrAnonymous typeOrAnon = getUnderlyingTypeOrAnonymous();
     if (typeOrAnon != null) {
-      HaxeType type = typeOrAnon.getType();
-      if (type != null) {
-        ResultHolder resultHolder = HaxeTypeResolver.getTypeFromType(type);
-        if (!resultHolder.isUnknown()) return resultHolder.getType();
-      }
+      ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnon);
+      if (!resultHolder.isUnknown()) return resultHolder.getType();
     }
     HaxeFunctionType type = getUnderlyingFunctionType();
     if (type != null){
@@ -283,7 +272,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
           HaxeClass aClass = classType.getHaxeClass();
           if (aClass != null) {
             ResultHolder[] specifics = HaxeTypeResolver.resolveDeclarationParametersToTypes(aClass, localResolver);
-            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), aClass.getModel().haxeClass), specifics, element);
+            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(aClass.getModel(), aClass.getModel().haxeClass), specifics);
           }
         }
       } else { // Anonymous type
@@ -294,10 +283,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
             HaxeGenericResolver memberResolver = typedefDeclaration.getMemberResolver(null);
             if(memberResolver != null) {
               HaxeClassReference classReference = new HaxeClassReference(anon.getModel(), element);
-              return SpecificHaxeClassReference.withGenerics(classReference, memberResolver.getSpecificsFor(classReference), element);
+              return SpecificHaxeClassReference.withGenerics(classReference, memberResolver.getSpecificsFor(classReference));
             }
           }
-          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics(), element);
+          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(anon.getModel(), element), resolver.getSpecifics());
         }
       }
     } else {
@@ -306,7 +295,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         List<HaxeGenericParamModel> typeParams = getGenericParams();
         if (typeParams.size() == 1) {
           HaxeGenericParamModel param = typeParams.get(0);
-          ResultHolder result = resolver.resolve(param.getName());
+          ResultHolder result = resolver.resolveTypeParameter(param.getTypeParameter());
           if (result != null) {
             return result.getClassType();
           }
@@ -328,7 +317,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         List<HaxeGenericParamModel> typeParams = getGenericParams();
         if (typeParams.size() == 1) {
           HaxeGenericParamModel param = typeParams.get(0);
-          ResultHolder result = resolver.resolve(param.getName());
+          ResultHolder result = resolver.resolveTypeParameter(param.getTypeParameter());
           if (result != null) {
             return result.getFunctionType();
           }
@@ -351,154 +340,6 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       }
     }
     return types;
-  }
-
-  public List<SpecificHaxeClassReference> getImplicitCastToTypesListClassOnly(SpecificHaxeClassReference sourceType ) {
-    List<SpecificHaxeClassReference> list = new ArrayList<>();
-    for (SpecificTypeReference reference : getImplicitCastToTypesList(sourceType)) {
-      if (reference instanceof SpecificHaxeClassReference classReference) {
-        list.add(classReference);
-      }
-    }
-    return list;
-
-  }
-  public List<SpecificTypeReference> getImplicitCastToTypesList(SpecificHaxeClassReference sourceType ) {
-    if (!isAbstractType()) return Collections.emptyList();
-    List<HaxeMethodModel> methodsWithMetadata = getCastToMethods();
-
-    List<SpecificTypeReference> list = new ArrayList<>();
-    for (HaxeMethodModel methodModel : methodsWithMetadata) {
-      if (castMethodAcceptsSource(sourceType, methodModel)) {
-        SpecificTypeReference returnType = getReturnType(methodModel);
-        if (returnType.isTypeParameter()) {
-          ResultHolder resolve = sourceType.getGenericResolver().resolve(((SpecificHaxeClassReference)returnType).getClassName());
-          if (resolve!= null && !resolve.isUnknown()) {
-            returnType = resolve.getType();
-          }
-        }
-        SpecificTypeReference reference = setSpecificsConstraints(methodModel, returnType, sourceType.getGenericResolver());
-        list.add(reference);
-
-        if (reference.isNullType()) {
-          SpecificHaxeClassReference underlyingClass = getUnderlyingClassIfAbstractNull((SpecificHaxeClassReference)reference);
-          list.add(underlyingClass);
-        }
-      }
-    }
-    return list;
-  }
-
-
-  private boolean castMethodAcceptsSource(@NotNull SpecificHaxeClassReference reference, @NotNull HaxeMethodModel methodModel) {
-    SpecificTypeReference parameter = getTypeOfFirstParameter(methodModel);
-    //implicit cast methods seems to accept both parameter-less methods and single parameter methods
-    if (parameter == null) return true; // if no param then "this" is  the  input  and will always be compatible.
-    HaxeGenericResolver resolver = reference.getGenericResolver().withoutUnknowns();
-    SpecificTypeReference parameterWithRealRealSpecifics = setSpecificsConstraints(methodModel, parameter, resolver);
-
-    if(reference.isAbstractType()) {
-      SpecificHaxeClassReference underlying = reference.getHaxeClassModel().getUnderlyingClassReference(reference.getGenericResolver());
-      if(canAssignToFrom(parameterWithRealRealSpecifics, underlying, false, null)) return true;
-    }
-
-    return canAssignToFrom(parameterWithRealRealSpecifics, reference, false, null);
-  }
-
-  public List<SpecificHaxeClassReference> getImplicitCastFromTypesListClassOnly(SpecificHaxeClassReference targetType) {
-    List<SpecificHaxeClassReference> list = new ArrayList<>();
-    for (SpecificTypeReference reference : getImplicitCastFromTypesList(targetType)) {
-      if (reference instanceof SpecificHaxeClassReference classReference) {
-        list.add(classReference);
-      }
-    }
-    return list;
-  }
-
-  public List<SpecificTypeReference> getImplicitCastFromTypesList(SpecificHaxeClassReference targetType) {
-    if (!isAbstractType()) return Collections.emptyList();
-    List<HaxeMethodModel> methodsWithMetadata = getCastFromMethods();
-
-    HaxeGenericResolver resolver = this.getGenericResolver(null);
-
-    // if return types can not be assign to target then skip this castMethod
-    List<SpecificTypeReference> list = new ArrayList<>();
-    for (HaxeMethodModel m : methodsWithMetadata) {
-      // TODO consider applying generics from targetType to be more strict about what methods are supported ?
-      if (canAssignToFrom(targetType, setSpecificsConstraints(m, getReturnType(m), targetType.getGenericResolver().withoutUnknowns()), false,  null)) {
-        SpecificTypeReference type = getImplicitCastFromType(m, resolver);
-        if (type != null) {
-          list.add(type);
-        }
-      }
-    }
-    return list;
-  }
-
-  @Nullable
-  private SpecificTypeReference getImplicitCastFromType(@NotNull HaxeMethodModel methodModel, @Nullable HaxeGenericResolver resolver) {
-    SpecificTypeReference parameter = getTypeOfFirstParameter(methodModel);
-    if (parameter == null) return null;
-    return setSpecificsConstraints(methodModel, parameter, resolver);
-  }
-
-  @NotNull
-  private SpecificTypeReference setSpecificsConstraints(@NotNull HaxeMethodModel methodModel, @NotNull SpecificTypeReference classReference,
-                                                             @Nullable HaxeGenericResolver resolver) {
-    if (classReference instanceof  SpecificHaxeClassReference haxeClassReference) {
-      ResultHolder[] specifics = haxeClassReference.getGenericResolver().getSpecifics();
-      ResultHolder[] newSpecifics = applyConstraintsToSpecifics(methodModel, specifics);
-
-      SpecificHaxeClassReference reference = replaceTypeIfGenericParameterName(methodModel, haxeClassReference);
-
-      if (resolver != null) {
-        for (int i = 0; i < specifics.length; i++) {
-          ResultHolder specific = specifics[i];
-          ResultHolder resolved = resolver.resolve(specific);
-          if (!resolved.isUnknown() && canAssignToFrom(newSpecifics[i], resolved)) {
-            newSpecifics[i] = resolved;
-          }
-        }
-      }
-      return SpecificHaxeClassReference.withGenerics(reference.getHaxeClassReference(), newSpecifics);
-    }else {
-      return classReference;
-    }
-  }
-
-  //caching  implicit cast  method lookup results
-  @NotNull
-  private List<HaxeMethodModel> getCastToMethods() {
-    return  CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getCastToMethodsCached);
-  }
-
-  private static List<HaxeMethodModel> getCastToMethodsCached(@NotNull HaxeClass haxeClass) {
-    List<HaxeMethodModel> castToMethods = getMethodsWithMetadata(haxeClass.getModel(), "to", HaxeMeta.COMPILE_TIME, null);
-    return  List.copyOf(castToMethods);
-  }
-
-  //caching implicit cast method lookup  results
-  @NotNull
-  private List<HaxeMethodModel> getCastFromMethods() {
-    return  CachedValuesManager.getProjectPsiDependentCache(haxeClass, HaxeClassModel::getCastFromMethodsCached);
-  }
-  private static List<HaxeMethodModel> getCastFromMethodsCached(@NotNull HaxeClass haxeClass) {
-    List<HaxeMethodModel> castFromMethods = getMethodsWithMetadata(haxeClass.getModel(), "from", HaxeMeta.COMPILE_TIME, null);
-    return  List.copyOf(castFromMethods);
-  }
-
-  @NotNull
-  private SpecificHaxeClassReference getReturnType(@NotNull HaxeMethodModel model) {
-    SpecificHaxeClassReference type = model.getFunctionType().getReturnType().getClassType();
-    return type != null ? type :  SpecificTypeReference.getUnknown(model.getFunctionType().getReturnType().getElementContext());
-  }
-
-  @Nullable
-  private SpecificTypeReference getTypeOfFirstParameter(@NotNull HaxeMethodModel model) {
-    List<SpecificFunctionReference.Argument> arguments = model.getFunctionType().getArguments();
-    if (arguments.isEmpty()) return null;
-
-    return arguments.get(0).getType().getType();
   }
 
 
@@ -773,6 +614,21 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         parentClass.writeCompatibleTypes(output);
       }
     }
+    if(isTypeParameter()) {
+      if(haxeClass instanceof HaxeGenericListPart genericListPart) {
+        //TODO handle unify generics with constraints
+        HaxeGenericConstraintPart constraint = genericListPart.getGenericConstraintPart();
+        if (constraint != null) {
+          ResultHolder type = HaxeTypeResolver.getTypeFromGenericConstraint(constraint);
+          if (type != null && type.getClassType() != null) {
+            HaxeClassModel model = type.getClassType().getHaxeClassModel();
+            if (model != null) {
+              model.writeCompatibleTypes(output);
+            }
+          }
+        }
+      }
+    }
 
     // Interfaces
     for (HaxeClassReferenceModel model : this.getImplementingInterfaces()) {
@@ -818,14 +674,11 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   @NotNull
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
-    // anonymous structures does not have TypeParameters on their own, but their parent may declar them.
+    // anonymous structures does not have TypeParameters on their own, but their parent may declare them.
       HaxeGenericParam genericParam = getGenericParamPsi();
       if (genericParam != null) {
-        int index = 0;
         for (HaxeGenericListPart part : genericParam.getGenericListPartList()) {
-          // TODO try to avoid recreating this  model every time
-          out.add(new HaxeGenericParamModel(part, index));
-          index++;
+          out.add(part.getModel());
         }
       }
     return out;
@@ -851,9 +704,6 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return type.getGenericParam();
   }
 
-  /**
-   * @return a generic resolver with Unknown or constrained types.
-   */
   @NotNull
   public HaxeGenericResolver getGenericResolver(@Nullable HaxeGenericResolver parentResolver) {
     HaxeGenericParam param = getGenericParamPsi();
@@ -861,17 +711,31 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
       HaxeGenericResolver resolver = new HaxeGenericResolver();
       for (HaxeGenericListPart part : param.getGenericListPartList()) {
-        HaxeGenericParamModel model = new HaxeGenericParamModel(part, 0);
+        HaxeGenericParamModel model = part.getModel();
         ResultHolder constraint = model.getConstraint(parentResolver);
         if (null == constraint) {
           constraint = new ResultHolder(SpecificTypeReference.getUnknown(getBasePsi()));
         }
-        resolver.addConstraint(model.getName(), constraint, ResolveSource.CLASS_TYPE_PARAMETER);
+        resolver.addConstraint(model.getTypeParameter(), constraint);
       }
 
       return resolver;
     }
     return new HaxeGenericResolver();
+  }
+  @NotNull
+  private ResultHolder[] getSpecifics() {
+    HaxeGenericParam param = getGenericParamPsi();
+    if (param == null) return new ResultHolder[0];
+    List<HaxeGenericListPart> list = param.getGenericListPartList();
+    ResultHolder[] specifics = new ResultHolder[list.size()];
+    for (int i = 0; i < list.size(); i++) {
+      HaxeGenericListPart part = list.get(i);
+      HaxeGenericParamModel model = part.getModel();
+      ResultHolder TypeParam = model.getTypeParameter().getModel().getInstanceType();
+      specifics[i] = TypeParam;
+    }
+    return specifics;
   }
 
   public void addField(String name, SpecificTypeReference type) {

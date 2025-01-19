@@ -14,6 +14,12 @@ class AssignEnumValue {
  		var <error descr="Incompatible type: Enum<MyEnum> should be EnumValue">wrong1:EnumValue = MyEnum</error>;
 		// expression is read it as  x < y, so it thinks its a bool expression (not sure if we want this error or not)
  		var wrong2:EnumValue = <error descr="Unable to apply operator < for types Class<Enum> and Enum<MyEnum>">Enum<MyEnum</error>><error descr="<expression> expected, got ';'">;</error>
+
+		// empty constrctor tests
+		var ok6:EnumValue = MyEnum.EMPTY_CONSTRUCTOR; // this is the correct way to use "EMPTY_CONSTRUCTOR()"
+		//TODO mlo:this should show an error (Error: MyEnum cannot be called)
+		var wrong3:EnumValue = MyEnum.EMPTY_CONSTRUCTOR(); // while this might seem logical it fails to compile
+
  	}
 
  	public function getEnum():MyEnum {
@@ -27,4 +33,5 @@ enum MyEnum {
     FIRST;
     SECOND;
     THIRD;
+    EMPTY_CONSTRUCTOR();
 }

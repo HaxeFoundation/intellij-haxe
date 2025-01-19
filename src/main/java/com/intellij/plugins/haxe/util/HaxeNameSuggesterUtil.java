@@ -104,7 +104,7 @@ public class HaxeNameSuggesterUtil {
     if (type.isFloat()) { return "f"; }
     if (type.isString()) { return "str"; }
     if (type.isArray()) { return "arr"; }
-    if (type.isMap()) { return "map"; }
+    if (type.isMapType()) { return "map"; }
 
     if (type instanceof SpecificHaxeClassReference) {
       SpecificHaxeClassReference ref = (SpecificHaxeClassReference)type;

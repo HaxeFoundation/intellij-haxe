@@ -26,7 +26,7 @@ class MonomorphTest {
         arrayDelayed = [];
         arrayDelayed.push("Test");
         // Wrong already morphed to Array<String>
-        arrayDelayed.push(1);
+        arrayDelayed.push(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>);
 
 
         var mapDelayed;
@@ -34,6 +34,22 @@ class MonomorphTest {
         mapDelayed.set("test", 1);
         // Wrong already morphed to Map<String, Int>
         mapDelayed.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
+
+        // verify we are using callies typeParameter for typeParameter not specified in call expression
+        var returnValue:Int = mapDelayed.get("1"); // correct
+        var <error descr="Incompatible type: Null<Int> should be String">returnValue:String = mapDelayed.get("1")</error>;// wrong
+
+        var mapDelayed2 = new Map();
+        mapDelayed2.clear();// verify that accessing member without type parameter(s) wont affect monomorph
+        mapDelayed2.set("test", 1);
+        // Wrong already morphed to Map<String, Int>
+        mapDelayed2.set(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"test"</error>);
+
+        var delayedinferMap3 = new Map();
+        delayedinferMap3.clear();
+        delayedinferMap3.get(1);
+        //wrong FirstTypeParameter should be Int (second is still unknown)
+        delayedinferMap3.set(<error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>, 1);
     }
 
     var myMap = new Map<String,Int>();

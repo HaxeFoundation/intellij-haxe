@@ -114,16 +114,20 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public HaxeClassModel getModel() {
     if (_model == null) {
-      if (this instanceof HaxeTypeParameterMultiType multiType) {
-        _model = new HaxeTypeParameterMultiTypeModel(multiType);
-      }else if (this instanceof HaxeAnonymousType anonymousType) {
+      // note HaxeGenericConstraintPartImpl implements anonymous interface so it must be first
+      // this is a temp workaround until the class hierarchy and abstractClass can be replaced with more flexible interfaces
+      if (this instanceof HaxeConstraintTypeListImpl constraintTypeList) {
+        _model = new HaxeConstraintTypeListModel(constraintTypeList);
+      } else if (this instanceof HaxeAnonymousType anonymousType) {
         _model = new HaxeAnonymousTypeModel(anonymousType);
-      }else if (this instanceof HaxeEnumDeclaration enumDeclaration) {
+      } else if (this instanceof HaxeEnumDeclaration enumDeclaration) {
         _model = new HaxeEnumModelImpl(enumDeclaration);
       } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) {
         _model = new HaxeExternClassModel(externClassDeclaration);
       } else if (this instanceof HaxeObjectLiteralImpl objectLiteral) {
         _model =  new HaxeObjectLiteralClassModel(objectLiteral);
+      } else if (this instanceof HaxeGenericListPart genericListPart) {
+        _model = new HaxeGenericParamModel(genericListPart);
       } else if (this instanceof HaxeAbstractTypeDeclaration abstractDeclaration) {
         if (abstractDeclaration.isEnum()) {
           _model = new HaxeAbstractEnumModel(abstractDeclaration);
@@ -176,6 +180,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
   @Override
   public boolean isAnonymousType() {
+    return  false;
+  }
+
+  public boolean isTypeParameter() {
     return  false;
   }
 

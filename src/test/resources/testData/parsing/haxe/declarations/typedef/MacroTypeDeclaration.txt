@@ -21,27 +21,26 @@ Haxe File
               HaxePsiToken:ID('MacroType')
           TYPE_PARAM
             HaxePsiToken:<('<')
-            TYPE_LIST
-              TYPE_LIST_PART
-                ARRAY_LITERAL
-                  HaxePsiToken:[('[')
-                  EXPRESSION_LIST
-                    CALL_EXPRESSION
+            TYPE_LIST_PART
+              ARRAY_LITERAL
+                HaxePsiToken:[('[')
+                EXPRESSION_LIST
+                  CALL_EXPRESSION
+                    REFERENCE_EXPRESSION
                       REFERENCE_EXPRESSION
-                        REFERENCE_EXPRESSION
-                          IDENTIFIER
-                            HaxePsiToken:ID('TypeBuilder')
-                        HaxePsiToken:.('.')
                         IDENTIFIER
-                          HaxePsiToken:ID('build')
-                      HaxePsiToken:(('(')
-                      CALL_EXPRESSION_LIST
-                        STRING_LITERAL_EXPRESSION
-                          HaxePsiToken:OPEN_QUOTE('"')
-                          HaxePsiToken:REGULAR_STRING_PART('DeviceRegistration.schema')
-                          HaxePsiToken:CLOSING_QUOTE('"')
-                      HaxePsiToken:)(')')
-                  HaxePsiToken:](']')
+                          HaxePsiToken:ID('TypeBuilder')
+                      HaxePsiToken:.('.')
+                      IDENTIFIER
+                        HaxePsiToken:ID('build')
+                    HaxePsiToken:(('(')
+                    CALL_EXPRESSION_LIST
+                      STRING_LITERAL_EXPRESSION
+                        HaxePsiToken:OPEN_QUOTE('"')
+                        HaxePsiToken:REGULAR_STRING_PART('DeviceRegistration.schema')
+                        HaxePsiToken:CLOSING_QUOTE('"')
+                    HaxePsiToken:)(')')
+                HaxePsiToken:](']')
             HaxePsiToken:>('>')
       HaxePsiToken:;(';')
   PsiComment(MSL_COMMENT)('//  Error is here --------------------------------^  at the open bracket.')

@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeDummyASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiCompositeElementImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -60,6 +61,7 @@ public abstract class SpecificTypeReference {
   public static final String STRING_MAP = "haxe.ds.StringMap";
   public static final String OBJECT_MAP = "haxe.ds.ObjectMap";
   public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
+  public static final String MAP_INTERFACE = "haxe.Constraints.IMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
 
   /**
@@ -71,12 +73,12 @@ public abstract class SpecificTypeReference {
     this.context = context;
   }
 
-  public static SpecificTypeReference createArray(@NotNull ResultHolder elementType, PsiElement context) {
+  public static SpecificHaxeClassReference createArray(@NotNull ResultHolder elementType, PsiElement context) {
     final HaxeClassReference classReference = getStdClassReference(ARRAY, context);
     return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{elementType}, null);
   }
 
-  public static SpecificTypeReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType, final PsiElement context) {
+  public static SpecificHaxeClassReference createMap(@NotNull ResultHolder keyType, @NotNull ResultHolder valueType, final PsiElement context) {
     // The code for this function *should* be 'return getExpectedMapType(keyType, valueType);'.  It is not; because the compiler
     // doesn't *really* map to the other types, though it is documented as such.  A 'trace' of an inferred type *will* output
     // the expected target map type (StringMap, IntMap, etc.).  However, with any map of an inferred target type,
@@ -272,10 +274,28 @@ public abstract class SpecificTypeReference {
     return isNamedType(ARRAY);
   }
 
-  final public boolean isMap() {
-    if (this instanceof SpecificHaxeClassReference) {
-      final SpecificHaxeClassReference reference = (SpecificHaxeClassReference)this;
-      String name = reference.getHaxeClassReference().getName();
+  final public boolean isMapType() {
+    if (this instanceof SpecificHaxeClassReference reference) {
+      // try to check for map interface first
+      HaxeClassModel refModel = reference.getHaxeClassModel();
+      if(refModel != null) {
+        List<HaxeClassReferenceModel> interfaces = refModel.getImplementingInterfaces();
+        for (HaxeClassReferenceModel anInterface : interfaces) {
+          HaxeClassModel classModel = anInterface.getHaxeClassModel();
+          if (classModel != null) {
+            String qualifiedName = classModel.haxeClass.getQualifiedName();
+            if (MAP_INTERFACE.equals(qualifiedName)) return true;
+          }
+        }
+      }
+      // TODO consider checking underlying type of abstract for MAP_INTERFACE
+
+      HaxeClass haxeClass = reference.getHaxeClass();
+      String name = haxeClass != null
+              ? haxeClass.getQualifiedName()
+              : reference.getHaxeClassReference().getName();
+
+      // fallback checking common maps (useful when std ins not configured)
       return MAP.equals(name)
         || INT_MAP.equals(name)
         || OBJECT_MAP.equals(name)
@@ -329,6 +349,19 @@ public abstract class SpecificTypeReference {
     return false;
   }
 
+  final public boolean isTypeParameterWithConstraints() {
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      HaxeClassReference haxeClassReference = specificHaxeClassReference.getHaxeClassReference();
+      HaxeClass haxeClass = haxeClassReference.getHaxeClass();
+      if(haxeClass != null) {
+      if (haxeClass.getModel() instanceof HaxeGenericParamModel model) {
+        return model.hasConstraint();
+      }
+    }
+      }
+    return false;
+  }
+
   /**
    * checks if type reference is from a typeParameter (ex. `Array<TypeParameter>`)
    * or if its a normal reference (ex `var x = String;` or `MyType.staticMethod()`)
@@ -363,6 +396,14 @@ public abstract class SpecificTypeReference {
 
   final public boolean isEnumValueClass() {
     return isNamedType(ENUM_VALUE);
+  }
+
+  public  boolean isEnumReference() {
+    if (this instanceof  SpecificHaxeClassReference classReference) {
+      HaxeClassModel classModel = classReference.getHaxeClassModel();
+      return classModel != null && classModel.isEnum();
+    }
+    return false;
   }
 
   private boolean isNamedType(String typeName) {
@@ -438,7 +479,10 @@ public abstract class SpecificTypeReference {
     return context;
   }
 
-  abstract public String toPresentationString();
+  public String toPresentationString() {
+    return toPresentationString(false);
+  }
+  abstract public String toPresentationString(boolean showOnlyConstraintForTypeParam);
 
   abstract public String toString();
 
@@ -453,11 +497,11 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean canAssign(SpecificTypeReference type2) {
-    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+    return HaxeTypeCompatible.canAssignToFromReference(this, type2);
   }
 
   final public boolean canAssign(ResultHolder type2) {
-    return HaxeTypeCompatible.canAssignToFrom(this, type2);
+    return canAssign(type2.getType());
   }
 
   public ResultHolder createHolder() {
@@ -490,8 +534,11 @@ public abstract class SpecificTypeReference {
   public boolean isLiteralArray() {
     return (isArray() && context instanceof HaxeArrayLiteral);
   }
+  public boolean isEmptyLiteralCollection() {
+    return (isArray() && context instanceof HaxeArrayLiteral literal) && literal.getExpressionList() == null;
+  }
   public boolean isLiteralMap() {
-    return ( isMap() &&  context instanceof  HaxeMapLiteral);
+    return (isMapType() && context instanceof  HaxeMapLiteral);
   }
 
 
@@ -569,7 +616,8 @@ public abstract class SpecificTypeReference {
     return typeParams;
   }
 
-  public SpecificHaxeClassReference wrapInNullType() {
-    return SpecificHaxeClassReference.getNull(this.getElementContext(), this.createHolder());
+  // context is important for recursion guards, make sure you dont use the same context for type and null-wrapped type
+  public SpecificHaxeClassReference wrapInNullType(@NotNull PsiElement context) {
+    return SpecificHaxeClassReference.getNull(context, this.createHolder());
   }
 }

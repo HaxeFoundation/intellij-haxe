@@ -1,0 +1,20 @@
+package com.intellij.plugins.haxe.model.evaluator.callexpression;
+
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.psi.PsiElement;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class CallExpressionArgumentModel {
+  PsiElement psiElement;
+  SpecificTypeReference type;
+
+
+  public static CallExpressionArgumentModel create(PsiElement psiElement, SpecificTypeReference type) {
+    return new CallExpressionArgumentModel(psiElement, type);
+  }
+
+
+}

@@ -21,14 +21,15 @@ class Test {
             arrayDynamic([new Test(), 1, ""]) ;
 
             // Array<Any> accepts all data types when literal
-            MapAnyAny([new Test()]) ;
-            MapAnyAny([1]) ;
             arrayAny([""]) ;
             arrayAny([new Test(), 1, ""]) ;
 
             // Map<Any,Any> parameter accepts all data types
             mapAnyAny([""=> ""]) ;
             mapAnyAny([""=> 1]) ;
+
+            mapAnyAny(<error descr="Type mismatch (Expected: 'Map<Any, Any>' got: 'Array<Test>')">[new Test()]</error>) ; //WRONG not map literal
+            mapAnyAny(<error descr="Type mismatch (Expected: 'Map<Any, Any>' got: 'Array<Int>')">[1]</error>) ; //WRONG not map literal
 
             mapStringAny([""=> ""]) ;
             mapStringAny(<error descr="Type mismatch (Expected: 'Map<String, Any>' got: 'haxe.ds.Map<Int, String>')">[1=> ""]</error>) ; // WRONG

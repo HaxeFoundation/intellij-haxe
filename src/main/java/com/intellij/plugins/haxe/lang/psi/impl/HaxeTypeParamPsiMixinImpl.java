@@ -18,8 +18,6 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
-import com.intellij.plugins.haxe.lang.psi.HaxeTypeList;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeListPart;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -36,8 +34,7 @@ public class HaxeTypeParamPsiMixinImpl extends HaxePsiCompositeElementImpl imple
 
   @Override
   public PsiTypeParameter[] getTypeParameters() {
-    HaxeTypeList list = (HaxeTypeList) UsefulPsiTreeUtil.getChildOfType(this, HaxeTokenTypes.TYPE_LIST);
-    HaxeTypeListPart[] parts = UsefulPsiTreeUtil.getChildrenOfType(list, HaxeTypeListPart.class, null);
+    HaxeTypeListPart[] parts = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeTypeListPart.class, null);
     return null != parts ? parts : new PsiTypeParameter[0];
   }
 

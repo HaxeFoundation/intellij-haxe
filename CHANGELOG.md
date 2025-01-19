@@ -1,4 +1,13 @@
 # Changelog
+## 1.6.0-beta
+This release is a major rework of type and method compatibility logic.
+Lots of old hacks and workarounds removed and hopefully this release will improve performance
+and do more correct type checking.  
+
+known issues:
+ - abstracts of function types with casting can in some cases  report incorrect type.
+ - type-inference / monomorphism does not cover all cases.
+
 ## 1.5.13
 * Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
 

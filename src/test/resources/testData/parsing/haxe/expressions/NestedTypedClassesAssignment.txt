@@ -100,23 +100,21 @@ Haxe File
                           HaxePsiToken:ID('X')
                       TYPE_PARAM
                         HaxePsiToken:<('<')
-                        TYPE_LIST
-                          TYPE_LIST_PART
-                            TYPE_OR_ANONYMOUS
-                              TYPE
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('X')
-                                TYPE_PARAM
-                                  HaxePsiToken:<('<')
-                                  TYPE_LIST
-                                    TYPE_LIST_PART
-                                      TYPE_OR_ANONYMOUS
-                                        TYPE
-                                          REFERENCE_EXPRESSION
-                                            IDENTIFIER
-                                              HaxePsiToken:ID('Int')
-                                  HaxePsiToken:>('>')
+                        TYPE_LIST_PART
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('X')
+                              TYPE_PARAM
+                                HaxePsiToken:<('<')
+                                TYPE_LIST_PART
+                                  TYPE_OR_ANONYMOUS
+                                    TYPE
+                                      REFERENCE_EXPRESSION
+                                        IDENTIFIER
+                                          HaxePsiToken:ID('Int')
+                                HaxePsiToken:>('>')
                         HaxePsiToken:>('>')
                 VAR_INIT
                   HaxePsiToken:=('=')
@@ -128,23 +126,21 @@ Haxe File
                           HaxePsiToken:ID('X')
                       TYPE_PARAM
                         HaxePsiToken:<('<')
-                        TYPE_LIST
-                          TYPE_LIST_PART
-                            TYPE_OR_ANONYMOUS
-                              TYPE
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('X')
-                                TYPE_PARAM
-                                  HaxePsiToken:<('<')
-                                  TYPE_LIST
-                                    TYPE_LIST_PART
-                                      TYPE_OR_ANONYMOUS
-                                        TYPE
-                                          REFERENCE_EXPRESSION
-                                            IDENTIFIER
-                                              HaxePsiToken:ID('Int')
-                                  HaxePsiToken:>('>')
+                        TYPE_LIST_PART
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('X')
+                              TYPE_PARAM
+                                HaxePsiToken:<('<')
+                                TYPE_LIST_PART
+                                  TYPE_OR_ANONYMOUS
+                                    TYPE
+                                      REFERENCE_EXPRESSION
+                                        IDENTIFIER
+                                          HaxePsiToken:ID('Int')
+                                HaxePsiToken:>('>')
                         HaxePsiToken:>('>')
                     HaxePsiToken:(('(')
                     HaxePsiToken:)(')')

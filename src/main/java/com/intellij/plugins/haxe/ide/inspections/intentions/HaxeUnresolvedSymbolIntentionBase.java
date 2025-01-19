@@ -6,11 +6,13 @@ import com.intellij.codeInspection.util.IntentionFamilyName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.ide.annotator.semantics.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.*;
@@ -186,10 +188,11 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
         if (callExpression.getExpression() instanceof HaxeReference reference) {
           PsiElement resolved = reference.resolve();
           if (resolved instanceof HaxeMethod method) {
-            HaxeCallExpressionUtil.CallExpressionValidation validation = HaxeCallExpressionUtil.checkMethodCall(callExpression, method);
-            Integer parameterIndex = validation.getArgumentToParameterIndex().get(index);
+            HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+            HaxeCallExpressionEvaluation validation = context.evaluate();
+            Integer parameterIndex = validation.getArgumentToParameterMapping().get(index);
             if (parameterIndex != null) {
-              ResultHolder paramType = validation.getParameterIndexToType().get(parameterIndex);
+              ResultHolder paramType = validation.getParameterType(parameterIndex);
               if(paramType != null) return getTypeName(paramType);
             }
           }
