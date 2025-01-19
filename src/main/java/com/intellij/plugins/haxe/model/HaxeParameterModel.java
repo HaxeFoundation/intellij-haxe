@@ -130,6 +130,11 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     }else {
       type = new ResultHolder(SpecificHaxeClassReference.getUnknown(this.basePsi));
     }
+    if(type.getType() instanceof SpecificEnumValueReference enumValueReference) {
+      // uses enumClass type instead of enumValue type when working with parameters
+      type = enumValueReference.getType();
+    }
+
     return type;
   }
 
