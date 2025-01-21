@@ -295,12 +295,15 @@ public class HaxeExpressionEvaluatorHandlers {
             // check if pure Class Reference
             if (reference instanceof HaxeReferenceExpressionImpl expression) {
               if (expression.isPureClassReferenceOf(haxeClass)) {
-                // wrap in Class<> or Enum<>
-                SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
-                SpecificHaxeClassReference wrappedClass =
-                  SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
-                                                         new ResultHolder[]{new ResultHolder(originalClass)});
-                typeHolder = wrappedClass.createHolder();
+                // make sure its not an import statement
+                if (PsiTreeUtil.getParentOfType(expression, HaxeImportStatement.class) == null) {
+                  // wrap in Class<> or Enum<>
+                  SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
+                  SpecificHaxeClassReference wrappedClass =
+                          SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
+                                  new ResultHolder[]{new ResultHolder(originalClass)});
+                  typeHolder = wrappedClass.createHolder();
+                }
               }
             }
           }
