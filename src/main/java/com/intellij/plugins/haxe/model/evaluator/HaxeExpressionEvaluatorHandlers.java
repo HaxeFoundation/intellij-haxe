@@ -271,20 +271,8 @@ public class HaxeExpressionEvaluatorHandlers {
               typeHolder = handleWithRecursionGuard(resolve, context, resolver);
           }
           if (subelement instanceof HaxeImportAliasPsiMixinImpl importAlias) {
+            //TODO mlo, add tests for method/function alias
             typeHolder = handleWithRecursionGuard(importAlias, context, resolver);
-            if (reference instanceof HaxeReferenceExpressionImpl expression) {
-                if (typeHolder != null && typeHolder.getClassType() != null) {
-                  SpecificHaxeClassReference classType = typeHolder.getClassType();
-                  HaxeClass haxeClass = classType.getHaxeClass();
-                  if (haxeClass!= null && haxeClass.getName() != null) {
-                    if (expression.isPureClassReferenceOf(haxeClass)) {
-                      String wrapperType = typeHolder.isEnum() ? ENUM : CLASS;
-                      ResultHolder[] specifics = {new ResultHolder(classType)};
-                      typeHolder = SpecificHaxeClassReference.getStdClass(wrapperType, element, specifics).createHolder();
-                    }
-                  }
-              }
-            }
           }
           if (subelement instanceof HaxeClass haxeClass) {
 
@@ -517,11 +505,9 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
   static ResultHolder handleSwitchCaseCaptureVar(HaxeGenericResolver resolver, HaxeSwitchCaseCaptureVar captureVar) {
-    HaxeResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(captureVar, resolver.getSpecialization(null));
-    if (result.isHaxeClass()) {
-      return result.getSpecificClassReference(result.getHaxeClass(), resolver).createHolder();
-    }else if (result.isFunctionType()) {
-      return result.getSpecificClassReference(result.getFunctionType(), resolver).createHolder();
+    HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(captureVar, HaxeSwitchStatement.class);
+    if(switchStatement != null && switchStatement.getExpression() != null){
+      return HaxeTypeResolver.getPsiElementType(switchStatement.getExpression(), resolver);
     }
     return createUnknown(captureVar);
   }
@@ -562,12 +548,14 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
     }
-    else if (expression instanceof HaxeArrayLiteral arrayLiteral) {
-      HaxeResolveResult result = arrayLiteral.resolveHaxeClass();
-      SpecificHaxeClassReference reference = result.getSpecificClassReference(expression, resolver);
-      @NotNull ResultHolder[] specifics = reference.getSpecifics();
-      if (specifics.length == 1) {
-        return specifics[0];
+    else if (expression instanceof HaxeArrayLiteral arrayLiteral) { // TODO mlo: verify this works
+      ResultHolder resultHolder = handleArrayLiteral(new HaxeExpressionEvaluatorContext(spreadExpression), resolver, arrayLiteral);
+      SpecificHaxeClassReference classType = resultHolder.getClassType();
+      if(classType != null) {
+        @NotNull ResultHolder[] specifics = classType.getSpecifics();
+        if (specifics.length == 1) {
+          return specifics[0];
+        }
       }
     }
     return createUnknown(spreadExpression);
@@ -759,12 +747,9 @@ public class HaxeExpressionEvaluatorHandlers {
         }
         if (type.isTypeParameter()) {
           if (iterable!= null && iterable.getExpression() instanceof  HaxeReference reference) {
-            HaxeResolveResult result = reference.resolveHaxeClass();
-            HaxeGenericResolver classResolver = result.getGenericResolver();
-            ResultHolder holder = type.createHolder();
-            ResultHolder resolved = classResolver.resolve(holder);
-            if (resolved != null && !resolved.isUnknown()) {
-              type = resolved.getType();
+            ResultHolder result = handle(reference, context, resolver);
+            if (!result.isUnknown()) {
+              type = result.getType();
             }
           }
         }
@@ -1050,17 +1035,13 @@ public class HaxeExpressionEvaluatorHandlers {
           // TODO make better solution
           // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
           else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
-            HaxeGenericSpecialization leftResolver = classReference.getGenericResolver().getSpecialization(getter);
-            HaxeResolveResult resolvedInterface = HaxeResolveUtil.getHaxeClassResolveResult(interfaceDeclaration, leftResolver);
-            //TODO fix
-            //ResultHolder type = resolvedInterface.getGenericResolver().resolve("T");
-            //ResultHolder type = (ResultHolder)specifics;
-            //if (type != null) return type;
-
-            // temp fix for above
-            @NotNull ResultHolder[] specifics = resolvedInterface.getGenericResolver().getSpecifics();
-            if(specifics.length == 1) return specifics[0];
-
+            HaxeGenericResolver classResolver = classReference.getGenericResolver();
+            HaxeGenericResolver interfaceResolver = classResolver.translateFromTo(classReference.getHaxeClass(), interfaceDeclaration);
+            ResultHolder interfaceType = interfaceResolver.resolve(interfaceDeclaration.getModel().getInstanceType());
+            if(interfaceType != null) {
+              @NotNull ResultHolder[] specifics = interfaceType.getClassType().getSpecifics();
+              if (specifics.length == 1) return specifics[0];
+            }
           }
         }
       }
@@ -2054,15 +2035,18 @@ public class HaxeExpressionEvaluatorHandlers {
     }).toList();
   }
 
-  static ResultHolder handleImportAlias(PsiElement element, HaxeImportAlias alias) {
-    HaxeResolveResult result = alias.resolveHaxeClass();
-    HaxeClass haxeClass = result.getHaxeClass();
-    if (haxeClass == null) {
-      return new ResultHolder(SpecificHaxeClassReference.getUnknown(element));
-    }else {
-      @NotNull ResultHolder[] specifics = result.getGenericResolver().getSpecificsFor(haxeClass);
-      return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(haxeClass.getModel(), element), specifics).createHolder();
+  static ResultHolder handleImportAlias(HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver, HaxeImportAlias alias) {
+    if (alias.getParent() instanceof HaxeImportStatement importStatement) {
+      HaxeReferenceExpression expression = importStatement.getReferenceExpression();
+      if (expression != null) {
+        ResultHolder evaluationResult = HaxeExpressionEvaluator.evaluate(expression, resolver).result;
+        if(evaluationResult != null) {
+          // anything else, functions etc
+          return evaluationResult;
+        }
+      }
     }
+    return createUnknown(alias);
   }
 
   static SpecificTypeReference resolveAnyTypeDefs(SpecificTypeReference reference) {

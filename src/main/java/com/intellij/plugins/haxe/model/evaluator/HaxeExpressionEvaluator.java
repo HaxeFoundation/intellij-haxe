@@ -145,7 +145,7 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeImportAlias alias) {
-      return handleImportAlias(element, alias);
+      return handleImportAlias(context, resolver, alias);
     }
     // attempt at reducing unnecessary if checks by grouping psi types by their parent type
     if (element instanceof PsiStatement) {
