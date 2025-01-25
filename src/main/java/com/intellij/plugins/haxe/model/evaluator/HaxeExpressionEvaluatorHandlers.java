@@ -753,25 +753,11 @@ public class HaxeExpressionEvaluatorHandlers {
       final SpecificTypeReference iterableValue = handle(iterable, context, resolver).getType();
       ResultHolder iteratorResult = iterableValue.getIterableElementType(resolver);
       SpecificTypeReference type = iteratorResult != null ? iteratorResult.getType() : null;
-      //TODO: HACK?
-      // String class in in standard lib is  currently missing iterator methods
-      // this is a workaround  so we can iterate on chars in string.
-      if (type == null && iterableValue.isString()) {
-        type = iterableValue;
-      }
 
       if (type != null) {
         if (forStatementExpression != null) {
           ResultHolder handle = handle(forStatementExpression, context, resolver);
           return handle.getType().createHolder();
-        }
-        if (type.isTypeParameter()) {
-          if (iterable!= null && iterable.getExpression() instanceof  HaxeReference reference) {
-            ResultHolder result = handle(reference, context, resolver);
-            if (!result.isUnknown()) {
-              type = result.getType();
-            }
-          }
         }
       }
       if ( type != null) {
