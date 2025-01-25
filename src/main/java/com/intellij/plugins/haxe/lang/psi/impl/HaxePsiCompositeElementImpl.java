@@ -222,6 +222,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     return objectLiterals.stream()
       .map(HaxeEnumObjectLiteralElement::getExpression)
       .filter(expression -> expression instanceof HaxeReferenceExpression)
+      // check casing to prevent issues separating variables without "var" and types
+      // Compiler message when Uppercase:  "Val, pattern variables must be lower-case or with `var ` prefix"
+      .filter(haxeExpression -> Character.isLowerCase(haxeExpression.getText().charAt(0)))
       .map(HaxeReferenceExpression.class::cast)
       .filter(expression -> expression.getChildren().length == 1)
       .map(PsiElement.class::cast)

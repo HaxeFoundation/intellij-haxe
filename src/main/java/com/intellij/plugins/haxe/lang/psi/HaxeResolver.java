@@ -203,8 +203,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
     if (result == null) result = checkMacroIdentifier(reference);
-//    if (result == null) result = checkIsChain(reference);
+
     if (result == null) result = checkIsAccessor(reference);
+    if (result == null) result = checkEnumExtractor(reference);// do before walking tree
     if (result == null) result = checkIsSwitchVar(reference);
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
 
@@ -215,7 +216,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkSwitchOnEnum(reference);
-    if (result == null) result = checkEnumExtractor(reference);
     if (result == null) result = checkMemberReference(reference); // must be after resolvers that can find identifier inside a method
     if (result == null) {
 
@@ -767,6 +767,24 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> checkEnumExtractor(HaxeReference reference) {
+    // TODO find better solution?
+    // this is a workaround for enum extractors that are parsed as callExpressions
+    if(PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExpr.class) != null) {
+    if (reference.getParent() instanceof HaxeCallExpressionList expressionList) {
+      int index = expressionList.getExpressionList().indexOf(reference);
+      if (index > -1) {
+        if (expressionList.getParent() instanceof HaxeCallExpression haxeCallExpression) {
+          if (haxeCallExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+            PsiElement resolve = referenceExpression.resolve();
+            if (resolve instanceof HaxeEnumValueDeclarationConstructor constructor) {
+              HaxeParameter haxeParameter = constructor.getParameterList().getParameterList().get(index);
+              return List.of(haxeParameter.getComponentName());
+            }
+          }
+        }
+      }
+    }
+    }
     if (reference.getParent() instanceof HaxeEnumValueReference) {
       HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(reference, HaxeEnumArgumentExtractor.class);
       SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
@@ -1916,6 +1934,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     public boolean execute(@NotNull PsiElement element, ResolveState state) {
       //TODO: should probably make a better solution for this using a HaxeComponentName
       if (element.getParent() instanceof HaxeEnumObjectLiteralElement) {
+        // avoids adding target to list
+        if (element == target) return true;
+        // do not resolve a reference to elements later in the code
+        if(element.getTextOffset() > target.getTextOffset())  return true;
         if (element.textMatches(name)) {
           result.add(element);
           return false;
