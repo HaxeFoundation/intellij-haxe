@@ -70,6 +70,50 @@ public class HaxeExpressionUsageUtil {
     return null;
   }
 
+  public static @Nullable ResultHolder findUsageAsParameterInConstructorCall(HaxeExpression referenceExpression,
+                                                                             HaxeNewExpression newExpression,
+                                                                             List<HaxeExpression> list) {
+    int index = -1;
+    if (list != null) index = list.indexOf(referenceExpression);
+    if (index == -1) return null;
+    ResultHolder  assignHint=  lookForAssignHints(newExpression);
+      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression, assignHint);
+      if(context != null) {
+        HaxeCallExpressionEvaluation evaluated = context.evaluate();
+        if (context.isStaticExtension) index++;
+        return evaluated.getParameterType(index);
+      }
+      return null;
+  }
+
+  private static ResultHolder lookForAssignHints(HaxeNewExpression newExpression) {
+    HaxePsiField field = null;
+    if(newExpression.getParent() instanceof HaxeAssignExpression assignExpression) {
+      HaxeExpression assignedTo = assignExpression.getLeftExpression();
+      if(assignedTo instanceof  HaxeReferenceExpression assignedToReference) {
+        PsiElement resolve = assignedToReference.resolve();
+        if(resolve instanceof  HaxePsiField haxePsiField) {
+          field = haxePsiField;
+        }
+      }
+    }
+    else if (newExpression.getParent() instanceof  HaxeVarInit  init) {
+      if( init.getParent() instanceof  HaxePsiField haxePsiField) {
+        field = haxePsiField;
+      }
+    }
+
+      // avoiding evaluate as it will probably stop in a recursion guard
+      if(field != null) {
+        HaxeTypeTag typeTag = field.getTypeTag();
+        if(typeTag != null) {
+          ResultHolder typeFromTypeTag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, field);
+          if(!typeFromTypeTag.isUnknown()) return typeFromTypeTag;
+        }
+      }
+    return null;
+  }
+
   public static @Nullable ResultHolder findUsageAsParameterInFunctionCall(HaxeExpression referenceExpression,
                                                                           HaxeCallExpression callExpression,
                                                                           HaxeCallExpressionList list,
@@ -136,7 +180,7 @@ public class HaxeExpressionUsageUtil {
           PsiElement parent = expression.getParent();
 
           if (reference instanceof HaxeReferenceExpression referenceExpression) {
-            ResultHolder result = tryFindTypeWhenUsedAsParameterInCallExpression(updatedType, referenceExpression, parent);
+            ResultHolder result = tryFindTypeWhenUsedAsParameterInCallOrNewExpression(updatedType, referenceExpression, parent);
             if (result == null) return null;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
@@ -245,8 +289,15 @@ public class HaxeExpressionUsageUtil {
       for (int i = 0; i < foundSpecifics.length; i++) {
           ResultHolder currentSpecific = currentSpecifics[i];
           ResultHolder foundSpecific = foundSpecifics[i];
-          if (currentSpecific.isUnknown() ||  (currentSpecific.isTypeParameter()  && currentSpecific.canAssign(foundSpecific))) {
-            newSpecifics[i] = foundSpecific;
+          // important, make sure we are not updating already found values
+          if (currentSpecific.canMutate()
+              // might not be the best solution but an attempt to avoid disableMutating when typeParameter was not used.
+              // Our methods return a complete type with all typeParameters so here we guess that unchanged means not used.
+              &&  (currentSpecific.getType() !=  foundSpecific.getType())
+              && (currentSpecific.isUnknown() ||  (currentSpecific.isTypeParameter()  && currentSpecific.canAssign(foundSpecific))))
+          {
+            newSpecifics[i] = foundSpecific.duplicate();
+            newSpecifics[i].disableMutating();
           }else {
             newSpecifics[i] = currentSpecific;
           }
@@ -468,9 +519,9 @@ public class HaxeExpressionUsageUtil {
   }
 
 
-  private static @Nullable ResultHolder tryFindTypeWhenUsedAsParameterInCallExpression(ResultHolder resultHolder,
-                                                                                       HaxeReferenceExpression referenceExpression,
-                                                                                       PsiElement parent) {
+  private static @Nullable ResultHolder tryFindTypeWhenUsedAsParameterInCallOrNewExpression(ResultHolder resultHolder,
+                                                                                            HaxeReferenceExpression referenceExpression,
+                                                                                            PsiElement parent) {
     if (parent != null && parent.getParent() instanceof HaxeCallExpression callExpression) {
       if (callExpression.getExpression() instanceof HaxeReference callExpressionReference) {
         final PsiElement resolved = callExpressionReference.resolve();
@@ -482,6 +533,14 @@ public class HaxeExpressionUsageUtil {
             return HaxeTypeUnifier.unify(resultHolder, paramType);
         }
       }
+    }
+
+    if (parent instanceof HaxeNewExpression newExpression) {
+        ResultHolder paramType = findUsageAsParameterInConstructorCall(referenceExpression, newExpression, newExpression.getExpressionList());
+        if (paramType != null) {
+          // probably not the best solution, but the goal is to keep the original type and only update typeParameters
+            return HaxeTypeUnifier.unify(resultHolder, paramType);
+        }
     }
     return createUnknown(referenceExpression);
   }

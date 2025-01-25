@@ -134,6 +134,9 @@ public class HaxeCallExpressionUtil {
 
   @Nullable
   public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression) {
+    return createContextForConstructorCall(newExpression, null);
+  }
+  public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, @Nullable ResultHolder assignHint) {
 
     HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(newExpression);
     List<CallExpressionArgumentModel> argumentList = getArgumentList(newExpression);
@@ -156,10 +159,10 @@ public class HaxeCallExpressionUtil {
             constructorResolver.addAll(classResolver);
 
             constructorResolver.addAll(referenceGenericResolver);
-
             // Note we use "type" directly from new expression and not the fully resolved one, or the one from constructorModel
             // we do this to make sure  we return typedefs if thats what the input was.
             HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, type, constructorResolver, null);
+            evaluation.assignHint = assignHint != null ? assignHint.getType() : null;
             evaluation.isStaticExtension = false;
             evaluation.isMacroFunction = false;
             return evaluation;

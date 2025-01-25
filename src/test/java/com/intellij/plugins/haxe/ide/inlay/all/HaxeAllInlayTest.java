@@ -24,4 +24,8 @@ public class HaxeAllInlayTest extends HaxeInlayTestBase {
     public void testParameterMonomorph() throws Exception {
         doTest(hintsProvider);
     }
+    @Test
+    public void testConstructorMonomorph() throws Exception {
+        doTest(hintsProvider);
+    }
 }
