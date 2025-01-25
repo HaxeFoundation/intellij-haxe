@@ -42,7 +42,10 @@ public class CallExpressionParameterModel {
     SpecificTypeReference type = model.getType().getType();
     SpecificTypeReference restType  = rest ? getTypeFromMacroVarArgOrRestType(type) : null;
 
-
+    // if parameter does not have a typeTag or init expression we must resolve type from usage
+    if(model.isUntyped()) {
+      type = HaxeExpressionEvaluator.evaluate(psi).result.getType();
+    }
 
 
 

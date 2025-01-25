@@ -291,4 +291,8 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     model.typeReplacement = type;
     return model;
   }
+
+  public boolean isUntyped() {
+    return getTypeTagPsi() == null && !hasInit();
+  }
 }
