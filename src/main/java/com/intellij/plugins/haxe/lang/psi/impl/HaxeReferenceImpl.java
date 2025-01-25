@@ -1024,11 +1024,19 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiElement parent = getParent();
     // to be a pure reference the name must be exact match and
     // parent can not be of HaxeType or other reference
-    return !(parent instanceof HaxeType)
-           && !(parent instanceof  HaxeReference)
-           && resolve instanceof HaxeClass haxeClass
-           && getLastChild().textMatches(haxeClass.getName())
-           && className.equalsIgnoreCase(haxeClass.getName());// identical classname and elementText
+
+    if (resolve instanceof HaxeImportAlias importAlias) {
+      return !(parent instanceof HaxeType)
+             && !(parent instanceof HaxeReference)
+             && importAlias.getIdentifier().textMatches(getLastChild());
+    }else {
+
+      return !(parent instanceof HaxeType)
+             && !(parent instanceof HaxeReference)
+             && resolve instanceof HaxeClass haxeClass
+             && getLastChild().textMatches(haxeClass.getName())
+             && className.equalsIgnoreCase(haxeClass.getName());// identical classname and elementText
+    }
   }
 
 

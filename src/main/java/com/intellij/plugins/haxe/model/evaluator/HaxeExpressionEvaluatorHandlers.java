@@ -273,6 +273,17 @@ public class HaxeExpressionEvaluatorHandlers {
           if (subelement instanceof HaxeImportAliasPsiMixinImpl importAlias) {
             //TODO mlo, add tests for method/function alias
             typeHolder = handleWithRecursionGuard(importAlias, context, resolver);
+            if(typeHolder != null) {
+              if (reference instanceof HaxeReferenceExpressionImpl expression) {
+                if (expression.isPureClassReferenceOf(importAlias.getIdentifier().getText())) {
+                  SpecificHaxeClassReference classType = typeHolder.getClassType();
+                  if(classType != null) {
+                    HaxeClass haxeClass = classType.getHaxeClass();
+                    if(haxeClass != null) typeHolder = wrapTypeInClassOrEnum(element, haxeClass, haxeClass.getModel());
+                  }
+                }
+              }
+            }
           }
           if (subelement instanceof HaxeClass haxeClass) {
 
@@ -297,12 +308,7 @@ public class HaxeExpressionEvaluatorHandlers {
               if (expression.isPureClassReferenceOf(haxeClass)) {
                 // make sure its not an import statement
                 if (PsiTreeUtil.getParentOfType(expression, HaxeImportStatement.class) == null) {
-                  // wrap in Class<> or Enum<>
-                  SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
-                  SpecificHaxeClassReference wrappedClass =
-                          SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
-                                  new ResultHolder[]{new ResultHolder(originalClass)});
-                  typeHolder = wrappedClass.createHolder();
+                  typeHolder = wrapTypeInClassOrEnum(element, haxeClass, model);
                 }
               }
             }
@@ -431,6 +437,17 @@ public class HaxeExpressionEvaluatorHandlers {
 
     return typeHolder;
     //return SpecificTypeReference.getDynamic(element).createHolder();
+  }
+
+  private static ResultHolder wrapTypeInClassOrEnum(HaxeReferenceExpression element, HaxeClass haxeClass, HaxeClassModel model) {
+    ResultHolder typeHolder;
+    // wrap in Class<> or Enum<>
+    SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
+    SpecificHaxeClassReference wrappedClass =
+            SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
+                    new ResultHolder[]{new ResultHolder(originalClass)});
+    typeHolder = wrappedClass.createHolder();
+    return typeHolder;
   }
 
   private static boolean isReificationExpression(HaxeReferenceExpression element) {
