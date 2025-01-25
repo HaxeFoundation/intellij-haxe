@@ -224,7 +224,27 @@ public class HaxeTypeUnifier {
         if (specificsA.length == 0 && specificsB.length == 0) {
           return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(type, context));
         }else{
-          return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(type, context), unifySpecifics(specificsA, specificsB, context));
+          ResultHolder unifyType = type.getInstanceType();
+          SpecificHaxeClassReference unifyClassType = unifyType.getClassType();
+          if(unifyClassType != null) {
+
+            SpecificHaxeClassReference aCasted = a.tryCastTo(unifyClassType);
+            SpecificHaxeClassReference bCasted = b.tryCastTo(unifyClassType);
+
+            @NotNull ResultHolder[] unifiedSpecifics = unifyClassType.getSpecifics();
+            @NotNull ResultHolder[] aCastedSpecifics = aCasted.getSpecifics();
+            @NotNull ResultHolder[] bCastedSpecifics = bCasted.getSpecifics();
+            ResultHolder[] specifics = unifySpecifics(aCastedSpecifics, bCastedSpecifics, context);
+            for (int i = 0; i < specifics.length; i++) {
+              if (specifics[i].isUnknown()) {
+                specifics[i] = unifiedSpecifics[i];
+              }
+            }
+            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(type, context), specifics);
+          }else {
+            ResultHolder[] specifics = unifySpecifics(specificsA, specificsB, context);
+            return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(type, context), specifics);
+          }
         }
       }
     }
@@ -283,9 +303,8 @@ public class HaxeTypeUnifier {
         } else if (!holderA.getClassType().isUnknown() && holderB.getClassType().isUnknown()) {
           unified[i] = holderA;
         } else {
+          // Note: if we cant unify specifics then we use Unknown (Dynamic would cause problems with canAssign checks)
           SpecificTypeReference type = unifyTypes(holderA.getClassType(), holderB.getClassType(), context, UnificationRules.DEFAULT);
-          // if we cant unify specifics then Dynamic should be used
-          if (type.isUnknown()) type = SpecificTypeReference.getDynamic(context);
           unified[i] = new ResultHolder(type);
         }
       } else if (holderA.getFunctionType() != null && holderB.getFunctionType() != null) {
