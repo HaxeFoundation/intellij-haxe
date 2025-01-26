@@ -23,9 +23,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
-import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.RecursionGuard;
-import com.intellij.openapi.util.RecursionManager;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.ide.lookup.HaxeClassLookupElement;
@@ -71,7 +68,6 @@ import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
 
   public static final String DOT = ".";
-  private static final Key<HaxeGenericSpecialization> SPECIALIZATION_KEY = new Key<>("HAXE_SPECIALIZATION_KEY");
   private static boolean skipUnimplementedWarnings = true;
 
   //static {
@@ -822,7 +818,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
             }
           }
           SpecificHaxeClassReference enumClass = HaxeResolveUtil.resolveExtractorEnum(extractor);
-          HaxeEnumValueDeclaration enumValueDeclaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(enumClass, extractor);
+          HaxeEnumValueDeclaration enumValueDeclaration = HaxeResolveUtil.resolveEnumValueDeclaration(enumClass, extractor);
           if (enumValueDeclaration   instanceof  HaxeEnumValueDeclarationConstructor declaration) {
             HaxeParameter parameter = declaration.getParameterList().getParameterList().get(index);
             HaxeGenericResolver resolver = enumClass.getGenericResolver();

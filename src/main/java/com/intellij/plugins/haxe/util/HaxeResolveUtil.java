@@ -1591,13 +1591,16 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
-    return resolveExtractorEnumValueDeclaration(enumClass, extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText());
+  public static HaxeEnumValueDeclaration resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
+    return resolveEnumValueDeclaration(enumClass, extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText());
   }
-  public static HaxeEnumValueDeclaration resolveExtractorEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
+  public static HaxeEnumValueDeclaration resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
     if (enumClass != null) {
       HaxeBaseMemberModel member = enumClass.getHaxeClassModel().getMember(memberName, enumClass.getGenericResolver());
       if (member instanceof HaxeEnumValueConstructorModel enumValueModel) {
+        return enumValueModel.getEnumValuePsi();
+      }
+      if (member instanceof HaxeEnumValueModel enumValueModel) {
         return enumValueModel.getEnumValuePsi();
       }
     }

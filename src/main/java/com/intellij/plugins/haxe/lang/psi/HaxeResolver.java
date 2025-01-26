@@ -767,29 +767,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> checkEnumExtractor(HaxeReference reference) {
-    // TODO find better solution?
-    // this is a workaround for enum extractors that are parsed as callExpressions
-    if(PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExpr.class) != null) {
-    if (reference.getParent() instanceof HaxeCallExpressionList expressionList) {
-      int index = expressionList.getExpressionList().indexOf(reference);
-      if (index > -1) {
-        if (expressionList.getParent() instanceof HaxeCallExpression haxeCallExpression) {
-          if (haxeCallExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
-            PsiElement resolve = referenceExpression.resolve();
-            if (resolve instanceof HaxeEnumValueDeclarationConstructor constructor) {
-              HaxeParameter haxeParameter = constructor.getParameterList().getParameterList().get(index);
-              return List.of(haxeParameter.getComponentName());
-            }
-          }
-        }
-      }
-    }
-    }
     if (reference.getParent() instanceof HaxeEnumValueReference) {
       HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(reference, HaxeEnumArgumentExtractor.class);
       SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
       if (classReference != null) {
-        HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, argumentExtractor);
+        HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveEnumValueDeclaration(classReference, argumentExtractor);
         if (declaration != null) {
           LogResolution(reference, "via enum extractor");
           return List.of(declaration);
@@ -813,7 +795,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (haxeClass != null && haxeClass.isEnum()) {
             SpecificHaxeClassReference classReference = result.getSpecificClassReference(haxeClass, null);
             HaxeEnumValueDeclaration declaration =
-              HaxeResolveUtil.resolveExtractorEnumValueDeclaration(classReference, reference.getText());
+              HaxeResolveUtil.resolveEnumValueDeclaration(classReference, reference.getText());
             if (declaration != null) {
               LogResolution(reference, "via enum extractor");
               return List.of(declaration);
