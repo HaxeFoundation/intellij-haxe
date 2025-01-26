@@ -151,11 +151,11 @@ public class HaxeEnumExtractorModel implements HaxeModel {
     List<ExtractorHierarchyElement> extractorHierarchy = getExtractorHierarchy(extractedValue);
     extractorHierarchy = extractorHierarchy.reversed();
 
-    SpecificHaxeClassReference loopType = switchTypeClass;
+    SpecificTypeReference loopType = switchTypeClass;
     HaxeGenericResolver loopResolver = switchExpressionResolver;
     HaxeExpression loopPsi = switchStatement;
 
-    // TODO make null-safe
+
 
     for (ExtractorHierarchyElement element : extractorHierarchy) {
       switch(element.type) {
@@ -163,8 +163,10 @@ public class HaxeEnumExtractorModel implements HaxeModel {
           HaxeEnumValueConstructorModel model = (HaxeEnumValueConstructorModel)element.model();
           ResultHolder result = model.getParameterType((Integer) element.key, loopResolver);
           if(result != null && !result.isUnknown()) {
-            loopType = result.getClassType();
-            loopResolver = loopType.getGenericResolver();
+            loopType = result.getType();
+            if(loopType instanceof  SpecificHaxeClassReference classReference) {
+              loopResolver = classReference.getGenericResolver();
+            }
           }
 
         }
@@ -177,8 +179,10 @@ public class HaxeEnumExtractorModel implements HaxeModel {
                 loopPsi = literalElement.getExpression();
                 ResultHolder result = evaluate(loopPsi).result;
                 if(result != null && !result.isUnknown()) {
-                  loopType = result.getClassType();
-                  loopResolver = loopType.getGenericResolver();
+                  loopType = result.getType();
+                  if(loopType instanceof  SpecificHaxeClassReference classReference) {
+                    loopResolver = classReference.getGenericResolver();
+                  }
                 }
                 break;
               }
@@ -188,33 +192,44 @@ public class HaxeEnumExtractorModel implements HaxeModel {
             HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
             ResultHolder result = loopType.access((String) element.key, context, switchExpressionResolver);
             if (result != null && !result.isUnknown()) {
-              loopType = result.getClassType();
-              loopResolver = loopType.getGenericResolver();
+              loopType = result.getType();
+              if(loopType instanceof  SpecificHaxeClassReference classReference) {
+                loopResolver = classReference.getGenericResolver();
+              }
             }
           }
         }
         break;
         case ARRAY_LITERAL: {
           if(loopPsi instanceof HaxeArrayLiteral arrayLiteral) {
-            HaxeExpression haxeExpression = arrayLiteral.getExpressionList().getExpressionList().get((Integer) element.key);
-            loopPsi = haxeExpression;
-            ResultHolder result = evaluate(haxeExpression).result;
-            if(result != null && !result.isUnknown()) {
-              loopType = result.getClassType();
-              loopResolver = loopType.getGenericResolver();
+            HaxeExpressionList expressionList = arrayLiteral.getExpressionList();
+            if(expressionList != null) {
+              HaxeExpression haxeExpression = expressionList.getExpressionList().get((Integer) element.key);
+              loopPsi = haxeExpression;
+              ResultHolder result = evaluate(haxeExpression).result;
+              if (result != null && !result.isUnknown()) {
+                loopType = result.getType();
+                if (loopType instanceof SpecificHaxeClassReference classReference) {
+                  loopResolver = classReference.getGenericResolver();
+                }
+              }
             }
           } else {
-            ResultHolder iteratorResult = searchForIteratorType(loopType, "iterator", extractedValue);
-            if (iteratorResult != null && iteratorResult.getClassType() != null) {
-              SpecificHaxeClassReference iterator = iteratorResult.getClassType();
-              HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
-              ResultHolder access = iterator.access("next", context, iterator.getGenericResolver());
-              if (access.getFunctionType() != null) {
-                SpecificFunctionReference functionType = access.getFunctionType();
-                ResultHolder result = functionType.getReturnType();
-                if (result != null && !result.isUnknown()) {
-                  loopType = result.getClassType();
-                  loopResolver = loopType.getGenericResolver();
+            if(loopType instanceof  SpecificHaxeClassReference classReference) {
+              ResultHolder iteratorResult = searchForIteratorType(classReference, "iterator", extractedValue);
+              if (iteratorResult != null && iteratorResult.getClassType() != null) {
+                SpecificHaxeClassReference iterator = iteratorResult.getClassType();
+                HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
+                ResultHolder access = iterator.access("next", context, iterator.getGenericResolver());
+                if (access != null && access.getFunctionType() != null) {
+                  SpecificFunctionReference functionType = access.getFunctionType();
+                  ResultHolder result = functionType.getReturnType();
+                  if (result != null && !result.isUnknown()) {
+                    loopType = result.getType();
+                    if (loopType instanceof SpecificHaxeClassReference loopClass) {
+                      loopResolver = loopClass.getGenericResolver();
+                    }
+                  }
                 }
               }
             }

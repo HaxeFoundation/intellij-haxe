@@ -630,8 +630,8 @@ public class HaxeExpressionEvaluator {
         }
         HaxeExpression rightExpression = assignExpression.getRightExpression();
         if(rightExpression != null) {
-          ResultHolder result = handle(rightExpression, context, resolver);
-          if (!result.isUnknown()) {
+          ResultHolder result = handleWithRecursionGuard(rightExpression, context, resolver);
+          if (result != null && !result.isUnknown()) {
             return result;
           }
         }
