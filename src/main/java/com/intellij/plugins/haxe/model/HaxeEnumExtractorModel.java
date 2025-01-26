@@ -1,11 +1,11 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluate;
+import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.searchForIteratorType;
 
 public class HaxeEnumExtractorModel implements HaxeModel {
 
@@ -115,202 +116,177 @@ public class HaxeEnumExtractorModel implements HaxeModel {
   }
 
   @NotNull
-  public ResultHolder resolveExtractedValueType(@NotNull HaxeEnumExtractedValueReference extractedValue, @NotNull HaxeGenericResolver parentResolver) {
+  public ResultHolder resolveExtractedValueType(@NotNull HaxeEnumExtractedValueReference extractedValue) {
+
     HaxeEnumValueModel enumValueModel = getEnumValueModel();
-    if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel) {
-      // check if in literal array (inside an extractor)
-      HaxeSwitchExtractorExpressionArrayLiteral arrayLiteral =
-        PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchExtractorExpressionArrayLiteral.class, true, HaxeEnumArgumentExtractor.class);
-      if (arrayLiteral != null) {
-
-        int index = findExtractValueParentIndex(arrayLiteral); // find arrays index
-        HaxeGenericResolver extractorResolver = getGenericResolver();
-        ResultHolder parameterType = constructorModel.getParameterType(index, extractorResolver);
-        if (parameterType != null && parameterType.getClassType() != null) {
-          HaxeGenericResolver paramResolver = parameterType.getClassType().getGenericResolver();
-          @NotNull ResultHolder[] specifics = paramResolver.getSpecifics();
-          if (specifics.length != 0) return specifics[0];
-        }
-      }
-      else {
-        int index = findExtractValueIndex(extractedValue);
-        HaxeGenericResolver extractorResolver = getGenericResolver();
-        ResultHolder parameterType = constructorModel.getParameterType(index, extractorResolver);
-        if (parameterType != null) {
-
-          HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
-          if (switchStatement == null) return createUnknown(extractedValue);
-
-          HaxeExpression switchStatementExpression = switchStatement.getExpression();
-
-          // remove common Parenthesis wrapping
-          while (switchStatementExpression instanceof HaxeParenthesizedExpression parenthesizedExpression) {
-            switchStatementExpression = parenthesizedExpression.getExpression();
-          }
-          PsiElement lookupElement = switchStatementExpression;
-          // if  literal, we must  find the related expression and get resolver from that expression
-          if (switchStatementExpression instanceof HaxeArrayLiteral || switchStatementExpression instanceof HaxeObjectLiteral) {
-            List<Object> list = createSwitchExpressionPath(extractor);
-            lookupElement = searchSwitchExpressionPath(switchStatementExpression, list);
-          }
-          // if nested extraction (ex "case MyEnumVal(MYOtherEnumVal(ref)):" ref) we need to get the correct enum generics
-          List<HaxeEnumArgumentExtractor> parentExtractors =
-            PsiTreeUtil.collectParents(extractedValue, HaxeEnumArgumentExtractor.class, false, (e) -> e instanceof HaxeSwitchCase);
-
-          if (parentExtractors.size() > 1) {
-            ResultHolder switchExpressionType = evaluate(switchStatementExpression, parentResolver).result;
-            HaxeGenericResolver pathResolver =  switchExpressionType.getClassType().getGenericResolver();
-            SpecificHaxeClassReference classType = switchExpressionType.getClassType();
-            if (classType != null) {
-              //unwrap null so we can resolve members correctly
-              if(classType.isNullType() && classType.unwrapNullType() instanceof SpecificHaxeClassReference classReference) {
-                classType = classReference;
-              }
-              // LinkedHashMap because order matters
-              LinkedHashMap<String, String> memberPath = createSwitchExpressionMemberPath(extractedValue);
-              for (Map.Entry<String, String> path : memberPath.entrySet()) {
-                String enumValueName = path.getKey();
-                String parameterName = path.getValue();
-                if (classType != null && classType.getHaxeClassModel() instanceof HaxeEnumModel model) {
-                HaxeEnumValueModel value = model.getValue(enumValueName);
-                if (value instanceof  HaxeEnumValueConstructorModel valueConstructorModel) {
-                  Optional<HaxeParameterModel> first =
-                    valueConstructorModel.getParameters().stream().filter(p -> p.getName().equals(parameterName)).findFirst();
-                  if (first.isPresent()) {
-                    pathResolver = classType.getGenericResolver();
-                    HaxeParameterModel parameterModel = first.get();
-                    ResultHolder resolved = pathResolver.withoutUnknowns().resolve(parameterModel.getType());
-                    if(resolved == null) return createUnknown(extractedValue);
-                    classType = resolved.getClassType();
-                  }
-                }
-                }
-              }
-            }
-            ResultHolder resolve = pathResolver.resolve(parameterType);
-            if(resolve != null && !resolve.isUnknown()) return resolve;
-            return parameterType;
-          }
-
-          ResultHolder result = evaluate(lookupElement, parentResolver).result;
-          SpecificHaxeClassReference classType = result.getClassType();
-          if (!result.isUnknown() && classType != null) {
-            // TODO null safety, resolveTypeDefClass can be null if model is unknown
-            if(classType.isTypeDefOfClass()) classType = classType.resolveTypeDefClass();
-            ResultHolder resolve = classType.getGenericResolver().withoutUnknowns().resolve(parameterType);
-            if(resolve != null && !resolve.isUnknown()) {
-              return resolve;
-            }else {
-              return parameterType;
-            }
-          }
-          else {
-            return parameterType;
-          }
-        }
+    if (enumValueModel instanceof HaxeEnumValueConstructorModel) {
+      HaxeExpression switchStatement = findSwitchExpressionType(extractedValue);
+      if (switchStatement == null) return createUnknown(extractedValue);
+      ResultHolder switchType = evaluate(switchStatement).result;
+      if (switchType.getClassType() != null) {
+        return getTypeForExtractedValue(extractedValue, switchStatement, switchType);
       }
     }
+    // unable to determine type
     return createUnknown(extractedValue);
   }
 
-  private static ResultHolder createUnknown(@NotNull HaxeEnumExtractedValueReference extractedValue) {
-    return SpecificHaxeClassReference.getUnknown(extractedValue).createHolder();
+  private HaxeExpression findSwitchExpressionType(@NotNull HaxeEnumExtractedValueReference extractedValue) {
+    HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
+    if (switchStatement == null) return null;
+
+    HaxeExpression switchStatementExpression = switchStatement.getExpression();
+
+    // remove common Parenthesis wrapping
+    while (switchStatementExpression instanceof HaxeParenthesizedExpression parenthesizedExpression) {
+      switchStatementExpression = parenthesizedExpression.getExpression();
+    }
+    return switchStatementExpression;
   }
 
-  // linked hashmap because order matters
-  private LinkedHashMap<String, String> createSwitchExpressionMemberPath(HaxeEnumExtractedValueReference value) {
+  private ResultHolder getTypeForExtractedValue(@NotNull HaxeEnumExtractedValueReference extractedValue, HaxeExpression switchStatement, ResultHolder switchType) {
+    SpecificHaxeClassReference switchTypeClass = switchType.getClassType();
+    HaxeGenericResolver switchExpressionResolver = switchTypeClass.getGenericResolver();
 
+    List<ExtractorHierarchyElement> extractorHierarchy = getExtractorHierarchy(extractedValue);
+    extractorHierarchy = extractorHierarchy.reversed();
 
-    List<String> parameterNames = new ArrayList<>();
-    List<String> EnumValueNames = new ArrayList<>();
-    PsiElement ref = value;
-    HaxeEnumArgumentExtractor parent = PsiTreeUtil.getParentOfType(ref, HaxeEnumArgumentExtractor.class);
-    while (parent != null && parent.getModel() instanceof  HaxeEnumExtractorModel model){
-    int index = model.findArgumentIndex(ref, true);
-      HaxeEnumValueModel enumValueModel = model.getEnumValueModel();
-      if (enumValueModel != null) {
-        HaxeEnumValueDeclaration valueDeclaration = enumValueModel.getEnumValuePsi();
-        if (valueDeclaration != null) {
-          HaxeModel valueModel = valueDeclaration.getModel();
-          if (valueModel instanceof HaxeEnumValueConstructorModel constructorModel) {
-            List<HaxeParameterModel> parameters = constructorModel.getParameters();
-            if (index > -1 && index < parameters.size()) {
-              HaxeParameterModel parameterModel = parameters.get(index);
-              parameterNames.add(parameterModel.getName());
-              EnumValueNames.add(valueModel.getName());
+    SpecificHaxeClassReference loopType = switchTypeClass;
+    HaxeGenericResolver loopResolver = switchExpressionResolver;
+    HaxeExpression loopPsi = switchStatement;
+
+    // TODO make null-safe
+
+    for (ExtractorHierarchyElement element : extractorHierarchy) {
+      switch(element.type) {
+        case ENUM_VALUE: {
+          HaxeEnumValueConstructorModel model = (HaxeEnumValueConstructorModel)element.model();
+          ResultHolder result = model.getParameterType((Integer) element.key, loopResolver);
+          if(result != null && !result.isUnknown()) {
+            loopType = result.getClassType();
+            loopResolver = loopType.getGenericResolver();
+          }
+
+        }
+        break;
+        case OBJECT_LITERAL: {
+          if (loopPsi instanceof HaxeObjectLiteral objectLiteral) {
+            List<HaxeObjectLiteralElement> objectLiteralElementList = objectLiteral.getObjectLiteralElementList();
+            for (HaxeObjectLiteralElement literalElement : objectLiteralElementList) {
+              if(literalElement.getComponentName().getIdentifier().textMatches((String) element.key)) {
+                loopPsi = literalElement.getExpression();
+                ResultHolder result = evaluate(loopPsi).result;
+                if(result != null && !result.isUnknown()) {
+                  loopType = result.getClassType();
+                  loopResolver = loopType.getGenericResolver();
+                }
+                break;
+              }
+            }
+
+          } else {
+            HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
+            ResultHolder result = loopType.access((String) element.key, context, switchExpressionResolver);
+            if (result != null && !result.isUnknown()) {
+              loopType = result.getClassType();
+              loopResolver = loopType.getGenericResolver();
             }
           }
         }
-      }
-      ref = parent;
-      parent =  PsiTreeUtil.getParentOfType(parent, HaxeEnumArgumentExtractor.class, true, HaxeSwitchCase.class);
-    }
-    Collections.reverse(parameterNames);
-    Collections.reverse(EnumValueNames);
-    LinkedHashMap<String,String> enumAndParamMap = new LinkedHashMap<>();
-    for (int i = 0, size = EnumValueNames.size(); i < size; i++) {
-      enumAndParamMap.put(EnumValueNames.get(i), parameterNames.get(i));
-    }
-
-    return enumAndParamMap;
-  }
-
-  private static @Nullable PsiElement searchSwitchExpressionPath(HaxeExpression switchStatementExpression, List<Object> list) {
-    PsiElement lookupElement = switchStatementExpression;
-    for (Object o : list) {
-      if (o instanceof  Integer ix && lookupElement instanceof HaxeArrayLiteral literal) {
-        HaxeExpressionList arrayList = literal.getExpressionList();
-        if (arrayList == null) {
-          lookupElement = null;
-          break;
-        }else {
-          lookupElement = arrayList.getExpressionList().get(ix);
+        break;
+        case ARRAY_LITERAL: {
+          if(loopPsi instanceof HaxeArrayLiteral arrayLiteral) {
+            HaxeExpression haxeExpression = arrayLiteral.getExpressionList().getExpressionList().get((Integer) element.key);
+            loopPsi = haxeExpression;
+            ResultHolder result = evaluate(haxeExpression).result;
+            if(result != null && !result.isUnknown()) {
+              loopType = result.getClassType();
+              loopResolver = loopType.getGenericResolver();
+            }
+          } else {
+            ResultHolder iteratorResult = searchForIteratorType(loopType, "iterator", extractedValue);
+            if (iteratorResult != null && iteratorResult.getClassType() != null) {
+              SpecificHaxeClassReference iterator = iteratorResult.getClassType();
+              HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(extractedValue);
+              ResultHolder access = iterator.access("next", context, iterator.getGenericResolver());
+              if (access.getFunctionType() != null) {
+                SpecificFunctionReference functionType = access.getFunctionType();
+                ResultHolder result = functionType.getReturnType();
+                if (result != null && !result.isUnknown()) {
+                  loopType = result.getClassType();
+                  loopResolver = loopType.getGenericResolver();
+                }
+              }
+            }
+          }
         }
-      }else if (o instanceof  String name && lookupElement instanceof HaxeObjectLiteral literal) {
-        Optional<HaxeExpression> first = literal.getObjectLiteralElementList().stream()
-          .filter(ol -> ol.getComponentName() != null)
-          .filter(ol -> ol.getExpression() != null)
-          .filter(ol -> ol.getComponentName().getIdentifier().textMatches(name))
-          .map(HaxeObjectLiteralElement::getExpression)
-          .findFirst();
-        if (first.isPresent()) {
-          lookupElement = first.get();
-        }else {
-          lookupElement = null;
-          break;
-        }
-      }else {
-        lookupElement = null;
         break;
       }
     }
-    return lookupElement;
+
+    return loopType.createHolder();
   }
 
-  private static @NotNull List<Object> createSwitchExpressionPath(HaxeEnumArgumentExtractor extractor) {
-    List<Object> list = new ArrayList<>();
-    PsiElement child = extractor;
-    PsiElement parent = extractor.getParent();
-    while (parent != null && !(parent instanceof HaxeSwitchCaseExpr)) {
-      if (parent instanceof  HaxeSwitchCaseExprArray  exprArray) {
-        // array look up
-        int arrayIndex = exprArray.getExpressionList().indexOf(child);
-        list.add(arrayIndex);
-      } else if (parent instanceof  HaxeEnumExtractArrayLiteral arrayLiteral){
-        // array look up
-        int arrayIndex = arrayLiteral.getExpressionList().indexOf(child);
-        list.add(arrayIndex);
-      }else if (parent instanceof  HaxeEnumObjectLiteralElement objectLiteral){
-        // object lookup
-        list.add(objectLiteral.getComponentName().getIdentifier().getText());
-        parent = parent.getParent();// need extra parent to get out of objectLiteral
+  private enum HierarchyType {
+    OBJECT_LITERAL,
+    ARRAY_LITERAL,
+    ENUM_VALUE;
+  }
+  private record ExtractorHierarchyElement(HierarchyType type, Object key, HaxeModel model){}
+
+  private static List<ExtractorHierarchyElement> getExtractorHierarchy(@NotNull HaxeEnumExtractedValueReference extractedValueRef) {
+    PsiElement element = extractedValueRef;
+    PsiElement argumentListElement = null;
+    List<ExtractorHierarchyElement> parentsToResolve = new ArrayList<>();
+
+    do {
+      PsiElement parent = element.getParent();
+      if(parent instanceof HaxeSwitchStatement) break;
+
+      if (parent instanceof HaxeEnumExtractorArgumentList) {
+        argumentListElement = element;
+      }
+      if (parent instanceof HaxeEnumObjectLiteralElement  literal) {
+        String id = literal.getComponentName().getIdentifier().getText();
+        parentsToResolve.add( new ExtractorHierarchyElement(HierarchyType.OBJECT_LITERAL, id, null));
       }
 
-      child = parent;
-      parent = parent.getParent();
-    }
-    Collections.reverse(list);
-    return list;
+      if(parent instanceof HaxeSwitchCaseExprArray caseExprArray) {
+        @NotNull PsiElement[] children = caseExprArray.getChildren();
+        int index = List.of(children).indexOf(element);
+        parentsToResolve.add(new ExtractorHierarchyElement(HierarchyType.ARRAY_LITERAL, index, null));
+      }
+
+      if(parent instanceof HaxeEnumExtractArrayLiteral arrayLiteral) {
+        int index = arrayLiteral.getExpressionList().indexOf(element);
+        parentsToResolve.add(new ExtractorHierarchyElement(HierarchyType.ARRAY_LITERAL, index, null));
+      }
+
+
+
+      if(parent instanceof HaxeEnumArgumentExtractor extractor) {
+        if (extractor.getModel() instanceof  HaxeEnumExtractorModel model){
+          PsiElement ref = argumentListElement != null ?  argumentListElement : element;
+          int argumentIndex = model.findArgumentIndex(ref, true);
+          if (argumentIndex != -1) {
+            if(model.getEnumValueModel() instanceof HaxeEnumValueConstructorModel constructorModel) {
+              PsiParameter parameter = constructorModel.getConstructorParameters().getParameter(argumentIndex);
+              parentsToResolve.add( new ExtractorHierarchyElement(HierarchyType.ENUM_VALUE, argumentIndex, constructorModel));
+            }
+          }
+          // remove any extractedValue references as we exit an extractor
+          argumentListElement = null;
+        }
+      }
+
+      element = parent;
+    }while(element.getParent() != null);
+    return parentsToResolve;
+  }
+
+
+  private static ResultHolder createUnknown(@NotNull HaxeEnumExtractedValueReference extractedValue) {
+    return SpecificHaxeClassReference.getUnknown(extractedValue).createHolder();
   }
 
   @Override

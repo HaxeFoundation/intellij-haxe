@@ -772,8 +772,8 @@ enumArgumentExtractor ::= enumValueReference '(' 'var'? enumExtractorArgumentLis
  {extends="expression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumArgumentExtractorMixinImpl" implements="com.intellij.plugins.haxe.model.HaxeModelTarget"}
 
 variableCaptureExpression ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
-
-switchCaseCapture ::= <<startWithLowercaseOrUnderscoreCheck>> componentName (("=" extractorMatchExpressionVariant  ) | varInit)
+private switchCaseCaptureInit ::=  '=' (primitiveExtractedValue | expression) {extends = varInit}
+switchCaseCapture ::= <<startWithLowercaseOrUnderscoreCheck>> componentName (("=" extractorMatchExpressionVariant  ) | switchCaseCaptureInit)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 // This rule is superseded by localVarDeclarationList (in one of its degenerate configurations), as part of expression.

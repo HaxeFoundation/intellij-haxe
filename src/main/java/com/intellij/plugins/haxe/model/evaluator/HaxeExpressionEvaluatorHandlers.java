@@ -729,7 +729,7 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
     if (extractor != null) {
       HaxeEnumExtractorModel extractorModel = (HaxeEnumExtractorModel)extractor.getModel();
-      return extractorModel.resolveExtractedValueType(extractedValue, resolver);
+      return extractorModel.resolveExtractedValueType(extractedValue);
     }
     return createUnknown(extractedValue);
   }
@@ -1952,8 +1952,8 @@ public class HaxeExpressionEvaluatorHandlers {
     return handle(iterable.getExpression(), context, resolver);
   }
 
-  private static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, HaxeForStatement parentForLoop) {
-    // ignore "Dynamic" as it can assign to anything and will in most cases incorrectly be matched with itterators for other types
+  public static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, PsiElement parent) {
+    // ignore "Dynamic" as it can assign to anything and will in most cases incorrectly be matched with iterators for other types
     if (haxeClassReference.isDynamic()) return null;
     SpecificTypeReference typeReference = haxeClassReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
     if (typeReference instanceof SpecificHaxeClassReference resolvedClassReference) {
@@ -1962,7 +1962,7 @@ public class HaxeExpressionEvaluatorHandlers {
 
       if (iterator == null) {
         // look for extension method iterator
-        List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parentForLoop).getUsingModels();
+        List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parent).getUsingModels();
         for (HaxeUsingModel usingModel : usingModels) {
           HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, resolvedClassReference);
           if (extensionMethod != null) iterator = extensionMethod;
