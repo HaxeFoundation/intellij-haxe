@@ -44,7 +44,7 @@ public class CallExpressionParameterModel {
 
     // if parameter does not have a typeTag or init expression we must resolve type from usage
     if(model.isUntyped()) {
-      type = HaxeExpressionEvaluator.evaluate(psi).result.getType();
+      type = HaxeExpressionEvaluator.evaluateWithRecursionGuard(psi).result.getType();
     }
 
 
