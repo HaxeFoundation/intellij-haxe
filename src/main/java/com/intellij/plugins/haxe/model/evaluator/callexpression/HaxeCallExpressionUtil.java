@@ -99,6 +99,7 @@ public class HaxeCallExpressionUtil {
     boolean isStaticExtension = callExpression.resolveIsStaticExtension();
 
     SpecificHaxeClassReference callie = tryGetCallieType(callExpression, method, isStaticExtension);
+    if(!callie.isUnknown()) genericResolver.addAll(callie.getGenericResolver());
 
     HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callie, method);
 

@@ -277,6 +277,14 @@ public class HaxeEnumExtractorModel implements HaxeModel {
         parentsToResolve.add(new ExtractorHierarchyElement(HierarchyType.ARRAY_LITERAL, index, null));
       }
 
+      if(parent instanceof HaxeSwitchExtractorExpressionArrayLiteral expressionArrayLiteral) {
+        HaxeEnumExtractorArgumentList argumentList = expressionArrayLiteral.getEnumExtractorArgumentList();
+        if(argumentList != null && argumentListElement != null) {
+          List<HaxeEnumExtractedValue> enumExtractedValueList = argumentList.getEnumExtractedValueList();
+          int index = enumExtractedValueList.indexOf(argumentListElement);
+          parentsToResolve.add(new ExtractorHierarchyElement(HierarchyType.ARRAY_LITERAL, index, null));
+        }
+      }
 
 
       if(parent instanceof HaxeEnumArgumentExtractor extractor) {
