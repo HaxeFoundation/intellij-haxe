@@ -205,6 +205,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkMacroIdentifier(reference);
 
     if (result == null) result = checkIsAccessor(reference);
+    if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);// do before walking tree
     if (result == null) result = checkIsSwitchVar(reference);
     if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
@@ -214,7 +215,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null)result =  searchInSameFile(reference, fileModel, isType);
     if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkCaptureVar(reference);
-    if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkSwitchOnEnum(reference);
     if (result == null) result = checkMemberReference(reference); // must be after resolvers that can find identifier inside a method
     if (result == null) {
@@ -816,7 +816,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             return List.of(expression1);
           }
         }else {
-          LogResolution(reference, "via switch-case reference as var");
+          LogResolution(reference, "via switch-case reference as var (without var keyword)");
           return List.of(expression);
         }
       }
