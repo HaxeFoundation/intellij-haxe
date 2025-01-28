@@ -161,6 +161,11 @@ public class HaxeEnumExtractorModel implements HaxeModel {
       switch(element.type) {
         case ENUM_VALUE: {
           HaxeEnumValueConstructorModel model = (HaxeEnumValueConstructorModel)element.model();
+          HaxeClassModel declaringEnum = model.getDeclaringEnum();
+          if(declaringEnum!= null && loopType instanceof SpecificHaxeClassReference classReference) {
+            loopResolver = loopResolver.translateFromTo(classReference.getHaxeClass(), declaringEnum.haxeClass);
+          }
+
           ResultHolder result = model.getParameterType((Integer) element.key, loopResolver);
           if(result != null && !result.isUnknown()) {
             loopType = result.getType();
