@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
@@ -116,12 +117,12 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
       return typeReplacement.duplicate();
     }
     ResultHolder type = null;
-    HaxeTypeTag psi = getTypeTagPsi();
-    if (psi != null) {
-      type = HaxeTypeResolver.getTypeFromTypeTag(psi, this.getContextElement());
+    HaxeTypeTag typeTagPsi = getTypeTagPsi();
+    if (typeTagPsi != null) {
+      type = HaxeTypeResolver.getTypeFromTypeTag(typeTagPsi, this.getContextElement());
       //caching when we know there's no generics involved
       if (!type.isTypeParameter() && type.getClassType() != null && type.getClassType().getSpecifics().length == 0) {
-        if (psi.textMatches(type.getType().toString())) { // make sure we are not caching a resolved value (ex. param:T being resolved to param:String)
+        if (typeTagPsi.textMatches(type.getType().toString())) { // make sure we are not caching a resolved value (ex. param:T being resolved to param:String)
           typeReplacement = type;
         }
       }
@@ -143,6 +144,14 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     ResultHolder typeResult = getType();
     if (resolver != null) {
       SpecificTypeReference type = typeResult.getType();
+      if(type.isUnknown()) {
+        HaxeParameter parameterPsi = getParameterPsi();
+        HaxeComponentName componentName = parameterPsi.getComponentName();
+        ResultHolder fromUsage = HaxeExpressionUsageUtil.tryToFindTypeFromUsage(componentName, null, null, new HaxeExpressionEvaluatorContext(getParameterPsi()), resolver, null);
+        if(fromUsage != null && !fromUsage.isUnknown()) {
+          type = fromUsage.getType();
+        }
+      }
       if(type instanceof SpecificHaxeClassReference classReference) {
         if (classReference.getHaxeClass() instanceof HaxeTypeParameterDeclaration typeParameter) {
           ResultHolder resolve = resolver.resolve(typeParameter);
