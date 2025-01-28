@@ -33,8 +33,6 @@ import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressi
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.psi.*;
-import com.intellij.psi.search.LocalSearchScope;
-import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -44,6 +42,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.List;
 
 
 import  static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.*;
@@ -587,8 +586,7 @@ public class HaxeExpressionEvaluator {
   }
   @NotNull
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @Nullable final PsiElement searchScope) {
-    PsiSearchHelper searchHelper = PsiSearchHelper.getInstance(componentName.getProject());
-    SearchScope scope = searchScope != null ? new LocalSearchScope(searchScope) :  searchHelper.getCodeUsageScope(componentName);
+    SearchScope scope = HaxeExpressionEvaluatorSearchUtil.getSearchScope(componentName, searchScope);
     return referenceSearch(componentName, scope);
   }
 

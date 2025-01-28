@@ -153,8 +153,7 @@ public class HaxeExpressionUsageUtil {
       if (classType == null) return updatedType;
 
       HaxeGenericResolver classResolver = classType.getGenericResolver();
-      PsiSearchHelper searchHelper = PsiSearchHelper.getInstance(componentName.getProject());
-      final SearchScope useScope = searchHelper.getCodeUsageScope(componentName);
+      final SearchScope useScope = HaxeExpressionEvaluatorSearchUtil.getSearchScope(componentName, null);
 
       List<PsiReference> references = referenceSearch(componentName, useScope);
       // search until all typeParams are found or we dont have any more references or we stop due to recursion guard.
