@@ -76,7 +76,7 @@ public class HaxeFileModel implements HaxeExposableModel {
     return null;
   }
 
-  @Nullable
+  @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
     List<HaxeClassModel> models = getClassModels();
@@ -127,14 +127,13 @@ public class HaxeFileModel implements HaxeExposableModel {
   private  List<PsiElement> getChildren() {
     return getChildren(file);
   }
-  @NotNull
-  private static List<PsiElement> getChildren(HaxeFile file) {
-    return CachedValuesManager.getProjectPsiDependentCache(file, HaxeFileModel::_getChildren);
-  }
 
-  private static List<PsiElement> _getChildren(HaxeFile file) {
-    PsiElement[] children = file.getChildren();
-    return Arrays.asList(children);
+  @NotNull
+  private List<PsiElement> getChildren(HaxeFile file) {
+    return CachedValuesManager.getCachedValue(file, () -> {
+      PsiElement[] children = file.getChildren();
+      return new CachedValueProvider.Result<>(Arrays.asList(children), file);
+    });
   }
 
   @NotNull

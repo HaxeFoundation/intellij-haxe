@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.model.evaluator.assign;
 
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -131,6 +132,8 @@ public class HaxeTypeCompatible {
                                                                  boolean checkImplicitCasts,
                                                                  @Nullable HaxeAssignEvaluation parent
     ) {
+        ProgressIndicatorProvider.checkCanceled();
+
         HaxeAssignEvaluation evaluation = new HaxeAssignEvaluation(to, from);
         evaluation.fullyResolveTypes();
 

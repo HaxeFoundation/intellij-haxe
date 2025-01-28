@@ -1399,17 +1399,7 @@ public class HaxeExpressionEvaluatorHandlers {
     SpecificTypeReference functionType;
     if (callExpressionRef != null) {   // can be null if the entire expression is a macro  of callExpression
       // map type Parameters to methods declaring class resolver if necessary
-      SpecificHaxeClassReference callieClassRef = tryGetCallieType(callExpression);
-      if(!callieClassRef.isUnknown()) {
-        HaxeGenericResolver callieResolver = callieClassRef.getGenericResolver();
-        HaxeClass callieType = callieClassRef.getHaxeClass();
-        HaxeClass methodTypeClassType = tryGetMethodDeclaringClass(callExpression);
-        if (callieType != null && methodTypeClassType != null) {
 
-          localResolver.addAll(callieResolver);
-          localResolver = localResolver.translateFromTo(callieType, methodTypeClassType);
-        }
-      }
 
       HaxeMethodModel methodModel = tryGetMethodModel(callExpression);
       if(methodModel != null) {
@@ -1419,6 +1409,17 @@ public class HaxeExpressionEvaluatorHandlers {
         HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
         functionType = evaluate.getFunctionType(methodModel);
       }else {
+        SpecificHaxeClassReference callieClassRef = tryGetCallieType(callExpression);
+        if(!callieClassRef.isUnknown()) {
+          HaxeGenericResolver callieResolver = callieClassRef.getGenericResolver();
+          HaxeClass callieType = callieClassRef.getHaxeClass();
+          HaxeClass methodTypeClassType = tryGetMethodDeclaringClass(callExpression);
+          if (callieType != null && methodTypeClassType != null) {
+
+            localResolver.addAll(callieResolver);
+            localResolver = localResolver.translateFromTo(callieType, methodTypeClassType);
+          }
+        }
         functionType = handle(callExpressionRef, context, localResolver).getType();
       }
         boolean varIsMacroFunction = isCallExpressionToMacroMethod(callExpressionRef);

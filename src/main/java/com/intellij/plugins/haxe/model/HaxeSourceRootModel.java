@@ -17,6 +17,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.psi.PsiDirectory;
@@ -82,6 +83,7 @@ public class HaxeSourceRootModel {
     if (rootPackage == null) {
       return null;
     }
+    ProgressIndicatorProvider.checkCanceled();
     return rootPackage.resolve(info);
   }
 

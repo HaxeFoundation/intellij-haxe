@@ -612,6 +612,14 @@ public class HaxeExpressionEvaluator {
 
     if (originalComponent.getParent() == reference) return  null;
     if (reference instanceof HaxeExpression expression) {
+      if (expression.getParent() instanceof HaxeVarInit init) {
+        if( init.getParent() instanceof HaxePsiField field) {
+          ResultHolder holder = HaxeTypeResolver.getTypeFromTypeTag(field.getTypeTag(), field);
+          if (!holder.isUnknown()) {
+            return holder;
+          }
+        }
+      }
       if (expression.getParent() instanceof HaxeAssignExpression assignExpression) {
         HaxeExpression leftExpression = assignExpression.getLeftExpression();
         if (leftExpression instanceof HaxeReferenceExpression referenceExpression) {

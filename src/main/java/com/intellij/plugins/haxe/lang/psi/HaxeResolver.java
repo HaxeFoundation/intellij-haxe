@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.RecursionGuard;
@@ -89,20 +90,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   private final RecursionGuard<PsiElement> resolveInnerRecursionGuard = RecursionManager.createGuard("resolveInnerRecursionGuard");
 
-  public static void prohibitResultCaching(@NotNull PsiElement element) {
-    INSTANCE.resolveInnerRecursionGuard.prohibitResultCaching(element);
-  }
-
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
        /** See docs on {@link HaxeDebugUtil#isCachingDisabled} for how to set this flag. */
        boolean skipCachingForDebug = HaxeDebugUtil.isCachingDisabled();
 
-       //// Kill circular resolutions -- before checking the cache.
-       //if (isResolving(reference)) {
-       //  recursiveLookupFailures.get().incrementAndGet();
-       //  return null;
-       //}
+      ProgressIndicatorProvider.checkCanceled();
+
 
        // If we are in dumb mode (e.g. we are still indexing files and resolving may
        // fail until the indices are complete), we don't want to cache the (likely incorrect)
@@ -1350,10 +1344,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         LogResolution(reference, "via simple chain using leftReference.");
         return result;
       }
-      LogResolution(reference, "via simple chain against package.");
-      PsiElement item = resolveQualifiedReference(reference);
-      if (item != null) {
-        return asList(item);
+      PsiElement firstChild = reference.getFirstChild();
+      if(firstChild instanceof HaxeReference || firstChild instanceof HaxeIdentifier) {
+        PsiElement item = resolveQualifiedReference(reference);
+        if (item != null) {
+          LogResolution(reference, "via simple chain against package.");
+          return asList(item);
+        }
+      }else {
+        int i = 0;
       }
     }
     return null;
@@ -1394,7 +1393,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeType type = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
     if (type != null) {
       final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
-      if (type != null && haxeClassInType != null) {
+      if (haxeClassInType != null) {
         LogResolution(reference, "via parent type name.");
         return asList(haxeClassInType.getComponentName());
       }
@@ -1484,6 +1483,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    */
   @Nullable
   private List<? extends PsiElement> resolveChain(HaxeReference lefthandExpression, HaxeReference reference) {
+    ProgressIndicatorProvider.checkCanceled();
+
     // TODO: Merge with resolveByClassAndSymbol()??  It is very similar to this method.
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     if (leftReference != null) {

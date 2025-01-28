@@ -434,7 +434,7 @@ fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDec
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier optionalMark componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 implements=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 //NOTE: static local variable is a haxe 4.3+ feature
-localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=3}
+localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2} // TODO make recovery
 localVarDeclaration ::= 'static'? componentName typeTag? varInit?
   {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
@@ -493,7 +493,7 @@ private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' lambdaBody
  *
  */
 
-varInit ::= '=' expression {pin=1}
+varInit ::= (!';') '=' expression {pin=2}
 parameter ::= optionalMark? componentName typeTag? varInit?
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
 restParameter ::= ('...'componentName typeTag?)
@@ -648,7 +648,7 @@ macroValueExpression ::= 'macro' <<pushStateMapInitializerOrMacro>> <<pushSemico
 private macroValue ::=   statement | macroTopLevelDeclaration
 
 private statement ::= blockStatement | notBlockStatement
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
+{ mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
 
 untypedStatement ::=  'untyped'  statement ';'?
 {pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin"}
@@ -675,6 +675,7 @@ private notBlockStatement ::=
                             | tryStatement
                             | (<<isInMapInitOrMacroState>> !<<isInMapInitExpressionState>> mapInitializerExpressionList )
                             | (expression !fatArrowOperator)
+
 
 
 forStatement ::= 'for' '(' iterableDeclaration ')' statement ';'?
@@ -749,7 +750,7 @@ enumExtractedValueReference ::= (<<startWithLowercaseOrUnderscoreCheck>> compone
 enumExtractedValue::= enumExtractedValueReference | primitiveExtractedValue
 
 
-private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral
+private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral {recoverWhile=expression_recover}
 private expressionOrExtractorMatchExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral  | expression   {extends=expression}
 enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrExtractorMatchExpression)
 {
@@ -772,7 +773,7 @@ enumArgumentExtractor ::= enumValueReference '(' 'var'? enumExtractorArgumentLis
  {extends="expression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumArgumentExtractorMixinImpl" implements="com.intellij.plugins.haxe.model.HaxeModelTarget"}
 
 variableCaptureExpression ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
-private switchCaseCaptureInit ::=  '=' (primitiveExtractedValue | expression) {extends = varInit}
+private switchCaseCaptureInit ::=  '=' (primitiveExtractedValue | expression) {extends = varInit }
 switchCaseCapture ::= <<startWithLowercaseOrUnderscoreCheck>> componentName (("=" extractorMatchExpressionVariant  ) | switchCaseCaptureInit)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
@@ -811,12 +812,12 @@ callExpressionList ::= forStatement | whileStatement | spreadExpression | (expre
 {recoverWhile="expression_list_recover" extends=expressionList  methods= [spreadExpression="spreadExpression[0]"]}
 
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*)  ','? {recoverWhile="expression_list_recover"}
-//recoverycomments:
+//recovery comments:
 // fatArrowOperator("=>") is here to avoid problems where enum extractors are mis-parsed as callExpressions
 // '(' is here to prevent call expressions from consuming enum extractor expressions
 private expression_list_recover ::= !(')' | ']' |'('| fatArrowOperator)
 
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~' | ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>'| '$') !metaKeyWord
+private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~' | ID | MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>'| '$') !metaKeyWord
 
 // This list is in reversed operator precedence order -- lowest on top.
 // The things on top are still matched first.
@@ -883,22 +884,28 @@ private assignableValueExpression ::= (referenceExpression | thisExpression | su
 // In particular, callFunctionLiteral must come before (literalExpression qualifiedReferenceTail?).
 // If callOrArrayAccess comes before literalExpression, then referenceExpression (as part of callOrArrayAccess)
 // will take the first identifier and the rest will not match properly.
+//
+// comment: *mlo*
+// trying to check expressions that starts with keywords (that are not part of reference expressions) first as
+// missing keyword is fast to check so any miss has low cost and any hit might save us from more complex evaluations
 private value ::= ('untyped' expression)
                 | macroTypeReification
                 | macroValueExpression
+                // starts with keywords
+                | newExpressionOrCall
+                | ifStatement
+                | tryStatement
+                | switchStatement
+                | throwStatement
+                | (castExpression qualifiedReferenceTail?)
+                //
                 | callFunctionLiteral
                 | immediateArrayAccess
                 | (macroExpressionReification (qualifiedReferenceTail | CallArrayOrReferenceExpression)?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral
                 | callOrArrayAccess
-                | ifStatement
-                | (castExpression qualifiedReferenceTail?)
-                | newExpressionOrCall
                 | parenthesizedExpressionOrCall  // Seems redundant with callOrArrayAccess
-                | tryStatement
-                | switchStatement
-                | throwStatement
                 | localVarDeclarationWithInit
                 | referenceExpression
                 | thisExpression

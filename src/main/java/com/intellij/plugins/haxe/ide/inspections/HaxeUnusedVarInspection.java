@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorSearchUtil;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -61,13 +62,11 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
 
       @Override
       public void visitLocalVarDeclaration(@NotNull HaxeLocalVarDeclaration varDeclaration) {
-        HaxeBlockStatement blockStatement = PsiTreeUtil.getParentOfType(varDeclaration, HaxeBlockStatement.class);
-        if (blockStatement != null) {
-          Collection<PsiReference> references = ReferencesSearch.search(varDeclaration, new LocalSearchScope(blockStatement), false).findAll();
+        LocalSearchScope searchScope = HaxeExpressionEvaluatorSearchUtil.getSearchScope(varDeclaration, null);
+          Collection<PsiReference> references = ReferencesSearch.search(varDeclaration, searchScope, false).findAll();
           if (references.isEmpty()) {
             unusedVarDeclarations.add(varDeclaration);
           }
-        }
       }
     }.visitFile(file);
 

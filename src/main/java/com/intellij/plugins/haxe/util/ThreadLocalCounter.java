@@ -50,8 +50,10 @@ public class ThreadLocalCounter {
     int newval = counter.get() - 1;
     counter.set(newval);
     if (newval < 0) {
-      log.debug(HaxeDebugUtil.traceThreadMessage(
-        debugName + " decremented past zero by " + HaxeDebugUtil.getCallerCanonicalName()));
+      if(log.isDebugEnabled()) {
+        log.debug(HaxeDebugUtil.traceThreadMessage(
+                debugName + " decremented past zero by " + HaxeDebugUtil.getCallerCanonicalName()));
+      }
     }
     return newval;
   }

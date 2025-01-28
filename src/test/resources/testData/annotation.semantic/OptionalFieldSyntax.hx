@@ -12,6 +12,6 @@
 
 class OptionalFieldsSyntax {
  public function new(?optionalArgument:String) {
-    <error descr="<statement> expected, got 'var'">var</error> ?optionalLocalVarNotAllowed:String;
+     var <error descr="<local var declaration> expected, got '?'">?</error><error descr="Missing semicolon.">o</error>ptionalLocalVarNotAllowed<error descr="Missing semicolon.">:</error>String;
  }
 }

@@ -163,31 +163,13 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    // attempt att caching returnType for methods that does not change by resolver or parameters
-
-
-
-    if ((resolver == null || resolver.isEmpty()) // must not use resolver
-        && haxeMethod.getReturnType() !=null // must have type tag
-        && haxeMethod.getGenericParam() != null) { // must not have generics
-      return CachedValuesManager.getProjectPsiDependentCache(haxeMethod,  HaxeMethodModel::getReturnTypeCacheProvider);
-    }else {
-      return HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
-
-      //TODO this way of caching seems to be unreliable for some reason
-
-      //Boolean data = haxeMethod.getUserData(isVoidReturn);
-      //if (data == Boolean.TRUE) {
-      //  return SpecificHaxeClassReference.getVoid(haxeMethod).createHolder();
-      //}else {
-      //  ResultHolder type = HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, resolver);
-      //  if(type.isVoid() && haxeMethod instanceof AbstractHaxeNamedComponent component) {
-      //    component.registerCacheKey(isVoidReturn);
-      //    component.putUserData(isVoidReturn, Boolean.TRUE);
-      //  }
-      //  return type;
-      //}
+    ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(haxeMethod, HaxeMethodModel::getReturnTypeCacheProvider);
+    if (resolver != null) {
+      ResultHolder resolve = resolver.resolve(result);
+      if (resolve != null && !resolve.isUnknown()) result = resolve;
     }
+    return result;
+
   }
 
   private static ResultHolder getReturnTypeCacheProvider(HaxeMethod haxeMethod) {
