@@ -52,6 +52,10 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
   public void testValueExpressionHints() throws Exception {
     doTest(hintsProvider);
   }
+  @Test
+  public void testTypeFromUsageHints() throws Exception {
+    doTest(hintsProvider);
+  }
 
 
 }
