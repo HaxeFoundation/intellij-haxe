@@ -264,6 +264,27 @@ public class HaxeExpressionEvaluatorHandlers {
       PsiReference reference = element.getReference();
       if (reference != null) {
         subelement = reference.resolve();
+        //TODO
+        // currently we don't resolve switchCaseExpr in enum extraction to anything so the reference points to itself
+        // we should probably rewrite the BNF so its not a reference but more of a field
+        if (subelement == element) {
+          if (element.getParent() instanceof  HaxeSwitchCaseExpr switchCaseExpr) {
+            subelement = switchCaseExpr;
+          }
+        }
+        //TODO make a cleaner solution for this:
+        // hackish way to add GenericResolver values to  EnumArgumentExtractor expressions
+        if (subelement instanceof HaxeParameter parameter) {
+          if(parameter.getParent().getParent() instanceof  HaxeEnumValueDeclarationConstructor) {
+            HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(element, HaxeExtractorMatchExpression.class);
+            if(matchExpression != null) {
+              HaxeModel model = ((HaxeEnumArgumentExtractorImpl) matchExpression.getParent().getParent()).getModel();
+              if(model instanceof HaxeEnumExtractorModel extractorModel) {
+                resolver.addAll(extractorModel.getGenericResolver());
+              }
+            }
+          }
+        }
         if (subelement != element) {
           if (subelement instanceof HaxeReferenceExpression referenceExpression) {
             PsiElement resolve = referenceExpression.resolve();
@@ -403,9 +424,17 @@ public class HaxeExpressionEvaluatorHandlers {
           }
 
           else if (subelement instanceof HaxeSwitchCaseExpr caseExpr) {
-            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
-            if (switchStatement.getExpression() != null) {
-              typeHolder = handle(switchStatement.getExpression(), context, resolver);
+            if(caseExpr.getParent() instanceof  HaxeExtractorMatchExpression matchExpression) {
+              HaxeModel model = ((HaxeEnumArgumentExtractorImpl) matchExpression.getParent().getParent()).getModel();
+              if(model instanceof HaxeEnumExtractorModel extractorModel) {
+                resolver.addAll(extractorModel.getGenericResolver());
+              }
+              typeHolder = handle(matchExpression.getExpression(),context, resolver);
+            }else {
+              HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
+              if (switchStatement.getExpression() != null) {
+                typeHolder = handle(switchStatement.getExpression(), context, resolver);
+              }
             }
           }
 

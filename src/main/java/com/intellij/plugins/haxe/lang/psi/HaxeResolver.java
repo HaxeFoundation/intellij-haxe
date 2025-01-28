@@ -828,25 +828,39 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (reference instanceof HaxeReferenceExpression) {
       HaxeSwitchCase switchCase = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCase.class);
       if (switchCase != null) {
-        for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
-          HaxeExpression expression = expr.getExpression();
-          if (expression instanceof HaxeEnumArgumentExtractor extractor) {
-            List<HaxeExpression> expressionList = extractor.getEnumExtractorArgumentList().getExpressionList();
-            for (HaxeExpression haxeExpression : expressionList) {
-              if (haxeExpression instanceof HaxeExtractorMatchExpression matchExpression) {
-                HaxeExpression PossibleCapture = matchExpression.getSwitchCaseExpr().getExpression();
-                if (PossibleCapture != null && PossibleCapture.textMatches(reference)) {
-                  LogResolution(reference, "via switch argument extractor");
-                  return List.of(PossibleCapture);
-                }
-              }
+        //
+        if(reference.getParent() instanceof HaxeSwitchCaseExpr switchCaseExpr) {
+          if (switchCaseExpr.getParent() instanceof HaxeExtractorMatchExpression matchExpression) {
+            HaxeExpression PossibleCapture = matchExpression.getSwitchCaseExpr().getExpression();
+            if (PossibleCapture != null && PossibleCapture.textMatches(reference)) {
+              LogResolution(reference, "via switch argument extractor");
+              return List.of(PossibleCapture);
             }
           }
-          else if (expression instanceof HaxeExtractorMatchExpression matchExpression) {
-            HaxeReferenceExpression referenceFromExtractor = getReferenceFromExtractorMatchExpression(matchExpression);
-            if (referenceFromExtractor!= null && reference.textMatches(referenceFromExtractor)) {
-              LogResolution(reference, "via witch extractor");
-              return List.of(referenceFromExtractor);
+        }
+        HaxeSwitchCaseBlock switchCaseBlock = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseBlock.class);
+        if(switchCaseBlock != null) {
+          for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
+            Collection<HaxeSwitchCaseExpr> haxeSwitchCaseExprs = PsiTreeUtil.findChildrenOfType(expr, HaxeSwitchCaseExpr.class);
+            for (HaxeSwitchCaseExpr haxeSwitchCaseExpr : haxeSwitchCaseExprs) {
+              if (haxeSwitchCaseExpr.getParent() instanceof HaxeEnumArgumentExtractor extractor) {
+                List<HaxeExpression> expressionList = extractor.getEnumExtractorArgumentList().getExpressionList();
+                for (HaxeExpression haxeExpression : expressionList) {
+                  if (haxeExpression instanceof HaxeExtractorMatchExpression matchExpression) {
+                    HaxeExpression PossibleCapture = matchExpression.getSwitchCaseExpr().getExpression();
+                    if (PossibleCapture != null && PossibleCapture.textMatches(reference)) {
+                      LogResolution(reference, "via switch argument extractor");
+                      return List.of(PossibleCapture);
+                    }
+                  }
+                }
+              } else if (haxeSwitchCaseExpr.getParent() instanceof HaxeExtractorMatchExpression matchExpression) {
+                HaxeReferenceExpression referenceFromExtractor = getReferenceFromExtractorMatchExpression(matchExpression);
+                if (referenceFromExtractor != null && reference.textMatches(referenceFromExtractor)) {
+                  LogResolution(reference, "via witch extractor");
+                  return List.of(referenceFromExtractor);
+                }
+              }
             }
           }
         }
