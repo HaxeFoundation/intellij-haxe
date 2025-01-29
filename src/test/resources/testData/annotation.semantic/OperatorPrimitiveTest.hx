@@ -197,10 +197,15 @@ class OperatorTest {
         toDyn = null ?? t;
         toDyn = t ?? null;
 
+        toDyn ??= t;
+        toFloat ??= <error descr="Incompatible type: String should be Float" textAttributesKey="ERRORS_ATTRIBUTES">t</error>; // WRONG, trying to assign incorrect type
+
         toDyn = null ?? null;
 
         toDyn = s.toLowerCase().length ?? i;
         toDyn = s?.toLowerCase()?.length ?? i;
+
+        toFloat = s?.toLowerCase()?.length ?? i;
 
         toDyn = <error descr="Unable to apply operator ?? for types String and Int" textAttributesKey="ERRORS_ATTRIBUTES">s?.toLowerCase()?.charAt(i) ?? i</error>; // WRONG, can not unify types
 

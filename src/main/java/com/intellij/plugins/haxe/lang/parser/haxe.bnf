@@ -39,6 +39,7 @@
       oMINUS_ASSIGN="-="
       oMINUS="-"
 
+      oQUEST_QUEST_ASSIGN="??="
       oQUEST_QUEST="??"
       oQUEST="?"
 
@@ -198,7 +199,7 @@ private metaKeyWord ::= embeddedMeta | '@'
  * after shiftRight so that it has priority.
  */
 fake operator ::= ":" | ";" | "," |"." | "==" | "=" | "!=" | "!" | "~" | "++" | "+=" | "+" | "--" | "-="
-              | "-" | "?" | "||" | "|" | "|=" | "&&" | "&=" | "&" | "<<=" | "<<" | "<=" | "<" | "^="
+              | "-" | "??=" | "??" | '?' | "||" | "|" | "|=" | "&&" | "&=" | "&" | "<<=" | "<<" | "<=" | "<" | "^="
               | "^" | "*=" | "*" | "/=" | "/" | "%=" | "%"
               | <<unsignedShiftRightAssign>> | <<shiftRightAssign>> | <<unsignedShiftRight>> | <<shiftRight>>
               | <<gtEq>> | ">" | "..." | "in" | '->' | "=>" | "new" | "is"
@@ -215,7 +216,7 @@ shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOpe
 shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
 // TODO: Rename *.operation rules to *.operator.
-assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator  { extends=operator }
+assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator | coalescingAssignOperator  { extends=operator }
 private gt ::= '>' !'>' // Cheaper than the predicates for all of the possible shift operators.
 compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | gt     { extends=operator }
 bitOperation ::= '|' | '&' | '^'      { extends=operator }
@@ -232,6 +233,7 @@ moduloOperator ::= '%'                { extends=operator }
 multiplicativeOperator ::= '*' | '/'  { extends=operator }
 prefixOperator ::= '-' | '!' | '~'    { extends=operator }
 coalescingOperator ::= '??'           { extends=operator }
+coalescingAssignOperator ::= '??='    { extends=operator }
 questionOperator ::= <<ternary>>      { extends=operator }
 suffixOperator ::= '!'                { extends=operator }
 
