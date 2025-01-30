@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 
@@ -133,8 +134,8 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
 
   @Override
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
-    final List<HaxeNamedComponent> subComponents = HaxeResolveUtil.getNamedSubComponents(haxeClass);
-    final Map<String, HaxeNamedComponent> componentMap = HaxeResolveUtil.namedComponentToMap(subComponents);
+    final List<HaxeNamedComponent> subComponents = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
+    final Map<String, HaxeNamedComponent> componentMap = HaxeNamedSubComponentUtil.namedComponentToMap(subComponents);
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
       if (!(haxeNamedComponent instanceof HaxeFieldDeclaration)) continue;

@@ -37,6 +37,8 @@ public class HaxeIcons {
   public static final Icon Variable = load("/icons/nodes/variable.svg");
   public static final Icon Module = load("/icons/nodes/module.svg");
   public static final Icon Abstract = load("/icons/nodes/abstract.svg");
+  //TODO create Icon
+  public static final Icon Anonymous = load("/icons/nodes/abstract.svg");
 
   public static final Icon TYPEDEF_GUTTER = load("/icons/nodes/typedefGutter.svg");
 

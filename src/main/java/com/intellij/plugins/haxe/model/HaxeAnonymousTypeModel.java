@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+
 public class HaxeAnonymousTypeModel extends HaxeClassModel {
 
   public final HaxeAnonymousType anonymousType;
@@ -74,9 +75,9 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
     List<HaxeFieldModel> inheritedFields = getInheritedFields();
 
     List<HaxeFieldModel> bodyFieldList = getAnonymousTypeBodyList().stream()
-      .map(this::getFieldsFromBody)
-      .flatMap(Collection::stream)
-      .toList();
+            .map(this::getFieldsFromBody)
+            .flatMap(Collection::stream)
+            .toList();
 
     ArrayList<HaxeFieldModel> fields = new ArrayList<>();
     fields.addAll(inheritedFields);
@@ -86,13 +87,13 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
 
   private @NotNull List<HaxeFieldModel> getInheritedFields() {
     return getCompositeTypes().stream()
-      .map(ResultHolder::getClassType)
-      .filter(Objects::nonNull)
-      .map(HaxeAnonymousTypeModel::mapToHaxeClassIfPossible)
-      .filter(Objects::nonNull)
-      .map(haxeClass -> haxeClass.getModel().getFields())
-      .flatMap(Collection::stream)
-      .toList();
+            .map(ResultHolder::getClassType)
+            .filter(Objects::nonNull)
+            .map(HaxeAnonymousTypeModel::mapToHaxeClassIfPossible)
+            .filter(Objects::nonNull)
+            .map(haxeClass -> haxeClass.getModel().getFields())
+            .flatMap(Collection::stream)
+            .toList();
   }
 
   private static @Nullable HaxeClass mapToHaxeClassIfPossible(SpecificHaxeClassReference reference) {
@@ -115,9 +116,9 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
     List<HaxeMethodModel> inheritedMethods = getInheritedMethods(resolver);
 
     List<HaxeMethodModel> bodyFieldList = getAnonymousTypeBodyList().stream()
-      .map(this::getMethodsFromBody)
-      .flatMap(Collection::stream)
-      .toList();
+            .map(this::getMethodsFromBody)
+            .flatMap(Collection::stream)
+            .toList();
 
     ArrayList<HaxeMethodModel> fields = new ArrayList<>();
     fields.addAll(inheritedMethods);
@@ -128,13 +129,13 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
   @NotNull
   private List<HaxeMethodModel> getInheritedMethods(@Nullable HaxeGenericResolver resolver) {
     return getCompositeTypes().stream()
-      .map(ResultHolder::getClassType)
-      .filter(Objects::nonNull)
-      .map(HaxeAnonymousTypeModel::mapToHaxeClassIfPossible)
-      .filter(Objects::nonNull)
-      .map(haxeClass -> haxeClass.getModel().getMethods(resolver))
-      .flatMap(Collection::stream)
-      .toList();
+            .map(ResultHolder::getClassType)
+            .filter(Objects::nonNull)
+            .map(HaxeAnonymousTypeModel::mapToHaxeClassIfPossible)
+            .filter(Objects::nonNull)
+            .map(haxeClass -> haxeClass.getModel().getMethods(resolver))
+            .flatMap(Collection::stream)
+            .toList();
   }
 
   @Override
@@ -191,39 +192,4 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
     }
   }
 
-  public Collection<HaxeNamedComponent> getAnonymousMethodDeclarations() {
-    val items = new ArrayList<HaxeNamedComponent>();
-    List<HaxeAnonymousTypeBody> bodyList = getAnonymousTypeBodyList();
-    for (HaxeAnonymousTypeBody anonymousTypeBody : bodyList) {
-      if (anonymousTypeBody != null) {
-        items.addAll(anonymousTypeBody.getMethodDeclarationList());
-      }
-    }
-    return items;
-  }
-
-  public Collection<HaxeNamedComponent> getAnonymousFieldDeclarations() {
-    val items = new ArrayList<HaxeNamedComponent>();
-    List<HaxeAnonymousTypeBody> bodyList = getAnonymousTypeBodyList();
-    for (HaxeAnonymousTypeBody anonymousTypeBody : bodyList) {
-      final HaxeAnonymousTypeFieldList typeFieldList = anonymousTypeBody.getAnonymousTypeFieldList();
-        if (typeFieldList != null) {
-          items.addAll(typeFieldList.getAnonymousTypeFieldList());
-        }
-        items.addAll(anonymousTypeBody.getFieldDeclarationList());
-    }
-    return items;
-
-  }
-
-  public Collection<HaxeNamedComponent> getAnonymousOptionalFieldDeclarations() {
-    val items = new ArrayList<HaxeNamedComponent>();
-    List<HaxeAnonymousTypeBody> bodyList = getAnonymousTypeBodyList();
-    for (HaxeAnonymousTypeBody anonymousTypeBody : bodyList) {
-      if (anonymousTypeBody != null) {
-        items.addAll(anonymousTypeBody.getOptionalFieldDeclarationList());
-      }
-    }
-    return items;
-  }
 }

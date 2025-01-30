@@ -131,9 +131,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static private ResultHolder getFieldType(HaxeNamedComponent comp, HaxeGenericResolver resolver) {
-    //ResultHolder type = getTypeFromTypeTag(comp);
-    // Here detect assignment
+  static private ResultHolder getFieldType(HaxeNamedComponent comp, @Nullable HaxeGenericResolver resolver) {
+
     final ResultHolder abstractEnumType = HaxeAbstractEnumUtil.getFieldType(comp, resolver);
     if (abstractEnumType != null) {
       return abstractEnumType;

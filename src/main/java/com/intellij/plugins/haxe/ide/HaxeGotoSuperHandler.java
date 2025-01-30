@@ -31,6 +31,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -38,6 +39,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,9 +60,11 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
     final HaxeNamedComponent namedComponent = componentName == null ? haxeClass : (HaxeNamedComponent)componentName.getParent();
     if (at == null || haxeClass == null || namedComponent == null) return;
 
-    final List<HaxeClass> supers = HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList());
+    final List<HaxeClass> supers = new ArrayList<>() ;
+    supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList()));
     supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(false, null, supers.toArray(new HaxeClass[supers.size()]));
+
+    final List<HaxeNamedComponent> superItems = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers);
 
     final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     if (type == HaxeComponentType.METHOD) {
@@ -68,7 +72,10 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
       tryNavigateToSuperMethod(editor, methodDeclaration, superItems);
     }
     else if (!supers.isEmpty() && namedComponent instanceof HaxeClass) {
-      NavigatablePsiElement[] psiElements = HaxeResolveUtil.getComponentNames(supers).toArray(new NavigatablePsiElement[supers.size()]);
+      NavigatablePsiElement[] psiElements =  supers.stream()
+              .map(HaxeNamedComponent::getComponentName)
+              .toArray(NavigatablePsiElement[]::new);
+
       String title = DaemonBundle.message("navigation.title.subclass", namedComponent.getName(), supers.size(), ":");
       String tab = "Subclasses of " + namedComponent.getName();
 

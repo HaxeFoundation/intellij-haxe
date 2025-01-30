@@ -61,7 +61,7 @@ public class HaxeExpressionEvaluator {
     return evaluate(element, null);
   }
   @NotNull
-  static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeGenericResolver resolver) {
+  static public HaxeExpressionEvaluatorContext evaluate(@NotNull PsiElement element, @Nullable HaxeGenericResolver resolver) {
     ProgressIndicatorProvider.checkCanceled();
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
     context.result = handle(element, context, resolver);
@@ -69,21 +69,23 @@ public class HaxeExpressionEvaluator {
   }
 
   @NotNull
-  static public HaxeExpressionEvaluatorContext evaluate(PsiElement element, HaxeExpressionEvaluatorContext context,
-                                                        HaxeGenericResolver resolver) {
+  static public HaxeExpressionEvaluatorContext evaluate(PsiElement element,
+                                                        @NotNull HaxeExpressionEvaluatorContext context,
+                                                        @Nullable HaxeGenericResolver resolver) {
       ProgressIndicatorProvider.checkCanceled();
       context.result = handle(element, context, resolver);
       return context;
   }
   @NotNull
-  static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(PsiElement element, HaxeExpressionEvaluatorContext context,
-                                                                          HaxeGenericResolver resolver) {
+  static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(PsiElement element,
+                                                                          @NotNull HaxeExpressionEvaluatorContext context,
+                                                                          @Nullable HaxeGenericResolver resolver) {
       ResultHolder result = handleWithRecursionGuard(element, context, resolver);
       context.result = result != null ? result : createUnknown(element);
       return context;
   }
   @NotNull
-  static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(PsiElement element) {
+  static public HaxeExpressionEvaluatorContext evaluateWithRecursionGuard(@NotNull PsiElement element) {
     ProgressIndicatorProvider.checkCanceled();
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
       ResultHolder result = handleWithRecursionGuard(element, context, null);
@@ -96,8 +98,8 @@ public class HaxeExpressionEvaluator {
   // if used outside  it can mess up the result cache
   @NotNull
   static ResultHolder handle(@NotNull final PsiElement element,
-                                     final HaxeExpressionEvaluatorContext context,
-                                     final HaxeGenericResolver resolver) {
+                             @NotNull final HaxeExpressionEvaluatorContext context,
+                             @Nullable final HaxeGenericResolver resolver) {
     try {
       ProgressIndicatorProvider.checkCanceled();
 
@@ -126,9 +128,9 @@ public class HaxeExpressionEvaluator {
   // if recursion guard is triggered value will be null
   // this is intentional as providing an unknown result instead can break monomorphs
   @Nullable
-  static  ResultHolder _handle(final PsiElement element,
-                                      final HaxeExpressionEvaluatorContext context,
-                                      HaxeGenericResolver optionalResolver) {
+  static ResultHolder _handle(@Nullable final PsiElement element,
+                              @NotNull final HaxeExpressionEvaluatorContext context,
+                              @Nullable final HaxeGenericResolver optionalResolver) {
 
     ProgressIndicatorProvider.checkCanceled();
 

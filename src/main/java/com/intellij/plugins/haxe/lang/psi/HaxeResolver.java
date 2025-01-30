@@ -1352,7 +1352,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           return asList(item);
         }
       }else {
-        int i = 0;
+        // debug breakpoint to find corner cases
+        // int i = 0;
+        // current todo findings  that might be handled diffrently:
+        // PARENTHESIZED_EXPRESSION "(null: Type).member"
       }
     }
     return null;

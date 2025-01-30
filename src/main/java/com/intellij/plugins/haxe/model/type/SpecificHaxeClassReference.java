@@ -323,6 +323,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         localResolver.addAll(resolvedClass.getGenericResolver());
       }
     }
+    if(aClass instanceof HaxeAbstractTypeDeclaration declaration) {
+      SpecificTypeReference underlyingType = declaration.getModel().getUnderlyingType();
+      if(underlyingType != null) {
+        ResultHolder resolve = resolver.resolve(underlyingType);
+        if(resolve != null && resolve.getClassType() != null) {
+          localResolver.addAll(resolve.getClassType().getGenericResolver());
+        }
+      }
+    }
     HaxeNamedComponent namedComponent = aClass.findHaxeMethodByName(name, localResolver);
     if (namedComponent  instanceof HaxeMethod method) {
       if (context.root == method) return null;

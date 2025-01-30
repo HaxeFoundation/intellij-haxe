@@ -35,6 +35,7 @@ import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -77,7 +78,7 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
   private static void collectClassMarkers(Collection<LineMarkerInfo> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList()));
-    final List<HaxeNamedComponent> superItems = HaxeResolveUtil.findNamedSubComponents(null, supers.toArray(HaxeClass.EMPTY_ARRAY));
+    final List<HaxeNamedComponent> superItems =  HaxeNamedSubComponentUtil.uniqueNamedSubComponents(HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers));
 
     final Collection<HaxeClass> subs = HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly(haxeClass);
     final List<HaxeClass> subClasses = subs.stream().filter(c -> !(c instanceof  HaxeTypedefDeclaration)).toList();;
@@ -85,12 +86,12 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
 
     final List<HaxeNamedComponent> subItems = new ArrayList<>();
     for (HaxeClass subClass : subClasses) {
-        subItems.addAll(HaxeResolveUtil.getNamedSubComponents(subClass));
+        subItems.addAll(HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(subClass));
     }
 
     final boolean isInterface = HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
     if (!haxeClass.isTypeDef()) {
-      for (HaxeNamedComponent haxeNamedComponent : HaxeResolveUtil.getNamedSubComponents(haxeClass)) {
+      for (HaxeNamedComponent haxeNamedComponent : HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass)) {
         final HaxeComponentType type = HaxeComponentType.typeOf(haxeNamedComponent);
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           LineMarkerInfo item = HaxeLineMarkerProviderNS.tryCreateOverrideMarker(haxeNamedComponent, superItems);

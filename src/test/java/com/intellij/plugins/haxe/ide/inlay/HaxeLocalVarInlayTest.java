@@ -48,14 +48,20 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
   public void testComplexMonomorphHints() throws Exception {
     doTest(hintsProvider);
   }
+
   @Test
   public void testValueExpressionHints() throws Exception {
     doTest(hintsProvider);
   }
+
   @Test
   public void testTypeFromUsageHints() throws Exception {
     doTest(hintsProvider);
   }
 
+  @Test
+  public void testAbstractForwardHints() throws Exception {
+    doTest(hintsProvider);
+  }
 
 }

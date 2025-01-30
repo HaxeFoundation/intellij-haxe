@@ -285,8 +285,8 @@ public class HaxeClassAnnotator implements Annotator {
 
 
 
-    List<HaxeMethod> allMethodList = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.ABSTRACT, HaxeComponentType.INTERFACE);
-    Set<HaxeMethod> extendedClassMethodList = new HashSet<>(abstractClass.getHaxeClassModel().haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.ABSTRACT, HaxeComponentType.INTERFACE));
+    List<HaxeMethod> allMethodList = clazz.haxeClass.getHaxeMethodsAll();
+    Set<HaxeMethod> extendedClassMethodList = new HashSet<>(abstractClass.getHaxeClassModel().haxeClass.getHaxeMethodsAll());
 
     Map<String, HaxeMethodModel> abstractMethods = extendedClassMethodList.stream()
       .map(HaxeMethodPsiMixin::getModel)
@@ -364,7 +364,7 @@ public class HaxeClassAnnotator implements Annotator {
 
     if (intReference.getHaxeClassModel() != null) {
       List<HaxeFieldDeclaration> fieldsInThisClass = clazz.haxeClass.getFieldSelf(clazz.getGenericResolver(null));
-      List<HaxeNamedComponent> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM);
+      List<HaxeNamedComponent> allFields = clazz.haxeClass.getHaxeFieldAll(HaxeComponentType.INTERFACE);
       for (HaxeFieldModel intField : intReference.getHaxeClassModel().getFields()) {
         if (!intField.isStatic()) {
 
@@ -532,7 +532,7 @@ public class HaxeClassAnnotator implements Annotator {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClassModel() != null) {
-      List<HaxeMethodModel> methods = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.CLASS, HaxeComponentType.ENUM).stream()
+      List<HaxeMethodModel> methods = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.INTERFACE).stream()
         .map(HaxeMethodPsiMixin::getModel)
         .filter(not(HaxeMethodModel::isAbstract))
         .toList();

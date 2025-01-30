@@ -104,11 +104,11 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   /**
    * Retrieves list of Methods defined both in current class and inherited classes that matches filter arguments
    *
-   * @param fromTypesFilter list of super types to traverse
+   * @param excludeTypesFilter list of super types not to traverse
    * @return list of Methods
    */
   @NotNull
-  List<HaxeMethod> getHaxeMethodsAll(HaxeComponentType... fromTypesFilter);
+  List<HaxeMethod> getHaxeMethodsAll(HaxeComponentType... excludeTypesFilter);
 
   /**
    * Retrieves list of Methods defined in superclasses of current class
@@ -134,11 +134,11 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   /**
    * Retrieves list of FieldDeclarations in both current class and inherited classes that matches filter arguments
    *
-   * @param fromTypesFilter list of super types to traverse
+   * @param excludeTypesFilter list of super types not to traverse
    * @return list of FieldDeclaration
    */
   @NotNull
-  List<HaxeNamedComponent> getHaxeFieldAll(HaxeComponentType... fromTypesFilter);
+  List<HaxeNamedComponent> getHaxeFieldAll(HaxeComponentType... excludeTypesFilter);
 
   List<HaxePsiField> getHaxeFieldsAncestor(boolean unique);
 

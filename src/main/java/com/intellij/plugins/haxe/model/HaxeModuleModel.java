@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
@@ -97,7 +98,8 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   }
 
   public HaxeBaseMemberModel getMember(String name, @Nullable HaxeGenericResolver resolver) {
-    final List<HaxeNamedComponent> allNamedComponents = HaxeResolveUtil.getAllNamedSubComponentsFromModule(module);
+
+    final List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getNamedComponentsInModule(module);
     HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> name.equals(component.getName()));
     if (match == null) return null;
     return HaxeBaseMemberModel.fromPsi(match);
@@ -106,8 +108,8 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
 
   @NotNull
   public List<HaxeNamedComponent>getAllHaxeNamedComponents(HaxeComponentType componentType) {
-    final List<HaxeNamedComponent> allNamedComponents = HaxeResolveUtil.getAllNamedSubComponentsFromModule(module);
-    return HaxeResolveUtil.filterNamedComponentsByType(allNamedComponents, componentType);
+    final List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getNamedComponentsInModule(module);
+    return HaxeNamedSubComponentUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
 
 }

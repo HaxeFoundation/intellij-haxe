@@ -19,7 +19,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -35,8 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -110,7 +107,8 @@ public class HaxeElementGenerator {
     final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     reformat(haxeClass);
-    return sortNamedSubComponents(HaxeResolveUtil.findNamedSubComponents(null, haxeClass));
+    List<HaxeNamedComponent> components = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassType(haxeClass);
+    return sortNamedSubComponents(HaxeNamedSubComponentUtil.uniqueNamedSubComponents(components));
   }
 
   @Nullable

@@ -58,7 +58,7 @@ public class HaxeAbstractForwardUtil {
         if (forwardingFieldsNames.isEmpty()) {
           HaxeGenericResolver forwardResolver = resolver != null ? resolver : new HaxeGenericResolver();
           forwardResolver = getResolverSkipAbstractNullScope(abstractClassModel, forwardResolver);
-          return HaxeResolveUtil.findNamedSubComponents(forwardResolver, underlyingClass);
+          return HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(underlyingClass, forwardResolver);
         }
         List<HaxeNamedComponent> haxeNamedComponentList = new ArrayList<>();
         List<HaxeBaseMemberModel> members = underlyingClass.getModel().getMembers(resolver);

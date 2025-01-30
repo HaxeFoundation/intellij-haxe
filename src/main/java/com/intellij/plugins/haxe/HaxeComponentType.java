@@ -105,6 +105,10 @@ public enum HaxeComponentType {
     public Icon getIcon() {
       return HaxeIcons.Abstract;
     }
+  }, ANONYMOUS_TYPE(13) {
+    public Icon getIcon() {
+      return HaxeIcons.Anonymous;
+    }
   };
 
   private final int myKey;
@@ -157,6 +161,8 @@ public enum HaxeComponentType {
         return MODULE;
       case 12:
         return ABSTRACT;
+      case 13:
+        return ANONYMOUS_TYPE;
     }
     return null;
   }
@@ -166,6 +172,10 @@ public enum HaxeComponentType {
     if (element instanceof HaxeClassDeclaration ||
         element instanceof HaxeExternClassDeclaration) {
       return CLASS;
+    }
+    if(element instanceof HaxeObjectLiteral ||
+       element instanceof HaxeAnonymousType) {
+      return ANONYMOUS_TYPE;
     }
     if (element instanceof HaxeAbstractTypeDeclaration) {
       return ABSTRACT;
@@ -207,7 +217,9 @@ public enum HaxeComponentType {
     if (element instanceof HaxeParameter) {
       return PARAMETER;
     }
-    if (element instanceof HaxeGenericListPart ) {
+    if (element instanceof HaxeGenericListPart ||
+        element instanceof HaxeGenericConstraintPart
+    ) {
       return TYPE_PARAMETER;
     }
     if (element instanceof HaxeModule ) {

@@ -24,7 +24,7 @@ public class HaxeGenericResolverCastUtil {
 
     @NotNull
     public static HaxeGenericResolver translateFromTo(@NotNull HaxeGenericResolver resolver, @Nullable HaxeClass source, @Nullable HaxeClass target) {
-        HaxeGenericResolver newResolver = transformRecursionGuard.doPreventingRecursion(new RecursionKey(source, source), true, () -> _translateFromTo(resolver, source, target));
+        HaxeGenericResolver newResolver = transformRecursionGuard.doPreventingRecursion(new RecursionKey(source, target), true, () -> _translateFromTo(resolver, source, target));
         if (newResolver == null) return resolver;
         return newResolver;
     }
@@ -39,14 +39,14 @@ public class HaxeGenericResolverCastUtil {
 
         HaxeGenericResolver newResolver = resolver.withoutClassTypeParameters();
 
-        List<SpecificHaxeClassReference> classHierarchy = findCastPath(source, target);
+        List<SpecificHaxeClassReference> classHierarchy = findCastPath(source, target, resolver);
         boolean sourceToTarget = !classHierarchy.isEmpty();
         if (sourceToTarget) {
             newResolver.addAll(createInheritedClassResolver(resolver, target, source, classHierarchy));
             return newResolver;
         }
 
-        classHierarchy = findCastPath(target, source);
+        classHierarchy = findCastPath(target, source, resolver);
         boolean targetToSource = !classHierarchy.isEmpty();
         if (targetToSource) {
             newResolver.addAll(createExtendingClassResolver(resolver, source, target, classHierarchy));
@@ -67,23 +67,29 @@ public class HaxeGenericResolverCastUtil {
 
     public static List<SpecificHaxeClassReference> findCastPath(HaxeClass from, HaxeClass to) {
         List<SpecificHaxeClassReference> path = new ArrayList<>();
-        findCastPath(from,to, path);
+        findCastPath(from,to, path, new HaxeGenericResolver());
+        return path;
+    }
+    private static List<SpecificHaxeClassReference> findCastPath(HaxeClass from, HaxeClass to, HaxeGenericResolver resolver) {
+        List<SpecificHaxeClassReference> path = new ArrayList<>();
+        findCastPath(from,to, path, resolver);
         return path;
     }
     public static List<SpecificHaxeClassReference> findClassHierarchy(HaxeClass from, HaxeClass to) {
         List<SpecificHaxeClassReference> path = new ArrayList<>();
-        findClassHierarchy(from,to, path);
+        findClassHierarchy(from,to, path, new HaxeGenericResolver());
         return path;
     }
 
-    private static boolean findCastPath(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
+    private static boolean findCastPath(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path,  HaxeGenericResolver parentResolver) {
         //TODO mlo: maybe add recursion-guard to prevent typedef loops etc?
 
         // stop if "from" is typeParameter
         if(from instanceof HaxeGenericListPart)return false;
 
         HaxeClassModel fromModel = from.getModel();
-        HaxeGenericResolver fromResolver = fromModel.getGenericResolver(null);
+        HaxeGenericResolver fromResolver = fromModel.getGenericResolver(parentResolver);
+        fromResolver.addAll(parentResolver);
         if (fromModel.isTypedef()) {
             SpecificHaxeClassReference reference = fromModel.getUnderlyingClassReference(fromResolver);
             if (reference!= null) {
@@ -97,14 +103,14 @@ public class HaxeGenericResolverCastUtil {
                         return true;
                     }
                     if (childClass != null){
-                        return findClassHierarchy(childClass, to, path);
+                        return findClassHierarchy(childClass, to, path, resolvedTypeDef.getGenericResolver());
                     }
                 }else {
                     HaxeClass underlyingClass = reference.getHaxeClass();
                     if (underlyingClass == to) {
                         path.add(reference);
                         return true;
-                    }else if (findClassHierarchy(underlyingClass, to, path)) {
+                    }else if (findClassHierarchy(underlyingClass, to, path, reference.getGenericResolver())) {
                         path.add(reference);
                         return true;
                     }
@@ -118,7 +124,7 @@ public class HaxeGenericResolverCastUtil {
                 if (underlyingClass == to) {
                     path.add(underlyingReference);
                     return true;
-                } else if (findClassHierarchy(underlyingClass, to, path)) {
+                } else if (findClassHierarchy(underlyingClass, to, path, underlyingReference.getGenericResolver())) {
                     path.add(underlyingReference);
                     return true;
                 } else {
@@ -144,7 +150,7 @@ public class HaxeGenericResolverCastUtil {
                     if(haxeClass == to) {
                         return path.add(reference);
                     }else {
-                        if (findClassHierarchy(haxeClass, to, path)) {
+                        if (findClassHierarchy(haxeClass, to, path, reference.getGenericResolver())) {
                             path.add(reference);
                             return true;
                         }
@@ -159,11 +165,12 @@ public class HaxeGenericResolverCastUtil {
             HaxeClassModel classModel = model.getHaxeClassModel();
             if (classModel != null) {
                 HaxeClass childClass = classModel.haxeClass;
+                SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
                 if (childClass == to) {
-                    return path.add(model.getSpecificHaxeClassReference());
+                    return path.add(classReference);
                 } else {
-                    if (findClassHierarchy(childClass, to, path)) {
-                        path.add(model.getSpecificHaxeClassReference());
+                    if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
+                        path.add(classReference);
                         return true;
                     }
                 }
@@ -175,11 +182,12 @@ public class HaxeGenericResolverCastUtil {
             HaxeClassModel classModel = model.getHaxeClassModel();
             if (classModel != null) {
                 HaxeClass childClass = classModel.haxeClass;
+                SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
                 if (childClass == to) {
-                    return path.add(model.getSpecificHaxeClassReference());
+                    return path.add(classReference);
                 } else {
-                    if (findClassHierarchy(childClass, to, path)) {
-                        path.add(model.getSpecificHaxeClassReference());
+                    if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
+                        path.add(classReference);
                         return true;
                     }
                 }
@@ -190,13 +198,14 @@ public class HaxeGenericResolverCastUtil {
 
     private static final RecursionGuard<PsiElement> findClassHierarchyRecursionGuard = RecursionManager.createGuard("findClassHierarchyRecursionGuard");
 
-    private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path) {
+    private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path, HaxeGenericResolver parentResolver) {
         // stop if "from" is typeParameter
         Boolean result = findClassHierarchyRecursionGuard.computePreventingRecursion(from, true, () -> {
             if (from instanceof HaxeGenericListPart) return false;
 
             HaxeClassModel fromModel = from.getModel();
-            HaxeGenericResolver fromResolver = fromModel.getGenericResolver(null);
+            HaxeGenericResolver fromResolver = fromModel.getGenericResolver(parentResolver);
+            fromResolver.addAll(parentResolver);
             if (fromModel.isTypedef()) {
                 SpecificHaxeClassReference reference = fromModel.getUnderlyingClassReference(fromResolver);
                 if (reference != null) {
@@ -210,14 +219,14 @@ public class HaxeGenericResolverCastUtil {
                             return true;
                         }
                         if (childClass != null) {
-                            return findClassHierarchy(childClass, to, path);
+                            return findClassHierarchy(childClass, to, path, resolvedTypeDef.getGenericResolver());
                         }
                     } else {
                         HaxeClass underlyingClass = reference.getHaxeClass();
                         if (underlyingClass == to) {
                             path.add(reference);
                             return true;
-                        } else if (findClassHierarchy(underlyingClass, to, path)) {
+                        } else if (findClassHierarchy(underlyingClass, to, path, reference.getGenericResolver())) {
                             path.add(reference);
                             return true;
                         }
@@ -234,7 +243,7 @@ public class HaxeGenericResolverCastUtil {
                         if (haxeClass == to) {
                             return path.add(reference);
                         } else {
-                            if (findClassHierarchy(haxeClass, to, path)) {
+                            if (findClassHierarchy(haxeClass, to, path, reference.getGenericResolver())) {
                                 path.add(reference);
                                 return true;
                             }
@@ -249,11 +258,12 @@ public class HaxeGenericResolverCastUtil {
                 HaxeClassModel classModel = model.getHaxeClassModel();
                 if (classModel != null) {
                     HaxeClass childClass = classModel.haxeClass;
+                    SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
                     if (childClass == to) {
-                        return path.add(model.getSpecificHaxeClassReference());
+                        return path.add(classReference);
                     } else {
-                        if (findClassHierarchy(childClass, to, path)) {
-                            path.add(model.getSpecificHaxeClassReference());
+                        if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
+                            path.add(classReference);
                             return true;
                         }
                     }
@@ -265,11 +275,12 @@ public class HaxeGenericResolverCastUtil {
                 HaxeClassModel classModel = model.getHaxeClassModel();
                 if (classModel != null) {
                     HaxeClass childClass = classModel.haxeClass;
+                    SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
                     if (childClass == to) {
-                        return path.add(model.getSpecificHaxeClassReference());
+                        return path.add(classReference);
                     } else {
-                        if (findClassHierarchy(childClass, to, path)) {
-                            path.add(model.getSpecificHaxeClassReference());
+                        if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
+                            path.add(classReference);
                             return true;
                         }
                     }

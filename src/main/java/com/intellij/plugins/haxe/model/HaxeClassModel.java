@@ -263,7 +263,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       HaxeType type = typeOrAnon.getType();
       if (type != null) {
         //HaxeClass aClass = HaxeResolveUtil.tryResolveClassByQName(type);
-        ResultHolder resolved = HaxeTypeResolver.getTypeFromType(type);
+        ResultHolder resolved = HaxeTypeResolver.getTypeFromType(type, resolver);
         SpecificHaxeClassReference classType = resolved.getClassType();
         if (!resolved.isUnknown() && classType != null) {
           HaxeGenericResolver localResolver = new HaxeGenericResolver();

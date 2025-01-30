@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +27,8 @@ public class HaxeExpressionEvaluatorCacheService  {
 
 
   public @NotNull ResultHolder handleWithResultCaching(@NotNull final PsiElement element,
-                                                       final HaxeExpressionEvaluatorContext context,
-                                                       final HaxeGenericResolver resolver) {
+                                                       @NotNull final HaxeExpressionEvaluatorContext context,
+                                                       @Nullable final HaxeGenericResolver resolver) {
 
     if(skipCaching){
       ResultHolder holder = _handle(element, context, resolver);

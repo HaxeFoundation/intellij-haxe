@@ -21,9 +21,8 @@ package com.intellij.plugins.haxe.ide.generation;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.ArrayList;
@@ -45,7 +44,7 @@ public class HaxeImplementMethodHandler extends BaseHaxeGenerateHandler {
     // so they can/should show up in this list.
 
     // Get all of the names and sort them into lists of class methods and interface declarations.
-    List<HaxeNamedComponent> namedComponents = HaxeResolveUtil.findNamedSubComponents(false, null, haxeClass);
+    List<HaxeNamedComponent> namedComponents = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassType(haxeClass);
     List<HaxeNamedComponent> interfaceMethods = new ArrayList<>();
     Hashtable<String, HaxeNamedComponent> classMethods = new Hashtable<>();
     for (HaxeNamedComponent component : namedComponents) {

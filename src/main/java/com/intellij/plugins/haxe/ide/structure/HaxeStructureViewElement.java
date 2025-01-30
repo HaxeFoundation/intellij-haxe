@@ -26,6 +26,7 @@ import com.intellij.navigation.NavigationItem;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -95,7 +96,7 @@ public class HaxeStructureViewElement implements StructureViewTreeElement, Acces
       for (HaxeClass superInterface : HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList())) {
         result.add(new HaxeStructureViewElement(superInterface));
       }
-      for (HaxeNamedComponent subNamedComponent : HaxeResolveUtil.getNamedSubComponentsInOrder(haxeClass)) {
+      for (HaxeNamedComponent subNamedComponent : HaxeNamedSubComponentUtil.getNamedSubComponentsInOrder(haxeClass)) {
         result.add(new HaxeStructureViewElement(subNamedComponent));
       }
     }

@@ -1437,7 +1437,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (haxeClass == null) {
       return;
     }
-    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(resolver, haxeClass)) {
+
+    List<HaxeNamedComponent> components = HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(haxeClass, resolver);
+    for (HaxeNamedComponent namedComponent : components) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if (!needFilter && namedComponent.getComponentName() != null) {
         suggestedVariants.add(namedComponent.getComponentName());
@@ -1523,7 +1525,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
       }
     }
-    for (HaxeNamedComponent namedComponent : HaxeResolveUtil.findNamedSubComponents(resolver, haxeClass)) {
+    List<HaxeNamedComponent> components = HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(haxeClass, resolver);
+    for (HaxeNamedComponent namedComponent : components) {
       final boolean needFilter = filterByAccess && !namedComponent.isPublic();
       if (isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
         continue;

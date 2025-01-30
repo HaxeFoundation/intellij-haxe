@@ -24,6 +24,7 @@ import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
@@ -58,7 +59,7 @@ public class HaxeSmartCompletionContributor extends CompletionContributor {
     final HaxeClass haxeClass = resolveResult.getHaxeClass();
     if (haxeClass instanceof HaxeEnumDeclaration) {
       final String className = haxeClass.getName();
-      for (HaxeNamedComponent component : HaxeResolveUtil.getNamedSubComponents(haxeClass)) {
+      for (HaxeNamedComponent component : HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass)) {
         result.addElement(LookupElementBuilder.create(className + "." + component.getName()));
       }
     }

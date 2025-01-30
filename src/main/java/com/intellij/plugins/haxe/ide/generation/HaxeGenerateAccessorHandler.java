@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 
 import java.util.List;
 import java.util.Map;
@@ -44,8 +45,8 @@ public abstract class HaxeGenerateAccessorHandler extends BaseHaxeGenerateHandle
 
   @Override
   void collectCandidates(HaxeClass haxeClass, List<HaxeNamedComponent> candidates) {
-    final List<HaxeNamedComponent> subComponents = HaxeResolveUtil.getNamedSubComponents(haxeClass);
-    final Map<String, HaxeNamedComponent> componentMap = HaxeResolveUtil.namedComponentToMap(subComponents);
+    final List<HaxeNamedComponent> subComponents = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
+    final Map<String, HaxeNamedComponent> componentMap = HaxeNamedSubComponentUtil.namedComponentToMap(subComponents);
 
     for (HaxeNamedComponent haxeNamedComponent : subComponents) {
       if (!(haxeNamedComponent instanceof HaxeFieldDeclaration)) continue;
