@@ -698,21 +698,26 @@ public class HaxeTypeResolver {
     return evaluateWithRecursionGuard(element, new HaxeExpressionEvaluatorContext(element, holder), resolver);
   }
 
+  private static final RecursionGuard<PsiElement> genericConstraintRecursionGuard = RecursionManager.createGuard("genericConstraintRecursionGuard");
 
   @Nullable
   public static ResultHolder getTypeFromGenericConstraint(HaxeGenericConstraintPart constraint) {
-    HaxeTypeOrAnonymous typeOrAnonymous = constraint.getTypeOrAnonymous();
-    if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+    return genericConstraintRecursionGuard.doPreventingRecursion(constraint, true, () -> {
 
-    HaxeFunctionType functionType = constraint.getFunctionType();
-    if (functionType != null) return getTypeFromFunctionType(functionType);
+      HaxeTypeOrAnonymous typeOrAnonymous = constraint.getTypeOrAnonymous();
+      if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
 
-    HaxeConstraintTypeList constraintTypeList = constraint.getConstraintTypeList();
-    if (constraintTypeList != null) return constraintTypeList.getModel().getInstanceType();
+      HaxeFunctionType functionType = constraint.getFunctionType();
+      if (functionType != null) return getTypeFromFunctionType(functionType);
 
-    HaxeExpression expression = constraint.getConstExpression();
-    if (expression != null) return HaxeExpressionEvaluator.evaluate(expression).result;
+      HaxeConstraintTypeList constraintTypeList = constraint.getConstraintTypeList();
+      if (constraintTypeList != null) return constraintTypeList.getModel().getInstanceType();
 
-    return null;
+      HaxeExpression expression = constraint.getConstExpression();
+      if (expression != null) return HaxeExpressionEvaluator.evaluate(expression).result;
+
+      return null;
+
+    });
   }
 }
