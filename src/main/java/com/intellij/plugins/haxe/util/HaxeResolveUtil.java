@@ -226,15 +226,15 @@ public class HaxeResolveUtil {
     if (model == null) {
       return Collections.emptyList();
     }
-    return model.getClassModels().stream().map(HaxeClassModel::getPsi).toList();
+    return model.getClassModels().parallelStream().map(HaxeClassModel::getPsi).toList();
   }
 
   @Nullable
   public static HaxeClass findComponentDeclaration(@Nullable PsiFile file, @NotNull String componentName) {
     final List<HaxeClass> declarations = findComponentDeclarations(file);
     for (HaxeClass haxeClass : declarations) {
-      final HaxeComponentName identifier = haxeClass.getComponentName();
-      if (identifier != null && identifier.textMatches(componentName)) {
+      final String name = haxeClass.getModel().getName();
+      if (componentName.equalsIgnoreCase(name)) {
         return haxeClass;
       }
     }

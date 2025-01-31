@@ -64,7 +64,7 @@ public class UsefulPsiTreeUtil {
 
   @Nullable
   public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement sibling, boolean strictly) {
-    return getPrevSiblingSkippingCondition(sibling, element -> isWhitespaceOrComment(element), strictly);
+    return getPrevSiblingSkippingCondition(sibling, UsefulPsiTreeUtil::isWhitespaceOrComment, strictly);
   }
 
   @Nullable
