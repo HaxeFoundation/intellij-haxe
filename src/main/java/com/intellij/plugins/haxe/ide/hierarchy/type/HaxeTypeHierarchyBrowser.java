@@ -22,10 +22,14 @@ import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.ide.hierarchy.type.TypeHierarchyBrowser;
 import com.intellij.openapi.project.Project;
 
+import com.intellij.plugins.haxe.ide.hierarchy.type.treestructures.HaxeSubtypesHierarchyTreeStructure;
+import com.intellij.plugins.haxe.ide.hierarchy.type.treestructures.HaxeSupertypesHierarchyTreeStructure;
+import com.intellij.plugins.haxe.ide.hierarchy.type.treestructures.HaxeTypeHierarchyTreeStructure;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+
 
 /**
  * Created by srikanthg on 10/23/14.
@@ -42,10 +46,10 @@ public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
       currentActiveTree = new HaxeSupertypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
     }
     else if (getSubtypesHierarchyType().equals(typeName)) {
-      currentActiveTree = new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass) psiElement);
+      currentActiveTree = new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass) psiElement, getCurrentScopeType());
     }
     else if (getTypeHierarchyType().equals(typeName)) {
-      currentActiveTree = new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement);
+      currentActiveTree = new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement, getCurrentScopeType());
     }
     else {
       log.error("unexpected type: " + typeName);

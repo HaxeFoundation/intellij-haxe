@@ -15,12 +15,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.hierarchy.type;
+package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.util.ArrayUtil;
 
 import java.util.ArrayList;
@@ -34,6 +37,11 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
   public HaxeSupertypesHierarchyTreeStructure(final Project project, final PsiClass aClass) {
     super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, aClass, true));
     setBaseElement(myBaseDescriptor); // to set myRoot
+  }
+
+  @Override
+  protected SearchScope getSearchScope(String scopeType, PsiElement thisClass) {
+    return super.getSearchScope(scopeType, thisClass);
   }
 
   protected final Object[] buildChildren(final HierarchyNodeDescriptor descriptor) {

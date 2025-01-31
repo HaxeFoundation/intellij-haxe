@@ -16,16 +16,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.hierarchy.type;
+package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeAnonymousType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -41,12 +40,14 @@ import java.util.List;
  */
 public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
 
-  protected HaxeSubtypesHierarchyTreeStructure(final Project project, final HaxeTypeHierarchyNodeDescriptor descriptor) {
+  protected final String currentScopeType;
+  protected HaxeSubtypesHierarchyTreeStructure(final Project project, String scopeType, final HaxeTypeHierarchyNodeDescriptor descriptor) {
     super(project, descriptor);
+    currentScopeType = scopeType;
   }
 
-  public HaxeSubtypesHierarchyTreeStructure(final Project project, final PsiClass psiClass) {
-    super(project, new HaxeTypeHierarchyNodeDescriptor(project, null, psiClass, true));
+  public HaxeSubtypesHierarchyTreeStructure(final Project project, final PsiClass psiClass, String scopeType) {
+    this(project, scopeType, new HaxeTypeHierarchyNodeDescriptor(project, null, psiClass, true));
   }
 
   @NotNull
@@ -65,7 +66,8 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     // ----
     // search current file for sub-types that extend/implement from this class/type
     //
-    final HaxeClass[] allHaxeClassesInFile = PsiTreeUtil.getChildrenOfType(inClassPsiFile, HaxeClass.class);
+    HaxeModule fileModule = PsiTreeUtil.getChildOfType(inClassPsiFile, HaxeModule.class);
+    final HaxeClass[] allHaxeClassesInFile = PsiTreeUtil.getChildrenOfType(fileModule, HaxeClass.class);
     if (allHaxeClassesInFile != null) {
       for (HaxeClass aClassInFile : allHaxeClassesInFile) {
         if (isThisTypeASubTypeOfTheSuperType(aClassInFile, theHaxeClass)) {
@@ -74,15 +76,15 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
       }
     }
 
-    // if private class, scope ends there
-    if (theHaxeClass.hasModifierProperty(HaxePsiModifier.PRIVATE)) { // XXX: how about @:allow occurrences?
-      return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
-    }
-
     // Get the list of subtypes from the file-based indices.  Stub-based would
     // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
     Collection<HaxeClass> children = HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly(theHaxeClass);
     subTypeList.addAll(children);
+
+    // filter to match scope
+    subTypeList = subTypeList.stream()
+            .filter( type -> isInScope(type, type, currentScopeType))
+            .toList();
 
     return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
   }

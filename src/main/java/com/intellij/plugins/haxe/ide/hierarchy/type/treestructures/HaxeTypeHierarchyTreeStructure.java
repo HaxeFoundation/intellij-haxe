@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide.hierarchy.type;
+package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.openapi.project.Project;
 
+import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
 import com.intellij.psi.PsiClass;
 
 /**
@@ -26,8 +27,8 @@ import com.intellij.psi.PsiClass;
  */
 public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStructure {
 
-  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass) {
-    super(project, buildHierarchyElement(project, aClass));
+  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass, String currentScopeType) {
+    super(project, currentScopeType, buildHierarchyElement(project, aClass));
     setBaseElement(myBaseDescriptor); //to set myRoot
   }
 
