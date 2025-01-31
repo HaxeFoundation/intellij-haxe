@@ -21,6 +21,8 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +36,6 @@ import java.util.List;
  */
 public class HaxeGenericParamModel  extends  HaxeClassModel{
   final private HaxeGenericListPart part;
-  @Getter final private String name;
   @Getter final private int index;
   @Getter final private HaxeModel owner;
   @Nullable
@@ -71,7 +72,6 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
     super(part);
     this.index = index;
     this.part = part;
-    this.name = part.getComponentName().getText();
 
     HaxeGenericDefaultType defaultPart = part.getGenericDefaultType();
     this.defaultType = defaultPart == null ? null : defaultPart.getTypeOrAnonymous();
@@ -81,6 +81,14 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
     owner = findOwner(part);
   }
 
+  @Override
+  public String getName() {
+    return CachedValuesManager.getCachedValue(part, () ->  {
+      HaxeComponentName componentName = part.getComponentName();
+      String text = componentName == null ? null : componentName.getText();
+      return new CachedValueProvider.Result<>(text, part, componentName);
+    });
+  }
 
   public  boolean hasDefault() {
     return defaultType != null || defaultFunction !=  null;
@@ -109,7 +117,7 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
   }
 
   public String toString() {
-    return name;
+    return getName();
   }
 
 //TODO plural and list, we can replace tp in  multiple interfaces
