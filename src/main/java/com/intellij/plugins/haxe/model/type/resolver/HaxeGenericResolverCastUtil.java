@@ -286,6 +286,23 @@ public class HaxeGenericResolverCastUtil {
                     }
                 }
             }
+            //experimental fix for typeParam constraint recursion issue
+            // makes it so that a path/hierarchy is found so that we can perform
+            // SpecificHaxeClassReference#tryCastToClass
+            if (to.getModel() instanceof HaxeGenericParamModel genericParamModel) {
+                if (genericParamModel.hasConstraint()) {
+                    ResultHolder constraint = genericParamModel.getConstraint(null);
+                    if (constraint != null) {
+                        SpecificHaxeClassReference constraintClassType = constraint.getClassType();
+                        if (constraintClassType != null) {
+                            HaxeClass haxeClass = constraintClassType.getHaxeClass();
+                            if (from == haxeClass) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
             return false;
         });
 

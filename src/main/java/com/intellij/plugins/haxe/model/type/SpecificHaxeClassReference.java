@@ -414,9 +414,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       if (!findClassHierarchy(sourceHaxeClass, targetHaxeClass).isEmpty()) {
         ResultHolder instanceType = classModel.getInstanceType();
         HaxeGenericResolver genericResolver = getGenericResolver().translateFromTo(sourceHaxeClass, targetHaxeClass);
-        ResultHolder resolved = genericResolver.resolve(instanceType);
-        if (resolved != null) {
-          return resolved.getClassType();
+        if(!instanceType.isTypeParameter()) {
+          ResultHolder resolved = genericResolver.resolve(instanceType);
+          if (resolved != null) {
+            return resolved.getClassType();
+          }
+        }else {
+          //NOTE: Workaround for typeParameter Recursion
+          // (if we use resolve result me might end up with the original class we are trying to cast)
+          return instanceType.getClassType();
         }
       }
     }
