@@ -202,7 +202,7 @@ public abstract class SpecificTypeReference {
   }
 
   public static SpecificHaxeClassReference getInvalid(@NotNull PsiElement context) {
-    return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(INVALID, context));
+    return SpecificHaxeClassReference.withoutGenerics(HaxeClassReference.createNoModelClassReference(INVALID, context));
   }
 
   public static SpecificHaxeClassReference getIterator(SpecificHaxeClassReference type) {
@@ -516,7 +516,7 @@ public abstract class SpecificTypeReference {
     if (model != null) {
       classReference = new HaxeClassReference(model, context);
     } else {
-      classReference = new HaxeClassReference(className, context);
+      classReference = HaxeClassReference.createNoModelClassReference(className, context);
     }
     return classReference;
   }

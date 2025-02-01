@@ -24,6 +24,8 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatibl
 public class HaxeCallExpressionContext {
 
     private static final RecursionGuard<RecursionKey> canAssignRecursionGuard = RecursionManager.createGuard("canAssignRecursionGuard");
+
+
     private record RecursionKey(PsiElement argumentContext, PsiElement parameterContext){}
 
     @NotNull
@@ -45,7 +47,7 @@ public class HaxeCallExpressionContext {
     @Nullable
     private PsiElement sourceExpression;
 
-
+    public boolean isConstructor = false;
     public boolean isMacroFunction = false;
     public boolean isStaticExtension = false;
 
@@ -202,7 +204,7 @@ public class HaxeCallExpressionContext {
             //
             SpecificTypeReference originalParameterType = reachedRestParameter ? parameterModel.getRestType() : parameterModel.getType();
             parameterType = tryResolve(combinedResolver, originalParameterType, null);
-            argumentType = tryResolve(argumentResolver, argumentModel.getType(), parameterType);
+            argumentType = tryResolve(argumentResolver, argumentModel.getType(), isConstructor? null : parameterType);
 
             //making final instances so we can use them in  recursion-guard lambda.
             final SpecificTypeReference finalParameterType = parameterType;
@@ -307,7 +309,10 @@ public class HaxeCallExpressionContext {
                         int argumentsToCheck = Math.min(argumentSpecifics.length, parameterSpecifics.length);
                         for (int i = 0; i < argumentsToCheck; i++) {
                             ResultHolder parameterSpecific = tryUnwrapNull(parameterSpecifics[i]);
-                            ResultHolder argumentSpecific = tryUnwrapNull(argumentResolver.resolve(argumentSpecifics[i]));
+                            ResultHolder argumentSpecific = tryUnwrapNull(argumentSpecifics[i]);
+                            ResultHolder argumentSpecificResolved = tryUnwrapNull(argumentResolver.resolve(argumentSpecific));
+                            if (argumentSpecificResolved != null) argumentSpecific = argumentSpecificResolved;
+
                             if (argumentSpecific != null && parameterSpecific.canAssign(argumentSpecific)) {
                                 updateResolverIfNecessary(
                                         argumentSpecific.getType(), argumentResolver,

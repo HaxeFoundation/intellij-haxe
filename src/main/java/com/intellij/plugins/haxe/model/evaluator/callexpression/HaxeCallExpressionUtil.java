@@ -166,6 +166,7 @@ public class HaxeCallExpressionUtil {
             evaluation.assignHint = assignHint != null ? assignHint.getType() : null;
             evaluation.isStaticExtension = false;
             evaluation.isMacroFunction = false;
+            evaluation.isConstructor = true;
             return evaluation;
           }
         }

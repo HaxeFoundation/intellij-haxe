@@ -576,9 +576,8 @@ public class HaxeTypeResolver {
     final HaxeClass resolvedHaxeClass =( result != null  && !result.isUnknown() && result.isClassType()) ? result.getClassType().getHaxeClass() : null;
     if (resolvedHaxeClass == null) {
       boolean isTypeParameter = isTypeParameter(expression);
-      reference = new HaxeClassReference(expression.getText(), type, isTypeParameter);
-    }
-    else {
+      reference = HaxeClassReference.createNoModelClassReference(expression.getText(), type, isTypeParameter);
+    } else {
       reference = new HaxeClassReference(resolvedHaxeClass.getModel(), type);
     }
 

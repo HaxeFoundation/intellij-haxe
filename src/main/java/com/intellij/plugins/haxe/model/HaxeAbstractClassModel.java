@@ -243,13 +243,16 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         if (argument instanceof SpecificHaxeClassReference argumentAsClass) {
           ResultHolder paramType = parameters.getFirst().getType();
           if (paramType.isClassType()) {
-            SpecificHaxeClassReference classType = paramType.getClassType();
-            SpecificHaxeClassReference casted = argumentAsClass.tryCastTo(classType);
-            // if we can not cast to parameter type then this method cant be used and we skip it
-            if (casted == null) continue;
-            arguments = List.of(casted);
-
-          }else {
+            if (paramType.isTypeParameter()) {
+              arguments = List.of(argument);
+            } else {
+              SpecificHaxeClassReference classType = paramType.getClassType();
+              SpecificHaxeClassReference casted = argumentAsClass.tryCastTo(classType);
+              // if we can not cast to parameter type then this method cant be used and we skip it
+              if (casted == null) continue;
+              arguments = List.of(casted);
+            }
+          } else {
             arguments = List.of(argument);
           }
         } else {

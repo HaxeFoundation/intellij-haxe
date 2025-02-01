@@ -342,18 +342,16 @@ public class HaxeResolveResult implements Cloneable {
 
   @NotNull
   public SpecificHaxeClassReference getSpecificClassReference(@NotNull PsiElement context, @Nullable HaxeGenericResolver resolver) {
-      HaxeClassModel clazz = null != haxeClass ? haxeClass.getModel() : SpecificHaxeClassReference.getUnknown(context).getHaxeClassModel();
-      HaxeClassReference classReference =
-        null != clazz ? new HaxeClassReference(clazz, context) : new HaxeClassReference(SpecificHaxeClassReference.UNKNOWN, context);
-      HaxeClass clazzPsi = null != clazz ? clazz.getPsi() : null;
-      if (haxeClass != null) {
-        softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
-        if (classReference.getHaxeClass().isGeneric()) {
-          HaxeGenericResolver newResolver = getGenericResolver();
-          return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
-        }
+    if (haxeClass == null) return SpecificHaxeClassReference.getUnknown(context);
+      HaxeClassModel clazz = haxeClass.getModel();
+      HaxeClassReference classReference = new HaxeClassReference(clazz, context);
+      HaxeClass clazzPsi = clazz.getPsi();
+      softMerge(HaxeGenericSpecialization.fromGenericResolver(clazzPsi, resolver));
+      if (classReference.getHaxeClass().isGeneric()) {
+        HaxeGenericResolver newResolver = getGenericResolver();
+        return SpecificHaxeClassReference.withGenerics(classReference, newResolver.getSpecificsFor(clazzPsi));
       }
-    return SpecificHaxeClassReference.withoutGenerics(classReference);
+      return SpecificHaxeClassReference.withoutGenerics(classReference);
   }
   @NotNull
   public SpecificTypeReference getSpecificFunctionReference(@NotNull PsiElement context, @Nullable HaxeGenericResolver resolver) {

@@ -29,7 +29,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -67,17 +66,20 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Nullable
   @NonNls
   public String getName() {
-    return CachedValuesManager.getProjectPsiDependentCache(this, AbstractHaxeNamedComponent::_getName);
+    return getCachedName(this);
   }
 
-  private static String _getName(AbstractHaxeNamedComponent namedComponent) {
-      final HaxeComponentName name = namedComponent.getComponentName();
-      if (name != null) {
-        return name.getText();
+  private static String getCachedName(AbstractHaxeNamedComponent namedComponent) {
+    return CachedValuesManager.getCachedValue(namedComponent, () -> {
+      final HaxeComponentName componentName = namedComponent.getComponentName();
+      if (componentName != null) {
+        return new CachedValueProvider.Result<>(componentName.getText(), namedComponent, componentName);
       } else {
-        return namedComponent._getNameFromSuper();
+        return new CachedValueProvider.Result<>(namedComponent._getNameFromSuper(), namedComponent);
       }
+    });
   }
+
   private String _getNameFromSuper() {
     return super.getName();
   }

@@ -48,6 +48,29 @@ public class HaxeClassReference {
     this.classModel = classModel;
     this.isTypeParameter =  classModel.isTypeParameter();
   }
+
+  public HaxeClassReference(@NotNull HaxeClassModel classModel, @NotNull PsiElement elementContext, boolean isTypeParameter) {
+    this.name = getClassName(classModel);
+    this.elementContext = elementContext;
+    this.classModel = null;
+    this.isTypeParameter = isTypeParameter;
+  }
+
+
+  public static HaxeClassReference createNoModelClassReference(String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
+    return new HaxeClassReference(name, elementContext, isTypeParameter);
+  }
+  public static HaxeClassReference createNoModelClassReference(String name, @NotNull PsiElement elementContext) {
+    return new HaxeClassReference(name, elementContext, false);
+  }
+
+  private HaxeClassReference(@NotNull String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
+    this.name = name;
+    this.elementContext = elementContext;
+    this.classModel = null;
+    this.isTypeParameter = isTypeParameter;
+  }
+
   protected HaxeClassReference(String name, @NotNull HaxeClassModel classModel, @NotNull PsiElement elementContext) {
     this.name = name;
     this.elementContext = elementContext;
@@ -55,18 +78,7 @@ public class HaxeClassReference {
     this.isTypeParameter = classModel.isTypeParameter();
   }
 
-  public HaxeClassReference(String name, @NotNull PsiElement elementContext) {
-    this.name = name;
-    this.elementContext = elementContext;
-    this.classModel = null;
-    this.isTypeParameter =  elementContext instanceof HaxeGenericListPart;
-  }
-  public HaxeClassReference(String name, @NotNull PsiElement elementContext, boolean isTypeParameter) {
-    this.name = name;
-    this.elementContext = elementContext;
-    this.classModel = null;
-    this.isTypeParameter = isTypeParameter;
-  }
+
 
   private String getClassName(HaxeClassModel clazz) {
     if(clazz!= null && clazz.getPsi().getParent() != null) {

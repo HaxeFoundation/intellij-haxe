@@ -379,7 +379,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     for (HaxeGenericParamModel param : params) {
       int index = param.getIndex();
       if (index >= specifics.length || specifics[index].isUnknown()) {
-        HaxeClassReference reference = new HaxeClassReference(param.getName(), param.getPsi(), true);
+        HaxeClassReference reference = new HaxeClassReference(param, param.getPsi(), true);
         newSpecifics[index] = SpecificHaxeClassReference.withoutGenerics(reference).createHolder();
       } else {
         newSpecifics[index] = specifics[index];

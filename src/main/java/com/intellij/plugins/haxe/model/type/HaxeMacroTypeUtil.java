@@ -55,7 +55,7 @@ public class HaxeMacroTypeUtil {
     HaxeClass classByQName = getCachedExpr(context, context.getProject());
     HaxeClassReference reference = classByQName != null
                                    ? new HaxeClassReference(classByQName.getModel(), context)
-                                   : new HaxeClassReference(EXPR, context);
+                                   : HaxeClassReference.createNoModelClassReference(EXPR, context);
 
     return SpecificHaxeClassReference.withoutGenerics(reference);
   }
@@ -64,7 +64,7 @@ public class HaxeMacroTypeUtil {
     HaxeClass classByQName = getCachedExprOf(context, context.getProject());
     HaxeClassReference reference = classByQName != null
                                    ? new HaxeClassReference(classByQName.getModel(), context)
-                                   : new HaxeClassReference(EXPR_OF, context);
+                                   : HaxeClassReference.createNoModelClassReference(EXPR_OF, context);
 
     return SpecificHaxeClassReference.withGenerics(reference, new ResultHolder[]{specific});
   }
@@ -73,7 +73,7 @@ public class HaxeMacroTypeUtil {
     HaxeClass classByQName = getCachedComplexType(context, context.getProject());
     HaxeClassReference reference = classByQName != null
                                    ? new HaxeClassReference(classByQName.getModel(), context)
-                                   : new HaxeClassReference(COMPLEX_TYPE, context);
+                                   : HaxeClassReference.createNoModelClassReference(COMPLEX_TYPE, context);
 
     return SpecificHaxeClassReference.withoutGenerics(reference);
   }
@@ -82,7 +82,7 @@ public class HaxeMacroTypeUtil {
     HaxeClass classByQName = getCachedTypeDefinition(context, context.getProject());
     HaxeClassReference reference = classByQName != null
                                    ? new HaxeClassReference(classByQName.getModel(), context)
-                                   : new HaxeClassReference(TYPE_DEFINITION, context);
+                                   :  HaxeClassReference.createNoModelClassReference(TYPE_DEFINITION, context);
 
     return SpecificHaxeClassReference.withoutGenerics(reference);
   }

@@ -548,7 +548,7 @@ public class HaxeGenericResolver {
         .findAny();
 
       if(match.isPresent()) {
-        HaxeClassReference classReference = new HaxeClassReference(name, param.getPsi(), true);
+        HaxeClassReference classReference = new HaxeClassReference(param, param.getPsi(), true);
         ResultHolder holder = new ResultHolder(SpecificHaxeClassReference.withoutGenerics(classReference));
         resolver.resolvers.add(new ResolverEntry(name, param.getTypeParameter(), holder, match.get().scope()));
       }
