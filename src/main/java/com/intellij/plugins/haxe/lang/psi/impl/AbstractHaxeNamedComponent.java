@@ -70,25 +70,11 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   private static String getCachedName(AbstractHaxeNamedComponent namedComponent) {
-    return CachedValuesManager.getCachedValue(namedComponent, () -> {
-      final HaxeComponentName componentName = namedComponent.getComponentName();
-      if (componentName != null) {
-        return new CachedValueProvider.Result<>(componentName.getText(), namedComponent, componentName);
-      } else {
-        return new CachedValueProvider.Result<>(namedComponent._getNameFromSuper(), namedComponent);
-      }
-    });
+    HaxeComponentName componentName = CachedValuesManager.getCachedValue(namedComponent, () -> new CachedValueProvider.Result<>(namedComponent.getComponentName(), namedComponent));
+    if(componentName == null) return null;
+    return CachedValuesManager.getCachedValue(componentName, () -> new CachedValueProvider.Result<>(componentName.getText(),  componentName));
   }
 
-  private String _getNameFromSuper() {
-    return super.getName();
-  }
-
-
-  @Override
-  public String getText() {
-    return super.getText();
-  }
 
   @Override
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
