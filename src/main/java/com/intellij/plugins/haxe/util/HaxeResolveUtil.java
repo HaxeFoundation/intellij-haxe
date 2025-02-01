@@ -54,6 +54,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.lang.psi.HaxeResolver.canBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluate;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findIteratorType;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
@@ -879,14 +880,16 @@ public class HaxeResolveUtil {
   }
 
   private static String tryResolveFullyQualifiedHaxeReferenceExpression(PsiElement type) {
-    if (type instanceof HaxeReferenceExpression) {
+    if (type instanceof HaxeReferenceExpression referenceExpression) {
       HaxeReferenceExpression topmostParentOfType = PsiTreeUtil.getTopmostParentOfType(type, HaxeReferenceExpression.class);
 
       if (topmostParentOfType == null) {
-        topmostParentOfType = (HaxeReferenceExpression)type;
+        topmostParentOfType = referenceExpression;
       }
 
-      HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
+      if (!canBeQname(topmostParentOfType)) return null;
+
+        HaxeClass haxeClass = findClassByQName(topmostParentOfType.getText(), topmostParentOfType.getContext());
       if (haxeClass != null) {
         return topmostParentOfType.getText();
       }
@@ -948,6 +951,13 @@ public class HaxeResolveUtil {
       type = ((HaxeType)type).getReferenceExpression();
     }
 
+    if(type instanceof  HaxeCallExpression) {
+      return null;
+    }
+    if(type instanceof  HaxeNewExpression) {
+      return null;
+    }
+
     String className = type.getText();
     PsiElement result = null;
 
@@ -989,10 +999,14 @@ public class HaxeResolveUtil {
     }
 
     if (result == null && className != null) {
-      //make sure we  wont try to files with invalid characters
-      if (className.matches("[^:<>{}()/]+")) {
-        result = findClassByQName(className, type.getContext());
+      // check if Reference, and if it  contains elements that can not be part of Qname
+      if (type instanceof HaxeReference reference) {
+        if (!canBeQname(reference)) return null;
       }
+      if(className.contains("<")) {
+        int i = 0;
+      }
+      result = findClassByQName(className, type.getContext());
     }
 
     return result instanceof HaxeClass haxeClass ? haxeClass : null;

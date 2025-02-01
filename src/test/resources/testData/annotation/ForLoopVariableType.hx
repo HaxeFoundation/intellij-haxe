@@ -1,4 +1,4 @@
-import <info descr="null"><info descr="null">haxe.ds</info>.Vector</info>;
+import <info descr="null">haxe.ds.Vector</info>;
 class <info descr="null">ForLoopVariableResolve</info> {
 
 

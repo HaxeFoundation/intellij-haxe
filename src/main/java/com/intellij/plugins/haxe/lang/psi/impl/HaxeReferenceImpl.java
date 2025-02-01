@@ -417,8 +417,14 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       // this has different semantics on abstracts
       if (clazz != null && clazz.getModel().isAbstractType()) {
         HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingTypeOrAnonymous();
+
         if (type != null) {
-          return HaxeResolveResult.create(HaxeResolveUtil.tryResolveClassByQName(type));
+          if (type.getType() != null) {
+            PsiElement resolvedReference = type.getType().getReferenceExpression().resolve();
+            if (resolvedReference instanceof HaxeClass haxeClass) {
+              return HaxeResolveResult.create(haxeClass);
+            }
+          }
         }
       }
       return HaxeResolveResult.create(clazz);

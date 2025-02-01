@@ -1378,18 +1378,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         LogResolution(reference, "via simple chain using leftReference.");
         return result;
       }
-      PsiElement firstChild = reference.getFirstChild();
-      if(firstChild instanceof HaxeReference || firstChild instanceof HaxeIdentifier) {
+      if (canBeQname(reference)) {
         PsiElement item = resolveQualifiedReference(reference);
         if (item != null) {
           LogResolution(reference, "via simple chain against package.");
           return asList(item);
         }
-      }else {
-        // debug breakpoint to find corner cases
-        // int i = 0;
-        // current todo findings  that might be handled diffrently:
-        // PARENTHESIZED_EXPRESSION "(null: Type).member"
       }
     }
     return null;
@@ -1403,6 +1397,27 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return asList(resultClass.getComponentName());
     }
     return null;
+  }
+
+  public static boolean canBeQname(@NotNull HaxeReference reference) {
+    PsiElement firstChild = reference.getFirstChild();
+    // before attempting a Qname lookup, make sure reference does not contain callExpression, parenthesizedExpression
+    // or other stuff that is not part of a Qname (it should only contain  reference, identifier or token)
+    while(   firstChild instanceof HaxeReference
+          || firstChild instanceof HaxeIdentifier
+          || firstChild instanceof HaxePsiToken
+    ) {
+      if(firstChild instanceof  HaxeCallExpression) break;
+      if(firstChild instanceof  HaxeParenthesizedExpressionReference) break;
+      if(firstChild instanceof  HaxeNewExpression) break;
+
+      firstChild = firstChild.getFirstChild();
+
+      if(firstChild == null) {
+       return true;
+      }
+    }
+    return false;
   }
 
   @Nullable

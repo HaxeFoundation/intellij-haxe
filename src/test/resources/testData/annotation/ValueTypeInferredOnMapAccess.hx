@@ -4,7 +4,7 @@ package;
 import <info descr="null">StdTypes</info>;
 import <info descr="null">Map</info>;
 import <info descr="null">String</info>;
-import <info descr="null"><info descr="null">haxe.ds</info>.StringMap</info>;
+import <info descr="null">haxe.ds.StringMap</info>;
 
 class <info descr="null">Test</info> {
   function <info descr="null">Test</info>() {

@@ -80,13 +80,13 @@ public class HaxeSlowColorAnnotator implements Annotator {
 
   private static boolean tryAnnotateQName(HaxeReference node, AnnotationHolder holder) {
     // Maybe this is class name
-    final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(node);
-    if (resultClass != null) {
-      final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
-      if (attribute != null) {
-        holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
-      }
-      return true;
+    PsiElement resolve = node.resolve();
+    if (resolve instanceof  HaxeClass resultClass) {
+        final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
+        if (attribute != null) {
+            holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
+        }
+        return true;
     }
     return false;
   }
