@@ -163,9 +163,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public ResultHolder getReturnType(@Nullable HaxeGenericResolver resolver) {
-    //debug
-    ResultHolder result = HaxeTypeResolver.getFieldOrMethodReturnType(haxeMethod, null);
-//    ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(haxeMethod, HaxeMethodModel::getReturnTypeCacheProvider);
+    ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(haxeMethod, HaxeMethodModel::getReturnTypeCacheProvider);
     if (resolver != null) {
       ResultHolder resolve = resolver.resolve(result);
       if (resolve != null && !resolve.isUnknown()) result = resolve;
