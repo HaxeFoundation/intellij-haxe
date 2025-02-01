@@ -675,16 +675,50 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     // check if reference is to a member in  class or abstract
     //   null:      it's a direct reference (not a chain, could be normal class member access)
-    //   this:      this class member access
+    //   abstract:  access abstract members
+    //   this:      this class member access / underlying type access (abstract)
     //   super:      super class member access (used when overriding methods and calling base method)
-    //   abstract:  similar to "this" but for abstracts
-    if (leftReference == null || leftReference.textMatches("this")  || leftReference.textMatches("super")  || leftReference.textMatches("abstract")) {
+
+    boolean isEmpty = leftReference == null;
+
+    if (isEmpty) {
       HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
-      List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference);
+      List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, false);
       if (!superElements.isEmpty()) {
         LogResolution(reference, "via super field.");
         return superElements;
       }
+    }
+
+    boolean isAbstract = !isEmpty && leftReference.textMatches("abstract");
+    boolean isSuper = !isEmpty && leftReference.textMatches("super");
+    boolean isThis = !isEmpty && leftReference.textMatches("this");
+    if (isEmpty| isThis || isSuper || isAbstract) {
+
+      HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
+      if (type instanceof HaxeAbstractTypeDeclaration) {
+
+        if(isAbstract || isEmpty) {
+          List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, false);
+          if (!superElements.isEmpty()) {
+            LogResolution(reference, "via abstract field. (Abstract - abstract keyword)");
+            return superElements;
+          }
+        }else if (isThis) {
+          List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, true);
+          if (!superElements.isEmpty()) {
+            LogResolution(reference, "via super field. (Abstract - this keyword)");
+            return superElements;
+          }
+        }
+      } else {
+        List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, false);
+        if (!superElements.isEmpty()) {
+          LogResolution(reference, "via super field. (class)");
+          return superElements;
+        }
+      }
+
     }
     return null;
   }
@@ -1805,24 +1839,30 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private static List<? extends PsiElement> resolveBySuperClassAndSymbol(@Nullable HaxeClass leftClass,
-                                                                         @NotNull HaxeReference reference) {
+                                                                         @NotNull HaxeReference reference,
+                                                                         boolean useUnderlyingForAbstract
+  ) {
     HaxeGenericResolver baseResolver = getGenericResolver(leftClass, reference);
-    return resolveBySuperClassAndSymbol(leftClass, baseResolver, reference);
+    return resolveBySuperClassAndSymbol(leftClass, baseResolver, reference, useUnderlyingForAbstract);
   }
 
 
   private static List<? extends PsiElement> resolveBySuperClassAndSymbol(@Nullable HaxeClass leftClass,
                                                                          @Nullable HaxeGenericResolver resolver,
-                                                                         @NotNull HaxeReference reference) {
+                                                                         @NotNull HaxeReference reference,
+                                                                         boolean useUnderlyingForAbstract) {
     if (null == leftClass) {
       return EMPTY_LIST;
     }
 
     if (leftClass instanceof HaxeAbstractTypeDeclaration) {
-
-      HaxeClassModel classModel = leftClass.getModel();
-      HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel)classModel;
-      return resolveByClassAndSymbol(abstractClassModel.getUnderlyingClass(resolver), resolver, reference);
+      if (useUnderlyingForAbstract) {
+        HaxeClassModel classModel = leftClass.getModel();
+        HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel) classModel;
+        return resolveByClassAndSymbol(abstractClassModel.getUnderlyingClass(resolver), resolver, reference);
+      }else {
+        return resolveByClassAndSymbol(leftClass, resolver, reference);
+      }
     }
     else {
 

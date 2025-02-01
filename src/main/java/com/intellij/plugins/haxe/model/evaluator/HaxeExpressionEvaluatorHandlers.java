@@ -1808,19 +1808,25 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
   static ResultHolder handleThisExpression(HaxeGenericResolver resolver, HaxeThisExpression thisExpression) {
-    //PsiReference reference = element.getReference();
-    //HaxeClassResolveResult result = HaxeResolveUtil.getHaxeClassResolveResult(element);
     HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(thisExpression, HaxeClass.class);
     if (ancestor == null) return SpecificTypeReference.getDynamic(thisExpression).createHolder();
     HaxeClassModel model = ancestor.getModel();
     if (model.isAbstractType()) {
-      SpecificHaxeClassReference reference = model.getUnderlyingClassReference(resolver);
+      SpecificTypeReference reference = model.getUnderlyingType(resolver);
       if (null != reference) {
         return reference.createHolder();
       }
     }
     ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(model.haxeClass, resolver);
     return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, thisExpression), specifics).createHolder();
+  }
+
+  static ResultHolder handleAbstractExpression(HaxeGenericResolver resolver, HaxeAbstractExpression abstractExpression) {
+    HaxeClass ancestor = UsefulPsiTreeUtil.getAncestor(abstractExpression, HaxeClass.class);
+    if (ancestor == null) return SpecificTypeReference.getDynamic(abstractExpression).createHolder();
+    HaxeClassModel model = ancestor.getModel();
+    ResultHolder[] specifics =  HaxeTypeResolver.resolveDeclarationParametersToTypes(model.haxeClass, resolver);
+    return SpecificHaxeClassReference.withGenerics(new HaxeClassReference(model, abstractExpression), specifics).createHolder();
   }
 
   @NotNull

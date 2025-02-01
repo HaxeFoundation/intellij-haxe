@@ -244,10 +244,13 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
   @Nullable
   public SpecificTypeReference getUnderlyingType() {
+    return getUnderlyingType(null);
+  }
+  public SpecificTypeReference getUnderlyingType(@Nullable HaxeGenericResolver resolver) {
     if (!isAbstractType() && !isTypedef()) return null;
     HaxeTypeOrAnonymous typeOrAnon = getUnderlyingTypeOrAnonymous();
     if (typeOrAnon != null) {
-      ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnon);
+      ResultHolder resultHolder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnon, resolver);
       if (!resultHolder.isUnknown()) return resultHolder.getType();
     }
     HaxeFunctionType type = getUnderlyingFunctionType();

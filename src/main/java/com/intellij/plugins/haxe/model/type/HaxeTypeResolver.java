@@ -447,15 +447,19 @@ public class HaxeTypeResolver {
     return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
   }
 
-  @Nullable
+  @NotNull
   static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type, @Nullable HaxeGenericResolver resolver) {
     ResultHolder functionType = getTypeFromFunctionType(type);
-    if(resolver != null && functionType != null) {
-      return resolver.resolve(functionType);
-    }else {
-      return functionType;
+    if (resolver != null) {
+      ResultHolder resolve = resolver.resolve(functionType);
+      if (resolve != null && !resolve.isUnknown()) {
+        return resolve;
+      }
     }
+    return functionType;
   }
+
+  @NotNull
   static public ResultHolder getTypeFromFunctionType(HaxeFunctionType type) {
     ArrayList<HaxeArgument> args = new ArrayList<>();
 

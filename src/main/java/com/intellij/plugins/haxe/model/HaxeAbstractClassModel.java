@@ -105,6 +105,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
 
   public boolean isForwarded(String name) {
     if (null == name) return false;
+    if(!hasForwards()) return false;
 
     boolean allEmpty = true;
     HaxeMetadataList forwardMetaList = HaxeMetadataUtils.getMetadataList(getBasePsi(), HaxeMeta.COMPILE_TIME, HaxeMeta.FORWARD);
@@ -130,7 +131,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     List<SpecificTypeReference> typeList = new ArrayList<>();
 
     for (HaxeFunctionType functionType : functionTypes) {
-      ResultHolder typeFromFunctionType = HaxeTypeResolver.getTypeFromFunctionType(functionType);
+      ResultHolder typeFromFunctionType = HaxeTypeResolver.getTypeFromFunctionType(functionType, resolver);
       SpecificTypeReference resultHolderType = typeFromFunctionType.getType();
       typeList.add(resultHolderType);
     }

@@ -242,6 +242,9 @@ public class HaxeExpressionEvaluator {
       if (element instanceof HaxeThisExpression thisExpression) {
         return handleThisExpression(resolver, thisExpression);
       }
+      if (element instanceof HaxeAbstractExpression abstractExpression) {
+        return handleAbstractExpression(resolver, abstractExpression);
+      }
 
       if (element instanceof HaxeSuperExpression superExpression) {
         return handleSuperExpression(context, resolver, superExpression);

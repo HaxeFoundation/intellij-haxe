@@ -191,6 +191,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAbstractFromTo() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testAbstractCallableCasts() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+  @Test
+  public void testAbstractKeywords() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testAbstractFromToMetadata() throws Exception {

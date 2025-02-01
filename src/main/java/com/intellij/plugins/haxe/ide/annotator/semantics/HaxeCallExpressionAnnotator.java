@@ -5,6 +5,8 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.EvaluationAnnotationData;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
@@ -14,6 +16,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.tryGetCallieType;
@@ -55,8 +58,31 @@ public class HaxeCallExpressionAnnotator implements Annotator {
               createAnnotations(holder, validation);
             }
           } else if (typeReference instanceof SpecificHaxeClassReference classReference) {
-            if (classReference.getHaxeClassModel() != null) {
-              if (classReference.getHaxeClassModel().isCallable()) return;
+            HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
+            if (haxeClassModel != null) {
+              if (haxeClassModel.isCallable()) return;
+            }
+            if(haxeClassModel instanceof HaxeAbstractClassModel abstractModel) {
+              // abstracts can be casted to functionTypes so we need to check for function types that matches our callExpressions
+              List<SpecificTypeReference> castToTypes = new ArrayList<>();
+              castToTypes.addAll(abstractModel.getExplicitCastToTypes(classReference.getGenericResolver()));
+              castToTypes.addAll(abstractModel.getImplicitCastToTypes(classReference, classReference.getGenericResolver()));
+              List<SpecificFunctionReference> functionTypes = castToTypes.stream()
+                      .filter(SpecificFunctionReference.class::isInstance)
+                      .map(SpecificFunctionReference.class::cast)
+                      .toList();
+
+              HaxeCallExpressionEvaluation validation = null;
+              for (SpecificFunctionReference functionType : functionTypes) {
+                HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForFunctionCall(callExpression, functionType);
+                validation = context.evaluateWithAnnotationData(callExpression);
+                if(validation.isValid()) return;
+              }
+
+              if(validation != null) {
+                createAnnotations(holder, validation);
+                return;
+              }
             }
             // if not enum value constructor, expr, dynamic or unknown, show error
             if (!type.isEnumValueType() && !type.isDynamic() && !type.isUnknown() && !type.getType().isExpr()) {
