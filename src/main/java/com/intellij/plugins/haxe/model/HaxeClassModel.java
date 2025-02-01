@@ -78,10 +78,24 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return getInstanceReference().createHolder();
   }
   public SpecificHaxeClassReference getInstanceReference() {
-    if (reference  == null) {
+    if (!isInstanceReferenceValid()) {
         reference = SpecificHaxeClassReference.withGenerics(getReference(),getSpecifics());
     }
     return reference;
+  }
+
+  private boolean isInstanceReferenceValid() {
+    if (reference == null) return false;
+    HaxeClass haxeClass1 = reference.getHaxeClass();
+    if (haxeClass1 != null) {
+      if (!reference.getHaxeClass().isValid()) return false;
+      for (@NotNull ResultHolder specific : reference.getSpecifics()) {
+        if (!specific.getType().context.isValid()) {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
   public List<HaxeClassReferenceModel> getExtendingTypes() {

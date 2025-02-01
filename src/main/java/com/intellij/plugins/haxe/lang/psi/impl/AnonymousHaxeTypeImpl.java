@@ -81,13 +81,10 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
   @Nullable
   @Override
   public PsiIdentifier getNameIdentifier() {
-    return new HaxeIdentifierImpl(new HaxeDummyASTNode("AnonymousType", AnonymousHaxeTypeImpl.this.getProject())) {
-      @NotNull
-      @Override
-      public Project getProject() {
-        return ((HaxeDummyASTNode)getNode()).getProject();
-      }
-    };
+    // NOTE:
+    // Avoid dummy nodes (ex. HaxeDummyASTNode) here, it causes problems when PSI tree is changed
+    // if a name/identifier is needed try solving it in a model class instead.
+    return null;
   }
 
   @Override

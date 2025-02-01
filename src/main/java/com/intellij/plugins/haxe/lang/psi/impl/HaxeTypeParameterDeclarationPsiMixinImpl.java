@@ -4,7 +4,6 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -52,17 +51,19 @@ public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractH
 
   @Override
   public String getQualifiedName() {
-    return CachedValuesManager.getProjectPsiDependentCache(this, (psi) -> {
-      HaxeNamedComponent owner = getOwner();
-      if (owner instanceof HaxeClass haxeClass) {
-        return haxeClass.getQualifiedName() + ":" + getName();
-      } else if (owner instanceof HaxeMethod method) {
-        if (method.getContainingClass() instanceof HaxeClass haxeClass) {
-          return haxeClass.getQualifiedName() + "#" + method.getName() + ":" + getName();
-        }
+    return CachedValuesManager.getProjectPsiDependentCache(this, HaxeTypeParameterDeclarationPsiMixinImpl::getCachedQualifiedName);
+  }
+
+  private static String getCachedQualifiedName(HaxeTypeParameterDeclarationPsiMixinImpl psi) {
+    HaxeNamedComponent owner = psi.getOwner();
+    if (owner instanceof HaxeClass haxeClass) {
+      return haxeClass.getQualifiedName() + ":" + psi.getName();
+    } else if (owner instanceof HaxeMethod method) {
+      if (method.getContainingClass() instanceof HaxeClass haxeClass) {
+        return haxeClass.getQualifiedName() + "#" + method.getName() + ":" + psi.getName();
       }
-      return HaxeComponentType.getPresentableName(this);
-    });
+    }
+    return HaxeComponentType.getPresentableName(psi);
   }
 
 // when debugging its useful to se the q-name so keeping this  around for now
