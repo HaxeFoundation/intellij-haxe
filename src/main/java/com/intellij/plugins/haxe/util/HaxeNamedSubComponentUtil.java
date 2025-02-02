@@ -127,7 +127,12 @@ public class HaxeNamedSubComponentUtil {
         return getNamedSubComponentsInType(typeReference, false);
     }
 
+    //Wrapping the result in a collection that can be modified and sorted
     public static List<HaxeNamedComponent> getNamedSubComponentsInType(SpecificTypeReference typeReference, boolean includeInherited, HaxeComponentType... excludeTypes) {
+     return new ArrayList<>(_getNamedSubComponentsInType(typeReference, includeInherited,excludeTypes));
+    }
+
+    private static List<HaxeNamedComponent> _getNamedSubComponentsInType(SpecificTypeReference typeReference, boolean includeInherited, HaxeComponentType... excludeTypes) {
         // unwrap if null<T>
         if (typeReference instanceof SpecificHaxeClassReference classReference && classReference.isNullType()) {
             typeReference = classReference.unwrapNullType();
