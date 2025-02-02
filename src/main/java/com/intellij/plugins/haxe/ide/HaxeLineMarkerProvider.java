@@ -30,9 +30,8 @@ import java.util.List;
  */
 public class HaxeLineMarkerProvider extends HaxeLineMarkerProviderNS {
 
-  @Override
-  public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements, @NotNull Collection<? super LineMarkerInfo<?>> result) {
-    //noinspection unchecked,rawtypes,rawtypes
-    super.collectSlowLineMarkersWorker((List<PsiElement>)elements, (Collection<LineMarkerInfo>)result);
-  }
+    @Override
+    public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements, @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        super.collectSlowLineMarkersWorker(elements, result);
+    }
 }

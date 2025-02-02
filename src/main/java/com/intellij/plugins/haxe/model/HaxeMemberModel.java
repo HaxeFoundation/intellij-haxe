@@ -68,6 +68,9 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   public boolean isOverload() {
     return hasModifier(OVERLOAD);
   }
+  public boolean isOverride() {
+    return hasModifier(OVERRIDE);
+  }
   public boolean hasOperatorMeta() {
     return getNamedComponentPsi().hasCompileTimeMetadata(OP);
   }

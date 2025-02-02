@@ -231,7 +231,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     if (haxeMethod.getGenericParam() != null) {
       int index = 0;
       for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
-        out.add((HaxeGenericParamModel)part.getModel());
+        out.add(part.getModel());
         index++;
       }
     }
