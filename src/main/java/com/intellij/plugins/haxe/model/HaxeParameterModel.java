@@ -104,8 +104,7 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public HaxeTypeTag getTypeTagPsi() {
-    return CachedValuesManager.getCachedValue(basePsi, () -> new CachedValueProvider.Result<>(getParameterPsi().getTypeTag(), basePsi));
-    //return getParameterPsi().getTypeTag();
+    return getParameterPsi().getTypeTag();
   }
 
   private ResultHolder typeReplacement;// allow us to replace ExprOf<T> with T

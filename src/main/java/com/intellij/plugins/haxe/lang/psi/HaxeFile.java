@@ -33,6 +33,8 @@ import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -138,8 +140,15 @@ public class HaxeFile extends PsiFileBase
   }
 
   public List<HaxeImportStatement> getImportStatements() {
-    HaxeImportStatement[] result = PsiTreeUtil.getChildrenOfType(this, HaxeImportStatement.class);
-    return result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
+    return getImportStatementsCached(this);
+  }
+
+  private static @NotNull List<HaxeImportStatement> getImportStatementsCached(HaxeFile haxeFile) {
+    return CachedValuesManager.getCachedValue(haxeFile, () -> {
+      HaxeImportStatement[] result = PsiTreeUtil.getChildrenOfType(haxeFile, HaxeImportStatement.class);
+      List<HaxeImportStatement> importStatements = result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
+      return new CachedValueProvider.Result<>(importStatements, haxeFile);
+    });
   }
 
   public HaxeFileModel getModel() {

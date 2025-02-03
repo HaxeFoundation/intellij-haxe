@@ -125,7 +125,7 @@ public class HaxeImportModel extends HaxeImportableModel {
   }
 
   /**
-   *  In the case of HaxeEnumValueModel elements, there might be multiple with the sname name but in different enums
+   *  In the case of HaxeEnumValueModel elements, there might be multiple with the same name but in different enums
    *  this method  handles this by returning all matches
    */
   @NotNull
@@ -146,7 +146,6 @@ public class HaxeImportModel extends HaxeImportableModel {
             }
           }
         }
-
         return List.of(getBasePsi().getAlias());
       }
     }else {
