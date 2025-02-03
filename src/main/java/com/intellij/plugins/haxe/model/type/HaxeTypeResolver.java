@@ -167,10 +167,15 @@ public class HaxeTypeResolver {
       }
       if (typeTag == null && init != null) {
         PsiElement child = init.getExpression();
-        initType = HaxeTypeResolver.getPsiElementType(child, resolver);
-        ResultHolder resolve = resolver.resolve(initType);
-        if(resolve != null && !resolve.isUnknown()) {
-          initType = resolve;
+        if(child != null) {
+          initType = HaxeTypeResolver.getPsiElementType(child, resolver);
+        }
+
+        if (resolver != null) {
+          ResultHolder resolve = resolver.resolve(initType);
+          if (resolve != null && !resolve.isUnknown()) {
+            initType = resolve;
+          }
         }
         boolean isConstant = psiField.hasModifierProperty(HaxePsiModifier.INLINE) && psiField.isStatic();
         result = isConstant ? initType : initType.withConstantValue(null);

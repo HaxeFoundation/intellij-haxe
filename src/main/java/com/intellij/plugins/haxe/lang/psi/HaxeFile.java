@@ -142,11 +142,21 @@ public class HaxeFile extends PsiFileBase
   public List<HaxeImportStatement> getImportStatements() {
     return getImportStatementsCached(this);
   }
+  public List<HaxeUsingStatement> getUsingStatements() {
+    return getUsingStatementsCached(this);
+  }
 
   private static @NotNull List<HaxeImportStatement> getImportStatementsCached(HaxeFile haxeFile) {
     return CachedValuesManager.getCachedValue(haxeFile, () -> {
       HaxeImportStatement[] result = PsiTreeUtil.getChildrenOfType(haxeFile, HaxeImportStatement.class);
       List<HaxeImportStatement> importStatements = result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
+      return new CachedValueProvider.Result<>(importStatements, haxeFile);
+    });
+  }
+  private static @NotNull List<HaxeUsingStatement> getUsingStatementsCached(HaxeFile haxeFile) {
+    return CachedValuesManager.getCachedValue(haxeFile, () -> {
+      HaxeUsingStatement[] result = PsiTreeUtil.getChildrenOfType(haxeFile, HaxeUsingStatement.class);
+      List<HaxeUsingStatement> importStatements = result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
       return new CachedValueProvider.Result<>(importStatements, haxeFile);
     });
   }

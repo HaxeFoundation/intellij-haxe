@@ -1181,61 +1181,86 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static String getQName(PsiFile file, final String name, boolean searchInSamePackage, boolean searchParentPackages, HaxeType targetReference) {
+    if (file instanceof HaxeFile haxeFile) {
+      HaxeModule module = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+      if (module != null) {
+        @NotNull PsiElement[] moduleChildren = module.getChildren();
+        HaxeClass classForType = null;
+        for (PsiElement child : moduleChildren) {
+          if (child instanceof HaxeClass && name.equals(((HaxeClass) child).getName())) {
+            classForType = (HaxeClass) child;
+            break;
+          }
+        }
 
+        if (classForType != null) {
+          return classForType.getQualifiedName();
+        }
+      }
+      List<HaxeImportStatement> importStatements = haxeFile.getImportStatements();
+      final HaxeImportStatement importStatement = searchImportStatementForExposedMember(name, importStatements);
 
-
-    HaxeModule module = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
-    if (module != null) {
-      @NotNull PsiElement[] moduleChildren = module.getChildren();
-      HaxeClass classForType = null;
-      for (PsiElement child : moduleChildren) {
-        if (child instanceof HaxeClass && name.equals(((HaxeClass)child).getName())) {
-          classForType = (HaxeClass)child;
-          break;
+      if (importStatement != null) {
+        PsiElement element = importStatement.getModel().exposeByName(name);
+        if (element instanceof HaxeClass classModel) {
+          return classModel.getQualifiedName();
+        }
+        // fallback if we dont have a HaxeClass
+        final HaxeExpression importStatementExpression = importStatement.getReferenceExpression();
+        if (importStatementExpression != null) {
+          return importStatementExpression.getText();
         }
       }
 
-      if (classForType != null) {
-        return classForType.getQualifiedName();
-      }
-    }
-    @NotNull PsiElement[] fileChildren = file.getChildren();
-    final HaxeImportStatement importStatement =
-      (HaxeImportStatement)(StreamUtil.reverse(Arrays.stream(fileChildren))
-                              .filter(element ->
-                                        element instanceof HaxeImportStatement impStatement
-                                        && impStatement.getModel().exposeByName(name) != null)
-                              .findFirst()
-                              .orElse(null));
+      List<HaxeUsingStatement> usingStatements = haxeFile.getUsingStatements();
+      final HaxeUsingStatement usingStatement = searchUsingStatementForExposedMember(name, usingStatements);
 
-    final HaxeExpression importStatementExpression = importStatement == null ? null : importStatement.getReferenceExpression();
-    if (importStatementExpression != null) {
-      PsiElement element = importStatement.getModel().exposeByName(name);
-      if (element instanceof HaxeClass classModel) {
-        return classModel.getQualifiedName();
+      if (usingStatement != null) {
+        PsiElement element = usingStatement.getModel().exposeByName(name);
+        if (element instanceof HaxeClass classModel) {
+          return classModel.getQualifiedName();
+        }
+        // fallback if we dont have a HaxeClass
+        return usingStatement.getText();
       }
-      // fallback if we dont have a HaxeClass
-      return importStatementExpression.getText();
-    }
 
-    if (searchInSamePackage && fileChildren.length > 0) {
-      final HaxeFileModel fileModel = HaxeFileModel.fromElement(fileChildren[0]);
-      if (fileModel != null) {
-        final HaxePackageModel packageModel = fileModel.getPackageModel();
-        if (packageModel != null) {
-          final HaxeClassModel classModel = packageModel.getClassModel(name);
-          if (classModel != null) {
-            return classModel.haxeClass.getQualifiedName();
+      @NotNull PsiElement[] fileChildren = file.getChildren();
+      if (searchInSamePackage && fileChildren.length > 0) {
+        final HaxeFileModel fileModel = HaxeFileModel.fromElement(fileChildren[0]);
+        if (fileModel != null) {
+          final HaxePackageModel packageModel = fileModel.getPackageModel();
+          if (packageModel != null) {
+            final HaxeClassModel classModel = packageModel.getClassModel(name);
+            if (classModel != null) {
+              return classModel.haxeClass.getQualifiedName();
+            }
           }
         }
       }
-    }
-    if (searchParentPackages && targetReference != null) {
-      HaxeClass haxeClass = findClassByQNameInSuperPackages(targetReference);
-      if (haxeClass != null) return haxeClass.getQualifiedName();
+      if (searchParentPackages && targetReference != null) {
+        HaxeClass haxeClass = findClassByQNameInSuperPackages(targetReference);
+        if (haxeClass != null) return haxeClass.getQualifiedName();
+      }
     }
     return null;
   }
+
+
+  private static @Nullable HaxeImportStatement searchImportStatementForExposedMember(String name, @NotNull List<HaxeImportStatement> importStatements) {
+    return importStatements.stream()
+            .filter(impStatement-> impStatement.getModel().exposeByName(name) != null)
+            .findFirst()
+            .orElse(null);
+
+  }
+
+  private static @Nullable HaxeUsingStatement searchUsingStatementForExposedMember(String name, List<HaxeUsingStatement>  usingStatements) {
+    return usingStatements.stream()
+            .filter(impStatement-> impStatement.getModel().exposeByName(name) != null)
+            .findFirst()
+            .orElse(null);
+  }
+
 
   @Nullable
   public static PsiComment findDocumentation(HaxeNamedComponent element) {

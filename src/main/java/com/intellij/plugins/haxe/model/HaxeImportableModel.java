@@ -62,8 +62,8 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     return result == null ? Collections.emptyList() : result;
   }
 
-  public static CachedValueProvider<List<HaxeModel>> exposedMembersCollector(final HaxeImportableModel importableModel) {
-    return () -> {
+  private static List<HaxeModel> getExposedMembersCached(final HaxeImportableModel importableModel) {
+    return CachedValuesManager.getCachedValue(importableModel.getBasePsi(), () -> {
       List<HaxeModel> exposedMembers = importableModel.getExposedMembersInternal();
       PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
       int i = 0;
@@ -71,14 +71,14 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
       for (HaxeModel xMember : exposedMembers) {
         dependencies[i++] = xMember.getBasePsi();
       }
-      return new CachedValueProvider.Result<List<HaxeModel>>(exposedMembers, (Object[])dependencies);
-    };
+      return new CachedValueProvider.Result<>(exposedMembers, (Object[]) dependencies);
+    });
   }
 
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
-    return CachedValuesManager.getCachedValue(getBasePsi(), exposedMembersCollector(this));
+    return getExposedMembersCached(this);
   }
 
   @Nullable
@@ -108,7 +108,6 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     return null;
   }
 
-  //TODO mlo consider making typdefs some sort of HaxeImportableModel when its a type reference
   @Nullable
   private static HaxeModel getExposedMemberFromTypeDefReference(String name, HaxeModel model, HaxeTypedefDeclaration typedefDeclaration) {
     HaxeTypeOrAnonymous typeOrAnonymous = typedefDeclaration.getTypeOrAnonymous();
