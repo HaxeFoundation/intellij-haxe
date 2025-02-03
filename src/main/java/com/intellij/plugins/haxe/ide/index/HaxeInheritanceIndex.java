@@ -38,6 +38,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndexUtil.containsDotSeparator;
+import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndexUtil.getClassNameCandidate;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -117,26 +120,23 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
         for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
           if (haxeType == null) continue;
           final String classNameCandidate = getClassNameCandidate(haxeType);
-          final String key = classNameCandidate.indexOf('.') != -1 ?
-                             classNameCandidate :
-                             getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+          final String key = containsDotSeparator(classNameCandidate)
+                  ? classNameCandidate
+                  : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+
           put(result, key, value);
         }
         for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
           if (haxeType == null) continue;
           final String classNameCandidate = getClassNameCandidate(haxeType);
-          final String key = classNameCandidate.indexOf('.') != -1 ?
-                             classNameCandidate :
-                             getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+          final String key = containsDotSeparator(classNameCandidate)
+                  ? classNameCandidate
+                  : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+
           put(result, key, value);
         }
       }
       return result;
-    }
-
-    private static String getClassNameCandidate(HaxeType haxeType) {
-      // we are not using "haxeType.getText();" here because that would include type parameters/ generics
-      return haxeType.getReferenceExpression().getText();
     }
 
     private static String getQNameAndCache(Map<String, String> qNameCache, PsiFile psiFile, String classNameCandidate, HaxeType haxeType) {

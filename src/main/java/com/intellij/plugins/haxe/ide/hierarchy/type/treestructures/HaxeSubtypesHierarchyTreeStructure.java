@@ -23,17 +23,14 @@ import com.intellij.ide.hierarchy.HierarchyTreeStructure;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
+import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly;
 
 /**
  * Created by srikanthg on 10/23/14.
@@ -59,31 +56,12 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     if (theHaxeClass instanceof HaxeAnonymousType) return ArrayUtil.EMPTY_OBJECT_ARRAY;
     if (theHaxeClass.hasModifierProperty(HaxePsiModifier.FINAL_META)) return ArrayUtil.EMPTY_OBJECT_ARRAY;
 
-    final PsiFile inClassPsiFile = theHaxeClass.getContainingFile();
-
-    List<PsiClass> subTypeList = new ArrayList<PsiClass>(); // add the sub-types to this list, as they are found
-
-    // ----
-    // search current file for sub-types that extend/implement from this class/type
-    //
-    HaxeModule fileModule = PsiTreeUtil.getChildOfType(inClassPsiFile, HaxeModule.class);
-    final HaxeClass[] allHaxeClassesInFile = PsiTreeUtil.getChildrenOfType(fileModule, HaxeClass.class);
-    if (allHaxeClassesInFile != null) {
-      for (HaxeClass aClassInFile : allHaxeClassesInFile) {
-        if (isThisTypeASubTypeOfTheSuperType(aClassInFile, theHaxeClass)) {
-          subTypeList.add(aClassInFile);
-        }
-      }
-    }
-
     // Get the list of subtypes from the file-based indices.  Stub-based would
     // be faster, but we'll have to re-parent all of the PsiClass sub-classes.
-    Collection<HaxeClass> children = HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly(theHaxeClass);
-    subTypeList.addAll(children);
-
-    // filter to match scope
-    subTypeList = subTypeList.stream()
+    List<PsiClass> subTypeList = getItemsByQNameFirstLevelChildrenOnly(theHaxeClass).stream()
+            // filter to match scope
             .filter( type -> isInScope(type, type, currentScopeType))
+            .map(PsiClass.class::cast)
             .toList();
 
     return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);

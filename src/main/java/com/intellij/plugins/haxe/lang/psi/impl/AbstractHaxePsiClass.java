@@ -432,8 +432,23 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     final PsiReferenceList extendsList = this.getExtendsList();
     if (extendsList != null) {
       return extendsList.getReferencedTypes();
+    }else if (this instanceof  HaxeTypedefDeclaration typeDeclaration) {
+      HaxeTypeOrAnonymous typeOrAnonymous = typeDeclaration.getTypeOrAnonymous();
+      if (typeOrAnonymous != null) {
+        HaxeType type = typeOrAnonymous.getType();
+        if(type != null) {
+          HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
+          return new PsiClassType[]{getReferencedType(referenceExpression)};
+        }
+      }
     }
     return PsiClassType.EMPTY_ARRAY;
+  }
+
+  @NotNull
+  private PsiClassType getReferencedType(HaxeReferenceExpression referenceExpression) {
+    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+    return factory.createType(referenceExpression);
   }
 
   @Override

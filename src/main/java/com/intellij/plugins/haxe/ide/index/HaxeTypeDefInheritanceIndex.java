@@ -36,6 +36,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndexUtil.containsDotSeparator;
+import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndexUtil.getClassNameCandidate;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -111,15 +114,15 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
           HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)anonymousType.getModel();
           for (HaxeType haxeType : model.getCompositeTypesPsi()) {
               final String classNameCandidate = haxeType.getText();
-              final String key = classNameCandidate.indexOf('.') != -1 ?
+              final String key = containsDotSeparator(classNameCandidate) ?
                                  classNameCandidate :
                                  getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
               put(result, key, value);
           }
         }
         else if (type != null) {
-          final String classNameCandidate = type.getText();
-          final String qName = classNameCandidate.indexOf('.') != -1 ?
+          final String classNameCandidate = getClassNameCandidate(type);
+          final String qName = containsDotSeparator(classNameCandidate) ?
                                classNameCandidate :
                                getQNameAndCache(qNameCache, psiFile, classNameCandidate, type);
           put(result, qName, value);
