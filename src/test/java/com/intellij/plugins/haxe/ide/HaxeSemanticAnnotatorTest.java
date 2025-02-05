@@ -301,6 +301,15 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testOverrideSignature5() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testOverrideSignatureGenerics() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testImplementSignatureGenerics() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testImplementSignature() throws Exception {

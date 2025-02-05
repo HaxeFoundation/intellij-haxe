@@ -6,13 +6,9 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeDocumentModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
-import com.intellij.plugins.haxe.model.HaxeParameterModel;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
@@ -21,6 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 
@@ -53,13 +50,12 @@ public class HaxeOverrideOrImplementEvaluation {
         List<HaxeParameterModel> sourceParameters = sourceModel.getParameters();
         List<HaxeParameterModel> targetParameters = targetModel.getParameters();
 
-        HaxeGenericResolver sourceResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(sourceModel.getBasePsi());
-        HaxeGenericResolver targetResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(targetModel.getBasePsi());
+        HaxeGenericResolver genericResolver = createOverrideResolver(sourceModel);
 
         checkParameterCount(sourceParameters, targetParameters);
-        checkParameterTypesOverride(sourceParameters, targetParameters, sourceResolver, targetResolver);
-        checkOptionalTag(sourceParameters, targetParameters, targetResolver, true);
-        checkReturnTypes(sourceResolver, targetResolver);
+        checkParameterTypesOverride(sourceParameters, targetParameters, genericResolver);
+        checkOptionalTag(sourceParameters, targetParameters, genericResolver, true);
+        checkReturnTypes(genericResolver);
 
         complete = true;
         return this;
@@ -77,21 +73,51 @@ public class HaxeOverrideOrImplementEvaluation {
         List<HaxeParameterModel> sourceParameters = sourceModel.getParameters();
         List<HaxeParameterModel> targetParameters = targetModel.getParameters();
 
-        HaxeGenericResolver sourceResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(sourceModel.getBasePsi());
-        HaxeGenericResolver targetResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(targetModel.getBasePsi());
+        HaxeGenericResolver resolver = createImplementResolver(sourceModel);
 
         checkParameterCount(sourceParameters, targetParameters);
-        checkParameterTypesInterface(sourceParameters, targetParameters, sourceResolver, targetResolver);
-        checkOptionalTag(sourceParameters, targetParameters, targetResolver, false);
-        checkReturnTypes(sourceResolver, targetResolver);
+        checkParameterTypesInterface(sourceParameters, targetParameters, resolver);
+        checkOptionalTag(sourceParameters, targetParameters, resolver, false);
+        checkReturnTypes(resolver);
 
         complete = true;
         return this;
     }
 
-    private void checkReturnTypes(HaxeGenericResolver sourceResolver, HaxeGenericResolver targetResolver) {
-        ResultHolder sourceReturnType = sourceModel.getReturnType(sourceResolver);
-        ResultHolder targetReturnType = targetModel.getReturnType(targetResolver);
+    private @NotNull HaxeGenericResolver createOverrideResolver(@NotNull HaxeMethodModel methodModel) {
+        HaxeGenericResolver resolver = new HaxeGenericResolver();
+        HaxeClassModel declaringClass = methodModel.getDeclaringClass();
+        if (declaringClass != null) {
+            declaringClass.getExtendingTypes().stream()
+                    .map(HaxeClassReferenceModel::getSpecificHaxeClassReference)
+                    .filter(Objects::nonNull)
+                    .forEach(model -> resolver.addAll(model.getGenericResolver()));
+
+        }
+        HaxeGenericResolver methodResolver = methodModel.getGenericResolver(declaringClass.getGenericResolver(null));
+        resolver.addAll(methodResolver);
+
+        return resolver;
+    }
+    private @NotNull HaxeGenericResolver createImplementResolver(@NotNull HaxeMethodModel methodModel) {
+        HaxeGenericResolver resolver = new HaxeGenericResolver();
+        HaxeClassModel declaringClass = methodModel.getDeclaringClass();
+        if (declaringClass != null) {
+            declaringClass.getImplementingInterfaces().stream()
+                    .map(HaxeClassReferenceModel::getSpecificHaxeClassReference)
+                    .filter(Objects::nonNull)
+                    .forEach(model -> resolver.addAll(model.getGenericResolver()));
+
+        }
+        HaxeGenericResolver methodResolver = methodModel.getGenericResolver(declaringClass.getGenericResolver(null));
+        resolver.addAll(methodResolver);
+
+        return resolver;
+    }
+
+    private void checkReturnTypes(HaxeGenericResolver resolver) {
+        ResultHolder sourceReturnType = sourceModel.getReturnType(resolver);
+        ResultHolder targetReturnType = targetModel.getReturnType(resolver);
 
         if (!canAssignToFromReference(targetReturnType, sourceReturnType)) {
             if(makeAnnotations) {
@@ -143,7 +169,7 @@ public class HaxeOverrideOrImplementEvaluation {
     }
 
 
-    private void checkParameterTypesInterface(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver sourceResolver, HaxeGenericResolver targetResolver) {
+    private void checkParameterTypesInterface(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver resolver) {
 
 
         final HaxeDocumentModel document = sourceModel.getDocument();
@@ -156,8 +182,8 @@ public class HaxeOverrideOrImplementEvaluation {
             final HaxeParameterModel sourceParam = sourceParameters.get(n);
             final HaxeParameterModel targetParam = targetParameters.get(n);
 
-            ResultHolder sourceParamType = sourceParam.getType(sourceResolver);
-            ResultHolder targetParamType = targetParam.getType(targetResolver);
+            ResultHolder sourceParamType = sourceParam.getType(resolver);
+            ResultHolder targetParamType = targetParam.getType(resolver);
 
             if (!canAssignToFromReference(targetParamType, sourceParamType)) {
                 if (makeAnnotations) {
@@ -171,7 +197,7 @@ public class HaxeOverrideOrImplementEvaluation {
         }
     }
 
-    private void checkParameterTypesOverride(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver sourceResolver, HaxeGenericResolver targetResolver) {
+    private void checkParameterTypesOverride(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver resolver) {
 
         final HaxeDocumentModel document = sourceModel.getDocument();
 
@@ -183,8 +209,8 @@ public class HaxeOverrideOrImplementEvaluation {
             final HaxeParameterModel sourceParam = sourceParameters.get(n);
             final HaxeParameterModel targetParam = targetParameters.get(n);
 
-            ResultHolder sourceParamType = sourceParam.getType(sourceResolver);
-            ResultHolder targetParamType = targetParam.getType(targetResolver);
+            ResultHolder sourceParamType = sourceParam.getType(resolver);
+            ResultHolder targetParamType = targetParam.getType(resolver);
 
             //
             if (!canAssignToFromReference(sourceParamType, targetParamType)) {

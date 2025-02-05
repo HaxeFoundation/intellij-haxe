@@ -98,6 +98,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return true;
   }
 
+  @NotNull
   public List<HaxeClassReferenceModel> getExtendingTypes() {
     List<HaxeType> list = getExtendsList();
     List<HaxeClassReferenceModel> out = new ArrayList<HaxeClassReferenceModel>();
