@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
-import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkIfMethodSignatureDiffers;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodAnnotator.checkMethodsSignatureCompatibility;
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 import static java.util.function.Predicate.not;
@@ -264,8 +263,10 @@ public class HaxeClassAnnotator implements Annotator {
     if (clazz.isClass() && !clazz.isAbstractClass()) {
       // check inferfaces
       for (HaxeClassReferenceModel reference : clazz.getImplementingInterfaces()) {
-        checkInterfaceMethods(clazz, reference, holder, checkMissingInterfaceMethods, checkInterfaceMethodSignature,
-                              checkInheritedInterfaceMethodSignature);
+        checkInterfaceMethods(clazz, reference, holder,
+                checkMissingInterfaceMethods,
+                checkInterfaceMethodSignature,
+                checkInheritedInterfaceMethodSignature);
       }
     }
     // check abstract class methods
@@ -521,7 +522,7 @@ public class HaxeClassAnnotator implements Annotator {
 
 
   private static void checkInterfaceMethods(
-    final HaxeClassModel clazz,
+    final HaxeClassModel classModel,
     final HaxeClassReferenceModel intReference,
     final AnnotationHolder holder,
     final boolean checkMissingInterfaceMethods,
@@ -532,46 +533,41 @@ public class HaxeClassAnnotator implements Annotator {
     final List<String> missingMethodsNames = new ArrayList<String>();
 
     if (intReference.getHaxeClassModel() != null) {
-      List<HaxeMethodModel> methods = clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.INTERFACE).stream()
-        .map(HaxeMethodPsiMixin::getModel)
-        .filter(not(HaxeMethodModel::isAbstract))
-        .toList();
+      List<HaxeMethodModel> implementedMethods = getAllMethodsExcludingAbstractAndInterfaces(classModel);
+      List<HaxeMethodModel> interfaceMethods = getAllInterfaceMethodDeclarations(intReference);
 
-      for (HaxeMethodModel intMethod : intReference.getHaxeClassModel().getMethods(null)) {
-        if (!intMethod.isStatic()) {
+      for (HaxeMethodModel interfaceMethod : interfaceMethods) {
 
-          Optional<HaxeMethodModel> methodResult = methods.stream()
-            .filter(method -> intMethod.getName().equals(method.getName()))
-            .findFirst();
+        // NOTE: Static methods are allowed in extern interfaces
+        if (!interfaceMethod.isStatic()) {
+          Optional<HaxeMethodModel> methodImplementation = findInterfaceDeclarationForMethod(interfaceMethod, implementedMethods);
 
-
-          if (methodResult.isEmpty()) {
+          if (methodImplementation.isEmpty()) {
             if (checkMissingInterfaceMethods) {
-              missingMethods.add(intMethod);
-              missingMethodsNames.add(intMethod.getName());
+              missingMethods.add(interfaceMethod);
+              missingMethodsNames.add(interfaceMethod.getName());
             }
-          }
-          else {
-            final HaxeMethodModel methodModel = methodResult.get();
+
+          } else {
+            final HaxeMethodModel implementMethodModel = methodImplementation.get();
 
             // We should check if signature in inherited method differs from method provided by interface
-            HaxeClassModel declaringClass = methodModel.getDeclaringClass();
+            HaxeClassModel declaringClass = implementMethodModel.getDeclaringClass();
 
-            if (declaringClass != null && declaringClass != clazz) {
+            if (declaringClass != null && declaringClass != classModel) {
               if (declaringClass.isInterface()) {
-                missingMethods.add(methodModel);
-                missingMethodsNames.add(intMethod.getName());
-              }
-              else {
-                if (checkInheritedInterfaceMethodSignature && checkIfMethodSignatureDiffers(methodModel, intMethod)) {
-                  final HaxeClass parentClass = declaringClass.haxeClass;
+                missingMethods.add(implementMethodModel);
+                missingMethodsNames.add(interfaceMethod.getName());
 
+              } else {
+                if (checkInheritedInterfaceMethodSignature && !checkMethodsSignatureCompatibility(implementMethodModel, interfaceMethod)) {
+                  final HaxeClass parentClass = declaringClass.haxeClass;
                   final String errorMessage = HaxeBundle.message(
                     "haxe.semantic.implemented.super.method.signature.differs",
-                    methodModel.getName(),
+                    implementMethodModel.getName(),
                     parentClass.getQualifiedName(),
-                    intMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
-                    methodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
+                    interfaceMethod.getPresentableText(HaxeMethodContext.NO_EXTENSION),
+                    implementMethodModel.getPresentableText(HaxeMethodContext.NO_EXTENSION)
                   );
 
                   holder.newAnnotation(HighlightSeverity.ERROR, errorMessage).range(intReference.getPsi()).create();
@@ -580,7 +576,8 @@ public class HaxeClassAnnotator implements Annotator {
             }
             else {
               if (checkInterfaceMethodSignature) {
-                checkMethodsSignatureCompatibility(methodModel, intMethod, holder);
+                boolean canAnnotate = implementMethodModel.getDeclaringClass().haxeClass == classModel.haxeClass;
+                checkMethodsSignatureCompatibility(implementMethodModel, interfaceMethod, holder, canAnnotate);
               }
             }
           }
@@ -592,24 +589,41 @@ public class HaxeClassAnnotator implements Annotator {
       // @TODO: Move to bundle
       //holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
       //  .range(intReference.getPsi())
-      //  .withFix(implementMissingMethodsFix(clazz, missingMethods))
+      //  .withFix(implementMissingMethodsFix(classModel, missingMethods))
       //  .create();
 
-      boolean macroWarning = hasMacroForCodeGeneration(clazz);
+      boolean macroWarning = hasMacroForCodeGeneration(classModel);
       if (macroWarning) {
         String message = "Method implementations might be missing: " + StringUtils.join(missingMethodsNames, ", ");
         message += HaxeBundle.message("haxe.semantic.macro.generated");
         holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
           .range(intReference.getPsi())
-          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .withFix(implementMissingMethodsFix(classModel, missingMethods))
           .create();
       }else {
         String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
         holder.newAnnotation(HighlightSeverity.ERROR, message)
           .range(intReference.getPsi())
-          .withFix(implementMissingMethodsFix(clazz, missingMethods))
+          .withFix(implementMissingMethodsFix(classModel, missingMethods))
           .create();
       }
     }
+  }
+
+  private static @NotNull Optional<HaxeMethodModel> findInterfaceDeclarationForMethod(HaxeMethodModel intMethod, List<HaxeMethodModel> implementedMethods) {
+    return implementedMethods.stream()
+            .filter(method -> intMethod.getName().equals(method.getName()))
+            .findFirst();
+  }
+
+  private static List<HaxeMethodModel> getAllInterfaceMethodDeclarations(HaxeClassReferenceModel intReference) {
+    return intReference.getHaxeClassModel().getMethods(null);
+  }
+
+  private static @NotNull List<HaxeMethodModel> getAllMethodsExcludingAbstractAndInterfaces(HaxeClassModel clazz) {
+    return clazz.haxeClass.getHaxeMethodsAll(HaxeComponentType.INTERFACE).stream()
+            .map(HaxeMethodPsiMixin::getModel)
+            .filter(not(HaxeMethodModel::isAbstract))
+            .toList();
   }
 }
