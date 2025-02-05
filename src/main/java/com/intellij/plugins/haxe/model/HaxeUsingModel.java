@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -107,7 +108,18 @@ public class HaxeUsingModel extends HaxeImportableModel {
     for (HaxeClassModel classModel : classes) {
       List<HaxeMethodModel> methods = null;
       if (name != null) {
-        HaxeMethodModel method = classModel.getMethod(name, resolver);
+        if(classModel.isTypedef()) {
+          SpecificTypeReference typeReference = classModel.getInstanceReference().fullyResolveTypeDefAndUnwrapNullTypeReference();
+          if (typeReference instanceof SpecificHaxeClassReference classReference) {
+            HaxeClass haxeClass = classReference.getHaxeClass();
+            if (haxeClass != null) {
+              classModel = haxeClass.getModel();
+            }
+          }else {
+            continue;
+          }
+        }
+        HaxeMethodModel method = classModel.getMethodSelf(name);
         if (method != null) methods = Collections.singletonList(method);
       }
       else {

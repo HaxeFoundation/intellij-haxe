@@ -177,7 +177,7 @@ public class HaxeResolveUtil {
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
-      HaxeModel item = result.get(0);
+      HaxeModel item = result.getFirst();
       if (item instanceof HaxeFileModel) {
         HaxeClassModel classModel = ((HaxeFileModel)item).getMainClassModel();
         return classModel != null ? classModel.haxeClass : null;
@@ -1002,9 +1002,6 @@ public class HaxeResolveUtil {
       // check if Reference, and if it  contains elements that can not be part of Qname
       if (type instanceof HaxeReference reference) {
         if (!canBeQname(reference)) return null;
-      }
-      if(className.contains("<")) {
-        int i = 0;
       }
       result = findClassByQName(className, type.getContext());
     }

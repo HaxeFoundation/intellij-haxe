@@ -741,8 +741,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       HaxeClassModel model = getHaxeClassModel();
       if (model != null) {
         HaxeGenericResolver genericResolver = this.getGenericResolver();
-        if(model.getUnderlyingType() instanceof  SpecificHaxeClassReference classReference) {
-          HaxeGenericResolver underlyingResolver = genericResolver.translateFromTo(this.getHaxeClass(), classReference.getHaxeClass());
+        if(model.getUnderlyingType() instanceof  SpecificHaxeClassReference underlyingClassReference) {
+          HaxeGenericResolver underlyingResolver = genericResolver.translateFromTo(this.getHaxeClass(), underlyingClassReference.getHaxeClass());
           return model.getUnderlyingClassReference(underlyingResolver);
         }
       }

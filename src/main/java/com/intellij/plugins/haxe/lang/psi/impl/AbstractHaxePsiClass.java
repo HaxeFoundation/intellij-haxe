@@ -556,6 +556,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     final List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassType(this, excludeTypesFilter);
     return HaxeNamedSubComponentUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
+
   @NotNull
   public List<HaxeNamedComponent>getAncestorHaxeNamedComponents(HaxeComponentType componentType, boolean unique) {
     List<HaxeClass> supers = new ArrayList<>();
