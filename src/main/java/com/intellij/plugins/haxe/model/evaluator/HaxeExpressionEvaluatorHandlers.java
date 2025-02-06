@@ -335,6 +335,19 @@ public class HaxeExpressionEvaluatorHandlers {
             }
           }
           else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
+
+            // check if enum abstract field and override type if referenced from outside the enum
+            HaxeAbstractTypeDeclaration abstractParentFromResolved = PsiTreeUtil.getParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
+            if(abstractParentFromResolved != null) {
+              HaxeAbstractTypeDeclaration abstractParentFromReference = PsiTreeUtil.getParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
+              if (abstractParentFromReference != abstractParentFromResolved) {
+                HaxeClassModel model = abstractParentFromResolved.getModel();
+                if (model.isEnum()) {
+                  return model.getInstanceReference().createHolder();
+                }
+              }
+            }
+
             HaxeVarInit init = fieldDeclaration.getVarInit();
             if (init != null) {
               HaxeExpression initExpression = init.getExpression();

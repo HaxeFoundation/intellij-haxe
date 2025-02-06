@@ -202,6 +202,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkMacroIdentifier(reference);
 
     if (result == null) result = checkIsAccessor(reference);
+    if (result == null) result = checkElementUsage(reference);
     if (result == null) result = checkCaptureVarReference(reference);
     if (result == null) result = checkEnumExtractor(reference);// do before walking tree
     if (result == null) result = checkIsSwitchVar(reference);
@@ -299,6 +300,112 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     return result;
 
+  }
+
+  // Experimental
+  // attempt at correctly resolve types that are not in import statements when valueExpressions
+  // are used as parameters or assigned to other classes.
+  private List<? extends PsiElement> checkElementUsage(@NotNull PsiElement reference) {
+
+    if (reference instanceof HaxeReferenceExpression) {
+      PsiElement parent = reference.getParent();
+      if (parent == null) return null;
+      ResultHolder expectedType = findParentAssignType(parent);
+      if (expectedType != null) {
+        if (expectedType.getClassType() != null) {
+          HaxeClass haxeClass = expectedType.getClassType().getHaxeClass();
+          if (haxeClass != null) {
+            // check Enum values
+            if(haxeClass.isEnum()) {
+              if(haxeClass.getModel() instanceof  HaxeEnumModel enumModel) {
+                for (HaxeEnumValueModel value : enumModel.getValues()) {
+                  if(value.getNamePsi().textMatches(reference)) {
+                    return List.of(value.getNamePsi());
+                  }
+                }
+              }
+              // check Class names
+            }else {
+              HaxeComponentName componentName = haxeClass.getComponentName();
+              if (componentName != null && componentName.textMatches(reference)) {
+                return List.of(componentName);
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  // Experimental
+  // try to step one level up until we find a type definition and then pass that back down
+  private ResultHolder findParentAssignType(@NotNull PsiElement reference) {
+    return findParentAssignType(reference, false);
+  }
+  private ResultHolder findParentAssignType(@NotNull PsiElement reference, boolean isValueExpression) {
+    PsiElement parent = reference.getParent();
+    if (parent == null) return null;
+
+    if(parent instanceof  HaxeValueExpression) {
+      isValueExpression = true;
+    }
+
+    // final psi types (the ones where we can get expected type from)
+    if(isValueExpression) {
+
+      if (parent instanceof HaxeNewExpression newExpression) {
+        PsiElement resolve = newExpression.getType().getReferenceExpression().resolve();
+        if (resolve instanceof HaxeClassDeclaration declaration) {
+          HaxeMethodModel constructor = declaration.getModel().getConstructor(null);
+          if (constructor != null) {
+            int index = newExpression.getExpressionList().indexOf(reference);
+            HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+            if (context != null) {
+              HaxeCallExpressionEvaluation evaluate = context.evaluate();
+              return evaluate.getParameterType(index);
+            }
+          }
+        }
+      }
+      if (parent instanceof HaxeCallExpressionList expressionList) {
+        HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(expressionList, HaxeCallExpression.class);
+        if (callExpression != null) {
+          if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+            PsiElement resolve = referenceExpression.resolve();
+            if (resolve instanceof HaxeMethod method) {
+              int index = expressionList.getExpressionList().indexOf(reference);
+              HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+              HaxeCallExpressionEvaluation evaluate = context.evaluate();
+              return evaluate.getParameterType(index);
+            }
+          }
+        }
+      }
+      if (parent instanceof HaxeVarInit varInit) {
+        HaxePsiField field = PsiTreeUtil.getParentOfType(varInit, HaxePsiField.class);
+        if (field != null) {
+          HaxeTypeTag typeTag = field.getTypeTag();
+          if (typeTag != null) {
+            return HaxeTypeResolver.getTypeFromTypeTag(typeTag, field);
+          }
+        }
+      }
+    }
+
+    // todo mlo: do we need to do something for object literals ?
+
+    if (parent instanceof HaxeArrayLiteral) {
+      ResultHolder type = findParentAssignType(parent, isValueExpression);
+      // unwrap array type since its a literal we are in
+      if(type!= null && !type.isUnknown() && type.getClassType() != null) {
+        @NotNull ResultHolder[] specifics = type.getClassType().getSpecifics();
+        if(specifics.length > 0 ) return specifics[0];
+      }
+      return null;
+    }
+
+    return findParentAssignType(parent, isValueExpression);
   }
 
   private static boolean testAsEnumValueConstructor(@NotNull HaxeEnumValueDeclarationConstructor enumValueDeclaration, @NotNull HaxeReference reference) {
@@ -802,7 +909,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       HaxeEnumArgumentExtractor argumentExtractor = PsiTreeUtil.getParentOfType(reference, HaxeEnumArgumentExtractor.class);
       SpecificHaxeClassReference classReference = HaxeResolveUtil.resolveExtractorEnum(argumentExtractor);
       if (classReference != null) {
-        HaxeEnumValueDeclaration declaration = HaxeResolveUtil.resolveEnumValueDeclaration(classReference, argumentExtractor);
+        PsiElement declaration = HaxeResolveUtil.resolveEnumValueDeclaration(classReference, argumentExtractor);
         if (declaration != null) {
           LogResolution(reference, "via enum extractor");
           return List.of(declaration);
@@ -825,8 +932,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeClass haxeClass = result.getHaxeClass();
           if (haxeClass != null && haxeClass.isEnum()) {
             SpecificHaxeClassReference classReference = result.getSpecificClassReference(haxeClass, null);
-            HaxeEnumValueDeclaration declaration =
-              HaxeResolveUtil.resolveEnumValueDeclaration(classReference, reference.getText());
+            PsiElement declaration = HaxeResolveUtil.resolveEnumValueDeclaration(classReference, reference.getText());
             if (declaration != null) {
               LogResolution(reference, "via enum extractor");
               return List.of(declaration);

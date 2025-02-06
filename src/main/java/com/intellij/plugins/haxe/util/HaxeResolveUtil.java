@@ -1362,17 +1362,19 @@ public class HaxeResolveUtil {
     return null;
   }
 
-  public static HaxeEnumValueDeclaration resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
+  public static PsiElement resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, HaxeEnumArgumentExtractor extractor) {
     return resolveEnumValueDeclaration(enumClass, extractor.getEnumValueReference().getReferenceExpression().getIdentifier().getText());
   }
-  public static HaxeEnumValueDeclaration resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
+  public static PsiElement resolveEnumValueDeclaration(SpecificHaxeClassReference enumClass, String memberName) {
     if (enumClass != null) {
       HaxeBaseMemberModel member = enumClass.getHaxeClassModel().getMember(memberName, enumClass.getGenericResolver());
       if (member instanceof HaxeEnumValueConstructorModel enumValueModel) {
         return enumValueModel.getEnumValuePsi();
       }
       if (member instanceof HaxeEnumValueModel enumValueModel) {
-        return enumValueModel.getEnumValuePsi();
+        HaxeEnumValueDeclaration enumValuePsi = enumValueModel.getEnumValuePsi();
+        if(enumValuePsi != null) return enumValuePsi;
+        return enumValueModel.getBasePsi();
       }
     }
     return null;
