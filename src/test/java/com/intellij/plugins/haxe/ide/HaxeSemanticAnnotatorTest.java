@@ -800,6 +800,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testAssignUnresolvedType() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testAssignEnumValue() throws Exception {
     doTestNoFixWithWarnings();
   }

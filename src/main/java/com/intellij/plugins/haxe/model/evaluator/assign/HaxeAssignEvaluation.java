@@ -118,12 +118,12 @@ public class HaxeAssignEvaluation {
       if (toModel == null) {
         log.warn("Unable to evaluate class assign due to missing model (code:"+to.context.getText()+")");
         complete(false, "model(s) missing");
-//        TODO add as warnings as error seems a bit to strict
-//        this.explanations.addWrongTypeMember();
+        this.explanations.addMissingModel(toClassReference.getClassName());
         return;
       }
       if (fromModel == null) {
         log.warn("Unable to evaluate class assign due to missing model (code:"+from.context.getText()+")");
+        this.explanations.addMissingModel(fromClassReference.getClassName());
         complete(false, "model(s) missing");
         return;
       }

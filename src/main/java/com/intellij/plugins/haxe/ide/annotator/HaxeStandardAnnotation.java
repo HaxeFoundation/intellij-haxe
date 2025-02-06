@@ -35,6 +35,14 @@ public class HaxeStandardAnnotation {
   private HaxeStandardAnnotation() {
   }
 
+  public static void typeModelMissing(@NotNull AnnotationHolder holder,
+                                                            @NotNull PsiElement incompatibleElement,
+                                                            String missingType) {
+
+    String message = HaxeBundle.message("haxe.semantic.method.parameter.type.not.found", missingType);
+    holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message).range(incompatibleElement).create();
+  }
+
   public static @NotNull AnnotationBuilder typeMismatch(@NotNull AnnotationHolder holder,
                                                         @NotNull PsiElement incompatibleElement,
                                                         String incompatibleType,

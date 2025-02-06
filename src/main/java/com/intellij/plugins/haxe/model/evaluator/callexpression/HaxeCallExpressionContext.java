@@ -239,13 +239,16 @@ public class HaxeCallExpressionContext {
                 argumentCounter--;  //prevent loop from picking next argument
             } else {
                 // argument did not match parameter
-                if(trackErrors){
-                    // todo check if classes are missing models and log warning instead
-                    addTypeMismatchError(evaluation,
-                            argumentType,
-                            parameterType,
-                            assignEvaluation.explanations,
-                            argumentModel.psiElement);
+                if(trackErrors) {
+                    if (assignEvaluation.explanations.hasMissingModel()) {
+                        addMissingModelWarining(assignEvaluation, evaluation, argumentModel);
+                    } else {
+                        addTypeMismatchError(evaluation,
+                                argumentType,
+                                parameterType,
+                                assignEvaluation.explanations,
+                                argumentModel.psiElement);
+                    }
                 }
                 evaluation.validationFailed();
 //        break;
@@ -256,6 +259,15 @@ public class HaxeCallExpressionContext {
         evaluation.callExpressionResolver.addAll(combinedResolver);
         evaluation.setCompleted(true);
         return evaluation;
+    }
+
+    private static void addMissingModelWarining(HaxeAssignEvaluation assignEvaluation,
+                                                HaxeCallExpressionEvaluation evaluation,
+                                                CallExpressionArgumentModel argumentModel) {
+
+        String typeName = assignEvaluation.explanations.getMissingModel().getFirst();
+        String message = HaxeBundle.message("haxe.semantic.method.parameter.type.not.found", typeName);
+        evaluation.addWarning(message, argumentModel.psiElement);
     }
 
     private void applyAssignHint(HaxeGenericResolver argumentResolver, HaxeGenericResolver parameterResolver) {

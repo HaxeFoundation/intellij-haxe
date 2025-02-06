@@ -13,8 +13,17 @@ import java.util.stream.Collectors;
 @Getter
 public class AssignExplanation {
     final List<String> missingMembers = new ArrayList<>();
+    final List<String> missingModel = new ArrayList<>();
     final Map<String, String> wrongTypeMembers = new HashMap<>();
     final Map<PsiElement, String> wrongTypePsi = new HashMap<>();
+
+    public void addMissingModel(String name) {
+        missingModel.add(name);
+    }
+
+    public boolean hasMissingModel() {
+        return !missingModel.isEmpty();
+    }
 
     public void addMissingMember(String name) {
         missingMembers.add(name);

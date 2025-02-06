@@ -95,9 +95,13 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
           HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, rhs, messages);
         }
       }else {
-        AnnotationBuilder builder = typeMismatch(holder, rhs, rhsType.toPresentationString(), lhsType.toPresentationString());
-        fixers.forEach(builder::withFix);
-        builder.create();
+        if (assignEvaluation.explanations.hasMissingModel()) {
+          HaxeStandardAnnotation.typeModelMissing(holder, rhs, assignEvaluation.explanations.getMissingModel().getFirst());
+        } else {
+          AnnotationBuilder builder = typeMismatch(holder, rhs, rhsType.toPresentationString(), lhsType.toPresentationString());
+          fixers.forEach(builder::withFix);
+          builder.create();
+        }
       }
     }
     if (lhsType.isImmutable()) {

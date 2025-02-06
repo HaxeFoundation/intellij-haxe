@@ -42,7 +42,9 @@ public class HaxeSemanticsUtil {
           typeMismatchMissingMembers(holder, erroredElement, messages).create();
         }else if(messages.hasWrongTypeMembers()) {
           addtypeMismatchWrongTypeMembersAnnotations(holder, erroredElement, messages);
-        }else {
+        }else if (messages.hasMissingModel()) {
+          typeModelMissing(holder, erroredElement, messages.getMissingModel().getFirst());
+        }else{
           AnnotationBuilder builder = typeMismatch(holder, erroredElement, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
           if (null != initType.getClassType()) {
             builder.withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()));
