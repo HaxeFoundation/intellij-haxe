@@ -322,6 +322,7 @@ inlineKeyWord ::= 'inline'
 externKeyWord ::= 'extern'
 finalKeyWord ::= 'final'
 untypedKeyword ::= 'untyped'
+macroKeyword ::= 'macro'
 
 private externPrivate ::= externKeyWord privateKeyWord
 private privateExtern ::= privateKeyWord externKeyWord
@@ -356,7 +357,7 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 //see moduleOrTopLevelDeclaration
 //moduleDeclaration ::= moduleBody{pin=1}
 
-moduleMemberModifier::= privateKeyWord | inlineKeyWord
+moduleMemberModifier::= privateKeyWord | inlineKeyWord | macroKeyword
 
 private moduleBody ::= embeddedMeta* moduleBodyPart+  {pin=2}
 private moduleBodyPart ::=  topLevelDeclaration |  moduleFieldDeclaration |  moduleMethodDeclaration  {recoverWhile="class_body_part_recover"}
