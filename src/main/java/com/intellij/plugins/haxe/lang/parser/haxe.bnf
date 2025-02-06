@@ -265,7 +265,7 @@ private topLevelList ::= topLevel*
 module ::= moduleBody
 private topLevel ::= importStatement | usingStatement |  module {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 //private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
-private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'typedef' | 'final' | 'var'| 'inline')
+private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'public' | 'typedef' | 'final' | 'var'| 'inline' | 'function')
 
 // These are top-level parsing entry points for metadata.
 compiletimeMetaArg ::= expression
