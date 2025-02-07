@@ -3,10 +3,14 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -104,6 +108,20 @@ public class HaxeAssignEvaluation {
     if (to.isFunction() && from instanceof SpecificFunctionReference) return true;
     // hack: we allow assign to typeParameter without constraints to  simplify stuff when it comes to constructors and enums.
     if (to.isTypeParameter() && !to.isTypeParameterWithConstraints()) return true;
+
+    // hack: workaround to ignore constraints for method typeParameters checking functionType compatibility
+    if (from.isTypeParameterWithConstraints()) {
+      PsiElement elementContext = from.getElementContext();
+      HaxeFunctionType functionType = PsiTreeUtil.getParentOfType(elementContext, HaxeFunctionType.class);
+      if (functionType != null) {
+        if (from instanceof SpecificHaxeClassReference classReference) {
+          if (classReference.getHaxeClass() instanceof HaxeTypeParameterDeclaration typeParameter) {
+            HaxeTypeParameterScope typeParameterScope = typeParameter.getTypeParameterScope();
+            if (typeParameterScope == HaxeTypeParameterScope.METHOD) return true;
+          }
+        }
+      }
+    }
 
     return false;
   }
@@ -257,7 +275,7 @@ public class HaxeAssignEvaluation {
     for (int n = 0; n < toArgSize; n++) {
       HaxeArgument fromArg = from.arguments.get(n);
       HaxeArgument toArg = to.arguments.get(n);
-
+      // todo ignore TypeParam const
       if (!toArg.getType().isUnknown() && !toArg.getType().isMissingClassModel()) {
         if (!toArg.canAssignToFrom(fromArg)) {
           return false;
