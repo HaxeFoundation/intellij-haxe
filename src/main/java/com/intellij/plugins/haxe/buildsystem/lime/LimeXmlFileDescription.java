@@ -28,6 +28,10 @@ public class LimeXmlFileDescription extends DomFileDescription<ProjectXml> {
         return null;
     }
 
+    @Override
+    public @Nullable Icon getFileIcon(int flags) {
+        return super.getFileIcon(flags);
+    }
 
     @Override
     public boolean isMyFile(@NotNull XmlFile file, @Nullable Module module) {

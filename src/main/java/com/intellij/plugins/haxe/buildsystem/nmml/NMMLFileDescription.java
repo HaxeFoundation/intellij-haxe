@@ -28,6 +28,10 @@ public class NMMLFileDescription extends DomFileDescription<ProjectXml> {
         return null;
     }
 
+    @Override
+    public @Nullable Icon getFileIcon(int flags) {
+        return super.getFileIcon(flags);
+    }
 
 
     @Override
