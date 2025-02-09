@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromContravariance;
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 
 public class HaxeOverrideOrImplementEvaluation {
@@ -53,7 +54,7 @@ public class HaxeOverrideOrImplementEvaluation {
         HaxeGenericResolver genericResolver = createOverrideResolver(sourceModel);
 
         checkParameterCount(sourceParameters, targetParameters);
-        checkParameterTypesOverride(sourceParameters, targetParameters, genericResolver);
+        checkParameterTypes(sourceParameters, targetParameters, genericResolver);
         checkOptionalTag(sourceParameters, targetParameters, genericResolver, true);
         checkReturnTypes(genericResolver);
 
@@ -76,7 +77,7 @@ public class HaxeOverrideOrImplementEvaluation {
         HaxeGenericResolver resolver = createImplementResolver(sourceModel);
 
         checkParameterCount(sourceParameters, targetParameters);
-        checkParameterTypesInterface(sourceParameters, targetParameters, resolver);
+        checkParameterTypes(sourceParameters, targetParameters, resolver);
         checkOptionalTag(sourceParameters, targetParameters, resolver, false);
         checkReturnTypes(resolver);
 
@@ -197,7 +198,7 @@ public class HaxeOverrideOrImplementEvaluation {
         }
     }
 
-    private void checkParameterTypesOverride(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver resolver) {
+    private void checkParameterTypes(List<HaxeParameterModel> sourceParameters, List<HaxeParameterModel> targetParameters, HaxeGenericResolver resolver) {
 
         final HaxeDocumentModel document = sourceModel.getDocument();
 
@@ -213,7 +214,7 @@ public class HaxeOverrideOrImplementEvaluation {
             ResultHolder targetParamType = targetParam.getType(resolver);
 
             //
-            if (!canAssignToFromReference(sourceParamType, targetParamType)) {
+            if (!canAssignToFromContravariance(targetParamType,sourceParamType)) {
                 if (makeAnnotations) {
                     String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1", sourceParamType, targetParamType);
                     HaxeFixer fix = createReplaceTypeFix(document, sourceParam, targetParam);

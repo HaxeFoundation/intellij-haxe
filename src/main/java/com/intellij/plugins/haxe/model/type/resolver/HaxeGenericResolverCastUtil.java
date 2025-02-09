@@ -199,9 +199,9 @@ public class HaxeGenericResolverCastUtil {
     private static final RecursionGuard<PsiElement> findClassHierarchyRecursionGuard = RecursionManager.createGuard("findClassHierarchyRecursionGuard");
 
     private static boolean findClassHierarchy(HaxeClass from, HaxeClass to, List<SpecificHaxeClassReference> path, HaxeGenericResolver parentResolver) {
-        // stop if "from" is typeParameter
+        // stop if "from" is typeParameter without constraints
         Boolean result = findClassHierarchyRecursionGuard.computePreventingRecursion(from, true, () -> {
-            if (from instanceof HaxeGenericListPart) return false;
+            if (from instanceof HaxeGenericListPart part && part.getGenericConstraintPart() == null) return false;
 
             HaxeClassModel fromModel = from.getModel();
             HaxeGenericResolver fromResolver = fromModel.getGenericResolver(parentResolver);
@@ -229,6 +229,27 @@ public class HaxeGenericResolverCastUtil {
                         } else if (findClassHierarchy(underlyingClass, to, path, reference.getGenericResolver())) {
                             path.add(reference);
                             return true;
+                        }
+                    }
+                }
+            }
+            // if typeParameter with constraints, treat it as a subtype of that constraint
+            if(fromModel instanceof  HaxeGenericParamModel genericParamModel) {
+                ResultHolder constraint = genericParamModel.getConstraint(fromResolver);
+                if(constraint != null && !constraint.isUnknown()) {
+                    SpecificHaxeClassReference constraintClassReference = constraint.getClassType();
+                    if(constraintClassReference != null) {
+                        HaxeClassModel classModel = constraintClassReference.getHaxeClassModel();
+                        if (classModel != null) {
+                            HaxeClass childClass = classModel.haxeClass;
+                            if (childClass == to) {
+                                return path.add(constraintClassReference);
+                            } else {
+                                if (findClassHierarchy(childClass, to, path, constraintClassReference.getGenericResolver())) {
+                                    path.add(constraintClassReference);
+                                    return true;
+                                }
+                            }
                         }
                     }
                 }

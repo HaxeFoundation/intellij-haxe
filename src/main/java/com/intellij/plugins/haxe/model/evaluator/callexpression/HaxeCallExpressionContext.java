@@ -232,7 +232,11 @@ public class HaxeCallExpressionContext {
                 );
                 //Note: we are using the original (unresolved) parameter type to find typeParameters to inherit
                 // if we use the resolved value we would be trying to update values for a different class.
-                updateResolverIfNecessary(argumentType, argumentResolver, originalParameterType, parameterResolver);
+                TypeConstraintMismatch constraintMismatch = updateResolverIfNecessary(argumentType, argumentResolver, originalParameterType, parameterResolver);
+                if(constraintMismatch != null) {
+                    addConstraintMismatchError(evaluation, argumentType, constraintMismatch, argumentModel.psiElement);
+                    evaluation.validationFailed();
+                }
                 combinedResolver.addAll(parameterResolver);// update commbined resolver
             } else if (parameterModel.isOptional()) {
                 // optional parameter did not match argument, continue
@@ -241,7 +245,7 @@ public class HaxeCallExpressionContext {
                 // argument did not match parameter
                 if(trackErrors) {
                     if (assignEvaluation.explanations.hasMissingModel()) {
-                        addMissingModelWarining(assignEvaluation, evaluation, argumentModel);
+                        addMissingModelWarning(assignEvaluation, evaluation, argumentModel);
                     } else {
                         addTypeMismatchError(evaluation,
                                 argumentType,
@@ -261,9 +265,11 @@ public class HaxeCallExpressionContext {
         return evaluation;
     }
 
-    private static void addMissingModelWarining(HaxeAssignEvaluation assignEvaluation,
-                                                HaxeCallExpressionEvaluation evaluation,
-                                                CallExpressionArgumentModel argumentModel) {
+
+
+    private static void addMissingModelWarning(HaxeAssignEvaluation assignEvaluation,
+                                               HaxeCallExpressionEvaluation evaluation,
+                                               CallExpressionArgumentModel argumentModel) {
 
         String typeName = assignEvaluation.explanations.getMissingModel().getFirst();
         String message = HaxeBundle.message("haxe.semantic.method.parameter.type.not.found", typeName);
@@ -297,9 +303,10 @@ public class HaxeCallExpressionContext {
 
 
 
-    private void updateResolverIfNecessary(SpecificTypeReference argumentType, HaxeGenericResolver argumentResolver,
+    public TypeConstraintMismatch updateResolverIfNecessary(SpecificTypeReference argumentType, HaxeGenericResolver argumentResolver,
                                            SpecificTypeReference parameterType, HaxeGenericResolver parameterResolver) {
 
+        TypeConstraintMismatch mismatch = null;
         // check if parameter type is a typeParameter and update resolver if missing resolve value
         if (parameterType instanceof  SpecificHaxeClassReference parameterClassReference) {
             if (parameterClassReference.getHaxeClass() instanceof HaxeTypeParameterDeclaration typeParameter) {
@@ -308,6 +315,8 @@ public class HaxeCallExpressionContext {
                     if (resolve == null || resolve.isUnknown()  || resolve.isTypeParameter()) {
                         if (parameterClassReference.canAssign(argumentType)) {
                             parameterResolver.add(typeParameter, argumentType.createHolder());
+                        }else {
+                            mismatch = new TypeConstraintMismatch(parameterClassReference, argumentType);
                         }
                     }
                 }
@@ -326,9 +335,12 @@ public class HaxeCallExpressionContext {
                             if (argumentSpecificResolved != null) argumentSpecific = argumentSpecificResolved;
 
                             if (argumentSpecific != null && parameterSpecific.canAssign(argumentSpecific)) {
-                                updateResolverIfNecessary(
+                                TypeConstraintMismatch newMiss = updateResolverIfNecessary(
                                         argumentSpecific.getType(), argumentResolver,
                                         parameterSpecific.getType(), parameterResolver);
+                                if(newMiss != null) {
+                                    mismatch = newMiss;
+                                }
                             }
                         }
                     } else {
@@ -343,9 +355,13 @@ public class HaxeCallExpressionContext {
                                 ResultHolder parameterSpecific = parameterSpecifics[i];
                                 ResultHolder argumentSpecific = argumentResolver.resolve(argumentSpecifics[i]);
                                 if (argumentSpecific != null) {
-                                    updateResolverIfNecessary(
+                                    TypeConstraintMismatch newMiss = updateResolverIfNecessary(
                                             argumentSpecific.getType(), argumentResolver,
                                             parameterSpecific.getType(), parameterResolver);
+
+                                    if(newMiss != null) {
+                                        mismatch = newMiss;
+                                    }
                                 }
                             }
                         }
@@ -362,22 +378,29 @@ public class HaxeCallExpressionContext {
                 for (int i = 0; i < argumentsToCheck; i++) {
                     HaxeArgument argumentA = argumentsArguments.get(i);
                     HaxeArgument argumentP = parameterArguments.get(i);
-                    updateResolverIfNecessary(
+                    TypeConstraintMismatch newMiss = updateResolverIfNecessary(
                             argumentA.getType().getType(), argumentResolver,
                             argumentP.getType().getType(), parameterResolver);
+                    if(newMiss != null) {
+                        mismatch = newMiss;
+                    }
 
                 }
                 ResultHolder argumentReturnType = argumentFunctionReference.getReturnType();
                 ResultHolder parameterReturnType = parameterFunctionReference.getReturnType();
-                updateResolverIfNecessary(
+                TypeConstraintMismatch newMiss = updateResolverIfNecessary(
                         argumentReturnType.getType(), argumentResolver,
                         parameterReturnType.getType(), parameterResolver);
+                if(newMiss != null) {
+                    mismatch = newMiss;
+                }
             }
 
         }
+        return mismatch;
     }
 
-    private ResultHolder tryUnwrapNull(@Nullable ResultHolder holder) {
+    private static ResultHolder tryUnwrapNull(@Nullable ResultHolder holder) {
         if(holder == null) return null;
         if(holder.isNullWrappedType()) {
             return holder.getClassType().unwrapNullType().createHolder();
@@ -444,6 +467,12 @@ public class HaxeCallExpressionContext {
         return (int) parametersList.stream()
                 .filter(p -> !p.isOptional() && !p.hasIntiValue() && !p.isRest())
                 .count();
+    }
+    private void addConstraintMismatchError(HaxeCallExpressionEvaluation evaluation, SpecificTypeReference argumentType, TypeConstraintMismatch constraintMismatch, PsiElement argumentPsi) {
+        if (argumentPsi != null) {
+            String message = "Constraint violation want" +constraintMismatch.expected().toPresentationString() + " got " + constraintMismatch.got().toPresentationString();
+            evaluation.addError(message, argumentPsi);
+        }
     }
 
     private void addTypeMismatchError(HaxeCallExpressionEvaluation evaluation,
@@ -533,3 +562,5 @@ public class HaxeCallExpressionContext {
         }
     }
 }
+
+record TypeConstraintMismatch(SpecificTypeReference expected, SpecificTypeReference got){}

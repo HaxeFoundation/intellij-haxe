@@ -25,23 +25,31 @@ public class HaxeTypeCompatible {
     }
     static public boolean canAssignToFromReference(HaxeAssignEvaluation context, @Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from) {
         if (to == null || from == null) return false;
-        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), false,true, true, context).result;
+        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), false,true, true, false, context).result;
     }
 
     static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to.createHolder(), from.createHolder(), checkExplicitCasts, checkImplicitCasts);
+        return canAssignToFromReference(to.createHolder(), from.createHolder(), checkExplicitCasts, checkImplicitCasts, false);
     }
 
 
     static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to, from, true, true);
+        return canAssignToFromReference(to, from, true, true, false);
+    }
+    static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from) {
+        if (to == null || from == null) return false;
+        return canAssignToFromReference(to, from, true, true, true);
+    }
+    static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
+        if (to == null || from == null) return false;
+        return canAssignToFromReference(to, from, checkExplicitCasts, checkImplicitCasts, true);
     }
 
-    static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
+    static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts, boolean contravariance) {
         if (to == null || from == null) return false;
-        return canAssignToFromEvaluation(to, from, false, checkExplicitCasts, checkImplicitCasts).result;
+        return canAssignToFromEvaluation(to, from, false, checkExplicitCasts, checkImplicitCasts, contravariance).result;
     }
 
 
@@ -103,7 +111,7 @@ public class HaxeTypeCompatible {
      */
     private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from) {
         // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
-        return canAssignToFromEvaluation(to, from, true, false, false, context);
+        return canAssignToFromEvaluation(to, from, true, false, false, false, context);
     }
 
 
@@ -119,8 +127,17 @@ public class HaxeTypeCompatible {
     static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
                                                                  boolean strictBasicCheck,
                                                                  boolean checkExplicitCasts,
+                                                                 boolean checkImplicitCasts,
+                                                                 boolean contravariance
+    ) {
+        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkExplicitCasts, checkImplicitCasts, contravariance, null);
+    }
+
+    static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
+                                                                 boolean strictBasicCheck,
+                                                                 boolean checkExplicitCasts,
                                                                  boolean checkImplicitCasts) {
-        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkExplicitCasts, checkImplicitCasts, null);
+        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkExplicitCasts, checkImplicitCasts, false, null);
     }
 
 
@@ -130,11 +147,12 @@ public class HaxeTypeCompatible {
                                                                  boolean strictBasicCheck,
                                                                  boolean checkExplicitCasts,
                                                                  boolean checkImplicitCasts,
+                                                                 boolean contravariance,
                                                                  @Nullable HaxeAssignEvaluation parent
     ) {
         ProgressIndicatorProvider.checkCanceled();
 
-        HaxeAssignEvaluation evaluation = new HaxeAssignEvaluation(to, from);
+        HaxeAssignEvaluation evaluation = new HaxeAssignEvaluation(to, from, contravariance);
         evaluation.fullyResolveTypes();
 
         if(parent != null){

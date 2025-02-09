@@ -14,7 +14,6 @@ import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressi
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.PsiSearchHelper;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -172,7 +171,7 @@ public class HaxeExpressionUsageUtil {
 
         // if we are trying to resolve type for objectLiteral reference and have reach ourselves, we stop to prevent later references.
         if (context.root.getParent() instanceof HaxeObjectLiteralElement) {
-          if (context.root == references.get(0)) return null;
+          if (context.root == references.getFirst()) return null;
         }
 
         if (reference instanceof HaxeExpression expression) {
@@ -218,9 +217,17 @@ public class HaxeExpressionUsageUtil {
             if (!updatedType.containsUnknownTypes()) return updatedType;
           }
 
+          if (parent.getParent() instanceof HaxeAssignExpression assignExpression) {
+            ResultHolder result = tryFindTypeParametersFromMemberAssign(updatedType, assignExpression);
+           if (result == null) continue;
+           if (result.isDynamic()) return result;
+           if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
+           if (!updatedType.containsUnknownTypes() || updatedType.isDynamic()) return updatedType;
+          }
+
           if (parent instanceof HaxeReferenceExpression referenceExpression) {
             ResultHolder result = tryFindTypeFromMethodCallOnReference(updatedType, referenceExpression);
-            if (result == null) return null;
+            if (result == null) continue;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
             if (!updatedType.containsUnknownTypes()) return updatedType;
@@ -254,6 +261,60 @@ public class HaxeExpressionUsageUtil {
       return updatedType;
     });
     return newValues != null ? newValues.noCache() : resultHolder.noCache();
+  }
+
+  private static HaxeGenericResolver findAndSetResolverValues(SpecificFunctionReference functionLeft, SpecificFunctionReference functionRight, HaxeGenericResolver genericResolver) {
+    HaxeGenericResolver resolver = genericResolver.copy();
+
+    List<HaxeArgument> leftArgs = functionLeft.getArguments();
+    List<HaxeArgument> rightArgs = functionRight.getArguments();
+
+    int min = Math.min(leftArgs.size(), rightArgs.size());
+
+      for (int i = 0; i < min; i++) {
+        ResultHolder leftArgType = leftArgs.get(i).getType();
+        ResultHolder rightArgType = rightArgs.get(i).getType();
+        if (leftArgType.getClassType() != null) {
+          if (leftArgType.getClassType().getHaxeClass() instanceof HaxeTypeParameterDeclaration tp) {
+            resolver.add(tp, rightArgType.getType().createHolder());
+          } else if (leftArgType.containsTypeParameters()) {
+            resolver.addAll(findAndSetResolverValues(leftArgType, rightArgType, resolver));
+          }
+        }
+      }
+
+    return resolver;
+  }
+
+  private static @Nullable HaxeGenericResolver findAndSetResolverValues(ResultHolder leftArgType, ResultHolder rightArgType, HaxeGenericResolver genericResolver) {
+    HaxeGenericResolver resolver = genericResolver.copy();
+    SpecificTypeReference leftType = leftArgType.getType();
+    SpecificTypeReference rightType = rightArgType.getType();
+    if (leftType instanceof SpecificFunctionReference leftFunction && rightType instanceof SpecificFunctionReference rightFunction) {
+      resolver.addAll(findAndSetResolverValues(leftFunction, rightFunction, resolver));
+    }
+
+    if (leftType instanceof SpecificHaxeClassReference leftClass && rightType instanceof SpecificHaxeClassReference rightClass) {
+      if (leftClass.getHaxeClass() != rightClass.getHaxeClass()) {
+        SpecificHaxeClassReference casted = rightClass.tryCastToClass(leftClass);
+        if (casted != null)rightClass = casted;
+      }
+      @NotNull ResultHolder[] leftSpecifics = leftClass.getSpecifics();
+      @NotNull ResultHolder[] rightSpecifics = rightClass.getSpecifics();
+      int min = Math.min(leftSpecifics.length, rightSpecifics.length);
+        for (int i = 0; i < min; i++) {
+            ResultHolder leftSpecific = leftSpecifics[i];
+            ResultHolder rightSpecific = rightSpecifics[i];
+            if(leftSpecific.isTypeParameter()) {
+              if (leftSpecific.getClassType().getHaxeClass() instanceof HaxeTypeParameterDeclaration tp) {
+                resolver.add(tp, rightArgType.getType().createHolder());
+              }
+            }else {
+              resolver.addAll(findAndSetResolverValues(leftSpecific, rightSpecific, resolver));
+            }
+        }
+    }
+    return resolver;
   }
 
   private static @NotNull ResultHolder getInstanceTypeWithDefaultTypeParameters(ResultHolder resultHolder) {
@@ -545,6 +606,42 @@ public class HaxeExpressionUsageUtil {
   }
 
 
-
+  private static @Nullable ResultHolder tryFindTypeParametersFromMemberAssign(ResultHolder resultHolder, HaxeAssignExpression assignExpression) {
+    if(assignExpression.getAssignOperation().textContains('=')) {
+      if(assignExpression.getLeftExpression() instanceof  HaxeReferenceExpression left){
+        if (left.resolve() instanceof  HaxePsiField field) {
+          if(field.getTypeTag() != null) {
+            ResultHolder memberType = HaxeTypeResolver.getTypeFromTypeTag(field.getTypeTag(), field);
+            if(memberType.containsTypeParameters()) {
+              HaxeExpressionEvaluatorContext evaluate = evaluate(assignExpression.getRightExpression());
+              ResultHolder rightType = evaluate.result;
+              if(memberType.canAssign(rightType)) {
+                SpecificHaxeClassReference leftClass = memberType.getClassType();
+                SpecificHaxeClassReference rightClass = rightType.getClassType();
+                if (leftClass != null && rightClass != null) {
+                  SpecificHaxeClassReference casted = rightClass.tryCastToClass(leftClass);
+                  if(casted != null) {
+                    HaxeGenericResolver genericResolver = casted.getGenericResolver();
+                    return genericResolver.resolve(resultHolder);
+                  }
+                } else {
+                  SpecificFunctionReference functionLeft = memberType.getFunctionType();
+                  SpecificFunctionReference functionRight = rightType.getFunctionType();
+                  if (functionLeft != null && functionRight != null) {
+                    if(functionLeft.canAssign(functionRight)) {
+                      HaxeGenericResolver genericResolver = resultHolder.getClassType().getGenericResolver();
+                      genericResolver = findAndSetResolverValues(functionLeft,functionRight, genericResolver );
+                      return  genericResolver.resolve(resultHolder);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
 }

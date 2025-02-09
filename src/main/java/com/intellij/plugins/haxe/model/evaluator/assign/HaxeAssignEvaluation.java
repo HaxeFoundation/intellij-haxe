@@ -38,15 +38,22 @@ public class HaxeAssignEvaluation {
 
   private final PsiElement toContext;
   private final PsiElement fromContext;
+  private final boolean contravariance;
 
   public final AssignExplanation explanations = new AssignExplanation();
 
   private List<HaxeAssignEvaluation> subEvaluations = new ArrayList<>();
 
 
-  public HaxeAssignEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from) {
-    this.to = to.getType();
-    this.from = from.getType();
+  public HaxeAssignEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from, boolean contravariance) {
+    this.contravariance = contravariance;
+    if(contravariance) {
+      this.to = from.getType();
+      this.from = to.getType();
+    }else {
+      this.to = to.getType();
+      this.from = from.getType();
+    }
     // contexts used to check if we are in a scope with macro keyword
     toContext = to.getElementContext();
     fromContext = from.getElementContext();
@@ -157,11 +164,11 @@ public class HaxeAssignEvaluation {
         complete(true, "class hierarchy match");
         return;
       }
-      testClassTypeParameterConstraints(toClassReference, toModel, fromClassReference, fromModel);
+      testClassTypeParameterConstraints(toClassReference, toModel, fromClassReference, fromModel, contravariance);
     }
   }
 
-  private void testClassTypeParameterConstraints(SpecificHaxeClassReference toClassReference, HaxeClassModel toModel, SpecificHaxeClassReference fromClassReference, HaxeClassModel fromModel) {
+  private void testClassTypeParameterConstraints(SpecificHaxeClassReference toClassReference, HaxeClassModel toModel, SpecificHaxeClassReference fromClassReference, HaxeClassModel fromModel, boolean contravariance) {
     if (toModel instanceof  HaxeGenericParamModel model) {
       ResultHolder constraint = model.getConstraint(toClassReference.getGenericResolver());
       if (constraint == null) {
@@ -185,7 +192,13 @@ public class HaxeAssignEvaluation {
       }
       else {
         // if from type is a type parameter with constraints we should allow it to be assigned to any  type that matches the constraint.
-        boolean canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(to.createHolder(), constraint);
+        boolean canAssignConstraint;
+        if (contravariance) {
+          canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(constraint,to.createHolder());
+        }else {
+          canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(to.createHolder(), constraint);
+
+        }
         if (canAssignConstraint) {
           complete(true, "TypeParameter constraints can assign");
         }
@@ -275,9 +288,15 @@ public class HaxeAssignEvaluation {
     for (int n = 0; n < toArgSize; n++) {
       HaxeArgument fromArg = from.arguments.get(n);
       HaxeArgument toArg = to.arguments.get(n);
-      // todo ignore TypeParam const
+
       if (!toArg.getType().isUnknown() && !toArg.getType().isMissingClassModel()) {
-        if (!toArg.canAssignToFrom(fromArg)) {
+        // TO can accept optional but not the other way around.
+        // if TO has optional from and  FROM does not then the assignment should fail.
+        if (!fromArg.isOptional() && toArg.isOptional()) return false;
+
+        boolean argCompatibility = HaxeTypeCompatible.canAssignToFromContravariance(toArg.getType(), fromArg.getType(), true,false);
+
+        if (!argCompatibility) {
           return false;
         }
       }
