@@ -667,6 +667,23 @@ public class HaxeExpressionEvaluatorHandlers {
           ResultHolder resolve = resolver.resolve(holder);
           return resolve != null && !resolve.isUnknown() ? resolve : holder;
         }else {
+          if(functionLiteral.getParent() instanceof  HaxeAssignExpression assignExpression) {
+            HaxeExpression leftExpression = assignExpression.getLeftExpression();
+            if (leftExpression != null) {
+              ResultHolder handle = handle(leftExpression, context, resolver);
+              if (handle.isFunctionType()) {
+                SpecificFunctionReference functionType = handle.getFunctionType();
+                HaxeParameterList parameterList = functionLiteral.getParameterList();
+                if(parameterList != null && functionType != null) {
+                  int index = parameterList.getParameterList().indexOf(parameter);
+                  List<HaxeArgument> arguments = functionType.getArguments();
+                  if(index != -1 && index < arguments.size()) {
+                    return arguments.get(index).getType();
+                  }
+                }
+              }
+            }
+          }
           return createUnknown(parameter);
         }
       }else {

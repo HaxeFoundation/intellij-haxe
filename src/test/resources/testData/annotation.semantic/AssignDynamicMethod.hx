@@ -15,9 +15,12 @@ class AssignDynamicMethod<C:{length:Int}> {
         x.dynamicGenericFn = (x) -> { "myString"; };
         x.dynamicGenericFn = (x) -> { getType(String); };
 
+        x.dynamicGenericFn = function (x) { "myString"; };
+        x.dynamicGenericFn = function (x) { getType(String); };
+
         //wrong
-        x.dynamicGenericFn = <error descr="Incompatible type: unknown->Int should be C:{length:Int}->C:{length:Int}">(x) -> { 1; }</error>;
-        x.dynamicGenericFn = <error descr="Incompatible type: unknown->Int should be C:{length:Int}->C:{length:Int}">(x) -> { getType(Int); }</error>;
+        x.dynamicGenericFn = <error descr="Incompatible type: C:{length:Int}->Int should be C:{length:Int}->C:{length:Int}">(x) -> { 1; }</error>;
+        x.dynamicGenericFn = <error descr="Incompatible type: C:{length:Int}->Int should be C:{length:Int}->C:{length:Int}">(x) -> { getType(Int); }</error>;
 
 
         //wrong : Cannot rebind non dynamic
