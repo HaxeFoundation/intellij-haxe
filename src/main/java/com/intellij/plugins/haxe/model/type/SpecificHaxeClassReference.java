@@ -390,6 +390,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public SpecificHaxeClassReference tryCastTo(SpecificHaxeClassReference targetClass) {
     if (targetClass == null) return null;
+    if(targetClass.isDynamic()) return getDynamic(this.context);
     SpecificHaxeClassReference specificHaxeClassReference = tryCastToClass(targetClass);
     if (specificHaxeClassReference == null) {
       specificHaxeClassReference = tryAbstractCast(targetClass);
