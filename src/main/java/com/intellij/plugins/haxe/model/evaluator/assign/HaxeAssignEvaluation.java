@@ -12,6 +12,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,16 +39,17 @@ public class HaxeAssignEvaluation {
 
   private final PsiElement toContext;
   private final PsiElement fromContext;
-  private final boolean contravariance;
+
+  @Getter
+  private final AssignEvaluationSettings config;
 
   public final AssignExplanation explanations = new AssignExplanation();
 
   private List<HaxeAssignEvaluation> subEvaluations = new ArrayList<>();
 
-
-  public HaxeAssignEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from, boolean contravariance) {
-    this.contravariance = contravariance;
-    if(contravariance) {
+  public HaxeAssignEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from, @NotNull AssignEvaluationSettings config) {
+    this.config = config;
+    if(config.contravariance()) {
       this.to = from.getType();
       this.from = to.getType();
     }else {
@@ -164,11 +166,13 @@ public class HaxeAssignEvaluation {
         complete(true, "class hierarchy match");
         return;
       }
-      testClassTypeParameterConstraints(toClassReference, toModel, fromClassReference, fromModel, contravariance);
+      testClassTypeParameterConstraints(toClassReference, toModel, fromClassReference, fromModel, config.contravariance(), config.ignoreFromConstraints());
     }
   }
 
-  private void testClassTypeParameterConstraints(SpecificHaxeClassReference toClassReference, HaxeClassModel toModel, SpecificHaxeClassReference fromClassReference, HaxeClassModel fromModel, boolean contravariance) {
+  private void testClassTypeParameterConstraints(SpecificHaxeClassReference toClassReference, HaxeClassModel toModel,
+                                                 SpecificHaxeClassReference fromClassReference, HaxeClassModel fromModel,
+                                                 boolean contravariance, boolean ignoreFromConstraints) {
     if (toModel instanceof  HaxeGenericParamModel model) {
       ResultHolder constraint = model.getConstraint(toClassReference.getGenericResolver());
       if (constraint == null) {
@@ -184,26 +188,25 @@ public class HaxeAssignEvaluation {
         }
       }
     }
+    if (!ignoreFromConstraints) {
+      if (fromModel instanceof HaxeGenericParamModel model) {
+        ResultHolder constraint = model.getConstraint(fromClassReference.getGenericResolver());
+        if (constraint == null) {
+          complete(true, "No constraints for type parameter");
+        } else {
+          // if from type is a type parameter with constraints we should allow it to be assigned to any  type that matches the constraint.
+          boolean canAssignConstraint;
+          if (contravariance) {
+            canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(constraint, to.createHolder());
+          } else {
+            canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(to.createHolder(), constraint);
 
-    if (fromModel instanceof  HaxeGenericParamModel model) {
-      ResultHolder constraint = model.getConstraint(fromClassReference.getGenericResolver());
-      if (constraint == null) {
-        complete(true, "No constraints for type parameter");
-      }
-      else {
-        // if from type is a type parameter with constraints we should allow it to be assigned to any  type that matches the constraint.
-        boolean canAssignConstraint;
-        if (contravariance) {
-          canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(constraint,to.createHolder());
-        }else {
-          canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(to.createHolder(), constraint);
-
-        }
-        if (canAssignConstraint) {
-          complete(true, "TypeParameter constraints can assign");
-        }
-        else {
-          complete(false, "TypeParameter constraints can NOT assign");
+          }
+          if (canAssignConstraint) {
+            complete(true, "TypeParameter constraints can assign");
+          } else {
+            complete(false, "TypeParameter constraints can NOT assign");
+          }
         }
       }
     }
@@ -571,15 +574,17 @@ public class HaxeAssignEvaluation {
 
 
   static boolean canAssignTypeParameters(HaxeAssignEvaluation context, @NotNull ResultHolder[] toSpecifics, @NotNull ResultHolder[] fromSpecifics) {
+   return canAssignTypeParameters(context,toSpecifics,fromSpecifics, false);
+  }
+  static boolean canAssignTypeParameters(HaxeAssignEvaluation context, @NotNull ResultHolder[] toSpecifics, @NotNull ResultHolder[] fromSpecifics, boolean ignoreFromConstraints) {
     if (toSpecifics.length != fromSpecifics.length) return false;
     for (int i = 0, length = toSpecifics.length; i < length; i++) {
       ResultHolder toSpecific = toSpecifics[i];
       ResultHolder fromSpecific = fromSpecifics[i];
-      if (!HaxeTypeCompatible.canAssignToFromTypeParameter(context, toSpecific, fromSpecific)) {
+      if (!HaxeTypeCompatible.canAssignToFromTypeParameter(context, toSpecific, fromSpecific, ignoreFromConstraints)) {
         return false;
       }
     }
-
     return true;
   }
 

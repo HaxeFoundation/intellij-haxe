@@ -5,7 +5,6 @@ import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,7 +12,12 @@ import org.jetbrains.annotations.Nullable;
 @CustomLog
 public class HaxeTypeCompatible {
 
-        //TODO mlo: add some kind of recursion guard  (implicit cast can loop around)?
+    //TODO mlo: add some kind of recursion guard  (implicit cast can loop around)?
+
+    private static final AssignEvaluationSettings DEFAULT_SETTINGS = new AssignEvaluationSettings(false, true,true, false, false);
+    private static final AssignEvaluationSettings DEFAULT_STRICT_SETTINGS = new AssignEvaluationSettings(true, false, false, false, false);
+    private static final AssignEvaluationSettings CONTRAVARIANCE_SETTINGS = new AssignEvaluationSettings(false, true, true, true, false);
+    private static final AssignEvaluationSettings CALL_EXPRESSION_SETTINGS = new AssignEvaluationSettings(false, true, true, false, true);
 
     /**
      * Regular can assign will allow Dynamic to be assigned to anything and also check implicit casts (@:to/@From) and handle special annotation rules
@@ -25,33 +29,50 @@ public class HaxeTypeCompatible {
     }
     static public boolean canAssignToFromReference(HaxeAssignEvaluation context, @Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from) {
         if (to == null || from == null) return false;
-        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), false,true, true, false, context).result;
+        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(),DEFAULT_SETTINGS, context).result;
     }
 
     static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to.createHolder(), from.createHolder(), checkExplicitCasts, checkImplicitCasts, false);
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, false, false);
+        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), settings, null).result;
     }
 
 
     static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to, from, true, true, false);
+        return canAssignToFromEvaluation(to, from, DEFAULT_SETTINGS, null).result;
     }
+
+    /**
+     *  Used to perform canAssign in parameters when functionTypes are assigned.
+     *  - flips the to/from order when performing assign operation
+     *  - constraints checks are still performed in normal order.
+     */
     static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to, from, true, true, true);
+        return canAssignToFromEvaluation(to, from, CONTRAVARIANCE_SETTINGS, null).result;
     }
+
     static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
-        return canAssignToFromReference(to, from, checkExplicitCasts, checkImplicitCasts, true);
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, true, false);
+        return canAssignToFromEvaluation(to, from, settings, null).result;
+    }
+
+    /**
+     *  Check is arguments matches parameters but makes sure generics can be inherited from parameter type.
+     *  - ignores any constraints on argument type (if type parameter then we try to inherit from parameter type)
+     */
+    static public HaxeAssignEvaluation evaluateAssignToFromForNewAndCallExpression(@NotNull ResultHolder to, @NotNull ResultHolder from) {
+        return canAssignToFromEvaluation(to, from, CALL_EXPRESSION_SETTINGS, null);
     }
 
     static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts, boolean contravariance) {
         if (to == null || from == null) return false;
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, contravariance, false);
         return canAssignToFromEvaluation(to, from, false, checkExplicitCasts, checkImplicitCasts, contravariance).result;
     }
-
 
     static public HaxeAssignEvaluation evaluateAssignToFrom(@NotNull ResultHolder to, @NotNull ResultHolder from) {
         return canAssignToFromEvaluation(to, from, false, true, true);
@@ -83,26 +104,12 @@ public class HaxeTypeCompatible {
      */
     static public boolean canAssignToFromTypeParameter(@Nullable ResultHolder to, @Nullable ResultHolder from) {
         if (to == null || from == null) return false;
-        return canAssignToFromStrictEvaluation(null, to, from).result;
+        return canAssignToFromTypeParameter(null, to, from, false);
     }
 
-    static public boolean canAssignToFromTypeParameter(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from) {
+    static public boolean canAssignToFromTypeParameter(HaxeAssignEvaluation context, @Nullable ResultHolder to, @Nullable ResultHolder from, boolean ignoreFromConstraints) {
         if (to == null || from == null) return false;
-        return canAssignToFromTypeParameter(to.createHolder(), from.createHolder());
-    }
-
-    static boolean canAssignToFromTypeParameter(HaxeAssignEvaluation context, @Nullable ResultHolder to, @Nullable ResultHolder from) {
-        if (to == null || from == null) return false;
-        return canAssignToFromStrictEvaluation(context, to, from).result;
-    }
-
-
-    /**
-     * Evaluates normal assign operations (ex. references).
-     * Used when implicit casts are allowed, ex. object references, parameters etc
-     */
-    private static HaxeAssignEvaluation canAssignToFromRegularEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from) {
-        return canAssignToFromEvaluation(to, from, false, true, true);
+        return canAssignToFromStrictEvaluation(context, to, from, ignoreFromConstraints).result;
     }
 
     /**
@@ -111,7 +118,13 @@ public class HaxeTypeCompatible {
      */
     private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from) {
         // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
-        return canAssignToFromEvaluation(to, from, true, false, false, false, context);
+        return canAssignToFromEvaluation(to, from, DEFAULT_STRICT_SETTINGS, context);
+    }
+
+    private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from, boolean ignoreFromConstraints) {
+        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(true, false, false, false, ignoreFromConstraints);
+        return canAssignToFromEvaluation(to, from, settings, context);
     }
 
 
@@ -150,16 +163,23 @@ public class HaxeTypeCompatible {
                                                                  boolean contravariance,
                                                                  @Nullable HaxeAssignEvaluation parent
     ) {
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(strictBasicCheck, checkExplicitCasts, checkImplicitCasts, contravariance, false);
+        return canAssignToFromEvaluation(to,from, settings, parent);
+    }
+    static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
+                                                                 AssignEvaluationSettings settings,
+                                                                 @Nullable HaxeAssignEvaluation parent
+    ) {
         ProgressIndicatorProvider.checkCanceled();
 
-        HaxeAssignEvaluation evaluation = new HaxeAssignEvaluation(to, from, contravariance);
+        HaxeAssignEvaluation evaluation = new HaxeAssignEvaluation(to, from, settings);
         evaluation.fullyResolveTypes();
 
         if(parent != null){
             parent.addChild(evaluation);
         }
 
-        evaluation.testBasicAssignRules(strictBasicCheck);
+        evaluation.testBasicAssignRules(settings.strictBasicCheck());
         // prevent recursion in the case of typedef and class hierarchy loops, casting loops etc
         if(!evaluation.completed) {
             // NOTE: memoize can not be used as the context elements does not necessarily represent the type
@@ -169,8 +189,8 @@ public class HaxeTypeCompatible {
                 if (!evaluation.completed) evaluation.testEnumAssignRules();
                 if (!evaluation.completed) evaluation.testFunctionAssignRules();
                 if (!evaluation.completed) evaluation.testAnonymousAssignRules();
-                if (!evaluation.completed) evaluation.testAbstractAssignRules(checkExplicitCasts, checkImplicitCasts);
-                if (!evaluation.completed) evaluation.testTypeParameterConstraints(checkExplicitCasts, checkImplicitCasts);
+                if (!evaluation.completed) evaluation.testAbstractAssignRules(settings.checkExplicitCasts(), settings.checkImplicitCasts());
+                if (!evaluation.completed) evaluation.testTypeParameterConstraints(settings.checkExplicitCasts(), settings.checkImplicitCasts());
                 return true;
             });
             if (done == null) {

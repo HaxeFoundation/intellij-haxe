@@ -208,6 +208,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testAllowUnknownGenerics1() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAbstractAssignmentFromTo1() throws Exception {
     doTestNoFixWithWarnings();
   }

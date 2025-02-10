@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.evaluateAssignToFrom;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.evaluateAssignToFromForNewAndCallExpression;
 
 public class HaxeCallExpressionContext {
 
@@ -212,7 +213,10 @@ public class HaxeCallExpressionContext {
 
             RecursionKey recursionKey = new RecursionKey(argumentType.getElementContext(), parameterType.getElementContext());
             assignEvaluation = canAssignRecursionGuard.doPreventingRecursion(recursionKey, true,
-                    () -> evaluateAssignToFrom(finalParameterType.createHolder(), finalArgumentType.createHolder()));
+                    isConstructor
+                            ? () -> evaluateAssignToFromForNewAndCallExpression(finalParameterType.createHolder(), finalArgumentType.createHolder())
+                            : () -> evaluateAssignToFrom(finalParameterType.createHolder(), finalArgumentType.createHolder()));
+
 
 
 
@@ -438,12 +442,16 @@ public class HaxeCallExpressionContext {
                     @NotNull ResultHolder[] newSpecifics = new ResultHolder[currentSpecifics.length];
                     for (int i = 0; i < currentSpecifics.length; i++) {
                         ResultHolder currentSpecific = currentSpecifics[i];
-                        ResultHolder hintSpecific = hintSpecifics[i];
                         // TODO should probably traverse types instead of  substituting when containsTypeParameters is true
                         if(currentSpecific.isTypeParameter() || currentSpecific.containsTypeParameters()) {
-                            if (currentSpecific.canAssign(hintSpecific)) {
-                                newSpecifics[i] = hintSpecific;
-                            } else {
+                            if (hintSpecifics.length> i) {
+                                ResultHolder hintSpecific = hintSpecifics[i];
+                                if (currentSpecific.canAssign(hintSpecific)) {
+                                    newSpecifics[i] = hintSpecific;
+                                } else {
+                                    newSpecifics[i] = currentSpecific;
+                                }
+                            }else {
                                 newSpecifics[i] = currentSpecific;
                             }
                         }else {
