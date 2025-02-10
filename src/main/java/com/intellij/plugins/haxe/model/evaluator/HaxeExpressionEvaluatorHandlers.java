@@ -95,8 +95,8 @@ public class HaxeExpressionEvaluatorHandlers {
         operatorText = children[1].getText();
         SpecificTypeReference left = handle(children[0], context, resolver).getType();
         SpecificTypeReference right = handle(children[2], context, resolver).getType();
-        left = resolveAnyTypeDefs(left);
-        right = resolveAnyTypeDefs(right);
+        left = resolveAnyTypeDefsOrTypeParameterConstraint(left);
+        right = resolveAnyTypeDefsOrTypeParameterConstraint(right);
         // we might have constraints that help up here
         if(left!= null && left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
         if(right!= null && right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
@@ -107,8 +107,8 @@ public class HaxeExpressionEvaluatorHandlers {
         operatorText = getOperator(expression, HaxeTokenTypeSets.OPERATORS);
         SpecificTypeReference left = handle(children[0], context, resolver).getType();
         SpecificTypeReference right = handle(children[1], context, resolver).getType();
-        left = resolveAnyTypeDefs(left);
-        right = resolveAnyTypeDefs(right);
+        left = resolveAnyTypeDefsOrTypeParameterConstraint(left);
+        right = resolveAnyTypeDefsOrTypeParameterConstraint(right);
         // we might have constraints that help up here
         if(left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
         if(right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
@@ -2129,15 +2129,23 @@ public class HaxeExpressionEvaluatorHandlers {
     return createUnknown(alias);
   }
 
-  static SpecificTypeReference resolveAnyTypeDefs(SpecificTypeReference reference) {
-    if (reference instanceof SpecificHaxeClassReference classReference && classReference.isTypeDef()) {
-      if(classReference.isTypeDefOfFunction()) {
-        return classReference.resolveTypeDefFunction();
-      }else {
-        SpecificHaxeClassReference resolvedClass = classReference.resolveTypeDefClass();
-        return resolveAnyTypeDefs(resolvedClass);
+  static SpecificTypeReference resolveAnyTypeDefsOrTypeParameterConstraint(SpecificTypeReference reference) {
+      if (reference instanceof SpecificHaxeClassReference classReference) {
+        if (classReference.isTypeDef()) {
+          if (classReference.isTypeDefOfFunction()) {
+            return classReference.resolveTypeDefFunction();
+          } else {
+            SpecificHaxeClassReference resolvedClass = classReference.resolveTypeDefClass();
+            return resolveAnyTypeDefsOrTypeParameterConstraint(resolvedClass);
+          }
+        }
+        if (classReference.isTypeParameterWithConstraints()) {
+          if(classReference.getHaxeClassModel() instanceof HaxeGenericParamModel genericModel) {
+            ResultHolder constraint = genericModel.getConstraint(classReference.getGenericResolver());
+            if(constraint != null && !constraint.isUnknown())return constraint.getType();
+          }
+        }
       }
-    }
     return reference;
   }
 
