@@ -721,13 +721,7 @@ public class HaxeExpressionEvaluatorHandlers {
       }
 
       ResultHolder typeHolder = HaxeTypeResolver.getTypeFromType(type, resolver);
-      if (hint != null && hint.isClassType()) {
-        HaxeGenericResolver localResolver = new HaxeGenericResolver();
-        HaxeGenericResolver hintsResolver = hint.getClassType().getGenericResolver();
-        localResolver.addAll(hintsResolver);
-        ResultHolder resolvedWithHint = localResolver.resolve(typeHolder);
-        if (resolvedWithHint != null && !resolvedWithHint.isUnknown()) typeHolder = resolvedWithHint;
-      }
+
 
       if (!typeHolder.isUnknown() && typeHolder.getClassType() != null) {
         SpecificHaxeClassReference classReference = typeHolder.getClassType();
@@ -765,6 +759,20 @@ public class HaxeExpressionEvaluatorHandlers {
                 if (returnType!= null && !returnType.isUnknown()) typeHolder = returnType;
               }
             }
+          }
+        }
+      }
+
+      if (hint != null && hint.isClassType()) {
+        HaxeGenericResolver localResolver = new HaxeGenericResolver();
+        HaxeGenericResolver hintsResolver = hint.getClassType().getGenericResolver();
+        localResolver.addAll(hintsResolver);
+        ResultHolder resolvedWithHint = localResolver.resolve(typeHolder);
+        // TODO mlo: make a resolveWithConstraintCheck or something like that
+        //verify that this does not break constraints
+        if (resolvedWithHint != null && !resolvedWithHint.isUnknown()) {
+          if(typeHolder.canAssign(resolvedWithHint)) {
+            typeHolder = resolvedWithHint;
           }
         }
       }

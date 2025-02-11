@@ -518,6 +518,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAssignIntToString() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testAssignNewExpressionWithGenerics() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   @Test
   public void testAssignObjectLiteral() throws Exception {
     doTestNoFixWithWarnings();

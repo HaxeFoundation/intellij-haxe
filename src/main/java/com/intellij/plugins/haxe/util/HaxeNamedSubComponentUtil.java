@@ -183,7 +183,9 @@ public class HaxeNamedSubComponentUtil {
         HaxeGenericParamModel model = listPart.getModel();
         if(model.hasConstraint()) {
             ResultHolder constraint = model.getConstraint(resolver);
-            return getNamedSubComponentsInType(constraint.getType(), includeInherited);
+            if(constraint != null) {
+                return getNamedSubComponentsInType(constraint.getType(), includeInherited);
+            }
         }
         return List.of();
     }
