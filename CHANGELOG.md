@@ -7,7 +7,7 @@ and do more correct type checking.
 known issues:
  - calling bind() on functions does not return correct function type
  - some patterns used in match() calls on enums will be marked as error 
- - idempotence errors
+ 
 
 ## 1.5.13
 * Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
