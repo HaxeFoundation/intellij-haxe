@@ -509,7 +509,10 @@ public class HaxeCallExpressionContext {
                             explanation.createWrongTypeMembersMessage());
                     evaluation.addError(message, expectedRange);
                 }
-
+            }else if (explanation.hasMissingModel()) {
+                String missingModel = explanation.getMissingModel().getFirst();
+                String message = HaxeBundle.message("haxe.semantic.method.parameter.type.not.found", missingModel);
+                evaluation.addWarning(message, expectedRange);
             }else {
                 String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
                         parameterType.toPresentationString(true),
