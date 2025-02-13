@@ -1153,37 +1153,25 @@ public class HaxeExpressionEvaluatorHandlers {
 
   static ResultHolder handleSuperExpression(HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver,
                                                     HaxeSuperExpression superExpression) {
-    /*
-    log.debug("-------------------------");
-    final HaxeExpressionList list = HaxePsiUtils.getChildWithText(element, HaxeExpressionList.class);
-    log.debug(element);
-    log.debug(list);
-    final List<HaxeExpression> parameters = (list != null) ? list.getExpressionList() : Collections.<HaxeExpression>emptyList();
-    final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeMethodModel.fromPsi(element), HaxeMethodModel.class);
-    if (method == null) {
-      context.addError(element, "Not in a method");
-    }
-    if (method != null) {
-      final HaxeMethodModel parentMethod = method.getParentMethod();
-      if (parentMethod == null) {
-        context.addError(element, "Calling super without parent constructor");
-      } else {
-        log.debug(element);
-        log.debug(parentMethod.getFunctionType());
-        log.debug(parameters);
-        checkParameters(element, parentMethod.getFunctionType(), parameters, context);
-        //log.debug(method);
-        //log.debug(parentMethod);
-      }
-    }
-    return SpecificHaxeClassReference.getVoid(element);
-    */
+
     final HaxeMethodModel method = HaxeJavaUtil.cast(HaxeBaseMemberModel.fromPsi(superExpression), HaxeMethodModel.class);
-    final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod(resolver) : null;
-    if (parentMethod != null) {
-      return parentMethod.getFunctionType(resolver).createHolder();
+    if (superExpression.getParent() instanceof HaxeCallExpression) {
+      final HaxeMethodModel parentMethod = (method != null) ? method.getParentMethod(resolver) : null;
+      if (parentMethod != null) {
+        return parentMethod.getFunctionType(resolver).createHolder();
+      }
+      context.addError(superExpression, "Calling super without parent constructor");
+    } else {
+      HaxeClass parentOfType = PsiTreeUtil.getParentOfType(superExpression, HaxeClass.class);
+      if (parentOfType != null){
+        HaxeClassModel model = parentOfType.getModel();
+        // abstracts do not support the super keyword
+        if(!model.isAbstractType()) {
+          return model.getInstanceReference().createHolder();
+        }
+      }
+      // called outside class ?
     }
-    context.addError(superExpression, "Calling super without parent constructor");
     return createUnknown(superExpression);
   }
 

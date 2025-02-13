@@ -36,4 +36,6 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
   boolean isOverride();
 
   boolean isInline();
+
+  String filterName();
 }

@@ -495,6 +495,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
   }
 
   @Test
+  // TODO mlo: verify both identical  named enum values are in completion list
   public void testInnerEnum() throws Throwable {
     doTest();
   }

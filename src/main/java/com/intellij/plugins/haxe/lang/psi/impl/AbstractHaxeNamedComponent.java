@@ -259,6 +259,18 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
   }
 
+  @Override
+  public String filterName() {
+    if (this instanceof HaxeClass haxeClass) {
+      return haxeClass.getQualifiedName();
+    }
+    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+    if(haxeClass != null) {
+      return haxeClass.getQualifiedName() + this.getText();
+    }
+    return getContainingFile().getName() + this.getText();
+  }
+
   @Nullable
   public final PsiElement findChildByRoleAsPsiElement(int role) {
     ASTNode element = findChildByRole(role);

@@ -118,8 +118,9 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
       if (element.getParent() instanceof HaxeClass haxeClass) {
         return haxeClass.getQualifiedName();
       }
-    }
-    else if (el.getObject() instanceof String stringValue) {
+    } else if (el.getObject() instanceof HaxeNamedComponent namedComponent) {
+        return namedComponent.filterName();
+    } else if (el.getObject() instanceof String stringValue) {
       return stringValue;
     }
     return el.getLookupString();

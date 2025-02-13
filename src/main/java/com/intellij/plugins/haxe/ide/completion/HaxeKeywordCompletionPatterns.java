@@ -2,14 +2,25 @@ package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiErrorElement;
+import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.patterns.StandardPatterns.string;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public class HaxeKeywordCompletionPatterns {
+
+  public static @NotNull PsiElementPattern.Capture<PsiElement>  whitespaceCommaCommentEmptyOrError() {
+    return psiElement().andOr(psiElement().whitespace(),
+            psiElement(PsiComment.class),
+            psiElement(PsiErrorElement.class),
+            psiElement().withText(""),
+            psiElement().withText(",")
+    );
+  }
 
   public static final PsiElementPattern.Capture<PsiElement> packageExpected =
     psiElement().inside(HaxeFile.class).atStartOf(psiElement(HaxeFile.class));
@@ -23,11 +34,30 @@ public class HaxeKeywordCompletionPatterns {
       .andNot(psiElement().afterLeafSkipping(psiElement().whitespaceCommentEmptyOrError(), psiElement()
         .andOr(psiElement().withElementType(KFUNCTION), psiElement().withElementType(KVAR))
       ));
+  // previous element is name of Class, leaf is identifier (then component name, then class declaration)
+  public static final PsiElementPattern.Capture<PsiElement> nextToClassDeclaration =
+          psiElement().afterLeafSkipping(whitespaceCommaCommentEmptyOrError(), psiElement()
+                  .andOr(
+                          psiElement().inside(HaxeInheritList.class),
+                          psiElement().withParent(HaxeIdentifier.class).withSuperParent(3, HaxeClassDeclaration.class))
+          );
+
+  public static final PsiElementPattern.Capture<PsiElement> nextToInterfaceDeclaration =
+          psiElement().afterLeafSkipping(whitespaceCommaCommentEmptyOrError(), psiElement()
+                  .andOr(
+                          psiElement().inside(HaxeInheritList.class),
+                          psiElement().withParent(HaxeIdentifier.class).withSuperParent(3, HaxeInterfaceDeclaration.class))
+                    );
+
+  public static final PsiElementPattern.Capture<PsiElement> nextToAbstractDeclaration =
+          //todo add AndOr after ABSTRACT_FROM_TYPE / ABSTRACT_TO_TYPE
+          psiElement().afterLeafSkipping(whitespaceCommaCommentEmptyOrError(), psiElement().inside(HaxeUnderlyingType.class));
 
   public static final PsiElementPattern.Capture<PsiElement> classDeclarationScope =
     psiElement()
       .and(psiElement().inside(psiElement(HaxeClassDeclaration.class)))
       .andNot(psiElement().inside(psiElement(HaxeClassBody.class)));
+
   public static final PsiElementPattern.Capture<PsiElement> interfaceDeclarationScope =
     psiElement()
       .and(psiElement().inside(psiElement(HaxeInterfaceDeclaration.class)))

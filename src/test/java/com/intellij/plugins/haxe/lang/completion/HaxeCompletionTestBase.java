@@ -29,6 +29,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.testFramework.UsefulTestCase;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author: Fedor.Korotkov
@@ -117,10 +118,10 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
     final int count = in.nextInt();
     final CheckType checkType = CheckType.valueOf(in.next());
 
-    final List<String> variants = new ArrayList<String>();
+    final List<String> variants = new ArrayList<>();
     while (in.hasNext()) {
-      final String variant = StringUtil.strip(in.next(), CharFilter.WHITESPACE_FILTER);
-      if (variant.length() > 0) {
+      String variant = in.nextLine().trim();
+      if (!variant.isEmpty()) {
         variants.add(variant);
       }
     }
@@ -134,12 +135,10 @@ public abstract class HaxeCompletionTestBase extends HaxeCodeInsightFixtureTestC
   }
 
   protected void checkCompletion(CheckType checkType, List<String> variants) {
-    List<String> stringList = myFixture.getLookupElementStrings();
+    List<String> stringList = Optional.ofNullable(myFixture.getLookupElementStrings())
+            .map(l->l.stream().map(String::trim).collect(Collectors.toList()))
+            .orElse(Collections.emptyList());
     LookupElement[] elements = myFixture.getLookupElements();
-
-    if (stringList == null) {
-      stringList = Collections.emptyList();
-    }
 
     if (elements == null) {
       elements = new LookupElement[0];

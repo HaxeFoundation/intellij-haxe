@@ -89,6 +89,7 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
            });
   }
 
+
   private static void suggestKeywords(PsiElement position, @NotNull CompletionResultSet result, ProcessingContext context) {
     List<String> keywordsFromParser = new ArrayList<>();
     final HaxeFile cloneFile = createCopyWithFakeIdentifierAsComment(position, keywordsFromParser);
@@ -96,101 +97,97 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     List<LookupElement> lookupElements = new ArrayList<>();
 
-    if(completionElementAsComment != null && completionElementAsComment.getParent() == completionElementAsComment.getContainingFile()) {
-      addKeywords(lookupElements, PACKAGE_KEYWORD);
-    }
+
 
     boolean isPPExpression = psiElement().withElementType(PPEXPRESSION).accepts(position);
-    // avoid showing keyword suggestions when not relevant
-    if (allowLookupPattern.accepts(completionElementAsComment)) {
-      if (!isPPExpression) {
-        if (dotFromIterator.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
-          return;
-        }
 
-        if (packageExpected.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, PACKAGE_KEYWORD);
-          return;
-        }
+    if (!isPPExpression) {
+      if (dotFromIterator.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
+        return;
+      }
 
-        if (toplevelScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, TOP_LEVEL_KEYWORDS);
-        }
+      if (packageExpected.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, PACKAGE_KEYWORD);
+      }
 
-        if (moduleScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, MODULE_STRUCTURES_KEYWORDS);
-          addKeywords(lookupElements, VISIBILITY_KEYWORDS);
-        }
+      if (toplevelScope.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, TOP_LEVEL_KEYWORDS);
+      }
 
-        if (classDeclarationScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, CLASS_DEFINITION_KEYWORDS);
-        }
-        if (interfaceDeclarationScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, INTERFACE_DEFINITION_KEYWORDS);
-        }
+      if (moduleScope.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, MODULE_STRUCTURES_KEYWORDS);
+        addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+      }
 
-        if (abstractTypeDeclarationScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, ABSTRACT_DEFINITION_KEYWORDS);
-        }
+      if (classDeclarationScope.accepts(completionElementAsComment) || nextToClassDeclaration.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, CLASS_DEFINITION_KEYWORDS);
+      }
+      if (interfaceDeclarationScope.accepts(completionElementAsComment) || nextToInterfaceDeclaration.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, INTERFACE_DEFINITION_KEYWORDS);
+      }
 
-        if (interfaceBodyScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, INTERFACE_BODY_KEYWORDS);
-        }
+      if (abstractTypeDeclarationScope.accepts(completionElementAsComment) || nextToAbstractDeclaration.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, ABSTRACT_DEFINITION_KEYWORDS);
+      }
 
-        if (classBodyScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, CLASS_BODY_KEYWORDS);
-          addKeywords(lookupElements, VISIBILITY_KEYWORDS);
-          addKeywords(lookupElements, ACCESSIBILITY_KEYWORDS);
-        }
+      if (interfaceBodyScope.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, INTERFACE_BODY_KEYWORDS);
+      }
+
+      if (classBodyScope.accepts(completionElementAsComment) && !nextToClassDeclaration.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, CLASS_BODY_KEYWORDS);
+        addKeywords(lookupElements, VISIBILITY_KEYWORDS);
+        addKeywords(lookupElements, ACCESSIBILITY_KEYWORDS);
+      }
 
 
-        if (functionBodyScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
-          addKeywords(lookupElements, VALUE_KEYWORDS);
-        }
-        if (initScope.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, VALUE_KEYWORDS);
-        }
+      if (functionBodyScope.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, METHOD_BODY_KEYWORDS);
+        addKeywords(lookupElements, VALUE_KEYWORDS);
+      }
+      if (initScope.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, VALUE_KEYWORDS);
+      }
 
 
-        if (insideSwitchCase.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
-          addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
+      if (insideSwitchCase.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
+        addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
 
-          HaxeSwitchCase type = PsiTreeUtil.getPrevSiblingOfType(completionElementAsComment, HaxeSwitchCase.class);
-          if (type!= null) {
-            // TODO, solve this using getVariants and walkTree
-            addSwitchVars(type, lookupElements);
-          }
-        }
-
-        if (isAfterIfStatement.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, Set.of(keywordWithSpace(KELSE)));
-        }
-
-        if (isInsideLoopBlock.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, LOOP_BODY_KEYWORDS);
-        }
-
-        if (isInsideForIterator.accepts(completionElementAsComment)) {
-          addKeywords(lookupElements, LOOP_ITERATOR_KEYWORDS);
-        }
-
-        HaxePropertyAccessor propertyAccessor = PsiTreeUtil.getParentOfType(position, HaxePropertyAccessor.class);
-        if (isPropertyGetterValue.accepts(propertyAccessor)) {
-          result.stopHere();
-          lookupElements.clear();
-          addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
-        }
-        if (isPropertySetterValue.accepts(propertyAccessor)) {
-          result.stopHere();
-          lookupElements.clear();
-          addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
+        HaxeSwitchCase type = PsiTreeUtil.getPrevSiblingOfType(completionElementAsComment, HaxeSwitchCase.class);
+        if (type != null) {
+          // TODO, solve this using getVariants and walkTree
+          addSwitchVars(type, lookupElements);
         }
       }
+
+      if (isAfterIfStatement.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, Set.of(keywordWithSpace(KELSE)));
+      }
+
+      if (isInsideLoopBlock.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, LOOP_BODY_KEYWORDS);
+      }
+
+      if (isInsideForIterator.accepts(completionElementAsComment)) {
+        addKeywords(lookupElements, LOOP_ITERATOR_KEYWORDS);
+      }
+
+      HaxePropertyAccessor propertyAccessor = PsiTreeUtil.getParentOfType(position, HaxePropertyAccessor.class);
+      if (isPropertyGetterValue.accepts(propertyAccessor)) {
+        result.stopHere();
+        lookupElements.clear();
+        addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+        addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
+      }
+      if (isPropertySetterValue.accepts(propertyAccessor)) {
+        result.stopHere();
+        lookupElements.clear();
+        addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
+        addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
+      }
+
       addKeywords(lookupElements, PP_KEYWORDS, -0.2f);
       addKeywords(lookupElements, MISC_KEYWORDS, -0.1f);
 
