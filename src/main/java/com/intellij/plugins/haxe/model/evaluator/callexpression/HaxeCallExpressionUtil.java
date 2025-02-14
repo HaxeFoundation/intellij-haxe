@@ -104,14 +104,24 @@ public class HaxeCallExpressionUtil {
     HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callie, method);
 
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
+    evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
     evaluation.isStaticExtension = isStaticExtension;
     evaluation.isMacroFunction = isMacroFunction;
-    evaluation.assignHint = assignHint;
     evaluation.callie = callie;
 
 
 
     return evaluation;
+  }
+
+  private static @Nullable SpecificTypeReference tryCastAssignHintToReturnType(@Nullable SpecificTypeReference assignHint, ResultHolder returnType) {
+    if (returnType != null && !returnType.isUnknown() && returnType.isClassType()) {
+      if (assignHint instanceof  SpecificHaxeClassReference hintClassReference) {
+        SpecificHaxeClassReference castedHint = hintClassReference.tryCastTo(returnType.getClassType());
+        return castedHint != null ? castedHint : assignHint;
+      }
+    }
+    return assignHint;
   }
 
   @NotNull

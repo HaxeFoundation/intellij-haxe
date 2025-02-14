@@ -174,6 +174,11 @@ public class HaxeTypeUnifier {
       if (b.isDynamic()) return a.withoutConstantValue();
     }
 
+    // we prefer specific type here (makes it easier to unify Enums where some values have typeParameters and other not)
+    //TODO  handle constraints
+    if (a.isTypeParameter() && !b.isTypeParameter()) return b;
+    if (b.isTypeParameter() && !a.isTypeParameter()) return a;
+
     HaxeClassModel modelA = a.getHaxeClassModel();
     if (modelA == null) return SpecificTypeReference.getDynamic(context);
     HaxeClassModel modelB = b.getHaxeClassModel();
@@ -264,10 +269,7 @@ public class HaxeTypeUnifier {
         return a;
       }
     }
-    // we prefer specific type here (makes it easier to unify Enums where some values have typeParameters and other not)
-    //TODO  handle constraints
-    if (a.isTypeParameter() && !b.isTypeParameter()) return b;
-    if (b.isTypeParameter() && !a.isTypeParameter()) return a;
+
 
     // @TODO: Do a proper unification
     return SpecificTypeReference.getUnknown(a.getElementContext());
