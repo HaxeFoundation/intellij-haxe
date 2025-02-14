@@ -292,7 +292,8 @@ public class HaxeAssignEvaluation {
       HaxeArgument fromArg = from.arguments.get(n);
       HaxeArgument toArg = to.arguments.get(n);
 
-      if (!toArg.getType().isUnknown() && !toArg.getType().isMissingClassModel()) {
+      if(toArg.getType().isClassType() && toArg.getType().isMissingClassModel()) continue;
+      if (!toArg.getType().isUnknown()) {
         // TO can accept optional but not the other way around.
         // if TO has optional from and  FROM does not then the assignment should fail.
         if (!fromArg.isOptional() && toArg.isOptional()) return false;

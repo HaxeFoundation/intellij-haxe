@@ -1019,4 +1019,14 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testAssignFunctionType4() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testAssignFunctionType5() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testAssignFunctionType6() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 }
