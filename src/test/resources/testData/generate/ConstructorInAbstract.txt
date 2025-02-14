@@ -1,0 +1,6 @@
+abstract TestAbstract(Int) {
+
+    public function new(value:Int) {
+        this = value;
+    }
+}

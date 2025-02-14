@@ -61,7 +61,7 @@ public abstract class BaseHaxeGenerateHandler implements LanguageCodeInsightActi
   public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
     if (!FileModificationService.getInstance().prepareFileForWrite(file)) return;
     final HaxeClass haxeClass =
-      PsiTreeUtil.getParentOfType(file.findElementAt(editor.getCaretModel().getOffset()), HaxeClassDeclaration.class);
+      PsiTreeUtil.getParentOfType(file.findElementAt(editor.getCaretModel().getOffset()), HaxeClass.class);
     if (haxeClass == null) return;
 
     final List<HaxeNamedComponent> candidates = new ArrayList<HaxeNamedComponent>();

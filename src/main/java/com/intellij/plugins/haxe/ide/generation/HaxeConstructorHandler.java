@@ -30,10 +30,12 @@ import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +52,14 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
 
         if (clazz.getConstructorSelf() != null) {
           // Constructor already exists
+          return;
+        }
+        if (clazz.isAbstractType()) {
+          SpecificTypeReference underlyingType = clazz.getUnderlyingType();
+          String parameter  = underlyingType == null || underlyingType.isUnknown() ? "value" :  "value:" +underlyingType.toPresentationString();
+          String out = "public function new(" + parameter + ") {\nthis = value;\n}";
+           anchor = clazz.getBodyPsi().getFirstChild();
+          doAddMethodsForOne(project, out, anchor);
           return;
         }
 
@@ -74,8 +84,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
 
         System.out.println(parentConstructor);
 
-        String out = "";
-        out += "public function new(";
+
         boolean first = true;
 
         PsiElement anchor = clazz.getBodyPsi() != null ? PsiTreeUtil.getDeepestVisibleFirst(clazz.getBodyPsi()) : null;
@@ -85,6 +94,13 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
           anchor = field.getBasePsi();
         }
 
+        String out = createClassConstrcutorString( params, first, parentConstructor, paramsSuper, paramsWrite);
+        doAddMethodsForOne(project, out, anchor);
+        //super.processElements(project, elementsToProcess);
+      }
+
+      private static @NotNull String createClassConstrcutorString(ArrayList<ParamElement> params, boolean first, HaxeMethodModel parentConstructor, ArrayList<ParamElement> paramsSuper, ArrayList<ParamElement> paramsWrite) {
+        String out = "public function new(";
         for (ParamElement param : params) {
           if (!first) {
             out += ",";
@@ -115,9 +131,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
           out += "this." + param.name + " = " + param.name + ";\n";
         }
         out += "}\n\n";
-
-        doAddMethodsForOne(project, out, anchor);
-        //super.processElements(project, elementsToProcess);
+        return out;
       }
 
       @Override

@@ -132,4 +132,8 @@ public class HaxeGenerateActionTest extends LightPlatformCodeInsightTestCase {
   public void testConstructor2() throws Throwable {
     doConstructorTest();
   }
+  @Test
+  public void testConstructorInAbstract() throws Throwable {
+    doConstructorTest();
+  }
 }

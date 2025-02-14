@@ -116,10 +116,9 @@ abstract public class BaseCreateMethodsFix<T extends HaxeNamedComponent> {
 
   public PsiElement doAddMethodsForOne(final Project project, final String functionsText, PsiElement anchor)
     throws IncorrectOperationException {
-    if (functionsText != null && functionsText.length() > 0) {
+    if (functionsText != null && !functionsText.isEmpty()) {
       List<HaxeNamedComponent> elements = HaxeElementGenerator.createNamedSubComponentsFromText(project, functionsText);
-      final PsiElement insert = myHaxeClass instanceof HaxeClassDeclaration ?
-                                ((HaxeClassDeclaration)myHaxeClass).getClassBody() : myHaxeClass;
+      final PsiElement insert = myHaxeClass.getModel().getBodyPsi();
       assert insert != null;
       for (PsiElement element : elements) {
         anchor = insert.addAfter(element, anchor);
