@@ -30,6 +30,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.refactoring.move.moveFilesOrDirectories.MoveFileHandler;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.List;
 import java.util.Map;
@@ -54,10 +56,13 @@ public class HaxeFileMoveHandler extends MoveFileHandler {
   public List<UsageInfo> findUsages(PsiFile psiFile, PsiDirectory newParent, boolean searchInComments, boolean searchInNonJavaFiles) {
     return null;
   }
-
+// 2024.x
   @Override
-  public void retargetUsages(List<UsageInfo> usageInfos, Map<PsiElement, PsiElement> oldToNewMap) {
-  }
+  public void retargetUsages(List<UsageInfo> usageInfos, Map<PsiElement, PsiElement> oldToNewMap) {}
+
+// 2025.x
+//  @Override
+//  public void retargetUsages(@Unmodifiable @NotNull List<? extends UsageInfo> list, @NotNull Map<PsiElement, PsiElement> map) {}
 
   @Override
   public void updateMovedFile(PsiFile file) throws IncorrectOperationException {

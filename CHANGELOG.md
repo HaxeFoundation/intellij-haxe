@@ -1,5 +1,5 @@
 # Changelog
-## 1.6.0-beta
+## 1.6.0
 This release is a major rework of type and method compatibility logic.
 Lots of old hacks and workarounds removed and hopefully this release will improve performance
 and do more correct type checking.  
@@ -8,7 +8,8 @@ known issues:
  - calling bind() on functions does not return correct function type
  - some patterns used in match() calls on enums will be marked as error 
  - completion suggestions contains duplicates & unexpected values
- 
+ - typechecking for operator overloads are missing.  
+ - Shadowing classes might cause incorrect type compatibility annotations.
 
 ## 1.5.13
 * Bugfix: Fixed issue where Auto-reload project on changes could end up in an infinite loop. (#1197)
