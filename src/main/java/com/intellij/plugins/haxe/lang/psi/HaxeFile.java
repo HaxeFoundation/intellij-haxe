@@ -140,10 +140,10 @@ public class HaxeFile extends PsiFileBase
   }
 
   public List<HaxeImportStatement> getImportStatements() {
-    return getImportStatementsCached(this);
+    return new ArrayList<>(getImportStatementsCached(this));
   }
   public List<HaxeUsingStatement> getUsingStatements() {
-    return getUsingStatementsCached(this);
+    return new ArrayList<>(getUsingStatementsCached(this));
   }
 
   private static @NotNull List<HaxeImportStatement> getImportStatementsCached(HaxeFile haxeFile) {
