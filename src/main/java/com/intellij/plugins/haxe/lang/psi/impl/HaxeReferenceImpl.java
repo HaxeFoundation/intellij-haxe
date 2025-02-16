@@ -1623,9 +1623,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   @Override
   public PsiElement getQualifier() {
     PsiElement expression = getFirstChild();
-    if (expression instanceof HaxeIdentifier identifier) expression = identifier.getParent();
-    if (expression instanceof HaxeReference reference) return reference;
-    return null;
+    return expression instanceof HaxeReference ? expression : null;
   }
 
   @Nullable

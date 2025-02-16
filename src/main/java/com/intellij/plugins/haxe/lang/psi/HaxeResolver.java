@@ -1554,35 +1554,36 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private List<? extends PsiElement> checkIsType(HaxeReference reference) {
     if (reference instanceof HaxeReferenceExpression referenceExpression) {
-      final HaxeType type = PsiTreeUtil.getParentOfType(referenceExpression, HaxeType.class);
-      if (type != null) {
-        final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
-        if (haxeClassInType != null) {
-          LogResolution(reference, "via parent type name.");
-          return asList(haxeClassInType.getComponentName());
-        }
-        //  check if module member
-        //  we might get a match on class with module name (default class), but the type we are looking for is not a child of default class
-        //  so we search the parent file for other classes
-        @NotNull PsiElement[] children = reference.getChildren();
-        if (children.length > 1) {
-          if (children[0] instanceof HaxeReference child) {
-            List<? extends PsiElement> resolve = resolve(child, false);
-            if (!resolve.isEmpty()) {
-              PsiFile containingFile = resolve.get(0).getContainingFile();
-              if (containingFile instanceof HaxeFile haxeFile) {
-                HaxeClassModel model = haxeFile.getModel().getClassModel(children[1].getText());
-                if (model != null) {
-                  HaxeComponentName componentName = model.haxeClass.getComponentName();
-                  if (componentName != null) {
-                    LogResolution(reference, "via module scan.");
-                    return List.of(componentName);
+      // only check one "level up", if we go multiple parents up we might get a different reference's value
+      // if we are resolving  a.b  in  a.b.c.Type we want to resolve the package "b" and not Type in package "c".
+      if (referenceExpression.getParent() instanceof HaxeType type) {
+          final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
+          if (haxeClassInType != null) {
+            LogResolution(reference, "via parent type name.");
+            return asList(haxeClassInType.getComponentName());
+          }
+          //  check if module member
+          //  we might get a match on class with module name (default class), but the type we are looking for is not a child of default class
+          //  so we search the parent file for other classes
+          @NotNull PsiElement[] children = reference.getChildren();
+          if (children.length > 1) {
+            if (children[0] instanceof HaxeReference child) {
+              List<? extends PsiElement> resolve = resolve(child, false);
+              if (!resolve.isEmpty()) {
+                PsiFile containingFile = resolve.get(0).getContainingFile();
+                if (containingFile instanceof HaxeFile haxeFile) {
+                  HaxeClassModel model = haxeFile.getModel().getClassModel(children[1].getText());
+                  if (model != null) {
+                    HaxeComponentName componentName = model.haxeClass.getComponentName();
+                    if (componentName != null) {
+                      LogResolution(reference, "via module scan.");
+                      return List.of(componentName);
+                    }
                   }
                 }
               }
             }
           }
-        }
       }
     }
     return null;

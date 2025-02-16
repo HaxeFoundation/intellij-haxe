@@ -66,6 +66,11 @@ public class HaxeUnusedImportInspectionTest extends HaxeCodeInsightFixtureTestCa
     doTest("UsedTypedef.hx");
   }
 
+  @Test
+  public void testMixedUse() {
+    doTest("MixedUse.hx");
+  }
+
   @Override
   protected String getBasePath() {
     return "/imports/unused/";

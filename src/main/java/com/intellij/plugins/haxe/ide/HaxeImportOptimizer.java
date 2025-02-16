@@ -36,6 +36,7 @@ import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiWhiteSpace;
+import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -74,6 +75,8 @@ public class HaxeImportOptimizer implements ImportOptimizer {
   }
 
   private static void removeUnusedImports(PsiFile file) {
+    PsiUtilCore.ensureValid(file);
+
     for (HaxeImportStatement unusedImportStatement : HaxeImportUtil.findUnusedImports(file)) {
       unusedImportStatement.delete();
     }
