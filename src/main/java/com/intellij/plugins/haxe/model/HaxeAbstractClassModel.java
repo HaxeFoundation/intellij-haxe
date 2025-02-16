@@ -270,7 +270,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         if (evaluation.isValid()) {
           SpecificTypeReference type = evaluation.getReturnType().getType();
           if (ourClassReference.createHolder().canAssign(type.createHolder())) {
-            typeList.add(arguments.getFirst());
+            typeList.add(evaluation.getParameterType(0).getType());
           }
         }
       }
