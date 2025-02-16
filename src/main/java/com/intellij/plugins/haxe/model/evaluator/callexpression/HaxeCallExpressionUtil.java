@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.function.Predicate.not;
+
 public class HaxeCallExpressionUtil {
 
 
@@ -190,8 +192,9 @@ public class HaxeCallExpressionUtil {
 
   private static List<CallExpressionParameterModel> getParameterList(@NotNull SpecificFunctionReference function) {
     return function.getArguments().stream()
-      .map(CallExpressionParameterModel::fromFunctionArgument)
-      .toList();
+            .filter(not(HaxeArgument::isVoid))
+            .map(CallExpressionParameterModel::fromFunctionArgument)
+            .toList();
   }
 
 

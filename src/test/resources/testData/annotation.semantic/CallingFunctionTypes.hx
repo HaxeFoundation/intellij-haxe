@@ -3,6 +3,10 @@ package ;
 class Test {
     function new(){
 
+        var voidFn:Void -> Void = function (){};
+        voidFn(); // correct: void "argument" in signature is ignored
+        voidFn(<error descr="Too many arguments (expected 0 but got 1)\"">1</error>); // Wrong: (no argument expected)
+
         var withTypeTag:Int -> String = testA;
         var withoutTypeTag = testA;
         var fromFunction = function (i:Int) return "";
