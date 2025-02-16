@@ -25,7 +25,6 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAnonymousAssi
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromEvaluation;
 
 
-
 @CustomLog
 public class HaxeAssignEvaluation {
 
@@ -270,27 +269,19 @@ public class HaxeAssignEvaluation {
     @NotNull SpecificFunctionReference from
   ) {
 
-    int toArgSize = to.arguments.size();
-    int fromArgSize = from.arguments.size();
+    List<HaxeArgument> toArguments = getArgumentsWithoutVoid(to);
+    List<HaxeArgument> fromArguments = getArgumentsWithoutVoid(from);
 
-    // Single arg of Void is the same as no args.
-    if (toArgSize == 1 && fromArgSize == 0){
-      if (!to.arguments.getFirst().isVoid()) {
-        return false;
-      }
-    } else if (toArgSize == 0 && fromArgSize == 1) {
-      if (!from.arguments.getFirst().isVoid()) {
-        return false;
-      }
-    }
+    int toArgSize = toArguments.size();
+    int fromArgSize = fromArguments.size();
 
     if (toArgSize != fromArgSize) {
       return false;
     }
 
     for (int n = 0; n < toArgSize; n++) {
-      HaxeArgument fromArg = from.arguments.get(n);
-      HaxeArgument toArg = to.arguments.get(n);
+      HaxeArgument fromArg = fromArguments.get(n);
+      HaxeArgument toArg = toArguments.get(n);
 
       if(toArg.getType().isClassType() && toArg.getType().isMissingClassModel()) continue;
       if (!toArg.getType().isUnknown()) {
@@ -309,6 +300,16 @@ public class HaxeAssignEvaluation {
     // Void return on the "to" function just means that the value isn't used/cared about. See
     // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
     return to.returnValue == null || (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
+  }
+
+  private static @NotNull List<HaxeArgument> getArgumentsWithoutVoid(@NotNull SpecificFunctionReference to) {
+      List<HaxeArgument> list = new ArrayList<>();
+      for (HaxeArgument argument : to.arguments) {
+          if (!argument.isVoid()) {
+              list.add(argument);
+          }
+      }
+      return list;
   }
 
   // checks if anonymous type contains all members (also checks  @:struct (constructor))
