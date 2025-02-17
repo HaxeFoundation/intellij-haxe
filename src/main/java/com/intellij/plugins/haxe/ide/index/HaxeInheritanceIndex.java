@@ -113,27 +113,29 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
       for (HaxeClass haxeClass : classes) {
         //TODO
         String qualifiedName = haxeClass.getQualifiedName();
-        final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
-        String packageString = packageAndName.getFirst();
-        String classString = packageAndName.getSecond();
-        final HaxeClassInfo value = new HaxeClassInfo(classString, packageString, HaxeComponentType.typeOf(haxeClass));
-        for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
-          if (haxeType == null) continue;
-          final String classNameCandidate = getClassNameCandidate(haxeType);
-          final String key = containsDotSeparator(classNameCandidate)
-                  ? classNameCandidate
-                  : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+        if (qualifiedName != null) {
+          final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
+          String packageString = packageAndName.getFirst();
+          String classString = packageAndName.getSecond();
+          final HaxeClassInfo value = new HaxeClassInfo(classString, packageString, HaxeComponentType.typeOf(haxeClass));
+          for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
+            if (haxeType == null) continue;
+            final String classNameCandidate = getClassNameCandidate(haxeType);
+            final String key = containsDotSeparator(classNameCandidate)
+                    ? classNameCandidate
+                    : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
 
-          put(result, key, value);
-        }
-        for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
-          if (haxeType == null) continue;
-          final String classNameCandidate = getClassNameCandidate(haxeType);
-          final String key = containsDotSeparator(classNameCandidate)
-                  ? classNameCandidate
-                  : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+            put(result, key, value);
+          }
+          for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
+            if (haxeType == null) continue;
+            final String classNameCandidate = getClassNameCandidate(haxeType);
+            final String key = containsDotSeparator(classNameCandidate)
+                    ? classNameCandidate
+                    : getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
 
-          put(result, key, value);
+            put(result, key, value);
+          }
         }
       }
       return result;

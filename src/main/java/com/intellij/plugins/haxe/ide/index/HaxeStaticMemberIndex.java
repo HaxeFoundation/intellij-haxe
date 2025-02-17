@@ -125,34 +125,36 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
 
         for (HaxeFieldDeclaration field : allFields) {
           String qualifiedName = haxeClass.getQualifiedName();
-          final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
-          String packageString = packageAndName.getFirst();
-          String classString = packageAndName.getSecond();
+          if(qualifiedName != null) {
+            final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
+            String packageString = packageAndName.getFirst();
+            String classString = packageAndName.getSecond();
 
-          String memberName = field.getComponentName().getName();
-          HaxeComponentType componentType = HaxeComponentType.typeOf(field);
+            String memberName = field.getComponentName().getName();
+            HaxeComponentType componentType = HaxeComponentType.typeOf(field);
 
-          HaxeTypeTag tag = field.getTypeTag();
-          if (tag != null) {
-            HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
-            if (toa != null) {
-              HaxeType type = toa.getType();
-              if (type != null) {
-                HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, type.getText());
+            HaxeTypeTag tag = field.getTypeTag();
+            if (tag != null) {
+              HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
+              if (toa != null) {
+                HaxeType type = toa.getType();
+                if (type != null) {
+                  HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, type.getText());
+                  result.put(classString + "." + memberName, info);
+                  continue;
+                }
+
+              }
+              HaxeFunctionType functionType = tag.getFunctionType();
+              if (functionType != null) {
+                //HaxeFunctionReturnType returnType = functionType.getFunctionReturnType();
+                //List<HaxeFunctionArgument> argumentList = functionType.getFunctionArgumentList();
+
+                //TODO handle this correctly
+                HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, functionType.getText());
                 result.put(classString + "." + memberName, info);
                 continue;
               }
-
-            }
-            HaxeFunctionType functionType = tag.getFunctionType();
-            if (functionType != null) {
-              //HaxeFunctionReturnType returnType = functionType.getFunctionReturnType();
-              //List<HaxeFunctionArgument> argumentList = functionType.getFunctionArgumentList();
-
-              //TODO handle this correctly
-              HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, functionType.getText());
-              result.put(classString + "." + memberName, info);
-              continue;
             }
           }
         }

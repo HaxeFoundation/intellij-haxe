@@ -84,7 +84,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     if (!thisType.isValid()) return false;
     final String tcfqn = thisType.getQualifiedName();
     final String pscfqn = theSuperType.getQualifiedName();
-    if (pscfqn.equals(tcfqn)) return false; // it's the same class in LHS & RHS
+    if (pscfqn == null || pscfqn.equals(tcfqn)) return false; // it's the same class in LHS & RHS
     final ArrayList<PsiClass> allSuperTypes = getSuperTypesAsList(thisType);
     for (PsiClass aSuperType : allSuperTypes) {
       if (pscfqn.equals(aSuperType.getQualifiedName())) {

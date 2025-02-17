@@ -406,7 +406,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
     if (targetHaxeClass == null || sourceHaxeClass == null){
       return null;
-    }  else if (targetHaxeClass.getQualifiedName().equals(sourceHaxeClass.getQualifiedName())) {
+    }  else if (Objects.equals(targetHaxeClass.getQualifiedName(), sourceHaxeClass.getQualifiedName())) {
       return this;
     }
     HaxeClassModel classModel = targetClass.getHaxeClassModel();
@@ -437,7 +437,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
     if (targetHaxeClass == null || sourceHaxeClass == null){
       return null;
-    }  else if (targetHaxeClass.getQualifiedName().equals(sourceHaxeClass.getQualifiedName())) {
+    }  else if (Objects.equals(targetHaxeClass.getQualifiedName(), sourceHaxeClass.getQualifiedName())) {
       return this;
     }
     HaxeClassModel classModel = targetClass.getHaxeClassModel();

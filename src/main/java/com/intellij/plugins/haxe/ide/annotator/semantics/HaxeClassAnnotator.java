@@ -185,7 +185,7 @@ public class HaxeClassAnnotator implements Annotator {
 
           final String qname1 = extendedClassModel.haxeClass.getQualifiedName();
           final String qname2 = clazz.haxeClass.getQualifiedName();
-          if (qname1.equals(qname2)) {
+          if (qname1 != null && qname1.equals(qname2)) {
             // @TODO: Move to bundle
             holder.newAnnotation(HighlightSeverity.ERROR, "Cannot extend self").range(referenceExpression).create();
           }

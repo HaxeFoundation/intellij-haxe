@@ -51,8 +51,8 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
 
   @Override
   public String getQualifiedName(PsiElement element) {
-    if (element instanceof HaxeClass) {
-      return ((HaxeClass)element).getQualifiedName();
+    if (element instanceof HaxeClass haxeClass) {
+      return haxeClass.getQualifiedName();
     }
     final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
     if (componentType == HaxeComponentType.METHOD || componentType == HaxeComponentType.FIELD) {

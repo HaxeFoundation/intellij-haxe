@@ -171,9 +171,12 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
           }else {
             haxeClass.getModel().addImplements(interfaceName);
           }
-          if (!packageName.trim().isEmpty() && !packageName.equalsIgnoreCase(StringUtil.getPackageName(haxeClass.getQualifiedName()))) {
-            HaxeFile containingFile = (HaxeFile)haxeClass.getContainingFile();
-            containingFile.getModel().addImport(haxeInterface.getQualifiedName());
+          String qualifiedName = haxeClass.getQualifiedName();
+          if (qualifiedName != null) {
+            if (!packageName.trim().isEmpty() && !packageName.equalsIgnoreCase(StringUtil.getPackageName(qualifiedName))) {
+              HaxeFile containingFile = (HaxeFile) haxeClass.getContainingFile();
+              containingFile.getModel().addImport(haxeInterface.getQualifiedName());
+            }
           }
         }else {
           referenceList.add(haxeInterface);

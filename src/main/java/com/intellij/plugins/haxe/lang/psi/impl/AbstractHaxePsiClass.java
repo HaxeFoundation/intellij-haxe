@@ -80,7 +80,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return this;
   }
 
-  @NotNull
   @Override
   public String getQualifiedName() {
     String name = getName();

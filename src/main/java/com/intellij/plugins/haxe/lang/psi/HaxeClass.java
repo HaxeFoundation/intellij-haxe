@@ -60,8 +60,6 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   }
 
 
-  @NotNull
-  @NonNls
   String getQualifiedName();
 
   @NotNull

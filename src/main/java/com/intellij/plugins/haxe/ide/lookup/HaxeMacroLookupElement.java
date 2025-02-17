@@ -12,6 +12,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import icons.HaxeIcons;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -110,7 +111,7 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
       }
       else {
         String qualifiedName = tryFindQualifiedName(type);
-        if(qualifiedName.startsWith("haxe.macro")) {
+        if(qualifiedName != null && qualifiedName.startsWith("haxe.macro")) {
           priority.assignable = 2;
         }
       }
@@ -118,7 +119,7 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
     }
   }
 
-  private static @NotNull String tryFindQualifiedName(SpecificTypeReference type) {
+  private static @Nullable String tryFindQualifiedName(SpecificTypeReference type) {
     if (type instanceof SpecificEnumValueReference valueReference) {
       HaxeClass enumParentClass = valueReference.getEnumClass().getHaxeClass();
       if (enumParentClass != null) {

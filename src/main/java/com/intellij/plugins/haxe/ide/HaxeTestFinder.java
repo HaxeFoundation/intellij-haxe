@@ -48,10 +48,13 @@ public class HaxeTestFinder implements TestFinder {
       return Collections.emptyList();
     }
     final Collection<PsiElement> result = new HashSet<PsiElement>();
-    final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
-    final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
-    result.addAll(HaxeComponentIndex.getItemsByName(packageAndName.getSecond() + "Test", element.getProject(), searchScope));
-    result.addAll(HaxeComponentIndex.getItemsByName("Test" + packageAndName.getSecond(), element.getProject(), searchScope));
+    String qualifiedName = haxeClass.getQualifiedName();
+    if(qualifiedName!= null) {
+      final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
+      final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
+      result.addAll(HaxeComponentIndex.getItemsByName(packageAndName.getSecond() + "Test", element.getProject(), searchScope));
+      result.addAll(HaxeComponentIndex.getItemsByName("Test" + packageAndName.getSecond(), element.getProject(), searchScope));
+    }
     return result;
   }
 
@@ -63,16 +66,19 @@ public class HaxeTestFinder implements TestFinder {
       return Collections.emptyList();
     }
     final Collection<PsiElement> result = new HashSet<PsiElement>();
-    final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
-    final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
-    final String className = packageAndName.getSecond();
-    if (className.startsWith("Test")) {
-      final String name = className.substring("Test".length());
-      result.addAll(HaxeComponentIndex.getItemsByName(name, element.getProject(), searchScope));
-    }
-    if (className.endsWith("Test")) {
-      final String name = className.substring(0, className.length() - "Test".length());
-      result.addAll(HaxeComponentIndex.getItemsByName(name, element.getProject(), searchScope));
+    String qualifiedName = haxeClass.getQualifiedName();
+    if (qualifiedName!= null) {
+      final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
+      final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
+      final String className = packageAndName.getSecond();
+      if (className.startsWith("Test")) {
+        final String name = className.substring("Test".length());
+        result.addAll(HaxeComponentIndex.getItemsByName(name, element.getProject(), searchScope));
+      }
+      if (className.endsWith("Test")) {
+        final String name = className.substring(0, className.length() - "Test".length());
+        result.addAll(HaxeComponentIndex.getItemsByName(name, element.getProject(), searchScope));
+      }
     }
     return result;
   }

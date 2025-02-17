@@ -105,27 +105,28 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
       final Map<String, String> qNameCache = new HashMap<String, String>();
       for (AbstractHaxeTypeDefImpl haxeTypeDef : classes) {
         String qualifiedName = haxeTypeDef.getQualifiedName();
-        Pair<String, String> pair = HaxeResolveUtil.splitQName(qualifiedName);
-        final HaxeClassInfo value = new HaxeClassInfo(pair.getSecond(), pair.getFirst(),  HaxeComponentType.typeOf(haxeTypeDef));
-        final HaxeTypeOrAnonymous haxeTypeOrAnonymous = haxeTypeDef.getTypeOrAnonymous();
-        final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
-        final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
-        if (anonymousType != null) {
-          HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel)anonymousType.getModel();
-          for (HaxeType haxeType : model.getCompositeTypesPsi()) {
+        if (qualifiedName != null) {
+          Pair<String, String> pair = HaxeResolveUtil.splitQName(qualifiedName);
+          final HaxeClassInfo value = new HaxeClassInfo(pair.getSecond(), pair.getFirst(), HaxeComponentType.typeOf(haxeTypeDef));
+          final HaxeTypeOrAnonymous haxeTypeOrAnonymous = haxeTypeDef.getTypeOrAnonymous();
+          final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
+          final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();
+          if (anonymousType != null) {
+            HaxeAnonymousTypeModel model = (HaxeAnonymousTypeModel) anonymousType.getModel();
+            for (HaxeType haxeType : model.getCompositeTypesPsi()) {
               final String classNameCandidate = haxeType.getText();
               final String key = containsDotSeparator(classNameCandidate) ?
-                                 classNameCandidate :
-                                 getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
+                      classNameCandidate :
+                      getQNameAndCache(qNameCache, psiFile, classNameCandidate, haxeType);
               put(result, key, value);
+            }
+          } else if (type != null) {
+            final String classNameCandidate = getClassNameCandidate(type);
+            final String qName = containsDotSeparator(classNameCandidate) ?
+                    classNameCandidate :
+                    getQNameAndCache(qNameCache, psiFile, classNameCandidate, type);
+            put(result, qName, value);
           }
-        }
-        else if (type != null) {
-          final String classNameCandidate = getClassNameCandidate(type);
-          final String qName = containsDotSeparator(classNameCandidate) ?
-                               classNameCandidate :
-                               getQNameAndCache(qNameCache, psiFile, classNameCandidate, type);
-          put(result, qName, value);
         }
       }
       return result;

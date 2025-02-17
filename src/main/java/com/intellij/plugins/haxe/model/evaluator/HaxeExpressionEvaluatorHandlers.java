@@ -500,11 +500,13 @@ public class HaxeExpressionEvaluatorHandlers {
     SpecificHaxeClassReference type = typeHolder.getClassType();
     if (type != null && type.getHaxeClass() != null) {
       String qualifiedName = type.getHaxeClass().getQualifiedName();
-      if (qualifiedName.equals(HaxeMacroTypeUtil.EXPR_OF)){
-        @NotNull ResultHolder[] specifics = type.getSpecifics();
-        if (specifics.length == 1) return specifics[0];
-      }else if (qualifiedName.equals(HaxeMacroTypeUtil.EXPR)){
-        SpecificTypeReference.getDynamic(element).createHolder();
+      if (qualifiedName != null) {
+        if (qualifiedName.equals(HaxeMacroTypeUtil.EXPR_OF)) {
+          @NotNull ResultHolder[] specifics = type.getSpecifics();
+          if (specifics.length == 1) return specifics[0];
+        } else if (qualifiedName.equals(HaxeMacroTypeUtil.EXPR)) {
+          SpecificTypeReference.getDynamic(element).createHolder();
+        }
       }
     }
     return null;

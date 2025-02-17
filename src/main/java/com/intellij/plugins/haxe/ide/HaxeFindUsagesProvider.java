@@ -27,6 +27,8 @@ import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -82,8 +84,8 @@ public class HaxeFindUsagesProvider implements FindUsagesProvider {
     PsiElement parent = HaxeFindUsagesUtil.getTargetElement(element);
     if (null != parent) {
       if (useFullName) {
-        if (parent instanceof HaxeClass) {
-          return ((HaxeClass)parent).getQualifiedName();
+        if (parent instanceof HaxeClass haxeClass) {
+          return Optional.ofNullable(haxeClass.getQualifiedName()).orElse(parent.getText());
         }
       }
     }

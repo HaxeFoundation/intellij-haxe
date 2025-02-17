@@ -586,14 +586,18 @@ public abstract class SpecificTypeReference {
   public boolean isExpr() {
      if (this instanceof SpecificHaxeClassReference classReference) {
        HaxeClass aClass = classReference.getHaxeClass();
-       return aClass != null && aClass.getQualifiedName().equalsIgnoreCase(HaxeMacroTypeUtil.EXPR);
+       if (aClass == null) return false;
+       String qualifiedName = aClass.getQualifiedName();
+       return qualifiedName!= null && qualifiedName.equalsIgnoreCase(HaxeMacroTypeUtil.EXPR);
      }
     return false;
   }
   public boolean isExprOf() {
      if (this instanceof SpecificHaxeClassReference classReference) {
        HaxeClass aClass = classReference.getHaxeClass();
-       return aClass != null && aClass.getQualifiedName().equalsIgnoreCase(HaxeMacroTypeUtil.EXPR_OF);
+       if (aClass == null) return false;
+       String qualifiedName = aClass.getQualifiedName();
+       return qualifiedName!= null && qualifiedName.equalsIgnoreCase(HaxeMacroTypeUtil.EXPR_OF);
      }
     return false;
   }

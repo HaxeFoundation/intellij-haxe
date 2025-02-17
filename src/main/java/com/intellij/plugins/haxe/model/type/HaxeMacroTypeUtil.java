@@ -13,6 +13,8 @@ import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.ParameterizedCachedValue;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class HaxeMacroTypeUtil {
 
   private static final  Key<ParameterizedCachedValue<HaxeClass, PsiElement>> EXPR_OF_KEY = Key.create("EXPR_OF_KEY");
@@ -34,9 +36,9 @@ public class HaxeMacroTypeUtil {
     if(haxeClassReference == null) return null;
     HaxeClass aClass = haxeClassReference.getHaxeClass();
     if(aClass != null) {
-      if (aClass.getQualifiedName().equals(HaxeMacroTypeUtil.EXPR_OF)
+      if (Objects.equals(aClass.getQualifiedName(), HaxeMacroTypeUtil.EXPR_OF)
           // TODO : TEMP hack since typeDef is resolved and `ExprOf` is typedef of `Expr`
-          || aClass.getQualifiedName().equals(HaxeMacroTypeUtil.EXPR)) {
+          || Objects.equals(aClass.getQualifiedName(), HaxeMacroTypeUtil.EXPR)) {
         HaxeGenericResolver resolver = haxeClassReference.getGenericResolver();
         HaxeGenericParam genericParam = aClass.getGenericParam();
         if(genericParam != null) {
@@ -174,16 +176,16 @@ public class HaxeMacroTypeUtil {
 
   private static boolean isMacroExpr(SpecificHaxeClassReference classReference) {
     if (classReference.getHaxeClass() == null) return false;
-    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.EXPR);
+    return Objects.equals(classReference.getHaxeClass().getQualifiedName(), HaxeMacroTypeUtil.EXPR);
   }
 
   private static boolean isRestClass(SpecificHaxeClassReference classReference) {
     if (classReference.getHaxeClass() == null) return false;
-    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.REST);
+    return Objects.equals(classReference.getHaxeClass().getQualifiedName(), HaxeMacroTypeUtil.REST);
   }
   private static boolean isExternRestClass(SpecificHaxeClassReference classReference) {
     if (classReference.getHaxeClass() == null) return false;
-    return classReference.getHaxeClass().getQualifiedName().equals(HaxeMacroTypeUtil.EXTERN_REST);
+    return Objects.equals(classReference.getHaxeClass().getQualifiedName(), HaxeMacroTypeUtil.EXTERN_REST);
   }
 
 

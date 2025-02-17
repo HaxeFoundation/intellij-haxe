@@ -109,14 +109,15 @@ public class HaxeConstructorIndex extends FileBasedIndexExtension<String, HaxeCo
 
 
         String qualifiedName = haxeClass.getQualifiedName();
-        final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
-        String packageString = packageAndName.getFirst();
-        String classString = packageAndName.getSecond();
-        HaxeComponentType componentType = HaxeComponentType.typeOf(haxeClass);
+        if (qualifiedName != null) {
+          final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
+          String packageString = packageAndName.getFirst();
+          String classString = packageAndName.getSecond();
+          HaxeComponentType componentType = HaxeComponentType.typeOf(haxeClass);
 
-        if (haxeClass.isTypeDef()) {
-          componentType = HaxeComponentType.TYPEDEF;
-        }
+          if (haxeClass.isTypeDef()) {
+            componentType = HaxeComponentType.TYPEDEF;
+          }
 
           for (HaxeMethod method : getConstructorMethods(haxeClass)) {
             boolean gotParameters = method.getParameterList().getParametersCount() > 0;
@@ -124,6 +125,7 @@ public class HaxeConstructorIndex extends FileBasedIndexExtension<String, HaxeCo
             result.put(qualifiedName, info);
           }
         }
+      }
       return result;
     }
   }
