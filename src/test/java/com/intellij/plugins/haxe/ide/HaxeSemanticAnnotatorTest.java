@@ -371,6 +371,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testFieldPropertyConstraint() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testFinalKeyword() throws Exception {
     doTestNoFixWithWarnings();
   }

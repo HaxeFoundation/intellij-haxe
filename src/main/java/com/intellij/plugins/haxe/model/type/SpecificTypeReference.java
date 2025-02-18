@@ -542,6 +542,24 @@ public abstract class SpecificTypeReference {
   }
 
 
+  public boolean isSameTypeAndGenerics(SpecificTypeReference other) {
+    if (other == null) return false;
+    if (!isSameType(other)) return false;
+    if (this instanceof SpecificHaxeClassReference thisClass
+        && other instanceof SpecificHaxeClassReference otherClass) {
+      @NotNull ResultHolder[] thisSpecifics = thisClass.getSpecifics();
+      @NotNull ResultHolder[] otherSpecifics = otherClass.getSpecifics();
+      if (thisSpecifics.length != otherSpecifics.length) return false;
+      for (int i = 0; i < thisSpecifics.length; i++) {
+        ResultHolder thisSpecific = thisSpecifics[i];
+        ResultHolder otherSpecific = otherSpecifics[i];
+        if (!thisSpecific.getType().isSameTypeAndGenerics(otherSpecific.getType())){
+          return false;
+        }
+      }
+    }
+    return true;
+  }
 
   public boolean isSameType(@NotNull SpecificTypeReference other) {
     if (!this.getClass().equals(other.getClass())) {

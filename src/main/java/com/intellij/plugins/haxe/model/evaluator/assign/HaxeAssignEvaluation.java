@@ -178,6 +178,7 @@ public class HaxeAssignEvaluation {
         complete(true, "No constraints for type parameter");
       }
       else {
+        //TODO mlo: pass context / forward returned explanation
         boolean canAssignConstraint = HaxeTypeCompatible.canAssignToFromReference(constraint, from.createHolder());
         if (canAssignConstraint) {
           complete(true, "TypeParameter constraints can assign");

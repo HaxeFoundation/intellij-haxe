@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
+import com.intellij.plugins.haxe.lang.psi.HaxePropertyAccessor;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -88,9 +89,9 @@ public class HaxeAnonymousAssignUtil {
           // ignore methods in @:structInit classes
           ignored = true;
         }
-      }else if (toMember instanceof HaxeFieldModel fieldModel) {
-        optional = fieldModel.isOptional() || fieldModel.hasInitializer();
-        ignored = fieldModel.isStatic();
+      }else if (toMember instanceof HaxeFieldModel toFieldModel) {
+        optional = toFieldModel.isOptional() || toFieldModel.hasInitializer();
+        ignored = toFieldModel.isStatic();
 
         Optional<HaxeBaseMemberModel> modelOptional = fromMembers.stream()
                 .filter(model -> model.getNamePsi().getIdentifier().textMatches(name))
@@ -98,8 +99,21 @@ public class HaxeAnonymousAssignUtil {
 
         if (modelOptional.isPresent()) {
           memberExists = true;
-            HaxeBaseMemberModel fromMember = modelOptional.get();
+          HaxeBaseMemberModel fromMember = modelOptional.get();
           PsiElement memberBasePsi = fromMember.getBasePsi();
+
+          if(fromMember instanceof HaxeFieldModel fromFieldModel) {
+            boolean propertyValueMatch = comparePropertyValues(toFieldModel, fromFieldModel);
+            if (!propertyValueMatch) {
+              context.explanations.addWrongTypeMember(
+                      Optional.ofNullable(fromFieldModel.getPropertyDeclarationPsi()).map(PsiElement::getText).orElse("(default, default)"),
+                      Optional.ofNullable(toFieldModel.getPropertyDeclarationPsi()).map(PsiElement::getText).orElse("(default, default)")
+                      , memberBasePsi);
+              allMembersMatches = false;
+            }
+          }
+
+
           ResultHolder toType = containsMembersRecursionGuard.computePreventingRecursion(memberBasePsi, false, () ->
             toMember.getResultType(toResolver)
           );
@@ -142,6 +156,44 @@ public class HaxeAnonymousAssignUtil {
 
 
     return allMembersMatches;
+  }
+
+  private static boolean comparePropertyValues(HaxeFieldModel toFieldModel, HaxeFieldModel fromFieldModel) {
+    HaxePropertyAccessor fromGetterPsi = fromFieldModel.getGetterPsi();
+    HaxePropertyAccessor fromSetterPsi = fromFieldModel.getSetterPsi();
+
+    HaxePropertyAccessor toGetterPsi = toFieldModel.getGetterPsi();
+    HaxePropertyAccessor toSetterPsi = toFieldModel.getSetterPsi();
+
+    boolean getterMatch;
+    if(fromGetterPsi == null && toGetterPsi == null) {
+      getterMatch = true;
+    }else if (fromGetterPsi == null ^ toGetterPsi == null){
+      if(fromGetterPsi != null && fromGetterPsi.textMatches("default")) {
+        getterMatch = true;
+      }else if(toGetterPsi != null && toGetterPsi.textMatches("default")) {
+        getterMatch = true;
+      }else {
+        getterMatch = false;
+      }
+    }else {
+      getterMatch = fromGetterPsi.textMatches(toGetterPsi);
+    }
+    boolean setterMatch;
+    if(fromSetterPsi == null && toSetterPsi == null) {
+      setterMatch = true;
+    }else if (fromSetterPsi == null ^ toSetterPsi == null){
+      if(fromSetterPsi != null && fromSetterPsi.textMatches("default")) {
+        setterMatch = true;
+      }else if(toSetterPsi != null && toSetterPsi.textMatches("default")) {
+        setterMatch = true;
+      }else {
+        setterMatch = false;
+      }
+    }else {
+      setterMatch = fromSetterPsi.textMatches(toSetterPsi);
+    }
+    return setterMatch && getterMatch;
   }
 
   static boolean checkStructInitConstructor(SpecificHaxeClassReference to, SpecificHaxeClassReference from,

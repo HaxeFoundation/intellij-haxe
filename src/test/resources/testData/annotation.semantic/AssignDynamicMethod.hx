@@ -1,5 +1,5 @@
 package ;
-class AssignDynamicMethod<C:{length:Int}> {
+class AssignDynamicMethod<C:{var length(default, null):Int; }> {
 
     public function new() {
         var x = new AssignDynamicMethod();
@@ -19,8 +19,8 @@ class AssignDynamicMethod<C:{length:Int}> {
         x.dynamicGenericFn = function (x) { getType(String); };
 
         //wrong
-        x.dynamicGenericFn = <error descr="Incompatible type: C:{length:Int}->Int should be C:{length:Int}->C:{length:Int}">(x) -> { 1; }</error>;
-        x.dynamicGenericFn = <error descr="Incompatible type: C:{length:Int}->Int should be C:{length:Int}->C:{length:Int}">(x) -> { getType(Int); }</error>;
+        x.dynamicGenericFn = <error descr="Incompatible type: C:{var length(default, null):Int; }->Int should be C:{var length(default, null):Int; }->C:{var length(default, null):Int; }">(x) -> { 1; }</error>;
+        x.dynamicGenericFn = <error descr="Incompatible type: C:{var length(default, null):Int; }->Int should be C:{var length(default, null):Int; }->C:{var length(default, null):Int; }">(x) -> { getType(Int); }</error>;
 
 
         //wrong : Cannot rebind non dynamic

@@ -118,9 +118,14 @@ public class HaxeCallExpressionUtil {
 
   private static @Nullable SpecificTypeReference tryCastAssignHintToReturnType(@Nullable SpecificTypeReference assignHint, ResultHolder returnType) {
     if (returnType != null && !returnType.isUnknown() && returnType.isClassType()) {
-      if (assignHint instanceof  SpecificHaxeClassReference hintClassReference) {
-        SpecificHaxeClassReference castedHint = hintClassReference.tryCastTo(returnType.getClassType());
-        return castedHint != null ? castedHint : assignHint;
+      if (assignHint instanceof SpecificHaxeClassReference hintClassReference) {
+        SpecificHaxeClassReference returnTypeClass = returnType.getClassType();
+        if (returnTypeClass != null) {
+          SpecificHaxeClassReference castedHint = hintClassReference.tryCastTo(returnTypeClass);
+          if (castedHint != null && !castedHint.isSameTypeAndGenerics(returnTypeClass)) {
+            return castedHint;
+          }
+        }
       }
     }
     return assignHint;
