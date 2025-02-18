@@ -42,7 +42,10 @@ public class ResultHolder {
 
   @NotNull
   private SpecificTypeReference type;
+  // NOTE: morph flag is used for typeParameters (prevent updating type)
+  // while mutate is used for final fields (prevent update assigned value)
   private boolean canMutate = true;
+  private boolean canMorph = true;
   private int mutationCount = 0;
 
 
@@ -310,5 +313,14 @@ public class ResultHolder {
   public PsiElement getContext() {
     return getType().context;
 
+  }
+
+
+  public boolean canMorph() {
+    return canMorph;
+  }
+
+  public void disableMorphing() {
+    canMorph = false;
   }
 }

@@ -350,14 +350,14 @@ public class HaxeExpressionUsageUtil {
           ResultHolder currentSpecific = currentSpecifics[i];
           ResultHolder foundSpecific = foundSpecifics[i];
           // important, make sure we are not updating already found values
-          if (currentSpecific.canMutate()
+          if (currentSpecific.canMorph()
               // might not be the best solution but an attempt to avoid disableMutating when typeParameter was not used.
               // Our methods return a complete type with all typeParameters so here we guess that unchanged means not used.
               &&  (currentSpecific.getType() !=  foundSpecific.getType())
               && (currentSpecific.isUnknown() ||  (currentSpecific.isTypeParameter()  && currentSpecific.canAssign(foundSpecific))))
           {
             newSpecifics[i] = foundSpecific.duplicate();
-            newSpecifics[i].disableMutating();
+            newSpecifics[i].disableMorphing();
           }else {
             newSpecifics[i] = currentSpecific;
           }
