@@ -295,7 +295,7 @@ Haxe File
             CONTENT
               PsiElement(CT_META_ARGS)
                 COMPILETIME_META_ARG
-                  FUNCTION_LITERAL
+                  LOCAL_FUNCTION_DECLARATION
                     HaxePsiToken:function('function')
                     HaxePsiToken:(('(')
                     PARAMETER_LIST
@@ -334,6 +334,97 @@ Haxe File
                             HaxePsiToken:.('.')
                             IDENTIFIER
                               HaxePsiToken:ID('JQuery')
+                    BLOCK_STATEMENT
+                      HaxePsiToken:{('{')
+                      HaxePsiToken:}('}')
+            HaxePsiToken:)(')')
+        METHOD_DECLARATION
+          HaxePsiToken:function('function')
+          COMPONENT_NAME
+            IDENTIFIER
+              HaxePsiToken:ID('attr')
+          HaxePsiToken:(('(')
+          PARAMETER_LIST
+            PARAMETER
+              COMPONENT_NAME
+                IDENTIFIER
+                  HaxePsiToken:ID('name')
+              TYPE_TAG
+                HaxePsiToken::(':')
+                TYPE_OR_ANONYMOUS
+                  TYPE
+                    REFERENCE_EXPRESSION
+                      IDENTIFIER
+                        HaxePsiToken:ID('String')
+          HaxePsiToken:)(')')
+          TYPE_TAG
+            HaxePsiToken::(':')
+            TYPE_OR_ANONYMOUS
+              TYPE
+                REFERENCE_EXPRESSION
+                  IDENTIFIER
+                    HaxePsiToken:ID('String')
+          BLOCK_STATEMENT
+            HaxePsiToken:{('{')
+            HaxePsiToken:}('}')
+        PsiElement(EMBEDDED_META)
+          COMPILE_TIME_META
+            HaxePsiToken:@:('@:')
+            TYPE
+              HaxePsiToken:META_TYPE('overload')
+            HaxePsiToken:(('(')
+            CONTENT
+              PsiElement(CT_META_ARGS)
+                COMPILETIME_META_ARG
+                  LOCAL_FUNCTION_DECLARATION
+                    HaxePsiToken:function('function')
+                    GENERIC_PARAM
+                      HaxePsiToken:<('<')
+                      GENERIC_LIST_PART
+                        COMPONENT_NAME
+                          IDENTIFIER
+                            HaxePsiToken:ID('T')
+                        HaxePsiToken::(':')
+                        GENERIC_CONSTRAINT_PART
+                          TYPE_OR_ANONYMOUS
+                            ANONYMOUS_TYPE
+                              ANONYMOUS_TYPE_BODY
+                                HaxePsiToken:{('{')
+                                ANONYMOUS_TYPE_FIELD_LIST
+                                  ANONYMOUS_TYPE_FIELD
+                                    COMPONENT_NAME
+                                      IDENTIFIER
+                                        HaxePsiToken:ID('i')
+                                    TYPE_TAG
+                                      HaxePsiToken::(':')
+                                      TYPE_OR_ANONYMOUS
+                                        TYPE
+                                          REFERENCE_EXPRESSION
+                                            IDENTIFIER
+                                              HaxePsiToken:ID('Int')
+                                HaxePsiToken:}('}')
+                      HaxePsiToken:>('>')
+                    HaxePsiToken:(('(')
+                    PARAMETER_LIST
+                      PARAMETER
+                        COMPONENT_NAME
+                          IDENTIFIER
+                            HaxePsiToken:ID('name')
+                        TYPE_TAG
+                          HaxePsiToken::(':')
+                          TYPE_OR_ANONYMOUS
+                            TYPE
+                              REFERENCE_EXPRESSION
+                                IDENTIFIER
+                                  HaxePsiToken:ID('T')
+                    HaxePsiToken:)(')')
+                    TYPE_TAG
+                      HaxePsiToken::(':')
+                      TYPE_OR_ANONYMOUS
+                        TYPE
+                          REFERENCE_EXPRESSION
+                            IDENTIFIER
+                              HaxePsiToken:ID('Void')
                     BLOCK_STATEMENT
                       HaxePsiToken:{('{')
                       HaxePsiToken:}('}')

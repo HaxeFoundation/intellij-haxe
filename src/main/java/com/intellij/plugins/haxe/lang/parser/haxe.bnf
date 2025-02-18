@@ -268,7 +268,7 @@ private topLevel ::= importStatement | usingStatement |  module {recoverWhile="t
 private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'public' | 'typedef' | 'final' | 'var'| 'inline' | 'function')
 
 // These are top-level parsing entry points for metadata.
-compiletimeMetaArg ::= expression
+compiletimeMetaArg ::= statement
 private compileTimeMetaArgList ::= compiletimeMetaArg (',' compiletimeMetaArg)*
 // runtime macros can be crated by macros so reunification must be accept
 runtimeMetaArg ::= arrayLiteral | objectLiteral | constantExpression | macroValueReification
