@@ -185,7 +185,16 @@ public class HaxeCallExpressionContext {
                 if (parameters.size() > parameterCounter) {
                     parameterModel = parameters.get(parameterCounter++);
                     if (parameterModel.isRest()){
-                        reachedRestParameter = true;
+                        // sanity check for MacroVarArgOrRest, aka Array<Expr>
+                        // if argument is array then this might be a normal parameter and not a rest-parameter
+                        SpecificTypeReference typeFromModel = parameterModel.getType();
+                        if (HaxeMacroTypeUtil.isMacroVarArgOrRestType(typeFromModel)) {
+                            if (!typeFromModel.canAssign(argumentModel.getType())) {
+                                reachedRestParameter = true;
+                            }
+                        }else {
+                            reachedRestParameter = true;
+                        }
                     }
                 } else {
                     // out of parameters and last is not var arg, must mean that ve have skipped optionals and still had arguments left
