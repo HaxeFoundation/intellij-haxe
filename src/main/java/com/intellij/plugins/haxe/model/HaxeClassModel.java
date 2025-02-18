@@ -272,6 +272,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   @Nullable
+  //TODO mlo: rewrite:
+  //WARNING!  if underlying is just a TypeParameter then  this can resolve to anything and a class return type can not be guarantied
   public SpecificHaxeClassReference getUnderlyingClassReference(@NotNull HaxeGenericResolver resolver) {
     if (!isAbstractType() && !isTypedef()) return null;
 

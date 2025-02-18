@@ -95,15 +95,15 @@ public class HaxeGenericResolverCastUtil {
             if (reference!= null) {
                 // NOTE: anonymous extendingTypes can extend/ combine multiple definitions
                 // we therefor only add to path when we have found and reached the target (when the recursive calls returns true)
-                SpecificHaxeClassReference resolvedTypeDef = reference.resolveTypeDefClass();
-                if (resolvedTypeDef != null) {
-                    HaxeClass childClass = resolvedTypeDef.getHaxeClass();
+                SpecificTypeReference resolvedTypeDef = reference.resolveTypeDefOfClassOrTypeParam();
+                if (resolvedTypeDef  instanceof SpecificHaxeClassReference classReference) {
+                    HaxeClass childClass = classReference.getHaxeClass();
                     if (childClass == to){
                         path.add(reference);
                         return true;
                     }
                     if (childClass != null){
-                        return findClassHierarchy(childClass, to, path, resolvedTypeDef.getGenericResolver());
+                        return findClassHierarchy(childClass, to, path, classReference.getGenericResolver());
                     }
                 }else {
                     HaxeClass underlyingClass = reference.getHaxeClass();
@@ -211,15 +211,15 @@ public class HaxeGenericResolverCastUtil {
                 if (reference != null) {
                     // NOTE: anonymous extendingTypes can extend/ combine multiple definitions
                     // we therefor only add to path when we have found and reached the target (when the recursive calls returns true)
-                    SpecificHaxeClassReference resolvedTypeDef = reference.resolveTypeDefClass();
-                    if (resolvedTypeDef != null) {
-                        HaxeClass childClass = resolvedTypeDef.getHaxeClass();
+                    SpecificTypeReference resolvedTypeDef = reference.resolveTypeDefOfClassOrTypeParam();
+                    if (resolvedTypeDef  instanceof  SpecificHaxeClassReference classReference) {
+                        HaxeClass childClass = classReference.getHaxeClass();
                         if (childClass == to) {
                             path.add(reference);
                             return true;
                         }
                         if (childClass != null) {
-                            return findClassHierarchy(childClass, to, path, resolvedTypeDef.getGenericResolver());
+                            return findClassHierarchy(childClass, to, path, classReference.getGenericResolver());
                         }
                     } else {
                         HaxeClass underlyingClass = reference.getHaxeClass();

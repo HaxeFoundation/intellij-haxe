@@ -1552,8 +1552,8 @@ public class HaxeExpressionEvaluatorHandlers {
       // unify all usage of generics
       for (int i = 0; i < params.size(); i++) {
         HaxeGenericParamModel paramModel = params.get(i);
-        String name = paramModel.getName();
-        List<ResultHolder> holders = genericsMap.get(name);
+        HaxeTypeParameterDeclaration typeParameter = paramModel.getTypeParameter();
+        List<ResultHolder> holders = genericsMap.get(typeParameter);
         ResultHolder unified = HaxeTypeUnifier.unifyHolders(holders, callExpression, UnificationRules.DEFAULT);
         enumResolver.add(paramModel.getTypeParameter(), unified);
         specifics[i] = unified;
@@ -1586,7 +1586,7 @@ public class HaxeExpressionEvaluatorHandlers {
         return returnType.duplicate();
       }
 
-      if(returnType.isFunctionType()){
+      if(returnType.getFunctionType() != null){
         return returnType.getFunctionType().createHolder();
       }
 
@@ -1596,7 +1596,7 @@ public class HaxeExpressionEvaluatorHandlers {
 
     }
 
-    if (functionType.isDynamic()) {
+    if (functionType!= null && functionType.isDynamic()) {
       for (HaxeExpression expression : parameterExpressions) {
         handle(expression, context, resolver);
       }
@@ -2133,7 +2133,7 @@ public class HaxeExpressionEvaluatorHandlers {
           if (classReference.isTypeDefOfFunction()) {
             return classReference.resolveTypeDefFunction();
           } else {
-            SpecificHaxeClassReference resolvedClass = classReference.resolveTypeDefClass();
+            SpecificTypeReference resolvedClass = classReference.resolveTypeDefOfClassOrTypeParam();
             return resolveAnyTypeDefsOrTypeParameterConstraint(resolvedClass);
           }
         }
