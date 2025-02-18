@@ -234,10 +234,10 @@ public class HaxeFieldAnnotator implements Annotator {
     }
 
     HaxeClassModel declaringClass = field.getDeclaringClass();
-
-    if (declaringClass != null && declaringClass.isInterface()) {
-      return;
+    if(declaringClass != null) {
+      if (declaringClass.isInterface() || declaringClass.isAnonymous()) return;
     }
+
 
     HaxeCommonMembersModel membersModel = declaringClass != null ? declaringClass : field.getDeclaringModule();
 
