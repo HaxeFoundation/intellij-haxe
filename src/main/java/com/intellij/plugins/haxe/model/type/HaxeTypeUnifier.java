@@ -51,6 +51,14 @@ public class HaxeTypeUnifier {
   }
   @NotNull
   static public SpecificTypeReference unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context, @Nullable  SpecificTypeReference suggestedType, @NotNull  UnificationRules rules) {
+    SpecificTypeReference type = _unify(a, b, context, suggestedType, rules);
+    if (suggestedType != null && suggestedType.canAssign(type)) {
+      return suggestedType;
+    }
+    return type;
+  }
+
+  static private SpecificTypeReference _unify(SpecificTypeReference a, SpecificTypeReference b, @NotNull PsiElement context, @Nullable  SpecificTypeReference suggestedType, @NotNull  UnificationRules rules) {
     if (a == null && b == null) return SpecificTypeReference.getUnknown(context);
     if (a == null) return b;
     if (b == null) return a;
@@ -375,6 +383,11 @@ public class HaxeTypeUnifier {
     for (int n = 1; n < types.size(); n++) {
       type = unify(type, types.get(n), context, suggestedType, rules);
     }
+
+    if (suggestedType != null && suggestedType.canAssign(type)) {
+      return suggestedType;
+    }
+
     return type;
   }
 

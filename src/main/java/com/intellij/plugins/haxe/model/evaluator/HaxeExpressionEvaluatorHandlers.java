@@ -2220,7 +2220,7 @@ public class HaxeExpressionEvaluatorHandlers {
   static ResultHolder findInitTypeForUnify(@NotNull PsiElement field) {
     HaxeVarInit varInit = PsiTreeUtil.getParentOfType(field, HaxeVarInit.class);
     if (varInit != null) {
-      HaxeFieldDeclaration type = PsiTreeUtil.getParentOfType(varInit, HaxeFieldDeclaration.class);
+      HaxePsiField type = PsiTreeUtil.getParentOfType(varInit, HaxePsiField.class);
       if (type!= null) {
         HaxeTypeTag tag = type.getTypeTag();
         if (tag != null) {
