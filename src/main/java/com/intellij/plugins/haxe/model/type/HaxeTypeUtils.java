@@ -61,6 +61,7 @@ public class HaxeTypeUtils {
     if (operator.equals(">=")) return leftv >= rightv;
     if (operator.equals("<<")) return (int)leftv << (int)rightv;
     if (operator.equals(">>")) return (int)leftv >> (int)rightv;
+    if (operator.equals(">>>")) return (int)leftv >>> (int)rightv;
     if (operator.equals("&")) return (int)leftv & (int)rightv;
     if (operator.equals("|")) return (int)leftv | (int)rightv;
     if ( left instanceof  Boolean leftb && right instanceof Boolean  rightb) {
