@@ -139,6 +139,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return hasModifier(HaxePsiModifier.STATIC);
   }
 
+  public boolean isExtern() {
+    return hasModifier(HaxePsiModifier.EXTERN);
+  }
+
   public boolean isInline() {
     return hasModifier(INLINE);
   }

@@ -10,6 +10,9 @@ class FinalKeyword extends Parent {
   public static final CONST_X:String = "";
   <error descr="Static final variable 'CONST_Y' must be initialized">static final CONST_Y:String;</error>
 
+  // final externs does not require init
+  extern static public final NO_INIT_REQUIRED:Int;
+
   public function new() {
     y = "Hop hey";
     this.z = true;
