@@ -921,9 +921,12 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
     }
-
-    // No 'else' clause means the if results in a Void type.
-    if (null == tFalse) tFalse = SpecificHaxeClassReference.getVoid(ifStatement);
+    // we need to ignore missing false/elseStatement type when doing comprehension
+    // unificationRules  should be IGNORE_VOID when in comprehension, hopefully this wont create any other side effects
+    if(context.getScope().unificationRules != UnificationRules.IGNORE_VOID) {
+      // No 'else' clause means the if results in a Void type.
+      if (null == tFalse) tFalse = SpecificHaxeClassReference.getVoid(ifStatement);
+    }
     // TODO create rule use first on unknown
     return HaxeTypeUnifier.unify(tTrue, tFalse, ifStatement, context.getScope().unificationRules).createHolder();
   }
