@@ -359,7 +359,11 @@ public class HaxeExpressionUsageUtil {
             newSpecifics[i] = foundSpecific.duplicate();
             newSpecifics[i].disableMorphing();
           }else {
-            newSpecifics[i] = currentSpecific;
+            if(currentSpecific.containsUnknownTypeParameters()) {
+              newSpecifics[i] = mapTypeParameter(currentSpecific, foundSpecific);
+            }else {
+              newSpecifics[i] = currentSpecific;
+            }
           }
       }
 
