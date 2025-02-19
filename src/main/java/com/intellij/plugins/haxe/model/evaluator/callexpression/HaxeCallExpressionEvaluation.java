@@ -113,7 +113,7 @@ public class HaxeCallExpressionEvaluation {
     // var newVar = Std.downcast(dynamicValue, Array);
 
     private ResultHolder addMissingTypeParametersIfNecessary(ResultHolder resolve) {
-        if(resolve.getClassType() != null ) {
+        if(resolve != null && resolve.getClassType() != null ) {
             SpecificHaxeClassReference classType = resolve.getClassType();
             HaxeClassModel classModel = classType.getHaxeClassModel();
             if(classModel != null) {
