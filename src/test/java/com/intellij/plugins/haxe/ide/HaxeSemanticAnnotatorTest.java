@@ -410,6 +410,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testArrayComprehensionsWithCast() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testArrayAssignmentBadArrowFunction() throws Exception {
     doTestNoFixWithWarnings();
   }

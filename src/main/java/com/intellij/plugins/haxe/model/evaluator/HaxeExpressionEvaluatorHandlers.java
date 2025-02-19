@@ -834,6 +834,20 @@ public class HaxeExpressionEvaluatorHandlers {
       if (type != null) {
         if (forStatementExpression != null) {
           ResultHolder handle = handle(forStatementExpression, context, resolver);
+          // check if Array comprehensions and use assign hint if possible
+          if (forStatement.getParent() instanceof HaxeExpressionList expressionList) {
+            if (expressionList.getParent() instanceof HaxeArrayLiteral) {
+              ResultHolder assignHint = resolver.getAssignHint();
+              if (assignHint != null && assignHint.getClassType() != null) {
+                SpecificHaxeClassReference classType = assignHint.getClassType();
+                if (classType.isArray()) {
+                  @NotNull ResultHolder[] specifics = classType.getSpecifics();
+                  ResultHolder specific = specifics[0];
+                  if (specific.canAssign(handle)) return specific;
+                }
+              }
+            }
+          }
           return handle.getType().createHolder();
         }
       }
