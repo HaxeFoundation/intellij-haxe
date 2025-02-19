@@ -1173,17 +1173,17 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
 // TODO mlo: should be moved to a "SpecificAbstractReference" like class
-//   explicit and implicit casts are only relevant for abstracts  and should not be inherited
+//   direct and implicit casts are only relevant for abstracts  and should not be inherited
 //   by classes, enums, and anonymous structures
-  public List<SpecificTypeReference> getExplicitCastToTypes() {
+  public List<SpecificTypeReference> getDirectCastToTypes() {
     if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
-      return abstractModel.getExplicitCastToTypes(getGenericResolver());
+      return abstractModel.getDirectCastToTypes(getGenericResolver());
     }
     return List.of();
   }
-  public List<SpecificTypeReference> getExplicitCastFromTypes() {
+  public List<SpecificTypeReference> getDirectCastFromTypes() {
     if(this.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
-      return abstractModel.getExplicitCastFromTypes(getGenericResolver());
+      return abstractModel.getDirectCastFromTypes(getGenericResolver());
     }
     return List.of();
   }

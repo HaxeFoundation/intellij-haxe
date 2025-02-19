@@ -65,7 +65,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             if(haxeClassModel instanceof HaxeAbstractClassModel abstractModel) {
               // abstracts can be casted to functionTypes so we need to check for function types that matches our callExpressions
               List<SpecificTypeReference> castToTypes = new ArrayList<>();
-              castToTypes.addAll(abstractModel.getExplicitCastToTypes(classReference.getGenericResolver()));
+              castToTypes.addAll(abstractModel.getDirectCastToTypes(classReference.getGenericResolver()));
               castToTypes.addAll(abstractModel.getImplicitCastToTypes(classReference, classReference.getGenericResolver()));
               List<SpecificFunctionReference> functionTypes = castToTypes.stream()
                       .filter(SpecificFunctionReference.class::isInstance)

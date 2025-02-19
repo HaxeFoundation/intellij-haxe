@@ -32,9 +32,9 @@ public class HaxeTypeCompatible {
         return canAssignToFromEvaluation(to.createHolder(), from.createHolder(),DEFAULT_SETTINGS, context).result;
     }
 
-    static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
+    static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean checkDirectCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
-        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, false, false);
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkDirectCasts, checkImplicitCasts, false, false);
         return canAssignToFromEvaluation(to.createHolder(), from.createHolder(), settings, null).result;
     }
 
@@ -54,9 +54,9 @@ public class HaxeTypeCompatible {
         return canAssignToFromEvaluation(to, from, CONTRAVARIANCE_SETTINGS, null).result;
     }
 
-    static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
+    static public boolean canAssignToFromContravariance(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkDirectCasts, boolean checkImplicitCasts) {
         if (to == null || from == null) return false;
-        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, true, false);
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkDirectCasts, checkImplicitCasts, true, false);
         return canAssignToFromEvaluation(to, from, settings, null).result;
     }
 
@@ -68,18 +68,18 @@ public class HaxeTypeCompatible {
         return canAssignToFromEvaluation(to, from, CALL_EXPRESSION_SETTINGS, null);
     }
 
-    static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts, boolean contravariance) {
+    static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkDirectCasts, boolean checkImplicitCasts, boolean contravariance) {
         if (to == null || from == null) return false;
-        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkExplicitCasts, checkImplicitCasts, contravariance, false);
-        return canAssignToFromEvaluation(to, from, false, checkExplicitCasts, checkImplicitCasts, contravariance).result;
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkDirectCasts, checkImplicitCasts, contravariance, false);
+        return canAssignToFromEvaluation(to, from, false, checkDirectCasts, checkImplicitCasts, contravariance).result;
     }
 
     static public HaxeAssignEvaluation evaluateAssignToFrom(@NotNull ResultHolder to, @NotNull ResultHolder from) {
         return canAssignToFromEvaluation(to, from, false, true, true);
     }
 
-    static public HaxeAssignEvaluation evaluateAssignToFrom(@NotNull ResultHolder to, @NotNull ResultHolder from, boolean checkExplicitCasts, boolean checkImplicitCasts) {
-        return canAssignToFromEvaluation(to, from, false, checkExplicitCasts, checkImplicitCasts);
+    static public HaxeAssignEvaluation evaluateAssignToFrom(@NotNull ResultHolder to, @NotNull ResultHolder from, boolean checkDirectCasts, boolean checkImplicitCasts) {
+        return canAssignToFromEvaluation(to, from, false, checkDirectCasts, checkImplicitCasts);
     }
 
 
@@ -114,15 +114,15 @@ public class HaxeTypeCompatible {
 
     /**
      * Evaluates strict assign operations (ex. typeParameters/generics).
-     * Used for typeParameters and situations where implicit and explicit casts are not allowed
+     * Used for typeParameters and situations where implicit and implicit direct casts are not allowed
      */
     private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from) {
-        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
+        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got direct "from Dynamic" cast
         return canAssignToFromEvaluation(to, from, DEFAULT_STRICT_SETTINGS, context);
     }
 
     private static HaxeAssignEvaluation canAssignToFromStrictEvaluation(HaxeAssignEvaluation context, @NotNull ResultHolder to, @NotNull ResultHolder from, boolean ignoreFromConstraints) {
-        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got explicit "from Dynamic" cast
+        // Note: There's a hack in abstract canAssign that allow  assign when abstracts underlying type is Dynamic and it got direct "from Dynamic" cast
         AssignEvaluationSettings settings = new AssignEvaluationSettings(true, false, false, false, ignoreFromConstraints);
         return canAssignToFromEvaluation(to, from, settings, context);
     }
@@ -135,22 +135,22 @@ public class HaxeTypeCompatible {
      * - checking if enum objects can be assigned (EnumValue, and enum members)
      * - checking if functions types and references can be assigned (checking sugnatures)
      * - checking if anonymous structures can be assigned (comparing members)
-     * - checking if abstracts can be explicit or implicit casted to and from other types
+     * - checking if abstracts can be  direct or implicit casted to and from other types
      */
     static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
                                                                  boolean strictBasicCheck,
-                                                                 boolean checkExplicitCasts,
+                                                                 boolean checkDirectCasts,
                                                                  boolean checkImplicitCasts,
                                                                  boolean contravariance
     ) {
-        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkExplicitCasts, checkImplicitCasts, contravariance, null);
+        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkDirectCasts, checkImplicitCasts, contravariance, null);
     }
 
     static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
                                                                  boolean strictBasicCheck,
-                                                                 boolean checkExplicitCasts,
+                                                                 boolean checkDirectCasts,
                                                                  boolean checkImplicitCasts) {
-        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkExplicitCasts, checkImplicitCasts, false, null);
+        return canAssignToFromEvaluation(to, from, strictBasicCheck, checkDirectCasts, checkImplicitCasts, false, null);
     }
 
 
@@ -158,12 +158,12 @@ public class HaxeTypeCompatible {
 
     static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
                                                                  boolean strictBasicCheck,
-                                                                 boolean checkExplicitCasts,
+                                                                 boolean checkDirectCasts,
                                                                  boolean checkImplicitCasts,
                                                                  boolean contravariance,
                                                                  @Nullable HaxeAssignEvaluation parent
     ) {
-        AssignEvaluationSettings settings = new AssignEvaluationSettings(strictBasicCheck, checkExplicitCasts, checkImplicitCasts, contravariance, false);
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(strictBasicCheck, checkDirectCasts, checkImplicitCasts, contravariance, false);
         return canAssignToFromEvaluation(to,from, settings, parent);
     }
     static public HaxeAssignEvaluation canAssignToFromEvaluation(@NotNull ResultHolder to, @NotNull ResultHolder from,
@@ -189,8 +189,8 @@ public class HaxeTypeCompatible {
                 if (!evaluation.completed) evaluation.testEnumAssignRules();
                 if (!evaluation.completed) evaluation.testFunctionAssignRules();
                 if (!evaluation.completed) evaluation.testAnonymousAssignRules();
-                if (!evaluation.completed) evaluation.testAbstractAssignRules(settings.checkExplicitCasts(), settings.checkImplicitCasts());
-                if (!evaluation.completed) evaluation.testTypeParameterConstraints(settings.checkExplicitCasts(), settings.checkImplicitCasts());
+                if (!evaluation.completed) evaluation.testAbstractAssignRules(settings.checkDirectCasts(), settings.checkImplicitCasts());
+                if (!evaluation.completed) evaluation.testTypeParameterConstraints(settings.checkDirectCasts(), settings.checkImplicitCasts());
                 return true;
             });
             if (done == null) {

@@ -1,7 +1,7 @@
 class AbstractCallableCasts {
   public function testCalls() {
     //Normal
-    var fn:MyExplicitCast;
+    var fn:MyDirectCast;
     var ret:String = fn(1); // correct
     var ret:String = fn(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>); // wrong (incorrect parameter type)
 
@@ -11,7 +11,7 @@ class AbstractCallableCasts {
 
     //Generic
 
-    var fn:MyGenericExplicitCast<String>;
+    var fn:MyGenericDirectCast<String>;
     var ret:String = fn("1"); // correct
     var ret:String = fn(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error> ); // wrong (incorrect parameter type)
 
@@ -21,7 +21,7 @@ class AbstractCallableCasts {
   }
 }
 
-abstract MyExplicitCast(Int->String) to  Int->String{}
+abstract MyDirectCast(Int->String) to  Int->String{}
 abstract MyImplicitCast(Int->String){
 
   @:to
@@ -29,7 +29,7 @@ abstract MyImplicitCast(Int->String){
     return this;
   }
 }
-abstract MyGenericExplicitCast<T>(T->String) to  T->String{}
+abstract MyGenericDirectCast<T>(T->String) to  T->String{}
 abstract MyGenericImplicitCast<T>(T->String) {
 
   @:to

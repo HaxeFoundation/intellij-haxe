@@ -335,7 +335,7 @@ public class HaxeAssignEvaluation {
     }
   }
   // if to target is typeParameter with constraints, extract constraint and test
-  public void testTypeParameterConstraints(boolean checkExplicitCasts, boolean checkImplicitCasts) {
+  public void testTypeParameterConstraints(boolean checkDirectCasts, boolean checkImplicitCasts) {
     if (to instanceof SpecificHaxeClassReference toClassReference) {
       // check if to is a typeParameter constraint and extract constraint before checking enums
       if (toClassReference.getHaxeClassModel() instanceof HaxeGenericParamModel model) {
@@ -343,7 +343,7 @@ public class HaxeAssignEvaluation {
         if (constraint != null) {
           SpecificHaxeClassReference constraintClassType = constraint.getClassType();
           if (constraintClassType != null) {
-            HaxeAssignEvaluation constraintAssign = canAssignToFromEvaluation(constraintClassType.createHolder(), from.createHolder(), false, checkExplicitCasts, checkImplicitCasts);
+            HaxeAssignEvaluation constraintAssign = canAssignToFromEvaluation(constraintClassType.createHolder(), from.createHolder(), false, checkDirectCasts, checkImplicitCasts);
             if(constraintAssign.result) {
               complete(true, "typeParameter constraint could assign");
             }
@@ -359,7 +359,7 @@ public class HaxeAssignEvaluation {
         if (constraint != null) {
           SpecificHaxeClassReference constraintClassType = constraint.getClassType();
           if (constraintClassType != null) {
-            HaxeAssignEvaluation constraintAssign = canAssignToFromEvaluation(constraintClassType.createHolder(), to.createHolder(), false, checkExplicitCasts, checkImplicitCasts);
+            HaxeAssignEvaluation constraintAssign = canAssignToFromEvaluation(constraintClassType.createHolder(), to.createHolder(), false, checkDirectCasts, checkImplicitCasts);
             if(constraintAssign.result) {
               complete(true, "typeParameter constraint could assign");
             }
@@ -374,14 +374,14 @@ public class HaxeAssignEvaluation {
 
 
   private static final RecursionGuard<PsiElement> implicitCastRecursionGuard = RecursionManager.createGuard("implicitCastRecursionGuard");
-  private static final RecursionGuard<PsiElement> explicitCastRecursionGuard = RecursionManager.createGuard("explicitCastRecursionGuard");
+  private static final RecursionGuard<PsiElement> directCastRecursionGuard = RecursionManager.createGuard("directCastRecursionGuard");
 
   /**
    * Checks direct cast (to/from), implicit casts (@:to / @:From), @:transient, @:multivalue etc
    * Note: abstracts can be of all kinds of types(class, function enum, anonymous structures etc.) and can also be cased to these types
    * So there's a lot to check for here.
    */
-  public void testAbstractAssignRules(boolean checkExplicitCasts, boolean checkImplicitCasts) {
+  public void testAbstractAssignRules(boolean checkDirectCasts, boolean checkImplicitCasts) {
     if (to instanceof SpecificHaxeClassReference toClassReference && from instanceof SpecificHaxeClassReference fromClassReference ) {
 
       HaxeClassModel toModel = toClassReference.getHaxeClassModel();
@@ -435,11 +435,11 @@ public class HaxeAssignEvaluation {
 
       if(fromIsAbstract) {
 
-        if(checkExplicitCasts) {
-          List<SpecificTypeReference> explicitCasts = fromClassReference.getExplicitCastToTypes();
-          for (SpecificTypeReference explicitCastType : explicitCasts) {
-            if (HaxeTypeCompatible.canAssignToFromReference(toClassReference, explicitCastType, true, false)) {
-              complete(true, "Abstract (to) explicit cast match");
+        if(checkDirectCasts) {
+          List<SpecificTypeReference> directCasts = fromClassReference.getDirectCastToTypes();
+          for (SpecificTypeReference directCastType : directCasts) {
+            if (HaxeTypeCompatible.canAssignToFromReference(toClassReference, directCastType, true, false)) {
+              complete(true, "Abstract (to) direct cast match");
               return;
             }
           }
@@ -462,8 +462,8 @@ public class HaxeAssignEvaluation {
       }
       if (toIsAbstract) {
 
-        if(checkExplicitCasts) {
-          Boolean match = canAssignUsingExplicitCastFrom(toClassReference, fromClassReference);
+        if(checkDirectCasts) {
+          Boolean match = canAssignUsingDirectCastFrom(toClassReference, fromClassReference);
           if (match == Boolean.TRUE) return;
         }
         if(checkImplicitCasts) {
@@ -479,14 +479,14 @@ public class HaxeAssignEvaluation {
         SpecificTypeReference underlyingType = toModel.getUnderlyingType();
         if(underlyingType != null && fullyResolve(underlyingType, false).isDynamic()) {
 
-          boolean hasExplicitCastFromDynamic = toClassReference.getExplicitCastFromTypes().stream()
+          boolean hasDirectCastFromDynamic = toClassReference.getDirectCastFromTypes().stream()
                   .filter(SpecificHaxeClassReference.class::isInstance)
                   .map(SpecificHaxeClassReference.class::cast)
                   .map(SpecificHaxeClassReference::fullyResolveTypeDefAndUnwrapNullTypeReference)
                   .anyMatch(SpecificTypeReference::isDynamic);
 
-          if (hasExplicitCastFromDynamic) {
-            complete(true, "Abstract has explicit from Dynamic cast");
+          if (hasDirectCastFromDynamic) {
+            complete(true, "Abstract has direct from Dynamic cast");
           }
         }
 
@@ -502,8 +502,8 @@ public class HaxeAssignEvaluation {
     else if (to instanceof SpecificHaxeClassReference toClassReference) {
       boolean toIsAbstract = toClassReference.isAbstractType();
       if (toIsAbstract) {
-        if (checkExplicitCasts) {
-          Boolean match = canAssignUsingExplicitCastFrom(toClassReference, from);
+        if (checkDirectCasts) {
+          Boolean match = canAssignUsingDirectCastFrom(toClassReference, from);
           if (match == Boolean.TRUE) return;
         }
         if (checkImplicitCasts) {
@@ -517,11 +517,11 @@ public class HaxeAssignEvaluation {
       if(fromIsAbstract) {
 
         //TODO extract to method  to avoid duplication
-        if (checkExplicitCasts) {
-          List<SpecificTypeReference> explicitCasts = fromClassReference.getExplicitCastToTypes();
-          for (SpecificTypeReference explicitCastType : explicitCasts) {
-            if (HaxeTypeCompatible.canAssignToFromReference(to, explicitCastType, true, false)) {
-              complete(true, "Abstract (to) explicit cast match");
+        if (checkDirectCasts) {
+          List<SpecificTypeReference> directCasts = fromClassReference.getDirectCastToTypes();
+          for (SpecificTypeReference directCastType : directCasts) {
+            if (HaxeTypeCompatible.canAssignToFromReference(to, directCastType, true, false)) {
+              complete(true, "Abstract (to) direct cast match");
               return;
             }
           }
@@ -561,13 +561,13 @@ public class HaxeAssignEvaluation {
   /**
    * toReference (assign target) is abstract, check from-types from the abstract declaration and see if any of them accepts the fromReference type
    */
-  private @Nullable Boolean canAssignUsingExplicitCastFrom(SpecificHaxeClassReference toClassReference, SpecificTypeReference fromClassReference) {
-    return explicitCastRecursionGuard.computePreventingRecursion(toClassReference.context, true, () -> {
-      List<SpecificTypeReference> explicitCasts = toClassReference.getExplicitCastFromTypes();
-      for (SpecificTypeReference explicitCastType : explicitCasts) {
-        // Explicit casts  can be "chained" (ex. Int -> Float -> Single)
-        if (HaxeTypeCompatible.canAssignToFromReference(explicitCastType, fromClassReference, true, false)) {
-          complete(true, "Abstract (from) explicit cast match");
+  private @Nullable Boolean canAssignUsingDirectCastFrom(SpecificHaxeClassReference toClassReference, SpecificTypeReference fromClassReference) {
+    return directCastRecursionGuard.computePreventingRecursion(toClassReference.context, true, () -> {
+      List<SpecificTypeReference> directCasts = toClassReference.getDirectCastFromTypes();
+      for (SpecificTypeReference directCastType : directCasts) {
+        // direct casts  can be "chained" (ex. Int -> Float -> Single)
+        if (HaxeTypeCompatible.canAssignToFromReference(directCastType, fromClassReference, true, false)) {
+          complete(true, "Abstract (from) direct cast match");
           return true;
         }
       }

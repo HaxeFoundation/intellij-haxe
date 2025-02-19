@@ -124,9 +124,9 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return allEmpty;
   }
 
-  public List<SpecificTypeReference> getExplicitCastToTypes(@NotNull HaxeGenericResolver resolver) {
-    List<HaxeFunctionType> functionTypes = getExplicitCastToPsiFunctionTypes();
-    List<HaxeType> classTypes = getExplicitCastToPsiTypes();
+  public List<SpecificTypeReference> getDirectCastToTypes(@NotNull HaxeGenericResolver resolver) {
+    List<HaxeFunctionType> functionTypes = getDirectCastToPsiFunctionTypes();
+    List<HaxeType> classTypes = getDirectCastToPsiTypes();
 
     List<SpecificTypeReference> typeList = new ArrayList<>();
 
@@ -146,9 +146,9 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
 
   }
 
-  public List<SpecificTypeReference> getExplicitCastFromTypes(@NotNull HaxeGenericResolver resolver) {
-    List<HaxeFunctionType> functionTypes = getExplicitCastFromPsiFunctionTypes();
-    List<HaxeType> classTypes = getExplicitCastFromPsiTypes();
+  public List<SpecificTypeReference> getDirectCastFromTypes(@NotNull HaxeGenericResolver resolver) {
+    List<HaxeFunctionType> functionTypes = getDirectCastFromPsiFunctionTypes();
+    List<HaxeType> classTypes = getDirectCastFromPsiTypes();
 
     List<SpecificTypeReference> typeList = new ArrayList<>();
 
@@ -303,7 +303,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     return functionAndType;
   }
 
-  private @NotNull List<HaxeType> getExplicitCastToPsiTypes() {
+  private @NotNull List<HaxeType> getDirectCastToPsiTypes() {
     //TODO cache
     List<HaxeType> types = new LinkedList<>();
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
@@ -317,7 +317,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     }
     return types;
   }
-  private @NotNull List<HaxeFunctionType> getExplicitCastToPsiFunctionTypes() {
+  private @NotNull List<HaxeFunctionType> getDirectCastToPsiFunctionTypes() {
     //TODO cache
     List<HaxeFunctionType> types = new LinkedList<>();
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
@@ -330,7 +330,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     }
     return types;
   }
-  private @NotNull List<HaxeType> getExplicitCastFromPsiTypes() {
+  private @NotNull List<HaxeType> getDirectCastFromPsiTypes() {
     //TODO mlo: cache
     List<HaxeType> types = new LinkedList<>();
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
@@ -344,7 +344,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     }
     return types;
   }
-  private @NotNull List<HaxeFunctionType> getExplicitCastFromPsiFunctionTypes() {
+  private @NotNull List<HaxeFunctionType> getDirectCastFromPsiFunctionTypes() {
     //TODO mlo: cache
     List<HaxeFunctionType> types = new LinkedList<>();
     if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
