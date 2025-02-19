@@ -644,6 +644,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testDowncastTest() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testEitherTypeTest() throws Exception {
     doTestNoFixWithWarnings();
   }

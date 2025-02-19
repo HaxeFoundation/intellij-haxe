@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
@@ -99,8 +100,34 @@ public class HaxeCallExpressionEvaluation {
 
     public ResultHolder getReturnType() {
         ResultHolder resolve = callExpressionResolver.resolve(returnType);
+        resolve = addMissingTypeParametersIfNecessary(resolve);
         return resolve != null ? resolve : returnType;
     }
+
+    // TODO : HACK
+    // when Class<T> is used as arguments and we later use T we might be missing some typeParameters
+    // as you do not pass those when you pass a class type. ex with Array `fn<X>(Class<X>){} fn(Array)`
+    // when we resolve anything of type X we now only got array and not Array<T>, this method makes sure
+    // the return type wont miss any type Params
+    // example haxe code that might experience this problem:
+    // var newVar = Std.downcast(dynamicValue, Array);
+
+    private ResultHolder addMissingTypeParametersIfNecessary(ResultHolder resolve) {
+        if(resolve.getClassType() != null ) {
+            SpecificHaxeClassReference classType = resolve.getClassType();
+            HaxeClassModel classModel = classType.getHaxeClassModel();
+            if(classModel != null) {
+                ResultHolder instanceType = classModel.getInstanceType();
+                @NotNull ResultHolder[] currentSpecifics = classType.getSpecifics();
+                @NotNull ResultHolder[] expectedSpecifics = instanceType.getClassType().getSpecifics();
+                if(currentSpecifics.length == 0 &&  expectedSpecifics.length != 0) {
+                    return instanceType;
+                }
+            }
+        }
+        return resolve;
+    }
+
     public ResultHolder getCallie() {
         return callExpressionResolver.resolve(callie);
     }
