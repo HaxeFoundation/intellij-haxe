@@ -122,6 +122,12 @@ public class HaxeCallExpressionEvaluation {
                 @NotNull ResultHolder[] expectedSpecifics = instanceType.getClassType().getSpecifics();
                 if(currentSpecifics.length == 0 &&  expectedSpecifics.length != 0) {
                     return instanceType;
+                }else {
+                    @NotNull ResultHolder[]  specs = new  ResultHolder[currentSpecifics.length];
+                    for (int i = 0; i < currentSpecifics.length; i++) {
+                        specs[i] = addMissingTypeParametersIfNecessary(currentSpecifics[i]);
+                    }
+                    return SpecificHaxeClassReference.withGenerics(classType.getHaxeClassReference(), specs).createHolder();
                 }
             }
         }

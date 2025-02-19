@@ -790,6 +790,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testGenericFromClassArg() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testImmediateStringArrayIndexing() throws Exception {
     doTestNoFixWithWarnings();
   }
