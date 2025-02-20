@@ -45,7 +45,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
 
   @Override
   protected String buildFunctionsText(HaxeNamedComponent element) {
-    final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
+    final HaxeComponentType componentType = element.getComponentType();
     final StringBuilder result = new StringBuilder();
 
     final PsiClass containingClass = element instanceof PsiMember ? ((PsiMember)element).getContainingClass() : null;

@@ -65,22 +65,24 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
     if (haxeNamedComponent instanceof HaxeClass) {
       processInheritors(((HaxeClass)haxeNamedComponent).getQualifiedName(), queryParameterElement, consumer);
     }
-    else if (HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.METHOD ||
-             HaxeComponentType.typeOf(haxeNamedComponent) == HaxeComponentType.FIELD) {
-      final String nameToFind = haxeNamedComponent.getName();
-      if (nameToFind == null) return;
+    else {
+      HaxeComponentType componentType = haxeNamedComponent.getComponentType();
+      if (componentType == HaxeComponentType.METHOD || componentType == HaxeComponentType.FIELD) {
+        final String nameToFind = haxeNamedComponent.getName();
+        if (nameToFind == null) return;
 
-      HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
-      assert haxeClass != null;
+        HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
+        assert haxeClass != null;
 
-      processInheritors(haxeClass.getQualifiedName(), queryParameterElement, element -> {
-        for (HaxeNamedComponent subHaxeNamedComponent : HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType((HaxeClass)element)) {
-          if (nameToFind.equals(subHaxeNamedComponent.getName())) {
-            consumer.process(subHaxeNamedComponent);
+        processInheritors(haxeClass.getQualifiedName(), queryParameterElement, element -> {
+          for (HaxeNamedComponent subHaxeNamedComponent : HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType((HaxeClass)element)) {
+            if (nameToFind.equals(subHaxeNamedComponent.getName())) {
+              consumer.process(subHaxeNamedComponent);
+            }
           }
-        }
-        return true;
-      });
+          return true;
+        });
+      }
     }
   }
 

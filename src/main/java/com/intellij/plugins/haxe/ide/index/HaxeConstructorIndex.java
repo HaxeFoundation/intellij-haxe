@@ -113,7 +113,7 @@ public class HaxeConstructorIndex extends FileBasedIndexExtension<String, HaxeCo
           final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
           String packageString = packageAndName.getFirst();
           String classString = packageAndName.getSecond();
-          HaxeComponentType componentType = HaxeComponentType.typeOf(haxeClass);
+          HaxeComponentType componentType = haxeClass.getComponentType();
 
           if (haxeClass.isTypeDef()) {
             componentType = HaxeComponentType.TYPEDEF;

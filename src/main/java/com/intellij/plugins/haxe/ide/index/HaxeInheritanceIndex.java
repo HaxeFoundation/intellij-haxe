@@ -117,7 +117,7 @@ public class HaxeInheritanceIndex extends FileBasedIndexExtension<String, List<H
           final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
           String packageString = packageAndName.getFirst();
           String classString = packageAndName.getSecond();
-          final HaxeClassInfo value = new HaxeClassInfo(classString, packageString, HaxeComponentType.typeOf(haxeClass));
+          final HaxeClassInfo value = new HaxeClassInfo(classString, packageString, haxeClass.getComponentType());
           for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
             if (haxeType == null) continue;
             final String classNameCandidate = getClassNameCandidate(haxeType);

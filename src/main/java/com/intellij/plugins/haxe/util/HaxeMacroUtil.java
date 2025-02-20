@@ -44,9 +44,8 @@ public class HaxeMacroUtil {
     PsiTreeUtil.treeWalkUp(new PsiScopeProcessor() {
       @Override
       public boolean execute(@NotNull PsiElement element, ResolveState state) {
-        if (element instanceof HaxeNamedComponent) {
-          final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
-          if (haxeNamedComponent.getComponentName() != null && HaxeComponentType.isVariable(HaxeComponentType.typeOf(haxeNamedComponent))) {
+        if (element instanceof HaxeNamedComponent haxeNamedComponent) {
+          if (haxeNamedComponent.getComponentName() != null && HaxeComponentType.isVariable(haxeNamedComponent.getComponentType())) {
             result.add(haxeNamedComponent.getComponentName());
           }
         }

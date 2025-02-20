@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.HaxeComponentType;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -38,4 +39,8 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
   boolean isInline();
 
   String filterName();
+
+  // Added the slowdowns from HaxeComponentType.typeOf()
+  // se method description for explanation description
+  HaxeComponentType getComponentType();
 }

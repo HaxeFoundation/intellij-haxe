@@ -167,6 +167,12 @@ public enum HaxeComponentType {
     return null;
   }
 
+  /*
+    TODO MLO: we should try to avoid this one for now as instanceOf  used heavily and  causes slowdowns due to bug:
+    https://bugs.openjdk.org/browse/JDK-8180450
+     there is a pending backport to java 21 but already released versions of intellij might never be updated.
+    https://github.com/openjdk/jdk21u-dev/pull/1090
+   */
   @Nullable
   public static HaxeComponentType typeOf(PsiElement element) {
     if (element instanceof HaxeClassDeclaration ||

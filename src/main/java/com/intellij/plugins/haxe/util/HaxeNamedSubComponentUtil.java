@@ -59,7 +59,7 @@ public class HaxeNamedSubComponentUtil {
     }
     @NotNull
     public static List<HaxeNamedComponent> filterNamedComponentsByType(@NotNull List<HaxeNamedComponent> result, final HaxeComponentType type) {
-        return ContainerUtil.filter(result, component -> HaxeComponentType.typeOf(component) == type);
+        return ContainerUtil.filter(result, component -> component.getComponentType() == type);
     }
 
 
@@ -144,7 +144,7 @@ public class HaxeNamedSubComponentUtil {
             if (element != null) {
 
                 List<HaxeComponentType> typeFilter = Arrays.asList(excludeTypes);
-                if(typeFilter.contains(HaxeComponentType.typeOf(element))) {
+                if(typeFilter.contains(element.getComponentType())) {
                     return List.of();
                 }
 

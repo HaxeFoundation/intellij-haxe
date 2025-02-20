@@ -171,11 +171,11 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isInterface() {
-    return HaxeComponentType.typeOf(this) == HaxeComponentType.INTERFACE;
+    return getComponentType() == HaxeComponentType.INTERFACE;
   }
   @Override
   public boolean isTypeDef() {
-    return  HaxeComponentType.typeOf(this)  == HaxeComponentType.TYPEDEF;
+    return  getComponentType()  == HaxeComponentType.TYPEDEF;
   }
   @Override
   public boolean isAnonymousType() {
@@ -268,12 +268,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
     List<HaxeNamedComponent> namedSubComponents = HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(this, resolver);
-    return ContainerUtil.find(namedSubComponents,
-                              component -> {
-      HaxeComponentType type = HaxeComponentType.typeOf(component);
-      return ((type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD)
-              && name.equals(component.getName()));
-                              });
+    return ContainerUtil.find(namedSubComponents, component -> {
+      HaxeComponentType type = component.getComponentType();
+      return ((type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD) && name.equals(component.getName()));
+    });
   }
 
   @Nullable
@@ -282,8 +280,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     HaxeNamedComponent accessor = ContainerUtil.find(getHaxeMethodsSelf(resolver), new Condition<HaxeNamedComponent>() {
       @Override
       public boolean value(HaxeNamedComponent component) {
-        if (component instanceof HaxeMethod) {
-          HaxeMethodModel model = ((HaxeMethod)component).getModel();
+        if (component instanceof HaxeMethod method) {
+          HaxeMethodModel model = method.getModel();
           return model != null && model.isArrayAccessor() && model.getParameterCount() == 1;
         }
         return false;
@@ -347,7 +345,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public boolean isEnum() {
-    if (HaxeComponentType.typeOf(this) == HaxeComponentType.ENUM) return true;
+    if (getComponentType() == HaxeComponentType.ENUM) return true;
     if (isAbstractType()) {
       return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
     }
@@ -357,7 +355,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   public boolean isAnnotationType() {
     /* both: annotation & typedef in haxe are treated as typedef! */
-    return (HaxeComponentType.typeOf(this) == HaxeComponentType.TYPEDEF);
+    return (getComponentType() == HaxeComponentType.TYPEDEF);
   }
 
   @Override

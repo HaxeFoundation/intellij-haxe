@@ -149,7 +149,7 @@ public class HaxeComponentIndex extends FileBasedIndexExtension<String, HaxeClas
         String qualifiedName = haxeClass.getQualifiedName();
         if (qualifiedName != null) {
           final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
-          final HaxeClassInfo info = new HaxeClassInfo(packageAndName.getSecond(), packageAndName.getFirst(), HaxeComponentType.typeOf(haxeClass));
+          final HaxeClassInfo info = new HaxeClassInfo(packageAndName.getSecond(), packageAndName.getFirst(), haxeClass.getComponentType());
           // key should be just the name for easy lookups  using getItemsByName
           result.put(packageAndName.getSecond(), info);
         }

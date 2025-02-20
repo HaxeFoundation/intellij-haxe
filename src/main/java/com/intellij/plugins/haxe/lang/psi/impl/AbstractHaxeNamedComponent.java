@@ -58,8 +58,18 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   implements HaxeNamedComponent, PsiNamedElement {
 
 
+  private HaxeComponentType componentType = null;
+
   public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
     super(node);
+  }
+
+  @Override
+  public HaxeComponentType getComponentType() {
+    if(componentType == null) {
+      componentType = HaxeComponentType.typeOf(this);;
+    }
+    return componentType;
   }
 
   @Override
@@ -87,7 +97,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public Icon getIcon(int flags) {
-    final HaxeComponentType type = HaxeComponentType.typeOf(this);
+    final HaxeComponentType type = getComponentType();
     return type == null ? null : type.getIcon();
   }
 

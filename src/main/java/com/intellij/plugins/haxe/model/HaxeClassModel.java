@@ -123,11 +123,11 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   public boolean isClass() {
-    return !this.isAbstractType() && (typeOf(haxeClass) == CLASS);
+    return !this.isAbstractType() && (haxeClass.getComponentType() == CLASS);
   }
 
   public boolean isInterface() {
-    return typeOf(haxeClass) == INTERFACE;
+    return haxeClass.getComponentType() == INTERFACE;
   }
 
   public boolean isEnum() {
@@ -135,7 +135,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   public boolean isTypedef() {
-    return typeOf(haxeClass) == TYPEDEF;
+    return haxeClass.getComponentType() == TYPEDEF;
   }
 
   public boolean isTypeParameter() {

@@ -48,7 +48,7 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
   public HaxeClassLookupElement(HaxeClass haxeClass, HaxeComponentName name) {
     this.myComponentName = name;
     this.haxeClass = haxeClass;
-    this.type = HaxeComponentType.typeOf(haxeClass);
+    this.type = haxeClass.getComponentType();
     calculatePresentation();
   }
 
@@ -73,8 +73,6 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
       presentableText = getLookupString();
       return;
     }
-
-    HaxeComponentType type = HaxeComponentType.typeOf(haxeClass);
 
     model = haxeClass.getModel();
     if (model == null) {

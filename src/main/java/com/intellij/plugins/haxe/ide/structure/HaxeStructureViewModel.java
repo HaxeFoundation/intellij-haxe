@@ -72,8 +72,8 @@ public class HaxeStructureViewModel extends StructureViewModelBase implements St
     @NonNls public static final String ID = "SHOW_FIELDS";
 
     public boolean isVisible(TreeElement treeNode) {
-      if (!(treeNode instanceof HaxeStructureViewElement)) return true;
-      final PsiElement element = ((HaxeStructureViewElement)treeNode).getRealElement();
+      if (!(treeNode instanceof HaxeStructureViewElement structureViewElement)) return true;
+      final PsiElement element = structureViewElement.getRealElement();
 
       if (HaxeComponentType.typeOf(element) == HaxeComponentType.FIELD) {
         return false;

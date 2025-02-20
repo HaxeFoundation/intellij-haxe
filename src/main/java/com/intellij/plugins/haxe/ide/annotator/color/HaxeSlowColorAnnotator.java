@@ -82,7 +82,7 @@ public class HaxeSlowColorAnnotator implements Annotator {
     // Maybe this is class name
     PsiElement resolve = node.resolve();
     if (resolve instanceof  HaxeClass resultClass) {
-        final TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(resultClass), false);
+        final TextAttributesKey attribute = getAttributeByType(resultClass.getComponentType(), false);
         if (attribute != null) {
             holder.newSilentAnnotation(HighlightSeverity.INFORMATION).textAttributes(attribute).create();
         }

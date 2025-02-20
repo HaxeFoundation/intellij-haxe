@@ -90,10 +90,10 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
         subItems.addAll(HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(subClass));
     }
 
-    final boolean isInterface = HaxeComponentType.typeOf(haxeClass) == HaxeComponentType.INTERFACE;
+    final boolean isInterface = haxeClass.getComponentType() == HaxeComponentType.INTERFACE;
     if (!haxeClass.isTypeDef()) {
       for (HaxeNamedComponent haxeNamedComponent : HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass)) {
-        final HaxeComponentType type = HaxeComponentType.typeOf(haxeNamedComponent);
+        final HaxeComponentType type = haxeNamedComponent.getComponentType();
         if (type == HaxeComponentType.METHOD || type == HaxeComponentType.FIELD) {
           LineMarkerInfo<PsiElement> item = HaxeLineMarkerUtil.tryCreateMemberOverrideMarker(haxeNamedComponent, superItems);
           if (item != null) {

@@ -66,7 +66,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
 
     final List<HaxeNamedComponent> superItems = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers);
 
-    final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
+    final HaxeComponentType type = namedComponent.getComponentType();
     if (type == HaxeComponentType.METHOD) {
       final HaxeMethod methodDeclaration = (HaxeMethod)namedComponent;
       tryNavigateToSuperMethod(editor, methodDeclaration, superItems);

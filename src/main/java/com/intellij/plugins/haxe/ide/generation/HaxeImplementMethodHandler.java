@@ -49,9 +49,9 @@ public class HaxeImplementMethodHandler extends BaseHaxeGenerateHandler {
     Hashtable<String, HaxeNamedComponent> classMethods = new Hashtable<>();
     for (HaxeNamedComponent component : namedComponents) {
       final HaxeClass parentClass = PsiTreeUtil.getParentOfType(component, HaxeClass.class, true);
-      if (HaxeComponentType.typeOf(parentClass) == HaxeComponentType.CLASS) {
+      if (parentClass != null && parentClass.getComponentType()== HaxeComponentType.CLASS) {
         classMethods.put(component.getName(), component);
-      } else if (HaxeComponentType.typeOf(parentClass) == HaxeComponentType.INTERFACE) {
+      } else if (parentClass != null && parentClass.getComponentType() == HaxeComponentType.INTERFACE) {
         interfaceMethods.add(component);
       }
     }

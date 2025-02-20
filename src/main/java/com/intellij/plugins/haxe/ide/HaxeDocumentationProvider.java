@@ -54,8 +54,8 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     HtmlBuilder mainBuilder = new HtmlBuilder();
 
     HaxeNamedComponent namedComponent = getNamedComponent(element);
-    final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
     if (namedComponent != null) {
+      final HaxeComponentType type = namedComponent.getComponentType();
       if (type == null){
         resolveTypeAndMakeHeader(mainBuilder, namedComponent);
         return mainBuilder.toString();
@@ -107,7 +107,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     }
 
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
-    final HaxeComponentType type = HaxeComponentType.typeOf(namedComponent);
+    final HaxeComponentType type = namedComponent.getComponentType();
     HtmlBuilder definitionBuilder = new HtmlBuilder();
     //TODO support key-value iterator "vars" , capture vars etc
     if (type == null) {

@@ -111,7 +111,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
 
   @Override
   public boolean isTypeDef() {
-    return HaxeComponentType.typeOf(this) == HaxeComponentType.TYPEDEF;
+    return getComponentType() == HaxeComponentType.TYPEDEF;
   }
 
   @Override

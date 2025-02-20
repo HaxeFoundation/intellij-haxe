@@ -107,7 +107,7 @@ public class HaxeTypeDefInheritanceIndex extends FileBasedIndexExtension<String,
         String qualifiedName = haxeTypeDef.getQualifiedName();
         if (qualifiedName != null) {
           Pair<String, String> pair = HaxeResolveUtil.splitQName(qualifiedName);
-          final HaxeClassInfo value = new HaxeClassInfo(pair.getSecond(), pair.getFirst(), HaxeComponentType.typeOf(haxeTypeDef));
+          final HaxeClassInfo value = new HaxeClassInfo(pair.getSecond(), pair.getFirst(), haxeTypeDef.getComponentType());
           final HaxeTypeOrAnonymous haxeTypeOrAnonymous = haxeTypeDef.getTypeOrAnonymous();
           final HaxeType type = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getType();
           final HaxeAnonymousType anonymousType = haxeTypeOrAnonymous == null ? null : haxeTypeOrAnonymous.getAnonymousType();

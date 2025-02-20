@@ -71,7 +71,7 @@ public class HaxeImportModel extends HaxeImportableModel {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
       }
       List<HaxeModel> items = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
-      if (items != null && items.size() > 0) {
+      if (items != null && !items.isEmpty()) {
         result = items.stream()
           .filter(model -> model instanceof HaxeExposableModel)
           .flatMap(model -> ((HaxeExposableModel)model).getExposedMembers().stream())

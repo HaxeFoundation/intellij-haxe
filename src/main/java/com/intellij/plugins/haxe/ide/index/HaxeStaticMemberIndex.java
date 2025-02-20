@@ -131,7 +131,7 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
             String classString = packageAndName.getSecond();
 
             String memberName = field.getComponentName().getName();
-            HaxeComponentType componentType = HaxeComponentType.typeOf(field);
+            HaxeComponentType componentType = field.getComponentType();
 
             HaxeTypeTag tag = field.getTypeTag();
             if (tag != null) {

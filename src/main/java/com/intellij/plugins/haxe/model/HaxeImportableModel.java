@@ -54,7 +54,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     List<HaxeModel> result;
     result = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
     if (result != null && !result.isEmpty()) {
-      HaxeModel firstItem = result.get(0);
+      HaxeModel firstItem = result.getFirst();
       if (firstItem instanceof HaxeFileModel || firstItem instanceof HaxePackageModel) {
         result = ((HaxeExposableModel)firstItem).getExposedMembers();
       }
