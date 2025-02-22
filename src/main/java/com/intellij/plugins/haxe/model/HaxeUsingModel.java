@@ -83,9 +83,9 @@ public class HaxeUsingModel extends HaxeImportableModel {
   }
 
   @Nullable
-  public HaxeMethodModel findExtensionMethod(String name, SpecificHaxeClassReference classApplyTo) {
-    List<HaxeMethodModel> result = getExtensionMethods(classApplyTo, name);
-    return result.isEmpty() ? null : result.get(0);
+  public HaxeMethodModel findExtensionMethod(String name, SpecificTypeReference applyTo) {
+    List<HaxeMethodModel> result = getExtensionMethods(applyTo, name);
+    return result.isEmpty() ? null : result.getFirst();
   }
 
   @NotNull
@@ -96,14 +96,18 @@ public class HaxeUsingModel extends HaxeImportableModel {
   }
 
   @NotNull
-  private List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificHaxeClassReference classApplyTo, @Nullable String name) {
+  private List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo, @Nullable String name) {
     List<HaxeClassModel> classes = getClassModels();
     if (classes == null || classes.isEmpty()) return Collections.emptyList();
 
     List<HaxeMethodModel> result = null;
+    HaxeGenericResolver resolver = null;
 
-    HaxeGenericResolver resolver = classApplyTo.getGenericResolver();
-    ResultHolder classResult = classApplyTo.createHolder();
+    if (applyTo instanceof SpecificHaxeClassReference classReference) {
+      resolver = classReference.getGenericResolver();
+    }
+
+    ResultHolder classResult = applyTo.createHolder();
 
     for (HaxeClassModel classModel : classes) {
       List<HaxeMethodModel> methods = null;
@@ -132,7 +136,7 @@ public class HaxeUsingModel extends HaxeImportableModel {
         if (method != null && !method.isConstructor() && method.isStatic() && method.isPublic()) {
           List<HaxeParameterModel> parameters = method.getParameters();
           if (!parameters.isEmpty()) {
-            HaxeParameterModel paramModel = parameters.get(0);
+            HaxeParameterModel paramModel = parameters.getFirst();
             ResultHolder paramResult = paramModel.getType(resolver);
             final boolean applicable = paramResult.canAssign(classResult);
 

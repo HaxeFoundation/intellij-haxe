@@ -518,7 +518,7 @@ functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral // TODO consid
 
 arrayLiteral ::= <<isInitializersAllowed>> '[' (expressionList ','?)? ']'
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
-//mapLiteral ::= <<isInitializersAllowed>> <<pushInMapInitState>> '[' mapInitExpr ']'
+
 mapLiteral ::=  <<isInitializersAllowed>> <<pushStateMapInitializerOrMacro>> '[' <<resetMapInitExpressionCounter>> (mapInitializerExpressionList | mapLoopInitializerExpression)  <<hasMapInitExpressions>> ']'
 {pin=6 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" hooks=[popMapInitOrMacroState]}
 
@@ -917,15 +917,13 @@ private value ::= ('untyped' expression)
 {pin=1 }
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
+                    | stringLiteralExpression
                     | regularExpressionLiteral
                     | 'null' | 'true' | 'false'
                     | functionLiteral
-//                    | <<isInitializersAllowed>> mapLiteral
-//                    | <<isInitializersAllowed>> arrayLiteral
-                    |  mapLiteral
+                    | mapLiteral
                     | arrayLiteral
                     | objectLiteral
-                    | stringLiteralExpression
                     | blockStatement
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="literal expression"}
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT

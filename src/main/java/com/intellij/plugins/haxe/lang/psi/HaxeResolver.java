@@ -1413,8 +1413,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if (associatedElement instanceof HaxeAbstractTypeDeclaration) {
           HaxeAbstractClassModel model = new HaxeAbstractClassModel((HaxeAbstractTypeDeclaration)associatedElement);
           HaxeGenericResolver resolver = model.getGenericResolver(null);
-          HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
-          List<? extends PsiElement> resolved = resolveByClassAndSymbol(underlyingClass, resolver, reference);
+          SpecificTypeReference underlyingType = model.getUnderlyingType(resolver);
+          List<? extends PsiElement> resolved = resolveByClassAndSymbol(underlyingType, resolver, reference);
           if (!resolved.isEmpty())result = resolved;
         }
       }
@@ -1668,7 +1668,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if(result== null) {
       extensionsMethodGuard.prohibitResultCaching(lefthandExpression);
     }
-
+    SpecificTypeReference type = result.getType();
     SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
@@ -1761,7 +1761,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     if (log.isTraceEnabled()) log.trace(traceMsg("trying keywords (super, new) arrays, literals, etc."));
     // Try resolving keywords (super, new), arrays, literals, etc.
-    return resolveByClassAndSymbol(haxeClass, reference);
+    return resolveByClassAndSymbol(type, null, reference);
 
   }
 
@@ -1988,9 +1988,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (useUnderlyingForAbstract) {
         HaxeClassModel classModel = leftClass.getModel();
         HaxeAbstractClassModel abstractClassModel = (HaxeAbstractClassModel) classModel;
-        return resolveByClassAndSymbol(abstractClassModel.getUnderlyingClass(resolver), resolver, reference);
+        return resolveByClassAndSymbol(abstractClassModel.getUnderlyingType(resolver), resolver, reference);
       }else {
-        return resolveByClassAndSymbol(leftClass, resolver, reference);
+        return resolveByClassAndSymbol(leftClass.getModel().getInstanceType().getType(), resolver, reference);
       }
     }
     else {
@@ -2004,7 +2004,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         HaxeReference superReference = sup.getReferenceExpression();
         HaxeResolveResult superClassResult = superReference.resolveHaxeClass();
         SpecificHaxeClassReference superClass = superClassResult.getSpecificClassReference(leftClass, resolver);
-        result = resolveByClassAndSymbol(superClass.getHaxeClass(), superClass.getGenericResolver(), reference);
+        result = resolveByClassAndSymbol(superClass,null, reference);
         if (null != result && !result.isEmpty()) {
           break;
         }
@@ -2013,74 +2013,60 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
   }
 
-  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeResolveResult resolveResult,
-                                                                    @NotNull HaxeReference reference) {
-    if (resolveResult == null) {
-      if (log.isDebugEnabled()) LogResolution(null, "(resolveByClassAndSymbol)");
-    }
-    return resolveResult == null ? Collections.<PsiElement>emptyList() : resolveByClassAndSymbol(resolveResult.getHaxeClass(),
-                                                                                                 resolveResult.getGenericResolver(),
-                                                                                                 reference);
-  }
 
-  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass, @NotNull HaxeReference reference) {
-    if (leftClass != null) { // no need wasting resources getting  resolver if type is null
-      HaxeGenericResolver resolver = getGenericResolver(leftClass, reference);
-      return resolveByClassAndSymbol(leftClass, resolver, reference);
-    }
-    return Collections.emptyList();
-  }
 
-  private static List<? extends PsiElement> resolveByClassAndSymbol(@Nullable HaxeClass leftClass,
+
+  private static List<? extends PsiElement> resolveByClassAndSymbol(@NotNull SpecificTypeReference typeReference,
                                                                     @Nullable HaxeGenericResolver resolver,
                                                                     @NotNull HaxeReference reference) {
     // TODO: This method is very similar to resolveChain, and they should probably be combined.
 
-    if (leftClass != null) {
-      final HaxeClassModel leftClassModel = leftClass.getModel();
-      HaxeBaseMemberModel member = leftClassModel.getMember(reference.getReferenceName(), resolver);
-      if (member != null) return asList(member.getNamePsi());
+    if (typeReference  instanceof   SpecificHaxeClassReference classReference) {
+      HaxeClass leftClass = classReference.getHaxeClass();
+      if(leftClass!= null ) {
+        final HaxeClassModel leftClassModel = leftClass.getModel();
+        HaxeBaseMemberModel member = leftClassModel.getMember(reference.getReferenceName(), resolver);
+        if (member != null) return asList(member.getNamePsi());
 
-      // if class is abstract try find in forwards
-      if (leftClass.isAbstractType()) {
-        HaxeAbstractClassModel model = (HaxeAbstractClassModel)leftClass.getModel();
-        if (model.isForwarded(reference.getReferenceName())) {
-          final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
-          if (underlyingClass != null) {
-            member = underlyingClass.getModel().getMember(reference.getReferenceName(), resolver);
-            if (member != null) {
-              return asList(member.getNamePsi());
+        // if class is abstract try find in forwards
+        if (leftClass.isAbstractType()) {
+          HaxeAbstractClassModel model = (HaxeAbstractClassModel) leftClass.getModel();
+          if (model.isForwarded(reference.getReferenceName())) {
+            final HaxeClass underlyingClass = model.getUnderlyingClass(resolver);
+            if (underlyingClass != null) {
+              member = underlyingClass.getModel().getMember(reference.getReferenceName(), resolver);
+              if (member != null) {
+                return asList(member.getNamePsi());
+              }
             }
           }
         }
       }
+    }
+    // try find using
+    return tryResolveExtensionMethod(typeReference, reference);
+  }
+  private  static  List<? extends PsiElement> tryResolveExtensionMethod(@NotNull SpecificTypeReference typeReference, @NotNull HaxeReference reference) {
+    PsiElement elementContext = typeReference.getElementContext();
+    HaxeFileModel fileModel = HaxeFileModel.fromElement(elementContext);
+    if (fileModel != null) {
+      HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)HaxeProjectModel.fromElement(elementContext).getStdPackage();
+      final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
+      usingModels.addAll(fileModel.getUsingModels());
 
-      // try find using
-      HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
-      if (fileModel != null) {
-        SpecificHaxeClassReference leftClassReference =
-          SpecificHaxeClassReference.withGenerics(leftClassModel.getReference(),
-                                                  null == resolver ? null : resolver.getSpecificsFor(leftClass));
+      HaxeResolveUtil.walkDirectoryImports(fileModel, (importModel) -> {
+        usingModels.addAll(importModel.getUsingModels());
+        return true;
+      });
 
-        HaxeStdPackageModel stdPackageModel = (HaxeStdPackageModel)HaxeProjectModel.fromElement(leftClass).getStdPackage();
-        final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
-        usingModels.addAll(fileModel.getUsingModels());
-
-        HaxeResolveUtil.walkDirectoryImports(fileModel, (importModel) -> {
-          usingModels.addAll(importModel.getUsingModels());
-          return true;
-        });
-
-        for (int i = usingModels.size() - 1; i >= 0; --i) {
-          HaxeUsingModel model = usingModels.get(i);
-          HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), leftClassReference);
-          if (method != null) {
-            return asList(method.getNamePsi());
-          }
+      for (int i = usingModels.size() - 1; i >= 0; --i) {
+        HaxeUsingModel model = usingModels.get(i);
+        HaxeMethodModel method = model.findExtensionMethod(reference.getReferenceName(), typeReference);
+        if (method != null) {
+          return asList(method.getNamePsi());
         }
       }
     }
-
     return Collections.emptyList();
   }
 
