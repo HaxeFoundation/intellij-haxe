@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import lombok.AllArgsConstructor;
@@ -39,8 +40,13 @@ public class CallExpressionParameterModel {
     boolean optional = model.isOptional();
 
     SpecificTypeReference init = model.hasInit() ? HaxeExpressionEvaluator.evaluate(model.getVarInitPsi()).result.getType() : null;
-    SpecificTypeReference type = model.getType().getType();
+    SpecificTypeReference type =  model.getType().getType();
     SpecificTypeReference restType  = rest ? getTypeFromMacroVarArgOrRestType(type) : null;
+    // SpecificTypeReference does not have a way to convey that its a rest arg(...Type), so we wrap in haxe std restType
+    if(model.isRest()) {
+      type = SpecificHaxeClassReference.wrapInRest(model.getBasePsi(), type.createHolder());
+
+    }
 
     // if parameter does not have a typeTag or init expression we must resolve type from usage
     if(model.isUntyped()) {

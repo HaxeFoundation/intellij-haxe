@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -100,16 +101,23 @@ public class HaxeCallExpressionUtil {
     boolean isMacroFunction = methodModel.isMacro() && !methodModel.isStatic();
     boolean isStaticExtension = callExpression.resolveIsStaticExtension();
 
-    SpecificHaxeClassReference callie = tryGetCallieType(callExpression, method, isStaticExtension);
-    if(!callie.isUnknown()) genericResolver.addAll(callie.getGenericResolver());
+    SpecificHaxeClassReference callieClass = null;
+    SpecificTypeReference callieType = tryGetCallieType(callExpression, method, isStaticExtension);
+    if (callieType instanceof SpecificHaxeClassReference classReference) {
+      if (!classReference.isUnknown()) {
+        callieClass = classReference;
+        genericResolver.addAll(callieClass.getGenericResolver());
+      }
+    }
 
-    HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callie, method);
+    HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callieClass, method);
 
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
     evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
     evaluation.isStaticExtension = isStaticExtension;
     evaluation.isMacroFunction = isMacroFunction;
-    evaluation.callie = callie;
+    evaluation.isBindCall = isBindCall(callExpression);
+    evaluation.callie = callieType;
 
 
 
@@ -140,14 +148,30 @@ public class HaxeCallExpressionUtil {
     List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression);
     List<CallExpressionParameterModel> parameterList = getParameterList(function);
     ResultHolder returnType = function.getReturnType();
-    
+
 
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, genericResolver, null);
+    SpecificTypeReference callie = tryGetCallieType(callExpression, null, evaluation.isStaticExtension);
     evaluation.isStaticExtension = false;
     evaluation.isMacroFunction = false;
-    evaluation.callie = tryGetCallieType(callExpression, null, evaluation.isStaticExtension);
+    evaluation.isBindCall = isBindCall(callExpression);
+    evaluation.callie = callie;
 
     return evaluation;
+  }
+
+  public static boolean isBindCall(@NotNull HaxeCallExpression callExpression) {
+    HaxeExpression expression = callExpression.getExpression();
+    if (expression != null) {
+      HaxeReference left = HaxeResolveUtil.getLeftReference(expression);
+      if (left != null) {
+        ResultHolder result = HaxeExpressionEvaluator.evaluate(left).result;
+        if (result.isFunctionType() && expression.getLastChild().textMatches("bind")) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @Nullable
@@ -258,11 +282,11 @@ public class HaxeCallExpressionUtil {
 
 
   @NotNull
-  public static SpecificHaxeClassReference tryGetCallieType(@NotNull HaxeCallExpression callExpression) {
+  public static SpecificTypeReference tryGetCallieType(@NotNull HaxeCallExpression callExpression) {
     return tryGetCallieType(callExpression, null, false);
   }
   @NotNull
-  public static SpecificHaxeClassReference tryGetCallieType(@NotNull HaxeCallExpression callExpression,  @Nullable HaxeMethod method, boolean extensionMethod) {
+  public static SpecificTypeReference tryGetCallieType(@NotNull HaxeCallExpression callExpression,  @Nullable HaxeMethod method, boolean extensionMethod) {
 
     HaxeExpression expression = callExpression.getExpression();
     if (expression != null) {
@@ -272,7 +296,7 @@ public class HaxeCallExpressionUtil {
         PsiElement child = children[children.length - 2];
         HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(child);
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(child, evaluatorContext, null).result;
-        if (!result.isUnknown() && result.getClassType() != null) return result.getClassType();
+        if (!result.isUnknown()) return result.getType(); // can be any "type" class/function/enum
 
       }else {
         // if only 1 child then we are calling on default "this" class reference

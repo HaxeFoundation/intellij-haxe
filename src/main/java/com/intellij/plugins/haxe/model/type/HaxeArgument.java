@@ -6,6 +6,9 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isMacroVarArgOrRestType;
+import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
+
 public class HaxeArgument {
   @Getter final private PsiElement element;
   @Getter final private int index;
@@ -43,6 +46,7 @@ public class HaxeArgument {
   private String buildStringRepresentation(final boolean withConstantValue) {
     StringBuilder builder = new StringBuilder();
     if (isOptional()) builder.append('?');
+    if (isRest() && !isRestClassType(type.getType())) builder.append("...");
     if (withConstantValue && hasName()) {
       builder.append(getName());
       builder.append(':');

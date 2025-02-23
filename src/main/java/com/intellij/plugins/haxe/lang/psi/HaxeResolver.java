@@ -1668,7 +1668,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if(result== null) {
       extensionsMethodGuard.prohibitResultCaching(lefthandExpression);
     }
-    SpecificTypeReference type = result.getType();
+    SpecificTypeReference type = result != null ? result.getType()  : null;
     SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
@@ -1761,8 +1761,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     if (log.isTraceEnabled()) log.trace(traceMsg("trying keywords (super, new) arrays, literals, etc."));
     // Try resolving keywords (super, new), arrays, literals, etc.
-    return resolveByClassAndSymbol(type, null, reference);
-
+    if(type instanceof SpecificFunctionReference) {
+      //check if reference is bind
+      // Note: there is no code to resolve for this method so we just return the function it applies to
+      if ("bind".equals(identifier)) {
+        PsiElement resolve = leftReference.resolve();
+        if(resolve instanceof  HaxeNamedComponent namedComponent) {
+          return List.of(namedComponent);
+        }
+      }
+    }
+    if(type != null) return resolveByClassAndSymbol(type, null, reference);
+    return  List.of();
   }
 
 

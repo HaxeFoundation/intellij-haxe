@@ -23,6 +23,7 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAbstractAssig
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeClassAssignUtil.*;
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAnonymousAssignUtil.*;
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromEvaluation;
+import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
 
 
 @CustomLog
@@ -284,14 +285,24 @@ public class HaxeAssignEvaluation {
       HaxeArgument fromArg = fromArguments.get(n);
       HaxeArgument toArg = toArguments.get(n);
 
-      if(toArg.getType().isClassType() && toArg.getType().isMissingClassModel()) continue;
+      if (toArg.getType().isClassType() && toArg.getType().isMissingClassModel()) continue;
       if (!toArg.getType().isUnknown()) {
         // TO can accept optional but not the other way around.
         // if TO has optional from and  FROM does not then the assignment should fail.
         if (!fromArg.isOptional() && toArg.isOptional()) return false;
 
-        boolean argCompatibility = HaxeTypeCompatible.canAssignToFromContravariance(toArg.getType(), fromArg.getType(), true,false);
+        ResultHolder fromArgType = fromArg.getType();
+        ResultHolder toArgtype = toArg.getType();
 
+        if (fromArg.isRest() && toArg.isRest()) {
+          if (isRestClassType(fromArgType.getType())) {
+            fromArgType = tryExtractRestType(fromArgType);
+          }
+          if (isRestClassType(toArgtype.getType())) {
+            toArgtype = tryExtractRestType(toArgtype);
+          }
+        }
+        boolean argCompatibility = HaxeTypeCompatible.canAssignToFromContravariance(toArgtype, fromArgType, true, false);
         if (!argCompatibility) {
           return false;
         }
@@ -301,6 +312,14 @@ public class HaxeAssignEvaluation {
     // Void return on the "to" function just means that the value isn't used/cared about. See
     // the Haxe manual, section 3.5.4 at https://haxe.org/manual/type-system-unification-function-return.html
     return to.returnValue == null || (to.returnValue.isVoid() || to.returnValue.canAssign(from.returnValue));
+  }
+
+  private static @NotNull ResultHolder tryExtractRestType(ResultHolder fromArgType) {
+    SpecificHaxeClassReference classType = fromArgType.getClassType();
+    if(classType == null) return fromArgType;
+    @NotNull ResultHolder[] specifics = classType.getSpecifics();
+    if(specifics.length != 1) return fromArgType;
+    return specifics[0];
   }
 
   private static @NotNull List<HaxeArgument> getArgumentsWithoutVoid(@NotNull SpecificFunctionReference to) {

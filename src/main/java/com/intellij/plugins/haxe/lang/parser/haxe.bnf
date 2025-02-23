@@ -538,9 +538,12 @@ private namedTypeOrAnonymous ::= ([optionalMark] [componentName ':'] (restArgume
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
 private optionalFunctionTypeWithoutName ::= [optionalMark] '(' functionType ')' {pin=3}
 restArgumentType ::= '...' typeWrapper
+// "oldRestArgumentType" allow us to have ... start arguments in  old functionType style without
+// it consuming parts of the rest of function type (like restArgumentType would as it also looks for functionTypes).
+oldRestArgumentType ::= '...' typeOrAnonymous {extends=restArgumentType}
 private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
-oldFunctionTypeArgument ::=   (optionalMark? ('(' functionType ')' |  ('(' typeOrAnonymous ')'  | typeOrAnonymous ))) {elementType="functionArgument" pin(".*")=3}
+oldFunctionTypeArgument ::=  oldRestArgumentType | (optionalMark? ('(' functionType ')' |  ('(' typeOrAnonymous ')'  | typeOrAnonymous ))) {elementType="functionArgument" pin(".*")=3}
 
 // /////////////////////////////////////////////////////////////////////////////////////////
 /*

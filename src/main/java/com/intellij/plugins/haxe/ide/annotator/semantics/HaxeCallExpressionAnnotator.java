@@ -32,9 +32,9 @@ public class HaxeCallExpressionAnnotator implements Annotator {
           HaxeNamedComponent component = (HaxeNamedComponent)resolved;
           HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(reference);
 
-          SpecificHaxeClassReference callieType = tryGetCallieType(callExpression);
-          if (!callieType.isUnknown()) {
-            resolver.addAll(callieType.getGenericResolver());
+          SpecificTypeReference callieType = tryGetCallieType(callExpression);
+          if (callieType instanceof SpecificHaxeClassReference classReference &&  !callieType.isUnknown()) {
+            resolver.addAll(classReference.getGenericResolver());
           }
 
 

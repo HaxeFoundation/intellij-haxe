@@ -84,6 +84,9 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
         }
 
         PsiElement element = nameIdentifier;
+        // ignore unnamed (avoid incorrect annotation for function bind etc.)
+        if(reference.textMatches("_")&& !(reference.getParent() instanceof HaxeReference)) return;
+
         TextRange from = TextRange.from(0, element.getTextLength());
         if (reference.getParent() instanceof HaxeCallExpression callExpression) {
           //"expand" so quickfix covers entire call expression

@@ -42,6 +42,7 @@ import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiter
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.searchReferencesForTypeParameters;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
+import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.isBindCall;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.tryGetCallieType;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.resolveMacroTypesForFunction;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
@@ -1456,21 +1457,29 @@ public class HaxeExpressionEvaluatorHandlers {
 
       HaxeMethodModel methodModel = tryGetMethodModel(callExpression);
       if(methodModel != null) {
+        if(isBindCall(callExpression)) {
+          return tryHandleFunctionBind(methodModel.getFunctionType(resolver), callExpression);
+        }
+
         ResultHolder assignHint = resolver.getAssignHint();
         SpecificTypeReference assignHintType = assignHint == null ? null : assignHint.getType();
         HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
         HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
         functionType = evaluate.getFunctionType(methodModel);
       }else {
-        SpecificHaxeClassReference callieClassRef = tryGetCallieType(callExpression);
-        if(!callieClassRef.isUnknown()) {
-          HaxeGenericResolver callieResolver = callieClassRef.getGenericResolver();
-          HaxeClass callieType = callieClassRef.getHaxeClass();
+        SpecificTypeReference callieRef = tryGetCallieType(callExpression);
+        if (callieRef instanceof SpecificHaxeClassReference classReference &&  !classReference.isUnknown()) {
+          HaxeGenericResolver callieResolver = classReference.getGenericResolver();
+          HaxeClass callieType = classReference.getHaxeClass();
           HaxeClass methodTypeClassType = tryGetMethodDeclaringClass(callExpression);
           if (callieType != null && methodTypeClassType != null) {
 
             localResolver.addAll(callieResolver);
             localResolver = localResolver.translateFromTo(callieType, methodTypeClassType);
+          }
+        }else if (callieRef instanceof SpecificFunctionReference functionReference) {
+          if(isBindCall(callExpression)) {
+            return tryHandleFunctionBind(functionReference, callExpression);
           }
         }
         functionType = handle(callExpressionRef, context, localResolver).getType();
@@ -1623,6 +1632,40 @@ public class HaxeExpressionEvaluatorHandlers {
 
     // @TODO: resolve the function type return type
     return createUnknown(callExpression);
+  }
+
+  private static ResultHolder tryHandleFunctionBind(SpecificFunctionReference functionReference, HaxeCallExpression callExpression) {
+    List<HaxeArgument> arguments = functionReference.getArguments();
+    List<HaxeArgument> argumentsToKeep = new ArrayList<>();
+
+    HaxeCallExpressionList expressionList = callExpression.getExpressionList();
+    if (expressionList == null) {
+      // no binds, drop all optionals
+      for (HaxeArgument argument : arguments) {
+        if (!argument.isOptional()) {
+          argumentsToKeep.add(argument);
+        }
+      }
+      return functionReference.performMethodBind(argumentsToKeep).createHolder();
+    } else {
+      List<HaxeExpression> expressions = expressionList.getExpressionList();
+      for (int i = 0; i < arguments.size(); i++) {
+        HaxeExpression expr = expressions.size() > i ? expressions.get(i) : null;
+        HaxeArgument argument = arguments.get(i);
+        boolean optional = argument.isOptional();
+
+        // The underscore _ can be skipped for trailing arguments
+        // By default, trailing optional arguments are bound to their default values and do not become arguments of the result function
+        if (expr == null) {
+          if (!optional) {
+            argumentsToKeep.add(argument);
+          }
+        } else if (expr.textMatches("_")) {
+          argumentsToKeep.add(argument);
+        }
+      }
+      return functionReference.performMethodBind(argumentsToKeep).createHolder();
+    }
   }
 
   @Nullable

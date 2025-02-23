@@ -63,6 +63,9 @@ public abstract class SpecificTypeReference {
   public static final String ENUM_VALUE_MAP = "haxe.ds.EnumValueMap";
   public static final String MAP_INTERFACE = "haxe.Constraints.IMap";
   public static final String ANY = "Any"; // Specifically, the "Any" class; See <Haxe>/std/Any.hx.
+  // varargs
+  public static final String REST = "haxe.Rest";
+  public static final String EXTERN_REST = "haxe.extern.Rest";
 
   /**
    * The context is a parent to be used in a treeWalkUp -- see {@link PsiElement#getContext()}.
@@ -87,6 +90,10 @@ public abstract class SpecificTypeReference {
 
     final ResultHolder[] generics = new ResultHolder[]{keyType, valueType};
     return getStdClass(MAP, context, generics);
+  }
+
+  public static SpecificTypeReference wrapInRest(PsiElement basePsi, ResultHolder holder) {
+      return getStdClass(REST, basePsi, new ResultHolder[]{holder});
   }
 
   /**

@@ -29,10 +29,8 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorReturnInfo;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.CachedValueProvider;
@@ -46,6 +44,7 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluateWithRecursionGuard;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.isDynamicBecauseOfNullValueInit;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
+import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 
 public class HaxeTypeResolver {
@@ -473,7 +472,7 @@ public class HaxeTypeResolver {
       HaxeFunctionArgument argument = list.get(i);
       ResultHolder argumentType = getTypeFromFunctionArgument(argument);
       boolean optional = argument.getOptionalMark() != null;
-      boolean rest = argument.getRestArgumentType() != null;
+      boolean rest = argument.getRestArgumentType() != null || isRestClassType(argumentType.getType());
       args.add(new HaxeArgument(argument, i, optional, rest, argumentType, getArgumentName(argument)));
     }
 
@@ -519,8 +518,27 @@ public class HaxeTypeResolver {
 
     HaxeTypeOrAnonymous typeOrAnonymous = argument.getTypeOrAnonymous();
     if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+    
+    ResultHolder restFunctionType = getRestArgumentType(argument.getRestArgumentType());
+    if (restFunctionType != null) return restFunctionType;
 
     return SpecificTypeReference.getUnknown(argument).createHolder();
+  }
+
+  private static @Nullable ResultHolder getRestArgumentType(HaxeRestArgumentType restArgumentType) {
+    if(restArgumentType != null) {
+
+      HaxeFunctionType restFunctionType = restArgumentType.getFunctionType();
+      if (restFunctionType != null) return wrapRest(getTypeFromFunctionType(restFunctionType), restArgumentType);
+
+      HaxeTypeOrAnonymous restTypeOrAnonymous = restArgumentType.getTypeOrAnonymous();
+      if (restTypeOrAnonymous != null) return wrapRest(getTypeFromTypeOrAnonymous(restTypeOrAnonymous), restArgumentType);
+    }
+    return null;
+  }
+
+  private static @Nullable ResultHolder wrapRest(@NotNull ResultHolder holder, HaxeRestArgumentType restArgumentType) {
+    return SpecificHaxeClassReference.wrapInRest(restArgumentType, holder).createHolder();
   }
 
   /**
