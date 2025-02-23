@@ -14,6 +14,9 @@ class Test {
             arrayInt([1,2,3]);
             arrayInt(<error descr="Type mismatch (Expected: 'Array<Int>' got: 'Array<String>')">["1","2","3"]</error>); // WRONG
 
+            arrayFloat([1,2,3]);// ints have direct cast to floats so this should be allowed
+            arrayFloat(<error descr="Type mismatch (Expected: 'Array<Float>' got: 'Array<String>')">["1","2","3"]</error>);// Wrong
+
             // Array<Dynamic> parameter accepts all data types
             arrayDynamic([new Test()]) ;
             arrayDynamic([1]) ;
@@ -45,6 +48,7 @@ class Test {
 
       public function arrayString(arg:Array<String>){}
       public function arrayInt(arg:Array<Int>){}
+      public function arrayFloat(arg:Array<Float>){}
       public function arrayAny(arg:Array<Any>){}
       public function arrayDynamic(arg:Array<Dynamic>){}
 
