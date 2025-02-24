@@ -133,7 +133,7 @@ public class HaxeUsingModel extends HaxeImportableModel {
       if (methods == null || methods.isEmpty()) continue;
 
       for (HaxeMethodModel method : methods) {
-        if (method != null && !method.isConstructor() && method.isStatic() && method.isPublic()) {
+        if (method != null && !method.isConstructor() && method.isStatic() && method.isPublic() && !method.HasNoUsingMeta()) {
           List<HaxeParameterModel> parameters = method.getParameters();
           if (!parameters.isEmpty()) {
             HaxeParameterModel paramModel = parameters.getFirst();
