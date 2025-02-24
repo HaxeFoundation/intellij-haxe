@@ -584,6 +584,10 @@ public class HaxeExpressionEvaluator {
         ResultHolder holder = searchReferencesForTypeParameters(componentName, context, resolver, lastValue, continueFrom);
         if (!holder.isUnknown()) return holder;
       }
+
+      if(lastValue.isEnumValueType()) {
+          lastValue =lastValue.getEnumValueType().getType();
+      }
       return lastValue;
     }
 
