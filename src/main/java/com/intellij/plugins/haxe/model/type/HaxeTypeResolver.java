@@ -731,7 +731,13 @@ public class HaxeTypeResolver {
     return genericConstraintRecursionGuard.doPreventingRecursion(constraint, true, () -> {
 
       HaxeTypeOrAnonymous typeOrAnonymous = constraint.getTypeOrAnonymous();
-      if (typeOrAnonymous != null) return getTypeFromTypeOrAnonymous(typeOrAnonymous);
+      if (typeOrAnonymous != null){
+        HaxeGenericResolver resolver = new HaxeGenericResolver();
+        if(constraint.getParent() instanceof HaxeTypeParameterDeclaration declaration) {
+          resolver.add(declaration, declaration.getModel().getInstanceType());
+        }
+        return getTypeFromTypeOrAnonymous(typeOrAnonymous, resolver);
+      }
 
       HaxeFunctionType functionType = constraint.getFunctionType();
       if (functionType != null) return getTypeFromFunctionType(functionType);

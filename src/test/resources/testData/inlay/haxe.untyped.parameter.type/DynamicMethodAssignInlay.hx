@@ -7,7 +7,7 @@ class DynamicMethodFunctionAssignInlay<C:{length:Int}> {
         fntype = (x/*<# :Int #>*/)  -> { x * 2; };
         x.dynamicFn = (x/*<# :String #>*/)  -> { x.toLowerCase(); };
         x.dynamicFn = function (x/*<# :String #>*/)  { "myString"; };
-        x.dynamicGenericFn = function (x/*<# :{length:Int} #>*/) { "myString"; };
+        x.dynamicGenericFn = function (x/*<# :C:{length:Int} #>*/) { "myString"; };
     }
 
     public dynamic function dynamicFn(x:String):String {return "";}

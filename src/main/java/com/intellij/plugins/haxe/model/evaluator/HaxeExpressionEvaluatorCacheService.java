@@ -40,16 +40,16 @@ public class HaxeExpressionEvaluatorCacheService  {
     if (cacheMap.containsKey(key)) {
       return cacheMap.get(key);
     }
-    else {
-      ResultHolder holder = _handle(element, context, resolver);
-      if(holder == null) return SpecificTypeReference.getUnknown(element).createHolder();
-      if (holder.cacheable) {
-        if (!holder.isUnknown() && !holder.containsUnknownTypes()) {
-          cacheMap.put(key, holder);
-        }
+
+    ResultHolder holder = _handle(element, context, resolver);
+    if (holder == null) return SpecificTypeReference.getUnknown(element).createHolder();
+    if (holder.cacheable && !holder.isUnknown()) {
+      if (!holder.containsUnknownTypes()) {
+        cacheMap.put(key, holder);
       }
-      return holder;
     }
+    return holder;
+
   }
 
 

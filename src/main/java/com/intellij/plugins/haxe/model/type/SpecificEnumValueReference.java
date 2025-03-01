@@ -186,4 +186,9 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
   public SpecificTypeReference withElementContext(PsiElement element) {
     return new SpecificEnumValueReference( declaration, element, resolver,  constantValue) ;
   }
+
+  @Override
+  public PsiElement getTypePsi() {
+    return declaration;
+  }
 }

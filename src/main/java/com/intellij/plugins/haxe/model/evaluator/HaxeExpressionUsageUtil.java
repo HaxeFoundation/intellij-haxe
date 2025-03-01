@@ -145,7 +145,7 @@ public class HaxeExpressionUsageUtil {
     // AND stop any other logic picking up typeParameters from later reference when current reference is skipped by the recursion guard.
     // This is a common problem when you got a variable that gets its typeParameters from method calls on that instance,
     // and our code will try to find callie type
-    var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, false, () -> {
+    var newValues = searchReferencesForTypeParametersRecursionGuard.computePreventingRecursion(componentName, false, () -> { //TODO mlo: figure out if we can optimize
       ResultHolder updatedType = resultHolder.duplicate();
       SpecificHaxeClassReference classType = updatedType.getClassType();
       // TODO mlo: should we add some kind of support for functions here ?
@@ -337,16 +337,14 @@ public class HaxeExpressionUsageUtil {
     if (foundType == null) return current;
 
     // if class try to cast before attempting to  extract generics (Dynamic, Any  etc will get passed canAssign checks)
-    foundType = foundType.tryCastTo(current.getClassType());
-    if (foundType == null) return current;
+    SpecificHaxeClassReference casted = foundType.tryCastTo(current.getClassType());
+    if (casted == null || casted.getTypePsi() != current.getType().getTypePsi()) return current;
 
-    HaxeGenericResolver foundResolver = foundType.getGenericResolver();
-    HaxeGenericResolver mappedResolver = foundResolver.translateFromTo(foundType.getHaxeClass(), current.getClassType().getHaxeClass());
 
     @NotNull ResultHolder[] currentSpecifics = current.getClassType().getSpecifics();
-    @NotNull ResultHolder[] foundSpecifics = mappedResolver.getSpecifics();
+    @NotNull ResultHolder[] foundSpecifics = casted.getSpecifics();
     @NotNull ResultHolder[] newSpecifics = new ResultHolder[currentSpecifics.length];
-      for (int i = 0; i < foundSpecifics.length; i++) {
+      for (int i = 0; i < newSpecifics.length; i++) {
           ResultHolder currentSpecific = currentSpecifics[i];
           ResultHolder foundSpecific = foundSpecifics[i];
           // important, make sure we are not updating already found values

@@ -147,7 +147,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             ResultHolder type = objectLiteralMemberModel.getResultType(null);
             if(type != null && !type.isUnknown()) {
               result.append(':');
-              result.append(type.getType().withoutConstantValue().toPresentationString(false));
+              result.append(type.getType().withoutConstantValue().toPresentationString());
             }
           }
         }

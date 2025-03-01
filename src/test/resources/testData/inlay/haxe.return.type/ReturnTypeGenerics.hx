@@ -21,7 +21,7 @@ class ReturnTypeGenerics<T> {
         return x;
     }
 
-    public static function staticGenericFn2<T:ReturnTypeGenerics<String>>(x:T)/*<# :ReturnTypeGenerics<String> #>*/ {
+    public static function staticGenericFn2<T:ReturnTypeGenerics<String>>(x:T)/*<# :T:ReturnTypeGenerics<String> #>*/ {
         return x;
     }
 }

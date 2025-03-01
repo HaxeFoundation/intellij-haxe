@@ -51,9 +51,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_FROM_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_FROM");
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> INFER_TYPES_KEY = new Key<>("HAXE_INFER_TYPES");
+  // TODO mlo : see if we can replace these with RecursionGuard somehow
   private static final ThreadLocal<Stack<HaxeClass>> processedElements = ThreadLocal.withInitial(Stack::new);
-  private static final ThreadLocal<Stack<SpecificHaxeClassReference>> processedElementsToString = ThreadLocal.withInitial(Stack::new);
   private static final ThreadLocal<SpecificHaxeClassReference> currentProcessingElement = new ThreadLocal<>();
+
+  private static final RecursionGuard<PsiElement> processedElementsToStringRecursionGuard = RecursionManager.createGuard("processedElementsToStringRecursionGuard");
 
   @NotNull private final HaxeClassReference classReference;
   @NotNull private final ResultHolder[] specifics;
@@ -153,37 +155,38 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return constantValue;
   }
 
+
   public String toPresentationString() {
     return toPresentationString(false);
   }
-  public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
-    Stack<SpecificHaxeClassReference> stack = processedElementsToString.get();
-    try {
+
+  public String toPresentationString(boolean showOnlyConstraintForTypeParam){
+    String  presentation = processedElementsToStringRecursionGuard.doPreventingRecursion(context, true, ()-> _toPresentationString(showOnlyConstraintForTypeParam));
+
+    if (presentation == null) {
+        log.warn("toPresentationString overflow prevention");
+        return toPresentationStringNoResolve();
+    }else {
+      return presentation;
+    }
+  }
+  private String _toPresentationString(boolean showOnlyConstraintForTypeParam) {
       HaxeClassModel classModel = getHaxeClassModel();
 
-      if(showOnlyConstraintForTypeParam) {
-        // Inlays, errors and warnings usually makes more sense to the end-user when displaying just the constraints
-        if (isTypeParameterWithConstraints()) {
-          if (classModel instanceof HaxeGenericParamModel genericParamModel) {
-            ResultHolder constraint = genericParamModel.getConstraint(null);
-            if (constraint != null) {
-              return constraint.toPresentationString(true);
-            }
+    if(showOnlyConstraintForTypeParam) {
+      // Inlays, errors and warnings usually makes more sense to the end-user when displaying just the constraints
+      if (isTypeParameterWithConstraints()) {
+        if (classModel instanceof HaxeGenericParamModel genericParamModel) {
+          ResultHolder constraint = genericParamModel.getConstraint(null);
+          if (constraint != null) {
+            return constraint.toPresentationString(true);
           }
         }
       }
+    }
 
-      // stack overflow guard
-      if (stack.contains(this) && classModel != null) {
-        List<HaxeGenericParamModel> params = classModel.getGenericParams();
-        if (!params.isEmpty()) {
-          log.warn("toString overflow prevention");
-          return "?"; // prevent overflow
-        }
-      }
-      stack.add(this);
 
-      StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
+    StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
       if (!(this instanceof  SpecificHaxeAnonymousReference)) {
         ResultHolder[] specifics = getSpecifics();
         if (specifics.length > 0) {
@@ -206,7 +209,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
               log.warn("`this` and `specific.getType()` are the same object (Recursion protection)");
             }
             else {
-//              out.append(specific.toStringWithoutConstant());
               out.append(specific.toPresentationString(showOnlyConstraintForTypeParam));
             }
           }
@@ -223,13 +225,36 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       if (result.equals("Dynamic<Dynamic>")) return "Dynamic";
       if (result.equals("Dynamic<unknown>")) return "Dynamic";
       return result;
-    }finally {
-      stack.remove(this);
-    }
   }
 
+
+
+  public String toPresentationStringNoResolve() {
+    StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
+    if (!(this instanceof  SpecificHaxeAnonymousReference)) {
+      ResultHolder[] specifics = getSpecifics();
+      if (specifics.length > 0) {
+        out.append("<");
+        for (int n = 0; n < specifics.length; n++) {
+          if (n > 0) out.append(", ");
+          ResultHolder specific = specifics[n];
+          if (specific == null) {
+            out.append(UNKNOWN);
+          } else {
+            if(specific.getType() instanceof SpecificHaxeClassReference classReference) {
+              out.append(classReference.getClassName());
+            }else {
+              out.append("?");
+            }
+          }
+        }
+        out.append(">");
+      }
+    }
+    return out.toString();
+  }
   public String toStringWithoutConstant() {
-    return toPresentationString(false);
+    return toPresentationString();
   }
 
   public String toStringWithConstant() {
@@ -486,7 +511,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       // tracking all classes sub-classes interfaces or anything else that might change type compatibility would be very complex
 
       // in order to use CachedValuesManager our CachedValueProvider can not be a lambda or method as part of a class instance
-      // that contains PSI elements as the lambda/method reference would indirectly keep that psi elementand cause memory leaks
+      // that contains PSI elements as the lambda/method reference would indirectly keep that psi element and cause memory leaks
       // or access to an invalid PSI
       currentProcessingElement.set(this);
       if ( direction == Compatibility.ASSIGNABLE_TO) {
@@ -1172,7 +1197,12 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new SpecificHaxeClassReference(classReference, specifics, constantValue, rangeConstraint, element);
   }
 
-// TODO mlo: should be moved to a "SpecificAbstractReference" like class
+  @Override
+  public PsiElement getTypePsi() {
+    return getHaxeClass();
+  }
+
+  // TODO mlo: should be moved to a "SpecificAbstractReference" like class
 //   direct and implicit casts are only relevant for abstracts  and should not be inherited
 //   by classes, enums, and anonymous structures
   public List<SpecificTypeReference> getDirectCastToTypes() {

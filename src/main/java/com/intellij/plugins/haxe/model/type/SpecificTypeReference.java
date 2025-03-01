@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.util.HaxeProjectUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -535,6 +536,7 @@ public abstract class SpecificTypeReference {
 
   @NotNull
   private static HaxeClassReference getUnknownClassReference(@NotNull PsiElement context) {
+    PsiUtilCore.ensureValid(context);
     return new HaxeClassReference( UNKNOWN, HaxeClass.createUnknownClass(context.getNode()).getModel(), context);
   }
 
@@ -649,4 +651,7 @@ public abstract class SpecificTypeReference {
   public SpecificHaxeClassReference wrapInNullType(@NotNull PsiElement context) {
     return SpecificHaxeClassReference.getNull(context, this.createHolder());
   }
+
+  public abstract PsiElement getTypePsi();
+
 }

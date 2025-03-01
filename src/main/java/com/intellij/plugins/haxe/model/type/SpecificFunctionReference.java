@@ -130,6 +130,11 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       return genericsTypes;
     }
 
+  @Override
+  public PsiElement getTypePsi() {
+    return method == null ? functionType : method.getMethodPsi();
+  }
+
   public static SpecificFunctionReference create(HaxeMethodModel model) {
     LinkedList<HaxeArgument> args = new LinkedList<>();
     List<HaxeParameterModel> parameters = model.getParameters();
