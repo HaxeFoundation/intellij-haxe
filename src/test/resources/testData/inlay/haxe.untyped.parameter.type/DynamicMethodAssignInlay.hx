@@ -4,10 +4,10 @@ class DynamicMethodFunctionAssignInlay<C:{length:Int}> {
 
     public function new() {
         var x = new DynamicMethodFunctionAssignInlay();
-        fntype = (x/*<# :Int #>*/)  -> { x * 2; };
-        x.dynamicFn = (x/*<# :String #>*/)  -> { x.toLowerCase(); };
-        x.dynamicFn = function (x/*<# :String #>*/)  { "myString"; };
-        x.dynamicGenericFn = function (x/*<# :C:{length:Int} #>*/) { "myString"; };
+        fntype = (x/*<# :|Int #>*/)  -> { x * 2; };
+        x.dynamicFn = (x/*<# :|String #>*/)  -> { x.toLowerCase(); };
+        x.dynamicFn = function (x/*<# :|String #>*/)  { "myString"; };
+        x.dynamicGenericFn = function (x/*<# :|C #>*/) { "myString"; };
     }
 
     public dynamic function dynamicFn(x:String):String {return "";}

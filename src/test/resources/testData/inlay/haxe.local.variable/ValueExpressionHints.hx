@@ -3,13 +3,13 @@ class ValueExpressionMonomorph {
     public function ifCases() {
 
         // real type should be prioritized over dynamic
-        var testVar1/*<# :String #>*/   = if (true) aDynamic() else aString(); // expect String
-        var testVar2/*<# :String #>*/   = if (true) aString() else aDynamic(); // expect String
-        var testVar3/*<# :String #>*/   = ifReturn(); // expect String
+        var testVar1/*<# :|String #>*/   = if (true) aDynamic() else aString(); // expect String
+        var testVar2/*<# :|String #>*/   = if (true) aString() else aDynamic(); // expect String
+        var testVar3/*<# :|String #>*/   = ifReturn(); // expect String
 
         // classTypes should be  unified
-        var testVar4/*<# :B #>*/ =  if (true) classA() else classB(); // expect B
-        var testVar5/*<# :B #>*/ =  if (true) classB() else classA(); // expect B
+        var testVar4/*<# :|B #>*/ =  if (true) classA() else classB(); // expect B
+        var testVar5/*<# :|B #>*/ =  if (true) classB() else classA(); // expect B
 
         //when  its not possible ot unify first occurens should be used (later occurences should show errors)
         var testVar6 =  if (true) aString() else classA(); // TODO expect String  + error on classA()
@@ -27,27 +27,27 @@ class ValueExpressionMonomorph {
     public function switchCases(enum1:E<A> = DYNAMIC) {
 
         // real type should be prioritized over dynamic
-        var testVar1/*<# :String #>*/ = switch (enum1) { // expect string
+        var testVar1/*<# :|String #>*/ = switch (enum1) { // expect string
             case DYNAMIC : aDynamic();
             case STRING : aString();
             default : null;
         }
 
-        var testVar2/*<# :String #>*/ = switch (enum1) { // expect string
+        var testVar2/*<# :|String #>*/ = switch (enum1) { // expect string
             case STRING : aString();
             case DYNAMIC : aDynamic();
             default : null;
         }
-        var testVar3a/*<# :String #>*/ = switchReturn(); // expect String
-        var testVar3b/*<# :E<String> #>*/ = switchReturn2(); // expect E<String>
+        var testVar3a/*<# :|String #>*/ = switchReturn(); // expect String
+        var testVar3b/*<# :|E|<|String|> #>*/ = switchReturn2(); // expect E<String>
 
         // classTypes should be  unified
-        var testVar4/*<# :B #>*/ =  switch (enum1) { // expect B
+        var testVar4/*<# :|B #>*/ =  switch (enum1) { // expect B
             case STRING : classA();
             case DYNAMIC : classB();
             default : null;
         }
-        var testVar5/*<# :B #>*/ =  switch (enum1) { // expect B
+        var testVar5/*<# :|B #>*/ =  switch (enum1) { // expect B
             case CLASS(x) : x;
             case DYNAMIC : classB();
             case STRING : classA();

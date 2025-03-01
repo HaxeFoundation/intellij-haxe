@@ -3,13 +3,13 @@
 */
 class PrimitiveNullUnification {
     //Int
-    private var memberA/*<# :Int #>*/ = 1 ;
+    private var memberA/*<# :|Int #>*/ = 1 ;
     //Null<Int>
-    private var memberB/*<# :Null<Int> #>*/  = null ;
+    private var memberB/*<# :|Null|<|Int|> #>*/  = null ;
     //Null<String>
-    private var memberC/*<# :Null<String> #>*/ = null ;
+    private var memberC/*<# :|Null|<|String|> #>*/ = null ;
     //Null<Array<String>>
-    private var memberD/*<# :Null<Array<String>> #>*/ = null ;
+    private var memberD/*<# :|Null|<|Array|<|String|>|> #>*/ = null ;
 
 
     public function new() {

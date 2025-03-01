@@ -1,10 +1,10 @@
 class ParameterMonomorph {
 
     public function new() {
-        var testFn/*<# :String #>*/  = testFunction(null);
-        var testCls/*<# :TestClass<Int> #>*/ = new TestClass(1);
+        var testFn/*<# :|String #>*/  = testFunction(null);
+        var testCls/*<# :|TestClass|<|Int|> #>*/ = new TestClass(1);
     }
-    function testFunction(?p)/*<# :String #>*/  {
+    function testFunction(?p)/*<# :|String #>*/  {
         if (p == null) {
             p = "string";
         }

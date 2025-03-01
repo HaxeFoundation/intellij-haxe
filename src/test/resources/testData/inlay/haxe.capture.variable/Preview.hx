@@ -8,7 +8,7 @@ class Test {
         var myVal = otherValue("myVal", 1);
         switch (myVal) {
             case someValue(value): trace(value);
-            case var x/*<# :MyEnum #>*/: trace("enum  is" + x.getName());
+            case var x/*<# :|MyEnum #>*/: trace("enum  is" + x.getName());
         }
     }
 }

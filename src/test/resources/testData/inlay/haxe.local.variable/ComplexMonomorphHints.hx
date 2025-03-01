@@ -10,7 +10,7 @@ class ComplexTypeParameterMonomorphTest {
 
         // this variable should get ":Array<String>" from BuildContext parameter type
         // issues with recursion guard and incorrect caching will incorrectly cause this to become ":Array<Int>"
-        var testArray/*<# :Array<String> #>*/ = [];
+        var testArray/*<# :|Array|<|String|> #>*/ = [];
 
         morphByParameter({array: testArray });
 
@@ -24,7 +24,7 @@ class ComplexTypeParameterMonomorphTest {
 
         // this variable should get ":Array<Float>" from the parameter type BuildContext as part as the fuctionType
         // issues with recursion guard and incorrect caching will incorrectly cause this to become ":Array<Int>"
-        var testArray/*<# :Array<Float> #>*/ = [];
+        var testArray/*<# :|Array|<|Float|> #>*/ = [];
 
         morphByFunctionCall({array: testArray });
 
@@ -37,7 +37,7 @@ class ComplexTypeParameterMonomorphTest {
 
     public function fromOptional() {
 
-        var testArray/*<# :Array<Int> #>*/ = [];
+        var testArray/*<# :|Array|<|Int|> #>*/ = [];
         useMorphedValue(testArray);
     }
     public static function morphByParameter(value:ObjectDefinition<String>) {}

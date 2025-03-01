@@ -9,27 +9,27 @@ typedef SomeStruct = {
 }
 class NullWrapping {
     public function optionalStruct(s:SomeStruct) {
-        var x/*<# :Null<Int> #>*/ = s.optinal;
+        var x/*<# :|Null|<|Int|> #>*/ = s.optinal;
     }
     public function optionalTypeDef(s:SomeTypeDef) {
-        var a/*<# :Int #>*/ = s.normalA;
-        var b/*<# :String #>*/ = s.normalB;
-        var c/*<# :Null<String> #>*/ = s.optionalC;
+        var a/*<# :|Int #>*/ = s.normalA;
+        var b/*<# :|String #>*/ = s.normalB;
+        var c/*<# :|Null|<|String|> #>*/ = s.optionalC;
     }
 
     public function optionalTypeA(?i:String) {
-        var x/*<# :Null<String> #>*/ = i;
+        var x/*<# :|Null|<|String|> #>*/ = i;
     }
 
     public function optionalTypeB(?i = "Str") {
-        var x/*<# :Null<String> #>*/ = i;
+        var x/*<# :|Null|<|String|> #>*/ = i;
     }
 
     public function optionalTypeParameter<T>(?i:T) {
-        var x/*<# :Null<T> #>*/ = i;
+        var x/*<# :|Null|<|T|> #>*/ = i;
     }
 
     public function defaultType(i = "String") {
-        var x/*<# :String #>*/ = i;
+        var x/*<# :|String #>*/ = i;
     }
 }

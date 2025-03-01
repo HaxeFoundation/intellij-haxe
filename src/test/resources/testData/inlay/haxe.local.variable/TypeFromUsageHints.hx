@@ -20,15 +20,15 @@ class TypeFromUsageHints<T, Q> {
 
 class TestClass {
     public function new() {
-        var x/*<# :TypeFromUsageHints<String, In… #>*/ =  new TypeFromUsageHints<String,Int>(null);
+        var x/*<# :|TypeFromUsageHints|<|String|, |Int|> #>*/ =  new TypeFromUsageHints<String,Int>(null);
 
         // find typeParameters of member from usage
-        var usageFromMember/*<# :Map<Int, String> #>*/ = x.fromVarUsage;
-        var usageFromCall/*<# :Map<Int, String> #>*/ = x.getVar();
-        var usageFunction/*<# :Void->Map<Int, String> #>*/ = x.getVar;
+        var usageFromMember/*<# :|Map|<|Int|, |String|> #>*/ = x.fromVarUsage;
+        var usageFromCall/*<# :|Map|<|Int|, |String|> #>*/ = x.getVar();
+        var usageFunction/*<# :|(|)|->|Map|<|Int|, |String|> #>*/ = x.getVar;
 
         // finds parameter type from usage
-        var testFn/*<# :(String, String, Int)->String #>*/ = x.testFunction;
-        var testRet/*<# :String #>*/ = x.testFunction("1","2",3);
+        var testFn/*<# :|(|String|, |String|, |Int|)|->|String #>*/ = x.testFunction;
+        var testRet/*<# :|String #>*/ = x.testFunction("1","2",3);
     }
 }
