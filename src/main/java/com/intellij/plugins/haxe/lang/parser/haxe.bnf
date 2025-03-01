@@ -920,19 +920,19 @@ private value ::= ('untyped' expression)
 {pin=1 }
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
+                    | 'null' | 'true' | 'false'
                     | stringLiteralExpression
                     | regularExpressionLiteral
-                    | 'null' | 'true' | 'false'
-                    | functionLiteral
                     | mapLiteral
                     | arrayLiteral
                     | objectLiteral
                     | blockStatement
+                    | functionLiteral
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="literal expression"}
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
-                             | regularExpressionLiteral
                              | 'null' | 'true' | 'false'
-                             |stringLiteralExpression
+                             | regularExpressionLiteral
+                             | stringLiteralExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="constant expression"}
 
 
