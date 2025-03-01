@@ -38,6 +38,8 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
 
     PsiElement[] children = binaryExpression.getChildren();
     if (children.length == 3) {
+      // skip Null Coalescing here, it's handled in "HaxeNullCoalescingAnnotator"
+      if(children[1].textMatches("??")) return;
 
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(binaryExpression);
       HaxeExpressionEvaluator.evaluate(binaryExpression, context, null);

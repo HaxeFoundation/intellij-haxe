@@ -207,9 +207,9 @@ class OperatorTest {
 
         toFloat = s?.toLowerCase()?.length ?? i;
 
-        toDyn = <error descr="Unable to apply operator ?? for types String and Int" textAttributesKey="ERRORS_ATTRIBUTES">s?.toLowerCase()?.charAt(i) ?? i</error>; // WRONG, can not unify types
+        toDyn = s?.toLowerCase()?.charAt(i) ?? <error descr="Incompatible type: String should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i</error>; // WRONG, can not unify types
 
-        toDyn = <error descr="Unable to apply operator ?? for types String and Bool" textAttributesKey="ERRORS_ATTRIBUTES">t ?? b</error>; // WRONG, can not unify types
-        toDyn = <error descr="Unable to apply operator ?? for types String and Int" textAttributesKey="ERRORS_ATTRIBUTES">s ?? i</error>; // WRONG, can not unify types
+        toDyn = t ?? <error descr="Incompatible type: String should be Bool" textAttributesKey="ERRORS_ATTRIBUTES">b</error>; // WRONG, can not unify types
+        toDyn = s ?? <error descr="Incompatible type: String should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i</error>; // WRONG, can not unify types
     }
 }

@@ -178,6 +178,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testNullCoalescingTest() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testInitMagicMethodShouldBeStatic() throws Exception {
     doTestNoFixWithWarnings();
   }
