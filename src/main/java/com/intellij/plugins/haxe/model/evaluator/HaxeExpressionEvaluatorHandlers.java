@@ -1751,6 +1751,9 @@ public class HaxeExpressionEvaluatorHandlers {
 
     if (result == null && init != null) {
       result = _handle(init, context, localResolver);
+      // if result is null here, we have most likely hit a recursion guard (we should at least expect an "unknown" type returned)
+      // continuing after this point will probably cause incorrect results("find from usage" etc. can end up with completely different types)
+      if(result == null) return null;
     }
 
     // search for usage to determine type
