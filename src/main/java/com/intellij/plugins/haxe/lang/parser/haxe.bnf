@@ -37,6 +37,7 @@
       oMINUS_MINUS="--"
       oMINUS_ASSIGN="-="
       oMINUS="-"
+      oQUEST_DOT="?."
       oQUEST_QUEST_ASSIGN="??="
       oQUEST_QUEST="??"
       oQUEST="?"

@@ -352,6 +352,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 {IDENTIFIER_WITH__DOLLAR}                 {  return emitToken( MACRO_ID); }
 {IDENTIFIER_NO_DOLLAR}                    {  return emitToken( ID); }
 
+"?."                                      { return emitToken( OQUEST_DOT); }
 "."                                       { return emitToken( ODOT); }
 
 "["                                       { return emitToken( PLBRACK); }
