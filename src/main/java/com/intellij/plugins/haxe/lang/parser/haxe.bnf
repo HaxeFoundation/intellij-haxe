@@ -14,7 +14,6 @@
     elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
     tokenTypeFactory="com.intellij.plugins.haxe.lang.lexer.HaxeElementType.createToken"
 
-    generateFirstCheck=100
 
     tokens = [
       pLCURLY="{"
@@ -38,7 +37,6 @@
       oMINUS_MINUS="--"
       oMINUS_ASSIGN="-="
       oMINUS="-"
-
       oQUEST_QUEST_ASSIGN="??="
       oQUEST_QUEST="??"
       oQUEST="?"
@@ -180,18 +178,18 @@
     pin(".*Statement")=1
 //    pin(".*Meta")=1
 
-    generate=[names="long" ]
+    generate=[names="long" first-check="100" java="21"]
 }
 
 haxeFile ::= packageStatement? topLevelList
 
 private ppConditionalStatement ::= CONDITIONAL_STATEMENT_ID
-private ppToken ::= '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line" | ppConditionalStatement
+private ppToken ::= (&'#'( '#if' | "#elseif" | "#else" | "#end" | "#error" | "#line")) | ppConditionalStatement
 
 // Define the chameleon token for metadata. Metadata has its own parser.
 private embeddedMeta ::= EMBEDDED_META
 // Use this internally only for recovery rules.
-private metaKeyWord ::= embeddedMeta | '@'
+private metaKeyWord ::=  '@' | embeddedMeta
 
 /*
  * Operators.  Priority is ascending; that is: the stuff lower down in the file
@@ -265,7 +263,7 @@ private topLevelList ::= topLevel*
 module ::= moduleBody
 private topLevel ::= importStatement | usingStatement |  module {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 //private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
-private top_level_recover ::= !(ppToken | '@' | 'abstract' | 'class'  | 'enum' | 'extern' | 'import' | 'using' | 'interface' | 'private' | 'public' | 'typedef' | 'final' | 'var'| 'inline' | 'function')
+private top_level_recover ::= !( 'import' | 'using' | 'class' | 'abstract' | 'interface' | 'typedef' | 'enum' | 'function' | 'public' | 'private' | 'extern' | 'final' | 'var' | 'inline' | metaKeyWord | ppToken)
 
 // These are top-level parsing entry points for metadata.
 compiletimeMetaArg ::= statement
@@ -299,21 +297,21 @@ usingStatement ::= 'using' simpleQualifiedReferenceExpression ';'
 }
 private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
-                              | externClassDeclaration
-                              | externInterfaceDeclaration
                               | abstractTypeDeclaration
                               | enumDeclaration
                               | typedefDeclaration
+                              | externClassDeclaration
+                              | externInterfaceDeclaration
 {name="Top Level Declaration (class, interface, abstract, enum, or typedef)"}
 // macro toplevel declarations does not require component name to be present, and  componentName should be
 // required for normal TopLevel declarations so we do some duplication here to avoid a lot of extra logic elsewhere
 macroTopLevelDeclaration ::= macroClassDeclaration
                            | macroInterfaceDeclaration
-                           | macroExternClassDeclaration
-                           | macroExternInterfaceDeclaration
                            | macroAbstractTypeDeclaration
                            | macroEnumDeclaration
                            | macroTypedefDeclaration
+                           | macroExternClassDeclaration
+                           | macroExternInterfaceDeclaration
 {name="Macro top Level Declaration (class, interface, abstract, enum, or typedef)"}
 
 abstractKeyword ::= 'abstract'
@@ -348,7 +346,7 @@ externClassDeclaration ::= externClassModifierList 'class' componentName generic
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 externClassDeclarationBody ::= '{' externClassDeclarationBodyPart* '}'
 private externClassDeclarationBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="extern_class_body_part_recover"}
-private extern_class_body_part_recover ::= !(pptoken | metaKeyWord | 'dynamic' | 'extern' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}')
+private extern_class_body_part_recover ::= !('public' | 'extern' | 'function' | 'var' | 'final' | 'inline' | 'static' | 'private' | '}' | 'override' | 'dynamic' | metaKeyWord | ppToken)
 
 macroExternInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName? genericParam? inheritList? interfaceBody
 externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
@@ -384,7 +382,7 @@ private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorD
 
 classBody ::= '{' classBodyPart* '}' {pin=1}
 private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
-private class_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
+private class_body_part_recover ::= !('public' | 'private' | 'function' | 'var' | '}' | 'final' | 'static' | 'dynamic' | 'inline' | 'override' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord | ppToken)
 
 macroInterfaceDeclaration ::= privateKeyWord? 'interface' componentName? genericParam? inheritList? interfaceBody
 interfaceDeclaration ::= privateKeyWord? 'interface' componentName genericParam? inheritList? interfaceBody
@@ -392,7 +390,7 @@ interfaceDeclaration ::= privateKeyWord? 'interface' componentName genericParam?
 interfaceBody ::= '{' interfaceBodyList? '}'
 private interfaceBodyList ::= interfaceBodyPart+
 private interfaceBodyPart ::= fieldDeclaration | methodDeclaration {recoverWhile="interface_body_part_recover"}
-private interface_body_part_recover ::= !(ppToken | metaKeyWord | 'dynamic' | 'function' | 'inline' | 'override' | 'private' | 'public' | 'static' | 'var' | 'final' | '}' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
+private interface_body_part_recover ::= !('function' | 'var' | '}' | 'public' | 'static' | 'private' | 'final' | 'dynamic' | 'inline' | 'override' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord| ppToken)
 
 macroEnumDeclaration ::= externOrPrivate? 'enum' componentName? genericParam? enumBody
 enumDeclaration ::= externOrPrivate? 'enum' componentName genericParam? enumBody
@@ -441,7 +439,7 @@ localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (','
 localVarDeclaration ::= 'static'? componentName typeTag? varInit?
   {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
-private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | '!' | ppToken | '(' | ')' | '++' | ',' | '-' | '--' | ';' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '{' | '}' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP)
+private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | REG_EXP | ppToken)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 
@@ -609,7 +607,7 @@ typeOrAnonymous ::=  anonymousType | type
 blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
 private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededByStatement>>  {pin=1}
 private statementList ::= (statementWithOptionalSemicolon)+ {recoverWhile="statement_recovery"}
-private statement_recovery ::= !('case' | 'default' | '}')
+private statement_recovery ::= !('}' | 'case' | 'default' )
 
 //https://haxe.org/manual/macro-reification-expression.html
 // Expression Reification
@@ -629,7 +627,7 @@ macroShorthandExpReification::= '$' macroStatementWrapper // shorthand for $e / 
 private macroStatementWrapper ::= "{" expression "}"
 { pin=1 recoverWhile=expression_recover }
 
-macroExpressionReification::=  (embeddedMeta)* <<canBeReification>> (| macroArrayReification | macroBlockReification | macroIdentifierReification | macroFieldReification  | macroValueReification | macroExpReification | macroShorthandExpReification)
+macroExpressionReification::=  (embeddedMeta)* <<canBeReification>> ( macroArrayReification | macroBlockReification | macroIdentifierReification | macroFieldReification  | macroValueReification | macroExpReification | macroShorthandExpReification)
 
 
 //Class Reification
@@ -663,11 +661,7 @@ macroStatement ::=  'macro' <<pushStateMapInitializerOrMacro>> <<pushSemicolonRu
 //need to pin 3, as it would otherwise pin 1 for some reason, and we dont want that (there are other expressions with macro keyword, like for instance macroTypeReification)
 {pin=4 hooks=[popSemicolonRule] mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin" hooks=[popMapInitOrMacroState]}
 
-private notBlockStatement ::=
-                             untypedStatement
-                            | macroClassReification
-                            | macroStatement
-                            | localVarDeclarationList
+private notBlockStatement ::= localVarDeclarationList
                             | localFunctionDeclaration
                             | ifStatement
                             | forStatement
@@ -679,6 +673,9 @@ private notBlockStatement ::=
                             | switchStatement
                             | throwStatement
                             | tryStatement
+                            | untypedStatement
+                            | macroClassReification
+                            | macroStatement
                             | (<<isInMapInitOrMacroState>> !<<isInMapInitExpressionState>> mapInitializerExpressionList )
                             | (expression !fatArrowOperator)
 
@@ -697,7 +694,6 @@ iteratorkey ::= componentName
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 iteratorValue ::= componentName
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
-
 valueIterator ::= componentName
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
@@ -789,7 +785,6 @@ private switch_case_recover ::= !('case' | 'default' | '}' | ID)
 defaultCase ::= 'default' ':' switchCaseBlock? {pin=1 extends="switchCase"}
 
 guard ::= 'if' '(' expression ')'
-private guard_recovery ::= !('(' | ')' | '{')
 guardedStatement ::= statement
 elseStatement ::= 'else' statement
 ifStatement ::= guard guardedStatement (';'? elseStatement)? ';'? {pin=1}
@@ -823,7 +818,7 @@ expressionList ::= forStatement | whileStatement | (expression (',' expression)*
 // '(' is here to prevent call expressions from consuming enum extractor expressions
 private expression_list_recover ::= !(')' | ']' |'('| fatArrowOperator)
 
-private expression_recover ::= !('!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '.' | '...' | '/' | '/=' | ':' | ';' | '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else' | 'extern' | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'override' | 'private' | 'public' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~' | ID | MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END | '=>'| '$') !metaKeyWord
+private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END  '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' |  '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else'  | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~'  | '=>'| '$'  | 'override' | 'private' | 'public' | 'extern') !metaKeyWord
 
 // This list is in reversed operator precedence order -- lowest on top.
 // The things on top are still matched first.
@@ -931,8 +926,8 @@ literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="literal expression"}
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                              | 'null' | 'true' | 'false'
-                             | regularExpressionLiteral
                              | stringLiteralExpression
+                             | regularExpressionLiteral
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="constant expression"}
 
 
@@ -941,7 +936,7 @@ stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry
 
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
 longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1 recoverWhile="long_template_entry_recover"}
-private long_template_entry_recover ::= !(';' | '"' | "'" | REGULAR_STRING_PART | LONG_TEMPLATE_ENTRY_START)
+private long_template_entry_recover ::= !(';' | OPEN_QUOTE| CLOSING_QUOTE | REGULAR_STRING_PART | LONG_TEMPLATE_ENTRY_START | '"' | "'")
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
@@ -1024,7 +1019,7 @@ private compositeAnonymousType ::=   (compositePart ('&' compositePart)+) | (ano
 anonymousType ::= compositeAnonymousType // Yes, we need two levels to keep parity with other types.
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 
-anonymousTypeBody ::= anonymousTypeWithEmptyBody | regularAnonymousTypeBody
+anonymousTypeBody ::= (& '{') (anonymousTypeWithEmptyBody | regularAnonymousTypeBody)
 private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
 private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
 private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
