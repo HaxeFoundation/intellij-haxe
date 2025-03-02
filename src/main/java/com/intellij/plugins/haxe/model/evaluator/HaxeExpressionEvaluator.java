@@ -580,7 +580,7 @@ public class HaxeExpressionEvaluator {
       }
     }
     if (lastValue != null && !lastValue.isUnknown()) {
-      if(lastValue.containsTypeParameters()) {
+      if(lastValue.isOrContainsTypeParameters()) {
         ResultHolder holder = searchReferencesForTypeParameters(componentName, context, resolver, lastValue, continueFrom);
         if (!holder.isUnknown()) return holder;
       }
