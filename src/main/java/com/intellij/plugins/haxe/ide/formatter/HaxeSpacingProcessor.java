@@ -351,7 +351,9 @@ public class HaxeSpacingProcessor {
         || ASSIGN_OPERATORS.contains(typeType1)
         || ASSIGN_OPERATORS.contains(typeType2)
         || type2 == VAR_INIT) {
-      return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+      if (typeType2 != null) {
+        return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
+      }
     }
 
     //

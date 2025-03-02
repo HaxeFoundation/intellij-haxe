@@ -16,5 +16,5 @@ typedef FormattingTest = {
 }
 
 class MyClass<T:{x:Int, y:Int}> {
-    var point:T = {x:1, y:2} ;
+    var point:T = {x:1, y:2};
 }
