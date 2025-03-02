@@ -32,17 +32,12 @@ class FunctionBindTest2 {
         var bind:(...Float) -> String = varargs.bind(1, _);
         var bind:haxe.Rest<Float > -> String  = varargs.bind( 1 , _);
         var bind:Int -> String = varargs.bind(_,  [1.0,  2.0, 3.0]);
-
+        var bind = varargs.bind(_, [1, 2, 3]);
 
         //wrong
         var bind = varargs.bind(1, <error descr="Type mismatch (Expected: 'haxe.Rest<Float>' got: 'String')">"string"</error>); // String should be haxe.Rest<Float>
         var bind = varargs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, _, _</error> ); // Too many callback arguments
 
-
-        //TODOS
-
-        //TODO should be allowed (literal array should be allowed to be interpetated as array floats)
-        var bind = varargs.bind(_, <error descr="Type mismatch (Expected: 'haxe.Rest<Float>' got: 'Array<Int>')">[1, 2, 3]</error>);
     }
 
     function normal(x:Int, y:Float):String {return null;}

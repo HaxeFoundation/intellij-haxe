@@ -57,8 +57,8 @@ public class HaxeAssignEvaluation {
       this.from = from.getType();
     }
     // contexts used to check if we are in a scope with macro keyword
-    toContext = to.getElementContext();
-    fromContext = from.getElementContext();
+    toContext = this.to.getElementContext();
+    fromContext = this.from.getElementContext();
   }
 
   public void fullyResolveTypes() {
@@ -302,7 +302,7 @@ public class HaxeAssignEvaluation {
             toArgtype = tryExtractRestType(toArgtype);
           }
         }
-        boolean argCompatibility = HaxeTypeCompatible.canAssignToFromContravariance(toArgtype, fromArgType, true, false);
+        boolean argCompatibility = HaxeTypeCompatible.canAssignToFromContravariance(toArgtype, fromArgType, true, false, false);
         if (!argCompatibility) {
           return false;
         }
@@ -400,7 +400,7 @@ public class HaxeAssignEvaluation {
    * Note: abstracts can be of all kinds of types(class, function enum, anonymous structures etc.) and can also be cased to these types
    * So there's a lot to check for here.
    */
-  public void testAbstractAssignRules(boolean checkDirectCasts, boolean checkImplicitCasts) {
+  public void testAbstractAssignRules(boolean checkDirectCasts, boolean checkImplicitCasts, boolean implicitTypeMustMatchUnderlying) {
     if (to instanceof SpecificHaxeClassReference toClassReference && from instanceof SpecificHaxeClassReference fromClassReference ) {
 
       HaxeClassModel toModel = toClassReference.getHaxeClassModel();
@@ -582,10 +582,15 @@ public class HaxeAssignEvaluation {
    */
   private @Nullable Boolean canAssignUsingDirectCastFrom(SpecificHaxeClassReference toClassReference, SpecificTypeReference fromClassReference) {
     return directCastRecursionGuard.computePreventingRecursion(toClassReference.context, true, () -> {
+
       List<SpecificTypeReference> directCasts = toClassReference.getDirectCastFromTypes();
       for (SpecificTypeReference directCastType : directCasts) {
         // direct casts  can be "chained" (ex. Int -> Float -> Single)
         if (HaxeTypeCompatible.canAssignToFromReference(directCastType, fromClassReference, true, false)) {
+          //
+          if(config.implicitTypeMustMatchUnderlying()) {
+            if (underlyingTypeAndCastCheck(toClassReference, directCastType)) continue;
+          }
           complete(true, "Abstract (from) direct cast match");
           return true;
         }
@@ -594,16 +599,30 @@ public class HaxeAssignEvaluation {
     });
   }
 
+  // TODO mlo: need verification
+  //  its unclear to me how / when type parameters of abstracts can be directly casted. from some simple tests it seems to be a
+  //  requirement that the abstracts direct cast matches its underlying type (only when working with typeParameters).
+  private static boolean underlyingTypeAndCastCheck(SpecificHaxeClassReference toClassReference, SpecificTypeReference directCastType) {
+    HaxeClassModel haxeClassModel = toClassReference.getHaxeClassModel();
+    if (haxeClassModel != null) {
+      SpecificTypeReference underlyingType = haxeClassModel.getUnderlyingType();
+      if (underlyingType != null && !underlyingType.isSameType(directCastType)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
 
   static boolean canAssignTypeParameters(HaxeAssignEvaluation context, @NotNull ResultHolder[] toSpecifics, @NotNull ResultHolder[] fromSpecifics) {
-   return canAssignTypeParameters(context,toSpecifics,fromSpecifics, false);
+   return canAssignTypeParameters(context,toSpecifics,fromSpecifics, false, false);
   }
-  static boolean canAssignTypeParameters(HaxeAssignEvaluation context, @NotNull ResultHolder[] toSpecifics, @NotNull ResultHolder[] fromSpecifics, boolean ignoreFromConstraints) {
+  static boolean canAssignTypeParameters(HaxeAssignEvaluation context, @NotNull ResultHolder[] toSpecifics, @NotNull ResultHolder[] fromSpecifics, boolean ignoreFromConstraints, boolean implicitTypeMustMatchUnderlying) {
     if (toSpecifics.length != fromSpecifics.length) return false;
     for (int i = 0, length = toSpecifics.length; i < length; i++) {
       ResultHolder toSpecific = toSpecifics[i];
       ResultHolder fromSpecific = fromSpecifics[i];
-      if (!HaxeTypeCompatible.canAssignToFromTypeParameter(context, toSpecific, fromSpecific, ignoreFromConstraints)) {
+      if (!HaxeTypeCompatible.canAssignToFromTypeParameter(context, toSpecific, fromSpecific, ignoreFromConstraints, implicitTypeMustMatchUnderlying)) {
         return false;
       }
     }

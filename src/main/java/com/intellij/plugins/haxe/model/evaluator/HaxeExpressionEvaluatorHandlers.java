@@ -2295,6 +2295,21 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
     }
+    if(parent instanceof  HaxeAssignExpression assignExpression) {
+      HaxeExpression leftExpression = assignExpression.getLeftExpression();
+      if(leftExpression instanceof HaxeReferenceExpression referenceExpression) {
+        PsiElement resolve = referenceExpression.resolve();
+        if(resolve instanceof  HaxePsiField field) {
+          HaxeTypeTag tag = field.getTypeTag();
+          if (tag != null) {
+            ResultHolder typeTag = HaxeTypeResolver.getTypeFromTypeTag(tag, element);
+            if (!typeTag.isUnknown()) {
+              return typeTag;
+            }
+          }
+        }
+      }
+    }
     if (parent instanceof HaxeCallExpressionList callExpressionList
         && callExpressionList.getParent() instanceof HaxeCallExpression callExpression) {
 

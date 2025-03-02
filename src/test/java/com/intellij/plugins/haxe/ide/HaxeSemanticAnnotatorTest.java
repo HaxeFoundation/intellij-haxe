@@ -612,6 +612,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testArrayLiteralTypeDetectionAndCast() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testAssignClassToInt() throws Exception {
     doTestNoFixWithWarnings();
   }

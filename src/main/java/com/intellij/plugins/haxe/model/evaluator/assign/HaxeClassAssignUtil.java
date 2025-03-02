@@ -19,7 +19,7 @@ public class HaxeClassAssignUtil  {
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
     if (toClassReference.getHaxeClass() == fromClassReference.getHaxeClass()) {
-      if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints())) {
+      if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
         return true;
       }
     }

@@ -5,6 +5,7 @@ public record AssignEvaluationSettings(
         boolean checkDirectCasts,
         boolean checkImplicitCasts,
         boolean contravariance,
-        boolean ignoreFromConstraints
+        boolean ignoreFromConstraints,
+        boolean implicitTypeMustMatchUnderlying
 ) {
 }
