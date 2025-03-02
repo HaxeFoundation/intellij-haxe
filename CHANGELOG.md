@@ -1,4 +1,12 @@
 # Changelog
+## 1.6.2
+* Added: Null coalescing annotations (#1208) 
+* Fixed: Another constraint refers to owning typeParameter issue  
+* Fixed: Unreliable type resolve when resolving local variables with type parameters.
+* Bugfix: Methods with @:noUsing was treated as extension methods
+* Improvement: types in Inlays are now navigatable (ctrl click)
+* Improvement: Performance Tweaks 
+
 ## 1.6.1
 * Lots of minor bugfixes (mostly corner cases causing wrong annotations)
 ## 1.6.0
