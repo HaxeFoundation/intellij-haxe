@@ -660,7 +660,7 @@ public class HaxeExpressionEvaluatorHandlers {
           if (holder == null) {
             holder = tryGetTypeFromAssignToType(functionLiteral, parameter, resolver);
           }
-          if (holder == null || holder.containsTypeParameters()) {
+          if (holder == null || holder.isOrContainsTypeParameters()) {
             HaxeComponentName name = parameter.getComponentName();
             final ResultHolder hint = holder;
             ResultHolder searchResult =  evaluatorHandlersRecursionGuard.computePreventingRecursion(name, true, () -> {
@@ -1596,7 +1596,7 @@ public class HaxeExpressionEvaluatorHandlers {
       functionResolver.addAll(resolver.withoutArgumentType());
 
       // if reference to "real" method, try to use any argument to type parameter mapping
-      if (ftype.method != null && returnType.containsTypeParameters()) {
+      if (ftype.method != null && returnType.isOrContainsTypeParameters()) {
         HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, ftype.method.getMethod());
         HaxeCallExpressionEvaluation validation = callExpressionContext.evaluate();
         functionResolver.addAll(validation.getCallExpressionResolver());

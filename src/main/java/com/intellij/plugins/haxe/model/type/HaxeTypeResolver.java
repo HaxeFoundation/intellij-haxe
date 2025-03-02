@@ -314,7 +314,7 @@ public class HaxeTypeResolver {
       }
 
       // Resolve any generics on the resolved type as well. myVar:Array<Map<String, Q>> where Q is known
-      if (result.getType() instanceof SpecificHaxeClassReference classReference  && !result.isTypeParameter() && result.containsTypeParameters()) {
+      if (result.getType() instanceof SpecificHaxeClassReference classReference  && !result.isTypeParameter() && result.isOrContainsTypeParameters()) {
 
         ResultHolder holder = propagateRecursionGuard.computePreventingRecursion(result, true, () ->
            SpecificHaxeClassReference.propagateGenericsToType(classReference.createHolder(), resolver, returnType)

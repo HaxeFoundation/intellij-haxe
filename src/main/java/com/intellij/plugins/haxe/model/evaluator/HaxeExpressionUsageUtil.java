@@ -277,7 +277,7 @@ public class HaxeExpressionUsageUtil {
         if (leftArgType.getClassType() != null) {
           if (leftArgType.getClassType().getHaxeClass() instanceof HaxeTypeParameterDeclaration tp) {
             resolver.add(tp, rightArgType.getType().createHolder());
-          } else if (leftArgType.containsTypeParameters()) {
+          } else if (leftArgType.isOrContainsTypeParameters()) {
             resolver.addAll(findAndSetResolverValues(leftArgType, rightArgType, resolver));
           }
         }
@@ -614,7 +614,7 @@ public class HaxeExpressionUsageUtil {
         if (left.resolve() instanceof  HaxePsiField field) {
           if(field.getTypeTag() != null) {
             ResultHolder memberType = HaxeTypeResolver.getTypeFromTypeTag(field.getTypeTag(), field);
-            if(memberType.containsTypeParameters()) {
+            if(memberType.isOrContainsTypeParameters()) {
               HaxeExpressionEvaluatorContext evaluate = evaluate(assignExpression.getRightExpression());
               ResultHolder rightType = evaluate.result;
               if(memberType.canAssign(rightType)) {

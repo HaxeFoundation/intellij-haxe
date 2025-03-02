@@ -1483,11 +1483,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (reference instanceof HaxeReferenceExpression referenceExpression) {
       final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
       if (leftReference != null) {
-        List<? extends PsiElement> result = resolveChain(leftReference, reference);
-        if (result != null && !result.isEmpty()) {
-          LogResolution(reference, "via simple chain using leftReference.");
-          return result;
-        }
+          HaxePsiCompositeElement parentOfType = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
+          // chain resolve is intended to find members, skipping resolveChain if reference is part of a method
+          if(parentOfType == null) {
+            List<? extends PsiElement> result = resolveChain(leftReference, reference);
+            if (result != null && !result.isEmpty()) {
+              LogResolution(reference, "via simple chain using leftReference.");
+              return result;
+            }
+          }
         if (canBeQname(reference)) {
           PsiElement item = resolveQualifiedReference(reference);
           if (item != null) {

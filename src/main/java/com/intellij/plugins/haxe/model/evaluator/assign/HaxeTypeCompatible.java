@@ -203,7 +203,20 @@ public class HaxeTypeCompatible {
                 // Ex. the typeParameter for linkedList sort. T:{prev:T, next:T}  (anonymous member check would fail)
                 // Note: this can probably fail for other complex cases of anonymous member checks as well.
                 boolean isRecursiveTypeParameter = to.isTypeParameter() || from.isTypeParameter();
-                evaluation.complete(isRecursiveTypeParameter, "Stopped by recursion guard");
+                if(isRecursiveTypeParameter) {
+                    evaluation.complete(true, "Stopped by recursion guard (typeParameter)");
+                }else {
+                    // allow assign if constraint refers to its parent/owing typeParameter
+                    boolean toSelfConstraint = to.isOrContainsTypeParameters() && to.hasNoGenericsOrTheOnlyGenericTypeisItSelf();
+                    boolean fromSelfConstraint = from.isOrContainsTypeParameters() && from.hasNoGenericsOrTheOnlyGenericTypeisItSelf();
+
+                    boolean selfConstraint = toSelfConstraint || fromSelfConstraint;
+                    if(selfConstraint) {
+                        evaluation.complete(true, "Stopped by recursion guard (SelfConstraint)");
+                    }else {
+                        evaluation.complete(false, "Stopped by recursion guard");
+                    }
+                }
             }
         }
         return evaluation;

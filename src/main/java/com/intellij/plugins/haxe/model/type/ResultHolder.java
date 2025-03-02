@@ -223,16 +223,16 @@ public class ResultHolder {
     return duplicate;
   }
 
-  public  boolean containsTypeParameters() {
-    return containsTypeParameters(this);
+  public  boolean isOrContainsTypeParameters() {
+    return isOrContainsTypeParameters(this);
   }
-  public static boolean containsTypeParameters(ResultHolder holder) {
+  public static boolean isOrContainsTypeParameters(ResultHolder holder) {
     if (holder.isUnknown()) return  false;
     if (holder.isTypeParameter()) return true;
     SpecificTypeReference type = holder.getType();
     if (type instanceof  SpecificHaxeClassReference classReference) {
       for (ResultHolder specific : classReference.getSpecifics()) {
-        if (specific.type != type && containsTypeParameters(specific)) return  true;
+        if (specific.type != type && isOrContainsTypeParameters(specific)) return  true;
       }
     }
     if (type instanceof SpecificFunctionReference  function) {
@@ -258,11 +258,14 @@ public class ResultHolder {
   private static boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf(@NotNull ResultHolder type) {
     return hasNoGenericsOrTheOnlyGenericTypeisItSelf(type, type);
   }
+  public boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf() {
+    return hasNoGenericsOrTheOnlyGenericTypeisItSelf(this);
+  }
   private static boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf(@NotNull ResultHolder selfType, @NotNull ResultHolder currentType) {
     if (currentType.isUnknown()) return  false;
     // plain typeParameter OK
     if (currentType.isTypeParameter() && !currentType.isTypeParameterWithConstraints() ) return true;
-    if(currentType.containsTypeParameters()) {
+    if(currentType.isOrContainsTypeParameters()) {
       SpecificTypeReference type = currentType.getType();
       if (type instanceof SpecificHaxeClassReference classReference) {
         for (ResultHolder specific : classReference.getSpecifics()) {

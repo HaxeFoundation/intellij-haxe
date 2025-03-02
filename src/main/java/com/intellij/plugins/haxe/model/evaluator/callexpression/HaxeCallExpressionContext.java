@@ -456,7 +456,7 @@ public class HaxeCallExpressionContext {
                     for (int i = 0; i < currentSpecifics.length; i++) {
                         ResultHolder currentSpecific = currentSpecifics[i];
                         // TODO should probably traverse types instead of  substituting when containsTypeParameters is true
-                        if(currentSpecific.isTypeParameter() || currentSpecific.containsTypeParameters()) {
+                        if(currentSpecific.isTypeParameter() || currentSpecific.isOrContainsTypeParameters()) {
                             if (hintSpecifics.length> i) {
                                 ResultHolder hintSpecific = hintSpecifics[i];
                                 if (currentSpecific.canAssign(hintSpecific)) {

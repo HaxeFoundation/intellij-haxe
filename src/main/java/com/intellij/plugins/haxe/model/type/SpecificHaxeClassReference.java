@@ -1101,7 +1101,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     // we might want to resolve T itself first before we  try to apply it  to our initial type, however this might cause problems.
     // if T happens to contain a typeParameter with the same name (ex. Map<T,Q>) we would end up with a recursive Map<Map<Map<...>,
     // so we must exclude the names that have been used if we go down this route
-    else if (typeHolder.containsTypeParameters()) {
+    else if (typeHolder.isOrContainsTypeParameters()) {
 
 
       if (typeHolder.getType() instanceof SpecificFunctionReference functionReference) {
@@ -1128,7 +1128,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
             }
             // if specific is not a not type parameter its type might still contain typeParameters
             // that might contain type parameters we want to resolve
-          }else if (originalSpecific.containsTypeParameters()) {
+          }else if (originalSpecific.isOrContainsTypeParameters()) {
             HaxeGenericResolver localResolver = new HaxeGenericResolver();
             // all parent resolver values as we might use them in resolve
             localResolver.addAll(genericResolver);
