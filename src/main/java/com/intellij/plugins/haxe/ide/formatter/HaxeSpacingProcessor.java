@@ -346,7 +346,6 @@ public class HaxeSpacingProcessor {
     //
     // Spacing around assignment operators (=, -=, etc.)
     //
-
     if (ASSIGN_OPERATORS.contains(type1)
         || ASSIGN_OPERATORS.contains(typeType1)
         || ASSIGN_OPERATORS.contains(typeType2)
@@ -354,6 +353,10 @@ public class HaxeSpacingProcessor {
       if (typeType2 != null) {
         return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
       }
+    }
+
+    if (type2 == OSEMI) {
+      return Spacing.createSpacing(0, 0, 0, true, 1);
     }
 
     //

@@ -4,9 +4,9 @@ typedef Point3D = {
     z:Int
 }
 typedef FormattingTest = {
-    var x = 0 ;
-    var y = 0 ;
-    var z = 0 ;
+    var x = 0;
+    var y = 0;
+    var z = 0;
 
     function dummy(point:Point3D) {
         x = point.x;

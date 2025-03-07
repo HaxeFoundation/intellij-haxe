@@ -1,4 +1,4 @@
-package ;
+package;
 
 // Left-Aligned Line-ending comment at file level
 // Indented Line-ending comment at file level
