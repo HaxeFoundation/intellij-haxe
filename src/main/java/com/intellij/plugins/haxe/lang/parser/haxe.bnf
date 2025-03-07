@@ -826,8 +826,8 @@ private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX 
 // The lookahead predicate on valueExpression is required for suffix expressions to be parsed properly,
 // even though the suffix expressions appear before the value.
 expression ::= assignExpression
-             | coalescingExpression
              | ternaryExpression
+             | coalescingExpression
              | logicOrExpression
              | logicAndExpression
              | iteratorExpression
