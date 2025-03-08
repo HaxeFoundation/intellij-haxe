@@ -153,6 +153,10 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       descriptor = buildImportsFolding(node);
     } else if (isCodeBlock(elementType)) {
       descriptor = buildCodeBlockFolding(node);
+    } else if (isReificationBlock(elementType)) {
+      descriptor = buildReificationFolding(node);
+    } else if (isCollectionLiteral(elementType)) {
+      descriptor = buildCollectionBlockFolding(node);
     } else if (isBodyBlock(elementType)) {
       descriptor = buildBodyBlockFolding(node);
     } else if (isComment(elementType, node)) {
@@ -270,11 +274,17 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
   }
 
   private static boolean isCodeBlock(IElementType elementType) {
-    return elementType == BLOCK_STATEMENT;
+    return BLOCK_TYPES.contains(elementType);
+  }
+  private static boolean isReificationBlock(IElementType elementType) {
+    return elementType == MACRO_EXPRESSION_REIFICATION;
   }
 
   private static boolean isBodyBlock(IElementType elementType) {
     return CLASS_BODY_TYPES.contains(elementType);
+  }
+  private static boolean isCollectionLiteral(IElementType elementType) {
+    return COLLECTION_LITERAL.contains(elementType);
   }
 
   private static boolean isComment(IElementType elementType, ASTNode node) {
@@ -361,19 +371,35 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     final ASTNode openBrace = node.getFirstChildNode();
     final ASTNode closeBrace = node.getLastChildNode();
 
-    return buildBlockFolding(node, openBrace, closeBrace);
+    return buildBlockFolding(node, openBrace, closeBrace, PLCURLY, PRCURLY);
+  }
+  private static FoldingDescriptor buildReificationFolding(@NotNull ASTNode node) {
+    // MACRO_EXPRESSION_REIFICATION contains a set of different reification expressions so we need to go one level deeper.
+    ASTNode reification = node.getFirstChildNode();
+
+    final ASTNode openBrace = reification.getFirstChildNode().getTreeNext();
+    final ASTNode closeBrace = reification.getLastChildNode();
+
+    return buildBlockFolding(node, openBrace, closeBrace, PLCURLY, PRCURLY);
+  }
+
+  private static FoldingDescriptor buildCollectionBlockFolding(@NotNull ASTNode node) {
+    final ASTNode openBrace = node.getFirstChildNode();
+    final ASTNode closeBrace = node.getLastChildNode();
+
+    return buildBlockFolding(node, openBrace, closeBrace, PLBRACK, PRBRACK);
   }
 
   private static FoldingDescriptor buildBodyBlockFolding(@NotNull ASTNode node) {
-    final ASTNode openBrace = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(node);
-    final ASTNode closeBrace = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(node);
+    final ASTNode openBrace = node.getFirstChildNode();
+    final ASTNode closeBrace = node.getLastChildNode();
 
-    return buildBlockFolding(node, openBrace, closeBrace);
+    return buildBlockFolding(node, openBrace, closeBrace, PLCURLY, PRCURLY );
   }
 
-  private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace) {
+  private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace, IElementType openElementType, IElementType closeElementType) {
     TextRange textRange;
-    if (openBrace != null && closeBrace != null && openBrace.getElementType() == PLCURLY && closeBrace.getElementType() == PRCURLY) {
+    if (openBrace != null && closeBrace != null && openBrace.getElementType() == openElementType && closeBrace.getElementType() == closeElementType) {
       textRange = new TextRange(openBrace.getTextRange().getEndOffset(), closeBrace.getStartOffset());
     } else {
       textRange = node.getTextRange();

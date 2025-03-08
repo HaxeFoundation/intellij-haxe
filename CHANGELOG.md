@@ -1,4 +1,9 @@
 # Changelog
+## 1.6.3
+* Added: Support for code folding for switch expressions, arrays, maps and object literals. 
+* Changed: formatter now removes spaces between expressions and semicolons
+* bugfix: Fixed incorrect priority in parser (ternaryExpressions must be parsed before coalescingExpressions)
+
 ## 1.6.2
 * Added: Null coalescing annotations (#1208) 
 * Fixed: Another constraint refers to owning typeParameter issue  

@@ -290,6 +290,18 @@ public interface HaxeTokenTypeSets {
     INTERFACE_BODY
   );
 
+  TokenSet BLOCK_TYPES = TokenSet.create(
+    BLOCK_STATEMENT,
+    SWITCH_BLOCK,
+    SWITCH_CASE_BLOCK,
+    OBJECT_LITERAL
+  );
+
+  TokenSet COLLECTION_LITERAL = TokenSet.create(
+    ARRAY_LITERAL,
+    MAP_LITERAL
+  );
+
   TokenSet CLASS_TYPES = TokenSet.create(
     ABSTRACT_TYPE_DECLARATION,
     CLASS_DECLARATION,
