@@ -654,4 +654,12 @@ public abstract class SpecificTypeReference {
 
   public abstract PsiElement getTypePsi();
 
+  public String toTypeString() {
+    if(this instanceof  SpecificHaxeClassReference classReference) {
+      if(classReference.getHaxeClassModel() instanceof HaxeObjectLiteralClassModel objectLiteralModel) {
+        return objectLiteralModel.buildTypeString();
+      }
+    }
+      return toPresentationString();
+  }
 }

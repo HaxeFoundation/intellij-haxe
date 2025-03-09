@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,5 +73,26 @@ public class HaxeObjectLiteralClassModel extends HaxeClassModel {
   @Override
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {
     return super.getField(name, resolver);
+  }
+
+  public String buildTypeString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("{");
+      List<HaxeBaseMemberModel> members = getMembers(null);
+    int memberCount = members.size();
+    for (int i = 0; i < memberCount; i++) {
+          HaxeBaseMemberModel member = members.get(i);
+          String name = member.getName();
+          ResultHolder resultType = member.getResultType();
+          builder.append(name);
+          builder.append(":");
+          builder.append(resultType.toTypeString());
+          if(i+1 <memberCount ) {
+            builder.append(",");
+          }
+
+      }
+    builder.append("}");
+    return builder.toString();
   }
 }

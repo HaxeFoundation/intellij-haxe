@@ -2,6 +2,7 @@
 ## 1.6.3
 * Added: Support for code folding for switch expressions, arrays, maps and object literals. 
 * Changed: formatter now removes spaces between expressions and semicolons
+* bugfix: Fixed error when trying to insert typeTag for objectLiterals
 * bugfix: Fixed incorrect priority in parser (ternaryExpressions must be parsed before coalescingExpressions)
 
 ## 1.6.2

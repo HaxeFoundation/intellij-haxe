@@ -189,6 +189,9 @@ public class ResultHolder {
   public String toPresentationString() {
     return this.getType().toPresentationString(false);
   }
+  public String toTypeString() {
+    return this.getType().toTypeString();
+  }
   public String toPresentationString(boolean showOnlyConstraintForTypeParam) {
     return this.getType().toPresentationString(showOnlyConstraintForTypeParam);
   }

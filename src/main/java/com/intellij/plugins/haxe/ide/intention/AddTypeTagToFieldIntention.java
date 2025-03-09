@@ -9,9 +9,13 @@ import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclarationList;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiField;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeObjectLiteralClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -65,7 +69,19 @@ public class AddTypeTagToFieldIntention extends BaseIntentionAction {
     if (isMissingTypeTag) {
       ResultHolder type = HaxeExpressionEvaluator.evaluate(field, new HaxeExpressionEvaluatorContext(field), null).result;
       if (!(type == null || type.isUnknown())) {
-        HaxeTypeTag tag = createTypeTag(project, type.getType().toPresentationString());
+
+        SpecificTypeReference typeReference = type.getType();
+        String presentationString = typeReference.toPresentationString();
+
+        // object literals needs to be handled in a different way as the Presentation string is usually shortened
+        if (typeReference instanceof SpecificHaxeClassReference classReference) {
+          HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
+          if(haxeClassModel instanceof HaxeObjectLiteralClassModel objectLiteralModel) {
+            presentationString =  objectLiteralModel.buildTypeString();
+          }
+        }
+
+        HaxeTypeTag tag = createTypeTag(project, presentationString);
         field.addAfter(tag, field.getComponentName());
       }
     }
