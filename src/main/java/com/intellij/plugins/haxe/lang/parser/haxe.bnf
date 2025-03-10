@@ -775,7 +775,7 @@ enumValueReference ::= simpleQualifiedReferenceExpression
 enumArgumentExtractor ::= enumValueReference '(' 'var'? enumExtractorArgumentList ')'
  {extends="expression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumArgumentExtractorMixinImpl" implements="com.intellij.plugins.haxe.model.HaxeModelTarget"}
 
-variableCaptureExpression ::= callOrArrayAccess ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
+variableCaptureExpression ::= valueReference ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 private switchCaseCaptureInit ::=  '=' (primitiveExtractedValue | expression) {extends = varInit }
 switchCaseCapture ::= <<startWithLowercaseOrUnderscoreCheck>> componentName (("=" extractorMatchExpressionVariant  ) | switchCaseCaptureInit)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
@@ -882,7 +882,7 @@ fake unaryExpression ::= expression* operator {
   methods=[expression="expression[0]" operator="operator"]
 }
 // might not be the best solution to add  (| thisExpression | superExpression | abstractExpression) here but it solves issues with postfix stuff (like "this.size++;")
-private assignableValueExpression ::= (referenceExpression | thisExpression | superExpression | abstractExpression) (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
+private assignableValueExpression ::= thisSuperAbstractOrReferenceExpression (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
 
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!
@@ -903,20 +903,14 @@ private value ::= ('untyped' expression)
                 | switchStatement
                 | throwStatement
                 | (castExpression qualifiedReferenceTail?)
-                //
                 | callFunctionLiteral
                 | immediateArrayAccess
-                | (macroExpressionReification (qualifiedReferenceTail | CallArrayOrReferenceExpression)?)
                 | (literalExpression qualifiedReferenceTail?)
                 | objectLiteral
-                | callOrArrayAccess
-                | parenthesizedExpressionOrCall  // Seems redundant with callOrArrayAccess
+                | valueReference
                 | localVarDeclarationWithInit
-                | referenceExpression
-                | thisExpression
-                | superExpression
-                | abstractExpression
 {pin=1 }
+private valueReference ::= (macroExpressionReification | callOrArrayTail) (qualifiedReferenceTail | CallArrayOrReferenceExpression* qualifiedReferenceTail*)?;
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | 'null' | 'true' | 'false'
@@ -945,25 +939,20 @@ private long_template_entry_recover ::= !(';' | OPEN_QUOTE| CLOSING_QUOTE | REGU
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
 
-private parenthesizedExpressionOrCall ::= parenthesizedExpression qualifiedReferenceTail?
 parenthesizedExpression ::= '(' (typeCheckExpr | macroTypeReification | expression | statement) ')' {name="expression"}
 
 private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedReferenceExpression)
+private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
 private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
 
-
-
 private callFunctionLiteral ::= functionLiteral callExpression
-private callOrArrayAccess ::=  (callAccess | arrayAccess )
-private callOrArrayTail ::= (referenceExpression | thisExpression | superExpression | abstractExpression | parenthesizedExpression)
-private callAccess ::=  'inline'? callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? callExpression
-private arrayAccess ::=  callOrArrayTail ( callExpression |  arrayAccessExpression | qualifiedNullSafeReferenceExpression)*? arrayAccessExpression
+private callOrArrayTail ::= ( thisSuperAbstractOrReferenceExpression | parenthesizedExpression)
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
+
 // spread operator only allowed  as last  last argument in calls expressions
 spreadExpression ::= (iteratorOperator (referenceExpression | arrayLiteral)) { extends = unaryExpression}
 
@@ -975,6 +964,8 @@ left arrayAccessExpression ::= '[' expression ']'
 // haxe allow you to reference the constructor of a class so we need to allow "var fn = MyClass.new"
 identifierOrReferenceAllowedKeyword ::= identifier | 'new'
 {extends= identifier}
+
+private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression
 
 referenceExpression ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
