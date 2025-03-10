@@ -848,7 +848,10 @@ assignExpression ::= expression assignOperation expression                    { 
 isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="expression[0]" operator="isOperator"] }
 iteratorExpression ::= expression iteratorOperator expression                 { extends=binaryExpression }
 coalescingExpression ::= expression coalescingOperator expression             { extends=binaryExpression }
-ternaryExpression ::= expression questionOperator expression colonOperator expression
+// Note:
+// The assignExpression in ternaryExpression (assignExpression | expression) is here because the expression parsing
+// seems to skip assignExpression due to priority value in parser logic
+ternaryExpression ::= expression questionOperator (assignExpression | expression) colonOperator (assignExpression | expression)
   { rightAssociative=true
     methods=[ guardExpression="expression[0]"
               guardedExpression="expression[1]"
