@@ -955,7 +955,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
         if (expressionList != null && methodModel != null && validation != null) {
           // makes sure we dont provide wrong result when not all facts are available
-          if(validation.getCallie().isUnknown()) return null;
+          ResultHolder callie = validation.getCallie();
+          if(callie != null && callie.isUnknown()) return null;
 
           int callExpressionIndex = expressionList.indexOf(literal);
           int parameterIndex = validation.getParameterForArgument(callExpressionIndex);

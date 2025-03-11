@@ -44,7 +44,7 @@ public class HaxeCallExpressionEvaluation {
     // should contain final values after arguments and monomorphs have been evaluated
     @Getter HaxeGenericResolver callExpressionResolver = new HaxeGenericResolver();
     @Getter HaxeGenericResolver callieResolver = new HaxeGenericResolver();
-    ResultHolder callie;
+    @Nullable ResultHolder callie;
     ResultHolder returnType;
 
 
@@ -134,6 +134,7 @@ public class HaxeCallExpressionEvaluation {
         return resolve;
     }
 
+    @Nullable
     public ResultHolder getCallie() {
         return callExpressionResolver.resolve(callie);
     }
