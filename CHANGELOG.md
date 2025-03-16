@@ -1,4 +1,9 @@
 # Changelog
+## 1.6.4
+* Improvement: Reworked documentation rendering and added support for reader mode.
+* Fixed: Parser issues with ternaryExpressions containing assignExpression.
+* Bugfix: Prevent incorrect type resolve for untyped parameters when parent callie is unknown
+
 ## 1.6.3
 * Added: Support for code folding for switch expressions, arrays, maps and object literals. 
 * Changed: formatter now removes spaces between expressions and semicolons
