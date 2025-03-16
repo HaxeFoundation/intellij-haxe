@@ -26,13 +26,19 @@ import java.util.stream.Collectors;
 
 public class HaxeDocumentationRenderer {
 
-  private List<Extension> extensions = Arrays.asList(AutolinkExtension.create(), TablesExtension.create(), HaxeDocumentationTagsExtension.create());
 
   private final Project myProject;
   private final HtmlRenderer renderer;
   private final Parser parser;
 
   public HaxeDocumentationRenderer(Project project) {
+    List<Extension> extensions = Arrays.asList(
+            AutolinkExtension.create(),
+            TablesExtension.create(),
+            HaxeDocumentationTagsExtension.create(),
+            HaxeCodeReferenceToLinksExtension.create(project)
+    );
+
     myProject = project;
 
     parser = Parser.builder()

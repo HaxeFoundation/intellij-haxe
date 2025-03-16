@@ -127,6 +127,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
         _model =  new HaxeObjectLiteralClassModel(objectLiteral);
       } else if (this instanceof HaxeGenericListPart genericListPart) {
         _model = new HaxeGenericParamModel(genericListPart);
+      } else if (this instanceof HaxeInterfaceDeclaration interfaceDeclaration) {
+        _model = new HaxeInterfaceModel(interfaceDeclaration);
       } else if (this instanceof HaxeAbstractTypeDeclaration abstractDeclaration) {
         if (abstractDeclaration.isEnum()) {
           _model = new HaxeAbstractEnumModel(abstractDeclaration);

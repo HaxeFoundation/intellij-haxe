@@ -536,7 +536,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @Nullable
   public HaxePsiCompositeElement getBodyPsi() {
-    return (haxeClass instanceof HaxeClassDeclaration) ? ((HaxeClassDeclaration)haxeClass).getClassBody() : null;
+    return (haxeClass instanceof HaxeClassDeclaration classDeclaration) ? classDeclaration.getClassBody() : null;
   }
 
   @Nullable
