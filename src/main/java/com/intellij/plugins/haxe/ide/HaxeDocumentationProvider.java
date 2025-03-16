@@ -24,20 +24,26 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.util.text.HtmlBuilder;
 import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.parser.haxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static com.intellij.plugins.haxe.ide.HaxeDocumentationSignatureUtil.*;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
 import static com.intellij.util.ui.UIUtil.colorToHex;
 
 /**
@@ -128,6 +134,37 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     appendDocumentation(namedComponent, renderer, mainBuilder);
     mainBuilder.br();
     return mainBuilder.toString();
+  }
+
+  @Override
+  public @Nls @Nullable String generateRenderedDoc(@NotNull PsiDocCommentBase comment) {
+    if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
+      HaxeDocumentationRenderer renderer = haxeDocComment.getProject().getService(HaxeDocumentationRenderer.class);
+
+      String docs = haxeDocComment.getDocsWithoutIndents();
+      HtmlBuilder tmpBuilder = new HtmlBuilder();
+      String rendered = renderer.parseAndRenderDocs(docs);
+      HtmlChunk.Element content = tmpBuilder.appendRaw(rendered).wrapWith(HtmlChunk.Element.div().attr("class", "content"));
+      tmpBuilder.append(content);
+
+      return new HtmlBuilder().append(content).toString();
+    }
+    return null;
+  }
+
+  @Override
+  public void collectDocComments(@NotNull PsiFile file, @NotNull Consumer<? super @NotNull PsiDocCommentBase> sink) {
+    if (file instanceof HaxeFile haxeFile) {
+
+      Collection<haxePsiDocCommentImpl> children = PsiTreeUtil.findChildrenOfAnyType(haxeFile, haxePsiDocCommentImpl.class);
+      for (PsiComment child : children) {
+        if (child.getTokenType() == DOC_COMMENT) {
+          if (child instanceof haxePsiDocCommentImpl haxePsiDocComment) {
+            sink.accept(haxePsiDocComment);
+          }
+        }
+      }
+    }
   }
 
   private static HaxeNamedComponent getNamedComponent(PsiElement element) {
@@ -230,10 +267,10 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   private static void appendDocumentation(HaxeNamedComponent namedComponent, HaxeDocumentationRenderer service, HtmlBuilder htmlBuilder) {
     final PsiComment comment = HaxeResolveUtil.findDocumentation(namedComponent);
-    if (comment != null) {
+    if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
       HtmlBuilder tmpBuilder = new HtmlBuilder();
-      String docs = HaxePresentableUtil.unwrapCommentDelimiters(comment.getText());
-      String rendered = service.renderDocs(docs);
+      String docs = haxeDocComment.getDocsWithoutIndents();
+      String rendered = service.parseAndRenderDocs(docs);
       HtmlChunk.Element content = tmpBuilder.appendRaw(rendered).wrapWith(HtmlChunk.Element.div().attr("class", "content"));
       htmlBuilder.append(content);
     }

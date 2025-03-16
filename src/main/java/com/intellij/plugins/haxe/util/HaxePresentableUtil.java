@@ -47,15 +47,6 @@ public class HaxePresentableUtil {
     return Character.toUpperCase(name.charAt(0)) + name.substring(1);
   }
 
-  @NotNull
-  public static String unwrapCommentDelimiters(@NotNull String text) {
-    if (text.startsWith("/**")) text = text.substring("/**".length());
-    if (text.startsWith("/*")) text = text.substring("/*".length());
-    if (text.startsWith("//")) text = text.substring("//".length());
-    if (text.endsWith("**/")) text = text.substring(0, text.length() - "**/".length());
-    if (text.endsWith("*/")) text = text.substring(0, text.length() - "*/".length());
-    return text;
-  }
 
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element) {
@@ -267,5 +258,14 @@ public class HaxePresentableUtil {
       .append(buildTypeText(null, functionType.getFunctionReturnType(), specialization));
 
     return builder.toString();
+  }
+
+  public static String removeExcessLines(String docs) {
+    String[] split = docs.split("\n");
+    if (split.length == 1)  return docs;
+    // multi-line docs will contain the empty lins after /**  and before */
+    String substring = docs.substring(1);
+    String s = substring.substring(0, substring.length() - 2).stripIndent();
+    return s;
   }
 }
