@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.documentation.DocumentationManagerProtocol;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -92,7 +91,7 @@ class HaxeDocumentationCodeVisitor extends AbstractVisitor {
                 HaxeNamedComponent haxeMemberByName = haxeClass.findHaxeMemberByName(member, null);
                 if (haxeMemberByName  instanceof PsiMember psiMember) {
                     PsiClass containingClass = psiMember.getContainingClass();
-                    replaceCodeWithLink(code, containingClass.getQualifiedName() + "."+ member, literal);
+                    replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
                     return true;
                 }
             }
@@ -103,7 +102,7 @@ class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     private boolean replaceIndexedClassName(Code code, String literal) {
         HaxeClass haxeClass = findUniqueClassFromIndex(literal);
         if (haxeClass != null) {
-            replaceCodeWithLink(code, haxeClass.getQualifiedName(), literal);
+            replaceCodeWithReferenceCodeLink(code, haxeClass.getQualifiedName(), literal);
             return true;
         }
         return false;
@@ -123,16 +122,16 @@ class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     private boolean replaceFullyQualifiedClass(Code code, String literal) {
         HaxeClass classByQName = HaxeResolveUtil.findClassByQName(literal, service, GlobalSearchScope.allScope(project));
         if (classByQName != null) {
-            replaceCodeWithLink(code, literal, literal);
+            replaceCodeWithReferenceCodeLink(code, literal, literal);
             return true;
         }
         return false;
     }
 
-    private static void replaceCodeWithLink(Code code, String qname, String linkText) {
-        Link link = new Link();
-        link.setDestination(DocumentationManagerProtocol.PSI_ELEMENT_PROTOCOL + qname);
-        link.appendChild(new Text(linkText));
+    private static void replaceCodeWithReferenceCodeLink(Code code, String qname, String linkText) {
+        ReferenceCodeLink link = new ReferenceCodeLink();
+        link.setPsiReference(qname);
+        link.setLinkText(linkText);
         code.insertBefore(link);
         code.unlink();
     }

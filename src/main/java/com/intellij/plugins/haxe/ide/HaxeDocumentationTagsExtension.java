@@ -41,7 +41,6 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
 
     public static Pattern docTagPattern = Pattern.compile("(@\\w+)(.*)");
     public static Pattern parameterContentPattern = Pattern.compile("(\\S+)\\s+(.*)");
-    public static Pattern qNamePattern = Pattern.compile("(\\w+)(\\.(\\w+))*");
 
     public static final String TAG_SINCE = "@since";
     public static final String TAG_SEE = "@see";
@@ -60,16 +59,6 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
     );
 
 
-//    @Override
-//    protected void visitChildren(Node parent) {
-//        Node node = parent.getLastChild();
-//        while (node != null) {
-//            // we move nodes into sub blocks so make sure we do not start iterating in a different block we walk backwards
-//            Node previous = node.getPrevious();
-//            node.accept(this);
-//            node = previous;
-//        }
-//    }
 
     @Override
     public void visit(Text text) {
@@ -93,14 +82,6 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
                 }
             }
         }
-
-        //TODO mlo:  try to add resolve link for references found codeblocks (might be  its own extension)
-//        HtmlBlock htmlBlock = new HtmlBlock();
-//        DocumentationManagerUtil.createHyperlink(stringBuilder, qualifiedName, qualifiedName, false, true);
-//        htmlBlock.setLiteral();
-
-
-
     }
 
     private void processSinceTag(Text text, String tag, String content) {

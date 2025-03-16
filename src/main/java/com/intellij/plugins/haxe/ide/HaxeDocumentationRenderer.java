@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide;
 
-import com.google.common.base.CharMatcher;
+import com.intellij.codeInsight.documentation.DocumentationManagerUtil;
 import com.intellij.lang.Language;
 import com.intellij.lang.documentation.DocumentationSettings;
 import com.intellij.lang.documentation.QuickDocHighlightingHelper;
@@ -15,14 +15,12 @@ import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.NodeRenderer;
 import org.commonmark.renderer.html.*;
-import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class HaxeDocumentationRenderer {
 
@@ -73,11 +71,19 @@ public class HaxeDocumentationRenderer {
       return new NodeRenderer() {
         @Override
         public Set<Class<? extends Node>> getNodeTypes() {
-          return Set.of(FencedCodeBlock.class, Code.class, HtmlBlock.class);
+          return Set.of(FencedCodeBlock.class, Code.class, HtmlBlock.class, ReferenceCodeLink.class);
         }
 
         @Override
         public void render(Node node) {
+          if (node instanceof ReferenceCodeLink link) {
+            StringBuilder builder = new StringBuilder();
+            DocumentationManagerUtil.createHyperlink(builder, link.getPsiReference(), link.getLinkText(), false);
+            context.getWriter().tag("code");
+            context.getWriter().raw(builder.toString());
+            context.getWriter().tag("/code");
+          }
+
           if (node instanceof Code code) {
 
             String highlighting = renderer.languageHighlighting(code.getLiteral());
