@@ -950,7 +950,7 @@ private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
 
 private callFunctionLiteral ::= functionLiteral callExpression
-private callOrArrayTail ::= ( thisSuperAbstractOrReferenceExpression | parenthesizedExpression)
+private callOrArrayTail ::= 'inline'? ( thisSuperAbstractOrReferenceExpression | parenthesizedExpression)
 private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 // spread operator only allowed  as last  last argument in calls expressions
