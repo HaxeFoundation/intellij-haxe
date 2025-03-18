@@ -71,7 +71,12 @@ public class HaxeTypeCompatible {
     static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkDirectCasts, boolean checkImplicitCasts, boolean contravariance) {
         if (to == null || from == null) return false;
         AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkDirectCasts, checkImplicitCasts, contravariance, false, false);
-        return canAssignToFromEvaluation(to, from, false, checkDirectCasts, checkImplicitCasts, contravariance).result;
+        return canAssignToFromEvaluation(to, from, settings, null).result;
+    }
+    static public boolean canAssignToFromReference(@Nullable ResultHolder to, @Nullable ResultHolder from, boolean checkDirectCasts, boolean checkImplicitCasts, boolean contravariance, boolean ignoreFromConstraints) {
+        if (to == null || from == null) return false;
+        AssignEvaluationSettings settings = new AssignEvaluationSettings(false, checkDirectCasts, checkImplicitCasts, contravariance, ignoreFromConstraints, false);
+        return canAssignToFromEvaluation(to, from, settings, null).result;
     }
 
     static public HaxeAssignEvaluation evaluateAssignToFrom(@NotNull ResultHolder to, @NotNull ResultHolder from) {

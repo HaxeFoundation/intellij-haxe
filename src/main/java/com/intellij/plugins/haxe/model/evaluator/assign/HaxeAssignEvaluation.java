@@ -586,7 +586,8 @@ public class HaxeAssignEvaluation {
       List<SpecificTypeReference> directCasts = toClassReference.getDirectCastFromTypes();
       for (SpecificTypeReference directCastType : directCasts) {
         // direct casts  can be "chained" (ex. Int -> Float -> Single)
-        if (HaxeTypeCompatible.canAssignToFromReference(directCastType, fromClassReference, true, false)) {
+        // need to ignore from  TP constraints (target type is "typeHint" in this case)
+        if (HaxeTypeCompatible.canAssignToFromReference(directCastType.createHolder(), fromClassReference.createHolder(), true, false, false, true)) {
           //
           if(config.implicitTypeMustMatchUnderlying()) {
             if (underlyingTypeAndCastCheck(toClassReference, directCastType)) continue;
