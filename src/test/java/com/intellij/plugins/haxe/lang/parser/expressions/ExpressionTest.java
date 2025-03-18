@@ -164,4 +164,9 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testStrings() throws Throwable {
     doTest(true);
   }
+
+  @Test
+  public void testInlineCallExpression() throws Throwable {
+    doTest(true);
+  }
 }
