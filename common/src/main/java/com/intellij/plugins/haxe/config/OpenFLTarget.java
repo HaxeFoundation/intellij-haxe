@@ -40,6 +40,7 @@ public enum OpenFLTarget {
   WEBOS("webOS", HaxeTarget.CPP, "webos"),
   BLACKBERRY("BlackBerry", HaxeTarget.CPP, "blackberry"),
   WINDOWS("Windows", HaxeTarget.CPP, "windows"),
+  CPPIA("Cppia", HaxeTarget.CPPIA, "cppia"),
   MAC("Mac OS", HaxeTarget.CPP, "mac"),
   LINUX("Linux", HaxeTarget.CPP, "linux"),
   LINUX64("Linux 64", HaxeTarget.CPP, "linux", "-64"),
