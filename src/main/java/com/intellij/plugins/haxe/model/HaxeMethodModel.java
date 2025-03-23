@@ -263,27 +263,14 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.NO_USING);
   }
 
-  //// TODO make it support optional args and varargs
-  //// attempts at evaluating generic resolver values when arguments can override
-  //public HaxeGenericResolver getGenericResolver(HaxeGenericResolver parentResolver, List<ResultHolder> arguments) {
-  //  HaxeGenericResolver genericResolver = getGenericResolver(parentResolver);
-  //  List<HaxeParameterModel> parameters = this.getParameters();
-  //  TypeParameterTable typeParamTable = createTypeParameterConstraintTable(haxeMethod, genericResolver, true);
-  //  for (int i = 0; i < parameters.size(); i++) {
-  //    if (i >= arguments.size()) break;
-  //
-  //    HaxeParameterModel parameter = parameters.get(i);
-  //    ResultHolder param = parameter.getType();
-  //    ResultHolder arg = arguments.get(i);
-  //    // not including implicit cast here as it easily cause stack overflows
-  //    boolean canAssign = HaxeTypeCompatible.canAssignToFrom(param.getType(), arg.getType(), false, null);
-  //    if (canAssign) {
-  //      genericResolver.translateFromTo(param.getType(), arg.getType())
-  //      return findTypeParametersToInherit(param.getType(), arg.getType(), genericResolver, typeParamTable);
-  //    }
-  //  }
-  //
-  //  return genericResolver;
-  //}
+  @Nullable
+  public HaxeModel getParameterWithName(@NotNull String paramName) {
+    for (HaxeParameterModel parameter : getParameters()) {
+      if (paramName.equals(parameter.getName())) {
+        return parameter;
+      }
+    }
+    return null;
+  }
 }
 

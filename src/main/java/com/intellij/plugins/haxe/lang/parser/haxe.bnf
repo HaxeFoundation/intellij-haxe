@@ -261,7 +261,7 @@ packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
 {pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
 
 private topLevelList ::= topLevel*
-module ::= moduleBody
+module ::= moduleBody { mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModulePsiMixinImpl"}
 private topLevel ::= importStatement | usingStatement |  module {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 //private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 private top_level_recover ::= !( 'import' | 'using' | 'class' | 'abstract' | 'interface' | 'typedef' | 'enum' | 'function' | 'public' | 'private' | 'extern' | 'final' | 'var' | 'inline' | metaKeyWord | ppToken)

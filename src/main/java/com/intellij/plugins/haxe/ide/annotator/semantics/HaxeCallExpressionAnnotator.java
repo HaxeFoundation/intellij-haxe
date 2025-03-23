@@ -121,9 +121,9 @@ public class HaxeCallExpressionAnnotator implements Annotator {
   private static boolean isTrace(HaxeMethod method) {
     FullyQualifiedInfo info = method.getModel().getQualifiedInfo();
     if (info == null) return false;
-    return info.className.equals("Log")
-           && info.packagePath.equals("haxe")
-           && info.memberName.equals("trace");
+    return "Log".equals(info.className)
+           && "haxe".equals(info.packagePath)
+           && "trace".equals(info.memberName);
   }
 
   private void createErrorAnnotations(List<EvaluationAnnotationData> annotationData, @NotNull AnnotationHolder holder) {

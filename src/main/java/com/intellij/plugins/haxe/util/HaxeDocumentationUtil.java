@@ -5,7 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.function.Predicate.not;
 
 /**
  * Note: This util is just here to help extracting documentation for as long as we treat documentation as one single tag
@@ -56,10 +59,52 @@ public class HaxeDocumentationUtil {
   }
 
   public static String stripIndents(String docs, boolean javaDocStyle) {
+    String[] split = docs.split("\n");
     if(javaDocStyle) {
-      return Arrays.stream(docs.split("\n")).map(s-> s.replaceFirst("\\s*\\*","")).collect(Collectors.joining("\n"));
+      return Arrays.stream(split).map(s-> s.replaceFirst("\\s*\\*","")).collect(Collectors.joining("\n"));
     }else {
+      // workaround for docs with empty lines and  "content lines" with indentations
+      Optional<Integer> min = Arrays.stream(split).filter(not(String::isBlank)).map(s -> s.stripLeading().length() - s.length()).min(Integer::compare);
+      if(min.isPresent()) {
+        Integer i = min.get();
+        return Arrays.stream(split)
+                .map(s ->  s.isBlank() ? s.indent(i) : s)
+                .collect(Collectors.joining("\n"))
+                .stripIndent();
+      }
       return docs.stripIndent();
     }
+  }
+
+  public static String tryFixIndents(String extractedDocs) {
+    String[] split = extractedDocs.split("\n");
+    int lineCount = split.length;
+    for (int i = 0; i < lineCount; i++) {
+
+      int lineBeforeIndex = i - 1;
+      int lineAfterIndex = i + 1;
+
+      if (lineBeforeIndex > 0) {
+        if (lineAfterIndex < lineCount) {
+          String line = split[i];
+          String lineBefore = split[lineBeforeIndex];
+          String lineAfter = split[lineAfterIndex];
+          if (line.isEmpty()) {
+            int beforeIndents = countIndents(lineBefore);
+            int afterIndents = countIndents(lineAfter);
+            if (beforeIndents == afterIndents && afterIndents != 0) {
+              String indents = lineAfter.substring(0, beforeIndents);
+              split[i] = indents +line+"<br>";
+            }
+          }
+        }
+
+      }
+    }
+    return String.join("\n", split);
+  }
+
+  private static int countIndents(String lineBefore) {
+    return lineBefore.length() - lineBefore.stripLeading().length();
   }
 }

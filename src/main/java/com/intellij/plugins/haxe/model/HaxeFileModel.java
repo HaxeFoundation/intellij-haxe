@@ -287,6 +287,13 @@ public class HaxeFileModel implements HaxeExposableModel {
         // so we check  for "shifted" values
         member = findMember(info.fileName, className);
       }
+      if (member != null && info.parameter != null) {
+        if (member instanceof HaxeMethodModel methodModel) {
+          return methodModel.getParameterWithName(info.parameter);
+        } else {
+          return null;
+        }
+      }
       return member;
     }
     return null;

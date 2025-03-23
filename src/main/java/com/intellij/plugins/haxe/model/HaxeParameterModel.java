@@ -291,6 +291,17 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
+    return new FullyQualifiedInfo(getQualifiedName());
+  }
+
+  @Nullable
+  public String getQualifiedName() {
+    HaxeMethodModel declaringMethod = getDeclaringMethod();
+    if (declaringMethod != null) {
+      if (declaringMethod.getQualifiedInfo() != null) {
+        return declaringMethod.getQualifiedInfo().toString() + "#" + getName();
+      }
+    }
     return null;
   }
 
@@ -298,6 +309,14 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     HaxeParameterModel model = new HaxeParameterModel(getParameterPsi());
     model.typeReplacement = type;
     return model;
+  }
+
+  public HaxeMethodModel getDeclaringMethod() {
+    HaxeMethod parentOfType = PsiTreeUtil.getParentOfType(getBasePsi(), HaxeMethod.class);
+    if(parentOfType!= null) {
+      return parentOfType.getModel();
+    }
+    return null;
   }
 
   public boolean isUntyped() {

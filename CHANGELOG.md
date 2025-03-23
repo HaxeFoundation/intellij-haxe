@@ -1,4 +1,9 @@
 # Changelog
+## 1.6.5
+* Added: Cppia target for OpenFL/Lime builds
+* Fixed: Direct cast to Abstract with typeParameters would fail for typeParameters with constraints.  
+* Fixed: parser regression (inline callExpressions)
+
 ## 1.6.4
 * Improvement: Reworked documentation rendering and added support for reader mode.
 * Fixed: Parser issues with ternaryExpressions containing assignExpression.

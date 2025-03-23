@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -111,11 +112,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     return  CachedValuesManager.getProjectPsiDependentCache(getMemberPsi(), HaxeMemberModel::_getDeclaringClass);
   }
 
-  ///TODO make  model reusable and cache result
   public HaxeModuleModel getDeclaringModule() {
-    HaxeModule module = PsiTreeUtil.getParentOfType(getMemberPsi(), HaxeModule.class);
+    HaxeModuleImpl module = PsiTreeUtil.getParentOfType(getMemberPsi(), HaxeModuleImpl.class);
     if (module == null) return null;
-    return new HaxeModuleModel(module);
+    return module.getModel();
   }
 
   private static HaxeClassModel _getDeclaringClass(PsiMember member) {
@@ -128,7 +128,8 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
 
   public boolean isInInterface() {
-    return getDeclaringClass().isInterface();
+    HaxeClassModel declaringClass = getDeclaringClass();
+    return declaringClass != null && declaringClass.isInterface();
   }
 
   public boolean hasModifier(@HaxePsiModifier.ModifierConstant String modifier) {
@@ -164,7 +165,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    if (getDeclaringClass() != null && isStatic() && isPublic()) {
+    if (getDeclaringClass() != null) {
       FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
       if (containerInfo != null) {
         return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());

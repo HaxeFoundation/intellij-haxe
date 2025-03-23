@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.psi.PsiDocCommentBase;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
@@ -15,6 +16,8 @@ import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.NodeRenderer;
 import org.commonmark.renderer.html.*;
+import org.jetbrains.annotations.NotNull;
+
 
 import java.awt.*;
 import java.util.Arrays;
@@ -33,8 +36,7 @@ public class HaxeDocumentationRenderer {
     List<Extension> extensions = Arrays.asList(
             AutolinkExtension.create(),
             TablesExtension.create(),
-            HaxeDocumentationTagsExtension.create(),
-            HaxeCodeReferenceToLinksExtension.create(project)
+            HaxeDocumentationTagsExtension.create()
     );
 
     myProject = project;
@@ -50,9 +52,10 @@ public class HaxeDocumentationRenderer {
   }
 
 
-  public String parseAndRenderDocs(String docs) {
-      Node document = parser.parse(docs);
-      return renderer.render(document);
+  public String parseAndRenderDocs(String docs, @NotNull PsiDocCommentBase comment) {
+    Node document = parser.parse(docs);
+    document.accept(new HaxeDocumentationCodeVisitor(comment));
+    return renderer.render(document);
   }
 
 

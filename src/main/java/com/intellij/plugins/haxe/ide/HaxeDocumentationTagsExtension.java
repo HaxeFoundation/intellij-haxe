@@ -11,6 +11,7 @@ import org.commonmark.parser.PostProcessor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,6 +49,8 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
     public static final String TAG_RETURN = "@return";
     public static final String TAG_EVENT = "@event";
     public static final String TAG_THROWS = "@throws";
+
+    //TODO @example ?
 
     private static final List<String> TAGS = List.of(
             TAG_SINCE,
@@ -257,7 +260,7 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
             parameterRow.appendChild(descriptionCell);
 
             Code paramNameText = new Code(parameterName);
-            argumentCell.appendChild(paramNameText);
+            wrapInNoBreakStyleAndAppend(argumentCell, paramNameText, 25);
 
             if (!parameterDescription.isBlank()) {
                 descriptionCell.appendChild(new Text(parameterDescription));
@@ -277,6 +280,29 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
 
         }
         return parameterRow;
+    }
+
+    private static void wrapInNoBreakStyleAndAppend(Node container, Node nodeToWrapAndAppend, int maxChars) {
+        int length = getLiteralLength(nodeToWrapAndAppend);
+        if(length < maxChars) {
+            container.appendChild(createHtmlTag("<style=\"white-space:nowrap\">"));
+            container.appendChild(nodeToWrapAndAppend);
+            container.appendChild(createHtmlTag("</style>"));
+        }else {
+            container.appendChild(nodeToWrapAndAppend);
+        }
+    }
+
+    private static @NotNull HtmlInline createHtmlTag(String tag) {
+        HtmlInline styleBeginTag = new HtmlInline();
+        styleBeginTag.setLiteral(tag);
+        return styleBeginTag;
+    }
+
+    private static int getLiteralLength(Node node) {
+        if(node instanceof Code code) return Optional.ofNullable(code.getLiteral()).orElse("").length();
+        if(node instanceof Text text) return Optional.ofNullable(text.getLiteral()).orElse("").length();
+        return 0;
     }
 
     private static boolean nextLiteralContainsTag(Node nextContentNode) {
@@ -324,10 +350,10 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         for (String column : columns) {
             TableCell cell = new TableCell();
             cell.setHeader(true);
+            cell.setAlignment(TableCell.Alignment.LEFT);
             cell.appendChild(new Text(column));
             tableHeader.appendChild(cell);
         }
-
         tableHead.appendChild(tableHeader);
         tableBlock.appendChild(tableHead);
     }
