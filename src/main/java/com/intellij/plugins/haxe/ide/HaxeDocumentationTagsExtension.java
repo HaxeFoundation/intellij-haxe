@@ -41,7 +41,7 @@ class HaxeDocumentationTagsProcessor implements PostProcessor {
 class HaxeDocumentationTagsVisitor extends AbstractVisitor {
 
     public static Pattern docTagPattern = Pattern.compile("(@\\w+)(.*)");
-    public static Pattern parameterContentPattern = Pattern.compile("(\\S+)\\s+(.*)");
+    public static Pattern parameterContentPattern = Pattern.compile("(\\S+)(\\s+(.*))?");
 
     public static final String TAG_SINCE = "@since";
     public static final String TAG_SEE = "@see";
@@ -251,7 +251,7 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         Matcher matcher = parameterContentPattern.matcher(content.trim());
         if (matcher.find()) {
             String parameterName = matcher.group(1);
-            String parameterDescription = matcher.group(2).trim();
+            String parameterDescription = Optional.ofNullable(matcher.group(2)).orElse("").trim();
 
             TableCell argumentCell = new TableCell();
             TableCell descriptionCell = new TableCell();
@@ -260,7 +260,7 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
             parameterRow.appendChild(descriptionCell);
 
             Code paramNameText = new Code(parameterName);
-            wrapInNoBreakStyleAndAppend(argumentCell, paramNameText, 25);
+            argumentCell.appendChild(paramNameText);
 
             if (!parameterDescription.isBlank()) {
                 descriptionCell.appendChild(new Text(parameterDescription));
@@ -282,28 +282,6 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         return parameterRow;
     }
 
-    private static void wrapInNoBreakStyleAndAppend(Node container, Node nodeToWrapAndAppend, int maxChars) {
-        int length = getLiteralLength(nodeToWrapAndAppend);
-        if(length < maxChars) {
-            container.appendChild(createHtmlTag("<style=\"white-space:nowrap\">"));
-            container.appendChild(nodeToWrapAndAppend);
-            container.appendChild(createHtmlTag("</style>"));
-        }else {
-            container.appendChild(nodeToWrapAndAppend);
-        }
-    }
-
-    private static @NotNull HtmlInline createHtmlTag(String tag) {
-        HtmlInline styleBeginTag = new HtmlInline();
-        styleBeginTag.setLiteral(tag);
-        return styleBeginTag;
-    }
-
-    private static int getLiteralLength(Node node) {
-        if(node instanceof Code code) return Optional.ofNullable(code.getLiteral()).orElse("").length();
-        if(node instanceof Text text) return Optional.ofNullable(text.getLiteral()).orElse("").length();
-        return 0;
-    }
 
     private static boolean nextLiteralContainsTag(Node nextContentNode) {
         // ignore soft linebreaks (needed when multiple tags of different types are joined together)

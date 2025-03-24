@@ -142,13 +142,11 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
       HaxeDocumentationRenderer renderer = haxeDocComment.getProject().getService(HaxeDocumentationRenderer.class);
 
-      String docs = haxeDocComment.getDocsWithoutIndents();
-      HtmlBuilder tmpBuilder = new HtmlBuilder();
-      String rendered = renderer.parseAndRenderDocs(docs, comment);
-      HtmlChunk.Element content = tmpBuilder.appendRaw(rendered).wrapWith(HtmlChunk.Element.div().attr("class", "content"));
-      tmpBuilder.append(content);
-
-      return new HtmlBuilder().append(content).toString();
+      String rawDocContent = haxeDocComment.getDocsWithoutIndents();
+      HtmlBuilder htmlBuilder = new HtmlBuilder();
+      String rendered = renderer.parseAndRenderDocs(rawDocContent, comment);
+      htmlBuilder.appendRaw(rendered);
+      return htmlBuilder.toString();
     }
     return null;
   }
@@ -269,11 +267,10 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   private static void appendDocumentation(HaxeNamedComponent namedComponent, HaxeDocumentationRenderer service, HtmlBuilder htmlBuilder) {
     final PsiComment comment = HaxeResolveUtil.findDocumentation(namedComponent);
     if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
-      HtmlBuilder tmpBuilder = new HtmlBuilder();
-      String docs = haxeDocComment.getDocsWithoutIndents();
-      String rendered = service.parseAndRenderDocs(docs, haxeDocComment);
-      HtmlChunk.Element content = tmpBuilder.appendRaw(rendered).wrapWith(HtmlChunk.Element.div().attr("class", "content"));
-      htmlBuilder.append(content);
+      String rawDocContent = haxeDocComment.getDocsWithoutIndents();
+      HaxeDocumentationRenderer renderer = haxeDocComment.getProject().getService(HaxeDocumentationRenderer.class);
+      String rendered = renderer.parseAndRenderDocs(rawDocContent, haxeDocComment);
+      htmlBuilder.appendRaw(rendered);
     }
   }
 

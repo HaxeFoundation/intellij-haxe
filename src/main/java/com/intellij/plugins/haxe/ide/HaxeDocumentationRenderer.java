@@ -55,9 +55,33 @@ public class HaxeDocumentationRenderer {
   public String parseAndRenderDocs(String docs, @NotNull PsiDocCommentBase comment) {
     Node document = parser.parse(docs);
     document.accept(new HaxeDocumentationCodeVisitor(comment));
+    wrapInDefaultHtmlTags(document);
     return renderer.render(document);
   }
 
+
+  private static void wrapInDefaultHtmlTags(Node document) {
+    // wrap in  html body and  div tags with default styling
+
+    // prefix
+    document.prependChild(createHtmlTag("<div class='content'>"));
+    document.prependChild(createHtmlTag("<div class='definition'>"));
+    // this one is important: default overflow-wrap for inline docs rendering is "anywhere"
+    document.prependChild(createHtmlTag("<body style='overflow-wrap: break-word'>"));
+    document.prependChild(createHtmlTag("<html>"));
+
+    //postfix
+    document.appendChild(createHtmlTag("</div>"));
+    document.appendChild(createHtmlTag("</div>"));
+    document.appendChild(createHtmlTag("</body>"));
+    document.appendChild(createHtmlTag("</html>"));
+  }
+
+  private static @NotNull HtmlInline createHtmlTag(String tag) {
+    HtmlInline styleBeginTag = new HtmlInline();
+    styleBeginTag.setLiteral(tag);
+    return styleBeginTag;
+  }
 
 
   private static class languageHighlighter implements HtmlNodeRendererFactory {
