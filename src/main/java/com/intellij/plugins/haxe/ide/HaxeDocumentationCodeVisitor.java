@@ -94,9 +94,11 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     private boolean replaceClassMemberReference(Code code, String literal) {
         // check if member of type
         HaxeClass haxeClass = null;
+        String member = literal;
         int lastDotIndex = literal.lastIndexOf(".");
         if (lastDotIndex > -1) {
             String classRef = literal.substring(0, lastDotIndex);
+            member  = literal.substring(lastDotIndex+1).replaceAll("[(\\[].*", "");
             haxeClass =  HaxeResolveUtil.findClassByQName(classRef, context);
             if (haxeClass == null) haxeClass = findUniqueClassFromIndex(classRef);
         } else {
@@ -107,10 +109,10 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
         }
 
         if (haxeClass != null) {
-            HaxeNamedComponent haxeMemberByName = haxeClass.findHaxeMemberByName(literal, null);
+            HaxeNamedComponent haxeMemberByName = haxeClass.findHaxeMemberByName(member, null);
             if (haxeMemberByName instanceof PsiMember psiMember) {
                 PsiClass containingClass = psiMember.getContainingClass();
-                replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + literal, literal);
+                replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
                 return true;
             }
         }
