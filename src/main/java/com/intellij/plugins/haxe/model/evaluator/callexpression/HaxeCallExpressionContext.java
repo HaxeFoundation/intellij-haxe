@@ -107,6 +107,8 @@ public class HaxeCallExpressionContext {
         int maxArgAllowed = hasRestParam && !isBindCall ? Integer.MAX_VALUE : parameters.size() - (firstArgIsThisReference ? 1 : 0);
         int argumentCount = arguments.size();
 
+        boolean hasOptionalParams = parameters.stream().anyMatch(CallExpressionParameterModel::isOptional);
+
 
         // min arg check
         if (argumentCount < minArgRequired && !isBindCall) {
@@ -208,7 +210,7 @@ public class HaxeCallExpressionContext {
                                     argumentType,
                                     parameterType,
                                     assignEvaluation.explanations,
-                                    argumentModel.psiElement);
+                                    argumentModel.psiElement, hasOptionalParams);
                         }
                         return evaluation.validationFailed();
                     }
@@ -268,7 +270,7 @@ public class HaxeCallExpressionContext {
                                 argumentType,
                                 parameterType,
                                 assignEvaluation.explanations,
-                                argumentModel.psiElement);
+                                argumentModel.psiElement, false);
                     }
                 }
                 evaluation.validationFailed();
@@ -500,7 +502,8 @@ public class HaxeCallExpressionContext {
                                       SpecificTypeReference argumentType,
                                       SpecificTypeReference parameterType,
                                       AssignExplanation explanation,
-                                      PsiElement argumentPsi
+                                      PsiElement argumentPsi,
+                                      boolean outOfParameters
     ) {
         if (explanation != null && argumentPsi != null) {
             TextRange expectedRange = argumentPsi.getTextRange();
@@ -526,6 +529,10 @@ public class HaxeCallExpressionContext {
                 String missingModel = explanation.getMissingModel().getFirst();
                 String message = HaxeBundle.message("haxe.semantic.method.parameter.type.not.found", missingModel);
                 evaluation.addWarning(message, expectedRange);
+            }else if (outOfParameters) {
+                String message = HaxeBundle.message("haxe.semantic.method.parameter.no.match",
+                        argumentType.toPresentationString(true));
+                evaluation.addError(message, expectedRange);
             }else {
                 String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
                         parameterType.toPresentationString(true),

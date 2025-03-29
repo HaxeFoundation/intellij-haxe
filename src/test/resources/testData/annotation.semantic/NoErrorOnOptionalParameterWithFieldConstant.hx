@@ -10,6 +10,6 @@ class Test {
   public function new() {
     someFunction();
     someFunction(1);
-    someFunction(<error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>);// Wrong: incorrect parameter type
+    someFunction(<error descr="Could not find parameter accepting 'String' ">""</error>);// Wrong: incorrect parameter type
   }
 }

@@ -19,14 +19,12 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.model.type.HaxeClassReference;
-import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.model.type.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 
 public class HaxeClassReferenceModel {
   public HaxeType type;
@@ -64,7 +62,12 @@ public class HaxeClassReferenceModel {
     if (aClass != null){
       HaxeClassReference reference = aClass.getReference();
       List<HaxeTypeParameterModel> parameters = getTypeParameters();
-      List<ResultHolder> generics = parameters.stream().map(model -> model.getTypeReference().getSpecificHaxeClassReference().createHolder()).toList();
+      List<ResultHolder> generics = parameters.stream()
+              .map(model -> model.getTypeReference() == null
+                      ? SpecificTypeReference.getUnknown(model.part).createHolder() :
+                      model.getTypeReference().getSpecificHaxeClassReference().createHolder())
+              .toList();
+
       return SpecificHaxeClassReference.withGenerics(reference, generics.toArray(new ResultHolder[0]));
     }else {
       return SpecificHaxeClassReference.getUnknown(getPsi());

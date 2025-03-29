@@ -1019,7 +1019,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       String name = haxeClass.getName();
       return name != null
              && !(parent instanceof HaxeType)
-             && !(parent instanceof HaxeReference)
+             // new expressions extends HaxeReference so we need allow that one even though we want to exclude all HaxeReferences
+             && (parent instanceof HaxeNewExpression || !(parent instanceof HaxeReference))
              && getLastChild().textMatches(name);
     }
   }

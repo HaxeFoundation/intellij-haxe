@@ -91,6 +91,7 @@ public class HaxeTypeParameterModel {
     return part.getFunctionType();
   }
 
+  @Nullable
   public HaxeClassReferenceModel getTypeReference() {
     HaxeTypeOrAnonymous toa = part.getTypeOrAnonymous();
     if (null != toa) {

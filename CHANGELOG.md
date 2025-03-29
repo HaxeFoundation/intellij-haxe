@@ -1,4 +1,7 @@
 # Changelog
+## 1.6.6
+* Bugfix : fixed issue where Class references where treated as instance references in new expressions 
+
 ## 1.6.5
 * Added: Cppia target for OpenFL/Lime builds
 * Fixed: Direct cast to Abstract with typeParameters would fail for typeParameters with constraints.  

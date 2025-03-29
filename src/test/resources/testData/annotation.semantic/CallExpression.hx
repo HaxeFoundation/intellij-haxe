@@ -13,6 +13,7 @@ interface I {}
 class CallExpressionTest {
     function noArgs() {}
     function oneArgs(arg1:String) {}
+    function classArgs(arg1:Class<String>) {}
     function optionalArgs(arg1:String, ?arg2:Int) {}
     function defaultArgs(arg1:String, arg2:String = "") {}
     function functionArgs(arg1:String,  arg3:Int->String) {}
@@ -42,6 +43,9 @@ class CallExpressionTest {
         oneArgs(null); //CORRECT (String can be null)
         oneArgs(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>); // WRONG (incorrect argument type)
         oneArgs<error descr="Not enough arguments (expected 1 but got 0)\"">()</error>; // WRONG (Missing argument)
+
+        classArgs(String); // CORRECT
+        classArgs(<error descr="Type mismatch (Expected: 'Class<String>' got: 'String')">"String"</error>); // WRONG
 
         optionalArgs("String"); // CORRECT (optional is not required)
         optionalArgs("String", 1); // CORRECT (optional can be set)

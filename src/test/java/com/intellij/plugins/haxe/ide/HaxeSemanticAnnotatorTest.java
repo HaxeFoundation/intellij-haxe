@@ -917,6 +917,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testCallExpression() throws Throwable {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testNewExpression() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testTypeParameterConstraints() throws Throwable {
