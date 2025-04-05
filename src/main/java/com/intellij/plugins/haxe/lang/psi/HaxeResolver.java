@@ -56,6 +56,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.searchInSameFileForEnumValues;
 import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
@@ -1676,6 +1678,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
+
     // To avoid incorrect extension method results we avoid any results where we don't know type of left reference.
     // this is important as recursion guards might prevent us from getting the type and returning a different result depending on
     // whether or not we got the type is bad and causes issues.
@@ -1731,11 +1734,26 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (fileModel != null) {
         usingModels.addAll(fileModel.getUsingModels());
       }
+      SpecificHaxeClassReference extensionType = classType;
+      // check if reference is to a Class or Enum and if so wrap in Class<> or Enum<> so we
+      // can match stuff like methods in EnumTools and/or other extensions for Enum/Class types.
+      if (leftReference != null) {
+        if (leftReference.getParent() instanceof HaxeReferenceExpression parent) {
+          // make sure our HaxeReferenceExpression is the fist element  in parent (ex. MyClass.someMember)
+          // TODO what about fully qualified or partial qualified (Module.Type)?
+          if (parent.getFirstChild() == leftReference && !(parent.getParent() instanceof HaxeReferenceExpression)) {
+            HaxeClassModel model = haxeClass.getModel();
+            if (leftReference.textMatches(model.getName())) {
+              extensionType = SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, leftReference, new ResultHolder[]{new ResultHolder(classType)});
+            }
+          }
+        }
+      }
 
       HaxeMethodModel foundMethod = null;
         for (int i = usingModels.size() - 1; i >= 0; --i) {
           foundMethod = usingModels.get(i)
-            .findExtensionMethod(identifier, classType);
+            .findExtensionMethod(identifier, extensionType);
           if (null != foundMethod && !foundMethod.HasNoUsingMeta()) {
 
             if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());

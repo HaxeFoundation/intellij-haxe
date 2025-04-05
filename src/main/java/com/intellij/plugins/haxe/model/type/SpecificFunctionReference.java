@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromTypeOrAnonymous;
 
@@ -53,11 +54,27 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return type.isUnknown() || type.containsUnknownTypes();
   }
 
-  public SpecificFunctionReference performMethodBind(List<HaxeArgument> newArgumentList) {
+  public SpecificFunctionReference performMethodBind(List<HaxeArgument> argumentList, @Nullable HaxeGenericResolver resolver) {
+    ResultHolder newReturnType = returnValue;
+    List<HaxeArgument> newArgumentList = argumentList;
+    if(resolver != null  && !resolver.isEmpty()) {
+      newReturnType = Optional.ofNullable(resolver.resolve(returnValue)).orElse(returnValue);
+      newArgumentList = new ArrayList<>();
+      for (HaxeArgument haxeArgument : argumentList) {
+        ResultHolder resolve = resolver.resolve(haxeArgument.getType());
+        if(resolve != null && !resolve.isUnknown()) {
+          newArgumentList.add(haxeArgument.withType(resolve));
+        }else {
+          newArgumentList.add(haxeArgument);
+        }
+      }
+
+    }
+
     if(functionType != null) {
-      return new SpecificFunctionReference(newArgumentList, returnValue,functionType,context);
+      return new SpecificFunctionReference(newArgumentList, newReturnType, functionType,context);
     }else {
-    return  new SpecificFunctionReference(newArgumentList, returnValue,method,context);
+    return  new SpecificFunctionReference(newArgumentList, newReturnType, method,context);
     }
   }
 
@@ -225,7 +242,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
   }
 
   public List<HaxeArgument> getArguments() {
-    return arguments;
+    return new ArrayList<>(arguments);
   }
 
   public ResultHolder getReturnType() {

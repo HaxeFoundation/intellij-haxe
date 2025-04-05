@@ -90,11 +90,6 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
     return type;
   }
 
-  @Nullable
-  @Override
-  public ResultHolder access(String name, HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver) {
-    return getType();
-  }
 
   @Override
   public SpecificTypeReference withConstantValue(Object constantValue) {

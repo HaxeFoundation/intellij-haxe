@@ -161,12 +161,16 @@ public class HaxeCallExpressionContext {
                     evaluation.addError("Extension methods require at least one parameter", sourceExpression);
                 return evaluation.validationFailed();
             }
-            SpecificTypeReference expectedCallieType = parameters.get(parameterCounter++).getType();
+            SpecificTypeReference expectedCallieType = parameters.getFirst().getType();
             if (!expectedCallieType.canAssign(callie)) {
                 // todo better error message, use bundle and show types
                 if (trackErrors) evaluation.addError("Can not use extension method, wrong type", sourceExpression);
                 return evaluation.validationFailed();
             }
+            // while it might be a waste to re-evaluate the callie assignability
+            // we do it  here because we need to keep track if typeParameters
+            // perhaps the logic above can be moved down into the argument/parameter check loop
+            arguments.addFirst(new CallExpressionArgumentModel(callie.context, callie));
         }
 
         CallExpressionArgumentModel argumentModel = null;

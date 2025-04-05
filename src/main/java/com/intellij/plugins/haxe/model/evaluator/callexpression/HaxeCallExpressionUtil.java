@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.wrapTypeInClassOrEnum;
 import static java.util.function.Predicate.not;
 
 public class HaxeCallExpressionUtil {
@@ -288,12 +290,20 @@ public class HaxeCallExpressionUtil {
   @NotNull
   public static SpecificTypeReference tryGetCallieType(@NotNull HaxeCallExpression callExpression,  @Nullable HaxeMethod method, boolean extensionMethod) {
 
+
     HaxeExpression expression = callExpression.getExpression();
     if (expression != null) {
       @NotNull PsiElement[] children = expression.getChildren();
       // if we got more than one child we are a chain and need to resolve the chain to know correct class
       if (children.length > 1) {
         PsiElement child = children[children.length - 2];
+        // if extension method  and callie is a specific class or Enum, wrap type in Enum<T> or CLass<T>
+        if(extensionMethod && child instanceof HaxeReferenceExpression referenceExpression) {
+          PsiElement resolve = referenceExpression.resolve();
+          if (resolve instanceof  HaxeClass haxeClass) {
+            return wrapTypeInClassOrEnum(referenceExpression, haxeClass).getType();
+          }
+        }
         HaxeExpressionEvaluatorContext evaluatorContext = new HaxeExpressionEvaluatorContext(child);
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(child, evaluatorContext, null).result;
         if (!result.isUnknown()) return result.getType(); // can be any "type" class/function/enum

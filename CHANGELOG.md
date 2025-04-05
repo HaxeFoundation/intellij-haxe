@@ -1,6 +1,12 @@
 # Changelog
 ## 1.6.6
-* Bugfix : fixed issue where Class references where treated as instance references in new expressions 
+* Bugfix: Fixed issue where Class references where treated as instance references in new expressions 
+* Fixed: Extension methods from `EnumValueTools` and `EnumTools` are now resolved without using imports (same as the compiler)
+* Fixed: TypeParameters are now kept when using `bind()` on method references.
+
+Known issues :
+- Extension methods from `EnumValueTools` and `EnumTools` are not included in completions without using statement.
+
 
 ## 1.6.5
 * Added: Cppia target for OpenFL/Lime builds

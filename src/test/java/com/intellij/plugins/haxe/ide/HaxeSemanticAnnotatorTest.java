@@ -1011,6 +1011,13 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     doTestNoFixWithWarnings();
   }
 
+  @Test
+  public void testEnumToolsResolve() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+
+
   // this might not be the right place for this test as its testing the resolver logic
   // but to verify the resolved results we need to do type compare
   @Test

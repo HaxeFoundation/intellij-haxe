@@ -38,9 +38,22 @@ class FunctionBindTest2 {
         var bind = varargs.bind(1, <error descr="Type mismatch (Expected: 'haxe.Rest<Float>' got: 'String')">"string"</error>); // String should be haxe.Rest<Float>
         var bind = varargs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, _, _</error> ); // Too many callback arguments
 
+// GENERICS
+
+        //correct
+        var bind:Void -> Int = genericArgs.bind([1]);
+        var bind:Void -> String = genericArgs.bind([""]);
+        var bind:Void -> Array<String> = genericArgs.bind([[""]]);
+
+        //wrong
+        var <error descr="Incompatible type: Void->Int should be Void->String">bind:Void -> String = genericArgs.bind([1])</error>;
+        var <error descr="Incompatible type: Void->String should be Void->Int">bind:Void -> Int = genericArgs.bind([""])</error>;
+        var <error descr="Incompatible type: Void->String should be String->void">bind:String -> <error descr="Type name must start by upper case">void</error> = genericArgs.bind([""])</error>;
+
     }
 
     function normal(x:Int, y:Float):String {return null;}
     function optionalArgs(?x:Int, ?y:Float):String {return null;}
     function varargs(x:Int, ...y:Float):String {return null;}
+    function genericArgs<T>(x:Array<T>):T {return null;}
 }

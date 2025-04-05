@@ -34,12 +34,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.ONLY_COMMENTS;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.isStaticExtension;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.wrapTypeInClassOrEnum;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.searchReferencesForTypeParameters;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.isBindCall;
@@ -301,7 +304,7 @@ public class HaxeExpressionEvaluatorHandlers {
                   SpecificHaxeClassReference classType = typeHolder.getClassType();
                   if(classType != null) {
                     HaxeClass haxeClass = classType.getHaxeClass();
-                    if(haxeClass != null) typeHolder = wrapTypeInClassOrEnum(element, haxeClass, haxeClass.getModel());
+                    if(haxeClass != null) typeHolder = wrapTypeInClassOrEnum(element, haxeClass);
                   }
                 }
               }
@@ -331,7 +334,7 @@ public class HaxeExpressionEvaluatorHandlers {
                 if (expression.isPureClassReferenceOf(haxeClass)) {
                   // make sure its not an import statement
                   if (PsiTreeUtil.getParentOfType(expression, HaxeImportStatement.class) == null) {
-                    typeHolder = wrapTypeInClassOrEnum(element, haxeClass, model);
+                    typeHolder = wrapTypeInClassOrEnum(element,  haxeClass);
                   }
                 }
               }
@@ -394,6 +397,25 @@ public class HaxeExpressionEvaluatorHandlers {
 
             SpecificFunctionReference type = haxeMethod.getModel().getFunctionType(isFromCallExpression ? localResolver : localResolver.withoutAssignHint());
             if (!isFromCallExpression) {
+              if( reference instanceof HaxeReferenceExpression referenceExpression) {
+                // if this is a reference to an extension method we need to bind the callie type
+                if(isStaticExtension(referenceExpression)) {
+                  List<HaxeArgument> argumentsToKeep  = type.getArguments();
+                  HaxeGenericResolver bindResolver =  null;
+                  // if this is from a method we might have typeParameters and need to "bind" these if they are present in the callie
+                  if(type.method != null) {
+                    List<SpecificTypeReference> params = argumentsToKeep.stream().map(HaxeArgument::getType).map(ResultHolder::getType).collect(Collectors.toList());
+                    params.removeFirst();
+                    SpecificTypeReference callieType = tryToFindPreviousTypeInChainForExtensionMethods(element.getFirstChild());
+                    params.addFirst(callieType);
+                    HaxeCallExpressionContext tmpContext = HaxeCallExpressionUtil.createContextForMethodCall(params, type.method, null);
+                    HaxeCallExpressionEvaluation evaluate = tmpContext.evaluate();
+                    bindResolver = evaluate.getCallExpressionResolver();
+                  }
+                  argumentsToKeep.removeFirst(); // remove first argument as this should be the callie
+                  type = type.performMethodBind(argumentsToKeep, bindResolver);
+                }
+              }
               //  expression is referring to the method not calling it.
               //  assign hint should be used for substituting parameters instead of being used as return type
               type = resolver.substituteTypeParamsWithAssignHintTypes(type);
@@ -484,16 +506,20 @@ public class HaxeExpressionEvaluatorHandlers {
     //return SpecificTypeReference.getDynamic(element).createHolder();
   }
 
-  private static ResultHolder wrapTypeInClassOrEnum(HaxeReferenceExpression element, HaxeClass haxeClass, HaxeClassModel model) {
-    ResultHolder typeHolder;
-    // wrap in Class<> or Enum<>
-    SpecificHaxeClassReference originalClass = SpecificHaxeClassReference.withoutGenerics(model.getReference());
-    SpecificHaxeClassReference wrappedClass =
-            SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
-                    new ResultHolder[]{new ResultHolder(originalClass)});
-    typeHolder = wrappedClass.createHolder();
-    return typeHolder;
+  private static SpecificTypeReference tryToFindPreviousTypeInChainForExtensionMethods(PsiElement firstChild) {
+    ResultHolder result = evaluateWithRecursionGuard(firstChild).result;
+    if(result == null) return createUnknown(firstChild).getType();
+    // check if extension method is on a pure references and if so wrap it in class/enum
+    if(result.getType() instanceof SpecificHaxeClassReference classReference) {
+      String className = classReference.getClassName();
+      if (className != null &&firstChild.textMatches(className)) {
+        HaxeClass haxeClass = classReference.getHaxeClass();
+        if(haxeClass != null) return wrapTypeInClassOrEnum(firstChild, haxeClass).getType();
+      }
+    }
+    return result.getType();
   }
+
 
   private static boolean isReificationExpression(HaxeReferenceExpression element) {
     return false;
@@ -1467,7 +1493,11 @@ public class HaxeExpressionEvaluatorHandlers {
         SpecificTypeReference assignHintType = assignHint == null ? null : assignHint.getType();
         HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
         HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
-        functionType = evaluate.getFunctionType(methodModel);
+        if(evaluate.isValid()) {
+          functionType = evaluate.getFunctionType(methodModel);
+        }else {
+          functionType = createUnknown(callExpression).getType();
+        }
       }else {
         SpecificTypeReference callieRef = tryGetCallieType(callExpression);
         if (callieRef instanceof SpecificHaxeClassReference classReference &&  !classReference.isUnknown()) {
@@ -1639,6 +1669,8 @@ public class HaxeExpressionEvaluatorHandlers {
   private static ResultHolder tryHandleFunctionBind(SpecificFunctionReference functionReference, HaxeCallExpression callExpression) {
     List<HaxeArgument> arguments = functionReference.getArguments();
     List<HaxeArgument> argumentsToKeep = new ArrayList<>();
+    List<SpecificTypeReference>  tmParamList = new ArrayList<>();
+    boolean canHaveTypeParameters = functionReference.method != null;
 
     HaxeCallExpressionList expressionList = callExpression.getExpressionList();
     if (expressionList == null) {
@@ -1648,9 +1680,10 @@ public class HaxeExpressionEvaluatorHandlers {
           argumentsToKeep.add(argument);
         }
       }
-      return functionReference.performMethodBind(argumentsToKeep).createHolder();
+      return functionReference.performMethodBind(argumentsToKeep, null).createHolder();
     } else {
       List<HaxeExpression> expressions = expressionList.getExpressionList();
+
       for (int i = 0; i < arguments.size(); i++) {
         HaxeExpression expr = expressions.size() > i ? expressions.get(i) : null;
         HaxeArgument argument = arguments.get(i);
@@ -1661,12 +1694,25 @@ public class HaxeExpressionEvaluatorHandlers {
         if (expr == null) {
           if (!optional) {
             argumentsToKeep.add(argument);
+            if (canHaveTypeParameters)   tmParamList.add(argument.getType().getType());
           }
         } else if (expr.textMatches("_")) {
           argumentsToKeep.add(argument);
+          if (canHaveTypeParameters)   tmParamList.add(argument.getType().getType());
+        }else {
+          if (canHaveTypeParameters) {
+            ResultHolder expressionType = evaluateWithRecursionGuard(expr).result;
+            tmParamList.add(expressionType.getType());
+          }
         }
       }
-      return functionReference.performMethodBind(argumentsToKeep).createHolder();
+      if (canHaveTypeParameters) {
+        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(tmParamList, functionReference.method, null);
+        HaxeCallExpressionEvaluation evaluate = context.evaluate();
+        HaxeGenericResolver callExpressionResolver = evaluate.getCallExpressionResolver();
+        return functionReference.performMethodBind(argumentsToKeep, callExpressionResolver).createHolder();
+      }
+      return functionReference.performMethodBind(argumentsToKeep, null).createHolder();
     }
   }
 
