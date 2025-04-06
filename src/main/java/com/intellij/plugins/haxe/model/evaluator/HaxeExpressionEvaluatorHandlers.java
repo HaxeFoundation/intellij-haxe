@@ -2142,6 +2142,9 @@ public class HaxeExpressionEvaluatorHandlers {
   public static @Nullable ResultHolder searchForIteratorType(SpecificHaxeClassReference haxeClassReference, String iteratorName, PsiElement parent) {
     // ignore "Dynamic" as it can assign to anything and will in most cases incorrectly be matched with iterators for other types
     if (haxeClassReference.isDynamic()) return null;
+    // do not attempt to find iterator if  type is unknown
+    if(haxeClassReference.isUnknown()) return haxeClassReference.createHolder();
+
     SpecificTypeReference typeReference = haxeClassReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
     if (typeReference instanceof SpecificHaxeClassReference resolvedClassReference) {
       HaxeGenericResolver referenceGenericResolver = resolvedClassReference.getGenericResolver();
