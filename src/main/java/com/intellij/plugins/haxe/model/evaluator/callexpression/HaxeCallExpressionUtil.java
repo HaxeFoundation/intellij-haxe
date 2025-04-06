@@ -164,11 +164,11 @@ public class HaxeCallExpressionUtil {
 
   public static boolean isBindCall(@NotNull HaxeCallExpression callExpression) {
     HaxeExpression expression = callExpression.getExpression();
-    if (expression != null) {
+    if (expression != null && expression.getLastChild().textMatches("bind")) {
       HaxeReference left = HaxeResolveUtil.getLeftReference(expression);
       if (left != null) {
         ResultHolder result = HaxeExpressionEvaluator.evaluate(left).result;
-        if (result.isFunctionType() && expression.getLastChild().textMatches("bind")) {
+        if (result.isFunctionType()) {
           return true;
         }
       }
