@@ -165,17 +165,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       resolves.incrementAndGet();
     }
 
-    try {
-      if (reference.getParent().getParent().getParent().textMatches(":Array<ClassField>")) { // OR
-        int i = 0;
-      }
-      if (reference.getParent().getParent().getParent().textMatches("::Map<String,Bool>")) {
-        int i = 0;
-      }
-    }catch (Exception e) {
-
-    }
-
     if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
       if (!(reference instanceof HaxeRegularExpression || reference instanceof HaxeStringLiteralExpression)) {
         return EMPTY_LIST;
@@ -275,27 +264,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (log.isTraceEnabled()) {
       String message = "caching result for :" + referenceText;
       traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
-    }
-
-    try {
-      if (reference.getParent().getParent().getParent().textMatches(":Array<ClassField>")) {
-        if(result != null && !result.isEmpty()) {
-          PsiElement first = result.getFirst();
-          if(!first.textMatches("Array")) {
-            int i = 0;
-          }
-        }
-      }
-      if (reference.getParent().getParent().getParent().textMatches(":Map<String,Bool>")) {
-        if(result != null && !result.isEmpty()) {
-          PsiElement first = result.getFirst();
-          if(!first.textMatches("Map")) {
-            int i = 0;
-          }
-        }
-      }
-    }catch (Exception e) {
-
     }
 
     return result;
