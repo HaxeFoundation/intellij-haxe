@@ -168,9 +168,7 @@ public class HaxeCallExpressionUtil {
       HaxeReference left = HaxeResolveUtil.getLeftReference(expression);
       if (left != null) {
         ResultHolder result = HaxeExpressionEvaluator.evaluate(left).result;
-        if (result.isFunctionType()) {
-          return true;
-        }
+        return result.isFunctionType();
       }
     }
     return false;

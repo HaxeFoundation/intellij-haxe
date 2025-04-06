@@ -769,9 +769,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       HaxeClassModel model = getHaxeClassModel();
       if (model != null) {
         HaxeGenericResolver genericResolver = this.getGenericResolver();
-        if(model.getUnderlyingType() instanceof  SpecificHaxeClassReference underlyingClassReference) {
+        SpecificTypeReference underlyingType = model.getUnderlyingType();
+        if(underlyingType instanceof  SpecificHaxeClassReference underlyingClassReference) {
           HaxeGenericResolver underlyingResolver = genericResolver.translateFromTo(this.getHaxeClass(), underlyingClassReference.getHaxeClass());
-          SpecificTypeReference underlyingType = model.getUnderlyingType();
           ResultHolder resolve = underlyingResolver.resolve(underlyingType);
           if(resolve != null && !resolve.isUnknown())  {
             return resolve.getType();
@@ -813,15 +813,19 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return reference;
   }
 
-  private static final RecursionGuard<PsiElement> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyresolveRecursionGuard");
+  private static final RecursionGuard<ResolveRecursionGuardKey> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyresolveRecursionGuard");
 
   @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference() {
     return fullyResolveTypeDefAndUnwrapNullTypeReference(false);
   }
+
+  record ResolveRecursionGuardKey(PsiElement element, boolean unwrapExprOf) {}
+
   @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference(boolean unwrapExprOf) {
-    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(this.context, true, () ->
+    ResolveRecursionGuardKey guardKey = new ResolveRecursionGuardKey(this.context, unwrapExprOf);
+    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(guardKey, true, () ->
     {
       if (isTypeParameter()) return this;
       if (isNullType()) {
@@ -915,7 +919,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public SpecificTypeReference fullyResolveUnderlyingTypeUnwrapNullTypeReference() {
-    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(this.context, true, () -> {
+    ResolveRecursionGuardKey guardKey = new ResolveRecursionGuardKey(this.context, false);
+    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(guardKey, true, () -> {
       SpecificTypeReference reference = this;
       SpecificTypeReference oldRef = null;
       while (reference != null && reference != oldRef) {

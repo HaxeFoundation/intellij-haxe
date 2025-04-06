@@ -599,7 +599,10 @@ public class HaxeTypeResolver {
 
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference;
-    ResultHolder result = HaxeExpressionEvaluator.evaluate(expression, new HaxeGenericResolver()).result;
+    // Note: using caching here as the expression evaluation cache wont cache results with unknown typeParameters
+    // but this resolve resolves Type Psi with empty GenericResolver so the result should always be the same until psi changes
+    ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(expression, HaxeTypeResolver::resolveTypeFromType);
+
     final HaxeClass resolvedHaxeClass =( result != null  && !result.isUnknown() && result.isClassType()) ? result.getClassType().getHaxeClass() : null;
     if (resolvedHaxeClass == null) {
       boolean isTypeParameter = isTypeParameter(expression);
@@ -650,6 +653,10 @@ public class HaxeTypeResolver {
       Collections.addAll(references, specifics);
     }
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
+  }
+
+  private static ResultHolder resolveTypeFromType(HaxeReferenceExpression expression) {
+    return  HaxeExpressionEvaluator.evaluate(expression, new HaxeGenericResolver()).result;
   }
 
   @NotNull
