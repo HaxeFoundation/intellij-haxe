@@ -192,6 +192,7 @@ public class HaxeTypeCompatible {
             Boolean done = canAssignRecursionGuard.doPreventingRecursion(evaluation.recursionGuardKey(), false, () -> {
                 if (!evaluation.completed) evaluation.testClassAssignRules();
                 if (!evaluation.completed) evaluation.testEnumAssignRules();
+                if (!evaluation.completed) evaluation.testEnumValueAssignRules();
                 if (!evaluation.completed) evaluation.testFunctionAssignRules();
                 if (!evaluation.completed) evaluation.testAnonymousAssignRules();
                 if (!evaluation.completed) evaluation.testAbstractAssignRules(settings.checkDirectCasts(), settings.checkImplicitCasts(), settings.implicitTypeMustMatchUnderlying());

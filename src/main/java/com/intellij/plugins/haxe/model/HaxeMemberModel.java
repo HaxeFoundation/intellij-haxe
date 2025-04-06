@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OP;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OPTIONAL;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.CORE_TYPE;
 
 abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
@@ -74,6 +75,9 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
   public boolean hasOperatorMeta() {
     return getNamedComponentPsi().hasCompileTimeMetadata(OP);
+  }
+  public boolean hasCoreTypeMeta() {
+    return getNamedComponentPsi().hasCompileTimeMetadata(CORE_TYPE);
   }
   public boolean hasOptionalMeta() {
     return getNamedComponentPsi().hasCompileTimeMetadata(OPTIONAL);

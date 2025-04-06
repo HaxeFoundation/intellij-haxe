@@ -56,8 +56,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
-import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.searchInSameFileForEnumValues;
 import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
@@ -1675,6 +1674,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       extensionsMethodGuard.prohibitResultCaching(lefthandExpression);
     }
     SpecificTypeReference type = result != null ? result.getType()  : null;
+    //enum values does not have a HaxeClass but we need a class for a lot of the checks below (extension methods etc),
+    // so we use the EnumValue as class as a replacement
+    if (type instanceof SpecificEnumValueReference valueReference) {
+      type = getEnumValue(valueReference.context);
+    }
     SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
@@ -1740,7 +1744,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (leftReference != null) {
         if (leftReference.getParent() instanceof HaxeReferenceExpression parent) {
           // make sure our HaxeReferenceExpression is the fist element  in parent (ex. MyClass.someMember)
-          // TODO what about fully qualified or partial qualified (Module.Type)?
           if (parent.getFirstChild() == leftReference && !(parent.getParent() instanceof HaxeReferenceExpression)) {
             HaxeClassModel model = haxeClass.getModel();
             if (leftReference.textMatches(model.getName())) {

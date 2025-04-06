@@ -17,6 +17,10 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeCallExpressionList;
+import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -73,8 +77,10 @@ public class HaxeOperatorResolver {
 
     // avoid marking Enum Patterns as errors (EnumValue.match accepts these inputs)
     boolean bothAreEnumValues = left.isEnumValue() && right.isEnumValue();
-    if (bothAreEnumValues && (operator.equals("&") || operator.equals("|"))) {
-     return SpecificHaxeClassReference.getDynamic(elementContext);
+    if(isInEnumValueMatchCallExpression(context.root)) {
+      if (bothAreEnumValues &&  operator.equals("|")) {
+        return SpecificHaxeClassReference.getDynamic(elementContext);
+      }
     }
 
     if (canAssignLeftToInt && canAssignRightToInt) {
@@ -143,6 +149,24 @@ public class HaxeOperatorResolver {
     }
 
     return result != null ? result : SpecificHaxeClassReference.getUnknown(elementContext);
+  }
+
+  private static boolean isInEnumValueMatchCallExpression(PsiElement root) {
+    if(root.getParent() instanceof HaxeCallExpressionList list) {
+      if(list.getParent() instanceof HaxeCallExpression callExpression) {
+        if (callExpression.getExpression() instanceof HaxeReferenceExpression reference) {
+          PsiElement resolve = reference.resolve();
+          if(resolve instanceof HaxeMethodDeclaration declaration) {
+            HaxeMethodModel model = declaration.getModel();
+            String fullName = model.getFullName();
+            if(fullName.equals("EnumValue.match")) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private static SpecificTypeReference checkOverloads(SpecificTypeReference type1,

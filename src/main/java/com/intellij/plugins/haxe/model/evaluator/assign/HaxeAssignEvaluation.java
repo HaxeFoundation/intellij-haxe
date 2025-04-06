@@ -253,6 +253,19 @@ public class HaxeAssignEvaluation {
 
   }
 
+  public void testEnumValueAssignRules() {
+    if (to instanceof SpecificEnumValueReference toValueReference) {
+      if (from instanceof SpecificEnumValueReference fromValueReference) {
+        SpecificHaxeClassReference toEnumClass = toValueReference.getEnumClass();
+        SpecificHaxeClassReference fromEnumClass = fromValueReference.getEnumClass();
+        if (sameTypeCheck(this, toEnumClass, fromEnumClass)) {
+          complete(true, "Enum values belongs to the same enum type");
+        }
+
+      }
+    }
+  }
+
   /**
    * checks if we can assign a method or function to a function signature
    * Note: The "Function" type is an abstract  (with @:callable) and is handled in abstract rules
