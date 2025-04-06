@@ -1334,6 +1334,10 @@ public class HaxeExpressionEvaluatorHandlers {
     SpecificTypeReference suggestedType = null;
     ResultHolder  typeTagType = findExpectedTypeForUnify(arrayLiteral);
     if (typeTagType!= null) {
+      // make sure we do not pass Null<> as expected type
+      if(typeTagType.getType().isNullType()) {
+        typeTagType = typeTagType.tryUnwrapNullType();
+      }
       // we expect Array<T> or collection type with type parameter (might not work properly if type is implicit cast)
       if (typeTagType.getClassType() != null) {
         @NotNull ResultHolder[] specifics = typeTagType.getClassType().getSpecifics();
