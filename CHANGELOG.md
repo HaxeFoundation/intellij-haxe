@@ -3,6 +3,8 @@
 * Bugfix: Fixed issue where Class references where treated as instance references in new expressions 
 * Fixed: Extension methods from `EnumValueTools` and `EnumTools` are now resolved without using imports (same as the compiler)
 * Fixed: TypeParameters are now kept when using `bind()` on method references.
+* Fixed: Incorrect caching of members resolved from typedefs
+* improvement: misc minor bugfixes and performance improvements.
 
 Known issues :
 - Extension methods from `EnumValueTools` and `EnumTools` are not included in completions without using statement.
