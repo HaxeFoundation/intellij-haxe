@@ -67,8 +67,6 @@ import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
 @CustomLog
 public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
-  public static final Key<String> typeHintKey = new Key<>("typeHint");
-  private static final Key<Boolean> skipCacheKey = new Key<>("skipCache");
 
   //static {  // Remove when finished debugging.
   //  LOG.setLevel(LogLevel.DEBUG);
@@ -103,8 +101,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
        // fail until the indices are complete), we don't want to cache the (likely incorrect)
        // results.
        boolean isDumb = DumbService.isDumb(reference.getProject());
-       boolean hasTypeHint = checkForTypeHint(reference);
-       boolean skipCaching = skipCachingForDebug || isDumb || hasTypeHint;
+       boolean skipCaching = skipCachingForDebug || isDumb;
 
         List<? extends PsiElement>  elements  = skipCaching ? doResolve(reference, incompleteCode)
                          : ResolveCache.getInstance(reference.getProject())
@@ -130,20 +127,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
          }
        }
        return elements == null ? EMPTY_LIST : elements;
-  }
-
-  //TODO until we have type hints everywhere we need to skip caching for those refrences that rely on typeHints
-  private boolean checkForTypeHint(HaxeReference reference) {
-    if (reference.getUserData(typeHintKey) != null ) return true;
-    if (reference.getParent() instanceof  HaxeCallExpression expression) {
-      if (expression.getUserData(typeHintKey) != null ) return true;
-    }
-    return false;
-  }
-
-  private boolean isResolving(@NotNull HaxeReference reference) {
-    Stack<PsiElement> stack = referencesProcessing.get();
-    return stack.contains(reference);
   }
 
 
@@ -180,6 +163,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
+    }
+
+    try {
+      if (reference.getParent().getParent().getParent().textMatches(":Array<ClassField>")) { // OR
+        int i = 0;
+      }
+      if (reference.getParent().getParent().getParent().textMatches("::Map<String,Bool>")) {
+        int i = 0;
+      }
+    }catch (Exception e) {
+
     }
 
     if (reference instanceof HaxeLiteralExpression || reference instanceof HaxeConstantExpression) {
@@ -232,23 +226,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             if(matchesInImport.size()> 1 &&  reference.getParent() instanceof  HaxeCallExpression callExpression) {
               int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
 
-              // check type hinting for enumValues
-              for (PsiElement importElement : matchesInImport) {
-                if (importElement.getParent() instanceof  HaxeEnumValueDeclaration enumValueDeclaration) {
-                  PsiElement typeHintPsi = reference;
-
-                  if (reference.getParent() instanceof  HaxeCallExpression expression) {
-                    typeHintPsi = expression;
-                  }
-                  String currentQname = enumValueDeclaration.getContainingClass().getQualifiedName();
-                  String data = typeHintPsi.getUserData(typeHintKey);
-                  if (currentQname != null && currentQname.equals(data)) {
-                    LogResolution(reference, "via import & typeHintKey");
-                    return List.of(importElement);
-                  }
-                }
-              }
-
               // test  call expression if possible
               for (PsiElement importElement : matchesInImport) {
                 if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
@@ -299,6 +276,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       String message = "caching result for :" + referenceText;
       traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
     }
+
+    try {
+      if (reference.getParent().getParent().getParent().textMatches(":Array<ClassField>")) {
+        if(result != null && !result.isEmpty()) {
+          PsiElement first = result.getFirst();
+          if(!first.textMatches("Array")) {
+            int i = 0;
+          }
+        }
+      }
+      if (reference.getParent().getParent().getParent().textMatches(":Map<String,Bool>")) {
+        if(result != null && !result.isEmpty()) {
+          PsiElement first = result.getFirst();
+          if(!first.textMatches("Map")) {
+            int i = 0;
+          }
+        }
+      }
+    }catch (Exception e) {
+
+    }
+
     return result;
 
   }

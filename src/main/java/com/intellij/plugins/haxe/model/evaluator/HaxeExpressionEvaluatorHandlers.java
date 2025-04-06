@@ -358,7 +358,7 @@ public class HaxeExpressionEvaluatorHandlers {
             if (init != null) {
               HaxeExpression initExpression = init.getExpression();
               HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
-              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)subelement, initResolver);
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(fieldDeclaration, initResolver);
             }
             else {
               HaxeTypeTag tag = fieldDeclaration.getTypeTag();
