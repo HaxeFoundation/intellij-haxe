@@ -32,7 +32,7 @@ import java.util.Objects;
 public abstract class HaxeImportableModel implements HaxeExposableModel {
   protected final PsiElement basePsi;
 
-  private static final RecursionGuard<PsiElement> typeDefRecursionGuard = RecursionManager.createGuard("typeDefRecursionGuard");
+  private static final RecursionGuard<typedefDeclarationRecursionKey> typeDefRecursionGuard = RecursionManager.createGuard("typeDefRecursionGuard");
 
   protected HaxeImportableModel(@NotNull PsiElement element) {
     this.basePsi = element;
@@ -108,6 +108,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     return null;
   }
 
+  record typedefDeclarationRecursionKey(String memberName, HaxeTypedefDeclaration declaration){}
   @Nullable
   private static HaxeModel getExposedMemberFromTypeDefReference(String name, HaxeModel model, HaxeTypedefDeclaration typedefDeclaration) {
     HaxeTypeOrAnonymous typeOrAnonymous = typedefDeclaration.getTypeOrAnonymous();
@@ -116,7 +117,8 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
       if (type != null) {
         PsiElement resolve = type.getReferenceExpression().resolve();
         if (resolve instanceof HaxeTypedefDeclaration declaration) {
-          HaxeModel haxeModel = typeDefRecursionGuard.doPreventingRecursion(typedefDeclaration, true, () ->
+          typedefDeclarationRecursionKey recursionKey = new typedefDeclarationRecursionKey(name, declaration);
+          HaxeModel haxeModel = typeDefRecursionGuard.doPreventingRecursion(recursionKey, true, () ->
           {
              return getExposedMemberFromTypeDefReference(name, declaration.getModel(), declaration);
           });
