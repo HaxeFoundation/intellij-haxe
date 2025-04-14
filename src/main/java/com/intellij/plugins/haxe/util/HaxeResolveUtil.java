@@ -989,7 +989,7 @@ public class HaxeResolveUtil {
             if (result == null && !matchesInImport.isEmpty()) result = matchesInImport.get(0);
           }
         }
-        if (result == null) result = searchInSamePackage(fileModel, className, false);
+        if (result == null) result = searchInSamePackage(fileModel, className, false, false);
       }
     } else {
       className = tryResolveFullyQualifiedHaxeReferenceExpression(type);
@@ -1117,7 +1117,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name, boolean checkForEnumValues) {
+  public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name, boolean checkForEnumValues, boolean expectedEnumIsConstructor) {
     final HaxePackageModel packageModel = file.getPackageModel();
     if (packageModel != null) {
       List<HaxeModel> exposedMembers = packageModel.getExposedMembers();
@@ -1134,12 +1134,14 @@ public class HaxeResolveUtil {
             if (match.isPresent()){
               HaxeEnumValueModel valueModel = match.get();
               if (valueModel instanceof  HaxeEnumValueFieldModel enumValueFieldModel) {
+                if(expectedEnumIsConstructor) continue;
                 if(enumValueFieldModel.isAbstractType()) {
                   return enumValueFieldModel.getAbstractEnumValuePsi().getComponentName();
                 }else {
                   return enumValueFieldModel.getEnumValuePsi().getComponentName();
                 }
               }else if (valueModel instanceof  HaxeEnumValueConstructorModel constructorModel) {
+                if(!expectedEnumIsConstructor) continue;
                 return constructorModel.getEnumValuePsi().getComponentName();
               }
             }

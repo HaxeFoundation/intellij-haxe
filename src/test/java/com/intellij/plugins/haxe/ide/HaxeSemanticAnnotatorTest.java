@@ -353,6 +353,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   public void testSimpleAssignUnknownGeneric() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testSameNameEnumValuesAndConstructors() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testExtendsAnonymousType() throws Exception {
