@@ -87,21 +87,32 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public boolean isReadableFromOutside() {
-    return isPublic() && (isRealVar() || this.getGetterType().isAllowedFromOutside());
+    return isPublic() &&  this.getGetterType().isAllowedFromOutside();
+  }
+
+  public boolean isWritableFromOutside() {
+    return isPublic() && (this.getSetterType().isAllowedFromOutside());
   }
 
   public boolean isReadableFromInside() {
     return isRealVar() || this.getGetterType().isAllowedFromInside();
   }
 
-  public boolean isWritableFromOutside() {
-    return isPublic() && (isRealVar() || this.getSetterType().isAllowedFromOutside());
-  }
-
   public boolean isWritableFromInside() {
-    return isRealVar() || this.getSetterType().isAllowedFromInside();
+    return  this.getSetterType().isAllowedFromInside();
   }
 
+  public boolean isReadableFromPropertyAccessor() {
+    return isRealVar();
+  }
+
+  public boolean isWritableFromPropertyAccessor() {
+    return isRealVar();
+  }
+
+
+
+  @Nullable
   public HaxeMethodModel getGetterMethod() {
     if (getGetterType() != HaxeAccessorType.GET) return null;
     HaxeClassModel declaringClass = this.getDeclaringClass();
@@ -115,6 +126,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return null;
   }
 
+  @Nullable
   public HaxeMethodModel getSetterMethod() {
     if (getSetterType() != HaxeAccessorType.SET) return null;
     HaxeClassModel declaringClass = this.getDeclaringClass();

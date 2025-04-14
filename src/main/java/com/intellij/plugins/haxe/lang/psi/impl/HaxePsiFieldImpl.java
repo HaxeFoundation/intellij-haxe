@@ -67,7 +67,9 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
         _model = new HaxeEnumValueFieldModel(enumValueDeclaration);
       }else if (HaxeAbstractEnumUtil.isAbstractEnum(getContainingClass()) && HaxeAbstractEnumUtil.couldBeAbstractEnumField(this)) {
           _model = new HaxeEnumValueFieldModel(this);
-      }else{
+      }else if (this instanceof  HaxeLocalVarDeclaration declaration) {
+        _model = new HaxeLocalVarModel(declaration);
+      }else {
         _model = new HaxeFieldModel(this);
       }
     }

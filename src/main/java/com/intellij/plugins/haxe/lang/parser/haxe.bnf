@@ -839,10 +839,16 @@ expression ::= assignExpression
              | moduloExpression
              | isTypeExpression         // With Haxe 4.2, won't compile with prefix; lower than postfix or value.
              | prefixExpression
-             | postfixExpression
-             | valueExpression !suffixOperator !assignableOperator
-             | notSuffixExpression
+             | valueOrPostfixExpression
              { extraRoot=true recoverWhile=expression_recover }
+
+// normally this  expression would be private as it does not make much sense when traversing the psi tree
+// however grammarkit is not able to generate the parser correctly when using the  extra root / the Pratt algorithm
+// when made private. previously we had negative lookaheads for postfixes here, but those were problematic and caused
+// a lot of unnecessary slowdowns  as valueExpressions  parses a lot of complex structures and chained expressions.
+valueOrPostfixExpression ::= valueExpression (postfixExpression | notSuffixExpression)? {pin=1 extends=expression}
+
+
 
 assignExpression ::= expression assignOperation expression                    { rightAssociative=true extends=binaryExpression}
 isTypeExpression ::= expression isOperator (typeWrapper | literalExpression)  { methods=[ leftExpression="expression[0]" operator="isOperator"] }
@@ -866,10 +872,16 @@ additiveExpression ::= expression additiveOperator expression                 { 
 multiplicativeExpression ::= expression multiplicativeOperator expression     { extends=binaryExpression }
 moduloExpression ::= expression moduloOperator expression                     { extends=binaryExpression }
 
-prefixExpression ::= (prefixOperator (postfixExpression | notSuffixExpression | valueExpression))
-                   | (assignableOperator assignableValueExpression)           { extends=unaryExpression }
-postfixExpression ::= (assignableValueExpression assignableOperator)          { extends=unaryExpression }
-notSuffixExpression ::= valueExpression suffixOperator                       { extends=postfixExpression }
+prefixExpression ::= (prefixOperator (valueExpression postfixExpression?))
+                   | (assignableOperator valueExpression)           { extends=unaryExpression }
+
+//"postfix" and "notSuffix" should be used only after value expressions
+// we use left here to avoid having to re-parse the same (potentially complex) valueExpression
+left postfixExpression ::= assignableOperator {extends=unaryExpression}
+left notSuffixExpression ::= suffixOperator {extends=unaryExpression}
+
+// while it does not make sense with ++ or -- in front of or after an "if", "try-catch", or "switch-case"
+// we allow it here simply because it makes the parser logic easier to write ( we can highlight errors with annotators instead)
 
 valueExpression ::= value
 
@@ -881,8 +893,6 @@ fake binaryExpression ::= expression* operator {
 fake unaryExpression ::= expression* operator {
   methods=[expression="expression[0]" operator="operator"]
 }
-// might not be the best solution to add  (| thisExpression | superExpression | abstractExpression) here but it solves issues with postfix stuff (like "this.size++;")
-private assignableValueExpression ::= thisSuperAbstractOrReferenceExpression (qualifiedNullSafeReferenceExpression)* arrayAccessExpression*
 
 
 // Be careful when changing the ordering of the 'or' clauses here.  It matters!!

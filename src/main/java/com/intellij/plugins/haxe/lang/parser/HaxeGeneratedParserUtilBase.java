@@ -121,11 +121,19 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     if (consumeTokenFast(builder_, OSEMI)) {
       return true;
     }
+
+    // ignore rule if part of postfix (postfix is parsed using the "left" keyword and will include expression
+    // to its left and so we dont want/expect a semi between postfix and expression.
+    if(builder_.getTokenType() == OPLUS_PLUS || builder_.getTokenType() == OMINUS_MINUS || builder_.getTokenType() == ONOT) {
+      return true;
+    }
+
     int i = -1;
     IElementType previousType = builder_.rawLookup(i);
     while (null != previousType && isWhitespaceOrComment(builder_, previousType)) {
       previousType = builder_.rawLookup(--i);
     }
+
     if (previousType == HaxeTokenTypes.PRCURLY || previousType == HaxeTokenTypes.OSEMI) {
       return true;
     }
@@ -143,7 +151,10 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
       }
     }
 
-    if(showError)builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));
+
+    if(showError) {
+      builder_.error(HaxeBundle.message("parsing.error.missing.semi.colon"));
+    }
     return false;
   }
 

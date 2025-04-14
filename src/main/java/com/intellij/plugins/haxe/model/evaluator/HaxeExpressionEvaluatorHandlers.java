@@ -1785,6 +1785,10 @@ public class HaxeExpressionEvaluatorHandlers {
     final HaxeVarInit init = varDeclaration.getVarInit();
     final HaxeTypeTag typeTag = varDeclaration.getTypeTag();
 
+    var immutable = false;
+    if(varDeclaration.getModel() instanceof HaxeLocalVarModel model) {
+      immutable = model.isFinal() && init != null;
+    }
     ResultHolder result = null;
     HaxeGenericResolver localResolver = new HaxeGenericResolver();
     localResolver.addAll(resolver);
@@ -1825,6 +1829,8 @@ public class HaxeExpressionEvaluatorHandlers {
 
     result = tryGetEnumValuesDeclaringClass(result);
     context.setLocal(name.getText(), result);
+    // disable mutation if final with init expression
+    if(result != null && immutable) result.disableMutating();
     return result;
   }
 

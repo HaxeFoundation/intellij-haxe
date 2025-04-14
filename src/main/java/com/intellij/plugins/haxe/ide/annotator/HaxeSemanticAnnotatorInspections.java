@@ -46,7 +46,7 @@ public enum HaxeSemanticAnnotatorInspections {
   PROPERTY_ACCESSOR_EXISTENCE(new PropertyAccessorExistenceInspection()),
   PROPERTY_ACCESSOR_VALID(new PropertyAccessorValidInspection()),
   PROPERTY_CANNOT_BE_FINAL(new PropertyCannotBeFinalInspection()),
-  PROPERTY_IS_NOT_REAL_VARIABLE(new PropertyIsNotARealVarialeInspection()),
+  PROPERTY_IS_NOT_REAL_VARIABLE(new PropertyIsNotARealVariableInspection()),
   REPEATED_PARAMETER_NAME_CHECK(new ParameterNameDuplicatedInspection()),
   STRING_INTERPOLATION_QUOTE_CHECK(new StringInterpolationQuoteInspection()),
   SUPERCLASS_TYPE_COMPATIBILITY(new SuperclassTypeCompatibilityInspection()),
@@ -253,8 +253,8 @@ public enum HaxeSemanticAnnotatorInspections {
     }
   }
 
-  public static class PropertyIsNotARealVarialeInspection extends HaxeAnnotatorInspection {
-    public PropertyIsNotARealVarialeInspection() {
+  public static class PropertyIsNotARealVariableInspection extends HaxeAnnotatorInspection {
+    public PropertyIsNotARealVariableInspection() {
       super("haxe.inspections.property.is.not.a.real.variable.name",
             "haxe.inspections.property.is.not.a.real.variable.description");
     }

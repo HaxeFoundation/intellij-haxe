@@ -805,6 +805,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   @Test
+  public void testPostfixOperator() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testFunctionBind1() throws Exception {
     doTestNoFixWithWarnings();
   }

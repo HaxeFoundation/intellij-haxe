@@ -24,8 +24,8 @@ public class HaxeLocalVarAnnotator implements Annotator {
   public static void check(final HaxeLocalVarDeclaration var, final AnnotationHolder holder) {
     if (!INCOMPATIBLE_INITIALIZATION.isEnabled(var)) return;
 
-    HaxeLocalVarModel local = new HaxeLocalVarModel(var);
-    if (local.hasInitializer() && local.hasTypeTag()) {
+    HaxeLocalVarModel local = (HaxeLocalVarModel) var.getModel();
+      if (local.hasInitializer() && local.hasTypeTag()) {
       HaxeSemanticsUtil.TypeTagChecker.check(local.getBasePsi(), local.getTypeTagPsi(), local.getInitializerPsi(), false, holder);
     }else if (local.hasInitializer()) {
       ResultHolder init = getTypeFromVarInit(local.getInitializerPsi(), null);

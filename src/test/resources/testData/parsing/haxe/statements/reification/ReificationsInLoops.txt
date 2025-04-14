@@ -185,8 +185,8 @@ Haxe File
                 BLOCK_STATEMENT
                   HaxePsiToken:{('{')
                   POSTFIX_EXPRESSION
-                    REFERENCE_EXPRESSION
-                      IDENTIFIER
+                    VALUE_EXPRESSION
+                      MACRO_EXPRESSION_REIFICATION
                         MACRO_IDENTIFIER_REIFICATION
                           HaxePsiToken:MACRO_ID('$i')
                           HaxePsiToken:{('{')

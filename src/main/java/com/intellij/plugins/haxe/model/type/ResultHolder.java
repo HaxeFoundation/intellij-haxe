@@ -199,6 +199,7 @@ public class ResultHolder {
   public ResultHolder duplicate() {
     ResultHolder resultHolder = new ResultHolder(this.getType());
     resultHolder.cacheable = cacheable;
+    resultHolder.canMutate = canMutate;
     return resultHolder;
   }
 
