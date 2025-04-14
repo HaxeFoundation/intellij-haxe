@@ -211,8 +211,8 @@ shiftLeftAssignOperator ::= '<<='                                   { extends=op
 shiftRightAssignOperator ::= <<shiftRightAssign>>                   { extends=operator }
 unsignedShiftRightAssignOperator ::= <<unsignedShiftRightAssign>>   { extends=operator }
 
-shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
-shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
+private shiftOperator ::= unsignedShiftRightOperator | shiftRightOperator | shiftLeftOperator
+private shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAssignOperator | shiftLeftAssignOperator
 
 // TODO: Rename *.operation rules to *.operator.
 assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator | coalescingAssignOperator  { extends=operator }

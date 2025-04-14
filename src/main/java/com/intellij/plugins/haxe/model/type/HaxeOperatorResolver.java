@@ -17,10 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeCallExpressionList;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -36,11 +33,12 @@ public class HaxeOperatorResolver {
     PsiElement elementContext,
     SpecificTypeReference left,
     SpecificTypeReference right,
-    String operator,
+    HaxeOperator operatorPsi,
     HaxeExpressionEvaluatorContext context
   ) {
 
     SpecificTypeReference result = null;
+    String operator = operatorPsi.getText();
 
     // while normal abstracts should not be resolved to underlying type, there's an exception for Null<T>
     // in this case we just "unwrap"  without trying to resolve
@@ -127,7 +125,7 @@ public class HaxeOperatorResolver {
     }
 
     // check overloads
-    SpecificTypeReference overloadResult = checkOverloads(left, right, operator);
+    SpecificTypeReference overloadResult = checkOverloads(left, right, operatorPsi);
     // if overload matched use result
     if (overloadResult != null) {
       result = overloadResult;
@@ -171,7 +169,7 @@ public class HaxeOperatorResolver {
 
   private static SpecificTypeReference checkOverloads(SpecificTypeReference type1,
                                                     SpecificTypeReference type2,
-                                                      String operator) {
+                                                      HaxeOperator operator) {
     List<HaxeMethodModel> overloads = new ArrayList<>();
     if (type1 instanceof  SpecificHaxeClassReference classReference) {
       overloads.addAll(classReference.getOperatorOverloads(operator));
@@ -185,7 +183,7 @@ public class HaxeOperatorResolver {
       for (HaxeMethodModel overload : overloads) {
         // non-static methods takes 1 arg "this" is left, parameter is right
         if (overload.getParameters().size() == 1) {
-          HaxeParameterModel param = overload.getParameters().get(0);
+          HaxeParameterModel param = overload.getParameters().getFirst();
           boolean rightMatches = param.getType().canAssign(type2.createHolder());
           if (rightMatches) {
             return overload.getReturnType(null).getType();

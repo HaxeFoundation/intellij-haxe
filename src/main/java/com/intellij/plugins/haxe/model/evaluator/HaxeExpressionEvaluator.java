@@ -366,6 +366,9 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxePrefixExpression prefixExpression) {
       return handlePrefixExpression(context, resolver, prefixExpression);
     }
+    if (element instanceof HaxePostfixExpression postfixExpression) {
+      return handlePostfixExpression(context, resolver, postfixExpression);
+    }
 
     if (element instanceof HaxeIsTypeExpression) {
       return SpecificHaxeClassReference.primitive("Bool", element, null).createHolder();

@@ -96,16 +96,17 @@ public class HaxeExpressionEvaluatorHandlers {
       PsiElement[] children = expression.getChildren();
       String operatorText;
       if (children.length == 3) {
-        operatorText = children[1].getText();
-        SpecificTypeReference left = handle(children[0], context, resolver).getType();
-        SpecificTypeReference right = handle(children[2], context, resolver).getType();
-        left = resolveAnyTypeDefsOrTypeParameterConstraint(left);
-        right = resolveAnyTypeDefsOrTypeParameterConstraint(right);
-        // we might have constraints that help up here
-        if(left!= null && left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
-        if(right!= null && right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
+        if(children[1] instanceof  HaxeOperator operator) {
+          SpecificTypeReference left = handle(children[0], context, resolver).getType();
+          SpecificTypeReference right = handle(children[2], context, resolver).getType();
+          left = resolveAnyTypeDefsOrTypeParameterConstraint(left);
+          right = resolveAnyTypeDefsOrTypeParameterConstraint(right);
+          // we might have constraints that help up here
+          if (left != null && left.isTypeParameter()) left = tryResolveTypeParameter(left, resolver);
+          if (right != null && right.isTypeParameter()) right = tryResolveTypeParameter(right, resolver);
 
-        return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operatorText, context).createHolder();
+          return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operator, context).createHolder();
+        }
       }
       else {
         operatorText = getOperator(expression, HaxeTokenTypeSets.OPERATORS);
@@ -116,8 +117,9 @@ public class HaxeExpressionEvaluatorHandlers {
         // we might have constraints that help up here
         if(left.isTypeParameter())  left = tryResolveTypeParameter(left, resolver);
         if(right.isTypeParameter())  right = tryResolveTypeParameter(right, resolver);
-
-        return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operatorText, context).createHolder();
+      //TODO
+        throw  new RuntimeException("MLO: inspect");
+        //return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operatorText, context).createHolder();
       }
     }
     return createUnknown(expression);
@@ -912,16 +914,51 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeExpressionEvaluatorContext context,
     HaxeGenericResolver resolver,
     HaxePrefixExpression prefixExpression) {
+
     HaxeExpression expression = prefixExpression.getExpression();
     ResultHolder typeHolder = handle(expression, context, resolver);
     SpecificTypeReference type = typeHolder.getType();
-    if (type.getConstant() != null) {
-      String operatorText = getOperator(prefixExpression, HaxeTokenTypeSets.OPERATORS);
-      if (operatorText != "") {
-        return type.withConstantValue(HaxeTypeUtils.applyUnaryOperator(type.getConstant(), operatorText)).createHolder();
-      }
+    if(type instanceof SpecificHaxeClassReference classReference && classReference.isAbstractType()) {
+      return handlePrefix(classReference, prefixExpression, resolver);
     }
-    return typeHolder;
+    return createUnknown(prefixExpression);
+  }
+  static ResultHolder handlePostfixExpression(
+    HaxeExpressionEvaluatorContext context,
+    HaxeGenericResolver resolver,
+    HaxePostfixExpression postfixExpression) {
+
+    HaxeExpression expression = postfixExpression.getExpression();
+    ResultHolder typeHolder = handle(expression, context, resolver);
+    SpecificTypeReference type = typeHolder.getType();
+    if(type instanceof SpecificHaxeClassReference classReference && classReference.isAbstractType()) {
+      return handlePostfix(classReference, postfixExpression, resolver);
+    }
+    return createUnknown(postfixExpression);
+
+  }
+
+  private static ResultHolder handlePostfix(SpecificHaxeClassReference classReference, HaxePostfixExpression postfixExpression, HaxeGenericResolver resolver) {
+    // core types (int float etc) and String(extern) does not contain definitions for operators (no need to try to find overload methods)
+    if(classReference.isCoreType() || classReference.isString()) return classReference.createHolder();
+
+    List<HaxeMethodModel> operatorOverloads = classReference.getOperatorOverloads(postfixExpression.getAssignableOperator());
+      if (!operatorOverloads.isEmpty()) {
+          return operatorOverloads.getFirst().getReturnType(resolver);
+      }
+      return createUnknown(postfixExpression);
+  }
+
+  private static ResultHolder handlePrefix(SpecificHaxeClassReference classReference, HaxeUnaryExpression unaryExpression, HaxeGenericResolver resolver) {
+    // core types (int float etc) and String(extern) does not contain definitions for operators (no need to try to find overload methods)
+    if (classReference.isCoreType() || classReference.isString()) return classReference.createHolder();
+    HaxeOperator operator = unaryExpression.getOperator();
+    List<HaxeMethodModel> operatorOverloads = classReference.getOperatorOverloads(operator);
+    if (!operatorOverloads.isEmpty()) {
+      return operatorOverloads.getFirst().getReturnType(resolver);
+    }
+
+    return createUnknown(unaryExpression);
   }
 
   static ResultHolder handleIfStatement(

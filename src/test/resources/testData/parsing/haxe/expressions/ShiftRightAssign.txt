@@ -43,10 +43,8 @@ Haxe File
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('s')
-              ASSIGN_OPERATION
-                SHIFT_ASSIGN_OPERATOR
-                  SHIFT_RIGHT_ASSIGN_OPERATOR
-                    HaxePsiToken:>>=('>>=')
+              SHIFT_RIGHT_ASSIGN_OPERATOR
+                HaxePsiToken:>>=('>>=')
               LITERAL_EXPRESSION
                 HaxePsiToken:LITINT('2')
             HaxePsiToken:;(';')

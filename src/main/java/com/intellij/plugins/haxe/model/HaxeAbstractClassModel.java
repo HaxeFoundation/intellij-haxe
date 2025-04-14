@@ -359,5 +359,13 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
 
+  public void getOperatorOverload(String s) {
+    List<HaxeMethodModel> methods = getMethods(null);
+    for (HaxeMethodModel method : methods) {
+      if(method.hasOperatorMeta()) {
 
+      }
+    }
+
+  }
 }

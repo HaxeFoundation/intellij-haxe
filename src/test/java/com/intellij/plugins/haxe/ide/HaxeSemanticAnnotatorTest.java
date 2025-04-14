@@ -206,6 +206,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testAbstractOperatorOverload() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testAbstractFromToMetadata() throws Exception {

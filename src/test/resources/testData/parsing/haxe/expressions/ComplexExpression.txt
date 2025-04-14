@@ -93,10 +93,8 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('i2')
-                  ASSIGN_OPERATION
-                    SHIFT_ASSIGN_OPERATOR
-                      UNSIGNED_SHIFT_RIGHT_ASSIGN_OPERATOR
-                        HaxePsiToken:>>>=('>>>=')
+                  UNSIGNED_SHIFT_RIGHT_ASSIGN_OPERATOR
+                    HaxePsiToken:>>>=('>>>=')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
@@ -104,18 +102,14 @@ Haxe File
               REFERENCE_EXPRESSION
                 IDENTIFIER
                   HaxePsiToken:ID('i1')
-              ASSIGN_OPERATION
-                SHIFT_ASSIGN_OPERATOR
-                  SHIFT_RIGHT_ASSIGN_OPERATOR
-                    HaxePsiToken:>>=('>>=')
+              SHIFT_RIGHT_ASSIGN_OPERATOR
+                HaxePsiToken:>>=('>>=')
               ASSIGN_EXPRESSION
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('i2')
-                ASSIGN_OPERATION
-                  SHIFT_ASSIGN_OPERATOR
-                    SHIFT_RIGHT_ASSIGN_OPERATOR
-                      HaxePsiToken:>>=('>>=')
+                SHIFT_RIGHT_ASSIGN_OPERATOR
+                  HaxePsiToken:>>=('>>=')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
@@ -129,10 +123,8 @@ Haxe File
                 REFERENCE_EXPRESSION
                   IDENTIFIER
                     HaxePsiToken:ID('i3')
-                ASSIGN_OPERATION
-                  SHIFT_ASSIGN_OPERATOR
-                    SHIFT_LEFT_ASSIGN_OPERATOR
-                      HaxePsiToken:<<=('<<=')
+                SHIFT_LEFT_ASSIGN_OPERATOR
+                  HaxePsiToken:<<=('<<=')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
@@ -152,9 +144,8 @@ Haxe File
                   REFERENCE_EXPRESSION
                     IDENTIFIER
                       HaxePsiToken:ID('i2')
-                SHIFT_OPERATOR
-                  SHIFT_LEFT_OPERATOR
-                    HaxePsiToken:<<('<<')
+                SHIFT_LEFT_OPERATOR
+                  HaxePsiToken:<<('<<')
                 LITERAL_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')

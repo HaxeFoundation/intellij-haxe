@@ -82,7 +82,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   public boolean hasOptionalMeta() {
     return getNamedComponentPsi().hasCompileTimeMetadata(OPTIONAL);
   }
-  public boolean isOperator(String operator) {
+  public boolean isOperator(HaxeOperator operator) {
     HaxeMetadataList list = getNamedComponentPsi().getMetadataList(HaxeMetadataCompileTimeMeta.class);
     return list.getCompileTimeMeta().stream()
       .filter(meta -> meta.isType(OP))
@@ -90,13 +90,30 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   }
 
-  private boolean hasOperatorMeta(HaxeMetadataContent content, String operator) {
-    HaxeBinaryExpression binaryExpression = PsiTreeUtil.findChildOfType(content, HaxeBinaryExpression.class);
-    if (binaryExpression == null) return false;
+  private boolean hasOperatorMeta(HaxeMetadataContent content, HaxeOperator operator) {
+    if(operator.getParent() instanceof HaxePostfixExpression) {
+      HaxePostfixExpression postfixExpression = PsiTreeUtil.findChildOfType(content, HaxePostfixExpression.class);
+      if (postfixExpression != null) {
+        HaxeOperator metaOperator = postfixExpression.getOperator();
+        return metaOperator.getTokenType() == operator.getTokenType() && metaOperator.textMatches(operator);
+      }
+    }
+    if(operator.getParent() instanceof HaxePrefixExpression) {
+      HaxePrefixExpression prefixExpression = PsiTreeUtil.findChildOfType(content, HaxePrefixExpression.class);
+      if (prefixExpression != null) {
+        HaxeOperator metaOperator = prefixExpression.getOperator();
+        return metaOperator.getTokenType() == operator.getTokenType() && metaOperator.textMatches(operator);
+      }
+    }
 
-    @NotNull PsiElement[] children = binaryExpression.getChildren();
-    if (children.length < 2) return false;
-    return children[1].textMatches(operator);
+
+    HaxeBinaryExpression binaryExpression = PsiTreeUtil.findChildOfType(content, HaxeBinaryExpression.class);
+    if (binaryExpression != null) {
+      HaxeOperator metaOperator = binaryExpression.getOperator();
+      return metaOperator.getTokenType() == operator.getTokenType() && metaOperator.textMatches(operator);
+    }
+
+    return false;
   }
 
   private boolean isOverriddenPublicMethod() {

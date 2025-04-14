@@ -384,9 +384,8 @@ Haxe File
                   SHIFT_EXPRESSION
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('5')
-                    SHIFT_OPERATOR
-                      SHIFT_LEFT_OPERATOR
-                        HaxePsiToken:<<('<<')
+                    SHIFT_LEFT_OPERATOR
+                      HaxePsiToken:<<('<<')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
                   COMPARE_OPERATION
@@ -407,9 +406,8 @@ Haxe File
                     SHIFT_EXPRESSION
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('5')
-                      SHIFT_OPERATOR
-                        SHIFT_LEFT_OPERATOR
-                          HaxePsiToken:<<('<<')
+                      SHIFT_LEFT_OPERATOR
+                        HaxePsiToken:<<('<<')
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('2')
                     HaxePsiToken:)(')')
@@ -433,9 +431,8 @@ Haxe File
                   SHIFT_EXPRESSION
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('5')
-                    SHIFT_OPERATOR
-                      SHIFT_LEFT_OPERATOR
-                        HaxePsiToken:<<('<<')
+                    SHIFT_LEFT_OPERATOR
+                      HaxePsiToken:<<('<<')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
               HaxePsiToken:)(')')
@@ -456,9 +453,8 @@ Haxe File
                     SHIFT_EXPRESSION
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('5')
-                      SHIFT_OPERATOR
-                        SHIFT_LEFT_OPERATOR
-                          HaxePsiToken:<<('<<')
+                      SHIFT_LEFT_OPERATOR
+                        HaxePsiToken:<<('<<')
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('2')
                     HaxePsiToken:)(')')
@@ -624,14 +620,12 @@ Haxe File
                   SHIFT_EXPRESSION
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('2')
-                    SHIFT_OPERATOR
-                      SHIFT_LEFT_OPERATOR
-                        HaxePsiToken:<<('<<')
+                    SHIFT_LEFT_OPERATOR
+                      HaxePsiToken:<<('<<')
                     LITERAL_EXPRESSION
                       HaxePsiToken:LITINT('3')
-                  SHIFT_OPERATOR
-                    SHIFT_RIGHT_OPERATOR
-                      HaxePsiToken:>>('>>')
+                  SHIFT_RIGHT_OPERATOR
+                    HaxePsiToken:>>('>>')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('1')
                 HaxePsiToken:,(',')
@@ -651,15 +645,13 @@ Haxe File
                     SHIFT_EXPRESSION
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('2')
-                      SHIFT_OPERATOR
-                        SHIFT_LEFT_OPERATOR
-                          HaxePsiToken:<<('<<')
+                      SHIFT_LEFT_OPERATOR
+                        HaxePsiToken:<<('<<')
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('3')
                     HaxePsiToken:)(')')
-                  SHIFT_OPERATOR
-                    SHIFT_RIGHT_OPERATOR
-                      HaxePsiToken:>>('>>')
+                  SHIFT_RIGHT_OPERATOR
+                    HaxePsiToken:>>('>>')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('1')
                 HaxePsiToken:,(',')
@@ -676,17 +668,15 @@ Haxe File
                 SHIFT_EXPRESSION
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('2')
-                  SHIFT_OPERATOR
-                    SHIFT_LEFT_OPERATOR
-                      HaxePsiToken:<<('<<')
+                  SHIFT_LEFT_OPERATOR
+                    HaxePsiToken:<<('<<')
                   PARENTHESIZED_EXPRESSION
                     HaxePsiToken:(('(')
                     SHIFT_EXPRESSION
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('3')
-                      SHIFT_OPERATOR
-                        SHIFT_RIGHT_OPERATOR
-                          HaxePsiToken:>>('>>')
+                      SHIFT_RIGHT_OPERATOR
+                        HaxePsiToken:>>('>>')
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('1')
                     HaxePsiToken:)(')')
@@ -720,9 +710,8 @@ Haxe File
                       LITERAL_EXPRESSION
                         HaxePsiToken:LITINT('1')
                     HaxePsiToken:)(')')
-                  SHIFT_OPERATOR
-                    SHIFT_RIGHT_OPERATOR
-                      HaxePsiToken:>>('>>')
+                  SHIFT_RIGHT_OPERATOR
+                    HaxePsiToken:>>('>>')
                   LITERAL_EXPRESSION
                     HaxePsiToken:LITINT('1')
                 HaxePsiToken:,(',')

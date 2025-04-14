@@ -1171,7 +1171,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
 
-  public List<HaxeMethodModel> getOperatorOverloads(String operator) {
+  public List<HaxeMethodModel> getOperatorOverloads(HaxeOperator operator) {
     if (classReference.classModel == null) return List.of();
     List<HaxeMethodModel> members = new ArrayList<>();
     for (HaxeBaseMemberModel memberModel : classReference.classModel.getMembers(null)) {
