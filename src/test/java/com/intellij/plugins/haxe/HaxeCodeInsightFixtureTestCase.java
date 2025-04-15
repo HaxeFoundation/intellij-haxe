@@ -88,6 +88,8 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
       moduleFixtureBuilder.addSourceContentRoot(myHaxeToolkit);
     }
 
+    moduleFixtureBuilder.addContentRoot(getTestDataPath());
+
     tuneFixture(moduleFixtureBuilder);
 
     myFixture.setTestDataPath(getTestDataPath());
