@@ -1,4 +1,9 @@
 # Changelog
+## 1.6.7
+* Fixed: Issue parsing postfix expressions after arrayAccess and callExpressions.
+* improvement: more accurate logic determining if `case` expression is captureVariable or references. 
+* improvement: Better support for operator overloads
+
 ## 1.6.6
 * Bugfix: Fixed issue where Class references where treated as instance references in new expressions 
 * Fixed: Extension methods from `EnumValueTools` and `EnumTools` are now resolved without using imports (same as the compiler)
