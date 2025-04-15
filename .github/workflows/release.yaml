@@ -61,6 +61,12 @@ jobs:
           java-version: 21
           architecture: x64
 
+      - name: Maximize Build Space (ubuntu)
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
         with:
