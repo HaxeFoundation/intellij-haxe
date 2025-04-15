@@ -30,6 +30,13 @@ jobs:
           distribution: 'zulu'
           java-version: 21
 
+      - name: Maximize Build Space (ubuntu/mac)
+        if: ${{ matrix.os != 'windows-latest'}}
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
         with:
@@ -62,4 +69,5 @@ jobs:
         timeout-minutes: 20
         if: ${{ matrix.os != 'windows-latest'}}
         run: ./gradlew clean test buildPlugin verifyPlugin
+
 
