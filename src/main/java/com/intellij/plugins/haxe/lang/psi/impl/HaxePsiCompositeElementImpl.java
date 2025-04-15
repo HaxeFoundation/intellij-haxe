@@ -150,6 +150,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeSwitchCaseCapture.class));
         addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeExtractorMatchAssignExpression.class));
         addDeclarations(result, getObjectLiteralReferences(expr));
+        addCaptureVariableDeclarations(expr, result);
       }
     }
 
@@ -216,6 +217,15 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     }
     return result;
   }
+
+  private static void addCaptureVariableDeclarations(HaxeSwitchCaseExpr expr, List<PsiElement> result) {
+    List<PsiElement> captureVars = PsiTreeUtil.findChildrenOfType(expr, HaxeReferenceExpression.class).stream()
+            .filter(HaxeReferenceUtil::isCaptureVar)
+            .map(PsiElement.class::cast)
+            .toList();
+    addDeclarations(result, captureVars);
+  }
+
 
   private static @NotNull Collection<PsiElement> getObjectLiteralReferences(HaxeSwitchCaseExpr expr) {
     Collection<HaxeEnumObjectLiteralElement> objectLiterals = PsiTreeUtil.findChildrenOfType(expr, HaxeEnumObjectLiteralElement.class);

@@ -161,6 +161,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   }
 
   public String toPresentationString(boolean showOnlyConstraintForTypeParam){
+    if(this.isUnknown()) return "unknown";
+
     String  presentation = processedElementsToStringRecursionGuard.doPreventingRecursion(context, true, ()-> _toPresentationString(showOnlyConstraintForTypeParam));
 
     if (presentation == null) {
@@ -813,7 +815,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return reference;
   }
 
-  private static final RecursionGuard<ResolveRecursionGuardKey> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyresolveRecursionGuard");
+  private static final RecursionGuard<ResolveRecursionGuardKey> fullyresolveRecursionGuard = RecursionManager.createGuard("fullyResolveRecursionGuard");
+  private static final RecursionGuard<ResolveRecursionGuardKey> fullyresolveAndUnwrapRecursionGuard = RecursionManager.createGuard("fullyresolveAndUnwrapRecursionGuard");
 
   @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference() {
@@ -825,7 +828,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   @NotNull
   public SpecificTypeReference fullyResolveTypeDefAndUnwrapNullTypeReference(boolean unwrapExprOf) {
     ResolveRecursionGuardKey guardKey = new ResolveRecursionGuardKey(this.context, unwrapExprOf);
-    SpecificTypeReference result = fullyresolveRecursionGuard.computePreventingRecursion(guardKey, true, () ->
+    SpecificTypeReference result = fullyresolveAndUnwrapRecursionGuard.computePreventingRecursion(guardKey, true, () ->
     {
       if (isTypeParameter()) return this;
       if (isNullType()) {

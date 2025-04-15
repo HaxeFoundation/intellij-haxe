@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
+import com.intellij.psi.util.PsiTreeUtil;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
@@ -28,7 +29,7 @@ public class HaxeReferenceUtil {
                         if(callerType.getClassType() != null) {
                             HaxeClassModel haxeClassModel = callerType.getClassType().getHaxeClassModel();
                             if(haxeClassModel  != null) {
-                                HaxeBaseMemberModel member = haxeClassModel.getMember(((HaxeMethod) method).getName(), null);
+                                HaxeBaseMemberModel member = haxeClassModel.getMember(haxeMethod.getName(), null);
                                 if (member == null) return true;
                             }
                         }
@@ -44,6 +45,18 @@ public class HaxeReferenceUtil {
         PsiReference referenceChain = callExpression.getFirstChild().getReference();
         if (referenceChain instanceof HaxeReferenceExpression referenceExpression) {
             return isStaticExtension(referenceExpression);
+        }
+        return false;
+    }
+
+    public static boolean isCaptureVar(HaxeReferenceExpression expression) {
+        PsiElement resolved = expression.resolve();
+        if(resolved != null) {
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(expression, HaxeSwitchStatement.class);
+            if (switchStatement != null) {
+                HaxeExpression switchStatementExpression = switchStatement.getExpression();
+                return resolved == switchStatementExpression || PsiTreeUtil.isAncestor(switchStatementExpression, resolved, true);
+            }
         }
         return false;
     }
