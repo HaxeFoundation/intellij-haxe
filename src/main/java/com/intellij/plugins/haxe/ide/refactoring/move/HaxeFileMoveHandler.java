@@ -57,12 +57,12 @@ public class HaxeFileMoveHandler extends MoveFileHandler {
     return null;
   }
 // 2024.x
-  @Override
-  public void retargetUsages(List<UsageInfo> usageInfos, Map<PsiElement, PsiElement> oldToNewMap) {}
+//  @Override
+//  public void retargetUsages(List<UsageInfo> usageInfos, Map<PsiElement, PsiElement> oldToNewMap) {}
 
 // 2025.x
-//  @Override
-//  public void retargetUsages(@Unmodifiable @NotNull List<? extends UsageInfo> list, @NotNull Map<PsiElement, PsiElement> map) {}
+  @Override
+  public void retargetUsages(@Unmodifiable @NotNull List<? extends UsageInfo> list, @NotNull Map<PsiElement, PsiElement> map) {}
 
   @Override
   public void updateMovedFile(PsiFile file) throws IncorrectOperationException {

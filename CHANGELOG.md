@@ -1,4 +1,7 @@
 # Changelog
+## 1.6.8
+*  Support for IntelliJ 2024.x is dropped due to breaking changes in refactoring API in IntelliJ 2025.
+
 ## 1.6.7
 * Fixed: Issue parsing postfix expressions after arrayAccess and callExpressions.
 * improvement: more accurate logic determining if `case` expression is captureVariable or references. 

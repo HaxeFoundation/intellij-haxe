@@ -4,6 +4,7 @@ import org.jetbrains.grammarkit.tasks.GenerateLexerTask
 import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtension
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
@@ -16,7 +17,7 @@ plugins {
     // Kotlin support
     id("org.jetbrains.kotlin.jvm") version "2.0.21"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.5.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.0.0"
     // Gradle Qodana Plugin
@@ -79,7 +80,6 @@ dependencies {
 
     intellijPlatform {
         pluginVerifier()
-        instrumentationTools()
         create(platformType, platformVersion)
 
         plugins(properties("platformPlugins").map { it.split(',') })
@@ -147,33 +147,24 @@ repositories {
 }
 
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
-intellijPlatform  {
-    pluginConfiguration   {
-    name = properties("pluginName").get()
-    group = properties("pluginGroup").get()
+intellijPlatform {
+    pluginConfiguration {
+        name = properties("pluginName").get()
+        group = properties("pluginGroup").get()
 
-    ideaVersion.sinceBuild.set(properties("pluginSinceBuild"))
-    ideaVersion.untilBuild.set(properties("pluginUntilBuild"))
-
+        ideaVersion.sinceBuild.set(properties("pluginSinceBuild"))
+        ideaVersion.untilBuild.set(properties("pluginUntilBuild"))
     }
-    verifyPlugin {
+
+    pluginVerification(fun IntelliJPlatformExtension.PluginVerification.() {
         freeArgs = listOf("-mute", "TemplateWordInPluginId,ForbiddenPluginIdPrefix")
         failureLevel = listOf(
-//            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
             VerifyPluginTask.FailureLevel.MISSING_DEPENDENCIES
         )
         ides {
-            //TODO  problem verifying 2024.2 beta, emojipicker not found, + timeout ?
-//            recommended()
-            select {
-                sinceBuild.set("240")
-                untilBuild.set("241.*")
-//                sinceBuild.set(properties("pluginSinceBuild"))
-//                untilBuild.set(properties("pluginUntilBuild"))
-            }
+            recommended()
         }
-    }
-//    instrumentCode = false
+    })
 }
 
 
@@ -213,7 +204,7 @@ tasks {
     }
 
     patchPluginXml {
-        version =properties("pluginVersion").get();
+        version = properties("pluginVersion").get();
         sinceBuild.set(properties("pluginSinceBuild"))
         untilBuild.set(properties("pluginUntilBuild"))
 
