@@ -67,12 +67,13 @@ public class HaxeIntroduceMethodIntention
     String returnType = guessReturnElementType();
     String returnStatement = determineReturnStatement(returnType);
     String optionalStaticKeyword = needsToBeStatic() ? "static" : "";
+    String privateKeyword = needsToBePublic() ? "public" : "private";
     String function = """
-      private %s function %s (%s):%s {
+      %s %s function %s (%s):%s {
         %s
       }
       """
-      .formatted(optionalStaticKeyword, methodName, generateParameterList(), returnType, returnStatement);
+      .formatted(privateKeyword, optionalStaticKeyword, methodName, generateParameterList(), returnType, returnStatement);
 
     return HaxeElementGenerator.createMethodDeclaration(project, function);
   }
