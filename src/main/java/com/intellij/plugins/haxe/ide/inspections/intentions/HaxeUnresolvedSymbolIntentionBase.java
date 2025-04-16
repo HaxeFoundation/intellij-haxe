@@ -7,6 +7,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -22,6 +23,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+
+import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getLeftReference;
 
 public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> extends LocalQuickFixAndIntentionActionOnPsiElement {
 
@@ -98,6 +101,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
 
 
   protected boolean needsToBeStatic() {
+    if(hasClassReferenceCallie()) return true;
     HaxeMethodDeclaration type = PsiTreeUtil.getParentOfType(myPsiElementPointer.getElement(), HaxeMethodDeclaration.class);
     if (type != null) {
       return type.getModel().isStatic();
@@ -107,6 +111,51 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     if (field != null) {
       return ((HaxeFieldModel)field.getModel()).isStatic();
     }
+    return false;
+  }
+
+  protected  boolean needsToBePublic() {
+    return hasClassReferenceCallie() || callieIsDifferentClass();
+  }
+
+  private boolean hasClassReferenceCallie() {
+    if(myPsiElementPointer.getElement() instanceof  HaxeCallExpression callExpression) {
+      HaxeExpression expression = callExpression.getExpression();
+     if(expression != null)  {
+       HaxeReference leftReference = getLeftReference(expression);
+       if(leftReference instanceof HaxeReferenceImpl reference) {
+       ResultHolder result = HaxeExpressionEvaluator.evaluate(leftReference).result;
+         SpecificHaxeClassReference classType = result.getClassType();
+         if(!result.isUnknown() && classType != null) {
+           HaxeClass haxeClass = classType.getHaxeClass();
+           if(haxeClass != null) {
+             String name = haxeClass.getName();
+             return  name != null && reference.textMatches(name);
+           }
+         }
+         }
+       }
+     }
+    return false;
+  }
+  private boolean callieIsDifferentClass() {
+    if(myPsiElementPointer.getElement() instanceof  HaxeCallExpression callExpression) {
+      HaxeExpression expression = callExpression.getExpression();
+     if(expression != null)  {
+       HaxeReference leftReference = getLeftReference(expression);
+       if(leftReference != null) {
+       ResultHolder result = HaxeExpressionEvaluator.evaluate(leftReference).result;
+         SpecificHaxeClassReference classType = result.getClassType();
+         if(!result.isUnknown() && classType != null) {
+           HaxeClass haxeClass = classType.getHaxeClass();
+           if(haxeClass != null) {
+             HaxeClass currentClass = PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class);
+             return currentClass != haxeClass;
+           }
+         }
+         }
+       }
+     }
     return false;
   }
 
