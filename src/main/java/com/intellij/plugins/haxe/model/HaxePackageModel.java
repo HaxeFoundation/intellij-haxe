@@ -132,8 +132,8 @@ public class HaxePackageModel implements HaxeExposableModel {
 
       if (directory != null && directory.isValid()) {
         PsiFile file = directory.findFile(fname + ".hx");
-        if (file != null && file.isValid() && file instanceof HaxeFile) {
-          return (HaxeFile)file;
+        if (file != null && file.isValid() && file instanceof HaxeFile haxeFile) {
+          return haxeFile;
         }
       }
 

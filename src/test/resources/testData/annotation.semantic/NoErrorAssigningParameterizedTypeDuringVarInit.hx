@@ -5,8 +5,9 @@ class LinkedQueueNode<T> {
 }
 
 class LinkedQueue<T> {
-  var mHead:LinkedQueueNode<T>;
-  var mTail:LinkedQueueNode<T>;
+  public function new() {}
+  public var mHead:LinkedQueueNode<T>;
+  public var mTail:LinkedQueueNode<T>;
 }
 
 class Test {

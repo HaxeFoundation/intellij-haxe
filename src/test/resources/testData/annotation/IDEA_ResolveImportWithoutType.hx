@@ -1,1 +1,1 @@
-import <info descr="null">haxe.macro.Tools</info>;
+import haxe.macro.Tools;

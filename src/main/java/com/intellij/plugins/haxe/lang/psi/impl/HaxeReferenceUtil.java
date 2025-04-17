@@ -18,7 +18,9 @@ public class HaxeReferenceUtil {
     public static boolean isStaticExtension(HaxeReferenceExpression referenceExpression) {
                 PsiElement method = referenceExpression.resolve();
                 if (method instanceof HaxeMethod haxeMethod) {
+                    // TODO make sure method owning class/module is imported with "using" (note : modules should not have the static keyword)
                     if (!haxeMethod.isStatic()) return false; // only static methods can be extensions (compiler: Cannot access static field XXX from a class instance)
+                    if (haxeMethod.getParameterList().isEmpty()) return false; // must have minimum 1 parameter
 
                     PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier

@@ -8,7 +8,7 @@ class Test {
   var member:String;
 
   public function new() {
-    var typeA:{a:String, b:Float};
+    var typeA:{a:String, b:Float, ?extra:String};
     var typeB =  {x:1, y:1.0};
 
     // CORRECT

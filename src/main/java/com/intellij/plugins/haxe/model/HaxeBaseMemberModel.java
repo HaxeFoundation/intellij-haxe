@@ -26,6 +26,8 @@ import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiPackage;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,4 +125,18 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
   @Nullable
   @Override
   public abstract FullyQualifiedInfo getQualifiedInfo();
+
+
+  public HaxeModule getModule() {
+    return PsiTreeUtil.getChildOfType(getDocument().getFile(), HaxeModule.class);
+  }
+
+  public PsiPackage getPackage() {
+    HaxePackageStatement childOfType = PsiTreeUtil.getChildOfType(getDocument().getFile(), HaxePackageStatement.class);
+    if(childOfType!= null) {
+      HaxeReferenceExpression reference = childOfType.getReferenceExpression();
+      if(reference!= null && reference.resolve() instanceof PsiPackage aPackage) return aPackage;
+    }
+    return null;
+  }
 }

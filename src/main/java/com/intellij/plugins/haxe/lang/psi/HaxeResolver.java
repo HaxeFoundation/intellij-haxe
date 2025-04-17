@@ -1518,7 +1518,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if (canBeQname(reference)) {
           PsiElement item = resolveQualifiedReference(reference);
           if (item != null) {
-            LogResolution(reference, "via simple chain against package.");
+            LogResolution(reference, "via simple chain against package or module.");
             return asList(item);
           }
         }
@@ -1597,7 +1597,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             if (children[0] instanceof HaxeReference child) {
               List<? extends PsiElement> resolve = resolve(child, false);
               if (!resolve.isEmpty()) {
-                PsiFile containingFile = resolve.get(0).getContainingFile();
+                PsiFile containingFile = resolve.getFirst().getContainingFile();
                 if (containingFile instanceof HaxeFile haxeFile) {
                   HaxeClassModel model = haxeFile.getModel().getClassModel(children[1].getText());
                   if (model != null) {
@@ -1680,10 +1680,32 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     // TODO: Merge with resolveByClassAndSymbol()??  It is very similar to this method.
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+    List<PsiElement> parentResolve = new ArrayList<>();
     if (leftReference != null) {
       // recursive so we try to  resolve first element in the chain first and go up the chain
-      resolveChain(leftReference, lefthandExpression);
+      List<? extends PsiElement> results = resolveChain(leftReference, lefthandExpression);
+      if(results != null)  parentResolve.addAll(results);
     }
+
+    if (canBeQname(reference)) {
+      PsiElement item = resolveQualifiedReference(reference);
+      if (item != null) {
+        LogResolution(reference, "via simple chain against package or module.");
+        return List.of(item);
+      }
+    }
+
+    if(!parentResolve.isEmpty()) {
+      PsiElement first = parentResolve.getFirst();
+      if(first instanceof HaxeModule module && module.getModel() instanceof HaxeModuleModel model) {
+        HaxeBaseMemberModel member = model.getMember(reference.getLastChild().getText(), null);
+        if(member != null) {
+          LogResolution(reference, "via simple chain against module members.");
+          return List.of(member.getNamedComponentPsi());
+        }
+      }
+    }
+
     //List<List<? extends PsiElement>> debugList = new ArrayList<>();
 
     String identifier = reference instanceof HaxeReferenceExpression referenceExpression ? referenceExpression.getIdentifier().getText() : reference.getText();
@@ -1858,7 +1880,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qualifiedName);
     List<HaxeModel> result = HaxeProjectModel.fromElement(reference).resolve(qualifiedInfo, reference.getResolveScope());
     if (result != null && !result.isEmpty()) {
-      HaxeModel item = result.get(0);
+      HaxeModel item = result.getFirst();
       if (item instanceof HaxeFileModel fileModel) {
         HaxeClassModel mainClass = fileModel.getMainClassModel();
         if (mainClass != null) {
@@ -1868,9 +1890,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       PsiElement psi = item.getBasePsi();
       if (psi instanceof  PsiPackage) return psi;
 
-      HaxeComponentName type = PsiTreeUtil.findChildOfType(psi, HaxeComponentName.class);
-      if (type != null) {
-        return type;
+      HaxeModule module = PsiTreeUtil.findChildOfType(psi, HaxeModule.class);
+      if(module != null) {
+        HaxeModuleModel model = (HaxeModuleModel) module.getModel();
+        if(model.getQName().equals(qualifiedName)) {
+          return module;
+        }
       }
     }
 

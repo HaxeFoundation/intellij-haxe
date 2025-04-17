@@ -102,7 +102,9 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
     HaxeNamedComponent namedComponent = getNamedComponent(element);
     if (namedComponent == null) {
-
+      if(element instanceof  HaxeModule module) {
+        createModuleDocs(mainBuilder, module);
+      }
       if (element instanceof HaxeLiteralExpression) {
         return null; // no need to  show docs for literal expressions
       }else {
@@ -135,6 +137,19 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     appendDocumentation(namedComponent, renderer, mainBuilder);
     mainBuilder.br();
     return mainBuilder.toString();
+  }
+
+  private void createModuleDocs(HtmlBuilder mainBuilder, HaxeModule module) {
+    if( module.getModel() instanceof  HaxeModuleModel model) {
+      String qname = model.getPackageName();
+      StringBuilder stringBuilder = new StringBuilder();
+      DocumentationManagerUtil.createHyperlink(stringBuilder, qname, qname, false, true);
+      mainBuilder.append(HtmlChunk.icon("AllIcons.Nodes.Package", AllIcons.Nodes.Package)).nbsp(1);
+      mainBuilder.appendRaw(stringBuilder.toString()).br();
+
+      mainBuilder.appendRaw("Module " + model.getName()).br();
+              //TODO list members with links
+    }
   }
 
   @Override

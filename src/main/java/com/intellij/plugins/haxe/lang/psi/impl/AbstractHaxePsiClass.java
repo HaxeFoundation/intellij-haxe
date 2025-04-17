@@ -755,6 +755,21 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   @Override
+  public HaxeModule getModule() {
+    return PsiTreeUtil.getChildOfType(getContainingFile(), HaxeModule.class);
+  }
+
+  @Override
+  public PsiPackage getPackage() {
+    HaxePackageStatement childOfType = PsiTreeUtil.getChildOfType(getContainingFile(), HaxePackageStatement.class);
+    if(childOfType!= null) {
+      HaxeReferenceExpression reference = childOfType.getReferenceExpression();
+      if(reference!= null && reference.resolve() instanceof PsiPackage aPackage) return aPackage;
+    }
+    return null;
+  }
+
+  @Override
   @NotNull
   public PsiClass[] getInnerClasses() {
     return PsiClass.EMPTY_ARRAY;

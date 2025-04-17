@@ -4,7 +4,7 @@ import <info descr="null">helper.Foo</info>;
 import <info descr="null">helper.IFoo</info> <info descr="null">as</info> FooAlias;
 
 // unused
-<warning descr="Unused import statement">import <info descr="null"><info descr="null">helper.Typedefs</info>.AliasTypedef</info>;</warning>
+<warning descr="Unused import statement">import <info descr="null">helper.Typedefs.AliasTypedef</info>;</warning>
 
 class <info descr="null">OptimizeImportsTest</info> extends <info descr="null">Bar</info> {
 

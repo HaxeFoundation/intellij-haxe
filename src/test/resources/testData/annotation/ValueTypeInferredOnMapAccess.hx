@@ -1,7 +1,7 @@
 // This is a negative test, wherein no errors should be highlighted.
 package;
 
-import <info descr="null">StdTypes</info>;
+import StdTypes;
 import <info descr="null">Map</info>;
 import <info descr="null">String</info>;
 import <info descr="null">haxe.ds.StringMap</info>;

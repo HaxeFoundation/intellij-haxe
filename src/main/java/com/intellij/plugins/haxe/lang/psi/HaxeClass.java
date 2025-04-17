@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiPackage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -180,4 +181,8 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   default HaxeMetadataList getCompileTimeMeta(HaxeMetadataTypeName meta) {
     return HaxeMetadataUtils.getMetadataList(this, HaxeMetadataCompileTimeMeta.class, meta);
   }
+
+  PsiPackage getPackage();
+
+  HaxeModule getModule();
 }

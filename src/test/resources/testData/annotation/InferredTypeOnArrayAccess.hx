@@ -1,6 +1,6 @@
 package;
 
-import <info descr="null">StdTypes</info>;
+import StdTypes;
 import <info descr="null">String</info>;
 import <info descr="null">Array</info>;
 

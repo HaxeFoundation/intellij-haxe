@@ -1,5 +1,4 @@
 package ;
-import Float;
 using StringTools;
 
 import  StringBuf as ImportAlias;

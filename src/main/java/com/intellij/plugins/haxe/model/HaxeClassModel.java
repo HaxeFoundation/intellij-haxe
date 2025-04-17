@@ -19,6 +19,8 @@
  */
 package com.intellij.plugins.haxe.model;
 
+import com.intellij.openapi.util.RecursionGuard;
+import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
@@ -958,5 +960,29 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   public boolean isStructInit() {
     return hasCompileTimeMeta(HaxeMeta.STRUCT_INIT);
+  }
+
+  private final RecursionGuard<PsiElement> inheritsFromRecursionGuard = RecursionManager.createGuard("inheritsFromRecursionGuard");
+
+  public boolean inheritsFrom(HaxeClass haxeClass) {
+    return Boolean.TRUE.equals(inheritsFromRecursionGuard.doPreventingRecursion(this.haxeClass, true, () -> {
+        List<HaxeClassReferenceModel> interfaces = getImplementingInterfaces();
+        for (HaxeClassReferenceModel anInterface : interfaces) {
+            HaxeClassModel haxeClassModel = anInterface.getHaxeClassModel();
+            if (haxeClassModel != null) {
+                if (haxeClassModel.haxeClass == haxeClass) return true;
+                if (haxeClassModel.inheritsFrom(haxeClass)) return true;
+            }
+        }
+        List<HaxeClassReferenceModel> extendingTypes = getExtendingTypes();
+        for (HaxeClassReferenceModel extendingType : extendingTypes) {
+            HaxeClassModel haxeClassModel = extendingType.getHaxeClassModel();
+            if (haxeClassModel != null) {
+                if (haxeClassModel.haxeClass == haxeClass) return true;
+                if (haxeClassModel.inheritsFrom(haxeClass)) return true;
+            }
+        }
+        return false;
+    }));
   }
 }

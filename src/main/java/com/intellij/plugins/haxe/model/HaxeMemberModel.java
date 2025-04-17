@@ -32,6 +32,7 @@ import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OP;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OPTIONAL;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.CORE_TYPE;
-
+@CustomLog
 abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   public HaxeMemberModel(PsiMember basePsi) {
@@ -56,12 +57,16 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   public boolean isPublic() {
     HaxeClassModel declaringClass = getDeclaringClass();
-
-    return hasModifier(PUBLIC)
-           // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
-           || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
-           || isOverriddenPublicMethod()
-           || getDeclaringClass().hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
+    if(declaringClass == null) {
+      log.warn("unable to find declaringClass for " + getName());
+      return true;
+    }else {
+      return hasModifier(PUBLIC)
+             // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
+             || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
+             || isOverriddenPublicMethod()
+             || declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
+    }
   }
 
   public boolean isFinal() {
@@ -186,8 +191,17 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    if (getDeclaringClass() != null) {
-      FullyQualifiedInfo containerInfo = getDeclaringClass().getQualifiedInfo();
+    HaxeClassModel declaringClass = getDeclaringClass();
+    if (declaringClass != null) {
+      FullyQualifiedInfo containerInfo = declaringClass.getQualifiedInfo();
+      if (containerInfo != null) {
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
+      }
+    }
+
+    HaxeModule module = getModule();
+    if(module != null && module.getModel() instanceof  HaxeModuleModel model) {
+      FullyQualifiedInfo containerInfo = model.getQualifiedInfo();
       if (containerInfo != null) {
         return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
       }
