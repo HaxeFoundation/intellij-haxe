@@ -272,5 +272,12 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     }
     return null;
   }
+
+  @Nullable
+  public HaxeMethodModel getAncestorMethod(@Nullable HaxeGenericResolver resolver) {
+    HaxeClassModel declaringClass = getDeclaringClass();
+    if(declaringClass == null) return null;
+    return declaringClass.getAncestorMethod(getName(), resolver);
+  }
 }
 

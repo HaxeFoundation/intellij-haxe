@@ -105,7 +105,13 @@ public class HaxeAccessAnnotator implements Annotator {
       return;
     }
 
+    if (overridesMemberInCommonClass(memberModel, currentClass)) {
+      // if inherited member then private access allowed
+      return;
+    }
+
     HaxeMemberModel referenceParentModel = getExpressionsParentsModel(referenceExpression);
+
     if (expressionHasPrivateAccessMeta(referenceExpression)) {
       // @:privateAccess should allow access to normal private members
       return;
@@ -122,6 +128,24 @@ public class HaxeAccessAnnotator implements Annotator {
             .range(referenceExpression.getLastChild())
             .create();
 
+  }
+
+  private boolean overridesMemberInCommonClass(HaxeMemberModel memberModel, HaxeClass currentClass) {
+    if(memberModel instanceof  HaxeMethodModel memberMethod) {
+      HaxeMethodModel method = memberMethod;
+      while(method.isOverride()) {
+        method = memberMethod.getAncestorMethod(null);
+        if(method == null) {
+          break;
+        }else {
+          HaxeClassModel declaringClass = method.getDeclaringClass();
+          if(declaringClass != null){
+            if (inheritsFrom(currentClass, declaringClass.haxeClass)) return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   private void checkIfFullyQualified(HaxeMeta meta, @NotNull AnnotationHolder holder) {
