@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -12,6 +13,7 @@ import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -64,7 +66,7 @@ public class HaxeAccessAnnotator implements Annotator {
     if (resolve instanceof HaxeFieldDeclaration fieldDeclaration) {
       HaxeModel model = fieldDeclaration.getModel();
       if (model instanceof HaxeMemberModel haxeMemberModel) {
-        if (haxeMemberModel.isPublic()) return;
+
         memberModel = haxeMemberModel;
         memberName = haxeMemberModel.getName();
         memberClass = getMemberHaxeClass(haxeMemberModel);
@@ -73,17 +75,73 @@ public class HaxeAccessAnnotator implements Annotator {
     if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
       HaxeMethodModel model = methodDeclaration.getModel();
       if (model instanceof HaxeMemberModel haxeMemberModel) {
-        if (haxeMemberModel.isPublic()) return;
         memberModel = haxeMemberModel;
         memberName = haxeMemberModel.getName();
         memberClass = getMemberHaxeClass(haxeMemberModel);
       }
     }
 
-
-
     // ignore if we cant find member (probably a reference to a type)
-    if (memberModel == null) return;
+    if (memberModel != null) {
+      checkStaticAccess(holder, referenceExpression, memberModel);
+      if (!memberModel.isPublic()) {
+        checkPrivateAccess(holder, referenceExpression, memberModel, memberClass, memberName);
+      }
+    }
+
+  }
+
+  private void checkStaticAccess(@NotNull AnnotationHolder holder, @NotNull HaxeReferenceExpression referenceExpression, @NotNull HaxeMemberModel memberModel) {
+    // ignore non chained references (usually local access in same class)
+    if (HaxeResolveUtil.getLeftReference(referenceExpression) == null) return;
+    if (isStaticExtensionReferences(referenceExpression)) return;
+
+    boolean isStaticAccess = isStaticAccess(referenceExpression);
+    boolean isMemberStatic = memberModel.isStatic();
+    boolean isMemberInline = memberModel.isInline();
+
+    if (isStaticAccess && !isMemberStatic) {
+      // TODO bundle
+      holder.newAnnotation(HighlightSeverity.ERROR, "Static access to instance field " + memberModel.getName() + " is not allowed ")
+              .range(referenceExpression.getLastChild())
+              .create();
+    } else if (!isStaticAccess && isMemberStatic) {
+      if (isMemberInline) return;// allow static access when inlining
+      // TODO bundle
+      holder.newAnnotation(HighlightSeverity.ERROR, "Cannot access static field " + memberModel.getName() + " from a class instance")
+              .range(referenceExpression.getLastChild())
+              .create();
+
+    }
+  }
+
+  private static boolean isStaticExtensionReferences(@NotNull HaxeReferenceExpression referenceExpression) {
+    if(referenceExpression.getParent() instanceof HaxeCallExpression callExpression) {
+      return callExpression.resolveIsStaticExtension();
+    }
+    return false;
+  }
+
+  private  boolean isStaticAccess(HaxeReferenceExpression referenceExpression) {
+    final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
+    if (leftReference instanceof HaxeReferenceExpressionImpl callie) {
+      PsiElement callieResolved = callie.resolve();
+
+      if (callieResolved instanceof HaxeImportAlias alias) {
+        HaxeIdentifier identifier = alias.getIdentifier();
+        return callie.getLastChild().textMatches(identifier);
+      }
+      if (callieResolved instanceof HaxeClass haxeClass) {
+        String name = haxeClass.getName();
+        if (name != null) {
+          return callie.getLastChild().textMatches(name);
+        }
+      }
+    }
+      return false;
+  }
+
+  private void checkPrivateAccess(@NotNull AnnotationHolder holder, @NotNull HaxeReferenceExpression referenceExpression, @NotNull HaxeMemberModel memberModel, HaxeClass memberClass, String memberName) {
 
     HaxeClass currentClass = PsiTreeUtil.getParentOfType(referenceExpression, HaxeClass.class);
 
@@ -127,7 +185,6 @@ public class HaxeAccessAnnotator implements Annotator {
     holder.newAnnotation(HighlightSeverity.ERROR, "Cannot access private field " + memberName)
             .range(referenceExpression.getLastChild())
             .create();
-
   }
 
   private boolean overridesMemberInCommonClass(HaxeMemberModel memberModel, HaxeClass currentClass) {
@@ -159,7 +216,10 @@ public class HaxeAccessAnnotator implements Annotator {
       } else if (target instanceof HaxeClass aClass) {
         qualifiedName = aClass.getQualifiedName();
       } else if (target instanceof HaxeMethod method) {
-        qualifiedName = method.getModel().getQualifiedInfo().toShortendImportReferenceString();
+        FullyQualifiedInfo qualifiedInfo = method.getModel().getQualifiedInfo();
+        if(qualifiedInfo != null) {
+          qualifiedName = qualifiedInfo.toShortendImportReferenceString();
+        }
       }
 
       if(qualifiedName != null) {
@@ -177,8 +237,6 @@ public class HaxeAccessAnnotator implements Annotator {
       }
     }
   }
-
-
 
   private boolean expressionHasPrivateAccessMeta(HaxeReferenceExpression referenceExpression) {
     HaxeReferenceExpression refExpression = referenceExpression;
@@ -233,6 +291,7 @@ public class HaxeAccessAnnotator implements Annotator {
     }
     return false;
   }
+
   private boolean hasAllowMetaFor(@Nullable HaxeClass currentClass, @Nullable HaxeClass memberClass, HaxeMemberModel memberModel, HaxeMemberModel referenceParentModel) {
     HaxeMetadataList metadataList = collectMetadata(memberClass, memberModel, ALLOW);
 
@@ -275,6 +334,7 @@ public class HaxeAccessAnnotator implements Annotator {
     }
     return null;
   }
+
   private static @Nullable PsiElement getAccessMetaTarget(HaxeMeta metadata) {
     HaxeReferenceExpression reference = getAccessMetaReference(metadata);
     if(reference != null) return reference.resolve();

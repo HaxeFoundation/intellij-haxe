@@ -74,6 +74,11 @@ public class HaxeAllowAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase
 
 
     @Test
+    public void testStaticAccess() throws Exception {
+        doTest();
+    }
+
+    @Test
     public void testMetaAccess() throws Exception {
         doTest("accesscontrol/AccessMetaTestClass.hx");
     }
