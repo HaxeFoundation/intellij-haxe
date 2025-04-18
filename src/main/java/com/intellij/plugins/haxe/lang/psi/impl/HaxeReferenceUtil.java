@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -17,20 +18,25 @@ public class HaxeReferenceUtil {
 
     public static boolean isStaticExtension(HaxeReferenceExpression referenceExpression) {
                 PsiElement method = referenceExpression.resolve();
-                if (method instanceof HaxeMethod haxeMethod) {
-                    // TODO make sure method owning class/module is imported with "using" (note : modules should not have the static keyword)
+                if (method instanceof HaxeMethodDeclaration haxeMethod) {
+                    // a few fast checks before we dive into using imports
                     if (!haxeMethod.isStatic()) return false; // only static methods can be extensions (compiler: Cannot access static field XXX from a class instance)
                     if (haxeMethod.getParameterList().isEmpty()) return false; // must have minimum 1 parameter
-
                     PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier
+                    // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
+                    boolean defaultExtension = HaxeResolveUtil.isDefaultExtension(haxeMethod);
+                    if(!defaultExtension && !HaxeResolveUtil.isInUsingImports(referenceExpression, haxeMethod)) return false;
+
                     if (ChainBeforeMethod instanceof HaxeReferenceExpression referenceExpression1) {
                         PsiElement caller = referenceExpression1.resolve();
                         if (caller == method) return false; // probably a function bind or similar
+
                         ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(referenceExpression1).result;
                         if(callerType.getClassType() != null) {
                             HaxeClassModel haxeClassModel = callerType.getClassType().getHaxeClassModel();
                             if(haxeClassModel  != null) {
+                                // make sure  there's no method on callie type with the same name
                                 HaxeBaseMemberModel member = haxeClassModel.getMember(haxeMethod.getName(), null);
                                 if (member == null) return true;
                             }

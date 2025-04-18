@@ -861,9 +861,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // TODO ClassModel concept should be reviewed. We need to separate logic of abstracts, regular classes, enums, etc. Right now this class a bunch of if-else conditions. It looks dirty.
     ArrayList<HaxeModel> out = new ArrayList<>();
     if (isClass()) {
-      HaxeClassBody body = UsefulPsiTreeUtil.getChild(haxeClass, HaxeClassBody.class);
+      PsiElement body = getBodyPsi();
       if (body != null) {
-        for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class)) {
+        List<? extends HaxeNamedComponent> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeMethod.class);
+        for (HaxeNamedComponent declaration : children) {
           if (!(declaration instanceof PsiMember)) continue;
           if (declaration instanceof HaxeFieldDeclaration varDeclaration) {
             if (varDeclaration.isPublic() && varDeclaration.isStatic()) {

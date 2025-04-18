@@ -111,7 +111,7 @@ public class FullyQualifiedInfo {
           memberName = split[0];
           parameter = split[1];
         } else {
-          memberName = classOrMemberName;
+          memberName = possibleMember;
           parameter = null;
         }
       }

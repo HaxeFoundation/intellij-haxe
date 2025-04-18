@@ -1897,6 +1897,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           return module;
         }
       }
+
+      if(psi instanceof HaxePsiField field) {
+        return field.getComponentName();
+      }
+      if(psi instanceof HaxeMethod method) {
+        return method.getComponentName();
+      }
     }
 
     return null;

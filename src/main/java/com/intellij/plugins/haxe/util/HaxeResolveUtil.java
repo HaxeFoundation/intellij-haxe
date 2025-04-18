@@ -26,7 +26,6 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
@@ -1052,7 +1051,11 @@ public class HaxeResolveUtil {
 
       if (model instanceof HaxeImportModel importModel) {
         List<PsiElement> elements = importModel.exposeAllByName(name);
-        results.addAll(elements);
+        if(elements.isEmpty()) {
+          addIfModuleMatch(name, importModel, results);
+        } else {
+          results.addAll(elements);
+        }
       } else {
         PsiElement element = model.exposeByName(name);
         if (element != null) {
@@ -1061,6 +1064,19 @@ public class HaxeResolveUtil {
       }
     }
     return results;
+  }
+
+  private static void addIfModuleMatch(String name, HaxeImportModel importModel, List<PsiElement> results) {
+    HaxeReferenceExpression referenceExpression = importModel.getReferenceExpression();
+    if ((referenceExpression != null)) {
+      PsiElement lastChild = referenceExpression.getLastChild();
+      if(name.equals(lastChild.getText())){
+        PsiElement resolve = referenceExpression.resolve();
+        if(resolve instanceof HaxeModule module) {
+          results.add(module);
+        }
+      }
+    }
   }
 
   /**
@@ -1252,6 +1268,49 @@ public class HaxeResolveUtil {
       return null;
 
   }
+  public static boolean isInUsingImports(HaxeReferenceExpression referenceExpression, HaxeMethodDeclaration haxeMethod) {
+    PsiFile file = referenceExpression.getContainingFile();
+    if (file instanceof HaxeFile haxeFile) {
+
+      List<HaxeUsingStatement> usingStatements = haxeFile.getUsingStatements();
+      //TODO mlo: should probably find a way to cache this so we dont have to do it for all method references in a class
+      // check any "import.hx" files for using statements
+      walkDirectoryImports(haxeFile.getModel(), (HaxeFileModel fileModel) -> {
+        usingStatements.addAll(fileModel.getUsingStatements());
+        return true;
+      });
+
+      for (HaxeUsingStatement usingStatement : usingStatements) {
+        List<HaxeModel> exposedMembers = usingStatement.getModel().getExposedMembers();
+        for (HaxeModel exposedMember : exposedMembers) {
+            if(exposedMember instanceof HaxeClassModel classModel) {
+              HaxeClassModel model = classModel;
+              // if typedef resolve before attempting to search members
+              if(model.isTypedef()) {
+                SpecificTypeReference resolvedTypeDef = model.getInstanceReference().fullyResolveTypeDefReference();
+                if(resolvedTypeDef instanceof  SpecificHaxeClassReference classReference) {
+                  HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
+                  if(haxeClassModel != null) model = haxeClassModel;
+                }
+              }
+
+              List<HaxeModel> classMembers = model.getExposedMembers();
+              for (HaxeModel classMember : classMembers) { // TODO expand typedefs
+                if(classMember.getBasePsi() == haxeMethod) {
+                  return true;
+                }
+              }
+            }else {
+              if(exposedMember.getBasePsi() == haxeMethod) {
+                return true;
+              }
+            }
+        }
+      }
+    }
+    return false;
+  }
+
 
   private static @Nullable HaxeUsingStatement searchUsingStatementForExposedMember(String name, List<HaxeUsingStatement>  usingStatements) {
       for (HaxeUsingStatement impStatement : usingStatements) {
@@ -1382,5 +1441,22 @@ public class HaxeResolveUtil {
       }
     }
     return null;
+  }
+
+  // enums have by default (compiler side) access to  EnumTools
+  public static boolean isDefaultExtension(HaxeMethodDeclaration haxeMethod) {
+    HaxeClassModel declaringClass = haxeMethod.getModel().getDeclaringClass();
+
+    if(declaringClass != null) {
+      FullyQualifiedInfo qualifiedInfo = declaringClass.getQualifiedInfo();
+      if(qualifiedInfo != null) {
+        String importReferenceString = qualifiedInfo.toShortendImportReferenceString();
+        if("haxe.EnumTools".equals(importReferenceString)) return true;
+        if("haxe.EnumValueTools".equals(importReferenceString)) return true;
+        if("haxe.EnumTools.EnumValueTools".equals(importReferenceString)) return true;
+      }
+    }
+
+    return false;
   }
 }
