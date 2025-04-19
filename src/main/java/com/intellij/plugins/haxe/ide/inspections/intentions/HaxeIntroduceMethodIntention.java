@@ -5,9 +5,11 @@ import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.PsiElement;
@@ -17,10 +19,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class HaxeIntroduceMethodIntention
   extends HaxeUnresolvedSymbolIntentionBase<HaxeCallExpression>
@@ -49,17 +48,47 @@ public class HaxeIntroduceMethodIntention
     return  aClass == null ? null : aClass.getQualifiedName();
   }
 
+  @Override
+  protected PsiElement getTargetPsi() {
+    return findInsertBeforeElement(myPsiTargetPointer.getElement(), false);
+  }
 
   @Override
   protected PsiFile perform(@NotNull Project project, @NotNull PsiElement element, @NotNull Editor editor, boolean preview) {
     PsiElement anchor = findInsertBeforeElement(element, preview);
 
     PsiElement methodDeclaration = generateDeclaration(project).copy();
-    anchor.getParent().addBefore(methodDeclaration, anchor);
+    methodDeclaration = anchor.getParent().addBefore(methodDeclaration, anchor);
     anchor.getParent().addBefore(createNewLine(project), anchor);
 
-    CodeStyleManager.getInstance(project).reformat(methodDeclaration);
+//    generateMissingImports()
+
+    methodDeclaration = CodeStyleManager.getInstance(project).reformat(methodDeclaration);
+    if(!preview) {
+      findTypesRequiringImportsAndAddToFile(methodDeclaration, anchor.getContainingFile());
+    }
     return anchor.getContainingFile();
+  }
+
+  private void findTypesRequiringImportsAndAddToFile(PsiElement methodDeclaration, PsiFile containingFile) {
+    if (methodDeclaration instanceof HaxeMethodDeclaration declaration) {
+      List<HaxeParameterModel> parameters = declaration.getModel().getParameters();
+      List<ResultHolder> parameterTypes = getParameterTypeList();
+      for (int i = 0; i < parameters.size(); i++) {
+        HaxeParameterModel parameter = parameters.get(i);
+        ResultHolder type = parameter.getType();
+        // missing model means we are missing import.
+        if (type.getClassType() != null && type.getClassType().getHaxeClassModel() == null) {
+          ResultHolder resultHolder = parameterTypes.get(i);
+          SpecificHaxeClassReference classType = resultHolder.getClassType();
+          if (classType != null && classType.getHaxeClass() != null) {
+            if (type.getClassType().getHaxeClass() == null) {
+              HaxeAddImportHelper.addImport((classType.getHaxeClass()).getQualifiedName(), containingFile);
+            }
+          }
+        }
+      }
+    }
   }
 
 
@@ -89,7 +118,22 @@ public class HaxeIntroduceMethodIntention
   private String guessReturnElementType() {
     HaxeCallExpression element = myPsiElementPointer.getElement();
     if (element.getParent() instanceof  HaxeBlockStatement) return SpecificHaxeClassReference.VOID;
-    return guessElementType();
+    return guessElementTypeText();
+  }
+
+  private List<ResultHolder> getParameterTypeList() {
+    HaxeCallExpression element = myPsiElementPointer.getElement();
+    if(element == null) return List.of();
+    HaxeCallExpressionList expressionList = element.getExpressionList();
+    List<ResultHolder>  parameterTypes = new ArrayList<>();
+    if (expressionList!= null) {
+      @NotNull List<HaxeExpression> list = expressionList.getExpressionList();
+        for (HaxeExpression expression : list) {
+            ResultHolder type = HaxeExpressionEvaluator.evaluate(expression, null).result;
+            parameterTypes.add(type);
+        }
+    }
+    return parameterTypes;
   }
 
   private String generateParameterList() {

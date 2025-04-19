@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.*;
@@ -66,10 +67,10 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
   @Override
   public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
 
-    PsiElement element = myPsiElementPointer.getElement();
+    PsiElement target = getTargetPsi();
 
-    PsiElement original = copyFileAndReturnClonedPsiElement(element);
-    PsiElement copy = copyFileAndReturnClonedPsiElement(element);
+    PsiElement original = copyFileAndReturnClonedPsiElement(target);
+    PsiElement copy = copyFileAndReturnClonedPsiElement(target);
 
     copy = perform(project, copy, editor, true);
     // this might not be the best solution but it seems to work.
@@ -79,6 +80,10 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
 
 
     return new IntentionPreviewInfo.CustomDiff(HaxeFileType.INSTANCE, getPreviewName(), originalFormatted, copyReformated, true);
+  }
+
+  protected PsiElement getTargetPsi() {
+    return myPsiElementPointer.getElement();
   }
 
   protected String getPreviewName() {
@@ -119,8 +124,12 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
   }
 
   private boolean hasClassReferenceCallie() {
+    HaxeExpression expression = null;
     if(myPsiElementPointer.getElement() instanceof  HaxeCallExpression callExpression) {
-      HaxeExpression expression = callExpression.getExpression();
+       expression = callExpression.getExpression();
+    }else if(myPsiElementPointer.getElement() instanceof  HaxeReferenceExpression referenceExpression) {
+      expression = referenceExpression;
+    }
      if(expression != null)  {
        HaxeReference leftReference = getLeftReference(expression);
        if(leftReference instanceof HaxeReferenceImpl reference) {
@@ -135,12 +144,15 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
          }
          }
        }
-     }
     return false;
   }
   private boolean callieIsDifferentClass() {
+    HaxeExpression expression = null;
     if(myPsiElementPointer.getElement() instanceof  HaxeCallExpression callExpression) {
-      HaxeExpression expression = callExpression.getExpression();
+      expression = callExpression.getExpression();
+    }else if(myPsiElementPointer.getElement() instanceof  HaxeReferenceExpression referenceExpression) {
+      expression = referenceExpression;
+    }
      if(expression != null)  {
        HaxeReference leftReference = getLeftReference(expression);
        if(leftReference != null) {
@@ -149,10 +161,9 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
          if(!result.isUnknown() && classType != null) {
            HaxeClass haxeClass = classType.getHaxeClass();
            if(haxeClass != null) {
-             HaxeClass currentClass = PsiTreeUtil.getParentOfType(callExpression, HaxeClass.class);
+             HaxeClass currentClass = PsiTreeUtil.getParentOfType(expression, HaxeClass.class);
              return currentClass != haxeClass;
            }
-         }
          }
        }
      }
@@ -177,8 +188,22 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n").copy();
   }
 
-  protected String guessElementType() {
-    PsiElement parent = myPsiElementPointer.getElement().getParent();
+  private ResultHolder findTypeFromAddExpression(HaxeBinaryExpression expression) {
+    HaxeExpression target = expression.getLeftExpression();
+    if (target == myPsiElementPointer.getElement()) {
+      target = expression.getRightExpression();
+    }
+    ResultHolder result = HaxeExpressionEvaluator.evaluate(target, null).result;
+    if (!result.isUnknown()) return result;
+    return SpecificHaxeClassReference.getDynamic(target).createHolder();
+  }
+
+  protected String guessElementTypeText() {
+    return getTypeName(guessElementType());
+  }
+  protected ResultHolder guessElementType() {
+    T element = myPsiElementPointer.getElement();
+    PsiElement parent = element.getParent();
     if (parent instanceof HaxeCallExpressionList list) {
       return findTypeFromCallExpression(list, parent);
     }
@@ -192,43 +217,36 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     }
 
     if (parent instanceof HaxeGuard) {
-      return SpecificHaxeClassReference.BOOL;
+      return SpecificHaxeClassReference.getBool(parent).createHolder();
     }
 
     if (parent instanceof HaxeVarInit init) {
       if(init.getParent() instanceof HaxePsiField declaration) {
         HaxeTypeTag tag = declaration.getTypeTag();
         if (tag != null) {
-          return tag.getFunctionType() != null ? tag.getFunctionType().getText()
-                                               : tag.getTypeOrAnonymous().getText();
+          ResultHolder tagType = HaxeTypeResolver.getTypeFromTypeTag(tag, declaration);
+          if(!tagType.isUnknown()) {
+            return tagType;
+          }
         }
       }
     }
-    return SpecificHaxeClassReference.DYNAMIC;
+    return SpecificHaxeClassReference.getDynamic(parent).createHolder();
   }
 
-  private String findTypeFromAddExpression(HaxeBinaryExpression expression) {
-    HaxeExpression target = expression.getLeftExpression();
-    if (target == myPsiElementPointer.getElement()) {
-      target = expression.getRightExpression();
+  protected ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign) {
+    HaxeExpression expression = assign.getRightExpression();
+    if(expression != null) {
+      HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(expression, null);
+      ResultHolder result = evaluated.result;
+      if (!result.isUnknown()) {
+        return result;
+      }
     }
-    ResultHolder result = HaxeExpressionEvaluator.evaluate(target, null).result;
-    if (!result.isUnknown()) return getTypeName(result);
-    return SpecificHaxeClassReference.DYNAMIC;
+    return SpecificHaxeClassReference.getUnknown(expression).createHolder();
   }
 
-  private String findTypeFromAssignExpression(HaxeAssignExpression assign) {
-    List<HaxeExpression> assignlist = assign.getExpressionList();
-    HaxeExpression expression = assignlist.get(0);
-    HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(expression, null);
-    ResultHolder result = evaluated.result;
-    if (!result.isUnknown()) {
-      return getTypeName(result);
-    }
-    return SpecificHaxeClassReference.DYNAMIC;
-  }
-
-  private String findTypeFromCallExpression(HaxeCallExpressionList list, PsiElement parent) {
+  private ResultHolder findTypeFromCallExpression(HaxeCallExpressionList list, PsiElement parent) {
     List<HaxeExpression> argList = list.getExpressionList();
     int index = argList.indexOf(myPsiElementPointer.getElement());
 
@@ -242,17 +260,17 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
             Integer parameterIndex = validation.getArgumentToParameterMapping().get(index);
             if (parameterIndex != null) {
               ResultHolder paramType = validation.getParameterType(parameterIndex);
-              if(paramType != null) return getTypeName(paramType);
+              if(paramType != null) return paramType;
             }
           }
         }
       }
     }
-    return SpecificHaxeClassReference.DYNAMIC;
+    return SpecificHaxeClassReference.getDynamic(parent).createHolder();
   }
 
   protected String  getTypeName(ResultHolder holder) {
-      if(holder.isClassType()) return holder.getClassType().getClassName();
+      if(holder.isClassType()) return holder.getClassType().toPresentationString();
       else if(holder.isFunctionType()) return holder.getFunctionType().toPresentationString();
       else if(holder.isEnumValueType()) return holder.getEnumValueType().getEnumClass().getClassName();
       else return SpecificHaxeClassReference.DYNAMIC;

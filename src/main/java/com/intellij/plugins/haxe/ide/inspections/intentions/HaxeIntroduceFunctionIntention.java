@@ -76,7 +76,7 @@ public class HaxeIntroduceFunctionIntention extends HaxeUnresolvedSymbolIntentio
   private String guessReturnElementType() {
     HaxeCallExpression element = myPsiElementPointer.getElement();
     if (element.getParent() instanceof  HaxeBlockStatement) return SpecificHaxeClassReference.VOID;
-    return guessElementType();
+    return guessElementTypeText();
   }
 
   private String generateParameterList() {

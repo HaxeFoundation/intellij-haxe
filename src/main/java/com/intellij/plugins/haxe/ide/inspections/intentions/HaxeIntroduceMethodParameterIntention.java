@@ -59,7 +59,7 @@ public class HaxeIntroduceMethodParameterIntention extends HaxeUnresolvedSymbolI
 
 
   private HaxeParameter generateParameter(@NotNull Project project) {
-    return HaxeElementGenerator.createParameter(project, expressionText + ":" + guessElementType() );
+    return HaxeElementGenerator.createParameter(project, expressionText + ":" + guessElementTypeText() );
   }
   private PsiElement generateComma(@NotNull Project project) {
     return HaxeElementGenerator.createComma(project);

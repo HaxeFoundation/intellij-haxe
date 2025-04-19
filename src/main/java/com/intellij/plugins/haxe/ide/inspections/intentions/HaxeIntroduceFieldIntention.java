@@ -5,6 +5,10 @@ import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
+import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -62,23 +66,47 @@ public class HaxeIntroduceFieldIntention extends HaxeUnresolvedSymbolIntentionBa
       PsiUtilCore.ensureValid(anchor);
 
       if (insertInfo.isAfter()) {
-        anchor.getParent().addAfter(variableDeclaration, anchor);
+        variableDeclaration = (HaxeFieldDeclaration) anchor.getParent().addAfter(variableDeclaration, anchor);
       } else {
-        anchor.getParent().addBefore(variableDeclaration, anchor);
+        variableDeclaration= (HaxeFieldDeclaration) anchor.getParent().addBefore(variableDeclaration, anchor);
       }
 
       CodeInsightUtilCore.forcePsiPostprocessAndRestoreElement(containingFile);
       CodeStyleManager.getInstance(project)
         .reformatNewlyAddedElement(variableDeclaration.getParent().getNode(), variableDeclaration.getNode());
 
+      if(!preview) {
+        findTypesRequiringImportsAndAddToFile(variableDeclaration, anchor.getContainingFile());
+      }
+
       return variableDeclaration.getContainingFile();
     }
     return element.getContainingFile();
   }
 
+  private void findTypesRequiringImportsAndAddToFile(HaxeFieldDeclaration variableDeclaration, PsiFile containingFile) {
+    HaxeTypeTag typeTag = variableDeclaration.getTypeTag();
+    if (typeTag != null) {
+      ResultHolder guessedType = guessElementType();
+      ResultHolder newElementType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, containingFile);
+      SpecificHaxeClassReference newElementClass = newElementType.getClassType();
+      if (newElementClass != null && !newElementType.isUnknown()) {
+        if (newElementClass.getHaxeClassModel() == null) {
+          if (guessedType.getClassType() != null) {
+            HaxeClass haxeClass = guessedType.getClassType().getHaxeClass();
+            if(haxeClass != null) {
+              HaxeAddImportHelper.addImport(haxeClass.getQualifiedName(), containingFile);
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   private HaxeFieldDeclaration generateDeclaration(@NotNull Project project) {
-    String text = "private" + (needsToBeStatic() ? " static" : "") + " var " + expressionText + ":" + guessElementType() + ";";
+    String privateKeyword = needsToBePublic() ? "public" : "private";
+    String text = privateKeyword + (needsToBeStatic() ? " static" : "") + " var " + expressionText + ":" + guessElementTypeText() + ";";
     return HaxeElementGenerator.createVarDeclaration(project, text);
   }
 

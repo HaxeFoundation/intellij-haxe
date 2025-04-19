@@ -45,7 +45,7 @@ public class HaxeIntroduceVariableIntention
 
 
   private PsiElement generateDeclaration(@NotNull Project project) {
-    return HaxeElementGenerator.createStatementFromText(project, "var " + expressionText + ":" + guessElementType() + ";");
+    return HaxeElementGenerator.createStatementFromText(project, "var " + expressionText + ":" + guessElementTypeText() + ";");
   }
 
 
