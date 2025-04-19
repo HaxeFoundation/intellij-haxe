@@ -27,14 +27,13 @@ import com.intellij.psi.PsiClass;
  */
 public class HaxeTypeHierarchyTreeStructure extends HaxeSubtypesHierarchyTreeStructure {
 
-  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass, String currentScopeType) {
-    super(project, currentScopeType, buildHierarchyElement(project, aClass));
+  public HaxeTypeHierarchyTreeStructure(final Project project, final PsiClass aClass, String currentScopeType, PsiClass[] superTypesAsArray) {
+    super(project, currentScopeType, buildHierarchyElement(project, aClass, superTypesAsArray));
     setBaseElement(myBaseDescriptor); //to set myRoot
   }
 
-  private static HaxeTypeHierarchyNodeDescriptor buildHierarchyElement(final Project project, final PsiClass aClass) {
+  private static HaxeTypeHierarchyNodeDescriptor buildHierarchyElement(final Project project, final PsiClass aClass, PsiClass[] superTypes) {
     HaxeTypeHierarchyNodeDescriptor descriptor = null;
-    final PsiClass[] superTypes = getSuperTypesAsArray(aClass);
     for(int i = superTypes.length - 1; i >= 0; i--){
       final HaxeTypeHierarchyNodeDescriptor newDescriptor = new HaxeTypeHierarchyNodeDescriptor(project, descriptor, superTypes[i], false);
       if (descriptor != null){

@@ -30,12 +30,16 @@ import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.plugins.haxe.ide.hierarchy.type.treestructures.HaxeSubtypesHierarchyTreeStructure.getSuperTypesAsArray;
+
 
 /**
  * Created by srikanthg on 10/23/14.
  */
 @CustomLog
 public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
+  PsiClass[] superTypesAsArray = new PsiClass[0];
+
   public HaxeTypeHierarchyBrowser(final Project project, final PsiClass psiClass) {
     super(project, psiClass);
   }
@@ -49,7 +53,7 @@ public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
       currentActiveTree = new HaxeSubtypesHierarchyTreeStructure(myProject, (PsiClass) psiElement, getCurrentScopeType());
     }
     else if (getTypeHierarchyType().equals(typeName)) {
-      currentActiveTree = new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement, getCurrentScopeType());
+      currentActiveTree = new HaxeTypeHierarchyTreeStructure(myProject, (PsiClass) psiElement, getCurrentScopeType(), superTypesAsArray);
     }
     else {
       log.error("unexpected type: " + typeName);
@@ -64,4 +68,29 @@ public class HaxeTypeHierarchyBrowser extends TypeHierarchyBrowser {
     if (!(descriptor instanceof HaxeTypeHierarchyNodeDescriptor)) return null;
     return ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
   }
+
+
+  // HACK
+  // getSuperTypes is too slow and we get exceptions thrown complaining about slow EDT thread.
+  //(Slow operations are prohibited on EDT. See SlowOperations.assertSlowOperationsAreAllowed javadoc.)
+  //
+  // We need to know the super type root because it has to be the first TypeHierarchyNodeDescriptor in TypeHierarchy
+  // and so  in order to find the root/base type without interfering with the EDT thread we try to calculate it  in
+  // method calls that are in a background thread.
+  public void collectInfo(PsiClass psiClass) {
+    superTypesAsArray = getSuperTypesAsArray(psiClass);
+  }
+
+  @Override
+  protected void doRefresh(boolean currentBuilderOnly) {
+    PsiElement element =getHierarchyBase();
+    if(element instanceof  PsiClass psiClass) {
+      collectInfo(psiClass);
+    }else {
+      superTypesAsArray = new PsiClass[0];
+    }
+    super.doRefresh(currentBuilderOnly);
+  }
+
+
 }

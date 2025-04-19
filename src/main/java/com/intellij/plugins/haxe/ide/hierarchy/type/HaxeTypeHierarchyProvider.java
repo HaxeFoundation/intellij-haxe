@@ -65,7 +65,10 @@ public class HaxeTypeHierarchyProvider implements HierarchyProvider {
   @NotNull
   @Override
   public HierarchyBrowser createHierarchyBrowser(PsiElement element) {
-    return new HaxeTypeHierarchyBrowser(element.getProject(), (PsiClass) element);
+    PsiClass psiClass = (PsiClass) element;
+    HaxeTypeHierarchyBrowser hierarchyBrowser = new HaxeTypeHierarchyBrowser(element.getProject(), psiClass);
+    hierarchyBrowser.collectInfo(psiClass); //HACK to avoid to slow operations in EDT thread
+    return hierarchyBrowser;
   }
 
   @Override

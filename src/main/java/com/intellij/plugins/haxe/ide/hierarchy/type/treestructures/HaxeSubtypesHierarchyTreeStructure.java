@@ -94,7 +94,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
     return false;
   }
 
-  protected static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
+  public static PsiClass[] getSuperTypesAsArray(PsiClass theClass) {
     if (!theClass.isValid()) return PsiClass.EMPTY_ARRAY;
     final ArrayList<PsiClass> allSuperClasses = getSuperTypesAsList(theClass);
     return allSuperClasses.toArray(new PsiClass[0]);
