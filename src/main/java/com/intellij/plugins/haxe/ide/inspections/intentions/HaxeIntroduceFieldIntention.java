@@ -87,7 +87,7 @@ public class HaxeIntroduceFieldIntention extends HaxeUnresolvedSymbolIntentionBa
   private void findTypesRequiringImportsAndAddToFile(HaxeFieldDeclaration variableDeclaration, PsiFile containingFile) {
     HaxeTypeTag typeTag = variableDeclaration.getTypeTag();
     if (typeTag != null) {
-      ResultHolder guessedType = guessElementType();
+      ResultHolder guessedType = guessElementType(myPsiElementPointer.getElement());
       ResultHolder newElementType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, containingFile);
       SpecificHaxeClassReference newElementClass = newElementType.getClassType();
       if (newElementClass != null && !newElementType.isUnknown()) {

@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.inspections;
 import com.intellij.codeInspection.LocalQuickFix;
 import com.intellij.plugins.haxe.ide.inspections.intentions.*;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +16,9 @@ public class HaxeUnresolvedSymbolQuickFixes {
 
   public static LocalQuickFix createMethodQuickfix(@NotNull HaxeCallExpression expression,  @NotNull HaxeClass targetClass) {
     return new HaxeIntroduceMethodIntention(expression, targetClass);
+  }
+  public static LocalQuickFix createMethodQuickfix(@NotNull SpecificFunctionReference functionReference, HaxeReferenceExpression referenceExpression, @NotNull HaxeClass targetClass) {
+    return new HaxeIntroduceMethodFromTypeIntention(functionReference,referenceExpression, targetClass);
   }
 
 

@@ -73,6 +73,11 @@ public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implem
       HaxeTypeTag typeTag = parameter.getTypeTag();
       return null != typeTag ? typeTag.getTypeOrAnonymous() : null;
     }
+
+    @Override
+    public String getName() {
+      return getComponentName() != null ? getComponentName().getText() : null;
+    }
   }
 
   final private HaxeGenericSpecialization specialization;

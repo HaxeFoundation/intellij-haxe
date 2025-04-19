@@ -188,9 +188,9 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n").copy();
   }
 
-  private ResultHolder findTypeFromAddExpression(HaxeBinaryExpression expression) {
+  private static ResultHolder findTypeFromAddExpression(HaxeBinaryExpression expression, PsiElement element) {
     HaxeExpression target = expression.getLeftExpression();
-    if (target == myPsiElementPointer.getElement()) {
+    if (target == element) {
       target = expression.getRightExpression();
     }
     ResultHolder result = HaxeExpressionEvaluator.evaluate(target, null).result;
@@ -199,13 +199,12 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
   }
 
   protected String guessElementTypeText() {
-    return getTypeName(guessElementType());
+    return getTypeName(guessElementType(myPsiElementPointer.getElement()));
   }
-  protected ResultHolder guessElementType() {
-    T element = myPsiElementPointer.getElement();
+  public static ResultHolder guessElementType(PsiElement element) {
     PsiElement parent = element.getParent();
     if (parent instanceof HaxeCallExpressionList list) {
-      return findTypeFromCallExpression(list, parent);
+      return findTypeFromCallExpression(list, parent, element);
     }
 
     if (parent instanceof HaxeAssignExpression assign) {
@@ -213,7 +212,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     }
 
     if (parent instanceof HaxeBinaryExpression expression) {
-      return findTypeFromAddExpression(expression);
+      return findTypeFromAddExpression(expression, element);
     }
 
     if (parent instanceof HaxeGuard) {
@@ -234,7 +233,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     return SpecificHaxeClassReference.getDynamic(parent).createHolder();
   }
 
-  protected ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign) {
+  private static ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign) {
     HaxeExpression expression = assign.getRightExpression();
     if(expression != null) {
       HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(expression, null);
@@ -246,9 +245,9 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     return SpecificHaxeClassReference.getUnknown(expression).createHolder();
   }
 
-  private ResultHolder findTypeFromCallExpression(HaxeCallExpressionList list, PsiElement parent) {
+  private static ResultHolder findTypeFromCallExpression(HaxeCallExpressionList list, PsiElement parent, PsiElement element) {
     List<HaxeExpression> argList = list.getExpressionList();
-    int index = argList.indexOf(myPsiElementPointer.getElement());
+    int index = argList.indexOf(element);
 
     if (index > -1) {
       if (parent.getParent() instanceof HaxeCallExpression callExpression) {
