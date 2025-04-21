@@ -8,12 +8,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -208,7 +211,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     }
 
     if (parent instanceof HaxeAssignExpression assign) {
-      return findTypeFromAssignExpression(assign);
+      return findTypeFromAssignExpression(assign, element);
     }
 
     if (parent instanceof HaxeBinaryExpression expression) {
@@ -217,6 +220,18 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
 
     if (parent instanceof HaxeGuard) {
       return SpecificHaxeClassReference.getBool(parent).createHolder();
+    }
+    if(parent instanceof HaxeObjectLiteralElement objectLiteralElement) {
+      ResultHolder resultType = guessObjectLiteralType(objectLiteralElement);
+      if (resultType != null) return resultType;
+    }
+
+    if(parent instanceof HaxeExpressionList expressionList) {
+      PsiElement parent1 = expressionList.getParent();
+      if (parent1 instanceof  HaxeArrayLiteral arrayLiteral) {
+        ResultHolder maybeArray = guessArrayLiteralType(expressionList, arrayLiteral);
+        if (maybeArray != null) return maybeArray;
+      }
     }
 
     if (parent instanceof HaxeVarInit init) {
@@ -233,8 +248,43 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     return SpecificHaxeClassReference.getDynamic(parent).createHolder();
   }
 
-  private static ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign) {
+  private static @Nullable ResultHolder guessArrayLiteralType(HaxeExpressionList expressionList, HaxeArrayLiteral arrayLiteral) {
+    ResultHolder resultHolder = guessElementType(arrayLiteral);
+    SpecificHaxeClassReference classType = resultHolder.getClassType();
+    if(classType != null && !classType.isUnknown() && !classType.isDynamic()) {
+      SpecificHaxeClassReference unknown = SpecificHaxeClassReference.getUnknown(expressionList);
+      SpecificHaxeClassReference maybeArray = classType.tryCastTo(SpecificHaxeClassReference.createArray(unknown.createHolder(), expressionList));
+      if(maybeArray != null && maybeArray.isArray()) {
+        return maybeArray.getSpecifics()[0];
+      }
+    }
+    return null;
+  }
+
+  private static @Nullable ResultHolder guessObjectLiteralType(HaxeObjectLiteralElement objectLiteralElement) {
+    if (objectLiteralElement.getParent() instanceof  HaxeObjectLiteral objectLiteral) {
+      ResultHolder resultHolder = guessElementType(objectLiteral);
+      SpecificHaxeClassReference classType = resultHolder.getClassType();
+      if(classType != null && resultHolder.isAnonymousType()) {
+        HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
+        if(haxeClassModel != null) {
+          HaxeGenericResolver genericResolver = classType.getGenericResolver();
+          HaxeBaseMemberModel member = haxeClassModel.getMember(objectLiteralElement.getName(), genericResolver);
+          if (member != null) {
+            ResultHolder resultType = member.getResultType(genericResolver);
+            if (resultType != null && !resultType.isUnknown()) {
+              return resultType;
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private static ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign, PsiElement element) {
     HaxeExpression expression = assign.getRightExpression();
+    if (expression == element) expression = assign.getLeftExpression();
     if(expression != null) {
       HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(expression, null);
       ResultHolder result = evaluated.result;

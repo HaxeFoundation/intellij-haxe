@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertBeforeElementFunction;
+
 public class HaxeIntroduceFunctionIntention extends HaxeUnresolvedSymbolIntentionBase<HaxeCallExpression> {
 
   private final String methodName;
@@ -41,7 +43,7 @@ public class HaxeIntroduceFunctionIntention extends HaxeUnresolvedSymbolIntentio
   protected PsiFile perform(@NotNull Project project, @NotNull PsiElement element, @NotNull Editor editor, boolean preview) {
     HaxeBlockStatement block = PsiTreeUtil.getParentOfType(element, HaxeBlockStatement.class);
     if (block != null) {
-      PsiElement anchor = findInsertBeforeElement(element, block);
+      PsiElement anchor = findInsertBeforeElementFunction(element, block);
       PsiElement methodDeclaration = generateDeclaration(project).copy();
       anchor.getParent().addBefore(methodDeclaration, anchor);
       anchor.getParent().addBefore(createNewLine(project), anchor);
@@ -110,14 +112,5 @@ public class HaxeIntroduceFunctionIntention extends HaxeUnresolvedSymbolIntentio
   }
 
 
-  private static @NotNull PsiElement findInsertBeforeElement(@NotNull PsiElement startElement, HaxeBlockStatement block) {
-    PsiElement insertBeforeElement = startElement;
-    PsiElement parent = startElement.getParent();
 
-    while (parent != null && parent != block) {
-      insertBeforeElement = parent;
-      parent = parent.getParent();
-    }
-    return insertBeforeElement;
-  }
 }

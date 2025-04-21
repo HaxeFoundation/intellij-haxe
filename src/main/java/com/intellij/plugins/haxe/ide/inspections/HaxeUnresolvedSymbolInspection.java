@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -148,6 +149,12 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
   }
 
   private static void checkIfExpectedTypeIsFunctionAndCreateQuickfixes(List<LocalQuickFix> list, HaxeReferenceExpression reference, HaxeClass targetClass) {
+    // methods should not be generated inside Object literal, find parent class;
+    while (targetClass instanceof HaxeObjectLiteral) {
+      targetClass = PsiTreeUtil.getParentOfType(targetClass, HaxeClass.class);
+    }
+    if(targetClass == null) return;
+
     ResultHolder resultHolder = guessElementType(reference);
     if(resultHolder.isFunctionType()) {
       SpecificFunctionReference functionReference = resultHolder.getFunctionType();

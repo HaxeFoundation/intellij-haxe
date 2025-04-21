@@ -12,6 +12,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertBeforeElementForVariable;
+
 public class HaxeIntroduceVariableIntention
   extends HaxeUnresolvedSymbolIntentionBase<HaxeReferenceExpression>
   implements HighPriorityAction {
@@ -35,7 +37,7 @@ public class HaxeIntroduceVariableIntention
   protected PsiFile perform(@NotNull Project project, @NotNull PsiElement element, @NotNull Editor editor, boolean preview) {
     HaxeBlockStatement block = PsiTreeUtil.getParentOfType(element, HaxeBlockStatement.class);
     if (block != null) {
-      PsiElement insertBeforeElement = findInsertBeforeElement(element, block);
+      PsiElement insertBeforeElement = findInsertBeforeElementForVariable(element, block);
       PsiElement variableDeclaration = generateDeclaration(project).copy();
       block.addBefore(variableDeclaration, insertBeforeElement);
       block.addBefore(createNewLine(project), insertBeforeElement);
@@ -50,14 +52,5 @@ public class HaxeIntroduceVariableIntention
 
 
 
-  private static @NotNull PsiElement findInsertBeforeElement(@NotNull PsiElement startElement, HaxeBlockStatement block) {
-    PsiElement insertBeforeElement = startElement;
-    PsiElement parent = startElement.getParent();
 
-    while (parent != null && parent != block) {
-      insertBeforeElement = parent;
-      parent = parent.getParent();
-    }
-    return insertBeforeElement;
-  }
 }

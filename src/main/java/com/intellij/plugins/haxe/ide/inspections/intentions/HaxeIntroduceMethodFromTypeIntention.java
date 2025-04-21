@@ -15,10 +15,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertAfterElementForMethod;
 
 public class HaxeIntroduceMethodFromTypeIntention
   extends HaxeUnresolvedSymbolIntentionBase<PsiElement>
@@ -72,16 +73,16 @@ public class HaxeIntroduceMethodFromTypeIntention
 
   @Override
   protected PsiElement getTargetPsi() {
-    return findInsertBeforeElement(myPsiTargetPointer.getElement(), false);
+    return findInsertAfterElementForMethod(myPsiElementPointer.getElement(), myPsiTargetPointer.getElement(),false);
   }
 
   @Override
   protected PsiFile perform(@NotNull Project project, @NotNull PsiElement element, @NotNull Editor editor, boolean preview) {
-    PsiElement anchor = findInsertBeforeElement(element, preview);
+    PsiElement anchor = findInsertAfterElementForMethod(element, myPsiTargetPointer.getElement(), preview);
 
     PsiElement methodDeclaration = generateDeclaration(project).copy();
-    methodDeclaration = anchor.getParent().addBefore(methodDeclaration, anchor);
-    anchor.getParent().addBefore(createNewLine(project), anchor);
+    methodDeclaration = anchor.getParent().addAfter(methodDeclaration, anchor);
+    anchor.getParent().addBefore(createNewLine(project), methodDeclaration);
 
 //    generateMissingImports()
 
@@ -150,22 +151,5 @@ public class HaxeIntroduceMethodFromTypeIntention
     }
     return builder.toString();
   }
-
-
-  private @NotNull PsiElement findInsertBeforeElement(@NotNull PsiElement startElement, boolean readOnly) {
-    HaxeClass aClass = myPsiTargetPointer.getElement();
-    if (aClass != null) {
-      if (readOnly) aClass = copyFileAndReturnClonedPsiElement(aClass);
-
-      List<HaxeMethod> methodList = aClass.getHaxeMethodsSelf(null);
-      if (!methodList.isEmpty()) {
-        return methodList.get(methodList.size() - 1);
-      }
-      if (aClass.getRBrace() != null) return aClass.getRBrace();
-    }
-    HaxeModule module = PsiTreeUtil.getParentOfType(startElement, HaxeModule.class);
-    return module.getLastChild();
-  }
-
 
 }

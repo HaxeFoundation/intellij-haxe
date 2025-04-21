@@ -41,7 +41,7 @@ import java.lang.reflect.Constructor;
 import java.util.*;
 
 
-public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   @Override
   public void setUp() throws Exception {
     // for use when idempotence check problems occur and we need consistent results.
@@ -56,71 +56,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
     return "/annotation.semantic/";
   }
 
-  private void doTest(boolean checkWarnings, boolean checkInfos, boolean checkWeakWarnings,
-                      @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections,
-                      String... additionalFiles)
-    throws Exception {
-    myFixture.configureByFiles(ArrayUtil.mergeArrays(new String[]{getTestName(false) + ".hx"}, additionalFiles));
-    myFixture.enableInspections(getAnnotatorBasedInspection());
-    registerInspectionsForTesting( new HaxeSemanticAnnotatorInspections.Registrar(), myFixture.getProject(), unsetInspections);
-    myFixture.testHighlighting(checkWarnings, checkInfos, checkWeakWarnings);
-  }
-
-  public void registerInspectionsForTesting(InspectionToolProvider provider, Project project,
-                                            @Nullable Set<Class<? extends LocalInspectionTool>> unsetInspections) {
-    InspectionProfileManager mgr = InspectionProfileManager.getInstance(project);
-    InspectionProfileImpl profile = mgr.getCurrentProfile();
-
-    try {
-      Class<? extends LocalInspectionTool>[] classes = provider.getInspectionClasses();
-      for (Class<? extends LocalInspectionTool> c : classes) {
-        if (null != unsetInspections && unsetInspections.contains(c)) continue;
-
-        Constructor<? extends LocalInspectionTool> constructor = c.getDeclaredConstructor();
-        constructor.setAccessible(true);
-        InspectionToolWrapper<?, ?> wrapper = new LocalInspectionToolWrapper(constructor.newInstance());
-
-        Map<String, List<String>> dependencies = new HashMap<>();
-        profile.addTool(project, wrapper, dependencies);
-        profile.enableTool(wrapper.getShortName(), project);
-      }
-    }
-    catch (Exception ex) {
-      assertNotNull(ex.toString());
-    }
-  }
-
-  private void doTestSkippingAnnotators(Set<Class<? extends LocalInspectionTool>> unsetInspections) throws Exception {
-    doTest(true, false, false, unsetInspections);
-  }
-
-  private void doTestNoFixWithWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, false, null, additionalFiles);
-  }
-  private void doTestNoFixWithWeakWarnings(String... additionalFiles) throws Exception {
-    doTest(true, false, true, null, additionalFiles);
-  }
-
-  private void doTestNoFixWithoutWarnings(String... additionalFiles) throws Exception {
-    doTest(false, false, false, null, additionalFiles);
-  }
-
-  private void doTestActions(String... filters) throws Exception {
-    doTest(false, false, false, null);
-
-    List<IntentionAction> intentions = myFixture.getAvailableIntentions();
-    for (final IntentionAction action : intentions) {
-      if (Arrays.asList(filters).contains(action.getText())) {
-        System.out.println("Applying intent " + action.getText());
-        myFixture.launchAction(action);
-      }
-      else {
-        System.out.println("Ignoring intent " + action.getText() + ", not matching " + StringUtils.join(filters, ","));
-      }
-    }
-    FileDocumentManager.getInstance().saveAllDocuments();
-    myFixture.checkResultByFile(getTestName(false) + "_expected.hx");
-  }
 
   @Test
   public void testFixPackage() throws Exception {
