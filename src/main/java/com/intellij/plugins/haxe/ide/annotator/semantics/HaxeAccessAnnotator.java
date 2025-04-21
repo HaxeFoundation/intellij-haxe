@@ -99,8 +99,8 @@ public class HaxeAccessAnnotator implements Annotator {
     boolean isStaticAccess = isStaticAccess(referenceExpression);
     boolean isMemberStatic = memberModel.isStatic();
     boolean isMemberInline = memberModel.isInline();
-
-    if (isStaticAccess && !isMemberStatic) {
+    boolean isConstructor = (memberModel instanceof HaxeMethodModel model) && model.isConstructor();
+    if (isStaticAccess && !isMemberStatic && !isConstructor) {
       // TODO bundle
       holder.newAnnotation(HighlightSeverity.ERROR, "Static access to instance field " + memberModel.getName() + " is not allowed ")
               .range(referenceExpression.getLastChild())

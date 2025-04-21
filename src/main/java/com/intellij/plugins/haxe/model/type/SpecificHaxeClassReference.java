@@ -418,6 +418,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   public SpecificHaxeClassReference tryCastTo(SpecificHaxeClassReference targetClass) {
     if (targetClass == null) return null;
     if(targetClass.isDynamic()) return getDynamic(this.context);
+    //
+    if(this.isNullType()) {
+      SpecificTypeReference unwrapped = this.unwrapNullType();
+      if(unwrapped instanceof SpecificHaxeClassReference classReference) {
+        SpecificHaxeClassReference unwrappedCast = classReference.tryCastTo(targetClass);
+        if(unwrappedCast != null) return unwrappedCast;
+
+      }
+    }
     SpecificHaxeClassReference specificHaxeClassReference = tryCastToClass(targetClass);
     if (specificHaxeClassReference == null) {
       specificHaxeClassReference = tryAbstractCast(targetClass);

@@ -284,7 +284,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
 
   private static ResultHolder findTypeFromAssignExpression(HaxeAssignExpression assign, PsiElement element) {
     HaxeExpression expression = assign.getRightExpression();
-    if (expression == element) expression = assign.getLeftExpression();
+    if (PsiTreeUtil.isAncestor(expression, element, false)) expression = assign.getLeftExpression();
     if(expression != null) {
       HaxeExpressionEvaluatorContext evaluated = HaxeExpressionEvaluator.evaluate(expression, null);
       ResultHolder result = evaluated.result;

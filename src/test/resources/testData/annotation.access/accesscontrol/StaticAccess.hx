@@ -30,6 +30,8 @@ class StaticAccessTest {
 
         Alias.<error descr="Static access to instance field instanceVariable is not allowed ">instanceVariable</error>;  // Wrong
         Alias.<error descr="Static access to instance field instanceMethod is not allowed ">instanceMethod</error>(); // Wrong
+
+        var constrcutor = StaticAccessTest.new; // correct : static access to constructor should be allowed
     }
 }
 
