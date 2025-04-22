@@ -196,6 +196,8 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     if (target == element) {
       target = expression.getRightExpression();
     }
+
+    if(target == null) SpecificHaxeClassReference.getUnknown(expression).createHolder();
     ResultHolder result = HaxeExpressionEvaluator.evaluate(target, null).result;
     if (!result.isUnknown()) return result;
     return SpecificHaxeClassReference.getDynamic(target).createHolder();
@@ -292,7 +294,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
         return result;
       }
     }
-    return SpecificHaxeClassReference.getUnknown(expression).createHolder();
+    return SpecificHaxeClassReference.getUnknown(assign).createHolder();
   }
 
   private static ResultHolder findTypeFromCallExpression(HaxeCallExpressionList list, PsiElement parent, PsiElement element) {

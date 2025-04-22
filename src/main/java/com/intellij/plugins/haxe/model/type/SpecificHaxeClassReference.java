@@ -125,7 +125,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     final HaxeClass aClass = getHaxeClass();
     return (aClass != null) ? aClass.getModel() : null;
   }
-  @Nullable
+
   public boolean missingClassModel() {
     return getHaxeClassModel() == null;
   }

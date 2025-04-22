@@ -15,10 +15,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.collectHaxeClasses;
 import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertAfterElementForMethod;
 
 public class HaxeIntroduceMethodFromTypeIntention
@@ -31,7 +33,7 @@ public class HaxeIntroduceMethodFromTypeIntention
   private final String returnTypeText;
   private final List<ArgumentData> argumentInfo;
 
-  record ArgumentData(String name, String typeText, boolean optional, boolean rest, String qname){}
+  record ArgumentData(String name, String typeText, boolean optional, boolean rest, Collection<SmartPsiElementPointer<HaxeClass>> types){}
 
   public HaxeIntroduceMethodFromTypeIntention(@NotNull SpecificFunctionReference functionReference, HaxeReferenceExpression referenceExpression, @NotNull HaxeClass targetClass) {
     super(referenceExpression);
@@ -42,11 +44,17 @@ public class HaxeIntroduceMethodFromTypeIntention
                       argument.getType().toPresentationString(),
                       argument.isOptional(),
                       argument.isRest(),
-                      getQname(argument.getType())
+                      collectHaxeClassesAsSmartPointers(argument.getType())
               ))
               .toList();
 
     this.myPsiTargetPointer  = createPointer(targetClass);
+  }
+
+  private List<SmartPsiElementPointer<HaxeClass>> collectHaxeClassesAsSmartPointers(ResultHolder type) {
+    return collectHaxeClasses(type).stream()
+            .map( e-> Optional.ofNullable(e).map(this::createPointer).orElse(null))
+            .toList();
   }
 
   private String getQname(ResultHolder type) {
@@ -95,19 +103,26 @@ public class HaxeIntroduceMethodFromTypeIntention
 
   private void findTypesRequiringImportsAndAddToFile(PsiElement methodDeclaration, PsiFile containingFile) {
     if (methodDeclaration instanceof HaxeMethodDeclaration declaration) {
+      Set<String> qNamesToImport = new HashSet<>();
       List<HaxeParameterModel> parameters = declaration.getModel().getParameters();
       for (int i = 0; i < parameters.size(); i++) {
         HaxeParameterModel parameter = parameters.get(i);
         ResultHolder type = parameter.getType();
-        // missing model means we are missing import.
-        if (type.getClassType() != null && type.getClassType().getHaxeClassModel() == null) {
-          if (type.getClassType().getHaxeClass() == null) {
-            ArgumentData argumentData = argumentInfo.get(i);
-            if (argumentData.qname != null) {
-              HaxeAddImportHelper.addImport(argumentData.qname, containingFile);
-            }
+        ArgumentData argumentData = argumentInfo.get(i);
+        List<SmartPsiElementPointer<HaxeClass>> typesInOriginal = new ArrayList<>(argumentData.types);
+        List<HaxeClass> typesInGenerated = new ArrayList<>(PsiTreeUtil.collectElementsOfType(type.getContext(), HaxeClass.class));
+
+        for (int j = 0; j < typesInGenerated.size(); j++) {
+          SmartPsiElementPointer<HaxeClass> pointer = typesInOriginal.get(j);
+          HaxeClass orgHaxeClass =  pointer == null ? null : pointer.getElement();
+          HaxeClass newHaxeClass = typesInGenerated.get(j);
+          if (newHaxeClass == null && orgHaxeClass != null) {
+            qNamesToImport.add(orgHaxeClass.getQualifiedName());
           }
         }
+      }
+      for (String qNames : qNamesToImport) {
+        HaxeAddImportHelper.addImport(qNames, containingFile);
       }
     }
   }

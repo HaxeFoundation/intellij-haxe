@@ -154,6 +154,7 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       targetClass = PsiTreeUtil.getParentOfType(targetClass, HaxeClass.class);
     }
     if(targetClass == null) return;
+    if(reference == null) return;
 
     ResultHolder resultHolder = guessElementType(reference);
     if(resultHolder.isFunctionType()) {

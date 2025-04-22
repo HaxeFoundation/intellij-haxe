@@ -74,21 +74,26 @@ public class HaxeIntroduceMethodIntention
 
   private void findTypesRequiringImportsAndAddToFile(PsiElement methodDeclaration, PsiFile containingFile) {
     if (methodDeclaration instanceof HaxeMethodDeclaration declaration) {
+      Set<String> qNamesToImport = new HashSet<>();
       List<HaxeParameterModel> parameters = declaration.getModel().getParameters();
       List<ResultHolder> parameterTypes = getParameterTypeList();
       for (int i = 0; i < parameters.size(); i++) {
         HaxeParameterModel parameter = parameters.get(i);
-        ResultHolder type = parameter.getType();
-        // missing model means we are missing import.
-        if (type.getClassType() != null && type.getClassType().getHaxeClassModel() == null) {
-          ResultHolder resultHolder = parameterTypes.get(i);
-          SpecificHaxeClassReference classType = resultHolder.getClassType();
-          if (classType != null && classType.getHaxeClass() != null) {
-            if (type.getClassType().getHaxeClass() == null) {
-              HaxeAddImportHelper.addImport((classType.getHaxeClass()).getQualifiedName(), containingFile);
-            }
+        ResultHolder newType = parameter.getType();
+        ResultHolder orgType = parameterTypes.get(i);
+        List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(orgType);
+        List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(newType);
+
+        for (int j = 0; j < typesInGenerated.size(); j++) {
+          HaxeClass newHaxeClass = typesInGenerated.get(j);
+          HaxeClass orgHaxeClass = typesInOriginal.get(j);
+          if (newHaxeClass == null && orgHaxeClass != null) {
+            qNamesToImport.add(orgHaxeClass.getQualifiedName());
           }
         }
+      }
+      for (String qNames : qNamesToImport) {
+        HaxeAddImportHelper.addImport(qNames, containingFile);
       }
     }
   }

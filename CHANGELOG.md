@@ -1,4 +1,11 @@
 # Changelog
+## 1.6.9
+* Added: Access control annotation checking keywords(static private, public) and annotations (`@:access` `@:privateAccess`, `@:allow`)
+* Improvement: Better type guessing for introduce member quickfixes + adding missing imports when generating for differentFile/class. 
+* Misc: Tweaks to avoid slow operation warning when creating/showing large Class hierarchies 
+* Misc: Better and more accurate logic for resolving modules and static extensions
+
+
 ## 1.6.8
 *  Support for IntelliJ 2024.x is dropped due to breaking changes in refactoring API in IntelliJ 2025.
 

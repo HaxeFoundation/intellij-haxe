@@ -19,7 +19,9 @@ import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HaxeIntroduceFieldIntention extends HaxeUnresolvedSymbolIntentionBase<HaxeReferenceExpression> {
 
@@ -89,16 +91,21 @@ public class HaxeIntroduceFieldIntention extends HaxeUnresolvedSymbolIntentionBa
     if (typeTag != null) {
       ResultHolder guessedType = guessElementType(myPsiElementPointer.getElement());
       ResultHolder newElementType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, containingFile);
-      SpecificHaxeClassReference newElementClass = newElementType.getClassType();
-      if (newElementClass != null && !newElementType.isUnknown()) {
-        if (newElementClass.getHaxeClassModel() == null) {
-          if (guessedType.getClassType() != null) {
-            HaxeClass haxeClass = guessedType.getClassType().getHaxeClass();
-            if(haxeClass != null) {
-              HaxeAddImportHelper.addImport(haxeClass.getQualifiedName(), containingFile);
-            }
-          }
+
+      Set<String> qNamesToImport = new HashSet<>();
+      List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(guessedType);
+      List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(newElementType);
+
+      for (int j = 0; j < typesInGenerated.size(); j++) {
+        HaxeClass newHaxeClass = typesInGenerated.get(j);
+        HaxeClass orgHaxeClass = typesInOriginal.get(j);
+        if (newHaxeClass == null && orgHaxeClass != null) {
+          qNamesToImport.add(orgHaxeClass.getQualifiedName());
         }
+      }
+
+      for (String qNames : qNamesToImport) {
+        HaxeAddImportHelper.addImport(qNames, containingFile);
       }
     }
   }
