@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 //TODO find optimal way to do SearchScope (test LocalSearchScope vs RangeLocalSearchScope )
 // if it lags  try adding checkCanceled() to custom scope class
 public class HaxeExpressionEvaluatorSearchUtil {
-    public static LocalSearchScope getSearchScope(PsiElement element, @Nullable PsiElement suggestedSearchScope) {
+    public static LocalSearchScope getSmallestPossibleSearchScope(PsiElement element, @Nullable PsiElement suggestedSearchScope) {
         PsiElement parent = element.getParent();
         if (parent instanceof HaxeLocalVarDeclarationList
             || parent instanceof HaxeLocalVarDeclaration

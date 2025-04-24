@@ -610,7 +610,7 @@ public class HaxeExpressionEvaluator {
   }
   @NotNull
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @Nullable final PsiElement searchScope) {
-    SearchScope scope = HaxeExpressionEvaluatorSearchUtil.getSearchScope(componentName, searchScope);
+    SearchScope scope = HaxeExpressionEvaluatorSearchUtil.getSmallestPossibleSearchScope(componentName, searchScope);
     return referenceSearch(componentName, scope);
   }
 

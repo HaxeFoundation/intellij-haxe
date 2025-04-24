@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExpressionCodeFragmentImpl;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.impl.PsiFileFactoryImpl;
@@ -218,4 +219,16 @@ public class HaxeElementGenerator {
     CodeStyleManager.getInstance(movedElement.getProject()).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
   }
 
+  public static PsiElement createMeta(Project myProject, HaxeMetadataTypeName metadataTypeName, boolean compileTime) {
+    return createMeta(myProject, metadataTypeName,compileTime, null);
+  }
+  public static PsiElement createMeta(Project myProject, HaxeMetadataTypeName metadataTypeName, boolean compileTime, String content) {
+    String meta = compileTime ?  metadataTypeName.asCompileTimeText() : metadataTypeName.asRunTimeTest();
+    if (content != null) meta += "(" + content+ ")";
+    return HaxeElementGenerator.createDummyFile(myProject, meta).getChildren()[0];
+  }
+
+  public static PsiElement createNewLine(@NotNull Project project) {
+    return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n").copy();
+  }
 }

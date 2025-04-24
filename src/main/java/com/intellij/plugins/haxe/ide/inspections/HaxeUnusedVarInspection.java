@@ -5,13 +5,15 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorSearchUtil;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiParserFacade;
 import com.intellij.psi.PsiReference;
-import com.intellij.psi.search.LocalSearchScope;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayUtil;
@@ -22,6 +24,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.KEEP;
 
 public class HaxeUnusedVarInspection extends LocalInspectionTool {
   @NotNull
@@ -52,17 +56,28 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
     if (!(file instanceof HaxeFile)) return null;
     List<HaxeLocalVarDeclaration> unusedVarDeclarations = new ArrayList<>();
+    List<HaxeFieldDeclaration> unusedFieldDeclarations = new ArrayList<>();
     new HaxeAnnotatingVisitor() {
       @Override
       public void visitFieldDeclaration(@NotNull HaxeFieldDeclaration fieldDeclaration) {
         //TODO make check for fields
         // note on fields: check if interface declaration, check if overrides parent, check references?
         // also check "@:keep" (only affects on types and members?)
+
+        //Skipping  fields that are public or have  keep metadata
+        if(fieldDeclaration.isPublic()) return;
+        if(fieldDeclaration.hasMetadata(KEEP, HaxeMetadataCompileTimeMeta.class)) return;
+
+          SearchScope searchScope = GlobalSearchScope.projectScope(fieldDeclaration.getProject());
+          Collection<PsiReference> references = ReferencesSearch.search(fieldDeclaration, searchScope, false).findAll();
+          if (references.isEmpty()) {
+            unusedFieldDeclarations.add(fieldDeclaration);
+          }
       }
 
       @Override
       public void visitLocalVarDeclaration(@NotNull HaxeLocalVarDeclaration varDeclaration) {
-        LocalSearchScope searchScope = HaxeExpressionEvaluatorSearchUtil.getSearchScope(varDeclaration, null);
+          SearchScope searchScope = HaxeExpressionEvaluatorSearchUtil.getSmallestPossibleSearchScope(varDeclaration, null);
           Collection<PsiReference> references = ReferencesSearch.search(varDeclaration, searchScope, false).findAll();
           if (references.isEmpty()) {
             unusedVarDeclarations.add(varDeclaration);
@@ -70,7 +85,7 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
       }
     }.visitFile(file);
 
-    if (unusedVarDeclarations.isEmpty()) {
+    if (unusedVarDeclarations.isEmpty() && unusedFieldDeclarations.isEmpty()) {
       return ProblemDescriptor.EMPTY_ARRAY;
     }
 
@@ -80,7 +95,23 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
       result.add(manager.createProblemDescriptor(
         componentName,
         getDisplayName(),
-        new LocalQuickFix[]{createVarFix(componentName.getText())},
+        new LocalQuickFix[]{createRemoveVarFix(componentName.getText())},
+        ProblemHighlightType.LIKE_UNUSED_SYMBOL,
+        isOnTheFly,
+        false
+      ));
+    }
+
+    for (HaxeFieldDeclaration unusedField : unusedFieldDeclarations) {
+      HaxeComponentName componentName = unusedField.getComponentName();
+      String nameText = componentName.getText();
+      result.add(manager.createProblemDescriptor(
+        componentName,
+        getDisplayName(),
+        new LocalQuickFix[]{
+                createAddKeepMetaFix(nameText),
+                createRemoveFieldFix(nameText)
+        },
         ProblemHighlightType.LIKE_UNUSED_SYMBOL,
         isOnTheFly,
         false
@@ -90,12 +121,12 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
   }
 
-  private LocalQuickFix createVarFix(String text) {
+  private LocalQuickFix createRemoveVarFix(String text) {
     return new LocalQuickFix() {
       @NotNull
       @Override
       public String getName() {
-        return HaxeBundle.message("haxe.inspections.unused.var.fix", text);
+        return HaxeBundle.message("haxe.inspections.unused.var.remove", text);
       }
 
       @NotNull
@@ -148,6 +179,53 @@ public class HaxeUnusedVarInspection extends LocalInspectionTool {
               }
             }
           }
+        }
+      }
+    };
+  }
+  private LocalQuickFix createRemoveFieldFix(String text) {
+    return new LocalQuickFix() {
+      @NotNull
+      @Override
+      public String getName() {
+        return HaxeBundle.message("haxe.inspections.unused.field.remove", text);
+      }
+
+      @NotNull
+      public String getFamilyName() {
+        return getName();
+      }
+
+      @Override
+      public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+        PsiElement element = descriptor.getStartElement();
+        if (element.getParent() instanceof HaxeFieldDeclaration fieldDeclaration) {
+          fieldDeclaration.delete();
+        }
+      }
+    };
+  }
+  private LocalQuickFix createAddKeepMetaFix(String text) {
+    return new LocalQuickFix() {
+    @NotNull
+    @Override
+    public String getName() {
+      return HaxeBundle.message("haxe.inspections.unused.field.keep.meta", text);
+    }
+
+    @NotNull
+    public String getFamilyName() {
+      return getName();
+    }
+
+      @Override
+      public void applyFix(@NotNull Project project, @NotNull ProblemDescriptor descriptor) {
+        PsiElement element = descriptor.getStartElement();
+        if (element.getParent() instanceof HaxeFieldDeclaration fieldDeclaration) {
+          PsiElement meta = HaxeElementGenerator.createMeta(element.getProject(), KEEP, true);
+          PsiElement newLine = HaxeElementGenerator.createNewLine(element.getProject());
+          fieldDeclaration.getParent().addBefore(meta, fieldDeclaration);
+          fieldDeclaration.getParent().addBefore(newLine, fieldDeclaration);
         }
       }
     };
