@@ -44,12 +44,20 @@ public class HaxeLineMarkerUtil {
                 return null;
             }
 
-            boolean fromAbstract = filteredSuperItems.stream()
-                    .filter(HaxeMethod.class::isInstance)
-                    .map(HaxeMethod.class::cast)
-                    .anyMatch(haxeMethod -> haxeMethod.getModel().isAbstract());
+            boolean fromInterface  = false;
+            boolean fromAbstract = false;
+            for (HaxeNamedComponent filteredSuperItem : filteredSuperItems) {
+                if (filteredSuperItem instanceof HaxeMethod) {
+                    HaxeMethod method = (HaxeMethod) filteredSuperItem;
+                    HaxeMethodModel superModel = method.getModel();
+                    fromAbstract = superModel.isAbstract();
+                    fromInterface = !superModel.isInInterface();
+                    break;
+                }
+            }
 
-            final boolean overrides = model.isOverride();
+
+            final boolean overrides = fromInterface;
             final PsiElement element = methodDeclaration.getComponentName().getIdentifier().getFirstChild();
             final Icon icon = overrides ? AllIcons.Gutter.OverridingMethod : AllIcons.Gutter.ImplementingMethod;
             Supplier<String> accessibleNameProvider = () -> overrides ? "Overriding Method" : "Implementing Method";
