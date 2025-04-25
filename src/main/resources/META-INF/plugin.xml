@@ -382,10 +382,25 @@
                      groupKey="inspections.group.name" enabledByDefault="true"
                      implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedImportInspection"/>
 
-    <localInspection language="Haxe" shortName="HaxeUnusedVar" bundle="messages.HaxeBundle"
+    <localInspection language="Haxe" shortName="HaxeUnusedVariable" bundle="messages.HaxeBundle"
                      key="haxe.inspections.unused.var.name"
                      groupKey="inspections.group.name" enabledByDefault="true"
-                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedVarInspection"/>
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedLocalVarInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeUnusedField" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.field.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFieldInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeUnusedMethod" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.method.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedMethodInspection"/>
+
+    <localInspection language="Haxe" shortName="HaxeUnusedFunction" bundle="messages.HaxeBundle"
+                     key="haxe.inspections.unused.function.name"
+                     groupKey="inspections.group.name" enabledByDefault="true"
+                     implementationClass="com.intellij.plugins.haxe.ide.inspections.HaxeUnusedFunctionInspection"/>
 
     <localInspection language="Haxe" shortName="HaxeUnresolvedSymbol" bundle="messages.HaxeBundle"
                      key="haxe.inspection.unresolved.symbol"

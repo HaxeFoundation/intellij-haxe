@@ -8,7 +8,7 @@ import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
-import com.intellij.plugins.haxe.ide.inspections.HaxeUnusedVarInspection;
+import com.intellij.plugins.haxe.ide.inspections.*;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
@@ -71,10 +71,21 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
         doTest(true, false, true, null, additionalFiles);
     }
 
-    // KEYWORD access control
     @Test
-    public void testUnusedFieldsTest() throws Exception {
-        myFixture.enableInspections(HaxeUnusedVarInspection.class);
+    public void testUnusedFieldsAndVariablesTest() throws Exception {
+        myFixture.enableInspections(
+                HaxeUnusedFieldInspection.class,
+                HaxeUnusedLocalVarInspection.class
+        );
         doTest("UnusedFieldsTestOutside.hx");
+    }
+
+    @Test
+    public void testUnusedMethodsAndFunctionsTest() throws Exception {
+        myFixture.enableInspections(
+                HaxeUnusedFunctionInspection.class,
+                HaxeUnusedMethodInspection.class
+        );
+        doTest("UnusedMethodsTestOutside.hx");
     }
 }
