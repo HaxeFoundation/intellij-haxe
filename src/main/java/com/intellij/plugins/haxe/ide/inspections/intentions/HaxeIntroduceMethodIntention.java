@@ -5,11 +5,11 @@ import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeNameSuggesterUtil;
 import com.intellij.psi.PsiElement;
@@ -21,6 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertAfterElementForMethod;
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsAndAddToFile;
 
 public class HaxeIntroduceMethodIntention
   extends HaxeUnresolvedSymbolIntentionBase<HaxeCallExpression>
@@ -67,36 +68,20 @@ public class HaxeIntroduceMethodIntention
 
     methodDeclaration = CodeStyleManager.getInstance(project).reformat(methodDeclaration);
     if(!preview) {
-      findTypesRequiringImportsAndAddToFile(methodDeclaration, anchor.getContainingFile());
+      if(methodDeclaration instanceof HaxeMethodDeclaration declaration) {
+        HaxeMethodModel newModel = declaration.getModel();
+        List<HaxeParameterModel> parameters = newModel.getParameters();
+        ResultHolder returnType = newModel.getReturnType(null);
+
+        ResultHolder knownReturnType = guessElementType(myPsiElementPointer.getElement());
+        if(knownReturnType.isDynamic() || knownReturnType.isUnknown()) knownReturnType = null;
+        findTypesRequiringImportsAndAddToFile(parameters, getKnownParameterTypeList(), returnType, knownReturnType, anchor.getContainingFile());
+      }
     }
     return anchor.getContainingFile();
   }
 
-  private void findTypesRequiringImportsAndAddToFile(PsiElement methodDeclaration, PsiFile containingFile) {
-    if (methodDeclaration instanceof HaxeMethodDeclaration declaration) {
-      Set<String> qNamesToImport = new HashSet<>();
-      List<HaxeParameterModel> parameters = declaration.getModel().getParameters();
-      List<ResultHolder> parameterTypes = getParameterTypeList();
-      for (int i = 0; i < parameters.size(); i++) {
-        HaxeParameterModel parameter = parameters.get(i);
-        ResultHolder newType = parameter.getType();
-        ResultHolder orgType = parameterTypes.get(i);
-        List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(orgType);
-        List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(newType);
 
-        for (int j = 0; j < typesInGenerated.size(); j++) {
-          HaxeClass newHaxeClass = typesInGenerated.get(j);
-          HaxeClass orgHaxeClass = typesInOriginal.get(j);
-          if (newHaxeClass == null && orgHaxeClass != null) {
-            qNamesToImport.add(orgHaxeClass.getQualifiedName());
-          }
-        }
-      }
-      for (String qNames : qNamesToImport) {
-        HaxeAddImportHelper.addImport(qNames, containingFile);
-      }
-    }
-  }
 
 
   private PsiElement generateDeclaration(@NotNull Project project) {
@@ -128,7 +113,7 @@ public class HaxeIntroduceMethodIntention
     return guessElementTypeText();
   }
 
-  private List<ResultHolder> getParameterTypeList() {
+  private List<ResultHolder> getKnownParameterTypeList() {
     HaxeCallExpression element = myPsiElementPointer.getElement();
     if(element == null) return List.of();
     HaxeCallExpressionList expressionList = element.getExpressionList();

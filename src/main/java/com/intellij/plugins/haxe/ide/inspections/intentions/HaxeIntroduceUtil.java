@@ -4,7 +4,9 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAnonymousTypeModel;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -12,7 +14,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class HaxeIntroduceUtil {
     public static @NotNull PsiElement findInsertAfterElementForMethod(@NotNull PsiElement startElement, HaxeClass aClass, boolean readOnly) {
@@ -77,6 +81,43 @@ public class HaxeIntroduceUtil {
         }
         return (T) element;
     }
+
+    public static void findTypesRequiringImportsAndAddToFile(List<HaxeParameterModel> parameters, List<ResultHolder> knownParameterTypes, ResultHolder returnType, ResultHolder knownReturnType, PsiFile containingFile) {
+            Set<String> qNamesToImport = new HashSet<>();
+        // when generating constructors we might add parameters for fields and they wont be in the known list.
+        int size = Math.min(parameters.size(), knownParameterTypes.size());
+        for (int i = 0; i < size; i++) {
+                HaxeParameterModel parameter = parameters.get(i);
+                ResultHolder newType = parameter.getType();
+                ResultHolder orgType = knownParameterTypes.get(i);
+                List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(orgType);
+                List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(newType);
+
+                for (int j = 0; j < typesInGenerated.size(); j++) {
+                    HaxeClass newHaxeClass = typesInGenerated.get(j);
+                    HaxeClass orgHaxeClass = typesInOriginal.get(j);
+                    if (newHaxeClass == null && orgHaxeClass != null) {
+                        qNamesToImport.add(orgHaxeClass.getQualifiedName());
+                    }
+                }
+            }
+            if(returnType != null && knownReturnType != null ) {
+                List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(knownReturnType);
+                List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(returnType);
+                for (int j = 0; j < typesInGenerated.size(); j++) {
+                    HaxeClass newHaxeClass = typesInGenerated.get(j);
+                    HaxeClass orgHaxeClass = typesInOriginal.get(j);
+                    if (newHaxeClass == null && orgHaxeClass != null) {
+                        qNamesToImport.add(orgHaxeClass.getQualifiedName());
+                    }
+                }
+            }
+
+            for (String qNames : qNamesToImport) {
+                HaxeAddImportHelper.addImport(qNames, containingFile);
+            }
+    }
+
 
     /**
      * NOTE return null-value for unknowns in returned array
