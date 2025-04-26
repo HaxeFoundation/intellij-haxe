@@ -1,8 +1,12 @@
 package;
+
+typedef SomeTD = Int;
+
 class TestPostfix {
 
     public function new() {}
 
+    public var td:SomeTD;
     public var int:Int;
     public var floatReadOnly(dynamic, never):Int;
     public var floatReadWrite(never, dynamic):Int;
@@ -41,6 +45,9 @@ class TestPostfix {
 
         this.int++;
         this.int--;
+
+        td++;
+        td--;
 
         // EXPECT: This expression cannot be accessed for writing
         <error descr="This expression cannot be accessed for writing">floatReadOnly++</error>;

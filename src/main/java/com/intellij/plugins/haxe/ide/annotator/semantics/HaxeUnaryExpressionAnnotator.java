@@ -90,6 +90,11 @@ public class HaxeUnaryExpressionAnnotator implements Annotator {
 
         SpecificTypeReference type = result.getType();
 
+        //  resolve is typedef before checking
+        if(result.isTypeDef() && result.getClassType() != null) {
+            type = result.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+        }
+
         if (result.isImmutable()) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Cannot assign to immutable reference").range(unaryExpression).create();
         } else if (!type.isAbstractType()) {
