@@ -38,14 +38,14 @@ public class HaxeReferenceUtil {
                         ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(parentReferenceExpression).result;
 
                         SpecificHaxeClassReference classType = callerType.getClassType();
-                        if(classType != null) {
+                        if(classType != null && !classType.isUnknown()) {
                             HaxeClass haxeClass = classType.getHaxeClass();
                             // checking if references starts with a class references.
                             // staticExtensions are allowed on classes (if parameter is Class<T>/Enum<T>)
                             boolean callieIsAClass = haxeClass != null && caller == haxeClass && parentReferenceExpression.isClassReferenceOf(haxeClass);
-                            if(callieIsAClass) {
-//                                return false;
-                            }
+
+
+
 
                             HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
                             if(haxeClassModel  != null) {

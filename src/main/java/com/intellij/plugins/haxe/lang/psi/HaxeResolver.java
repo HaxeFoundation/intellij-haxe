@@ -1612,6 +1612,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             }
           }
       }
+      else {
+        String maybeQname = reference.getText();
+        // a sanity check before we try Qname resolve
+        // should be a chain and not contain any method call, array access or typeParameters
+        if(maybeQname.matches("([^<>:()\\[\\]])+(\\.[^<>:()\\[\\]]+)+")) {
+          HaxeClass classByQName = HaxeResolveUtil.findClassByQName(maybeQname, reference);
+          if(classByQName != null) {
+            HaxeComponentName componentName = classByQName.getComponentName();
+            if(componentName != null) {
+              LogResolution(reference, "via fully qualified name.");
+              return List.of(componentName);
+            }
+          }
+        }
+      }
     }
     return null;
   }
