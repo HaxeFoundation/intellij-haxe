@@ -346,7 +346,7 @@ public class HaxeAccessAnnotator implements Annotator {
   private static @NotNull HaxeMetadataList collectMetadata(HaxeClass memberClass, HaxeMemberModel memberModel, HaxeMetadataTypeName metadataTypeName) {
     HaxeMetadataList metadataFromClass = HaxeMetadataUtils.getMetadataList(memberClass, HaxeMetadataCompileTimeMeta.class, metadataTypeName);
     if(memberModel != null) {
-      HaxeMetadataList metadataFromMember = HaxeMetadataUtils.getMetadataList(memberModel.getMemberPsi(), HaxeMetadataCompileTimeMeta.class, ALLOW);
+      HaxeMetadataList metadataFromMember = HaxeMetadataUtils.getMetadataList(memberModel.getMemberPsi(), HaxeMetadataCompileTimeMeta.class, metadataTypeName);
       metadataFromClass.addAll(metadataFromMember);
     }
     return metadataFromClass;
