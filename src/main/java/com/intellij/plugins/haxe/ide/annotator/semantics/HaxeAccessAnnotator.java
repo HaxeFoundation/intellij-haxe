@@ -14,7 +14,6 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
-import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -317,8 +316,9 @@ public class HaxeAccessAnnotator implements Annotator {
           return true;
         }
         if(currentClass != null) {
-          for (PsiClassType superType : currentClass.getSuperTypes()) {
-            if (superType.resolve() == aClass) return true;
+          HaxeClassModel model = currentClass.getModel();
+          if(model != null && model.inheritsFrom(aClass)) {
+            return true;
           }
         }
       }
