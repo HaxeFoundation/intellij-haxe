@@ -988,6 +988,25 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   }
 
 
+  public boolean isClassReferenceOf(@NotNull HaxeClass haxeClass) {
+    PsiElement resolve = resolve();
+    PsiElement parent = getParent();
+
+    // to be a pure reference the name must be exact match and
+    // parent can not be of HaxeType or other reference
+
+    if (resolve instanceof HaxeImportAlias importAlias) {
+      return !(parent instanceof HaxeType)
+             && !(parent instanceof HaxeReference)
+             && importAlias.getIdentifier().textMatches(getLastChild());
+    }else {
+      String name = haxeClass.getName();
+      return name != null
+             && !(parent instanceof HaxeType)
+             && getLastChild().textMatches(name);
+    }
+  }
+
   public boolean isPureClassReferenceOf(@NotNull HaxeClass haxeClass) {
     PsiElement resolve = resolve();
     PsiElement parent = getParent();

@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -13,6 +14,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
@@ -29,22 +31,47 @@ public class HaxeReferenceUtil {
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier
 
                     // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
-                    if (ChainBeforeMethod instanceof HaxeReferenceExpression parentReferenceExpression) {
+                    if (ChainBeforeMethod instanceof HaxeReferenceExpressionImpl parentReferenceExpression) {
                         PsiElement caller = parentReferenceExpression.resolve();
                         if (caller == method) return false; // probably a function bind or similar
 
                         ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(parentReferenceExpression).result;
 
-                        if(callerType.getClassType() != null) {
-                            HaxeClassModel haxeClassModel = callerType.getClassType().getHaxeClassModel();
+                        SpecificHaxeClassReference classType = callerType.getClassType();
+                        if(classType != null) {
+                            HaxeClass haxeClass = classType.getHaxeClass();
+                            // checking if references starts with a class references.
+                            // staticExtensions are allowed on classes (if parameter is Class<T>/Enum<T>)
+                            boolean callieIsAClass = haxeClass != null && caller == haxeClass && parentReferenceExpression.isClassReferenceOf(haxeClass);
+                            if(callieIsAClass) {
+//                                return false;
+                            }
+
+                            HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
                             if(haxeClassModel  != null) {
 
                                 // check if callie has @:using
                                 List<HaxeMethodModel> extensionMethodsFromMeta = haxeClassModel.getExtensionMethodsFromMeta();
-                                boolean isExtensionMethodDueToUsingMeta = extensionMethodsFromMeta.stream()
-                                        .anyMatch(model -> model.getBasePsi() == haxeMethod);
+                                Optional<HaxeMethodModel> extensionMethodFromMeta = extensionMethodsFromMeta.stream()
+                                        .filter(model -> model.getBasePsi() == haxeMethod).findFirst();
 
-                                if(isExtensionMethodDueToUsingMeta) return true;
+                                if(extensionMethodFromMeta.isPresent()) {
+                                    HaxeMethodModel extModel = extensionMethodFromMeta.get();
+                                    List<HaxeParameterModel> parameters = extModel.getParameters();
+                                    if(!parameters.isEmpty()) {
+                                        // Extension methods on Class references is allowed but param type must be Class<T>.
+                                        // we check this here so we don't accidentally treat a static method as a static extension.
+                                        if (callieIsAClass) {
+                                            ResultHolder type = parameters.getFirst().getType();
+                                            SpecificHaxeClassReference paramClass = type.getClassType();
+                                            if (paramClass != null) {
+                                                return paramClass.isEnumClass() || paramClass.isClass();
+                                            }
+                                        }else {
+                                            return true;
+                                        }
+                                    }
+                                }
 
                                 // make sure  there's no method on callie type with the same name
                                 HaxeBaseMemberModel member = haxeClassModel.getMember(haxeMethod.getName(), null);
