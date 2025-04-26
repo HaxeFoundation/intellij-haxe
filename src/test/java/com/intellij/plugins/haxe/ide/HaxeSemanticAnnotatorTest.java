@@ -198,7 +198,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
 
   @Test
   public void testOverrideVisibility() throws Exception {
-    doTestNoFixWithWarnings();
+    doTestNoFixWithWeakWarnings();
   }
 
   @Test

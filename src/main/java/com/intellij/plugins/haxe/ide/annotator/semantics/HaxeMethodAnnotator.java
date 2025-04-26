@@ -177,17 +177,32 @@ public class HaxeMethodAnnotator implements Annotator {
           }
           builder.create();
         }
-
-        if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
-          holder.newAnnotation(HighlightSeverity.WARNING, "Field " +
-                                                          currentMethod.getName() +
-                                                          " has less visibility (public/private) than superclass one.")
-            .range(currentMethod.getNameOrBasePsi())
-            .withFix(
-              new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility"))
-            .withFix(
-              new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Change parent method visibility"))
-            .create();
+        // ignore if empty (override inherits from parent)
+        if(!currentModifiers.getVisibility().equals(EMPTY)) {
+          if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
+            HaxeModifierReplaceVisibilityFixer changeCurrentVisibilityFix = new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Change current method visibility to '"+parentModifiers.getVisibility()+"'");
+            HaxeModifierReplaceVisibilityFixer changeParentVisibilityFix = new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Change parent method visibility '"+currentModifiers.getVisibility()+"'");
+            holder.newAnnotation(HighlightSeverity.ERROR, "Field " +
+                                                            currentMethod.getName() +
+                                                            " has less visibility (public/private) than superclass one.")
+                    .range(currentMethod.getNameOrBasePsi())
+                    .withFix(changeCurrentVisibilityFix)
+                    .withFix(changeParentVisibilityFix)
+                    .create();
+          }
+        }else {
+          if (HaxePsiModifier.hasLowerVisibilityThan(currentModifiers.getVisibility(), parentModifiers.getVisibility())) {
+            HaxeModifierReplaceVisibilityFixer changeCurrentVisibilityFix = new HaxeModifierReplaceVisibilityFixer(currentModifiers, parentModifiers.getVisibility(), "Add current method visibility to '"+parentModifiers.getVisibility()+"'");
+            HaxeModifierReplaceVisibilityFixer changeParentVisibilityFix = new HaxeModifierReplaceVisibilityFixer(parentModifiers, currentModifiers.getVisibility(), "Add parent method visibility '"+currentModifiers.getVisibility()+"'");
+            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, "Field " +
+                                                                 currentMethod.getName() +
+                                                                 " has no visibility modifier but overrides parent with '" +
+                                                                 parentModifiers.getVisibility() + "'")
+                    .range(currentMethod.getNameOrBasePsi())
+                    .withFix(changeCurrentVisibilityFix)
+                    .withFix(changeParentVisibilityFix)
+                    .create();
+          }
         }
       }
     }
