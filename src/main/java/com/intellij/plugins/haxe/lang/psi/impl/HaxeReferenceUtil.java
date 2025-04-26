@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -10,6 +11,8 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
+
+import java.util.List;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
@@ -24,23 +27,37 @@ public class HaxeReferenceUtil {
                     if (haxeMethod.getParameterList().isEmpty()) return false; // must have minimum 1 parameter
                     PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier
-                    // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
-                    boolean defaultExtension = HaxeResolveUtil.isDefaultExtension(haxeMethod);
-                    if(!defaultExtension && !HaxeResolveUtil.isInUsingImports(referenceExpression, haxeMethod)) return false;
 
-                    if (ChainBeforeMethod instanceof HaxeReferenceExpression referenceExpression1) {
-                        PsiElement caller = referenceExpression1.resolve();
+                    // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
+                    if (ChainBeforeMethod instanceof HaxeReferenceExpression parentReferenceExpression) {
+                        PsiElement caller = parentReferenceExpression.resolve();
                         if (caller == method) return false; // probably a function bind or similar
 
-                        ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(referenceExpression1).result;
+                        ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(parentReferenceExpression).result;
+
                         if(callerType.getClassType() != null) {
                             HaxeClassModel haxeClassModel = callerType.getClassType().getHaxeClassModel();
                             if(haxeClassModel  != null) {
+
+                                // check if callie has @:using
+                                List<HaxeMethodModel> extensionMethodsFromMeta = haxeClassModel.getExtensionMethodsFromMeta();
+                                boolean isExtensionMethodDueToUsingMeta = extensionMethodsFromMeta.stream()
+                                        .anyMatch(model -> model.getBasePsi() == haxeMethod);
+
+                                if(isExtensionMethodDueToUsingMeta) return true;
+
                                 // make sure  there's no method on callie type with the same name
                                 HaxeBaseMemberModel member = haxeClassModel.getMember(haxeMethod.getName(), null);
-                                if (member == null) return true;
+                                if (member != null) return false;
                             }
                         }
+
+                        boolean defaultExtension = HaxeResolveUtil.isDefaultExtension(haxeMethod);
+                        if(defaultExtension) return true;
+
+                        boolean inUsingImports = HaxeResolveUtil.isInUsingImports(referenceExpression, haxeMethod);
+                        if(inUsingImports) return true;
+
                         return !(caller instanceof HaxeClass || caller instanceof HaxeImportAlias);
                     }else {
                         return true;
