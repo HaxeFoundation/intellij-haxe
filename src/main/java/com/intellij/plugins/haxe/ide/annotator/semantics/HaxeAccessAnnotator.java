@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -246,6 +247,7 @@ public class HaxeAccessAnnotator implements Annotator {
 
     PsiElement expression = referenceExpression;
     while (true) {
+      if(expression == null) break;
       if (HaxeMetadataUtils.hasMeta(expression, HaxeMetadataCompileTimeMeta.class, PRIVATE_ACCESS)) {
         return true;
       } else {
@@ -313,6 +315,11 @@ public class HaxeAccessAnnotator implements Annotator {
       else if(target instanceof HaxeClass aClass) {
         if(currentClass == aClass){
           return true;
+        }
+        if(currentClass != null) {
+          for (PsiClassType superType : currentClass.getSuperTypes()) {
+            if (superType.resolve() == aClass) return true;
+          }
         }
       }
       else if(target instanceof HaxeMethod method) {
