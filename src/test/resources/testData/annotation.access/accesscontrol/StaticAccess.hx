@@ -32,6 +32,9 @@ class StaticAccessTest {
         Alias.<error descr="Static access to instance field instanceMethod is not allowed ">instanceMethod</error>(); // Wrong
 
         var constrcutor = StaticAccessTest.new; // correct : static access to constructor should be allowed
+
+        instance.instanceMethod.bind(); // correct : bind is allowed
+        TestData.classMethod.bind(); // correct : bind is allowed
     }
 }
 
