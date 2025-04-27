@@ -54,24 +54,39 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
 
         HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(LeftChild);
         HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rightChild);
+
         ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(LeftChild, binaryExpression, lhsResolver);
         ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
+
+
 
         // ignoring macro values as we dont always know the type
         boolean containsMacroExpression = HaxeMacroUtil.isMacroType(lhsType) | HaxeMacroUtil.isMacroType(rhsType);
         // ignore  unknown and dynamic for now
-        if (lhsType.isUnknown()  || lhsType.isDynamic() || rhsType.isUnknown() || rhsType.isDynamic()  || containsMacroExpression) {
+        if (lhsType.isUnknown() || rhsType.isUnknown() || containsMacroExpression) {
           return;
         }
         // ignoring enums as they are often  "OR-ed" (|) in switch expressions (and EnumValue.match)
         if (lhsType.isEnum() && rhsType.isEnum()) {
           return;
         }
-        String operatorText = children[1].getText();
-        String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
-        holder.newAnnotation(HighlightSeverity.ERROR, error)
-          .range(binaryExpression)
-          .create();
+
+        ResultHolder nonNullLhsType = lhsType.tryUnwrapNullType();
+        ResultHolder nonNullRhsType = lhsType.tryUnwrapNullType();
+
+        if (nonNullLhsType.isDynamic() || nonNullRhsType.isDynamic()) {
+          String operatorText = children[1].getText();
+          String error = "Applying "+operatorText+" operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation";
+          holder.newAnnotation(HighlightSeverity.WEAK_WARNING, error)
+                  .range(binaryExpression)
+                  .create();
+        } else {
+          String operatorText = children[1].getText();
+          String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
+          holder.newAnnotation(HighlightSeverity.ERROR, error)
+                  .range(binaryExpression)
+                  .create();
+        }
       }
     }
   }

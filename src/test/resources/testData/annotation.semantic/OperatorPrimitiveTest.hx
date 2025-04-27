@@ -25,6 +25,8 @@ class OperatorTest {
     var td2:TypeDefNullInt = 2;
 
     var ni:Null<Int>;
+    var nd:Null<Dynamic>;
+    var dynamicValue:Dynamic = 1;
 
     var toDyn:Dynamic;
     var toSingle:Single;
@@ -211,5 +213,16 @@ class OperatorTest {
 
         toDyn = t ?? <error descr="Incompatible type: String should be Bool" textAttributesKey="ERRORS_ATTRIBUTES">b</error>; // WRONG, can not unify types
         toDyn = s ?? <error descr="Incompatible type: String should be Int" textAttributesKey="ERRORS_ATTRIBUTES">i</error>; // WRONG, can not unify types
+    }
+
+    public function warningOnDynamic() {
+        var nullDynamic:Null<Dynamic>;
+        var dynamicValue:Dynamic;
+        var intValue = 1;
+
+        toBool = <weak_warning descr="Applying > operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation" textAttributesKey="INFO_ATTRIBUTES">nullDynamic > intValue</weak_warning>;
+        toBool = <weak_warning descr="Applying > operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation" textAttributesKey="INFO_ATTRIBUTES">dynamicValue > intValue</weak_warning>;
+        toBool = <weak_warning descr="Applying > operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation" textAttributesKey="INFO_ATTRIBUTES">dynamicValue > nullDynamic</weak_warning>;
+        toBool = <weak_warning descr="Applying > operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation" textAttributesKey="INFO_ATTRIBUTES">nullDynamic > nullDynamic</weak_warning>;
     }
 }

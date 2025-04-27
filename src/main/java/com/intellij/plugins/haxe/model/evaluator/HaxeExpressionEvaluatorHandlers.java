@@ -99,8 +99,13 @@ public class HaxeExpressionEvaluatorHandlers {
         if(children[1] instanceof  HaxeOperator operator) {
           SpecificTypeReference left = handle(children[0], context, resolver).getType();
           SpecificTypeReference right = handle(children[2], context, resolver).getType();
+
           left = resolveAnyTypeDefsOrTypeParameterConstraint(left);
           right = resolveAnyTypeDefsOrTypeParameterConstraint(right);
+
+          if(left != null && left.isNullType()) left = SpecificHaxeClassReference.tryUnwrapNullType(left);
+          if(right != null && right.isNullType()) right =SpecificHaxeClassReference.tryUnwrapNullType(right);
+
           // we might have constraints that help up here
           if (left != null && left.isTypeParameter()) left = tryResolveTypeParameter(left, resolver);
           if (right != null && right.isTypeParameter()) right = tryResolveTypeParameter(right, resolver);

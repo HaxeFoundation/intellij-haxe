@@ -104,6 +104,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return new SpecificHaxeClassReference(clazz,  specifics != null ?  specifics : ResultHolder.EMPTY, constantValue, null, clazz.elementContext);
   }
 
+  public static SpecificTypeReference tryUnwrapNullType(SpecificTypeReference left) {
+    if(left instanceof  SpecificHaxeClassReference classReference) {
+      if (classReference.isNullType()) {
+        if (classReference.getSpecifics().length == 1) {
+          ResultHolder specific = classReference.getSpecifics()[0];
+          if(!specific.isUnknown()) return specific.getType();
+        }
+      }
+    }
+    return left;
+  }
+
   @Nullable
   public HaxeClass getHaxeClass() {
     if(clazz == null || !clazz.isValid()) {
