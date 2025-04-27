@@ -233,6 +233,12 @@ public class HaxeTypeCompatible {
     }
 
     public static boolean isShadowingType(SpecificTypeReference typeA, SpecificTypeReference typeB) {
+        if(typeA.isNullType() && typeA instanceof SpecificHaxeClassReference reference) {
+            typeA = reference.unwrapNullType();
+        }
+        if(typeB.isNullType() && typeB instanceof SpecificHaxeClassReference reference) {
+            typeB = reference.unwrapNullType();
+        }
         if(typeA instanceof SpecificHaxeClassReference classA && !classA.isTypeParameter()){
             if(typeB instanceof SpecificHaxeClassReference classB && !classB.isTypeParameter()){
                 HaxeClass haxeClassA = classA.getHaxeClass();
