@@ -30,6 +30,7 @@ public class HaxeReferenceUtil {
                     PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier
 
+
                     // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
                     if (ChainBeforeMethod instanceof HaxeReferenceExpressionImpl parentReferenceExpression) {
                         PsiElement caller = parentReferenceExpression.resolve();
@@ -67,6 +68,13 @@ public class HaxeReferenceUtil {
                                         }else {
                                             return true;
                                         }
+                                    }
+                                }
+
+                                // looks like abstracts statics are extension methods by default ? (TODO verify)
+                                if( !callieIsAClass  && haxeMethod.getContainingClass()!= null) {
+                                    if(haxeMethod.getContainingClass() instanceof HaxeAbstractTypeDeclaration ){
+                                        return true;
                                     }
                                 }
 

@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.evaluateAssignToFrom;
-import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.evaluateAssignToFromForNewAndCallExpression;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.*;
 
 public class HaxeCallExpressionContext {
 
@@ -537,6 +536,12 @@ public class HaxeCallExpressionContext {
                 String message = HaxeBundle.message("haxe.semantic.method.parameter.no.match",
                         argumentType.toPresentationString(true));
                 evaluation.addError(message, expectedRange);
+
+            }else if(isShadowingType(parameterType, argumentType)) {
+                String message = HaxeBundle.message("haxe.semantic.incompatible.type.shadowing",
+                        parameterType.toPresentationString(true),
+                        argumentType.toPresentationString(true));
+                evaluation.addWarning(message, expectedRange);
             }else {
                 String message = HaxeBundle.message("haxe.semantic.method.parameter.mismatch",
                         parameterType.toPresentationString(true),

@@ -51,6 +51,14 @@ public class HaxeStandardAnnotation {
     String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1", incompatibleType, correctType);
     return holder.newAnnotation(HighlightSeverity.ERROR, message).range(incompatibleElement);
   }
+  public static @NotNull AnnotationBuilder typeMismatchShadowing(@NotNull AnnotationHolder holder,
+                                                        @NotNull PsiElement incompatibleElement,
+                                                        String incompatibleType,
+                                                        String correctType) {
+
+    String message = HaxeBundle.message("haxe.semantic.incompatible.type.shadowing", incompatibleType, correctType);
+    return holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message).range(incompatibleElement);
+  }
 
   public static @NotNull AnnotationBuilder typeMismatchMissingMembers(@NotNull AnnotationHolder holder,
                                                                       @NotNull PsiElement incompatibleElement,

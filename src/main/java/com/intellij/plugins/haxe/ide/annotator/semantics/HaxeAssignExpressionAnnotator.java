@@ -19,6 +19,8 @@ import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.ASSIGNMENT_TYPE_COMPATIBILITY_CHECK;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatch;
+import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.typeMismatchShadowing;
+import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.isShadowingType;
 
 public class HaxeAssignExpressionAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
@@ -89,6 +91,8 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
       }else {
         if (assignEvaluation.explanations.hasMissingModel()) {
           HaxeStandardAnnotation.typeModelMissing(holder, rhs, assignEvaluation.explanations.getMissingModel().getFirst());
+        } else if(isShadowingType(rhsType.getType(), lhsType.getType())) {
+          typeMismatchShadowing(holder, rhs, rhsType.toPresentationString(), lhsType.toPresentationString()).create();
         } else {
           AnnotationBuilder builder = typeMismatch(holder, rhs, rhsType.toPresentationString(), lhsType.toPresentationString());
           fixers.forEach(builder::withFix);
