@@ -379,6 +379,9 @@ public class HaxeAccessAnnotator implements Annotator {
   }
 
   private static @NotNull List<PsiElement> resolveQnameWithMissingModule(HaxeMeta metadata, HaxeReferenceExpression reference) {
+    return resolveQnameWithMissingModule(metadata, reference, false);
+  }
+  private static @NotNull List<PsiElement> resolveQnameWithMissingModule(HaxeMeta metadata, HaxeReferenceExpression reference, boolean secondPass) {
     PsiElement firstChild = reference.getFirstChild();
     PsiElement lastChild = reference.getLastChild();
     List<PsiElement> classesWithName = new ArrayList<>();
@@ -395,6 +398,10 @@ public class HaxeAccessAnnotator implements Annotator {
               }
             }
         }
+      }
+      // might be method in class not matching module name (with reference without module)
+      if(!secondPass && packageResolve == null) {
+        classesWithName.addAll(resolveQnameWithMissingModule(metadata, packageRef, true));
       }
     }
     return classesWithName;
