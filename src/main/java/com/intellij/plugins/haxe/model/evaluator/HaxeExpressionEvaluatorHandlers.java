@@ -358,9 +358,13 @@ public class HaxeExpressionEvaluatorHandlers {
 
             HaxeVarInit init = fieldDeclaration.getVarInit();
             if (init != null) {
+              boolean immutable = false;
+              if (fieldDeclaration.getModel() instanceof HaxeFieldModel model) {
+                immutable = model.isFinal();
+              }
               HaxeExpression initExpression = init.getExpression();
               HaxeGenericResolver initResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(initExpression);
-              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(fieldDeclaration, initResolver);
+              typeHolder = HaxeTypeResolver.getFieldOrMethodReturnType(fieldDeclaration, initResolver).setImmutable(immutable);
             }
             else {
               HaxeTypeTag tag = fieldDeclaration.getTypeTag();
@@ -378,7 +382,6 @@ public class HaxeExpressionEvaluatorHandlers {
                     typeHolder = resolve;
                   }
                 }
-
               }
             }
           }
@@ -613,18 +616,23 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeFieldDeclaration declaration) {
     HaxeTypeTag typeTag = declaration.getTypeTag();
 
-    if (typeTag!= null) {
-      return HaxeTypeResolver.getTypeFromTypeTag(typeTag, declaration);
-    }else {
-      HaxeVarInit init = declaration.getVarInit();
-      if (init != null) {
+    boolean immutable = false;
+    HaxeVarInit init = declaration.getVarInit();
+
+    if (declaration.getModel() instanceof HaxeFieldModel model) {
+      immutable = model.isFinal() && init != null;
+    }
+    if (typeTag != null) {
+      return HaxeTypeResolver.getTypeFromTypeTag(typeTag, declaration).setImmutable(immutable);
+    } else if (init != null) {
+      if (init.getExpression() != null) {
         ResultHolder result = handle(init.getExpression(), context, resolver);
         if (isDynamicBecauseOfNullValueInit(result)) {
           HaxeComponentName element = declaration.getComponentName();
           final ResultHolder hint = result;
           result = tryToFindTypeFromUsage(element, result, hint, context, resolver, null);
         }
-        return result;
+        if (result != null) return result.setImmutable(immutable);
       }
     }
     return createUnknown(declaration);
@@ -1866,8 +1874,8 @@ public class HaxeExpressionEvaluatorHandlers {
 
     result = tryGetEnumValuesDeclaringClass(result);
     context.setLocal(name.getText(), result);
-    // disable mutation if final with init expression
-    if(result != null && immutable) result.disableMutating();
+    // disable/enable mutation (disable if final with init expression)
+      if (result != null) result.setImmutable(immutable);
     return result;
   }
 

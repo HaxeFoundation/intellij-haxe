@@ -910,6 +910,15 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testLocalVarImmutability() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+  @Test
+  public void testFieldImmutability() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testTypeParameterCount() throws Throwable {
     doTestNoFixWithWarnings();
   }
@@ -1041,4 +1050,5 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testAssignFunctionType6() throws Exception {
     doTestNoFixWithWarnings();
   }
+
 }

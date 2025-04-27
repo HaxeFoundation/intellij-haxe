@@ -140,8 +140,9 @@ public class ResultHolder {
 
 
 
-  public void disableMutating() {
-    this.canMutate = false;
+  public ResultHolder setImmutable(boolean immutable) {
+    this.canMutate = !immutable;
+    return this;
   }
 
   public boolean hasMutated() {
