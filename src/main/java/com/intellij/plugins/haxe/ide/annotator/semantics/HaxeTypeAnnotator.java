@@ -64,11 +64,12 @@ public class HaxeTypeAnnotator implements Annotator {
       }
     }
     else if (context.getParent() instanceof HaxeTypeTag) {
-      if (context.getParent().getParent() instanceof HaxeParameter) {
-        // if HaxeType is part of a method parameter then  type specifics are possibly inherited
-        //  this check is currently only checking assignment to variables and arguments when calling methods
-        return;
-      }
+      //TODO MLO: Might not be necessary anymore ? (make test if this is actually necessary)
+//      if (context.getParent().getParent() instanceof HaxeParameter) {
+//        // if HaxeType is part of a method parameter then  type specifics are possibly inherited
+//        //  this check is currently only checking assignment to variables and arguments when calling methods
+//        return;
+//      }
       checkTypeParametersForType(type, holder);
     }
   }

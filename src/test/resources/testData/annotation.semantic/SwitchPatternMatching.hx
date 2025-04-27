@@ -7,7 +7,7 @@ enum Test<T> {
     TObject(o:{i:Int, s:String});
     TArray(x:Array<String>);
     TAny(x:T);
-    TTest(t:Test);
+    TTest(t:Test<Dynamic>);
     TNone;
 }
 

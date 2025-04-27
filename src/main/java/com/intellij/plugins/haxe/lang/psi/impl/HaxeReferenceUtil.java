@@ -44,9 +44,6 @@ public class HaxeReferenceUtil {
                             // staticExtensions are allowed on classes (if parameter is Class<T>/Enum<T>)
                             boolean callieIsAClass = haxeClass != null && caller == haxeClass && parentReferenceExpression.isClassReferenceOf(haxeClass);
 
-
-
-
                             HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
                             if(haxeClassModel  != null) {
 
