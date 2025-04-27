@@ -990,6 +990,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testEnumValueMatchFunction() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testEnumMatchPattern() throws Throwable {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();

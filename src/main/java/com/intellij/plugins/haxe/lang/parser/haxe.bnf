@@ -955,7 +955,7 @@ private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
+private CallArrayOrReferenceExpression::= (EnumValueMatcherExpression | callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
 private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
 
@@ -965,6 +965,17 @@ private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 // spread operator only allowed  as last  last argument in calls expressions
 spreadExpression ::= (iteratorOperator (referenceExpression | arrayLiteral)) { extends = unaryExpression}
+
+// EnumValue.match function supports some kind of syntax that looks a lot like switch on enums, its necessary to support
+// these  special cases in callExpression list to avoid parser errors. there are some extra constraints compared to the
+// switch case variant, Pattern variables are not allowed, meaning that we might get away with only accepting "_"
+// as the first value and reduce parser overhead
+// (ex. `type.match(TAbstract(_ => 1)`
+EnumValueMatcherArg ::= '_' '=>' switchCaseExpr
+
+// custom logic for arguments used by EnumValue.match function
+left EnumValueMatcherExpression ::= '(' EnumValueMatcherExpressionList ')'
+private EnumValueMatcherExpressionList ::= (EnumValueMatcherArg |"_")   ("," (EnumValueMatcherArg |"_"))*
 
 left callExpression ::= '(' callExpressionList? ')'
 { methods=[expressionList="callExpressionList"] mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}
