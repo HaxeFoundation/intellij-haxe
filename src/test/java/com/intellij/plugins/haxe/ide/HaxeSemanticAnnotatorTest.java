@@ -330,9 +330,15 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testFieldTypeHintRequirement() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testFinalKeyword() throws Exception {
     doTestNoFixWithWarnings();
   }
+
   @Test
   public void testFinalKeywordEnum() throws Exception {
     doTestNoFixWithWarnings();

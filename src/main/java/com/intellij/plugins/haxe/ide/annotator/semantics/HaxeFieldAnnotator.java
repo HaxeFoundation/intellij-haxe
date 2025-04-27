@@ -65,6 +65,14 @@ public class HaxeFieldAnnotator implements Annotator {
 
     if (field.hasInitializer() && field.hasTypeTag()) {
       HaxeSemanticsUtil.TypeTagChecker.check(field.getBasePsi(), field.getTypeTagPsi(), field.getInitializerPsi(), false, holder);
+    } else if (!field.hasInitializer() && !field.hasTypeTag()) {
+      HaxeClassModel declaringClass = field.getDeclaringClass();
+      //NOTE: abstract enums can have finals without init or typeHint
+      if(declaringClass != null  && !declaringClass.isEnum()) {
+        holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.var.init.or.type.hint", field.getName()))
+                .range(var)
+                .create();
+      }
     }
 
 
