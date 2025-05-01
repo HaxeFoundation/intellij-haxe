@@ -236,6 +236,8 @@ coalescingAssignOperator ::= '??='    { extends=operator }
 questionOperator ::= <<ternary>>      { extends=operator }
 suffixOperator ::= '!'                { extends=operator }
 
+private fatArrowOperator ::= '=>'
+
 // KFROM ('from') and KTO ('to') are only keywords for abstracts and can be used as identifiers elsewhere in the code (KNEVER ('never') is only used for getters/setters)
 private identifierWithKeywordName::= 'from' | 'to' | 'never'
 
@@ -244,7 +246,10 @@ macroIdentifier ::=   (<<canBeReification>> macroIdentifierReification | MACRO_I
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" extends="identifier"}
 private normalIdentifier ::= ID | identifierWithKeywordName
 
-identifier ::= macroIdentifier | normalIdentifier
+unnameIdentifier ::= "_"
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" extends="identifier"}
+
+identifier ::= macroIdentifier | unnameIdentifier | normalIdentifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIdentifierPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeIdentifierPsiMixin" name="identifier"}
 
 thisExpression ::= 'this'
@@ -730,9 +735,12 @@ private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchE
 switchCaseExprArray ::= "["  (switchCaseExprElement ","?)* "]"
 // Should NOT be named Expression, because it should not be an expression.
 switchCaseExpr ::= <<pushCollectionInitializersDeny>> (switchCaseExprArray  |  switchCaseExprElement) {hooks=[popCollectionInitializersRule]}
-ExtractorMatchAssignExpression ::= referenceExpression "=";
 
-ExtractorMatchExpression ::= expression '=>' switchCaseExpr {extends="expression"}
+extractorMatchAssignExpression ::= referenceExpression "=";
+left extractorMatchExpression ::=  '=>' switchCaseExpr
+{extends="expression" methods=[ extractorExpression="expression" match ="switchCaseExpr"]}
+
+private extractorMatchGroup ::= expression extractorMatchExpression
 
 private switchEnumBitOperationElement ::= enumArgumentExtractor | enumValueReference;
 switchEnumBitOperationExpression ::=   switchEnumBitOperationElement (bitOperation switchEnumBitOperationElement)+ {extends="expression"}
@@ -740,8 +748,8 @@ switchEnumBitOperationExpression ::=   switchEnumBitOperationElement (bitOperati
 private switchExtractorPart ::=  switchCaseExtractor (bitOperation switchCaseExtractor)*
 switchExtractorExpression ::=  "("switchExtractorPart")" | switchExtractorPart  {extends="expression"}
 
-private extractorMatchExpressionVariant::= ExtractorMatchAssignExpression? ('('ExtractorMatchExpression')' | '['ExtractorMatchExpression']'  | ExtractorMatchExpression)
-switchCaseExtractor ::= extractorMatchExpressionVariant | enumArgumentExtractor | variableCaptureExpression {extends="expression"}
+private extractorMatchExpressionVariant::= extractorMatchAssignExpression?  ('(' extractorMatchGroup')' | '[' extractorMatchGroup']'  | extractorMatchGroup)
+switchCaseExtractor ::= extractorMatchExpressionVariant | enumArgumentExtractor {extends="expression"}
 //TODO mlo: clean up and bind to classes
 switchExtractorExpressionArrayLiteral ::= '[' (enumExtractorArgumentList ','?)? ']'
 
@@ -754,8 +762,8 @@ enumExtractedValue::= enumExtractedValueReference | primitiveExtractedValue
 
 
 private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral {recoverWhile=expression_recover}
-private expressionOrExtractorMatchExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral  | expression   {extends=expression}
-enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrExtractorMatchExpression)
+private expressionOrEnumExtractorExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral  | expression   {extends=expression}
+enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrEnumExtractorExpression)
 {
   pin=2
   recoverWhile="object_literal_part_recover"
@@ -765,7 +773,7 @@ enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrExtrac
 }
 private enumObjectLiteralElementList ::= enumObjectLiteralElement (',' enumObjectLiteralElement)* ','? {pin=1 recoverWhile="object_literal_list_recover"}
 enumExtractObjectLiteral ::= '{' enumObjectLiteralElementList '}' {pin=2}
-enumExtractArrayLiteral ::= '[' expressionOrExtractorMatchExpression (','  expressionOrExtractorMatchExpression)* ']' {pin=2}
+enumExtractArrayLiteral ::= '[' expressionOrEnumExtractorExpression (',' expressionOrEnumExtractorExpression)* ']' {pin=2}
 //{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 private switchExtractorExpressionArgument ::= (  extractorMatchExpressionVariant | switchExtractorExpressionArrayLiteral |  switchExtractorExpression  |  switchEnumBitOperationExpression | switchCaseCapture | enumExtractedValue  |<<startWithUppercaseCheck>> type | literalExpression)
@@ -775,7 +783,6 @@ enumValueReference ::= simpleQualifiedReferenceExpression
 enumArgumentExtractor ::= enumValueReference '(' 'var'? enumExtractorArgumentList ')'
  {extends="expression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumArgumentExtractorMixinImpl" implements="com.intellij.plugins.haxe.model.HaxeModelTarget"}
 
-variableCaptureExpression ::= valueReference ('=>' switchCaseExpr)+  {pin=2 extends="expression"}
 private switchCaseCaptureInit ::=  '=' (primitiveExtractedValue | expression) {extends = varInit }
 switchCaseCapture ::= <<startWithLowercaseOrUnderscoreCheck>> componentName (("=" extractorMatchExpressionVariant  ) | switchCaseCaptureInit)
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
@@ -807,11 +814,16 @@ mapInitializerExpression ::=   <<pushInMapInitExpressionState>> expression fatAr
  methods=[ leftHand="expression[0]" fatArrow="fatArrowOperator" rightHand="expression[1]"]
   hooks=[clearInMapInitExpression]
 }
-private fatArrowOperator ::= '=>'
+
 
 // spread operator/expression should only be allowed for call expressions (and constructors) and only as last argument
-callExpressionList ::= forStatement | whileStatement | spreadExpression | (expression (',' expression)* (',' spreadExpression)?)  ','?
+callExpressionList ::= forStatement | whileStatement | spreadExpression | (expressionOrExtractorMatchExpression (',' expressionOrExtractorMatchExpression)* (',' spreadExpression)?)  ','?
 {recoverWhile="expression_list_recover" extends=expressionList  methods= [spreadExpression="spreadExpression[0]"]}
+
+// eunumValue.match method can accept patterns so we need to allow that
+// the easiest solution is just to allow extractorMatch expressions in call expressions
+// and evaluate things later when we can check if  callExpression resolves ot an enum constructor or not.
+private expressionOrExtractorMatchExpression ::=  expression extractorMatchExpression?
 
 expressionList ::= forStatement | whileStatement | (expression (',' expression)*)  ','? {recoverWhile="expression_list_recover"}
 //recovery comments:
@@ -955,7 +967,7 @@ private typeCheckOperator ::= ':'
 typeCheckExpr ::= expression typeCheckOperator typeWrapper
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private CallArrayOrReferenceExpression::= (EnumValueMatcherExpression | callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
+private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
 private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
 
@@ -966,16 +978,6 @@ private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 // spread operator only allowed  as last  last argument in calls expressions
 spreadExpression ::= (iteratorOperator (referenceExpression | arrayLiteral)) { extends = unaryExpression}
 
-// EnumValue.match function supports some kind of syntax that looks a lot like switch on enums, its necessary to support
-// these  special cases in callExpression list to avoid parser errors. there are some extra constraints compared to the
-// switch case variant, Pattern variables are not allowed, meaning that we might get away with only accepting "_"
-// as the first value and reduce parser overhead
-// (ex. `type.match(TAbstract(_ => 1)`
-EnumValueMatcherArg ::= '_' '=>' switchCaseExpr
-
-// custom logic for arguments used by EnumValue.match function
-left EnumValueMatcherExpression ::= '(' EnumValueMatcherExpressionList ')'
-private EnumValueMatcherExpressionList ::= (EnumValueMatcherArg |"_")   ("," (EnumValueMatcherArg |"_"))*
 
 left callExpression ::= '(' callExpressionList? ')'
 { methods=[expressionList="callExpressionList"] mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="function call"}

@@ -123,9 +123,7 @@ public class HaxeEnumExtractorModel implements HaxeModel {
       HaxeExpression switchStatement = findSwitchExpressionType(extractedValue);
       if (switchStatement == null) return createUnknown(extractedValue);
       ResultHolder switchType = evaluate(switchStatement).result;
-      if (switchType.getClassType() != null) {
-        return getTypeForExtractedValue(extractedValue, switchStatement, switchType);
-      }
+      return getTypeForExtractedValue(extractedValue, switchStatement, switchType);
     }
     // unable to determine type
     return createUnknown(extractedValue);
@@ -145,8 +143,13 @@ public class HaxeEnumExtractorModel implements HaxeModel {
   }
 
   private ResultHolder getTypeForExtractedValue(@NotNull HaxeEnumExtractedValueReference extractedValue, HaxeExpression switchStatement, ResultHolder switchType) {
-    SpecificHaxeClassReference switchTypeClass = switchType.getClassType();
-    HaxeGenericResolver switchExpressionResolver = switchTypeClass.getGenericResolver();
+    SpecificHaxeClassReference switchTypeClass = null;
+    if(switchType.isEnumValueType()) {
+      switchTypeClass = switchType.getEnumValueType().getEnumClass();
+    }else {
+      switchTypeClass = switchType.getClassType();
+    }
+    HaxeGenericResolver switchExpressionResolver = switchTypeClass != null ? switchTypeClass.getGenericResolver() : new HaxeGenericResolver();
 
     List<ExtractorHierarchyElement> extractorHierarchy = getExtractorHierarchy(extractedValue);
     extractorHierarchy = extractorHierarchy.reversed();

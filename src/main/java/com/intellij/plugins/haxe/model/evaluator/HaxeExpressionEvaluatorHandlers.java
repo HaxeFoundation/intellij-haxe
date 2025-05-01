@@ -477,7 +477,7 @@ public class HaxeExpressionEvaluatorHandlers {
               if(model instanceof HaxeEnumExtractorModel extractorModel) {
                 resolver.addAll(extractorModel.getGenericResolver());
               }
-              typeHolder = handle(matchExpression.getExpression(),context, resolver);
+              typeHolder = handle(matchExpression.getExtractorExpression(),context, resolver);
             }else {
               HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(caseExpr, HaxeSwitchStatement.class);
               if (switchStatement.getExpression() != null) {

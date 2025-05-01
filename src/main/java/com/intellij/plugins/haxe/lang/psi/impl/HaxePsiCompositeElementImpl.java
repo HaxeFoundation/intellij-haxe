@@ -195,6 +195,12 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
             .map(HaxeEnumExtractedValueReference::getComponentName)
             .toList();
           result.addAll(list);
+          Collection<HaxeExtractorMatchExpression> matchExpressions = PsiTreeUtil.findChildrenOfType(extractor, HaxeExtractorMatchExpression.class);
+          for (HaxeExtractorMatchExpression match : matchExpressions) {
+            if(match.getMatch().getExpression() instanceof  HaxeReferenceExpression expression) {
+              result.add(expression);
+            }
+          }
 
         }
       }

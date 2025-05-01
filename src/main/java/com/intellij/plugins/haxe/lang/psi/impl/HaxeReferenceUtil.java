@@ -12,6 +12,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
@@ -126,5 +127,15 @@ public class HaxeReferenceUtil {
                 SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, element,
                         new ResultHolder[]{new ResultHolder(originalClass)});
         return wrappedClass.createHolder();
+    }
+
+    public static boolean isExtractorMatchReference(@NotNull PsiElement element) {
+        if(element.getParent() instanceof HaxeSwitchCaseExpr switchCaseExpr) {
+            HaxeExtractorMatchExpression extractorExpression = PsiTreeUtil.getParentOfType(element, HaxeExtractorMatchExpression.class);
+            if (extractorExpression != null) {
+                return extractorExpression.getMatch() == switchCaseExpr;
+            }
+        }
+        return false;
     }
 }
