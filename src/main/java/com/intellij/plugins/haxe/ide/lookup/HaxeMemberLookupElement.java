@@ -182,7 +182,7 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
 
   private @NotNull String getParameterListAsText() {
     if (leftReference != null){
-      return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi(), leftReference.getSpecialization(), true);
+      return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi(), leftReference.getSpecialization(), true, false);
     }else {
       return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi());
     }

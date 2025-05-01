@@ -75,7 +75,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
       result.append(element.getName());
     } else {
       result.append("function ");
-      appendMethodNameAndParameters(result, element, true);
+      appendMethodNameAndParameters(result, element, true, true);
     }
     final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
     String type = null;
@@ -93,7 +93,7 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
           result.append("return ");
         }
         result.append("super.");
-        appendMethodNameAndParameters(result, element, false);
+        appendMethodNameAndParameters(result, element, false, false);
         result.append(";\n");
       }
       result.append("}");
@@ -118,10 +118,10 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     }
   }
 
-  private void appendMethodNameAndParameters(StringBuilder buf, HaxeNamedComponent element, boolean addParametersTypes) {
+  private void appendMethodNameAndParameters(StringBuilder buf, HaxeNamedComponent element, boolean addParametersTypes, boolean addOptionalAndDefaults) {
     buf.append(element.getName());
     buf.append(" (");
-    buf.append(HaxePresentableUtil.getPresentableParameterList(element, specializations, addParametersTypes));
+    buf.append(HaxePresentableUtil.getPresentableParameterList(element, specializations, addParametersTypes, addOptionalAndDefaults));
     buf.append(")");
   }
 }
