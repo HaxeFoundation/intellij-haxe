@@ -1,9 +1,11 @@
 # Changelog
-## 1.6.9
+## 1.7.0
 * Added: Access control annotation checking keywords(static private, public) and annotations (`@:access` `@:privateAccess`, `@:allow`)
 * Added: unused definition annotations (local functions, fields and methods).
 * Added: Add missing imports when generating methods (constructor, override, implement) 
-* Improvement: Better type guessing for introduce member quickfixes + adding missing imports when generating for differentFile/class. 
+* Added: Support for patterns syntax in EnumValue.match calls 
+* Bugfix: Introduce variable action in switch-case block would generate variable above switch statement instead of inside the block.
+* Improvement: Better type guessing for introduce member quickfixes + adding missing imports when generating for differentFile/class.
 * Misc: Tweaks to avoid slow operation warning when creating/showing large Class hierarchies 
 * Misc: Better and more accurate logic for resolving modules and static extensions
 

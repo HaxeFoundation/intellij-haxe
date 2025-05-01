@@ -151,6 +151,7 @@ public class HaxeIntroduceUtil {
                 HaxeClass haxeClass = classReference.getHaxeClass();
                 haxeClasses.add(haxeClass);
                 for (ResultHolder specific : classReference.getSpecifics()) {
+                    if(classReference.isDynamic() && specific.isUnknown()) continue;
                     collectHaxeClasses(specific, haxeClasses);
                 }
             }else {

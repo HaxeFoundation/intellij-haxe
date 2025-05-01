@@ -86,15 +86,16 @@ public class HaxeIntroduceMethodIntention
 
   private PsiElement generateDeclaration(@NotNull Project project) {
     String returnType = guessReturnElementType();
+    String typeTag = returnType.equals("Dynamic") ? "" : ":"+ returnType;
     String returnStatement = determineReturnStatement(returnType);
     String optionalStaticKeyword = needsToBeStatic() ? "static" : "";
     String privateKeyword = needsToBePublic() ? "public" : "private";
     String function = """
-      %s %s function %s (%s):%s {
+      %s %s function %s (%s)%s {
         %s
       }
       """
-      .formatted(privateKeyword, optionalStaticKeyword, methodName, generateParameterList(), returnType, returnStatement);
+      .formatted(privateKeyword, optionalStaticKeyword, methodName, generateParameterList(), typeTag, returnStatement);
 
     return HaxeElementGenerator.createMethodDeclaration(project, function);
   }

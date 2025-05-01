@@ -74,10 +74,10 @@ public abstract class HaxeIntroduceHandler implements RefactoringActionHandler {
 
   @Nullable
   protected static PsiElement findAnchor(List<PsiElement> occurrences) {
-    PsiElement anchor = occurrences.get(0);
+    PsiElement anchor = occurrences.getFirst();
     next:
     do {
-      final PsiElement block = PsiTreeUtil.getParentOfType(anchor, HaxeBlockStatement.class, HaxeClassBody.class);
+      final PsiElement block = PsiTreeUtil.getParentOfType(anchor, HaxeSwitchCaseBlock.class, HaxeBlockStatement.class, HaxeClassBody.class);
 
       int minOffset = Integer.MAX_VALUE;
       for (PsiElement element : occurrences) {
