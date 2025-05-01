@@ -24,6 +24,10 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatibl
 public class HaxeCallExpressionContext {
 
     private static final RecursionGuard<RecursionKey> canAssignRecursionGuard = RecursionManager.createGuard("canAssignRecursionGuard");
+    // enumValue.Match allows patterns and have different rules
+    public boolean isEnumValueMatchCallExpression;
+    public boolean isInEnumValueMatchArgument;
+    public boolean isEnumConstructor;
     public boolean isBindCall;
 
 
@@ -108,6 +112,16 @@ public class HaxeCallExpressionContext {
 
         boolean hasOptionalParams = parameters.stream().anyMatch(CallExpressionParameterModel::isOptional);
 
+        if(isEnumValueMatchCallExpression) {
+            return EnumValueMatchUtil.evaluateMatchCall(this, evaluation, trackErrors);
+        }
+        if(isEnumConstructor) {
+          if(isInEnumValueMatchArgument) {
+              return EnumValueMatchUtil.evaluatePatterns(this, evaluation, trackErrors);
+          }else {
+              EnumValueMatchUtil.checkPatternMatchingOutsideMatchFunction(this, evaluation,  trackErrors);;
+          }
+        }
 
         // min arg check
         if (argumentCount < minArgRequired && !isBindCall) {
@@ -286,6 +300,9 @@ public class HaxeCallExpressionContext {
         evaluation.setCompleted(true);
         return evaluation;
     }
+
+
+
 
 
 
@@ -489,7 +506,7 @@ public class HaxeCallExpressionContext {
         return parametersList.getLast().isRest();
     }
 
-    private static int countRequiredArguments(List<CallExpressionParameterModel> parametersList) {
+    public static int countRequiredArguments(List<CallExpressionParameterModel> parametersList) {
         return (int) parametersList.stream()
                 .filter(p -> !p.isOptional() && !p.hasIntiValue() && !p.isRest())
                 .count();
@@ -554,7 +571,7 @@ public class HaxeCallExpressionContext {
 
 
 
-    private void addToFewArgumentError(HaxeCallExpressionEvaluation evaluation, int minArgRequired) {
+    protected void addToFewArgumentError(HaxeCallExpressionEvaluation evaluation, int minArgRequired) {
         if(isBindCall) return; // ignore missing arguments if bind call (bind has rules handling missing arguments)
         String message = HaxeBundle.message("haxe.semantic.method.parameter.missing", minArgRequired, arguments.size());
         if (sourceExpression instanceof HaxeCallExpression callExpression) {
@@ -589,7 +606,7 @@ public class HaxeCallExpressionContext {
         }
     }
 
-    private void addToManyArgumentError(HaxeCallExpressionEvaluation evaluation, int maxArgAllowed) {
+    protected void addToManyArgumentError(HaxeCallExpressionEvaluation evaluation, int maxArgAllowed) {
         String message = HaxeBundle.message("haxe.semantic.method.parameter.too.many", maxArgAllowed, arguments.size());
         if (sourceExpression instanceof HaxeCallExpression callExpression) {
             HaxeCallExpressionList expressionList = callExpression.getExpressionList();

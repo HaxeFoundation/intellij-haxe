@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -67,6 +67,7 @@ public class HaxeCallExpressionUtil {
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, resolver, methodGenericResolver);
 
     evaluation.isMacroFunction = methodModel.isMacro() && !methodModel.isStatic();
+    evaluation.isEnumConstructor = false;
     evaluation.callie = callie;
     return evaluation;
   }
@@ -119,11 +120,45 @@ public class HaxeCallExpressionUtil {
     evaluation.isStaticExtension = isStaticExtension;
     evaluation.isMacroFunction = isMacroFunction;
     evaluation.isBindCall = isBindCall(callExpression);
+    evaluation.isInEnumValueMatchArgument = isEnumValueMatchCall(callExpression);
+    evaluation.isEnumValueMatchCallExpression = isEnumValueMatchCallExpression(callExpression);
+    evaluation.isEnumConstructor = isEnumConstructor(callExpression);
     evaluation.callie = callieType;
 
 
 
     return evaluation;
+  }
+
+  private static boolean isEnumValueMatchCall(@NotNull HaxeCallExpression callExpression) {
+    HaxeCallExpression parent = PsiTreeUtil.getParentOfType(callExpression, HaxeCallExpression.class);
+    while(parent != null) {
+      if(isEnumValueMatchCallExpression(parent)) {
+        return true;
+      }
+      parent = PsiTreeUtil.getParentOfType(parent, HaxeCallExpression.class);
+    }
+    return false;
+  }
+  private static boolean isEnumValueMatchCallExpression(@NotNull HaxeCallExpression callExpression) {
+    if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+      PsiElement resolve = referenceExpression.resolve();
+      if (resolve instanceof HaxeMethodDeclaration methodDeclaration) {
+        FullyQualifiedInfo qualifiedInfo = methodDeclaration.getModel().getQualifiedInfo();
+        boolean patternMatchingCall = qualifiedInfo != null && qualifiedInfo.toString().equalsIgnoreCase("EnumValue.EnumValue.match");
+        if (patternMatchingCall) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private static boolean isEnumConstructor(@NotNull HaxeCallExpression callExpression) {
+    if( callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+        return referenceExpression.resolve() instanceof HaxeEnumValueDeclarationConstructor;
+    }
+    return false;
   }
 
   private static @Nullable SpecificTypeReference tryCastAssignHintToReturnType(@Nullable SpecificTypeReference assignHint, ResultHolder returnType) {
@@ -207,6 +242,7 @@ public class HaxeCallExpressionUtil {
             evaluation.assignHint = assignHint != null ? assignHint.getType() : null;
             evaluation.isStaticExtension = false;
             evaluation.isMacroFunction = false;
+            evaluation.isEnumConstructor = false; // enums dont use the new keyword
             evaluation.isConstructor = true;
             return evaluation;
           }
