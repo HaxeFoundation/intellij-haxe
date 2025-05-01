@@ -7,6 +7,8 @@ import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -56,7 +58,7 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
                 if (methodDeclaration.isPublic()) return;
                 if (methodDeclaration.isOverride()) return;
                 if (methodDeclaration.hasMetadata(KEEP, HaxeMetadataCompileTimeMeta.class)) return;
-
+                if (isGetterOrSetter(methodDeclaration)) return;
                 SearchScope searchScope = GlobalSearchScope.projectScope(methodDeclaration.getProject());
                 Collection<PsiReference> references = ReferencesSearch.search(methodDeclaration, searchScope, false).findAll();
                 if (references.isEmpty()) {
@@ -88,6 +90,19 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
         }
 
         return result.isEmpty() ? ProblemDescriptor.EMPTY_ARRAY : ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
+    }
+
+    private static boolean isGetterOrSetter(@NotNull HaxeMethodDeclaration methodDeclaration) {
+        String name = methodDeclaration.getModel().getName();
+        if(name.startsWith("get_") || name.startsWith("set_")) {
+            String propertyName = name.substring(4);
+            PsiClass containingClass = methodDeclaration.getContainingClass();
+            if(containingClass != null) {
+                PsiField fieldByName = containingClass.findFieldByName(propertyName, true);
+                return fieldByName != null;
+            }
+        }
+        return false;
     }
 
 }
