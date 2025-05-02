@@ -67,8 +67,8 @@ public class HaxeImportModel extends HaxeImportableModel {
     if (hasWildcard()) {
       if (qualifiedInfo.memberName != null) return Collections.emptyList();
 
-      if (qualifiedInfo.fileName != null && qualifiedInfo.className == null) {
-        qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.fileName, qualifiedInfo.fileName, null);
+      if (qualifiedInfo.moduleName != null && qualifiedInfo.className == null) {
+        qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.moduleName, qualifiedInfo.moduleName, null);
       }
       List<HaxeModel> items = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
       if (items != null && !items.isEmpty()) {
@@ -80,7 +80,7 @@ public class HaxeImportModel extends HaxeImportableModel {
     } else {
       result.addAll(super.getExposedMembersInternal());
 
-      if (hasAlias() && qualifiedInfo.fileName != null && qualifiedInfo.className == null) {
+      if (hasAlias() && qualifiedInfo.moduleName != null && qualifiedInfo.className == null) {
         result.add(new HaxeAliasModel(getBasePsi().getAlias()));
       }
     }

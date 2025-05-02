@@ -5,6 +5,7 @@ import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -21,7 +22,7 @@ import java.util.*;
 @CustomLog
 public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeStaticMemberInfo> {
   public static final ID<String, HaxeStaticMemberInfo> HAXE_STATIC_MEMBER_INDEX = ID.create("HaxeStaticMemberIndex");
-  private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 12;
+  private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION + 15;
   private DataIndexer<String, HaxeStaticMemberInfo, FileContent> myDataIndexer = new MyDataIndexer();
   private final DataExternalizer<HaxeStaticMemberInfo> myExternalizer = new HaxeStaticMemberInfoExternalizer();
 
@@ -69,6 +70,28 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
     return FileBasedIndex.getInstance().getAllKeys(HAXE_STATIC_MEMBER_INDEX, project);
   }
 
+  public static List<HaxeMemberModel> getMembersByName(String name, Project project, GlobalSearchScope searchScope, HaxeComponentType type) {
+    HaxeIndexUtil.warnIfDumbMode(project);
+    List<HaxeMemberModel> results = new ArrayList<>();
+    Collection<String> allKeys = FileBasedIndex.getInstance().getAllKeys(HAXE_STATIC_MEMBER_INDEX, project);
+    allKeys.forEach(key-> {
+      List<HaxeStaticMemberInfo> values = FileBasedIndex.getInstance().getValues(HAXE_STATIC_MEMBER_INDEX, key, GlobalSearchScope.allScope(project));
+//      FileBasedIndex.getInstance().getContainingFiles((HAXE_STATIC_MEMBER_INDEX, key, searchScope)
+      for (HaxeStaticMemberInfo value : values) {
+        if (value.getType() == type) {
+          if (name.equals(value.getMemberName())) {
+            FullyQualifiedInfo qualifiedInfo = value.toFullyQualifiedInfo();
+            List<HaxeModel> result = HaxeProjectModel.fromProject(project).resolve(qualifiedInfo, searchScope);
+            if (result != null && !result.isEmpty()) {
+              results.addAll(result.stream().map(HaxeMemberModel.class::cast).toList());
+            }
+          }
+        }
+      }
+    });
+    return results;
+  }
+
   public static void processAll(Project project, Processor<Pair<String, HaxeStaticMemberInfo>> processor, GlobalSearchScope scope,
                                 @NlsSafe String filterText) {
     HaxeIndexUtil.warnIfDumbMode(project);
@@ -76,10 +99,20 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
     for (String key : keys) {
       final List<HaxeStaticMemberInfo> values = FileBasedIndex.getInstance().getValues(HAXE_STATIC_MEMBER_INDEX, key, scope);
       for (HaxeStaticMemberInfo value : values) {
-        if (value.getOwnerName().startsWith(filterText)) {
-          final Pair<String, HaxeStaticMemberInfo> pair = Pair.create(key, value);
-          if (!processor.process(pair)) {
-            return;
+        String className = value.getClassName();
+        if (className != null) {
+          if (className.startsWith(filterText)) {
+            final Pair<String, HaxeStaticMemberInfo> pair = Pair.create(key, value);
+            if (!processor.process(pair)) {
+              return;
+            }
+          }
+        } else {
+          if (value.getModuleName().startsWith(filterText)) {
+            final Pair<String, HaxeStaticMemberInfo> pair = Pair.create(key, value);
+            if (!processor.process(pair)) {
+              return;
+            }
           }
         }
       }
@@ -115,8 +148,45 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
         if (haxeClass.isTypeDef() || haxeClass.isAnonymousType() || haxeClass.isAbstractType() || haxeClass.isInterface()) {
           continue;
         }
-        //TODO considder adding support for static methods ?
-        //List<HaxeMethod> allMethods = haxeClass.getHaxeMethodsSelf(null).stream().filter(HaxeNamedComponent::isStatic).filter(HaxeNamedComponent::isPublic).toList();
+        String fullyQualifiedName = haxeClass.getFullyQualifiedName();
+
+        if(fullyQualifiedName != null) {
+          FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(fullyQualifiedName);
+          String packageString = qualifiedInfo.packagePath;
+          String moduleString = qualifiedInfo.moduleName;
+          String classString = qualifiedInfo.className;
+          if(packageString == null || moduleString == null) continue;
+
+          if(haxeClass instanceof HaxeEnumDeclaration enumDeclaration) {
+            if(enumDeclaration.getModel() instanceof HaxeEnumModel enumModel) {
+              List<HaxeEnumValueModel> values = enumModel.getValues();
+              for (HaxeEnumValueModel valueModel : values) {
+                  String memberName = valueModel.getName();
+                  if(memberName != null) {
+                    HaxeComponentType componentType = HaxeComponentType.ENUM;
+                    HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, moduleString, classString, memberName, componentType, "");
+                    result.put(classString + "." + memberName, info);
+                }
+              }
+            }
+          }
+
+        List<HaxeMethod> allMethods = haxeClass.getHaxeMethodsSelf(null).stream()
+                .filter(HaxeNamedComponent::isStatic)
+                .filter(HaxeNamedComponent::isPublic)
+                .toList();
+
+        for (HaxeMethod method : allMethods) {
+          HaxeComponentName componentName = method.getComponentName();
+          if(componentName!= null) {
+            String memberName = componentName.getName();
+            if(memberName != null) {
+              HaxeComponentType componentType = method.getComponentType();
+              HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, moduleString,  classString, memberName, componentType, "");
+              result.put(classString + "." + memberName, info);
+            }
+          }
+        }
 
         List<HaxeFieldDeclaration> allFields = haxeClass.getFieldSelf(null).stream()
           .filter(HaxeNamedComponent::isStatic)
@@ -124,22 +194,20 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
           .toList();
 
         for (HaxeFieldDeclaration field : allFields) {
-          String qualifiedName = haxeClass.getQualifiedName();
-          if(qualifiedName != null) {
-            final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
-            String packageString = packageAndName.getFirst();
-            String classString = packageAndName.getSecond();
 
             String memberName = field.getComponentName().getName();
             HaxeComponentType componentType = field.getComponentType();
-
+            if(memberName == null) {
+              log.warn("unable to add to index; Field missing name");
+              continue;
+            }
             HaxeTypeTag tag = field.getTypeTag();
             if (tag != null) {
               HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
               if (toa != null) {
                 HaxeType type = toa.getType();
                 if (type != null) {
-                  HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, type.getText());
+                  HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, moduleString, classString, memberName, componentType, type.getText());
                   result.put(classString + "." + memberName, info);
                   continue;
                 }
@@ -151,7 +219,7 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
                 //List<HaxeFunctionArgument> argumentList = functionType.getFunctionArgumentList();
 
                 //TODO handle this correctly
-                HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, classString, memberName, componentType, functionType.getText());
+                HaxeStaticMemberInfo info = new HaxeStaticMemberInfo(packageString, moduleString,  classString, memberName, componentType, functionType.getText());
                 result.put(classString + "." + memberName, info);
                 continue;
               }

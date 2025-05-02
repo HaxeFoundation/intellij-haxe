@@ -23,6 +23,6 @@ package com.intellij.plugins.haxe.lang.psi;
  *
  * Created by ebishton on 9/28/14.
  */
-public interface HaxeMethod extends HaxeMethodPsiMixin {
+public interface HaxeMethod extends HaxeMethodPsiMixin{
 
 }

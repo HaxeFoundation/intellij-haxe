@@ -590,7 +590,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       if (exhibitor != null) {
         FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
         if (containerInfo != null) {
-          return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, getName(), null);
+          return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, getName(), null);
         }
       }
     return null;

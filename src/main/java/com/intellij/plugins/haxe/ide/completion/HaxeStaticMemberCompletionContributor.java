@@ -58,11 +58,13 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
     public boolean process(Pair<String, HaxeStaticMemberInfo> pair) {
       HaxeStaticMemberInfo info = pair.getSecond();
       myResultSet.addElement(new HaxeStaticMemberLookupElement(
-        info.getOwnerPackage(),
-        info.getOwnerName(),
+        info.getPackageName(),
+        info.getModuleName(),
+        info.getClassName(),
         info.getMemberName(),
         info.getType(),
         info.getTypeValue(),
+        info.toFullyQualifiedInfo(),
         element));
       return true;
     }

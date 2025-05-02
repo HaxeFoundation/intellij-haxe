@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
@@ -195,7 +194,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     if (declaringClass != null) {
       FullyQualifiedInfo containerInfo = declaringClass.getQualifiedInfo();
       if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, containerInfo.className, getName());
       }
     }
 
@@ -203,7 +202,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     if(module != null && module.getModel() instanceof  HaxeModuleModel model) {
       FullyQualifiedInfo containerInfo = model.getQualifiedInfo();
       if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, containerInfo.className, getName());
+        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, containerInfo.className, getName());
       }
     }
     return null;

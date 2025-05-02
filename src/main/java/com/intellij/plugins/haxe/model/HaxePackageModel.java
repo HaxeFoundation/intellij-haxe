@@ -69,8 +69,8 @@ public class HaxePackageModel implements HaxeExposableModel {
 
   public HaxeModel resolve(FullyQualifiedInfo info) {
     if (info.packagePath.equals(this.path)) {
-      if (info.fileName == null && info.className == null) return this;
-      HaxeFileModel file = getFileModel(info.fileName);
+      if (info.moduleName == null && info.className == null) return this;
+      HaxeFileModel file = getFileModel(info.moduleName);
       if (file != null) return file.resolve(info);
       return null;
     } else if (info.packagePath.indexOf(path) == 0 || path.isEmpty()) {

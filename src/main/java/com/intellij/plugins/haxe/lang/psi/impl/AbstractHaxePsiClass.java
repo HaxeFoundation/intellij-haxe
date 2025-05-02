@@ -82,6 +82,16 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public String getQualifiedName() {
+    return getQualifiedName(false);
+  }
+
+  // includes both module name and class name even if they are the same
+  @Override
+  public String getFullyQualifiedName() {
+    return getQualifiedName(true);
+  }
+
+  public String getQualifiedName(boolean alwaysIncludeModuleName) {
     String name = getName();
     if (getParent() == null) {
       return name == null ? "" : name;
@@ -101,12 +111,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     final String fileName = FileUtil.getNameWithoutExtension(file.getName());
     String packageName = HaxeResolveUtil.getPackageName(file);
 
-    if (name != null && isAncillaryClass(packageName, name, fileName)) {
+    if ( alwaysIncludeModuleName || (name != null && isAncillaryClass(packageName, name, fileName))) {
       packageName = HaxeResolveUtil.joinQName(packageName, fileName);
     }
 
     return HaxeResolveUtil.joinQName(packageName, name);
   }
+
 
   private HaxeClassModel _model = null;
 

@@ -4,7 +4,6 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
@@ -95,7 +94,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
       if (exhibitor != null) {
         FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
         if (containerInfo != null) {
-          myQualifiedInfo = new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.fileName, null, null);
+          myQualifiedInfo = new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, null, null);
         }
       }
     }

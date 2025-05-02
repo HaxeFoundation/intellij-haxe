@@ -1,9 +1,6 @@
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.openapi.roots.ProjectRootModificationTracker;
-import com.intellij.openapi.util.ModificationTracker;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,7 +12,7 @@ public class HaxeExprFileModel extends HaxeFileModel {
 
   @Override
   protected boolean isReferencingCurrentFile(FullyQualifiedInfo info) {
-    return (info.packagePath == null || info.packagePath.isEmpty()) && (info.fileName == null || info.fileName.isEmpty());
+    return (info.packagePath == null || info.packagePath.isEmpty()) && (info.moduleName == null || info.moduleName.isEmpty());
   }
 
   public static HaxeExprFileModel fromFile(@NotNull HaxeFile file) {

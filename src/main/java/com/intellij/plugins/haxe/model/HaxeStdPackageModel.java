@@ -92,7 +92,7 @@ public class HaxeStdPackageModel extends HaxePackageModel {
 
     HaxeFileModel stdTypesModel = getStdFileModel();
     if (result == null && stdTypesModel != null && (info.packagePath == null || info.packagePath.isEmpty()) && this.path.isEmpty()) {
-      result = stdTypesModel.resolve(new FullyQualifiedInfo("", null, info.fileName, info.memberName));
+      result = stdTypesModel.resolve(new FullyQualifiedInfo("", null, info.moduleName, info.memberName));
     }
     if (result == null) {
       resolveGlobalSubpackage(info, implicitSubpackageTypes);

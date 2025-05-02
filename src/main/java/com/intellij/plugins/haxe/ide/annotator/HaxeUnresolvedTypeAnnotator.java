@@ -18,21 +18,23 @@
  */
 package com.intellij.plugins.haxe.ide.annotator;
 
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.ide.actions.HaxeStaticMemberAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
-import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
-import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.ide.index.HaxeStaticMemberIndex;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -86,18 +88,34 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
 
   private void tryCreateAnnotation(HaxeReferenceExpression expression) {
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(expression);
-    final List<HaxeComponent> components =
-      HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);
-    if (!components.isEmpty()) {
+    List<HaxeMemberModel> members =  new ArrayList<>();
+    List<HaxeComponent> classes =  HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);;
+    if(expression.getParent() instanceof HaxeCallExpression) {
+      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.METHOD));
+    }else {
+      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.FIELD));
+      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.ENUM));
+    }
+
+    boolean classesFound = classes != null && !classes.isEmpty();
+    boolean membersFound = members != null && !members.isEmpty();
+
+    if (classesFound || membersFound) {
       // operator overload metas don't have "real" references so we skip this check
       if (isCompileTimeMeta(expression, HaxeMeta.OP)) return;
       TextRange textRange = expression.getTextRange();
       if (!annotatedRanges.contains(textRange)) {
         annotatedRanges.add(textRange);
-        myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type"))
-          .range(expression)
-          .withFix(new HaxeTypeAddImportIntentionAction(expression, components))
-          .create();
+        AnnotationBuilder annotationBuilder = myHolder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.unresolved.type")).range(expression);
+
+        if(classesFound) {
+          annotationBuilder.withFix(new HaxeTypeAddImportIntentionAction(expression, classes));
+        }
+        if(membersFound) {
+          annotationBuilder.withFix(new HaxeStaticMemberAddImportIntentionAction(expression, members));
+        }
+
+        annotationBuilder.create();
       }
     }
   }
