@@ -1,8 +1,11 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -11,6 +14,7 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,6 +78,15 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             @Override
             public void run() {
                 HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, ":" + newValue);
+            }
+
+            @Override
+            public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+                int startOffset = typeTag.getTextRange().getStartOffset();
+                int endOffset = typeTag.getTextRange().getEndOffset();
+                editor.getDocument().replaceString(startOffset,endOffset , ":" + newValue);
+
+                return IntentionPreviewInfo.DIFF;
             }
         };
     }
