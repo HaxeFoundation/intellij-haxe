@@ -42,7 +42,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
             holder.newAnnotation(HighlightSeverity.ERROR, message)
                     .range(returnStatement.getChildren()[0])
-                    .withFix(ReplaceReturnTypeFix(returnedType.toPresentationString(), typeTag))
+                    .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
                     .create();
         }
 
@@ -56,7 +56,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                             String message = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning",
                                     expectedType.toPresentationString());
 
-                            String nullWrapped = "Null<" + expectedType.toPresentationString() + ">";
+                            String nullWrapped = "Null<" + expectedType.toTypeString() + ">";
                             holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
                                     .range(returnStatement.getChildren()[0])
                                     .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))

@@ -419,7 +419,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   // checks if we are attempting to  assign an enum type, this makes sure we chose the enum value and not competing class names
   private List<? extends PsiElement> checkEnumMemberHints(HaxeReference reference) {
     if (reference instanceof HaxeReferenceExpressionImpl) {
-      PsiElement referenceParent = reference.getParent();
+
+      boolean isMethodOrConstructor = reference.getParent() instanceof HaxeCallExpression;
+      PsiElement referenceParent = isMethodOrConstructor ? reference.getParent().getParent() : reference.getParent();
+
       if (referenceParent instanceof HaxeEnumValueReference) {
         HaxeSwitchCaseExpr switchCaseExpr = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExpr.class, true);
         if (switchCaseExpr != null) {
@@ -511,13 +514,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
 
-        boolean isEnumConstructor = reference.getParent() instanceof HaxeCallExpression;
-        PsiElement element = isEnumConstructor ? reference.getParent().getParent() : reference.getParent();
+
         HaxePsiField field =
-          fieldFromReferenceExpression != null ? fieldFromReferenceExpression : PsiTreeUtil.getParentOfType(element, HaxePsiField.class, true, HaxeCallExpression.class, HaxeNewExpression.class);
+          fieldFromReferenceExpression != null ? fieldFromReferenceExpression : PsiTreeUtil.getParentOfType(referenceParent, HaxePsiField.class, true, HaxeCallExpression.class, HaxeNewExpression.class);
         HaxeParameter parameter = parameterFromReferenceExpression != null
                                   ? parameterFromReferenceExpression
-                                  : PsiTreeUtil.getParentOfType(element, HaxeParameter.class, true, HaxeCallExpression.class, HaxeNewExpression.class);
+                                  : PsiTreeUtil.getParentOfType(referenceParent, HaxeParameter.class, true, HaxeCallExpression.class, HaxeNewExpression.class);
         HaxeTypeTag tag = null;
         HaxeVarInit init = null;
         if (field != null) {
@@ -548,7 +550,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
         // check function argumentList and look for enum hints in argument types
         int index;
-        PsiElement PossibleCallExpression = element;
+        PsiElement PossibleCallExpression = referenceParent;
         if (PossibleCallExpression instanceof  HaxeCallExpressionList callExpressionList) {
           PossibleCallExpression = callExpressionList.getParent();
           index = callExpressionList.getExpressionList().indexOf(reference);
@@ -1955,6 +1957,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     String qualifiedName = reference.getText();
 
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qualifiedName);
+    // if chain is longer than just to a member  we ignore it
+    // ex. Package.MyClass.someVariable.SomeValueInVariableType
+    if(!qualifiedName.equals(qualifiedInfo.getPresentableText())) return null;
+
     List<HaxeModel> result = HaxeProjectModel.fromElement(reference).resolve(qualifiedInfo, reference.getResolveScope());
     if (result != null && !result.isEmpty()) {
       HaxeModel item = result.getFirst();

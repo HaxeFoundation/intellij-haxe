@@ -51,7 +51,7 @@ import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.resolveMacroTyp
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.*;
-import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getExpectedTypeForReturn;
 
 @CustomLog
 public class HaxeExpressionEvaluatorHandlers {
@@ -2270,7 +2270,7 @@ public class HaxeExpressionEvaluatorHandlers {
     if (isUntypedReturn(returnStatement)) return result;
     List<PsiElement> children = withoutMetadata(returnStatement.getChildren());
     if (!children.isEmpty()) {
-      PsiElement child = children.get(0);
+      PsiElement child = children.getFirst();
       result = handle(child, context, resolver);
     }
     context.addReturnType(result, returnStatement);
@@ -2422,14 +2422,10 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
     }
-    if(parent instanceof  HaxeReturnStatement returnStatement) {
-      HaxePsiCompositeElement compositeElement = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class, HaxeFunctionLiteral.class);
-      HaxeTypeTag typeTag = getTypeTagForMethodOrFunction(compositeElement);
-      if(typeTag != null){
-        ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(typeTag, compositeElement);
-        if(!type.isUnknown()) {
-          return type;
-        }
+    if (parent instanceof HaxeReturnStatement returnStatement) {
+      ResultHolder type = getExpectedTypeForReturn(returnStatement);
+      if ( type != null && !type.isUnknown()) {
+        return type;
       }
     }
 

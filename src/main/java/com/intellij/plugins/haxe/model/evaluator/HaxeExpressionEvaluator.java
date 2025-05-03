@@ -50,6 +50,7 @@ import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorH
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.findUsageAsParameterInFunctionCall;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.searchReferencesForTypeParameters;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.getTypeDefinition;
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getExpectedTypeForReturn;
 
 @CustomLog
 public class HaxeExpressionEvaluator {
@@ -759,6 +760,9 @@ public class HaxeExpressionEvaluator {
     // we need to find  where the literal is used to find correct type
     if (objectLiteral.getParent() instanceof HaxeAssignExpression assignExpression) {
       objectLiteralType = handleWithRecursionGuard(assignExpression.getLeftExpression(), context, resolver);
+    }
+    if (objectLiteral.getParent() instanceof HaxeReturnStatement returnStatement) {
+      return getExpectedTypeForReturn(returnStatement);
     }
     if (objectLiteral.getParent() instanceof HaxeVarInit varInit) {
       HaxePsiField field = PsiTreeUtil.getParentOfType(varInit, HaxePsiField.class);
