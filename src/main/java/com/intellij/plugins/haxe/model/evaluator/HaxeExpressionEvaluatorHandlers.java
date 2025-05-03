@@ -1378,6 +1378,8 @@ public class HaxeExpressionEvaluatorHandlers {
         if (type instanceof  SpecificEnumValueReference enumValueReference) {
           type = enumValueReference.getEnumClass();
         }
+        // if value is null we skip it and hope the rest contains the type or that the type can be resolved from usage later
+        if(type.isDynamic() && type.getConstant() instanceof HaxeNull) continue;;
         references.add(type);
       }
     }

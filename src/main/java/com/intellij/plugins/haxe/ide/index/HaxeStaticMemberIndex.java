@@ -70,16 +70,21 @@ public class HaxeStaticMemberIndex extends FileBasedIndexExtension<String, HaxeS
     return FileBasedIndex.getInstance().getAllKeys(HAXE_STATIC_MEMBER_INDEX, project);
   }
 
-  public static List<HaxeMemberModel> getMembersByName(String name, Project project, GlobalSearchScope searchScope, HaxeComponentType ...type) {
+  public static List<HaxeMemberModel> getMembersByName(String memberName, Project project, GlobalSearchScope searchScope, HaxeComponentType ...type) {
     List<HaxeComponentType> list = Arrays.asList(type);
     HaxeIndexUtil.warnIfDumbMode(project);
+
     List<HaxeMemberModel> results = new ArrayList<>();
-    Collection<String> allKeys = FileBasedIndex.getInstance().getAllKeys(HAXE_STATIC_MEMBER_INDEX, project);
+    List<String> allKeys = FileBasedIndex.getInstance().getAllKeys(HAXE_STATIC_MEMBER_INDEX, project).stream()
+            // static member index  keys are fully qualified so we only want keys that ends with our member name
+            .filter(s -> s.endsWith("."+memberName))
+            .toList();
+
     for (String key : allKeys) {
       List<HaxeStaticMemberInfo> values = FileBasedIndex.getInstance().getValues(HAXE_STATIC_MEMBER_INDEX, key, GlobalSearchScope.allScope(project));
       for (HaxeStaticMemberInfo value : values) {
         if (list.isEmpty() || list.contains(value.getType())) {
-          if (name.equals(value.getMemberName())) {
+          if (memberName.equals(value.getMemberName())) {
             FullyQualifiedInfo qualifiedInfo = value.toFullyQualifiedInfo();
             List<HaxeModel> result = HaxeProjectModel.fromProject(project).resolve(qualifiedInfo, searchScope);
             if (result != null && !result.isEmpty()) {
