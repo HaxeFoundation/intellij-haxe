@@ -51,6 +51,7 @@ import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.resolveMacroTyp
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.*;
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
 
 @CustomLog
 public class HaxeExpressionEvaluatorHandlers {
@@ -2421,6 +2422,17 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }
     }
+    if(parent instanceof  HaxeReturnStatement returnStatement) {
+      HaxePsiCompositeElement compositeElement = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class, HaxeFunctionLiteral.class);
+      HaxeTypeTag typeTag = getTypeTagForMethodOrFunction(compositeElement);
+      if(typeTag != null){
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(typeTag, compositeElement);
+        if(!type.isUnknown()) {
+          return type;
+        }
+      }
+    }
+
     if (parent instanceof HaxeCallExpressionList callExpressionList
         && callExpressionList.getParent() instanceof HaxeCallExpression callExpression) {
 

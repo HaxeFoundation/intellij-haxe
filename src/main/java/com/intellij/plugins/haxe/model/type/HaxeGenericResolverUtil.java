@@ -181,6 +181,9 @@ public class HaxeGenericResolverUtil {
                   // resolve constraint if type parameter ex. (T:B, B:DisplayObject)
                   if (constraint != null && constraint.isTypeParameter()) constraint = methodResolver.resolve(constraint);
                   if (constraint == null || constraint.canAssign(typeParameterType)) {
+                    if(typeParameterType.isDynamic() && typeParameterType.getConstant()  instanceof HaxeNull){
+                      continue;// ignore  null arguments
+                    }
                     methodResolver.addArgument(typeParameter, typeParameterType);
                   }
                 }

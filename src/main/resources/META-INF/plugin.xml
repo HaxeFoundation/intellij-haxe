@@ -353,6 +353,7 @@
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeDefaultTypeParameterAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeNullCoalescingAnnotator"/>
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeAccessAnnotator"/>
+    <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeReturnStatementAnnotator"/>
 
     <annotator language="Haxe" id="body" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeMethodBodyAnnotator" order="last"/>
 

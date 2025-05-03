@@ -26,13 +26,8 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeFileType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
-import com.intellij.plugins.haxe.lang.psi.HaxeParenthesizedExpression;
-import com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxePsiDocComment;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.util.HaxeAstUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.tree.IElementType;
@@ -367,5 +362,19 @@ public class UsefulPsiTreeUtil {
       parent = parent.getParent();
     }
     return parent;
+  }
+
+  @Nullable
+  public static  HaxeTypeTag getTypeTagForMethodOrFunction(HaxePsiCompositeElement element) {
+    if(element instanceof HaxeMethodDeclaration declaration) {
+      return declaration.getTypeTag();
+    }
+    if(element instanceof HaxeLocalFunctionDeclaration declaration) {
+      return declaration.getTypeTag();
+    }
+    if(element instanceof HaxeFunctionLiteral functionLiteral) {
+      return functionLiteral.getTypeTag();
+    }
+    return null;
   }
 }
