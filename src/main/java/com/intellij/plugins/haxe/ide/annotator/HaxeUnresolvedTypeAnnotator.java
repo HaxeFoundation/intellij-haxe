@@ -93,12 +93,11 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     if(expression.getParent() instanceof HaxeCallExpression) {
       members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.METHOD));
     }else {
-      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.FIELD));
-      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.ENUM));
+      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.FIELD, HaxeComponentType.ENUM));
     }
 
-    boolean classesFound = classes != null && !classes.isEmpty();
-    boolean membersFound = members != null && !members.isEmpty();
+    boolean classesFound = !classes.isEmpty();
+    boolean membersFound = !members.isEmpty();
 
     if (classesFound || membersFound) {
       // operator overload metas don't have "real" references so we skip this check

@@ -140,9 +140,11 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeClassDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeExternClassDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeInterfaceDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeTypedefDeclaration.class));
+    HaxeEnumDeclaration[] enumDeclarations = PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class);
+    addEnumMembers(enumDeclarations, result);
+    addDeclarations(result, enumDeclarations);
 
     if(this instanceof HaxeSwitchCase switchCase) {
       List<HaxeSwitchCaseExpr> list = switchCase.getSwitchCaseExprList();
@@ -222,6 +224,19 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       }
     }
     return result;
+  }
+
+  private static void addEnumMembers(HaxeEnumDeclaration[] enumDeclarations, List<PsiElement> result) {
+    if(enumDeclarations != null) {
+      for (HaxeEnumDeclaration haxeEnumDeclaration : enumDeclarations) {
+        List<HaxeNamedComponent> list = haxeEnumDeclaration.getModel()
+                .getMembers(null).stream()
+                .map(m -> m.getNamedComponentPsi())
+                .filter(Objects::nonNull)
+                .toList();
+        result.addAll(list);
+      }
+    }
   }
 
   private static void addCaptureVariableDeclarations(HaxeSwitchCaseExpr expr, List<PsiElement> result) {
