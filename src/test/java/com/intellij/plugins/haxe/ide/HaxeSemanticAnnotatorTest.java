@@ -19,25 +19,11 @@
  */
 package com.intellij.plugins.haxe.ide;
 
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionToolProvider;
-import com.intellij.codeInspection.LocalInspectionTool;
-import com.intellij.codeInspection.ex.InspectionProfileImpl;
-import com.intellij.codeInspection.ex.InspectionToolWrapper;
-import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
 import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
-import com.intellij.profile.codeInspection.InspectionProfileManager;
-import com.intellij.util.ArrayUtil;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
-import java.lang.reflect.Constructor;
 import java.util.*;
 
 
@@ -961,6 +947,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testReturnStatementAnnotation() throws Throwable {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testTypeFromConstraints() throws Throwable {
     doTestNoFixWithWarnings();
   }
@@ -977,7 +968,6 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
   @Test
   public void testSwitchStatements() throws Throwable {
-    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
 

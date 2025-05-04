@@ -63,9 +63,17 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         ResultHolder expectedType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, compositeElement);
         ResultHolder returnedType = HaxeExpressionEvaluator.evaluate(returnStatement).result;
 
-        PsiElement highlightElement = returnStatement.getChildren().length != 0 ? returnStatement.getChildren()[0] : returnStatement;
+        boolean hasReturnValue = returnStatement.getChildren().length != 0;
+        PsiElement highlightElement = hasReturnValue ? returnStatement.getChildren()[0] : returnStatement;
 
-        if(!expectedType.canAssign(returnedType)) {
+        if(expectedType.isVoid() && returnedType.getConstant() != null) {
+            holder.newAnnotation(HighlightSeverity.ERROR,  HaxeBundle.message("haxe.semantic.incompatible.return.void",returnedType.getConstant().toString()))
+                    .range(highlightElement)
+                    .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
+                    .create();
+        }
+
+        else if(!expectedType.canAssign(returnedType)) {
             String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1",
                     returnedType.toPresentationString(),
                     expectedType.toPresentationString());
@@ -74,9 +82,10 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                     .range(highlightElement)
                     .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
                     .create();
+
         }
 
-        if (returnedType.getConstant() instanceof HaxeNull) {
+        else if (returnedType.getConstant() instanceof HaxeNull) {
             if (!expectedType.isNullWrappedType()) {
                 SpecificHaxeClassReference classType = expectedType.getClassType();
                 if (classType != null) {
