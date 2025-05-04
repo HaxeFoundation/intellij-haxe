@@ -23,10 +23,10 @@ class CallExpressionTest {
     function typeDefArg(arg1:MyStruct) {}
     function classInheritArgs(arg1:A) {}
     function interfaceInheritArgs(arg1:C) {}
-    function genericArgs<T>(arg1:T, Arg2:T):T {}
-    function genericClassArgs<T>(arg1:Class<T>):T {}
-    function genericConstraintsArgs<T:String>(arg1:T):T {}
-    function genericClassConstraintsArgs<T:A>(arg1:Class<T>):T {}
+    function genericArgs<T>(arg1:T, Arg2:T):T {return null;}
+    function genericClassArgs<T>(arg1:Class<T>):T {return null;}
+    function genericConstraintsArgs<T:String>(arg1:T):T {return null;}
+    function genericClassConstraintsArgs<T:A>(arg1:Class<T>):T {return null;}
     function genericComplexConstraintsArgs<T:String>(arg1:Array<T>) {}
 
 

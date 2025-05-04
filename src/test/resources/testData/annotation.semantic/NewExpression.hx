@@ -23,10 +23,10 @@ class RestSyntaxArgs{ function new (arg1:String, ...extra:String) {}}
 class TypeDefArg{ function new (arg1:MyStruct) {}}
 class ClassInheritArgs{ function new (arg1:A) {}}
 class InterfaceInheritArgs{ function new (arg1:C) {}}
-class GenericArgs<T>{ function new (arg1:T, Arg2:T):T {}}
-class GenericClassArgs<T>{ function new (arg1:Class<T>):T {}}
-class GenericConstraintsArgs<T:String>{ function new (arg1:T):T {}}
-class GenericClassConstraintsArgs<T:A>{ function new (arg1:Class<T>):T {}}
+class GenericArgs<T>{ function new (arg1:T, Arg2:T):T {return null;}}
+class GenericClassArgs<T>{ function new (arg1:Class<T>):T {return null;}}
+class GenericConstraintsArgs<T:String>{ function new (arg1:T):T {return null;}}
+class GenericClassConstraintsArgs<T:A>{ function new (arg1:Class<T>):T {return null;}}
 class GenericComplexConstraintsArgs<T:String>{ function new (arg1:Array<T>) {} }
 
 

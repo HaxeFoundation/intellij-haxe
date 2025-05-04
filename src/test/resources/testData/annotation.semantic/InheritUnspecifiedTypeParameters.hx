@@ -4,7 +4,7 @@ typedef  LengthContainer = {var length(default, null):Int; }
 
 class InheritUnspecifiedTypeParameters {
 
-    function createObject<A, B:LengthContainer>(value1:A, ?value2:B):TestClass<A, B> {}
+    function createObject<A, B:LengthContainer>(value1:A, ?value2:B):TestClass<A, B> {return null;}
 
     function testTypeParameters(test:TestClass<String, Array<String>>) {}
 

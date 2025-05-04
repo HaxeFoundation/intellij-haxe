@@ -28,6 +28,30 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         if (element instanceof HaxeReturnStatement returnStatement) {
             checkReturnStatement(returnStatement, holder);
         }
+        if (element instanceof HaxeMethod method) {
+            checkForMissingReturnStatement(method, holder);
+        }
+    }
+
+    private void checkForMissingReturnStatement(HaxeMethod method, @NotNull AnnotationHolder holder) {
+        // skip interfaces  etc.
+        if(method.getBody() == null) return;
+
+        HaxeTypeTag typeTag = getTypeTagForMethodOrFunction(method);
+        if(typeTag == null) return;
+
+        ResultHolder typeTagType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, method);
+        if(typeTagType.isVoid()) return;
+
+        //TODO traverse tree and find branches without return statement
+        HaxeReturnStatement[] childrenOfType = PsiTreeUtil.getChildrenOfType(method.getBody(), HaxeReturnStatement.class);
+
+        if(childrenOfType== null  || childrenOfType.length == 0) {
+            holder.newAnnotation(HighlightSeverity.ERROR, "Missing return statement")
+                    .range(method.getBody().getLastChild())
+                    .create();
+        }
+
     }
 
     private void checkReturnStatement(HaxeReturnStatement returnStatement, @NotNull AnnotationHolder holder) {
@@ -39,13 +63,15 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         ResultHolder expectedType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, compositeElement);
         ResultHolder returnedType = HaxeExpressionEvaluator.evaluate(returnStatement).result;
 
+        PsiElement highlightElement = returnStatement.getChildren().length != 0 ? returnStatement.getChildren()[0] : returnStatement;
+
         if(!expectedType.canAssign(returnedType)) {
             String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1",
                     returnedType.toPresentationString(),
                     expectedType.toPresentationString());
 
             holder.newAnnotation(HighlightSeverity.ERROR, message)
-                    .range(returnStatement.getChildren()[0])
+                    .range(highlightElement)
                     .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
                     .create();
         }
@@ -62,7 +88,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
                             String nullWrapped = "Null<" + expectedType.toTypeString() + ">";
                             holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
-                                    .range(returnStatement.getChildren()[0])
+                                    .range(highlightElement)
                                     .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
                                     .create();
                         }
