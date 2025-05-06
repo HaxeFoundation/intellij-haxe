@@ -68,6 +68,8 @@
     <sdkFinder implementation="com.intellij.plugins.haxe.haxelib.HaxeSdkFinder"/>
     <library.type implementation="com.intellij.plugins.haxe.ide.library.HaxeLibraryType"/>
 
+    <copyPastePostProcessor implementation="com.intellij.plugins.haxe.ide.actions.editor.HaxeCopyPasteReferenceProcessor"/>
+
     <externalIconProvider implementationClass="com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibIconProvider"  key="Haxelib"/>
 
     <fileType
