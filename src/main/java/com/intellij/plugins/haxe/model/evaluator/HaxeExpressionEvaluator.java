@@ -271,8 +271,11 @@ public class HaxeExpressionEvaluator {
         return handleReferenceExpression(context, resolver, referenceExpression);
       }
 
-      if (element instanceof HaxeCastExpression castExpression) {
-        return handleCastExpression(castExpression);
+      if (element instanceof HaxeSafeCastExpression safeCastExpression) {
+        return handleSafeCastExpression(safeCastExpression);
+      }
+      if (element instanceof HaxeUnsafeCastExpression unsafeCastExpression) {
+        return handleUnsafeCastExpression(unsafeCastExpression);
       }
 
       if (element instanceof HaxeMapLiteral mapLiteral) {

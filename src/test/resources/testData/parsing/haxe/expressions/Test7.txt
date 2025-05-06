@@ -37,7 +37,7 @@ Haxe File
                         HaxePsiToken:LITINT('0')
                     HaxePsiToken::(':')
                     SWITCH_CASE_BLOCK
-                      CAST_EXPRESSION
+                      SAFE_CAST_EXPRESSION
                         HaxePsiToken:cast('cast')
                         HaxePsiToken:(('(')
                         OBJECT_LITERAL
@@ -64,7 +64,7 @@ Haxe File
               HaxePsiToken:;(';')
             CALL_EXPRESSION
               REFERENCE_EXPRESSION
-                CAST_EXPRESSION
+                SAFE_CAST_EXPRESSION
                   HaxePsiToken:cast('cast')
                   HaxePsiToken:(('(')
                   LITERAL_EXPRESSION

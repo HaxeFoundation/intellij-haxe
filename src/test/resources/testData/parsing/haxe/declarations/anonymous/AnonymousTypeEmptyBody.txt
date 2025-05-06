@@ -81,7 +81,7 @@ Haxe File
             HaxePsiToken:{('{')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              CAST_EXPRESSION
+              UNSAFE_CAST_EXPRESSION
                 HaxePsiToken:cast('cast')
                 OBJECT_LITERAL
                   HaxePsiToken:{('{')

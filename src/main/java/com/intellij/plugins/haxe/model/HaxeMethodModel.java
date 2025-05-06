@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.EqualsAndHashCode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -166,6 +167,26 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(haxeMethod, HaxeMethodModel::getReturnTypeCacheProvider);
     if (resolver != null) {
       ResultHolder resolve = resolver.resolve(result);
+      if(resolve != null && resolve.containsUnknownTypeParameters()){
+        // Special corner-case, might be only for multi-type abstracts ?
+        // if we dont have any typeTag the return type is resolved come from an expression, and for abstracts that can be underlying type
+        // and in the case of abstract Map(IMap) methods like the "get" method that use underlying type that is an interface so we need to translate
+        // our resolver to that interface
+        if(haxeMethod instanceof HaxeMethodDeclaration declaration && declaration.getTypeTag() == null) {
+          HaxeTypeTag typeTag = PsiTreeUtil.getParentOfType(result.getContext(), HaxeTypeTag.class);
+          if(typeTag != null) {
+            HaxeMethod sourceMethod = PsiTreeUtil.getParentOfType(typeTag, HaxeMethod.class);
+            if(sourceMethod != null) {
+              if (haxeMethod.getContainingClass() instanceof HaxeClass originalClass
+                  && sourceMethod.getContainingClass() instanceof HaxeClass SourceClass) {
+                HaxeGenericResolver sourceResolver = resolver.translateFromTo(originalClass, SourceClass);
+                ResultHolder sourceResult = sourceResolver.resolve(result);
+                if (sourceResult != null && !sourceResult.isUnknown()) resolve = sourceResult;
+              }
+            }
+          }
+        }
+      }
       if (resolve != null && !resolve.isUnknown()) result = resolve;
     }
     return result;

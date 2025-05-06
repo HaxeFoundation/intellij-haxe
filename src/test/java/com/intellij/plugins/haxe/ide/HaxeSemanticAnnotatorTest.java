@@ -950,6 +950,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testReturnStatementAnnotation() throws Throwable {
     doTestNoFixWithWeakWarnings();
   }
+  @Test
+  public void testSafeCastExpressions() throws Throwable {
+    doTestNoFixWithWeakWarnings();
+  }
 
   @Test
   public void testTypeFromConstraints() throws Throwable {

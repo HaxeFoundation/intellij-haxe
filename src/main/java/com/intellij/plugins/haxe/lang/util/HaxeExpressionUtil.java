@@ -238,13 +238,19 @@ public class HaxeExpressionUtil {
       return ConstantClass.NOT_CONSTANT;
     }
 
-    if (is_type(expr, HaxeCastExpression.class)) {
+    if (is_type(expr, HaxeSafeCastExpression.class)) {
       // Casts without a target type are allowed.
-      HaxeCastExpression cast = (HaxeCastExpression)expr;
+      HaxeSafeCastExpression cast = (HaxeSafeCastExpression)expr;
       return null == cast.getFunctionType() &&
              null == cast.getTypeOrAnonymous()
              ? ConstantClass.NOT_CONSTANT
              : classifyConstantExpression(cast.getExpression());
+    }
+
+    if (is_type(expr, HaxeUnsafeCastExpression.class)) {
+      // Casts without a target type are allowed.
+      HaxeUnsafeCastExpression cast = (HaxeUnsafeCastExpression)expr;
+      return classifyConstantExpression(cast.getExpression());
     }
 
     if (is_type(expr, HaxeReferenceExpression.class)) {

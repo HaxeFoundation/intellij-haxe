@@ -1209,7 +1209,6 @@ public class HaxeExpressionEvaluatorHandlers {
             HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
             localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
             ResultHolder returnType = methodModel.getReturnType(localResolver);
-            if (returnType.getType().isNullType()) localResolver.resolve(returnType);
             return returnType;
           }
           // TODO make better solution
@@ -1557,6 +1556,11 @@ public class HaxeExpressionEvaluatorHandlers {
         }
       }else {
         SpecificTypeReference callieRef = tryGetCallieType(callExpression);
+        if(callieRef instanceof SpecificHaxeClassReference  callieClassReference) {
+          if(callieClassReference.isNullType() || callieClassReference.isTypeDef()) {
+            callieRef = callieClassReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+          }
+        }
         if (callieRef instanceof SpecificHaxeClassReference classReference &&  !classReference.isUnknown()) {
           HaxeGenericResolver callieResolver = classReference.getGenericResolver();
           HaxeClass callieType = classReference.getHaxeClass();
@@ -1572,6 +1576,11 @@ public class HaxeExpressionEvaluatorHandlers {
           }
         }
         functionType = handle(callExpressionRef, context, localResolver).getType();
+        if(functionType instanceof SpecificHaxeClassReference  functionTypeRef) {
+          if(functionTypeRef.isNullType() || functionTypeRef.isTypeDef()) {
+            functionType = functionTypeRef.fullyResolveTypeDefAndUnwrapNullTypeReference();
+          }
+        }
       }
         boolean varIsMacroFunction = isCallExpressionToMacroMethod(callExpressionRef);
         boolean callIsFromMacroContext = isInMacroFunction(callExpressionRef);
@@ -1985,7 +1994,10 @@ public class HaxeExpressionEvaluatorHandlers {
     return createUnknown(whileStatement);
   }
 
-  static ResultHolder handleCastExpression(HaxeCastExpression castExpression) {
+  static ResultHolder handleUnsafeCastExpression(HaxeUnsafeCastExpression castExpression) {
+      return createUnknown(castExpression);
+  }
+  static ResultHolder handleSafeCastExpression(HaxeSafeCastExpression castExpression) {
     HaxeTypeOrAnonymous anonymous = castExpression.getTypeOrAnonymous();
     if (anonymous != null) {
       return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
@@ -1993,6 +2005,14 @@ public class HaxeExpressionEvaluatorHandlers {
       return createUnknown(castExpression);
     }
   }
+//  static ResultHolder handleCastExpression(HaxeCastExpression castExpression) {
+//    HaxeTypeOrAnonymous anonymous = castExpression.getTypeOrAnonymous();
+//    if (anonymous != null) {
+//      return HaxeTypeResolver.getTypeFromTypeOrAnonymous(anonymous);
+//    } else {
+//      return createUnknown(castExpression);
+//    }
+//  }
 
   @NotNull
   static ResultHolder handleRestParameter(HaxeRestParameter restParameter) {

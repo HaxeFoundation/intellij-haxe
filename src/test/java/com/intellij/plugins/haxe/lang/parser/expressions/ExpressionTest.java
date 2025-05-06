@@ -143,6 +143,10 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testParenthesizedArrayAccess() throws Throwable {
     doTest(true);
   }
+  @Test
+  public void testSafeCastExpressions() throws Throwable {
+    doTest(true);
+  }
 
   @Test
   public void testSequentialOperatorsShouldFailParsing() throws Throwable {

@@ -924,7 +924,8 @@ private value ::= ('untyped' expression)
                 | tryStatement
                 | switchStatement
                 | throwStatement
-                | (castExpression qualifiedReferenceTail?)
+                | (safeCastExpression (qualifiedReferenceTail | CallArrayOrReferenceExpression*)?)
+                | unsafeCastExpression
                 | callFunctionLiteral
                 | immediateArrayAccess
                 | (literalExpression qualifiedReferenceTail?)
@@ -1011,8 +1012,13 @@ newExpression ::= 'inline'? 'new' type newExpressionArgumentsList
     implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"
 }
 
-castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
+unsafeCastExpression ::= 'cast' expression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+safeCastExpression ::= 'cast' (('(' expression ',' typeWrapper ')'))
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+
+//castExpression ::= 'cast' (('(' expression ',' typeWrapper ')')  | expression)
+//{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
 

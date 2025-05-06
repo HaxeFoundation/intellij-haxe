@@ -2,9 +2,11 @@
 ## 1.7.0
 * Added: Access control annotation checking keywords(static private, public) and annotations (`@:access` `@:privateAccess`, `@:allow`)
 * Added: unused definition annotations (local functions, fields and methods).
+* Added: return statement annotations (checks return type compatibility).
 * Added: Add missing imports when generating methods (constructor, override, implement) 
 * Added: Support for patterns syntax in EnumValue.match calls
-* Fixed: Generated overrides now include optional and defaults in parameter lists. 
+* Fixed: Generated overrides now include optional and defaults in parameter lists.
+* Fixed: safe cast expression followed by ArrayAccess expression would give parser error.
 * Bugfix: Introduce variable action in switch-case block would generate variable above switch statement instead of inside the block.
 * Improvement: Better type guessing for introduce member quickfixes + adding missing imports when generating for differentFile/class.
 * Misc: Tweaks to avoid slow operation warning when creating/showing large Class hierarchies 

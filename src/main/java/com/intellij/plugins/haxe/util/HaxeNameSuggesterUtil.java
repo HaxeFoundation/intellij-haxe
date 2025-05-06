@@ -177,7 +177,7 @@ public class HaxeNameSuggesterUtil {
     if (expression instanceof HaxeNewExpression) {
       return "newObj";
     }
-    if (expression instanceof HaxeCastExpression) {
+    if (expression instanceof HaxeUnsafeCastExpression || expression instanceof HaxeSafeCastExpression) {
       return "cast";
     }
     if (expression instanceof HaxeObjectLiteral) {
