@@ -5,7 +5,9 @@ import com.intellij.codeInsight.editorActions.ReferenceData;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -34,7 +36,24 @@ public class HaxeCopyPasteReferenceProcessor extends CopyPasteReferenceProcessor
 
     @Override
     protected void removeImports(@NotNull PsiFile file, @NotNull Set<String> imports) {
-        // TODO organize imports?
+        if (!imports.isEmpty()) {
+            if (file instanceof HaxeFile haxeFile) {
+                List<HaxeImportStatement> toDelete = new ArrayList<>();
+                for (String anImport : imports) {
+                    List<HaxeImportModel> importModels = haxeFile.getModel().getImportModels();
+                    for (HaxeImportModel importModel : importModels) {
+                        HaxeReferenceExpression referenceExpression = importModel.getReferenceExpression();
+                        if (referenceExpression != null && referenceExpression.textMatches(anImport)) {
+                            toDelete.add(importModel.getBasePsi());
+                            break;
+                        }
+                    }
+                }
+                if(!toDelete.isEmpty()) {
+                    toDelete.forEach(PsiElement::delete);
+                }
+            }
+        }
     }
 
     @Override
