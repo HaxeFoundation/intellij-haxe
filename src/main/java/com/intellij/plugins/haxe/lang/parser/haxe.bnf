@@ -731,7 +731,7 @@ switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 
 switchCaseBlock ::=  statementList | (literalExpression <<semicolonUnlessPrecededByStatement>>)
 switchCase ::= 'case'  switchCaseExpr ((','|'|') switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
-private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral | enumExtractedValue | statement ) {hooks=[popCollectionInitializersRule]}
+private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral | min2RefsQualifiedReferenceExpression | enumExtractedValue | statement ) {hooks=[popCollectionInitializersRule]}
 switchCaseExprArray ::= "["  (switchCaseExprElement ","?)* "]"
 // Should NOT be named Expression, because it should not be an expression.
 switchCaseExpr ::= <<pushCollectionInitializersDeny>> (switchCaseExprArray  |  switchCaseExprElement) {hooks=[popCollectionInitializersRule]}
@@ -1003,6 +1003,9 @@ referenceExpression ::= identifier
 left qualifiedNullSafeReferenceExpression ::= ('?.'|'.') identifierOrReferenceAllowedKeyword {elementType="referenceExpression" pin=2}
 left qualifiedReferenceExpression ::= '.' identifierOrReferenceAllowedKeyword  {elementType="referenceExpression" pin=2}
 private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
+
+// makes sure there's at least one "." in the referenceExpression (special case used to determine if switch case references can be "vars" or not)
+private min2RefsQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression+ { elementType="referenceExpression"}
 
 componentName ::= identifier
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}

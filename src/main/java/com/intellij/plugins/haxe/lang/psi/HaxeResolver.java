@@ -189,8 +189,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkEnumExtractor(reference);// do before walking tree
     if (result == null) result = checkReferenceInExtractorMatchExpression(reference);
     if (result == null) result = checkIsSwitchVar(reference);
-    if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
     if (result == null) result = checkCaptureVarReference(reference);
+    if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
 
     HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
@@ -257,6 +257,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkIsForwardedName(reference);
     if (result == null) result = checkGlobalAlias(reference);
 
+    if(result == null) {
+      // check if this can be a switch extract variable,
+      // checking here (and not in switch var method) because we want to make sure all other type resolve has been tried
+      result = checkIfNamedSwitchValue(reference);
+    }
+
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
       return EMPTY_LIST; // empty list means cache not found
@@ -269,6 +275,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     return result;
 
+  }
+
+  private List<? extends PsiElement> checkIfNamedSwitchValue(@NotNull HaxeReference reference) {
+    if(reference.getParent() instanceof  HaxeEnumExtractedValue ) {
+      return checkIfSwitchCaseDefaultValue(reference, true);
+    }
+    return null;
   }
 
   // Experimental
@@ -1114,7 +1127,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> checkCaptureVarReference(HaxeReference reference) {
-    if (reference instanceof HaxeReferenceExpression) {
+    if (reference instanceof HaxeReferenceExpression || reference instanceof  HaxeEnumExtractedValueReference) {
       HaxeSwitchCase switchCase = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCase.class);
       if (switchCase != null) {
         // references in "case" expression (ex. case myVar)
@@ -1216,7 +1229,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result =  tryResolveExtractedValue(reference);
 
     // check if matches default name ( ex. `case _:`)
-    if (result == null) result = checkIfSwitchCaseDefaultValue(reference);
+    if (result == null) result = checkIfSwitchCaseDefaultValue(reference, false);
+
 
     // try to resolve reference for guard and block (ex. `case [a, b] if ( b > a): b + ">" + a;`)
     if (result == null) result = tryResolveVariableForGuardsAndBlock(reference);
@@ -1540,8 +1554,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
-  private static List<@NotNull PsiElement> checkIfSwitchCaseDefaultValue(HaxeReference reference) {
-    if (reference.textMatches("_")) {
+  private static List<@NotNull PsiElement> checkIfSwitchCaseDefaultValue(HaxeReference reference, boolean ignoreName) {
+    if (reference.textMatches("_") || ignoreName) {
       // if is part of an expression
       HaxeSwitchCaseExpr switchCaseExpr = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExpr.class,  true, HaxeEnumArgumentExtractor.class);
       if (switchCaseExpr != null) {
@@ -2455,7 +2469,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
 
       // hackish workaround for captureVariables iin array (HaxeSwitchCaseExprArray)
-      if(element.textMatches(name)) {
+      if(element.textMatches(name) && !PsiTreeUtil.isAncestor(target, element, false)) {
         if (element instanceof HaxeReferenceExpression referenceExpression) {
           if (element.getParent() instanceof HaxeSwitchCaseExprArray || element.getParent() instanceof HaxeSwitchCaseExpr) {
             if (HaxeReferenceUtil.isCaptureVar(referenceExpression)) {
@@ -2495,7 +2509,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
 
-      if (componentName != null &&  componentName.textMatches(name)) {
+      if (componentName != null
+          &&  componentName.textMatches(name)
+          && !PsiTreeUtil.isAncestor(target, element, false))
+      {
         result.add(componentName);
         return collectAll;
       }
