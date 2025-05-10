@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +33,19 @@ public class HaxeLineMarkerProvider extends HaxeLineMarkerProviderNS {
 
     @Override
     public void collectSlowLineMarkers(@NotNull List<? extends PsiElement> elements, @NotNull Collection<? super LineMarkerInfo<?>> result) {
+        if(elements.isEmpty()) return;
+
+        DumbService dumbService = DumbService.getInstance(elements.getFirst().getProject());
+        if (dumbService.isDumb()) {
+            dumbService.waitForSmartMode();
+            if(dumbService.isDumb()) return;
+        }
+
         super.collectSlowLineMarkersWorker(elements, result);
+    }
+
+    @Override
+    public boolean isDumbAware() {
+        return false;
     }
 }

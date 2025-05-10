@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.index;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -25,9 +26,9 @@ public class HaxeInheritanceDefinitionsUtil {
     if (dumbService.isDumb()) {
       dumbService.waitForSmartMode();
     }
-    return dumbService.tryRunReadActionInSmartMode(
-            () -> _getItemsByQNameFirstLevelChildrenOnly(haxeClass, project),
-            "Collecting inheritance information");
+    return ReadAction.nonBlocking(() -> _getItemsByQNameFirstLevelChildrenOnly(haxeClass, project))
+            .inSmartMode(project)
+            .executeSynchronously();
   }
 
 
@@ -42,7 +43,9 @@ public class HaxeInheritanceDefinitionsUtil {
       dumbService.waitForSmartMode();
     }
 
-    return dumbService.runReadActionInSmartMode(() -> _getItemsByQNameIncludingSubChildren(haxeClass));
+    return ReadAction.nonBlocking(() -> _getItemsByQNameIncludingSubChildren(haxeClass))
+            .inSmartMode(project)
+            .executeSynchronously();
   }
 
   private static @NotNull Collection<HaxeClass> _getItemsByQNameFirstLevelChildrenOnly(HaxeClass haxeClass, Project project) {
