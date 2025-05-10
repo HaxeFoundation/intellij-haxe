@@ -197,7 +197,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
       target = expression.getRightExpression();
     }
 
-    if(target == null) SpecificHaxeClassReference.getUnknown(expression).createHolder();
+    if(target == null) return SpecificHaxeClassReference.getUnknown(expression).createHolder();
     ResultHolder result = HaxeExpressionEvaluator.evaluate(target, null).result;
     if (!result.isUnknown()) return result;
     return SpecificHaxeClassReference.getDynamic(target).createHolder();

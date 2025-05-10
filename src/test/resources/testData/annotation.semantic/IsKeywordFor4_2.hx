@@ -101,7 +101,8 @@ class IsOperator extends Base {
         try { var s; s = "else"; } catch (e) {} is<error descr="Missing semicolon."> </error>String; // 4.2: characters 52-58 : Missing ;
         switch (ary[0]) { case _ => c: c; } is<error descr="Missing semicolon."> </error>String; // 4.2:  characters 48-54 : Missing ;
 
-        switch myString { case _ is String: trace(true); }
+        switch myString { case _ is<error descr="Missing semicolon."> </error>String<error descr="Missing semicolon.">:</error> trace(true); } // wrong : // Unrecognized pattern: _ is String
+        switch myString { case _ is String => true: trace(true); } // CORRECT
         // super is String; // Parses, but cannot use super as value.
 
         return false;

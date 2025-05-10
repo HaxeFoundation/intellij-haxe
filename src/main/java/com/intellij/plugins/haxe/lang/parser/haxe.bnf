@@ -731,16 +731,21 @@ switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 
 switchCaseBlock ::=  statementList | (literalExpression <<semicolonUnlessPrecededByStatement>>)
 switchCase ::= 'case'  switchCaseExpr ((','|'|') switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
-private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral |  statement ) {hooks=[popCollectionInitializersRule]}
+private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral | enumExtractedValue | statement ) {hooks=[popCollectionInitializersRule]}
 switchCaseExprArray ::= "["  (switchCaseExprElement ","?)* "]"
 // Should NOT be named Expression, because it should not be an expression.
 switchCaseExpr ::= <<pushCollectionInitializersDeny>> (switchCaseExprArray  |  switchCaseExprElement) {hooks=[popCollectionInitializersRule]}
 
 extractorMatchAssignExpression ::= referenceExpression "=";
-left extractorMatchExpression ::=  '=>' switchCaseExpr
+left extractorMatchExpression ::=  '=>' ( switchCaseExpr)
 {extends="expression" methods=[ extractorExpression="expression" match ="switchCaseExpr"]}
 
-private extractorMatchGroup ::= expression extractorMatchExpression
+unnamedComponentName ::= unnameIdentifier {extends=componentName}
+unnamedExtractedValueReference ::= unnamedComponentName {extends=enumExtractedValueReference}
+
+private extractorMatchGroupUnnamed ::= unnamedExtractedValueReference extractorMatchExpression
+private extractorMatchGroupExpression ::=  expression extractorMatchExpression
+private extractorMatchGroup ::=  extractorMatchGroupUnnamed | extractorMatchGroupExpression
 
 private switchEnumBitOperationElement ::= enumArgumentExtractor | enumValueReference;
 switchEnumBitOperationExpression ::=   switchEnumBitOperationElement (bitOperation switchEnumBitOperationElement)+ {extends="expression"}
@@ -760,9 +765,11 @@ enumExtractedValueReference ::= (<<startWithLowercaseOrUnderscoreCheck>> compone
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 enumExtractedValue::= enumExtractedValueReference | primitiveExtractedValue
 
+//extractVariable ::= identifier
+//{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 
 private primitiveExtractedValue  ::= enumExtractObjectLiteral | enumExtractArrayLiteral {recoverWhile=expression_recover}
-private expressionOrEnumExtractorExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral  | expression   {extends=expression}
+private expressionOrEnumExtractorExpression ::=  switchExtractorExpression | enumExtractArrayLiteral | enumExtractObjectLiteral | enumExtractedValue | expression   {extends=expression}
 enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrEnumExtractorExpression)
 {
   pin=2
@@ -933,7 +940,7 @@ private value ::= ('untyped' expression)
                 | valueReference
                 | localVarDeclarationWithInit
 {pin=1 }
-private valueReference ::= (macroExpressionReification | callOrArrayTail) (qualifiedReferenceTail | CallArrayOrReferenceExpression* qualifiedReferenceTail*)?;
+private valueReference ::= ( macroExpressionReification | callOrArrayTail) (qualifiedReferenceTail | CallArrayOrReferenceExpression* qualifiedReferenceTail*)?;
 
 literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                     | 'null' | 'true' | 'false'

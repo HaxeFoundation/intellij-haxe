@@ -507,9 +507,11 @@ Haxe File
                         SWITCH_CASE
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
                             STRING_LITERAL_EXPRESSION
@@ -634,9 +636,11 @@ Haxe File
                                   IDENTIFIER
                                     HaxePsiToken:ID('name')
                                 HaxePsiToken::(':')
-                                REFERENCE_EXPRESSION
-                                  IDENTIFIER
-                                    HaxePsiToken:ID('n')
+                                ENUM_EXTRACTED_VALUE
+                                  ENUM_EXTRACTED_VALUE_REFERENCE
+                                    COMPONENT_NAME
+                                      IDENTIFIER
+                                        HaxePsiToken:ID('n')
                               HaxePsiToken:}('}')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -647,9 +651,11 @@ Haxe File
                         SWITCH_CASE
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
                             STRING_LITERAL_EXPRESSION
@@ -717,9 +723,11 @@ Haxe File
                               LITERAL_EXPRESSION
                                 HaxePsiToken:LITINT('2')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -733,9 +741,11 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
                               LITERAL_EXPRESSION
                                 HaxePsiToken:LITINT('6')
@@ -765,17 +775,23 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -787,9 +803,11 @@ Haxe File
                         SWITCH_CASE
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
                             STRING_LITERAL_EXPRESSION
@@ -866,9 +884,11 @@ Haxe File
                         SWITCH_CASE
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
                             STRING_LITERAL_EXPRESSION
@@ -933,13 +953,17 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('a')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('a')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('b')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('b')
                               HaxePsiToken:](']')
                           GUARD
                             HaxePsiToken:if('if')
@@ -978,13 +1002,17 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('a')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('a')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('b')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('b')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -1008,9 +1036,11 @@ Haxe File
                         SWITCH_CASE
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('_')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
                             STRING_LITERAL_EXPRESSION
@@ -1087,16 +1117,20 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
                               LITERAL_EXPRESSION
                                 HaxePsiToken:true('true')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -1110,16 +1144,20 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
                               LITERAL_EXPRESSION
                                 HaxePsiToken:false('false')
                               HaxePsiToken:,(',')
-                              REFERENCE_EXPRESSION
-                                IDENTIFIER
-                                  HaxePsiToken:ID('_')
+                              ENUM_EXTRACTED_VALUE
+                                ENUM_EXTRACTED_VALUE_REFERENCE
+                                  COMPONENT_NAME
+                                    IDENTIFIER
+                                      HaxePsiToken:ID('_')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK

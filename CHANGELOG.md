@@ -5,6 +5,7 @@
 * Added: return statement annotations (checks return type compatibility).
 * Added: Add missing imports when generating methods (constructor, override, implement) 
 * Added: Support for patterns syntax in EnumValue.match calls
+* Added: Automatically adding missing imports when performing copy & past inside intellij. 
 * Fixed: Generated overrides now include optional and defaults in parameter lists.
 * Fixed: safe cast expression followed by ArrayAccess expression would give parser error.
 * Bugfix: Introduce variable action in switch-case block would generate variable above switch statement instead of inside the block.

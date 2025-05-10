@@ -18,6 +18,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
+
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
 
@@ -44,9 +46,10 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         if(typeTagType.isVoid()) return;
 
         //TODO traverse tree and find branches without return statement
-        HaxeReturnStatement[] childrenOfType = PsiTreeUtil.getChildrenOfType(method.getBody(), HaxeReturnStatement.class);
+        Collection<HaxeReturnStatement> returnStatements = PsiTreeUtil.findChildrenOfType(method.getBody(), HaxeReturnStatement.class);
+        Collection<HaxeThrowStatement> throwStatements = PsiTreeUtil.findChildrenOfType(method.getBody(), HaxeThrowStatement.class);
 
-        if(childrenOfType== null  || childrenOfType.length == 0) {
+        if(returnStatements.isEmpty() && throwStatements.isEmpty()) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Missing return statement")
                     .range(method.getBody().getLastChild())
                     .create();

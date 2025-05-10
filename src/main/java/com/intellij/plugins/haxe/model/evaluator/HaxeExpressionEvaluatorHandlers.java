@@ -848,10 +848,23 @@ public class HaxeExpressionEvaluatorHandlers {
 
 
   static ResultHolder handleEnumExtractedValue(@NotNull HaxeEnumExtractedValueReference extractedValue, @NotNull HaxeGenericResolver resolver) {
-    HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class);
+    HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(extractedValue, HaxeExtractorMatchExpression.class, true, HaxeEnumArgumentExtractor.class);
+    if (matchExpression != null) {
+      HaxeSwitchCaseExpr match = matchExpression.getMatch();
+      if (PsiTreeUtil.isAncestor(match, extractedValue, false)) {
+        return evaluate(matchExpression.getExtractorExpression(), resolver).result;
+      }
+    }
+
+    HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class, true, HaxeEnumArgumentExtractor.class);
     if (extractor != null) {
       HaxeEnumExtractorModel extractorModel = (HaxeEnumExtractorModel)extractor.getModel();
       return extractorModel.resolveExtractedValueType(extractedValue);
+    }
+
+    PsiElement resolve = extractedValue.resolve();
+    if(resolve != null) {
+      return evaluate(resolve).result;
     }
     return createUnknown(extractedValue);
   }
@@ -1226,6 +1239,44 @@ public class HaxeExpressionEvaluatorHandlers {
       }
     }
     return createUnknown(arrayAccessExpression);
+  }
+
+  public static ResultHolder getArrayAccessTypeFromClass(SpecificHaxeClassReference classReference) {
+    SpecificTypeReference reference = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+    if (reference instanceof SpecificHaxeClassReference fullyResolved){
+      classReference = fullyResolved;
+    }
+    if(classReference.isArray()) {
+      // hack (Array does not have any "get" method for array access)
+      @NotNull ResultHolder[] specifics = classReference.getSpecifics();
+      if(specifics.length == 1) {
+        return specifics[0];
+      }
+    }
+    HaxeClass haxeClass = classReference.getHaxeClass();
+    if (haxeClass != null) {
+      HaxeNamedComponent getter = haxeClass.findArrayAccessGetter(classReference.getGenericResolver());
+      if (getter instanceof HaxeMethodDeclaration methodDeclaration) {
+        HaxeMethodModel methodModel = methodDeclaration.getModel();
+        HaxeGenericResolver localResolver = classReference.getGenericResolver();
+        HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
+        localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
+        ResultHolder returnType = methodModel.getReturnType(localResolver);
+        return returnType;
+      }
+      // TODO make better solution
+      // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
+      else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
+        HaxeGenericResolver classResolver = classReference.getGenericResolver();
+        HaxeGenericResolver interfaceResolver = classResolver.translateFromTo(classReference.getHaxeClass(), interfaceDeclaration);
+        ResultHolder interfaceType = interfaceResolver.resolve(interfaceDeclaration.getModel().getInstanceType());
+        if(interfaceType != null) {
+          @NotNull ResultHolder[] specifics = interfaceType.getClassType().getSpecifics();
+          if (specifics.length == 1) return specifics[0];
+        }
+      }
+    }
+    return null;
   }
 
   static ResultHolder handleIteratorExpression(

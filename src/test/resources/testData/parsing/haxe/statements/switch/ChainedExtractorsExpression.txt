@@ -67,9 +67,11 @@ Haxe File
                             HaxePsiToken:)(')')
                           HaxePsiToken:=>('=>')
                           SWITCH_CASE_EXPR
-                            REFERENCE_EXPRESSION
-                              IDENTIFIER
-                                HaxePsiToken:ID('a')
+                            ENUM_EXTRACTED_VALUE
+                              ENUM_EXTRACTED_VALUE_REFERENCE
+                                COMPONENT_NAME
+                                  IDENTIFIER
+                                    HaxePsiToken:ID('a')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK
                     CALL_EXPRESSION
