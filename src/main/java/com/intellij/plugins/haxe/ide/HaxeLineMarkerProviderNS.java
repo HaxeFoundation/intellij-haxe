@@ -62,11 +62,6 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
   }
 
   private static void collectClassMarkers(@NotNull Collection<? super LineMarkerInfo<?>> result, @NotNull HaxeClass haxeClass) {
-    DumbService dumbService = DumbService.getInstance(haxeClass.getProject());
-    if (dumbService.isDumb()) {
-      dumbService.waitForSmartMode();
-    }
-
     final List<HaxeClass> supers = HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     final List<HaxeNamedComponent> superItems =  HaxeNamedSubComponentUtil.uniqueNamedSubComponents(HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers));

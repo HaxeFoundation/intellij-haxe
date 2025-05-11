@@ -34,6 +34,7 @@ public class HaxeUnresolvedSymbolQuickFixes {
   }
 
   public static LocalQuickFix createFieldQuickfix(@NotNull HaxeReferenceExpression expression,  @NotNull HaxeClass targetClass) {
+    if(expression.getParent() instanceof HaxeType) return null;
     return new HaxeIntroduceFieldIntention(expression, targetClass);
 
   }
