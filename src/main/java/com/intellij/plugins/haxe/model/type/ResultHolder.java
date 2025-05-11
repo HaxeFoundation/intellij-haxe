@@ -294,6 +294,8 @@ public class ResultHolder {
     SpecificTypeReference type = holder.getType();
     if (type instanceof  SpecificHaxeClassReference classReference) {
       for (ResultHolder specific : classReference.getSpecifics()) {
+        // ignore unknown if in Dynamic
+        if(specific.isDynamic() && containsUnknownTypeParameters(specific)) return false;
         if (specific.isUnknown() || containsUnknownTypeParameters(specific)) return  true;
       }
     }
