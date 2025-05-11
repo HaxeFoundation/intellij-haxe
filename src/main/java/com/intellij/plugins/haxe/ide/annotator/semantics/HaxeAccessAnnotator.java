@@ -95,6 +95,8 @@ public class HaxeAccessAnnotator implements Annotator {
   }
 
   private void checkStaticAccess(@NotNull AnnotationHolder holder, @NotNull HaxeReferenceExpression referenceExpression, @NotNull HaxeMemberModel memberModel) {
+    // ignore anything inside metas (ex. @:build @:autoBuild etc)
+    if (PsiTreeUtil.getParentOfType(referenceExpression, HaxeMeta.class)!= null) return;
     // ignore non chained references (usually local access in same class)
     if (HaxeResolveUtil.getLeftReference(referenceExpression) == null) return;
     if (isStaticExtensionReferences(referenceExpression)) return;
