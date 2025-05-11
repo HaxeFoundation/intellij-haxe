@@ -145,11 +145,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     addDeclarations(result, enumDeclarations);
 
     if(this instanceof HaxeSwitchCase switchCase) {
-      Collection<HaxeEnumExtractedValueReference> extractedValueList = PsiTreeUtil.findChildrenOfType(switchCase, HaxeEnumExtractedValueReference.class);
-      result.addAll(extractedValueList);
-
       List<HaxeSwitchCaseExpr> list = switchCase.getSwitchCaseExprList();
       for (HaxeSwitchCaseExpr expr : list) {
+        addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeEnumExtractedValueReference.class));
         addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeSwitchCaseCapture.class));
         addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeExtractorMatchAssignExpression.class));
         addDeclarations(result, getObjectLiteralReferences(expr));
