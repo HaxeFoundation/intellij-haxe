@@ -19,6 +19,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ public class HaxeLineMarkerProvider extends HaxeLineMarkerProviderNS {
         DumbService dumbService = DumbService.getInstance(elements.getFirst().getProject());
         if (dumbService.isDumb()) {
             dumbService.waitForSmartMode();
-            if(dumbService.isDumb()) return;
+            if(dumbService.isDumb()) throw  new ProcessCanceledException();
         }
 
         super.collectSlowLineMarkersWorker(elements, result);

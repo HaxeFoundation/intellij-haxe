@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.codeInsight.daemon.GutterIconNavigationHandler;
 import com.intellij.codeInsight.navigation.PsiTargetNavigator;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.RecursionGuard;
+import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
@@ -105,13 +107,28 @@ abstract class HaxeLineMarkerMemberNavigator implements GutterIconNavigationHand
             // interfaces can only extend other interfaces so it only makes sense to look at ExtendsList
             supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList()));
         }else {
-            supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(searchInterfaces ? haxeClass.getHaxeImplementsList() : haxeClass.getHaxeExtendsList()));
+            supers.addAll(collectHierarchy(haxeClass, searchInterfaces));
         }
 
         final List<HaxeNamedComponent> superItems = uniqueNamedSubComponents(HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers));
         return superItems.stream()
                 .filter(haxeNamedComponent -> componentNameMatches(haxeNamedComponent, componentName))
                 .toList();
+    }
+
+    private static final RecursionGuard<HaxeClass> hierarchyRecursionGuard = RecursionManager.createGuard("hierarchyRecursionGuard");
+    private static @NotNull List<HaxeClass> collectHierarchy(HaxeClass haxeClass, boolean searchInterfaces) {
+        List<HaxeClass>  combined = new ArrayList<>();
+        combined.addAll(HaxeResolveUtil.tryResolveClassesByQName(searchInterfaces ? haxeClass.getHaxeImplementsList() : haxeClass.getHaxeExtendsList()));
+
+        // search  subclasses
+        List<HaxeClass> haxeClasses = HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList());
+        for (HaxeClass aClass : haxeClasses) {
+            List<HaxeClass> subClasses = hierarchyRecursionGuard.doPreventingRecursion(aClass, true, () -> collectHierarchy(aClass, searchInterfaces));
+            if(subClasses!= null)combined.addAll(subClasses);
+        }
+
+        return combined;
     }
 
 
