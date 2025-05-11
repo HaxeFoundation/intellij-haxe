@@ -34,13 +34,13 @@ class ResolveFromConstraints<T: Iterable<Int> & MyDef<Array<String>>> {
         var iteratorValue:Int = testMember.iterator().next();
 
         //WRONG (verifing that expressions returns expected types and dont use type hints when resolving)
-        var <error descr="Incompatible type: Iterator<Int> should be EnumValue">iterator:EnumValue = testMember.iterator()</error>;
-        var <error descr="Incompatible type: String should be EnumValue">str:EnumValue = testMember.normalVar.charAt(1)</error>;
-        var <error descr="Incompatible type: Int should be EnumValue">index:EnumValue = testMember.typeParamVar.indexOf("")</error>;
-        var <error descr="Incompatible type: String should be EnumValue">char:EnumValue = testMember.typeParamVar[0].charAt(1)</error>;
+        var iterator:EnumValue = <error descr="Incompatible type: Iterator<Int> should be EnumValue">testMember.iterator()</error>;
+        var str:EnumValue = <error descr="Incompatible type: String should be EnumValue">testMember.normalVar.charAt(1)</error>;
+        var index:EnumValue = <error descr="Incompatible type: Int should be EnumValue">testMember.typeParamVar.indexOf("")</error>;
+        var char:EnumValue = <error descr="Incompatible type: String should be EnumValue">testMember.typeParamVar[0].charAt(1)</error>;
 
-        var <error descr="Incompatible type: Array<String> should be EnumValue">typeParamVar:EnumValue = testMember.typeParamVar</error>;
-        var <error descr="Incompatible type: Int should be EnumValue">iteratorValue:EnumValue = testMember.iterator().next()</error>;
+        var typeParamVar:EnumValue = <error descr="Incompatible type: Array<String> should be EnumValue">testMember.typeParamVar</error>;
+        var iteratorValue:EnumValue = <error descr="Incompatible type: Int should be EnumValue">testMember.iterator().next()</error>;
 
     }
     public function testLocalVar() {
@@ -55,12 +55,12 @@ class ResolveFromConstraints<T: Iterable<Int> & MyDef<Array<String>>> {
         var iteratorValue:Int = testVariable.iterator().next();
 
         //WRONG (verifing that expressions returns expected types and dont use type hints when resolving)
-        var <error descr="Incompatible type: Iterator<Int> should be EnumValue">iterator:EnumValue = testVariable.iterator()</error>;
-        var <error descr="Incompatible type: String should be EnumValue">str:EnumValue = testVariable.normalVar.charAt(1)</error>;
-        var <error descr="Incompatible type: Int should be EnumValue">index:EnumValue = testVariable.typeParamVar.indexOf("")</error>;
-        var <error descr="Incompatible type: String should be EnumValue">char:EnumValue = testVariable.typeParamVar[0].charAt(1)</error>;
+        var iterator:EnumValue = <error descr="Incompatible type: Iterator<Int> should be EnumValue">testVariable.iterator()</error>;
+        var str:EnumValue = <error descr="Incompatible type: String should be EnumValue">testVariable.normalVar.charAt(1)</error>;
+        var index:EnumValue = <error descr="Incompatible type: Int should be EnumValue">testVariable.typeParamVar.indexOf("")</error>;
+        var char:EnumValue = <error descr="Incompatible type: String should be EnumValue">testVariable.typeParamVar[0].charAt(1)</error>;
 
-        var <error descr="Incompatible type: Array<String> should be EnumValue">typeParamVar:EnumValue = testVariable.typeParamVar</error>;
-        var <error descr="Incompatible type: Int should be EnumValue">iteratorValue:EnumValue = testVariable.iterator().next()</error>;
+        var typeParamVar:EnumValue = <error descr="Incompatible type: Array<String> should be EnumValue">testVariable.typeParamVar</error>;
+        var iteratorValue:EnumValue = <error descr="Incompatible type: Int should be EnumValue">testVariable.iterator().next()</error>;
     }
 }

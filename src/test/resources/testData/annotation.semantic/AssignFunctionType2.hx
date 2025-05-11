@@ -30,7 +30,7 @@ class FunctionTypeAssignTest2 {
 
         // Wrong :
         // provided method can not accept argument that has typeParameter of type dynamic
-        var <error descr="Incompatible type: Array<String>->Void should be Array<Null<Dynamic>>->Void">assignToDynamicTp:Array<Null<Dynamic>> -> Void = stringTpArg</error>;
+        var assignToDynamicTp:Array<Null<Dynamic>> -> Void = <error descr="Incompatible type: Array<String>->Void should be Array<Null<Dynamic>>->Void">stringTpArg</error>;
 
 
 
@@ -49,7 +49,7 @@ class FunctionTypeAssignTest2 {
         var acceptReturnNullWrapped3:Void -> Dynamic  = nullDynamicReturn;
 
         //Wrong
-        var <error descr="Incompatible type: Void->String should be Void->Null<Int>">wrong:Void -> Null<Int>  = stringReturn</error>;
+        var wrong:Void -> Null<Int>  = <error descr="Incompatible type: Void->String should be Void->Null<Int>">stringReturn</error>;
 
         //????
         // allowed by compiler (monomprph?)
@@ -64,7 +64,7 @@ class FunctionTypeAssignTest2 {
         var assignToDynamicTp:Void -> Array<Null<Dynamic>>  = stringTpReturn;
 
         // wrong: return array may contain anny thing and function type promisses only array of strings
-        var <error descr="Incompatible type: Void->Array<Dynamic> should be Void->Array<Null<String>>">wrong: Void -> Array<Null<String>> = dynamicTpReturn</error>;
+        var wrong: Void -> Array<Null<String>> = <error descr="Incompatible type: Void->Array<Dynamic> should be Void->Array<Null<String>>">dynamicTpReturn</error>;
 
 
     }

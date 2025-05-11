@@ -23,17 +23,17 @@ class EnumToolsTest {
     }
 
     public function wrong() {
-        var <error descr="Incompatible type: String should be Int">nameA:Int = TestEum.ValueA.getName()</error>;
-        var <error descr="Incompatible type: String should be Int">nameB:Int = ValueB.getName()</error>;
+        var nameA:Int = <error descr="Incompatible type: String should be Int">TestEum.ValueA.getName()</error>;
+        var nameB:Int = <error descr="Incompatible type: String should be Int">ValueB.getName()</error>;
 
-        var <error descr="Incompatible type: Array<String> should be Array<Int>">constructors:Array<Int> = TestEum.getConstructors()</error>;
-        var <error descr="Incompatible type: String should be Int">enumName:Int = TestEum.getName()</error>;
+        var constructors:Array<Int> = <error descr="Incompatible type: Array<String> should be Array<Int>">TestEum.getConstructors()</error>;
+        var enumName:Int = <error descr="Incompatible type: String should be Int">TestEum.getName()</error>;
 
-        var <error descr="Incompatible type: TestEum should be Int">fromName:Int = TestEum.createByName("nameB")</error>;
+        var fromName:Int = <error descr="Incompatible type: TestEum should be Int">TestEum.createByName("nameB")</error>;
 
 
-        var <error descr="Incompatible type: Void->Array<String> should be Enum<Int>->Array<Int>">name:Enum<Int> -> Array<Int> = TestEum.getConstructors</error>;
-        var <error descr="Incompatible type: (String, ?Array<Dynamic>)->TestEum should be (String, ?Array<Dynamic>)->Int">name:(String, ?Array<Dynamic>) -> Int = TestEum.createByName</error>;
-        var <error descr="Incompatible type: Void->String should be Void->Int">name:Void -> Int = ValueB.getName</error>;
+        var name:Enum<Int> -> Array<Int> = <error descr="Incompatible type: Void->Array<String> should be Enum<Int>->Array<Int>">TestEum.getConstructors</error>;
+        var name:(String, ?Array<Dynamic>) -> Int = <error descr="Incompatible type: (String, ?Array<Dynamic>)->TestEum should be (String, ?Array<Dynamic>)->Int">TestEum.createByName</error>;
+        var name:Void -> Int = <error descr="Incompatible type: Void->String should be Void->Int">ValueB.getName</error>;
     }
 }

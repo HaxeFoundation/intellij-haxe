@@ -12,7 +12,7 @@ class FunctionBindTest1 {
 
         // wrong
         var bind:Float -> String = normal.bind(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>, _); // String should be Int
-        var <error descr="Incompatible type: Int->String should be Float->String">bind:Float -> String = normal.bind(_, 1)</error>;  // Float should be Int
+        var bind:Float -> String = <error descr="Incompatible type: Int->String should be Float->String">normal.bind(_, 1)</error>;  // Float should be Int
 
 //OPTIONAL ARGUMENTS
         var optionalArgs:(?Int, ?Float) -> String = null;
@@ -25,7 +25,7 @@ class FunctionBindTest1 {
         // wrong
         var bind:Float -> String = optionalArgs.bind(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>, _); // String should be Int
         var bind:Float -> String = optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, _, 1</error>); // Too many callback arguments
-        var <error descr="Incompatible type: Void->String should be Float->String">bind:Float -> String = optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, 1, 1</error>)</error>; // Too many callback arguments & wrong type
+        var bind:Float -> String = <error descr="Incompatible type: Void->String should be Float->String">optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, 1, 1</error>)</error>; // Too many callback arguments & wrong type
 
 
 // VARARGS

@@ -37,7 +37,7 @@ class MonomorphTest {
 
         // verify we are using callies typeParameter for typeParameter not specified in call expression
         var returnValue:Int = mapDelayed.get("1"); // correct
-        var <error descr="Incompatible type: Null<Int> should be String">returnValue:String = mapDelayed.get("1")</error>;// wrong
+        var returnValue:String = <error descr="Incompatible type: Null<Int> should be String">mapDelayed.get("1")</error>;// wrong
 
         var mapDelayed2 = new Map();
         mapDelayed2.clear();// verify that accessing member without type parameter(s) wont affect monomorph
@@ -59,13 +59,13 @@ class MonomorphTest {
         arr.push(morphA);
 
         morphA = <error descr="Incompatible type: Int should be String">1</error>;// Wrong already morphed String
-        var <error descr="Incompatible type: String should be Int">test1:Int = morphA</error>; // Wrong already morphed String
+        var test1:Int = <error descr="Incompatible type: String should be Int">morphA</error>; // Wrong already morphed String
 
 
         var obj:{a:String, b:Int} = {a:morphA, b:morphB};
 
         morphB = <error descr="Incompatible type: String should be Int">""</error>; // Wrong already morphed Int
-        var <error descr="Incompatible type: Int should be String">test2:String = morphB</error>; // Wrong already morphed Int
+        var test2:String = <error descr="Incompatible type: Int should be String">morphB</error>; // Wrong already morphed Int
 
         var someMap = new Map();
         myMap = someMap;

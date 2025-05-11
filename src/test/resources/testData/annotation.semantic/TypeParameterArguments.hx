@@ -15,14 +15,14 @@ class Generics {
         var assignA:Baseclass = getValue(Baseclass);
         var assignB:BaseInterface = getValue(Baseclass);
         var assignB:BaseInterface = getValue(<error descr="Type mismatch (Expected: 'Class<BaseInterface>' got: 'Class<OtherClass>')">OtherClass</error>);// wrong: does not match constraints
-        var <error descr="Incompatible type: BaseInterface should be Baseclass">assignC:Baseclass = getValue(BaseInterface)</error>; //wrong
+        var assignC:Baseclass = <error descr="Incompatible type: BaseInterface should be Baseclass">getValue(BaseInterface)</error>; //wrong
 
         // verify that correct type is resolved when no typetag is provided
         var notTypeTag1 = getValue(Baseclass);
         var test1Return = notTypeTag1.testB(""); // correct: should find TestB from Baseclass
         test1Return.toLowerCase(); // correct: should resolve to string
 
-        var <error descr="Incompatible type: String should be Int">bad:Int = notTypeTag1.testB(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>)</error>;
+        var bad:Int = <error descr="Incompatible type: String should be Int">notTypeTag1.testB(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>)</error>;
 
         var notTypeTag2 = getValue(BaseInterface);
         var test2Return = notTypeTag2.testA(1); // correct

@@ -41,7 +41,7 @@ class Test {
         withoutTypeTagGeneric("").toLowerCase(); // correct
 
         // type tag from method generics not possible, should fail
-        var <error descr="Incompatible type: T->T should be T->T">wrongTypeTag:<warning descr="Unresolved symbol">T</warning>-><warning descr="Unresolved symbol">T</warning> = testB</error>; // Wrong
+        var wrongTypeTag:<warning descr="Unresolved symbol">T</warning>-><warning descr="Unresolved symbol">T</warning> = <error descr="Incompatible type: T->T should be T->T">testB</error>; // Wrong
 
     }
 

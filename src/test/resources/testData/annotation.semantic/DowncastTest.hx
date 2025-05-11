@@ -8,7 +8,7 @@ class DowncastTest {
         var newVar:Array<String> = Std.downcast(dynamicValue, Array);
 
         // WRONG
-        var <error descr="Incompatible type: Array<T> should be String">newVar:String = Std.downcast(dynamicValue, Array)</error>;
-        var <error descr="Incompatible type: Array<T> should be Map<String, String>">newVar:Map<String, String> = Std.downcast(dynamicValue, Array)</error>;
+        var newVar:String = <error descr="Incompatible type: Array<T> should be String">Std.downcast(dynamicValue, Array)</error>;
+        var newVar:Map<String, String> = <error descr="Incompatible type: Array<T> should be Map<String, String>">Std.downcast(dynamicValue, Array)</error>;
     }
 }

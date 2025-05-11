@@ -9,11 +9,11 @@ class Test {
 
     // WRONG
     var <error descr="Incompatible type: missing member(s) age:Int">s3:MyStruct = {name:"name"}</error>; // missing field
-    var <error descr="Incompatible type: {...} should be MyStruct">s4:MyStruct = {name:"name", age:30, address:"address 1", extra:"field"}</error>; // to many fields
+    var s4:MyStruct = <error descr="Incompatible type: {...} should be MyStruct">{name:"name", age:30, address:"address 1", extra:"field"}</error>; // to many fields
 
-    // CORRECT (TypeParameter)
+      // CORRECT (TypeParameter)
     var typeParamA:MyTypeParamStruct<String> = {valueA:"name", valueB:30};
-    // WRONG (TypeParameter)
+      // WRONG (TypeParameter)
     var typeParamB:MyTypeParamStruct<Int> = {<error descr="have 'valueA:String' wants 'valueA:Int'">valueA:"name"</error>, valueB:30};
 
       //CORRECT (constructor)

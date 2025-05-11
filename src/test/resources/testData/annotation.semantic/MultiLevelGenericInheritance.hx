@@ -14,11 +14,11 @@ class Level3Class<T:String> extends Level2Class {
         var fnA:Int -> Int = this.testTypeParam;
 
         // WRONG
-        var <error descr="Incompatible type: Int should be String">paramA:String = this.testTypeParam(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>)</error>;
-        var <error descr="Incompatible type: Int should be String">paramB:String = testTypeParam(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>)</error>;
-        var <error descr="Incompatible type: Int should be String">fieldA:String = this.field</error>;
-        var <error descr="Incompatible type: Int should be String">fieldB:String = field</error>;
-        var <error descr="Incompatible type: Int->Int should be String->String">fnA:String -> String = this.testTypeParam</error>;
+        var paramA:String = <error descr="Incompatible type: Int should be String">this.testTypeParam(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>)</error>;
+        var paramB:String = <error descr="Incompatible type: Int should be String">testTypeParam(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>)</error>;
+        var fieldA:String = <error descr="Incompatible type: Int should be String">this.field</error>;
+        var fieldB:String = <error descr="Incompatible type: Int should be String">field</error>;
+        var fnA:String -> String = <error descr="Incompatible type: Int->Int should be String->String">this.testTypeParam</error>;
 
     }
 }

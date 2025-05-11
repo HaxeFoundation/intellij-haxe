@@ -39,7 +39,7 @@ class Test {
         var t:String = target.fistVar.toLowerCase(); // correct from  SpecifiedStrcuture
 
         var s:String = target.myMethod(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>); // wrong parameter type
-        var <error descr="Incompatible type: String should be Int">t:Int = target.fistVar</error>; // wrong
+        var t:Int = <error descr="Incompatible type: String should be Int">target.fistVar</error>; // wrong
         var t:Int = <error descr="Unable to apply operator * for types String and Int = 2">target.fistVar * 2</error>; // wrong
 
     }
@@ -49,7 +49,7 @@ class Test {
         var x1:String = x(1); // correct
 
         var wrong:String = x(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"A"</error>);// wrong
-        var <error descr="Incompatible type: String should be Int">x1:Int =  x(1)</error> ; // wrong
+        var x1:Int =  <error descr="Incompatible type: String should be Int">x(1)</error> ; // wrong
 
     }
 }

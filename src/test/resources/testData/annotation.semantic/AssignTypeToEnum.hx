@@ -15,27 +15,27 @@ class ClassTypeAssignmentTest {
         var dynamicEnum01:Enum<Dynamic> = TestEnum;            // [OK] type is enum
         var dynamicEnum02:Enum<Dynamic> = null;                // [OK] Null allowed
 
-        var <error descr="Incompatible type: String should be Enum<Dynamic>">dynamicEnum03:Enum<Dynamic> = ""</error>;                                  // [Wrong] Not enum Type
-        var <error descr="Incompatible type: String should be Enum<Dynamic>">dynamicEnum04:Enum<Dynamic> = myString</error>;                            // [Wrong] Not enum Type
-        var <error descr="Incompatible type: ClassTypeAssignmentTest should be Enum<Dynamic>">dynamicEnum05:Enum<Dynamic> = myClassObject</error>;      // [Wrong] Not enum Type
-        var <error descr="Incompatible type: TestEnum should be Enum<Dynamic>">dynamicEnum06:Enum<Dynamic> = myEnumObject</error>;                      // [Wrong] Not enum Type (but enum value)
-        var <error descr="Incompatible type: Class<String> should be Enum<Dynamic>">dynamicEnum07:Enum<Dynamic> = String</error> ;                      // [Wrong] incompatible types Enum Vs Class
-        var <error descr="Incompatible type: SOME_VALUE should be Enum<Dynamic>">dynamicEnum08:Enum<Dynamic> = TestEnum.SOME_VALUE</error>;               // [Wrong] incompatible types Enum Vs Class
-        var <error descr="Incompatible type: Class<OtherClass> should be Enum<Dynamic>">dynamicEnum09:Enum<Dynamic> = OtherClass</error>;               // [Wrong] incompatible types Enum Vs Class
+        var dynamicEnum03:Enum<Dynamic> = <error descr="Incompatible type: String should be Enum<Dynamic>">""</error>;                                  // [Wrong] Not enum Type
+        var dynamicEnum04:Enum<Dynamic> = <error descr="Incompatible type: String should be Enum<Dynamic>">myString</error>;                            // [Wrong] Not enum Type
+        var dynamicEnum05:Enum<Dynamic> = <error descr="Incompatible type: ClassTypeAssignmentTest should be Enum<Dynamic>">myClassObject</error>;      // [Wrong] Not enum Type
+        var dynamicEnum06:Enum<Dynamic> = <error descr="Incompatible type: TestEnum should be Enum<Dynamic>">myEnumObject</error>;                      // [Wrong] Not enum Type (but enum value)
+        var dynamicEnum07:Enum<Dynamic> = <error descr="Incompatible type: Class<String> should be Enum<Dynamic>">String</error> ;                      // [Wrong] incompatible types Enum Vs Class
+        var dynamicEnum08:Enum<Dynamic> = <error descr="Incompatible type: SOME_VALUE should be Enum<Dynamic>">TestEnum.SOME_VALUE</error>;               // [Wrong] incompatible types Enum Vs Class
+        var dynamicEnum09:Enum<Dynamic> = <error descr="Incompatible type: Class<OtherClass> should be Enum<Dynamic>">OtherClass</error>;               // [Wrong] incompatible types Enum Vs Class
 
 
         //Enum<Enum>
         var specificEnum01:Enum<TestEnum> = TestEnum;            // [OK] Correct Enum Type
         var specificEnum02:Enum<TestEnum> = null;                // [OK] Null allowed
 
-        var <error descr="Incompatible type: String should be Enum<TestEnum>">specificEnum03:Enum<TestEnum> = ""</error>;                                 // [Wrong] Not enum Type
-        var <error descr="Incompatible type: String should be Enum<TestEnum>">specificEnum04:Enum<TestEnum> = myString</error>;                           // [Wrong] Not enum Type
-        var <error descr="Incompatible type: ClassTypeAssignmentTest should be Enum<TestEnum>">specificEnum05:Enum<TestEnum> = myClassObject</error>;     // [Wrong] Not enum Type
-        var <error descr="Incompatible type: TestEnum should be Enum<TestEnum>">specificEnum06:Enum<TestEnum> = myEnumObject</error>;                     // [Wrong] Not enum Type (but enum value)
-        var <error descr="Incompatible type: Class<String> should be Enum<TestEnum>">specificEnum07:Enum<TestEnum> = String</error> ;                     // [Wrong] incompatible types Enum Vs Class
-        var <error descr="Incompatible type: SOME_VALUE should be Enum<TestEnum>">specificEnum08:Enum<TestEnum> = TestEnum.SOME_VALUE</error>;              // [Wrong] incompatible types Enum Vs Class
-        var <error descr="Incompatible type: Class<OtherClass> should be Enum<TestEnum>">specificEnum09:Enum<TestEnum> = OtherClass</error>;              // [Wrong] incompatible types Enum Vs Class
-        var <error descr="Incompatible type: Enum<OtherEnum> should be Enum<TestEnum>">specificEnum10:Enum<TestEnum> = OtherEnum</error>;                 // [Wrong] wrong Enum
+        var specificEnum03:Enum<TestEnum> = <error descr="Incompatible type: String should be Enum<TestEnum>">""</error>;                                 // [Wrong] Not enum Type
+        var specificEnum04:Enum<TestEnum> = <error descr="Incompatible type: String should be Enum<TestEnum>">myString</error>;                           // [Wrong] Not enum Type
+        var specificEnum05:Enum<TestEnum> = <error descr="Incompatible type: ClassTypeAssignmentTest should be Enum<TestEnum>">myClassObject</error>;     // [Wrong] Not enum Type
+        var specificEnum06:Enum<TestEnum> = <error descr="Incompatible type: TestEnum should be Enum<TestEnum>">myEnumObject</error>;                     // [Wrong] Not enum Type (but enum value)
+        var specificEnum07:Enum<TestEnum> = <error descr="Incompatible type: Class<String> should be Enum<TestEnum>">String</error> ;                     // [Wrong] incompatible types Enum Vs Class
+        var specificEnum08:Enum<TestEnum> = <error descr="Incompatible type: SOME_VALUE should be Enum<TestEnum>">TestEnum.SOME_VALUE</error>;              // [Wrong] incompatible types Enum Vs Class
+        var specificEnum09:Enum<TestEnum> = <error descr="Incompatible type: Class<OtherClass> should be Enum<TestEnum>">OtherClass</error>;              // [Wrong] incompatible types Enum Vs Class
+        var specificEnum10:Enum<TestEnum> = <error descr="Incompatible type: Enum<OtherEnum> should be Enum<TestEnum>">OtherEnum</error>;                 // [Wrong] wrong Enum
 
 
     }

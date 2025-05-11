@@ -18,9 +18,14 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeTag;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,10 +46,18 @@ public class HaxeTypeTagChangeFixer extends HaxeFixer {
   }
 
   @Override
+  public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile original) {
+    TextRange range = typeTag.getTextRange();
+    editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), createTypeTagString());
+    return IntentionPreviewInfo.DIFF;
+  }
+
+  @Override
   public void run() {
-    HaxeDocumentModel.fromElement(typeTag).replaceElementText(
-      typeTag,
-      ":" + result.toStringWithoutConstant()
-    );
+    HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, createTypeTagString());
+  }
+
+  private @NotNull String createTypeTagString() {
+    return ":" + result.toStringWithoutConstant();
   }
 }

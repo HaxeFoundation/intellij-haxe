@@ -17,7 +17,7 @@ class Tests {
 
     // not allowed
     var x:String = MyFinalUnassigned; //TODO this should also cause Incompatible type
-    var <error descr="Incompatible type: FinalKeyword should be String">y:String = MyFinalAssigned</error>;
-    var <error descr="Incompatible type: String should be FinalKeyword">z:FinalKeyword ="test1"</error>;
+    var y:String = <error descr="Incompatible type: FinalKeyword should be String">MyFinalAssigned</error>;
+    var z:FinalKeyword =<error descr="Incompatible type: String should be FinalKeyword">"test1"</error>;
   }
 }

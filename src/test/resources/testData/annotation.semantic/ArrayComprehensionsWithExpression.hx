@@ -8,8 +8,8 @@ class ArrayComprehensionsWithExpression {
         var withIfElse:Array<Int>  = [for  (i in 0...6) if (i % 2 == 0) i else 0];
 
         // WRONG
-        var <error descr="Incompatible type: Array<Int> should be Array<String>">withIf:Array<String>  = [for  (i in 0...6) if (i % 2 == 0) i]</error>;
-        var <error descr="Incompatible type: Array<Int> should be Array<String>">withIfElse:Array<String>  = [for  (i in 0...6) if (i % 2 == 0) i else 0]</error>;
+        var withIf:Array<String>  = <error descr="Incompatible type: Array<Int> should be Array<String>">[for  (i in 0...6) if (i % 2 == 0) i]</error>;
+        var withIfElse:Array<String>  = <error descr="Incompatible type: Array<Int> should be Array<String>">[for  (i in 0...6) if (i % 2 == 0) i else 0]</error>;
 
     }
 

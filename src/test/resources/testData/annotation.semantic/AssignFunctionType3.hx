@@ -14,12 +14,12 @@ class FunctionTypeAssignTest3 {
         var testDefaultEnum: String->?TestEnum->Void = defaultEnumArg;
 
         // wrong
-        var <error descr="Incompatible type: (String, Int)->Void should be (String, ?Int)->Void">optionalMismatch: String->?Int->Void = noOptionalArgs</error>;
+        var optionalMismatch: String->?Int->Void = <error descr="Incompatible type: (String, Int)->Void should be (String, ?Int)->Void">noOptionalArgs</error>;
 
         // wrong
-        var <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">ignoreArgInDef: String->Void = optionalArg2</error>;
-        var <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">ignoreArgInDef: String->Void = defaultArg2</error>;
-        var <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">ignoreArgInDef: String->Void = optionalArgDefault2</error>;
+        var ignoreArgInDef: String->Void = <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">optionalArg2</error>;
+        var ignoreArgInDef: String->Void = <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">defaultArg2</error>;
+        var ignoreArgInDef: String->Void = <error descr="Incompatible type: (String, ?Int)->Void should be String->Void">optionalArgDefault2</error>;
 
     }
 

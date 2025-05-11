@@ -18,6 +18,7 @@ import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation.*;
 
@@ -45,9 +46,16 @@ public class HaxeSemanticsUtil {
         }else if (messages.hasMissingModel()) {
           typeModelMissing(holder, erroredElement, messages.getMissingModel().getFirst());
         }else{
-          AnnotationBuilder builder = typeMismatch(holder, erroredElement, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
+          PsiElement  element = Optional.ofNullable((PsiElement)initExpression.getExpression()).orElse(erroredElement);
+          AnnotationBuilder builder = typeMismatch(holder, element, initType.toStringWithoutConstant(), varType.toStringWithoutConstant());
           if (null != initType.getClassType()) {
-            builder.withFix(new HaxeTypeTagChangeFixer(HaxeBundle.message("haxe.quickfix.change.variable.type"), tag, initType.getClassType()));
+            // TODO this also affects parameters, name should reflect type
+            boolean isParameter = tag.getParent() instanceof HaxeParameter;
+            String message = isParameter
+                    ? HaxeBundle.message("haxe.quickfix.change.parameter.type")
+                    : HaxeBundle.message("haxe.quickfix.change.variable.type");
+
+            builder.withFix(new HaxeTypeTagChangeFixer(message, tag, initType.getClassType()));
           }
 
           List<HaxeExpressionConversionFixer> fixes =

@@ -11,10 +11,10 @@ class GenericFromClassArg {
         var x:Array<Class<Array>> = classToArrayOfClass(Array);
 
         //WRONG
-        var <error descr="Incompatible type: Class<Array<T>> should be Array<String>">x:Array<String> = classToClass(Array)</error>;
-        var <error descr="Incompatible type: Array<T> should be Class<String>">x:Class<String> = classToInstance(Array)</error>;
-        var <error descr="Incompatible type: Array<Array<T>> should be Array<Class<String>>">x:Array<Class<String>> = classToArrayOfInstance(Array)</error>;
-        var <error descr="Incompatible type: Array<Class<Array<T>>> should be Array<Class<String>>">x:Array<Class<String>> = classToArrayOfClass(Array)</error>;
+        var x:Array<String> = <error descr="Incompatible type: Class<Array<T>> should be Array<String>">classToClass(Array)</error>;
+        var x:Class<String> = <error descr="Incompatible type: Array<T> should be Class<String>">classToInstance(Array)</error>;
+        var x:Array<Class<String>> = <error descr="Incompatible type: Array<Array<T>> should be Array<Class<String>>">classToArrayOfInstance(Array)</error>;
+        var x:Array<Class<String>> = <error descr="Incompatible type: Array<Class<Array<T>>> should be Array<Class<String>>">classToArrayOfClass(Array)</error>;
     }
 
     function classToClass<T>(x:Class<T>):Class<T> {

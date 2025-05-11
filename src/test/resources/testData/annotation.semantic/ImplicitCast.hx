@@ -14,9 +14,9 @@ class ImplicitCast {
 
         var typeDefVar:MyAbstractAsTypeDef = "2"; //OK,  typeDef resolves to abstract with implicit cast
 
-        var <error descr="Incompatible type: Int should be MyAbstract">wrongUse1:MyAbstract = 1</error>;  // WRONG: while an abstract of int it is not the same as an int.
-        var <error descr="Incompatible type: MyAbstract should be Int">wrongUse2:Int = assignFrom</error>; //WRONG  while this is an abstract of in we do not have a converter method.
-        var <error descr="Incompatible type: Int should be MyAbstractAsTypeDef">wrongUse3:MyAbstractAsTypeDef = 2</error>; //WRONG, typeDef resolves to abstract that does not have a @:from method for int
+        var wrongUse1:MyAbstract = <error descr="Incompatible type: Int should be MyAbstract">1</error>;  // WRONG: while an abstract of int it is not the same as an int.
+        var wrongUse2:Int = <error descr="Incompatible type: MyAbstract should be Int">assignFrom</error>; //WRONG  while this is an abstract of in we do not have a converter method.
+        var wrongUse3:MyAbstractAsTypeDef = <error descr="Incompatible type: Int should be MyAbstractAsTypeDef">2</error>; //WRONG, typeDef resolves to abstract that does not have a @:from method for int
 
         // Class Generics
 
@@ -26,16 +26,16 @@ class ImplicitCast {
         var genericToString:String = genericFromString;
         var genericToInt:Int = genericFromInt;
 
-        var <error descr="Incompatible type: Int should be MyClassGenericAbstract<String>">wrongTypeFrom:MyClassGenericAbstract<String> =  1</error>;
-        var <error descr="Incompatible type: MyClassGenericAbstract<String> should be Int">wrongTypeTo:Int = wrongTypeFrom</error>;
+        var wrongTypeFrom:MyClassGenericAbstract<String> =  <error descr="Incompatible type: Int should be MyClassGenericAbstract<String>">1</error>;
+        var wrongTypeTo:Int = <error descr="Incompatible type: MyClassGenericAbstract<String> should be Int">wrongTypeFrom</error>;
 
         // Method Generics
 
         var genericFrom:MyMethodGenericAbstract<String> = "implicit cast from string";
         var genericTo:String = genericFrom;
 
-        var <error descr="Incompatible type: Int should be MyMethodGenericAbstract<String>">wrongTypeFrom:MyMethodGenericAbstract<String> =  2</error>;
-        var <error descr="Incompatible type: MyMethodGenericAbstract<String> should be Int">wrongTypeTo:Int = wrongTypeFrom</error>;
+        var wrongTypeFrom:MyMethodGenericAbstract<String> =  <error descr="Incompatible type: Int should be MyMethodGenericAbstract<String>">2</error>;
+        var wrongTypeTo:Int = <error descr="Incompatible type: MyMethodGenericAbstract<String> should be Int">wrongTypeFrom</error>;
 
     }
 }

@@ -17,9 +17,14 @@
  */
 package com.intellij.plugins.haxe.model.fixer;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.StripSpaces;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +41,13 @@ public class HaxeRemoveElementFixer extends HaxeFixer {
 
   public HaxeRemoveElementFixer(@Nullable String text, @NotNull PsiElement element) {
     this(text, element, StripSpaces.NONE);
+  }
+
+  @Override
+  public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile original) {
+    TextRange range = element.getTextRange();
+    editor.getDocument().replaceString(range.getStartOffset(), range.getEndOffset(), "");
+    return IntentionPreviewInfo.DIFF;
   }
 
   public void run() {

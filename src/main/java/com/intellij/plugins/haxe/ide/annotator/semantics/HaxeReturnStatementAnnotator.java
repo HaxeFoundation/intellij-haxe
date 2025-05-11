@@ -7,10 +7,13 @@ import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -76,33 +79,48 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                     .create();
         }
 
-        else if(!expectedType.canAssign(returnedType)) {
-            String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1",
-                    returnedType.toPresentationString(),
-                    expectedType.toPresentationString());
+        else {
+            HaxeAssignEvaluation haxeAssignEvaluation = expectedType.canAssignEvaluation(returnedType);
+            if(!haxeAssignEvaluation.result) {
+                AssignExplanation messages = haxeAssignEvaluation.explanations;
+                if(messages.hasMissingMembers() || messages.hasWrongTypeMembers()) {
+                    if(messages.hasMissingMembers()) {
+                        HaxeStandardAnnotation.typeMismatchMissingMembers(holder, returnStatement, messages)
+                                .create();
+                    }
+                    if(messages.hasWrongTypeMembers()) {
+                        HaxeStandardAnnotation.addtypeMismatchWrongTypeMembersAnnotations(holder, returnStatement, messages);
+                    }
+                }
+                else {
+                    String message = HaxeBundle.message("haxe.semantic.incompatible.type.0.should.be.1",
+                            returnedType.toPresentationString(),
+                            expectedType.toPresentationString());
 
-            holder.newAnnotation(HighlightSeverity.ERROR, message)
-                    .range(highlightElement)
-                    .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
-                    .create();
+                    holder.newAnnotation(HighlightSeverity.ERROR, message)
+                            .range(highlightElement)
+                            .withFix(ReplaceReturnTypeFix(returnedType.toTypeString(), typeTag))
+                            .create();
+                }
 
-        }
+            }
 
-        else if (returnedType.getConstant() instanceof HaxeNull) {
-            if (!expectedType.isNullWrappedType()) {
-                SpecificHaxeClassReference classType = expectedType.getClassType();
-                if (classType != null) {
-                    HaxeClassModel model = classType.getHaxeClassModel();
-                    if (model != null) {
-                        if (model.hasCompileTimeMeta(NOT_NULL)) {
-                            String message = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning",
-                                    expectedType.toPresentationString());
+            else if (returnedType.getConstant() instanceof HaxeNull) {
+                if (!expectedType.isNullWrappedType()) {
+                    SpecificHaxeClassReference classType = expectedType.getClassType();
+                    if (classType != null) {
+                        HaxeClassModel model = classType.getHaxeClassModel();
+                        if (model != null) {
+                            if (model.hasCompileTimeMeta(NOT_NULL)) {
+                                String message = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning",
+                                        expectedType.toPresentationString());
 
-                            String nullWrapped = "Null<" + expectedType.toTypeString() + ">";
-                            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
-                                    .range(highlightElement)
-                                    .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
-                                    .create();
+                                String nullWrapped = "Null<" + expectedType.toTypeString() + ">";
+                                holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
+                                        .range(highlightElement)
+                                        .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
+                                        .create();
+                            }
                         }
                     }
                 }

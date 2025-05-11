@@ -9,14 +9,14 @@ class AbstractAssignmentFromTo1 {
     var val:FunctionFrom =  testMethodIV;
 
     // should fail due to wrong parameter types
-    var <error descr="Incompatible type: String->Int should be FunctionFromTo">val:FunctionFromTo =  function(i:String){return 1;}</error>;
-    var <error descr="Incompatible type: String->Int should be FunctionFrom">val:FunctionFrom =  function(i:String){return 1;}</error>;
-    var <error descr="Incompatible type: String->Void should be FunctionFromTo">val:FunctionFromTo =  testMethodSV</error>;
+    var val:FunctionFromTo =  <error descr="Incompatible type: String->Int should be FunctionFromTo">function(i:String){return 1;}</error>;
+    var val:FunctionFrom =  <error descr="Incompatible type: String->Int should be FunctionFrom">function(i:String){return 1;}</error>;
+    var val:FunctionFromTo =  <error descr="Incompatible type: String->Void should be FunctionFromTo">testMethodSV</error>;
 
     //should fail (has no from type or implisit casts)
-    var <error descr="Incompatible type: Int->Void should be FunctionTo">val:FunctionTo =  function(i:Int){return;}</error>;
-    var <error descr="Incompatible type: Int->Void should be FunctionTo">val:FunctionTo =  testMethodIV</error>;
-    var <error descr="Incompatible type: Int->Void should be FunctionNon">val:FunctionNon =  testMethodIV</error>;
+    var val:FunctionTo =  <error descr="Incompatible type: Int->Void should be FunctionTo">function(i:Int){return;}</error>;
+    var val:FunctionTo =  <error descr="Incompatible type: Int->Void should be FunctionTo">testMethodIV</error>;
+    var val:FunctionNon =  <error descr="Incompatible type: Int->Void should be FunctionNon">testMethodIV</error>;
 
   }
 

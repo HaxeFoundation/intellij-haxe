@@ -7,7 +7,7 @@ class AbstractEnumEitherTypeTest {
         var leatInt : Int = ListeningEventAddressType.TCPv4; // No error.
         var leatString : String = ListeningEventAddressType.UDPv4; // No error.
 
-        var <error descr="Incompatible type: ListeningEventAddressType should be Bool">leatBool : Bool = ListeningEventAddressType.Unix</error>; // Should be an error.
+        var leatBool : Bool = <error descr="Incompatible type: ListeningEventAddressType should be Bool">ListeningEventAddressType.Unix</error>; // Should be an error.
     }
 }
 /**

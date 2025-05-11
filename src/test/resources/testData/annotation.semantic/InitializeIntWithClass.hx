@@ -11,6 +11,6 @@ class Point {
 
 class Test {
   static function main() {
-    var <error descr="Incompatible type: Point should be Int">i : Int = new Point(2,1)</error>;
+    var i : Int = <error descr="Incompatible type: Point should be Int">new Point(2,1)</error>;
   }
 }

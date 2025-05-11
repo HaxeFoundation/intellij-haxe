@@ -5,9 +5,9 @@ class TestSwitchCase {
         var correctFromSwitchB:Int = recursiveSwitchB(1);
         var correctFromIf:String = recursiveIf(1);
 
-        var <error descr="Incompatible type: Int should be TestSwitchCase">wrongFromSwitchA:TestSwitchCase = recursiveSwitchA(1)</error>; // expected type missmatch
-        var <error descr="Incompatible type: Int should be TestSwitchCase">wrongFromSwitchB:TestSwitchCase = recursiveSwitchB(1)</error>; // expected type missmatch
-        var <error descr="Incompatible type: String should be TestSwitchCase">wrongFromIf:TestSwitchCase = recursiveIf(1)</error>;  // should give type missmatch
+        var wrongFromSwitchA:TestSwitchCase = <error descr="Incompatible type: Int should be TestSwitchCase">recursiveSwitchA(1)</error>; // expected type missmatch
+        var wrongFromSwitchB:TestSwitchCase = <error descr="Incompatible type: Int should be TestSwitchCase">recursiveSwitchB(1)</error>; // expected type missmatch
+        var wrongFromIf:TestSwitchCase = <error descr="Incompatible type: String should be TestSwitchCase">recursiveIf(1)</error>;  // should give type missmatch
 
     }
 

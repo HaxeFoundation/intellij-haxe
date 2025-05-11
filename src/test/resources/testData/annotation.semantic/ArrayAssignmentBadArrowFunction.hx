@@ -1,7 +1,7 @@
 package;
 class Test {
-  <error descr="Incompatible type: Array<unknown->Float> should be Array<Int->Int>">var should_warn3: Array<Int->Int> = [ a -> 1.0 ];</error>
+  var should_warn3: Array<Int->Int> = <error descr="Incompatible type: Array<unknown->Float> should be Array<Int->Int>">[ a -> 1.0 ]</error>;
   public function new() {
-    var <error descr="Incompatible type: Array<unknown->Float> should be Array<Int->Int>">should_warn3: Array<Int->Int> = [ a -> 1.0 ]</error>;
+    var should_warn3: Array<Int->Int> = <error descr="Incompatible type: Array<unknown->Float> should be Array<Int->Int>">[ a -> 1.0 ]</error>;
   }
 }

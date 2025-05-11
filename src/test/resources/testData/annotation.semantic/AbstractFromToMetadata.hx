@@ -10,9 +10,9 @@ class ToFromAnnotations {
         var assignTo:Array<Int> = assignFrom ;
 
         // WRONG: while an abstract of int it can not be assigned to an int
-        var <error descr="Incompatible type: Int should be MyAbstract">wrongUse1:MyAbstract = 1</error>;
+        var wrongUse1:MyAbstract = <error descr="Incompatible type: Int should be MyAbstract">1</error>;
         // WRONG:  while an abstract of int its not a int value
-        var <error descr="Incompatible type: MyAbstract should be Int">wrongUse2:Int = assignFrom</error>;
+        var wrongUse2:Int = <error descr="Incompatible type: MyAbstract should be Int">assignFrom</error>;
 
         //  OK: Any has @:to method with Type Parameter T, all types are accepted
         var anyVar:Any = assignFrom;

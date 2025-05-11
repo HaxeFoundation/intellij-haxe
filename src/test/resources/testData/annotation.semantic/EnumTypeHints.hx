@@ -18,10 +18,10 @@ class TestAssignHints {
         var competingClassName:EnumForHints = LooksLikeClass;
         var className:Class<Dynamic> = LooksLikeClass;
 
-            // not found
+        // not found
         var notFound:EnumForHints = <warning descr="Unresolved symbol">NotFound</warning>;
-            // wrong type
-        var <error descr="Incompatible type: Class<TestAssignHints> should be EnumForHints">wrong:EnumForHints = TestAssignHints</error>;
+        // wrong type
+        var wrong:EnumForHints = <error descr="Incompatible type: Class<TestAssignHints> should be EnumForHints">TestAssignHints</error>;
 
         // enum switch extractor hinting
 
@@ -39,42 +39,42 @@ class TestAssignHints {
 
         switch ({a :enumVarA}) {
             case {a : ExtractableEnum(myValA  )} :
-            {
-                str = myValA; // correct
+                {
+                    str = myValA; // correct
 
                     // wrong type
-                flt = <error descr="Incompatible type: String should be Float">myValA</error>;
-            }
+                    flt = <error descr="Incompatible type: String should be Float">myValA</error>;
+                }
         }
 
         switch (enumVarC) {
             case ExtractableEnum2(myIntVal, ExtractableEnum(myStrVal)) :
-            {
-                num =  myIntVal; // correct
-                str =  myStrVal; // correct
+                {
+                    num =  myIntVal; // correct
+                    str =  myStrVal; // correct
 
-                str = <error descr="Incompatible type: Int should be String">myIntVal</error>; // wrong type
-                flt = <error descr="Incompatible type: String should be Float">myStrVal</error>; // wrong type
-            }
+                    str = <error descr="Incompatible type: Int should be String">myIntVal</error>; // wrong type
+                    flt = <error descr="Incompatible type: String should be Float">myStrVal</error>; // wrong type
+                }
         }
 
         switch ([enumVarA, enumVarB]) {
             case [ExtractableEnum(myValA), ExtractableEnum(myValB) ]:
-            {
-                str = myValA; // correct
-                num = myValB; // correct
+                {
+                    str = myValA; // correct
+                    num = myValB; // correct
 
-                flt = <error descr="Incompatible type: String should be Float">myValA</error>; // wrong type
-            }
+                    flt = <error descr="Incompatible type: String should be Float">myValA</error>; // wrong type
+                }
         }
         switch ({a :[enumVarA, enumVarB]}) {
             case {a : [ExtractableEnum(myValA ), ExtractableEnum(myValB) ]}:
-            {
-                str = myValA; // correct
-                num = myValB; // correct
+                {
+                    str = myValA; // correct
+                    num = myValB; // correct
 
-                flt = <error descr="Incompatible type: String should be Float">myValA</error>; // wrong type
-            }
+                    flt = <error descr="Incompatible type: String should be Float">myValA</error>; // wrong type
+                }
         }
     }
 }

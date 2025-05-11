@@ -10,19 +10,19 @@ class FunctionBindTest2 {
 
         // wrong
         var bind:Float -> String = normal.bind(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>, _); // String should be Int
-        var <error descr="Incompatible type: Int->String should be Float->String">bind:Float -> String = normal.bind(_, 1)</error>;  // Float should be Int
+        var bind:Float -> String = <error descr="Incompatible type: Int->String should be Float->String">normal.bind(_, 1)</error>;  // Float should be Int
 
 //OPTIONAL ARGUMENTS
 
-            // correct
+        // correct
         var bind:Void -> String = optionalArgs.bind(1);
         var bind:Void -> String = optionalArgs.bind();
         var bind:Void -> String = optionalArgs.bind(1, 1);
 
-            // wrong
+        // wrong
         var bind:Float -> String = optionalArgs.bind(<error descr="Type mismatch (Expected: 'Int' got: 'String')">"1"</error>, _); // String should be Int
         var bind:Float -> String = optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, _, 1</error>); // Too many callback arguments
-        var <error descr="Incompatible type: Void->String should be Float->String">bind:Float -> String = optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, 1, 1</error>)</error>; // Too many callback arguments & wrong type
+        var bind:Float -> String = <error descr="Incompatible type: Void->String should be Float->String">optionalArgs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, 1, 1</error>)</error>; // Too many callback arguments & wrong type
 
 
 // VARARGS
@@ -46,9 +46,9 @@ class FunctionBindTest2 {
         var bind:Void -> Array<String> = genericArgs.bind([[""]]);
 
         //wrong
-        var <error descr="Incompatible type: Void->Int should be Void->String">bind:Void -> String = genericArgs.bind([1])</error>;
-        var <error descr="Incompatible type: Void->String should be Void->Int">bind:Void -> Int = genericArgs.bind([""])</error>;
-        var <error descr="Incompatible type: Void->String should be String->void">bind:String -> <error descr="Type name must start by upper case">void</error> = genericArgs.bind([""])</error>;
+        var bind:Void -> String = <error descr="Incompatible type: Void->Int should be Void->String">genericArgs.bind([1])</error>;
+        var bind:Void -> Int = <error descr="Incompatible type: Void->String should be Void->Int">genericArgs.bind([""])</error>;
+        var bind:String -> <error descr="Type name must start by upper case">void</error> = <error descr="Incompatible type: Void->String should be String->void">genericArgs.bind([""])</error>;
 
     }
 

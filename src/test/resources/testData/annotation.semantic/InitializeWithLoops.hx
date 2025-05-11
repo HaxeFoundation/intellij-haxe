@@ -13,6 +13,6 @@ class Test {
 
 
         // wrong: initilizer  returns string array
-        var <error descr="Incompatible type: Array<String> should be Array<Float>">arr4:Array<Float> = [while (i < 10) "str" + i++]</error>;
+        var arr4:Array<Float> = <error descr="Incompatible type: Array<String> should be Array<Float>">[while (i < 10) "str" + i++]</error>;
     }
 }

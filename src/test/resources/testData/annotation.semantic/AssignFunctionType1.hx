@@ -11,7 +11,7 @@ class FunctionTypeAssignTest1 {
 
         // wrong
         //NOTE: the method assigned must accept type A, provide method can not
-        var <error descr="Incompatible type: B->Void should be A->Void">a: A -> Void = fnWithArgB</error>;
+        var a: A -> Void = <error descr="Incompatible type: B->Void should be A->Void">fnWithArgB</error>;
 
 
         // RETURN TYPES
@@ -20,7 +20,7 @@ class FunctionTypeAssignTest1 {
         var a: Void -> A = fnWithReturnB;
 
         // wrong Expects B but provided method might return A
-        var <error descr="Incompatible type: Void->A should be Void->B">a: Void -> B = fnWithReturnA</error>;
+        var a: Void -> B = <error descr="Incompatible type: Void->A should be Void->B">fnWithReturnA</error>;
 
     }
 

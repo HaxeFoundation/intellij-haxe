@@ -9,47 +9,47 @@ class FunctionTypeAssignTest4 {
 
         // WRONG
         // error: Single should be A
-        var <error descr="Incompatible type: A->Void should be Single->Void">castFromTest:Single->Void = ArgA</error>; // explicit to cast is wrong direction
+        var castFromTest:Single->Void = <error descr="Incompatible type: A->Void should be Single->Void">ArgA</error>; // explicit to cast is wrong direction
 
-            // WRONG
-            //  error: String should be A
-        var <error descr="Incompatible type: A->Void should be String->Void">castFromTest: String->Void = ArgA</error>; // implicit to/from cast not allowed
+        // WRONG
+        //  error: String should be A
+        var castFromTest: String->Void = <error descr="Incompatible type: A->Void should be String->Void">ArgA</error>; // implicit to/from cast not allowed
 
 
 
-            // ARGUMENTS : typeParameters
+        // ARGUMENTS : typeParameters
 
-            // CORRECT
+        // CORRECT
         var castFromTest:Array<A>->Void = argTypeParameterA;
 
-            // WRONG
-            //error: Int should be A
-        var <error descr="Incompatible type: Array<A>->Void should be Array<Int>->Void">castFromTest:Array<Int>->Void = argTypeParameterA</error>;
+        // WRONG
+        //error: Int should be A
+        var castFromTest:Array<Int>->Void = <error descr="Incompatible type: Array<A>->Void should be Array<Int>->Void">argTypeParameterA</error>;
 
-            // WRONG
-            //  error: String should be A
-        var <error descr="Incompatible type: Array<A>->Void should be Array<String>->Void">castFromTest:Array<String>->Void = argTypeParameterA</error>;
+        // WRONG
+        //  error: String should be A
+        var castFromTest:Array<String>->Void = <error descr="Incompatible type: Array<A>->Void should be Array<String>->Void">argTypeParameterA</error>;
 
-            // WRONG
-            // error: Single should be A
-        var <error descr="Incompatible type: Array<A>->Void should be Array<Single>->Void">castFromTest:Array<Single>->Void = argTypeParameterA</error>;
+        // WRONG
+        // error: Single should be A
+        var castFromTest:Array<Single>->Void = <error descr="Incompatible type: Array<A>->Void should be Array<Single>->Void">argTypeParameterA</error>;
 
 
-            //RETURN TYPES
+        //RETURN TYPES
 
-            // CORRECT
+        // CORRECT
         var castFromTest:Void->A = returnA;
 
-            // CORRECT
+        // CORRECT
         var castFromTest:Void->Array<A> = returnTypeParameterA;
 
-            // WRONG
-            // error: A should be Int
-        var <error descr="Incompatible type: Void->A should be Void->Int">castFromTest:Void->Int = returnA</error>;
+        // WRONG
+        // error: A should be Int
+        var castFromTest:Void->Int = <error descr="Incompatible type: Void->A should be Void->Int">returnA</error>;
 
-            // WRONG
-            // error: A should be Int
-        var <error descr="Incompatible type: Void->Array<A> should be Void->Array<Int>">castFromTest:Void->Array<Int>= returnTypeParameterA</error>;
+        // WRONG
+        // error: A should be Int
+        var castFromTest:Void->Array<Int>= <error descr="Incompatible type: Void->Array<A> should be Void->Array<Int>">returnTypeParameterA</error>;
     }
 
 

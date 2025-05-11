@@ -25,13 +25,13 @@ class AbstractOperatorOverload {
         var na =  <error descr="No overload for -- found">noOverloads--</error>; // WRONG: no overload
         var na =  <error descr="No overload for ++ found">noOverloads++</error>; // WRONG: no overload
 
-        var <error descr="Incompatible type: String should be Int">wrong:Int =  overloads++</error>; // WRONG: returns String
-        var <error descr="Incompatible type: Int should be String">wrong:String =  overloads--</error>; // WRONG:  returns Int
+        var wrong:Int =  <error descr="Incompatible type: String should be Int">overloads++</error>; // WRONG: returns String
+        var wrong:String =  <error descr="Incompatible type: Int should be String">overloads--</error>; // WRONG:  returns Int
 
         var operatorTypeMismatch =  <error descr="Unable to apply operator - for types AbsOperatorOverload and Int = 1">overloads - 1</error>; // WRONG: no matching overload
         var operatorTypeMismatch =  <error descr="Unable to apply operator + for types AbsOperatorOverload and Int = 1">overloads + 1</error>; // WRONG: no matching overload
 
-        var <error descr="Incompatible type: AbsType should be Int">wrongType:Int =  --overloads</error>; // WRONG: returns AbsType
+        var wrongType:Int =  <error descr="Incompatible type: AbsType should be Int">--overloads</error>; // WRONG: returns AbsType
         var missing =   <error descr="No overload for ++ found">++overloads</error>; // WRONG: no overload
 
 

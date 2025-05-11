@@ -60,7 +60,7 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
 
   @Test
   public void testChangeArgumentType() throws Exception {
-    doTestActions(HaxeBundle.message("haxe.quickfix.change.variable.type"));
+    doTestActions(HaxeBundle.message("haxe.quickfix.change.parameter.type"));
   }
 
   @Test
