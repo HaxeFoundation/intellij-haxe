@@ -1719,8 +1719,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return List.of(result.getFirst());
   }
   private List<? extends PsiElement> checkByTreeWalk(HaxeReference reference) {
+    // if we know we are looking for a type; do not walk tree
+    if(isQualifiedTypeReferenceStructure(reference)) return null;
     return checkByTreeWalk(reference, (PsiElement)null);
   }
+
 
   private List<? extends PsiElement> checkByTreeWalk(HaxeReference scope, String name) {
     final List<PsiElement> result = new ArrayList<>();
@@ -1787,6 +1790,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       return asList(resultClass.getComponentName());
     }
     return null;
+  }
+
+  private static boolean isQualifiedTypeReferenceStructure(HaxeReference reference) {
+    int refCount = 0;
+    while (reference.getParent() instanceof HaxeReference parent) {
+      reference = parent;
+      refCount++;
+    }
+    if(refCount == 0) return false;
+    if(reference.getParent() instanceof HaxeType) return true;
+    if(reference.getParent() instanceof HaxeImportStatement) return true;
+    return false;
   }
 
   public static boolean canBeQname(@NotNull HaxeReference reference) {
