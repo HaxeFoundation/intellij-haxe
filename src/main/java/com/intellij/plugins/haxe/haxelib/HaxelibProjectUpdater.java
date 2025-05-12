@@ -681,6 +681,10 @@ public class HaxelibProjectUpdater {
         }
       }
     }
+
+    //TODO make an option in module settings to toggle inclusion of lime
+    haxelibExternalItems.add( new HaxeLibraryReference(module,"lime", HaxelibSemVer.ANY_VERSION));
+
     //haxelibExternalItems.debugDump("haxelibExternalItems for module " + module.getName());
     timeLog.stamp("Finished loading haxelibs from openfl file.");
 
