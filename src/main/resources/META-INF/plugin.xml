@@ -30,7 +30,6 @@
   <depends>com.intellij.modules.json</depends>
   <depends optional="true" config-file="flex-debugger-support.xml">com.intellij.flex</depends>
   <depends optional="true" config-file="glsl-support.xml">OpenGL-Plugin</depends>
-  <depends optional="true" config-file="debugger-support.xml">com.intellij.modules.ultimate</depends>
 
   <!-- Leave the '999' at the start of unreleased version numbers so that it's always newer than any released version. -->
   <version>DEV @plugin.dev.version@ for @plugin.compatibility.description@</version>
@@ -46,6 +45,9 @@
   </extensions>>
 
   <extensions defaultExtensionNs="com.intellij">
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
+    <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
+
     <iconMapper mappingFile="HaxeIconMappings.json"/>
     <compileServer.plugin  classpath="jps-plugin.jar;common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
