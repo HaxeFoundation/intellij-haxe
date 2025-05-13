@@ -42,4 +42,6 @@ public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
   HaxeVarInit getVarInit();
 
   boolean isOptional();
+
+  boolean isMacroName();
 }

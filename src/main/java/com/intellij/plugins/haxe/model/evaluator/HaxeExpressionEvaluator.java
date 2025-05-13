@@ -416,6 +416,8 @@ public class HaxeExpressionEvaluator {
         }
       } else if (macroValueExpression.getMacroTopLevelDeclaration() != null) {
         return getTypeDefinition(element).createHolder();
+      }else {
+        return HaxeMacroTypeUtil.getExpr(element).createHolder();
       }
     }
     if (element instanceof HaxeMacroClassReification classReification) {

@@ -369,7 +369,7 @@ private moduleBodyPart ::=  topLevelDeclaration |  moduleFieldDeclaration |  mod
 moduleFieldDeclaration ::= moduleMemberModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
 {pin=3 extends=fieldDeclaration}
 
-macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody
+macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody{extends=classDeclaration}
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
 {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
 

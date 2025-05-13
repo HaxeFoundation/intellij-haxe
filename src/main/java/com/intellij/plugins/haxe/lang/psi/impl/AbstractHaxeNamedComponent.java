@@ -80,6 +80,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   public String getName() {
     return getCachedName(this);
   }
+  public boolean isMacroName() {
+    return (this.getComponentName() != null && this.getComponentName().getIdentifier() instanceof  HaxeMacroIdentifier);
+  }
 
   private static String getCachedName(AbstractHaxeNamedComponent namedComponent) {
     return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {

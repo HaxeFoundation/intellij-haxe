@@ -250,11 +250,9 @@ public class HaxeFieldAnnotator implements Annotator {
     HaxeCommonMembersModel membersModel = declaringClass != null ? declaringClass : field.getDeclaringModule();
 
     if (field.getGetterType() == HaxeAccessorType.GET) {
-      final String methodName = "get_" + field.getName();
-
-      HaxeMethodModel method = membersModel.getMethod(methodName, null);
-      if (method == null && field.getGetterPsi() != null) {
-        holder.newAnnotation(HighlightSeverity.ERROR, "Can't find method " + methodName)
+      HaxeMethodModel getterMethod = field.getGetterMethod();
+      if (getterMethod == null && field.getGetterPsi() != null) {
+        holder.newAnnotation(HighlightSeverity.ERROR, "Can't find getter method")
           .range(field.getGetterPsi())
           .withFix(new CreateGetterSetterQuickfix(membersModel, field, true))
           .create();
@@ -262,11 +260,9 @@ public class HaxeFieldAnnotator implements Annotator {
     }
 
     if (field.getSetterType() == HaxeAccessorType.SET) {
-      final String methodName = "set_" + field.getName();
-
-      HaxeMethodModel method = membersModel.getMethod(methodName, null);
-      if (method == null && field.getSetterPsi() != null) {
-        holder.newAnnotation(HighlightSeverity.ERROR, "Can't find method " + methodName)
+      HaxeMethodModel setterMethod = field.getSetterMethod();
+      if (setterMethod == null && field.getSetterPsi() != null) {
+        holder.newAnnotation(HighlightSeverity.ERROR, "Can't find setter method")
           .range(field.getSetterPsi())
           .withFix(new CreateGetterSetterQuickfix(membersModel, field, false))
           .create();

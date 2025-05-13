@@ -200,7 +200,8 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     }
 
 
-    StringBuilder out = new StringBuilder(this.getHaxeClassReference().getName());
+    String name = Optional.ofNullable(this.getHaxeClassReference().getName()).orElse("<unnamed class>");
+    StringBuilder out = new StringBuilder(name);
       if (!(this instanceof  SpecificHaxeAnonymousReference)) {
         ResultHolder[] specifics = getSpecifics();
         if (specifics.length > 0) {
