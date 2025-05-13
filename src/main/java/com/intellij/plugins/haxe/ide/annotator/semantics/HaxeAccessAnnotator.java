@@ -311,6 +311,11 @@ public class HaxeAccessAnnotator implements Annotator {
         if (target instanceof PsiPackage aPackage) {
           if (referenceParentModel.getPackage() == aPackage) {
             return true;
+          } else {
+            // allow  all sub packages of package
+            if (referenceParentModel.getPackage().getQualifiedName().startsWith(aPackage.getQualifiedName())) {
+              return true;
+            }
           }
         } else if (target instanceof HaxeModule module) {
           if (referenceParentModel.getModule() == module) {
