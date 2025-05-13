@@ -45,8 +45,6 @@
   </extensions>>
 
   <extensions defaultExtensionNs="com.intellij">
-    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
-    <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
     <compileServer.plugin  classpath="jps-plugin.jar;common.jar"/>
@@ -127,6 +125,8 @@
     <!-- METADATA END -->
 
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
+    <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
+    <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>
