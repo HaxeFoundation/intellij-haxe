@@ -186,11 +186,15 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (result == null) result = checkElementUsage(reference);
 
 
-    if (result == null) result = checkEnumExtractor(reference);// do before walking tree
-    if (result == null) result = checkReferenceInExtractorMatchExpression(reference);
-    if (result == null) result = checkIsSwitchVar(reference);
-    if (result == null) result = checkCaptureVarReference(reference);
-    if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
+    // if we know we are looking for a type; and references got multiple parts we can skip
+    // anything checking members and walking the tree structure
+    if(!isQualifiedNameReferenceStructure(reference)) {
+      if (result == null) result = checkEnumExtractor(reference);// do before walking tree
+      if (result == null) result = checkReferenceInExtractorMatchExpression(reference);
+      if (result == null) result = checkIsSwitchVar(reference);
+      if (result == null) result = checkCaptureVarReference(reference);
+      if (result == null) result = checkByTreeWalk(reference);  // Beware: This will also locate constraints in scope.
+    }
 
     HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
@@ -289,7 +293,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   // are used as parameters or assigned to other classes.
   private List<? extends PsiElement> checkElementUsage(@NotNull PsiElement reference) {
 
-    if (reference instanceof HaxeReferenceExpression) {
+    if (reference instanceof HaxeReferenceExpression referenceExpression) {
       PsiElement parent = reference.getParent();
       if (parent == null) return null;
       ResultHolder expectedType = findParentAssignType(parent);
@@ -302,6 +306,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               if(haxeClass.getModel() instanceof  HaxeEnumModel enumModel) {
                 for (HaxeEnumValueModel value : enumModel.getValues()) {
                   if(value.getNamePsi().textMatches(reference)) {
+                    if (value instanceof HaxeEnumValueConstructorModel constructorModel) {
+                      boolean isValidConstructor = testAsEnumValueConstructor(constructorModel.getEnumValuePsi(), referenceExpression);
+                      if (!isValidConstructor) continue;
+                    }
                     return List.of(value.getNamePsi());
                   }
                 }
@@ -1719,8 +1727,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return List.of(result.getFirst());
   }
   private List<? extends PsiElement> checkByTreeWalk(HaxeReference reference) {
-    // if we know we are looking for a type; do not walk tree
-    if(isQualifiedTypeReferenceStructure(reference)) return null;
     return checkByTreeWalk(reference, (PsiElement)null);
   }
 
@@ -1792,7 +1798,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return null;
   }
 
-  private static boolean isQualifiedTypeReferenceStructure(HaxeReference reference) {
+  private static boolean isQualifiedNameReferenceStructure(HaxeReference reference) {
     int refCount = 0;
     while (reference.getParent() instanceof HaxeReference parent) {
       reference = parent;
