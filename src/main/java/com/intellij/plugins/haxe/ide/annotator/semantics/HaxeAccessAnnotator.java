@@ -295,6 +295,10 @@ public class HaxeAccessAnnotator implements Annotator {
           if (memberModel.getMemberPsi() == method) {
             return true;
           }
+        } else if (target instanceof HaxePsiField field) {
+          if (memberModel.getMemberPsi() == field) {
+            return true;
+          }
         }
       }
     }
