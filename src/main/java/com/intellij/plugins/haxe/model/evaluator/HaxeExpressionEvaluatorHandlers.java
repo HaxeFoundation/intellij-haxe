@@ -1631,6 +1631,14 @@ public class HaxeExpressionEvaluatorHandlers {
           if(functionTypeRef.isNullType() || functionTypeRef.isTypeDef()) {
             functionType = functionTypeRef.fullyResolveTypeDefAndUnwrapNullTypeReference();
           }
+          if(functionType instanceof SpecificHaxeClassReference  classReference) {
+            HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
+            if (haxeClassModel instanceof HaxeAbstractClassModel abstractClassModel) {
+              if(abstractClassModel.isCallable()) {
+                functionType = abstractClassModel.getUnderlyingType(resolver);
+              }
+            }
+          }
         }
       }
         boolean varIsMacroFunction = isCallExpressionToMacroMethod(callExpressionRef);
@@ -2073,10 +2081,6 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
   static ResultHolder handleIdentifier(HaxeExpressionEvaluatorContext context, HaxeIdentifier identifier) {
-    //makes sure its a variable and not a reification expression
-    if (isMacroVariable(identifier)) {
-      return SpecificTypeReference.getDynamic(identifier).createHolder();
-    }
     // If it has already been seen, then use whatever type is already known.
     ResultHolder holder = context.get(identifier.getText());
     if (holder == null) {
