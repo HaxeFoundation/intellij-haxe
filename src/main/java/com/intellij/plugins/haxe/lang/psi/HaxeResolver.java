@@ -2096,11 +2096,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     if (canBeQname(reference)) {
-      PsiElement item = resolveQualifiedReference(reference);
-      if (item != null) {
-        LogResolution(reference, "via simple chain against package or module.");
-        return List.of(item);
-      }
+        PsiElement item = resolveQualifiedReference(reference);
+        if (item != null) {
+          LogResolution(reference, "via simple chain against package or module.");
+          return List.of(item);
+        }
     }
 
     if(!parentResolve.isEmpty()) {
@@ -2129,8 +2129,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     SpecificTypeReference type = result != null && !result.isUnknown() ? result.getType()  : null;
     //enum values does not have a HaxeClass but we need a class for a lot of the checks below (extension methods etc),
     // so we use the EnumValue as class as a replacement
+    boolean fromEnumValue = false;
     if (type instanceof SpecificEnumValueReference valueReference) {
       type = getEnumValue(valueReference.context);
+      fromEnumValue = true;
     }
     SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
@@ -2199,7 +2201,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           // make sure our HaxeReferenceExpression is the fist element  in parent (ex. MyClass.someMember)
           if (parent.getFirstChild() == leftReference && !(parent.getParent() instanceof HaxeReferenceExpression)) {
             HaxeClassModel model = haxeClass.getModel();
-            if (leftReference.textMatches(model.getName())) {
+            String name = model.getName();
+            if (name != null && leftReference.textMatches(name)) {
               extensionType = SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, leftReference, new ResultHolder[]{new ResultHolder(classType)});
             }
           }
@@ -2249,6 +2252,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
     }
+
+    if(fromEnumValue) {
+      //  type was replaced with EnumValue, check original class
+      List<? extends PsiElement> psiElements = resolveByClassAndSymbol(result.getType(), null, reference);
+      if(psiElements!= null && !psiElements.isEmpty())return psiElements;
+    }
+
     if(type != null) return resolveByClassAndSymbol(type, null, reference);
     return  List.of();
   }
@@ -2562,10 +2572,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final List<HaxeUsingModel> usingModels = new ArrayList<>(stdPackageModel.getGlobalUsings());
       usingModels.addAll(fileModel.getUsingModels());
 
-      HaxeResolveUtil.walkDirectoryImports(fileModel, (importModel) -> {
-        usingModels.addAll(importModel.getUsingModels());
-        return true;
-      });
+      if(reference.getContainingFile() instanceof  HaxeFile haxeFile) {
+        HaxeFileModel model = haxeFile.getModel();
+        if(model != null) {
+          usingModels.addAll(model.getUsingModels());
+        }
+      }
 
       for (int i = usingModels.size() - 1; i >= 0; --i) {
         HaxeUsingModel model = usingModels.get(i);
