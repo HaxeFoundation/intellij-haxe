@@ -31,6 +31,11 @@ public class HaxeClassAssignUtil  {
                                            SpecificHaxeClassReference fromClassReference
   ) {
 
+    // abstracts and Enums do not extend or implement so no need to perform this check here.
+    if(toClassReference.isAbstractType() || fromClassReference.isAbstractType()) return false;
+    if(toClassReference.isEnumType() || fromClassReference.isEnumType()) return false;
+    if(toClassReference.isEnumValue() || fromClassReference.isEnumValue()) return false;
+
     Boolean canAssign = hierarchyRecursionGuard.computePreventingRecursion(fromClassReference.getElementContext(), true,
                                                                            () -> _testClassHierarchyAssign(context, toClassReference,
                                                                                                            fromClassReference));

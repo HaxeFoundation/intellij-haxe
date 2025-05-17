@@ -50,14 +50,7 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
    * @param node - The AST Node for which we are creating the class.
    */
   static HaxeClass createUnknownClass(ASTNode node) {
-    return new HaxeExternClassDeclarationImpl(node) {
-      @SuppressWarnings({"ConstantConditions"})
-      @Nullable
-      @Override
-      public String getName() {
-        return SpecificTypeReference.UNKNOWN;
-      }
-    };
+    return new HaxeUnknownClass(node);
   }
 
 

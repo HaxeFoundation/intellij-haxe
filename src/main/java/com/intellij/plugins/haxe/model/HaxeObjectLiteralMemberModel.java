@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteralElement;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.Nullable;
 
 public class HaxeObjectLiteralMemberModel extends HaxeBaseMemberModel {
@@ -45,6 +46,9 @@ public class HaxeObjectLiteralMemberModel extends HaxeBaseMemberModel {
   }
 
 
+  public PsiElement getValuePsi() {
+    return myPsi.getExpression();
+  }
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
     return HaxeExpressionEvaluator.evaluate(myPsi.getExpression(), resolver).result;

@@ -1428,7 +1428,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (ourClass == null) return;
 
     HaxeFileModel.fromElement(reference).getUsingModels().stream()
-      .flatMap(model -> model.getExtensionMethods(ourClass).stream())
+      .flatMap(model -> model.getExtensionMethods(ourClass, reference).stream())
       .map(HaxeMemberModel::getNamePsi)
       .forEach(name -> {
         variants.add(name);

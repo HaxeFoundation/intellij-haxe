@@ -161,12 +161,12 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   }
 
   private void evaluateTypeText() {
-    ResultHolder type = model.getResultType(resolver);
     if (isFunctionType && model instanceof HaxeMethodModel methodModel) {
       SpecificFunctionReference functionType = methodModel.getFunctionType(resolver);
       typeText =  functionType.toPresentationString();
       return;
     }
+    ResultHolder type = model.getResultType(resolver);
     if (type != null && !type.isUnknown()) {
       typeText = type.toPresentationString();
     }

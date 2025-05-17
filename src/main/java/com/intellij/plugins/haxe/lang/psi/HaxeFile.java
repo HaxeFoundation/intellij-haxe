@@ -50,6 +50,8 @@ import java.util.List;
 public class HaxeFile extends PsiFileBase
   implements HaxeModifierListOwner, PsiClassOwner {
 
+  private HaxeFileModel haxeFileModel;
+
   public HaxeFile(@NotNull FileViewProvider viewProvider) {
     super(viewProvider, HaxeLanguage.INSTANCE);
   }
@@ -161,7 +163,10 @@ public class HaxeFile extends PsiFileBase
     });
   }
 
+  @Nullable
   public HaxeFileModel getModel() {
-    return HaxeFileModel.fromElement(this);
+    if(haxeFileModel != null) return haxeFileModel;
+    haxeFileModel =new HaxeFileModel(this);
+    return haxeFileModel;
   }
 }

@@ -74,6 +74,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   public HaxeClassReference getReference() {
     return new HaxeClassReference(this, this.getPsi());
   }
+  @NotNull
+  public HaxeClassReference createReference(PsiElement context) {
+    return new HaxeClassReference(this, context);
+  }
 
   @NotNull
   public ResultHolder getInstanceType() {
@@ -84,6 +88,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         reference = SpecificHaxeClassReference.withGenerics(getReference(),getSpecifics());
     }
     return reference;
+  }
+  @NotNull
+  public SpecificHaxeClassReference createSpecificReference(PsiElement context) {
+        return SpecificHaxeClassReference.withGenerics(createReference(context),getSpecifics());
   }
 
   private boolean isInstanceReferenceValid() {
@@ -899,9 +907,8 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
                           ? (HaxeClass) element
                           : PsiTreeUtil.getParentOfType(element, HaxeClass.class);
 
-    //TODO  cache in element ?
     if (haxeClass != null) {
-      return new HaxeClassModel(haxeClass);
+      return haxeClass.getModel();
     }
     return null;
   }

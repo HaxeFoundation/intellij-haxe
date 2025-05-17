@@ -37,7 +37,7 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   private final HaxeFile file;
 
-  protected HaxeFileModel(@NotNull HaxeFile file) {
+  public HaxeFileModel(@NotNull HaxeFile file) {
     this.file = file;
   }
 
@@ -47,7 +47,7 @@ public class HaxeFileModel implements HaxeExposableModel {
 
     final PsiFile file = element instanceof PsiFile  psiFile ? psiFile: element.getContainingFile();
     if (file instanceof HaxeFile haxeFile) {
-      return CachedValuesManager.getCachedValue(haxeFile, () -> new CachedValueProvider.Result<>(new HaxeFileModel(haxeFile), haxeFile));
+      return haxeFile.getModel();
     }
     return null;
   }

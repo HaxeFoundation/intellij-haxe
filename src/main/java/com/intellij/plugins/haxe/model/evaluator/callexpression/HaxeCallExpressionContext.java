@@ -23,7 +23,7 @@ import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatibl
 
 public class HaxeCallExpressionContext {
 
-    private static final RecursionGuard<RecursionKey> canAssignRecursionGuard = RecursionManager.createGuard("canAssignRecursionGuard");
+    private static final RecursionGuard<RecursionKey> callExpressionAssignRecursionGuard = RecursionManager.createGuard("callExpressionAssignRecursionGuard");
     // enumValue.Match allows patterns and have different rules
     public boolean isEnumValueMatchCallExpression;
     public boolean isInEnumValueMatchArgument;
@@ -244,7 +244,7 @@ public class HaxeCallExpressionContext {
             final SpecificTypeReference finalArgumentType = argumentType;
 
             RecursionKey recursionKey = new RecursionKey(argumentType.getElementContext(), parameterType.getElementContext());
-            assignEvaluation = canAssignRecursionGuard.doPreventingRecursion(recursionKey, true,
+            assignEvaluation = callExpressionAssignRecursionGuard.doPreventingRecursion(recursionKey, true,
                     isConstructor
                             ? () -> evaluateAssignToFromForNewAndCallExpression(finalParameterType.createHolder(), finalArgumentType.createHolder())
                             : () -> evaluateAssignToFrom(finalParameterType.createHolder(), finalArgumentType.createHolder()));

@@ -89,9 +89,9 @@ public class HaxeUsingModel extends HaxeImportableModel {
   }
 
   @NotNull
-  public List<HaxeMethodModel> getExtensionMethods(@NotNull HaxeClass classApplyTo) {
+  public List<HaxeMethodModel> getExtensionMethods(@NotNull HaxeClass classApplyTo, PsiElement ref) {
     HaxeClassModel model = HaxeClassModel.fromElement(classApplyTo);
-    SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withoutGenerics(model.getReference());
+    SpecificHaxeClassReference classReference = SpecificHaxeClassReference.withoutGenerics(model.createReference(ref));
     return getExtensionMethods(classReference, null);
   }
 
