@@ -44,6 +44,21 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
 
 
   @Test
+  public void testAssignUnknownTwice() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testUpdateUnknownInGenerics() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testUpdateUnknownOnLambdas() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testFixPackage() throws Exception {
     doTestActions("Fix package");
   }
