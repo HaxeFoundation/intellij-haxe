@@ -16,11 +16,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.ENUM;
 
 public class HaxeReferenceUtil {
+
+    private final static Pattern qNamePattern = Pattern.compile("([^<>:()\\[\\]])+(\\.[^<>:()\\[\\]]+)+");
 
     public static boolean isStaticExtension(HaxeReferenceExpression referenceExpression) {
                 PsiElement method = referenceExpression.resolve();
@@ -138,4 +141,30 @@ public class HaxeReferenceUtil {
         }
         return false;
     }
+
+    public static boolean canBeQname(@NotNull HaxeReference reference) {
+            PsiElement firstChild = reference.getFirstChild();
+            // before attempting a Qname lookup, make sure reference does not contain callExpression, parenthesizedExpression
+            // or other stuff that is not part of a Qname (it should only contain  reference, identifier or token)
+            while (firstChild instanceof HaxeReference
+                   || firstChild instanceof HaxeIdentifier
+                   || firstChild instanceof HaxePsiToken
+            ) {
+                if (firstChild instanceof HaxeCallExpression) break;
+                if (firstChild instanceof HaxeParenthesizedExpressionReference) break;
+                if (firstChild instanceof HaxeNewExpression) break;
+
+                firstChild = firstChild.getFirstChild();
+
+                if (firstChild == null) {
+                    return true;
+                }
+            }
+        return false;
+    }
+
+    public static boolean textCanBeQname(@NotNull String text) {
+        return qNamePattern.matcher(text).matches();
+    }
+
 }

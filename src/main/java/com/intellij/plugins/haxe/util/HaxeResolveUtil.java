@@ -52,8 +52,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
-import static com.intellij.plugins.haxe.lang.psi.HaxeResolver.canBeQname;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.evaluate;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findIteratorType;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
@@ -65,6 +66,7 @@ import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 public class HaxeResolveUtil {
 
   private static final RecursionGuard<PsiElement> typeDefRecursionGuard = RecursionManager.createGuard("typeDefRecursionGuard");
+  private final static Pattern NoIllegalSybmolsInNamePattern = Pattern.compile("[^:<>{}()/]+");
 
   static {
     log.setLevel(LogLevel.INFO);
@@ -907,7 +909,7 @@ public class HaxeResolveUtil {
     String packageName = getPackageName(packageStatement);
     String[] packages = packageName.split("\\.");
     String typeName = (type instanceof HaxeType ? ((HaxeType)type).getReferenceExpression() : type).getText();
-    if (typeName.matches("[^:<>{}()/]+")) {
+    if (NoIllegalSybmolsInNamePattern.matcher(typeName).matches()) {
       for (int i = packages.length - 1; i >= 0; --i) {
         StringBuilder qNameBuilder = new StringBuilder();
         for (int j = 0; j <= i; ++j) {

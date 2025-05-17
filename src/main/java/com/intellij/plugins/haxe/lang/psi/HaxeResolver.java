@@ -57,6 +57,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQname;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.textCanBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.getArrayAccessTypeFromClass;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForConstructorCall;
@@ -1947,26 +1949,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return false;
   }
 
-  public static boolean canBeQname(@NotNull HaxeReference reference) {
-    PsiElement firstChild = reference.getFirstChild();
-    // before attempting a Qname lookup, make sure reference does not contain callExpression, parenthesizedExpression
-    // or other stuff that is not part of a Qname (it should only contain  reference, identifier or token)
-    while(   firstChild instanceof HaxeReference
-          || firstChild instanceof HaxeIdentifier
-          || firstChild instanceof HaxePsiToken
-    ) {
-      if(firstChild instanceof  HaxeCallExpression) break;
-      if(firstChild instanceof  HaxeParenthesizedExpressionReference) break;
-      if(firstChild instanceof  HaxeNewExpression) break;
 
-      firstChild = firstChild.getFirstChild();
-
-      if(firstChild == null) {
-       return true;
-      }
-    }
-    return false;
-  }
 
   @Nullable
   private List<? extends PsiElement> checkIsSuperExpression(HaxeReference reference) {
@@ -2026,7 +2009,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         String maybeQname = reference.getText();
         // a sanity check before we try Qname resolve
         // should be a chain and not contain any method call, array access or typeParameters
-        if(maybeQname.matches("([^<>:()\\[\\]])+(\\.[^<>:()\\[\\]]+)+")) {
+        if(textCanBeQname(maybeQname)) {
           HaxeClass classByQName = HaxeResolveUtil.findClassByQName(maybeQname, reference);
           if(classByQName != null) {
             HaxeComponentName componentName = classByQName.getComponentName();

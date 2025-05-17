@@ -26,11 +26,14 @@ import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Stack;
+import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
   private static boolean whiteSpaceSkipped = false;
+
+  public static final Pattern StringIdentifier = Pattern.compile("[a-zA-Z_][a-zA-Z_0-9]*");
 
   private static boolean parseOperator(PsiBuilder builder_, IElementType operator, IElementType... tokens) {
     final PsiBuilder.Marker marker_ = builder_.mark();
@@ -103,9 +106,7 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     IElementType elementType = builder_.rawLookup(0);
     if (elementType == REGULAR_STRING_PART) {
       String text = builder_.getTokenText();
-      if(text != null && text.matches("[a-zA-Z_][a-zA-Z_0-9]*")) {
-        return true;
-      }
+        return text != null && StringIdentifier.matcher(text).matches();
     }
     return false;
   }

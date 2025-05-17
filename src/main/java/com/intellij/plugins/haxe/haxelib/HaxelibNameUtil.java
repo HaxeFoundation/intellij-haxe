@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Created by as3boyan on 31.10.14.
@@ -32,6 +33,9 @@ public final class HaxelibNameUtil {
   private final static String managedPrefix = "Haxelib";
   private final static String joiner = ": ";
   public final static String startsWith = managedPrefix + joiner;
+
+
+  private final static Pattern versionNamePattern = Pattern.compile("[0-9],[0-9],[0-9]");
 
   public static String stringifyHaxelib(String path) {
     return startsWith + path;
@@ -82,7 +86,7 @@ public final class HaxelibNameUtil {
     String[] pieces = classpathUrl.split("/");
     if (pieces.length >= 2) {
       String versionString = pieces[pieces.length - 1];
-      if (versionString.matches("[0-9],[0-9],[0-9]")) {
+      if (versionNamePattern.matcher(versionString).matches()) {
         libName = pieces[pieces.length - 2];
       }
     }

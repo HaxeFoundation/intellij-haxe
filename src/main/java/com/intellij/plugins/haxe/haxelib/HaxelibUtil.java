@@ -47,6 +47,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.versionPattern;
+
+
 /**
  * Various utilities to work with haxe libraries.
  */
@@ -202,7 +205,7 @@ public class HaxelibUtil {
                       libName + ".");
           }
           // Second is normally the version string.  But that's not *always* the case, if it's a dev path.
-          if (!libParts[1].matches(HaxelibSemVer.VERSION_REGEX)
+          if (!versionPattern.matcher(libParts[1]).matches()
               && !(new File(HaxeStringUtil.join("/", rootName, libParts[0], ".dev"))).exists()) {
             log.debug("Library version '" + libParts[1] + "' didn't match the regex.");
           }

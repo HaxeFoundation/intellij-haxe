@@ -23,6 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Pattern;
 
 import static com.intellij.plugins.haxe.haxelib.HaxelibSemVer.*;
 
@@ -40,6 +41,8 @@ public class HaxeLibraryReference {
   static {      // Take this out when finished debugging.
     log.setLevel(LogLevel.DEBUG);
   }
+
+  private final static Pattern haxeLibNamePattern = Pattern.compile(HaxelibNameUtil.startsWith + "(.*):(.*)");
 
   protected final String name;
   protected final ModuleLibraryCache owner;
@@ -87,7 +90,7 @@ public class HaxeLibraryReference {
       return null;
     }
 
-    if (name.matches(HaxelibNameUtil.startsWith+"(.*):(.*)")) {
+    if (haxeLibNamePattern.matcher(name).matches()) {
       String[] parts =  HaxelibNameUtil.extractNameAndVersion(name);
       if (parts.length > 2) {
         log.warn("Unexpectedly encountered multiple colons in library description.");

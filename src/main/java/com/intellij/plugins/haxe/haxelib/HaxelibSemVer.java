@@ -59,7 +59,7 @@ public class HaxelibSemVer {
   public static final HaxelibSemVer ZERO_VERSION = new HaxelibSemVer(0,0,0);
 
   public static final String VERSION_REGEX = "([0-9]+)[,.]([0-9]+)[,.]([0-9]+)";
-  private static final Pattern versionPattern = Pattern.compile(VERSION_REGEX);
+  public static final Pattern versionPattern = Pattern.compile(VERSION_REGEX);
 
   public static boolean isAny(HaxelibSemVer semVer) {
      return semVer == ANY_VERSION;
