@@ -945,7 +945,7 @@ private valueLiteralExpression ::= constantExpression
                     | arrayLiteral arrayAccessExpression?
                     | functionLiteral callExpression?
                     | objectLiteral
-                    | staticInitExpression
+                    | valueInitBlock
 
 
 
@@ -954,10 +954,11 @@ literalExpression ::= constantExpression
                     | arrayLiteral
                     | functionLiteral
                     | objectLiteral
-                    | blockStatement
+                    | valueInitBlock
+
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="literal expression"}
 
-staticInitExpression ::= blockStatement {extends=literalExpression}
+valueInitBlock ::= blockStatement {extends=literalExpression}
 
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                              | 'null' | 'true' | 'false'

@@ -112,7 +112,7 @@ Haxe File
                               IDENTIFIER
                                 HaxePsiToken:ID('target')
                       HaxePsiToken:)(')')
-                  STATIC_INIT_EXPRESSION
+                  VALUE_INIT_BLOCK
                     BLOCK_STATEMENT
                       HaxePsiToken:{('{')
                       PsiElement(EMBEDDED_META)
