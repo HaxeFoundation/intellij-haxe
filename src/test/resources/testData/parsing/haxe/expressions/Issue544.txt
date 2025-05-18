@@ -104,11 +104,11 @@ Haxe File
                             HaxePsiToken:}('}')
                         HaxePsiToken:(('(')
                         CALL_EXPRESSION_LIST
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('3')
                         HaxePsiToken:)(')')
                       HaxePsiToken:,(',')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('1000')
                     HaxePsiToken:)(')')
               HaxePsiToken:;(';')

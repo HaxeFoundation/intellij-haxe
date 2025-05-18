@@ -27,7 +27,7 @@ Haxe File
                     HaxePsiToken:ID('x')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('10')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST
@@ -68,7 +68,7 @@ Haxe File
                   HaxePsiToken:ID('add')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('2')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')
@@ -78,7 +78,7 @@ Haxe File
                   HaxePsiToken:ID('add')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('3')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')

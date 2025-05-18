@@ -51,7 +51,7 @@ Haxe File
                       HaxePsiToken:ID('type')
                   COMPARE_OPERATION
                     HaxePsiToken:==('==')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:null('null')
                 QUESTION_OPERATOR
                   HaxePsiToken:?('?')

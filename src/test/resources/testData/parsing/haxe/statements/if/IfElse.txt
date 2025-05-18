@@ -29,7 +29,7 @@ Haxe File
               GUARD
                 HaxePsiToken:if('if')
                 HaxePsiToken:(('(')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:true('true')
                 HaxePsiToken:)(')')
               GUARDED_STATEMENT

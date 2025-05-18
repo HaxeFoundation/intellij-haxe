@@ -34,7 +34,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('age')
                       HaxePsiToken::(':')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('26')
                     HaxePsiToken:,(',')
                     OBJECT_LITERAL_ELEMENT

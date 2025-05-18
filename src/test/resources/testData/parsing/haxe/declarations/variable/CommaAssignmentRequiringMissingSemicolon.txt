@@ -39,7 +39,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('i')
                       HaxePsiToken::(':')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('32')
                     HaxePsiToken:}('}')
               HaxePsiToken:,(',')
@@ -49,7 +49,7 @@ Haxe File
                     HaxePsiToken:ID('a')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('2')
               PsiErrorElement:Missing semicolon.
                 <empty list>

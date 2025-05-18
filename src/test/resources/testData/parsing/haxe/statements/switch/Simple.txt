@@ -31,7 +31,7 @@ Haxe File
                 SWITCH_CASE
                   HaxePsiToken:case('case')
                   SWITCH_CASE_EXPR
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('0')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK
@@ -52,7 +52,7 @@ Haxe File
                             HaxePsiToken:ID('foo')
                       HaxePsiToken:(('(')
                       ENUM_EXTRACTOR_ARGUMENT_LIST
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('1')
                       HaxePsiToken:)(')')
                   HaxePsiToken::(':')
@@ -63,11 +63,11 @@ Haxe File
                 SWITCH_CASE
                   HaxePsiToken:case('case')
                   SWITCH_CASE_EXPR
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('65')
                   HaxePsiToken:,(',')
                   SWITCH_CASE_EXPR
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('90')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK

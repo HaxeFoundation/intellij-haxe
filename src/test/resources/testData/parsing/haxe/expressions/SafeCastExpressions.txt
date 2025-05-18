@@ -152,7 +152,7 @@ Haxe File
                                       HaxePsiToken:>('>')
                                 HaxePsiToken:)(')')
                               HaxePsiToken:[('[')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('0')
                               HaxePsiToken:](']')
                             HaxePsiToken:.('.')
@@ -160,7 +160,7 @@ Haxe File
                               HaxePsiToken:ID('charAt')
                           HaxePsiToken:(('(')
                           CALL_EXPRESSION_LIST
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('0')
                           HaxePsiToken:)(')')
                         HaxePsiToken:.('.')
@@ -220,7 +220,7 @@ Haxe File
                                   HaxePsiToken:)(')')
                                 HaxePsiToken:)(')')
                               HaxePsiToken:[('[')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('0')
                               HaxePsiToken:](']')
                             HaxePsiToken:.('.')
@@ -228,7 +228,7 @@ Haxe File
                               HaxePsiToken:ID('charAt')
                           HaxePsiToken:(('(')
                           CALL_EXPRESSION_LIST
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('0')
                           HaxePsiToken:)(')')
                         HaxePsiToken:.('.')
@@ -296,7 +296,7 @@ Haxe File
                                         HaxePsiToken:>('>')
                                   HaxePsiToken:)(')')
                                 HaxePsiToken:[('[')
-                                LITERAL_EXPRESSION
+                                CONSTANT_EXPRESSION
                                   HaxePsiToken:LITINT('0')
                                 HaxePsiToken:](']')
                               HaxePsiToken:(('(')
@@ -311,7 +311,7 @@ Haxe File
                               HaxePsiToken:ID('charAt')
                           HaxePsiToken:(('(')
                           CALL_EXPRESSION_LIST
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('0')
                           HaxePsiToken:)(')')
                         HaxePsiToken:.('.')
@@ -381,7 +381,7 @@ Haxe File
                                     HaxePsiToken:)(')')
                                   HaxePsiToken:)(')')
                                 HaxePsiToken:[('[')
-                                LITERAL_EXPRESSION
+                                CONSTANT_EXPRESSION
                                   HaxePsiToken:LITINT('0')
                                 HaxePsiToken:](']')
                               HaxePsiToken:(('(')
@@ -396,7 +396,7 @@ Haxe File
                               HaxePsiToken:ID('charAt')
                           HaxePsiToken:(('(')
                           CALL_EXPRESSION_LIST
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('0')
                           HaxePsiToken:)(')')
                         HaxePsiToken:.('.')

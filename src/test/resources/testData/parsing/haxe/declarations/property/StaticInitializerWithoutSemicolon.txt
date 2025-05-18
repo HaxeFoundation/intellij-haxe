@@ -22,7 +22,7 @@ Haxe File
               HaxePsiToken:ID('init')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            STATIC_INIT_EXPRESSION
               BLOCK_STATEMENT
                 HaxePsiToken:{('{')
                 ASSIGN_EXPRESSION

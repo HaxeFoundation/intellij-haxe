@@ -39,7 +39,7 @@ Haxe File
                           HaxePsiToken:ID('Bool')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
               HaxePsiToken:;(';')
             RETURN_STATEMENT
@@ -106,7 +106,7 @@ Haxe File
                           HaxePsiToken:ID('Bool')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// important should be parsed as Ternary ( ref ? assign : assign)')
@@ -170,7 +170,7 @@ Haxe File
                           HaxePsiToken:ID('Bool')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// just a sanity check to make sure also we can also parse AssignExpression with Ternary as child')
@@ -181,15 +181,15 @@ Haxe File
               ASSIGN_OPERATION
                 HaxePsiToken:=('=')
               TERNARY_EXPRESSION
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:true('true')
                 QUESTION_OPERATOR
                   HaxePsiToken:?('?')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:false('false')
                 COLON_OPERATOR
                   HaxePsiToken::(':')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:true('true')
             HaxePsiToken:;(';')
             HaxePsiToken:}('}')
@@ -237,7 +237,7 @@ Haxe File
                           HaxePsiToken:ID('Bool')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
               HaxePsiToken:;(';')
             RETURN_STATEMENT

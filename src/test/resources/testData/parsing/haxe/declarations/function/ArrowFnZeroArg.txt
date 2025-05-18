@@ -62,7 +62,7 @@ Haxe File
                   HaxePsiToken:)(')')
                   LAMDA_RETURN_STATEMENT
                     HaxePsiToken:return('return')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('0')
                 HaxePsiToken:)(')')
             HaxePsiToken:;(';')
@@ -80,7 +80,7 @@ Haxe File
                 HaxePsiToken:)(')')
                 LAMDA_RETURN_STATEMENT
                   HaxePsiToken:return('return')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
             HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -99,7 +99,7 @@ Haxe File
                   HaxePsiToken:->('->')
                   LAMDA_RETURN_STATEMENT
                     HaxePsiToken:return('return')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('0')
                 HaxePsiToken:)(')')
             HaxePsiToken:;(';')
@@ -117,7 +117,7 @@ Haxe File
                 HaxePsiToken:->('->')
                 LAMDA_RETURN_STATEMENT
                   HaxePsiToken:return('return')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
             HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -134,7 +134,7 @@ Haxe File
                     <empty list>
                   HaxePsiToken:)(')')
                   HaxePsiToken:->('->')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:)(')')
             HaxePsiToken:;(';')
@@ -150,7 +150,7 @@ Haxe File
                   <empty list>
                 HaxePsiToken:)(')')
                 HaxePsiToken:->('->')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('0')
             HaxePsiToken:;(';')
             HaxePsiToken:}('}')

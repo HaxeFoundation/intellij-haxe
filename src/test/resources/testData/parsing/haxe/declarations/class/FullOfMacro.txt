@@ -152,7 +152,7 @@ Haxe File
                   HaxePsiToken:ID('haxe_ver')
               COMPARE_OPERATION
                 HaxePsiToken:>=('>=')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITFLOAT('3.2')
       HaxePsiToken:)(')')
   PsiElement(EMBEDDED_META)
@@ -482,7 +482,7 @@ Haxe File
                     HaxePsiToken:[('[')
                     HaxePsiToken:](']')
                   HaxePsiToken:,(',')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
                 HaxePsiToken:)(')')
         HaxePsiToken:)(')')

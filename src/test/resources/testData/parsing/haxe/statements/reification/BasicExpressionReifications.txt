@@ -138,7 +138,7 @@ Haxe File
                     HaxePsiToken:ID('value')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
               HaxePsiToken:;(';')
             RETURN_STATEMENT

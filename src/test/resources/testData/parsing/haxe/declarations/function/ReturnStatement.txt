@@ -18,7 +18,7 @@ Haxe File
           HaxePsiToken:)(')')
           RETURN_STATEMENT
             HaxePsiToken:return('return')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
         HaxePsiToken:}('}')

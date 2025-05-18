@@ -771,7 +771,7 @@ Haxe File
                   HaxePsiToken:ID('t')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:true('true')
                 HaxePsiToken:,(',')
                 REFERENCE_EXPRESSION

@@ -22,7 +22,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('common')
                 HaxePsiToken::(':')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('0')
               HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
@@ -32,7 +32,7 @@ Haxe File
                     HaxePsiToken:REGULAR_STRING_PART('singleQuotes')
                   HaxePsiToken:CLOSING_QUOTE(''')
                 HaxePsiToken::(':')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('1')
               HaxePsiToken:,(',')
               OBJECT_LITERAL_ELEMENT
@@ -42,7 +42,7 @@ Haxe File
                     HaxePsiToken:REGULAR_STRING_PART('doubleQuotes')
                   HaxePsiToken:CLOSING_QUOTE('"')
                 HaxePsiToken::(':')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('2')
               HaxePsiToken:}('}')
           HaxePsiToken:;(';')

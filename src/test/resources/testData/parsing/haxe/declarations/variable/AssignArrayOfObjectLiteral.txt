@@ -135,7 +135,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('height')
                     HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('150')
                   HaxePsiToken:,(',')
                   OBJECT_LITERAL_ELEMENT
@@ -143,7 +143,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('width')
                     HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('200')
                   HaxePsiToken:}('}')
                 HaxePsiToken:,(',')
@@ -174,7 +174,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('height')
                     HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('150')
                   HaxePsiToken:,(',')
                   OBJECT_LITERAL_ELEMENT
@@ -182,7 +182,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('width')
                     HaxePsiToken::(':')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('200')
                   HaxePsiToken:}('}')
               HaxePsiToken:](']')

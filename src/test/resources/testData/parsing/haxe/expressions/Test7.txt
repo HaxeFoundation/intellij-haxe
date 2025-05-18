@@ -33,7 +33,7 @@ Haxe File
                   SWITCH_CASE
                     HaxePsiToken:case('case')
                     SWITCH_CASE_EXPR
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('0')
                     HaxePsiToken::(':')
                     SWITCH_CASE_BLOCK
@@ -67,7 +67,7 @@ Haxe File
                 SAFE_CAST_EXPRESSION
                   HaxePsiToken:cast('cast')
                   HaxePsiToken:(('(')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITFLOAT('0.')
                   HaxePsiToken:,(',')
                   TYPE_OR_ANONYMOUS

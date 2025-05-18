@@ -103,7 +103,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('x')
                   HaxePsiToken::(':')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:,(',')
                 OBJECT_LITERAL_ELEMENT
@@ -111,7 +111,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('y')
                   HaxePsiToken::(':')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:,(',')
                 OBJECT_LITERAL_ELEMENT
@@ -119,7 +119,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('z')
                   HaxePsiToken::(':')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:}('}')
             HaxePsiToken:;(';')

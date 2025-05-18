@@ -47,7 +47,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('c')
                           HaxePsiToken:[('[')
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('0')
                           HaxePsiToken:](']')
                         HaxePsiToken:.('.')
@@ -67,7 +67,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('Timer')
                     HaxePsiToken:(('(')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('100')
                     HaxePsiToken:)(')')
                   HaxePsiToken:)(')')
@@ -86,7 +86,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('Timer')
                   HaxePsiToken:(('(')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('100')
                   HaxePsiToken:)(')')
                 HaxePsiToken:.('.')
@@ -105,11 +105,11 @@ Haxe File
                 VAR_INIT
                   HaxePsiToken:=('=')
                   BITWISE_EXPRESSION
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:true('true')
                     BIT_OPERATION
                       HaxePsiToken:|('|')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:false('false')
               HaxePsiToken:;(';')
             HaxePsiToken:}('}')

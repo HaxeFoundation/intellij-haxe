@@ -35,11 +35,11 @@ Haxe File
               HaxePsiToken:in('in')
               ITERABLE
                 ITERATOR_EXPRESSION
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
                   ITERATOR_OPERATOR
                     HaxePsiToken:...('...')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('11')
               HaxePsiToken:)(')')
               BLOCK_STATEMENT

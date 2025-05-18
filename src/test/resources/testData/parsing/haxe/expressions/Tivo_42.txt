@@ -16,11 +16,11 @@ Haxe File
           VAR_INIT
             HaxePsiToken:=('=')
             COMPARE_EXPRESSION
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITINT('1')
               COMPARE_OPERATION
                 HaxePsiToken:>=('>=')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITINT('1')
           HaxePsiToken:;(';')
         HaxePsiToken:}('}')

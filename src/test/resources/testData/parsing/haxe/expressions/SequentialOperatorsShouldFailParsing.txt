@@ -31,7 +31,7 @@ Haxe File
                   HaxePsiToken:=('=')
                   LOGIC_AND_EXPRESSION
                     LOGIC_OR_EXPRESSION
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('1')
                       LOGIC_OR_OPERATOR
                         HaxePsiToken:||('||')
@@ -39,7 +39,7 @@ Haxe File
                         <empty list>
                     LOGIC_AND_OPERATOR
                       HaxePsiToken:&&('&&')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('2')
               HaxePsiToken:;(';')
             HaxePsiToken:}('}')

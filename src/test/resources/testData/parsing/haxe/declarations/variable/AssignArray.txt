@@ -46,20 +46,20 @@ Haxe File
                 ARRAY_LITERAL
                   HaxePsiToken:[('[')
                   EXPRESSION_LIST
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('1')
                     HaxePsiToken:,(',')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('1')
                   HaxePsiToken:](']')
                 HaxePsiToken:,(',')
                 ARRAY_LITERAL
                   HaxePsiToken:[('[')
                   EXPRESSION_LIST
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('1')
                     HaxePsiToken:,(',')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('0')
                   HaxePsiToken:](']')
               HaxePsiToken:](']')

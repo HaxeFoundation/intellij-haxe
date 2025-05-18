@@ -231,7 +231,7 @@ Haxe File
                     HaxePsiToken:ID('x')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:;(';')
             CALL_EXPRESSION
@@ -246,7 +246,7 @@ Haxe File
                       HaxePsiToken:ID('x')
                   COMPARE_OPERATION
                     HaxePsiToken:<('<')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('10')
                 HaxePsiToken:,(',')
                 POSTFIX_EXPRESSION
@@ -292,7 +292,7 @@ Haxe File
                     HaxePsiToken:ID('x')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('10')
               HaxePsiToken:;(';')
             CALL_EXPRESSION
@@ -348,7 +348,7 @@ Haxe File
                           HaxePsiToken:ID('x')
                       MULTIPLICATIVE_OPERATOR
                         HaxePsiToken:*('*')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('2')
                     HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
                   HaxePsiToken:REGULAR_STRING_PART(' times better than X')
@@ -613,7 +613,7 @@ Haxe File
                           SWITCH_CASE_BLOCK
                             THROW_STATEMENT
                               HaxePsiToken:throw('throw')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:false('false')
                               HaxePsiToken:;(';')
                         SWITCH_CASE
@@ -688,10 +688,10 @@ Haxe File
                   ARRAY_LITERAL
                     HaxePsiToken:[('[')
                     EXPRESSION_LIST
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('1')
                       HaxePsiToken:,(',')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('6')
                     HaxePsiToken:](']')
               HaxePsiToken:;(';')
@@ -720,7 +720,7 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('2')
                               HaxePsiToken:,(',')
                               ENUM_EXTRACTED_VALUE
@@ -747,7 +747,7 @@ Haxe File
                                     IDENTIFIER
                                       HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('6')
                               HaxePsiToken:](']')
                           HaxePsiToken::(':')
@@ -842,7 +842,7 @@ Haxe File
                       HaxePsiToken:switch('switch')
                       PARENTHESIZED_EXPRESSION
                         HaxePsiToken:(('(')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('7')
                         HaxePsiToken:)(')')
                       SWITCH_BLOCK
@@ -851,11 +851,11 @@ Haxe File
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
                             BITWISE_EXPRESSION
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('4')
                               BIT_OPERATION
                                 HaxePsiToken:|('|')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('1')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -868,11 +868,11 @@ Haxe File
                           HaxePsiToken:case('case')
                           SWITCH_CASE_EXPR
                             BITWISE_EXPRESSION
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('6')
                               BIT_OPERATION
                                 HaxePsiToken:|('|')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('7')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
@@ -921,10 +921,10 @@ Haxe File
                   ARRAY_LITERAL
                     HaxePsiToken:[('[')
                     EXPRESSION_LIST
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('7')
                       HaxePsiToken:,(',')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('6')
                     HaxePsiToken:](']')
               HaxePsiToken:;(';')
@@ -1076,10 +1076,10 @@ Haxe File
                       ARRAY_LITERAL
                         HaxePsiToken:[('[')
                         EXPRESSION_LIST
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('1')
                           HaxePsiToken:,(',')
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:false('false')
                           HaxePsiToken:,(',')
                           STRING_LITERAL_EXPRESSION
@@ -1094,10 +1094,10 @@ Haxe File
                           SWITCH_CASE_EXPR
                             SWITCH_CASE_EXPR_ARRAY
                               HaxePsiToken:[('[')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('1')
                               HaxePsiToken:,(',')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:false('false')
                               HaxePsiToken:,(',')
                               STRING_LITERAL_EXPRESSION
@@ -1123,7 +1123,7 @@ Haxe File
                                     IDENTIFIER
                                       HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:true('true')
                               HaxePsiToken:,(',')
                               ENUM_EXTRACTED_VALUE
@@ -1150,7 +1150,7 @@ Haxe File
                                     IDENTIFIER
                                       HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:false('false')
                               HaxePsiToken:,(',')
                               ENUM_EXTRACTED_VALUE
@@ -1250,7 +1250,7 @@ Haxe File
                           HaxePsiToken:ID('Kilometer')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST
@@ -1714,7 +1714,7 @@ Haxe File
               HaxePsiToken:in('in')
               ITERABLE
                 ITERATOR_EXPRESSION
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                   ITERATOR_OPERATOR
                     HaxePsiToken:...('...')

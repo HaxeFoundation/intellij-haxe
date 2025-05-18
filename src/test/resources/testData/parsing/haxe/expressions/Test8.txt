@@ -168,7 +168,7 @@ Haxe File
                   HaxePsiToken:)(')')
                   BLOCK_STATEMENT
                     HaxePsiToken:{('{')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:null('null')
                     HaxePsiToken:;(';')
                     HaxePsiToken:}('}')

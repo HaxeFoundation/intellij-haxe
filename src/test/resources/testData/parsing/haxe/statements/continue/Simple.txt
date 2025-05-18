@@ -27,7 +27,7 @@ Haxe File
                     HaxePsiToken:ID('i')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:;(';')
             WHILE_STATEMENT
@@ -39,7 +39,7 @@ Haxe File
                     HaxePsiToken:ID('i')
                 COMPARE_OPERATION
                   HaxePsiToken:<('<')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('10')
               HaxePsiToken:)(')')
               DO_WHILE_BODY
@@ -62,7 +62,7 @@ Haxe File
                             HaxePsiToken:ID('i')
                         COMPARE_OPERATION
                           HaxePsiToken:<('<')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('5')
                       HaxePsiToken:)(')')
                     GUARDED_STATEMENT

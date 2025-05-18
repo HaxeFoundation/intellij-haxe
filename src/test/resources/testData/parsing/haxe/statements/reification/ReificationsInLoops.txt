@@ -153,7 +153,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:;(';')
             WHILE_STATEMENT
@@ -263,7 +263,7 @@ Haxe File
                         HaxePsiToken:in('in')
                         ITERABLE
                           ITERATOR_EXPRESSION
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('0')
                             ITERATOR_OPERATOR
                               HaxePsiToken:...('...')

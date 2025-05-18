@@ -50,13 +50,13 @@ Haxe File
                       HaxePsiToken:ID('n')
                   COMPARE_OPERATION
                     HaxePsiToken:<('<')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('2')
                 HaxePsiToken:)(')')
               GUARDED_STATEMENT
                 RETURN_STATEMENT
                   HaxePsiToken:return('return')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
                   HaxePsiToken:;(';')
             RETURN_STATEMENT
@@ -74,7 +74,7 @@ Haxe File
                           HaxePsiToken:ID('n')
                       ADDITIVE_OPERATOR
                         HaxePsiToken:-('-')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('2')
                   HaxePsiToken:)(')')
                 ADDITIVE_OPERATOR
@@ -91,7 +91,7 @@ Haxe File
                           HaxePsiToken:ID('n')
                       ADDITIVE_OPERATOR
                         HaxePsiToken:-('-')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('1')
                   HaxePsiToken:)(')')
               HaxePsiToken:;(';')

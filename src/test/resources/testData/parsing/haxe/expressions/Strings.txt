@@ -34,7 +34,7 @@ Haxe File
                     HaxePsiToken:ID('foo')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
               HaxePsiToken:;(';')
             CALL_EXPRESSION
@@ -47,7 +47,7 @@ Haxe File
                   HaxePsiToken:ID('charAt')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('0')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')

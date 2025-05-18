@@ -30,7 +30,7 @@ Haxe File
             HaxePsiToken:)(')')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITFLOAT('3.14')
           HaxePsiToken:;(';')
         METHOD_DECLARATION

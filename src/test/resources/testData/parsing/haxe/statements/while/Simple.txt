@@ -28,7 +28,7 @@ Haxe File
             WHILE_STATEMENT
               HaxePsiToken:while('while')
               HaxePsiToken:(('(')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:true('true')
               HaxePsiToken:)(')')
               DO_WHILE_BODY

@@ -15,7 +15,7 @@ Haxe File
               HaxePsiToken:ID('a1')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITINT('0')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -29,7 +29,7 @@ Haxe File
             PREFIX_EXPRESSION
               PREFIX_OPERATOR
                 HaxePsiToken:-('-')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITINT('134')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -40,7 +40,7 @@ Haxe File
               HaxePsiToken:ID('a3')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITHEX('0xFF00')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -51,7 +51,7 @@ Haxe File
               HaxePsiToken:ID('a4')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITFLOAT('123.0')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -62,7 +62,7 @@ Haxe File
               HaxePsiToken:ID('a5')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:null('null')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -73,7 +73,7 @@ Haxe File
               HaxePsiToken:ID('a6')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITFLOAT('13e50')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -87,7 +87,7 @@ Haxe File
             PREFIX_EXPRESSION
               PREFIX_OPERATOR
                 HaxePsiToken:-('-')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITFLOAT('1e-99')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -141,7 +141,7 @@ Haxe File
               HaxePsiToken:ID('a11')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:true('true')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -152,7 +152,7 @@ Haxe File
               HaxePsiToken:ID('a12')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:false('false')
           HaxePsiToken:;(';')
         HaxePsiToken:}('}')

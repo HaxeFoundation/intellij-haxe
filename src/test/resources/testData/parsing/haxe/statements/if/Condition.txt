@@ -36,7 +36,7 @@ Haxe File
                         HaxePsiToken:ID('isPrime')
                     HaxePsiToken:(('(')
                     CALL_EXPRESSION_LIST
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('239')
                     HaxePsiToken:)(')')
                   LOGIC_AND_OPERATOR
@@ -45,15 +45,15 @@ Haxe File
                     HaxePsiToken:(('(')
                     COMPARE_EXPRESSION
                       BITWISE_EXPRESSION
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('3')
                         BIT_OPERATION
                           HaxePsiToken:^('^')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('5')
                       COMPARE_OPERATION
                         HaxePsiToken:==('==')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('6')
                     HaxePsiToken:)(')')
                 HaxePsiToken:)(')')

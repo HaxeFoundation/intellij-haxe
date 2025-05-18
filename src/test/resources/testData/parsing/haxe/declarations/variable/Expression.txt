@@ -24,7 +24,7 @@ Haxe File
             HaxePsiToken:=('=')
             MULTIPLICATIVE_EXPRESSION
               MULTIPLICATIVE_EXPRESSION
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('2')
                 MULTIPLICATIVE_OPERATOR
                   HaxePsiToken:*('*')
@@ -42,7 +42,7 @@ Haxe File
                   IDENTIFIER
                     HaxePsiToken:ID('radius')
                 HaxePsiToken:[('[')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('0')
                 HaxePsiToken:](']')
           HaxePsiToken:;(';')

@@ -60,7 +60,7 @@ Haxe File
                     HaxePsiToken:ID('i')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST

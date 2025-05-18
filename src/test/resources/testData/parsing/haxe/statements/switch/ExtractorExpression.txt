@@ -140,7 +140,7 @@ Haxe File
                               HaxePsiToken:)(')')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:true('true')
                             HaxePsiToken:;(';')
                         SWITCH_CASE
@@ -153,7 +153,7 @@ Haxe File
                                     HaxePsiToken:ID('_')
                           HaxePsiToken::(':')
                           SWITCH_CASE_BLOCK
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:false('false')
                             HaxePsiToken:;(';')
                         HaxePsiToken:}('}')

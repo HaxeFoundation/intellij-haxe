@@ -94,27 +94,27 @@ Haxe File
                   BITWISE_EXPRESSION
                     ADDITIVE_EXPRESSION
                       ADDITIVE_EXPRESSION
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('2')
                         ADDITIVE_OPERATOR
                           HaxePsiToken:+('+')
                         MULTIPLICATIVE_EXPRESSION
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('2')
                           MULTIPLICATIVE_OPERATOR
                             HaxePsiToken:*('*')
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('2')
                       ADDITIVE_OPERATOR
                         HaxePsiToken:+('+')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('2')
                     BIT_OPERATION
                       HaxePsiToken:&('&')
                     PREFIX_EXPRESSION
                       PREFIX_OPERATOR
                         HaxePsiToken:~('~')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITHEX('0x001')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST
@@ -268,7 +268,7 @@ Haxe File
                       HaxePsiToken:)(')')
                     LOGIC_AND_OPERATOR
                       HaxePsiToken:&&('&&')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:false('false')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// allowed since it has parentheses')
@@ -295,7 +295,7 @@ Haxe File
                               HaxePsiToken:ID('String')
                     LOGIC_AND_OPERATOR
                       HaxePsiToken:&&('&&')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:false('false')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// must be wrapped with parentheses in 4.1, allowed in 4.2. 'Missing ;' in 3.4.')
@@ -318,7 +318,7 @@ Haxe File
                         HaxePsiToken:ID('stage')
                     IS_OPERATOR
                       HaxePsiToken:ID('is')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('123')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('//  incorrect use, Expected Type/Class got literal 'Missing ;' in 3.4.')
@@ -369,7 +369,7 @@ Haxe File
                           IDENTIFIER
                             HaxePsiToken:ID('x')
                         HaxePsiToken::(':')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('1')
                       HaxePsiToken:,(',')
                       OBJECT_LITERAL_ELEMENT
@@ -377,7 +377,7 @@ Haxe File
                           IDENTIFIER
                             HaxePsiToken:ID('y')
                         HaxePsiToken::(':')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('1')
                       HaxePsiToken:}('}')
               HaxePsiToken:;(';')

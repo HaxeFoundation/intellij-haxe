@@ -32,7 +32,7 @@ Haxe File
                       GUARD
                         HaxePsiToken:if('if')
                         HaxePsiToken:(('(')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:true('true')
                         HaxePsiToken:)(')')
                       GUARDED_STATEMENT
@@ -46,7 +46,7 @@ Haxe File
                             HaxePsiToken:)(')')
                             RETURN_STATEMENT
                               HaxePsiToken:return('return')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:false('false')
                               HaxePsiToken:;(';')
                           HaxePsiToken:}('}')

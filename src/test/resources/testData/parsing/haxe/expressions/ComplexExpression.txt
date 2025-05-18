@@ -36,7 +36,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('8')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST
@@ -55,7 +55,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('4')
               HaxePsiToken:;(';')
             LOCAL_VAR_DECLARATION_LIST
@@ -74,7 +74,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('2')
               HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -95,7 +95,7 @@ Haxe File
                       HaxePsiToken:ID('i2')
                   UNSIGNED_SHIFT_RIGHT_ASSIGN_OPERATOR
                     HaxePsiToken:>>>=('>>>=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -110,7 +110,7 @@ Haxe File
                     HaxePsiToken:ID('i2')
                 SHIFT_RIGHT_ASSIGN_OPERATOR
                   HaxePsiToken:>>=('>>=')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -125,7 +125,7 @@ Haxe File
                     HaxePsiToken:ID('i3')
                 SHIFT_LEFT_ASSIGN_OPERATOR
                   HaxePsiToken:<<=('<<=')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -146,7 +146,7 @@ Haxe File
                       HaxePsiToken:ID('i2')
                 SHIFT_LEFT_OPERATOR
                   HaxePsiToken:<<('<<')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('1')
             HaxePsiToken:;(';')
             HaxePsiToken:}('}')

@@ -22,7 +22,7 @@ Haxe File
                     HaxePsiToken:ID('int')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITINT('239')
           HaxePsiToken:;(';')
         HaxePsiToken:}('}')

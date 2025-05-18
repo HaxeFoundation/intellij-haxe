@@ -36,7 +36,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('2')
               HaxePsiToken:;(';')
             ASSIGN_EXPRESSION
@@ -45,7 +45,7 @@ Haxe File
                   HaxePsiToken:ID('s')
               SHIFT_RIGHT_ASSIGN_OPERATOR
                 HaxePsiToken:>>=('>>=')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:LITINT('2')
             HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// <---- '>>=' wasn't parsed correctly.')

@@ -37,7 +37,7 @@ Haxe File
                       IDENTIFIER
                         HaxePsiToken:ID('map1')
                     HaxePsiToken:[('[')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('0')
                     HaxePsiToken:](']')
               HaxePsiToken:;(';')
@@ -57,7 +57,7 @@ Haxe File
                           HaxePsiToken:ID('Int')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
               HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('//TODO mlo: not sure if any of this makes any sence now?')

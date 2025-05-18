@@ -95,7 +95,7 @@ Haxe File
                       TYPE_PARAM
                         HaxePsiToken:<('<')
                         TYPE_LIST_PART
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('124')
                         HaxePsiToken:>('>')
                     HaxePsiToken:(('(')

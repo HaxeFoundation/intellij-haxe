@@ -178,7 +178,7 @@ Haxe File
                             HaxePsiToken:ID('want_a')
                         COMPARE_OPERATION
                           HaxePsiToken:==('==')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:true('true')
                       HaxePsiToken:)(')')
                     QUESTION_OPERATOR
@@ -250,7 +250,7 @@ Haxe File
                   HaxePsiToken:=('=')
                   TERNARY_EXPRESSION
                     COMPARE_EXPRESSION
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:null('null')
                       COMPARE_OPERATION
                         HaxePsiToken:!=('!=')
@@ -331,7 +331,7 @@ Haxe File
                   HaxePsiToken:=('=')
                   TERNARY_EXPRESSION
                     COMPARE_EXPRESSION
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:null('null')
                       COMPARE_OPERATION
                         HaxePsiToken:!=('!=')
@@ -352,7 +352,7 @@ Haxe File
                             HaxePsiToken:ID('want_a')
                         COMPARE_OPERATION
                           HaxePsiToken:==('==')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:true('true')
                       QUESTION_OPERATOR
                         HaxePsiToken:?('?')
@@ -383,7 +383,7 @@ Haxe File
                             HaxePsiToken:ID('want_a')
                         COMPARE_OPERATION
                           HaxePsiToken:==('==')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:false('false')
                       QUESTION_OPERATOR
                         HaxePsiToken:?('?')

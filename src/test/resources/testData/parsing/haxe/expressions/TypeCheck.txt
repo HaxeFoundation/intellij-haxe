@@ -50,7 +50,7 @@ Haxe File
                   HaxePsiToken:ID('foo')
               HaxePsiToken:(('(')
               CALL_EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:null('null')
               HaxePsiToken:)(')')
             HaxePsiToken:;(';')

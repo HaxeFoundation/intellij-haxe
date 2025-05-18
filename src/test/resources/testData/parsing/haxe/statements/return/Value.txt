@@ -48,22 +48,22 @@ Haxe File
                         HaxePsiToken:ID('x')
                     MODULO_OPERATOR
                       HaxePsiToken:%('%')
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:LITINT('2')
                   COMPARE_OPERATION
                     HaxePsiToken:!=('!=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:)(')')
               GUARDED_STATEMENT
                 RETURN_STATEMENT
                   HaxePsiToken:return('return')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
                   HaxePsiToken:;(';')
             RETURN_STATEMENT
               HaxePsiToken:return('return')
-              LITERAL_EXPRESSION
+              CONSTANT_EXPRESSION
                 HaxePsiToken:false('false')
               HaxePsiToken:;(';')
             HaxePsiToken:}('}')

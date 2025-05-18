@@ -56,7 +56,7 @@ Haxe File
                         HaxePsiToken:ID('listItems')
                     HaxePsiToken:)(')')
                   HaxePsiToken:[('[')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                   HaxePsiToken:](']')
               HaxePsiToken:)(')')
@@ -114,19 +114,19 @@ Haxe File
             ARRAY_LITERAL
               HaxePsiToken:[('[')
               EXPRESSION_LIST
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('1')
                 HaxePsiToken:,(',')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('2')
                 HaxePsiToken:,(',')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('3')
                 HaxePsiToken:,(',')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('4')
                 HaxePsiToken:,(',')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('5')
               HaxePsiToken:](']')
           HaxePsiToken:;(';')

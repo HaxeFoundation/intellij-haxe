@@ -29,7 +29,7 @@ Haxe File
                     HaxePsiToken:ID('String')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            STATIC_INIT_EXPRESSION
               BLOCK_STATEMENT
                 HaxePsiToken:{('{')
                 LOCAL_VAR_DECLARATION_LIST

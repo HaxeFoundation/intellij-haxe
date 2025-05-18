@@ -29,7 +29,7 @@ Haxe File
                     HaxePsiToken:ID('a')
                 VAR_INIT
                   HaxePsiToken:=('=')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:true('true')
               HaxePsiToken:;(';')
             SWITCH_STATEMENT
@@ -45,7 +45,7 @@ Haxe File
                 SWITCH_CASE
                   HaxePsiToken:case('case')
                   SWITCH_CASE_EXPR
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:true('true')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK
@@ -67,7 +67,7 @@ Haxe File
                 SWITCH_CASE
                   HaxePsiToken:case('case')
                   SWITCH_CASE_EXPR
-                    LITERAL_EXPRESSION
+                    CONSTANT_EXPRESSION
                       HaxePsiToken:false('false')
                   HaxePsiToken::(':')
                   SWITCH_CASE_BLOCK

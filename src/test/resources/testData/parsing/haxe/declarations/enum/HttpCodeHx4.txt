@@ -25,7 +25,7 @@ Haxe File
               HaxePsiToken:ID('OK')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITINT('200')
           HaxePsiToken:;(';')
         FIELD_DECLARATION
@@ -36,7 +36,7 @@ Haxe File
               HaxePsiToken:ID('NOT_FOUND')
           VAR_INIT
             HaxePsiToken:=('=')
-            LITERAL_EXPRESSION
+            CONSTANT_EXPRESSION
               HaxePsiToken:LITINT('404')
           HaxePsiToken:;(';')
         HaxePsiToken:}('}')

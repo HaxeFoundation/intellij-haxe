@@ -27,7 +27,7 @@ Haxe File
               HaxePsiToken:switch('switch')
               PARENTHESIZED_EXPRESSION
                 HaxePsiToken:(('(')
-                LITERAL_EXPRESSION
+                CONSTANT_EXPRESSION
                   HaxePsiToken:LITINT('3')
                 HaxePsiToken:)(')')
               SWITCH_BLOCK
@@ -46,7 +46,7 @@ Haxe File
                             IDENTIFIER
                               HaxePsiToken:ID('_')
                           HaxePsiToken:,(',')
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('1')
                         HaxePsiToken:)(')')
                       HaxePsiToken:=>('=>')
@@ -62,7 +62,7 @@ Haxe File
                                 IDENTIFIER
                                   HaxePsiToken:ID('_')
                               HaxePsiToken:,(',')
-                              LITERAL_EXPRESSION
+                              CONSTANT_EXPRESSION
                                 HaxePsiToken:LITINT('3')
                             HaxePsiToken:)(')')
                           HaxePsiToken:=>('=>')

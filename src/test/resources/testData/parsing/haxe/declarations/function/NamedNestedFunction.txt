@@ -111,7 +111,7 @@ Haxe File
                           HaxePsiToken:)(')')
                         QUESTION_OPERATOR
                           HaxePsiToken:?('?')
-                        LITERAL_EXPRESSION
+                        CONSTANT_EXPRESSION
                           HaxePsiToken:LITINT('1')
                         COLON_OPERATOR
                           HaxePsiToken::(':')
@@ -133,11 +133,11 @@ Haxe File
                           PREFIX_EXPRESSION
                             PREFIX_OPERATOR
                               HaxePsiToken:-('-')
-                            LITERAL_EXPRESSION
+                            CONSTANT_EXPRESSION
                               HaxePsiToken:LITINT('1')
                           COLON_OPERATOR
                             HaxePsiToken::(':')
-                          LITERAL_EXPRESSION
+                          CONSTANT_EXPRESSION
                             HaxePsiToken:LITINT('0')
                       HaxePsiToken:;(';')
                     HaxePsiToken:}('}')

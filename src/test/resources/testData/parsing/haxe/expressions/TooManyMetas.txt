@@ -72,7 +72,7 @@ Haxe File
                         IDENTIFIER
                           HaxePsiToken:ID('pos')
                       HaxePsiToken::(':')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('0')
                     HaxePsiToken:}('}')
             LOCAL_VAR_DECLARATION_LIST
@@ -112,7 +112,7 @@ Haxe File
                               IDENTIFIER
                                 HaxePsiToken:ID('target')
                       HaxePsiToken:)(')')
-                  LITERAL_EXPRESSION
+                  STATIC_INIT_EXPRESSION
                     BLOCK_STATEMENT
                       HaxePsiToken:{('{')
                       PsiElement(EMBEDDED_META)
@@ -120,7 +120,7 @@ Haxe File
                           HaxePsiToken:@:('@:')
                           TYPE
                             HaxePsiToken:META_TYPE('meta')
-                      LITERAL_EXPRESSION
+                      CONSTANT_EXPRESSION
                         HaxePsiToken:LITINT('10')
                       HaxePsiToken:;(';')
                       HaxePsiToken:}('}')

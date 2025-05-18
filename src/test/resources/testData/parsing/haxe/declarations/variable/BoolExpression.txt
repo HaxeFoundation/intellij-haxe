@@ -31,7 +31,7 @@ Haxe File
                     IDENTIFIER
                       HaxePsiToken:ID('condition')
                   HaxePsiToken:[('[')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                   HaxePsiToken:](']')
               LOGIC_OR_OPERATOR
@@ -51,7 +51,7 @@ Haxe File
                     HaxePsiToken:)(')')
                   COMPARE_OPERATION
                     HaxePsiToken:>('>')
-                  LITERAL_EXPRESSION
+                  CONSTANT_EXPRESSION
                     HaxePsiToken:LITINT('0')
                 HaxePsiToken:)(')')
           HaxePsiToken:;(';')
