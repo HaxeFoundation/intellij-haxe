@@ -252,11 +252,13 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
   }
 
   private static void addCaptureVariableDeclarations(HaxeSwitchCaseExpr expr, Set<PsiElement> result) {
-    List<PsiElement> captureVars = PsiTreeUtil.findChildrenOfType(expr, HaxeReferenceExpression.class).stream()
-            .filter(HaxeReferenceUtil::isCaptureVar)
-            .map(PsiElement.class::cast)
-            .toList();
-    addDeclarations(result, captureVars);
+      List<PsiElement> captureVars = new ArrayList<>();
+      for (HaxeReferenceExpression referenceExpression : PsiTreeUtil.findChildrenOfType(expr, HaxeReferenceExpression.class)) {
+          if (HaxeReferenceUtil.isCaptureVar(referenceExpression)) {
+              captureVars.add(referenceExpression);
+          }
+      }
+      addDeclarations(result, captureVars);
   }
 
 

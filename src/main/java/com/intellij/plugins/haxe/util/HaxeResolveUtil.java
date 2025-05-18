@@ -1138,6 +1138,7 @@ public class HaxeResolveUtil {
   public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name, boolean checkForEnumValues, boolean expectedEnumIsConstructor) {
     final HaxePackageModel packageModel = file.getPackageModel();
     if (packageModel != null) {
+      // TODO make index of package members
       List<HaxeModel> exposedMembers = packageModel.getExposedMembers();
       for (HaxeModel model : exposedMembers) {
         if (name.equals(model.getName())) {

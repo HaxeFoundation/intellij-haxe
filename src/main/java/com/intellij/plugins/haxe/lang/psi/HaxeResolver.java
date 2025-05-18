@@ -1907,7 +1907,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
       if (leftReference != null) {
           HaxePsiCompositeElement parentOfType = PsiTreeUtil.getParentOfType(reference, HaxeType.class);
-          // chain resolve is intended to find members, skipping resolveChain if reference is part of a method
+          // chain resolve is intended to find members, skipping resolveChain if reference is part of a Type / Qname
           if(parentOfType == null) {
             List<? extends PsiElement> result = resolveChain(leftReference, reference);
             if (result != null && !result.isEmpty()) {
@@ -2091,8 +2091,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     List<PsiElement> parentResolve = new ArrayList<>();
     if (leftReference != null) {
       // recursive so we try to  resolve first element in the chain first and go up the chain
-      List<? extends PsiElement> results = resolveChain(leftReference, lefthandExpression);
-      if(results != null)  parentResolve.addAll(results);
+      // using normal resolve so result is cached (resolveChain is early in the resolve logic so should not cause much overhead)
+      PsiElement resolve = leftReference.resolve();
+      if(resolve != null) parentResolve.add(reference);
     }
 
     if (canBeQname(reference)) {
@@ -2621,7 +2622,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
 
-      // hackish workaround for captureVariables iin array (HaxeSwitchCaseExprArray)
+      // hackish workaround for captureVariables in array (HaxeSwitchCaseExprArray)
       if(element.textMatches(name) && !PsiTreeUtil.isAncestor(target, element, false)) {
         if (element instanceof HaxeReferenceExpression referenceExpression) {
           if (element.getParent() instanceof HaxeSwitchCaseExprArray || element.getParent() instanceof HaxeSwitchCaseExpr) {

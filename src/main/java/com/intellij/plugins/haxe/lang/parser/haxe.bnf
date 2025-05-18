@@ -517,7 +517,7 @@ parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restPara
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
-private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? untypedKeyword? lambdaBody {pin=2}
+private keywordFunctionLiteral ::= 'function' componentName? parenthesizedParameterList typeTag? untypedKeyword? lambdaBody {pin=3}
 functionLiteral ::= keywordFunctionLiteral | arrowFunctionLiteral // TODO considder extending functionType and implement logic to find arguments and return type
 
 arrayLiteral ::= <<isInitializersAllowed>> '[' (expressionList ','?)? ']'
@@ -717,7 +717,7 @@ private returnValue ::= objectLiteral
                       | statement
                       | expression
                       | localVarDeclarationList   // Void value, so allowable, but not useful
-lamdaReturnStatement ::= 'return' (returnValue)? {implements="returnStatement"}
+lamdaReturnStatement ::= 'return' (returnValue)? { pin = 1 implements="returnStatement"}
 returnStatement ::= 'return' (returnValue)? <<semicolonUnlessFollowedByElseOrCatchOrStatement>>
 
 breakStatement ::= 'break' <<semicolonUnlessFollowedByElseOrCatchKeyword>> // semi optional in guarded statement
@@ -726,7 +726,7 @@ continueStatement ::= 'continue' <<semicolonUnlessFollowedByElseOrCatchKeyword>>
 throwStatement ::= 'throw' expression ';'?
 
 // TODO: Allow multiple, comma delimited, expressions on switch statement.
-switchStatement ::= 'switch' expression switchBlock
+switchStatement ::= 'switch' expression switchBlock {pin=1}
 switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 
 switchCaseBlock ::=  statementList | (literalExpression <<semicolonUnlessPrecededByStatement>>)
@@ -933,30 +933,37 @@ private value ::= ('untyped' expression)
                 | throwStatement
                 | (safeCastExpression (qualifiedReferenceTail | CallArrayOrReferenceExpression*)?)
                 | unsafeCastExpression
-                | callFunctionLiteral
-                | immediateArrayAccess
-                | (literalExpression qualifiedReferenceTail?)
+                | (valueLiteralExpression qualifiedReferenceTail?)
                 | objectLiteral
                 | valueReference
                 | localVarDeclarationWithInit
 {pin=1 }
 private valueReference ::= ( macroExpressionReification | callOrArrayTail) (qualifiedReferenceTail | CallArrayOrReferenceExpression* qualifiedReferenceTail*)?;
+// optimization (we want to avoid parsing complex structures multiple times, ex. functionLiteral with immediate call, vs just the functionLiteral)
+private valueLiteralExpression ::= constantExpression
+                    | mapLiteral arrayAccessExpression?
+                    | arrayLiteral arrayAccessExpression?
+                    | functionLiteral callExpression?
+                    | objectLiteral
+                    | staticInitExpression
 
-literalExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
-                    | 'null' | 'true' | 'false'
-                    | stringLiteralExpression
-                    | regularExpressionLiteral
+
+
+literalExpression ::= constantExpression
                     | mapLiteral
                     | arrayLiteral
+                    | functionLiteral
                     | objectLiteral
                     | blockStatement
-                    | functionLiteral
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="literal expression"}
+
+staticInitExpression ::= blockStatement {extends=literalExpression}
+
 constantExpression ::= LITINT | LITHEX | LITOCT | LITFLOAT
                              | 'null' | 'true' | 'false'
                              | stringLiteralExpression
                              | regularExpressionLiteral
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference" name="constant expression"}
+{extends=literalExpression}
 
 
 stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
@@ -978,10 +985,7 @@ typeCheckExpr ::= expression typeCheckOperator typeWrapper
 private CallArrayOrReferenceExpression::= (callExpression | arrayAccessExpression |qualifiedNullSafeReferenceExpression)
 private newExpressionOrCall ::=  newExpression qualifiedReferenceTail?
 private qualifiedReferenceTail ::= qualifiedNullSafeReferenceExpression CallArrayOrReferenceExpression*
-
-private callFunctionLiteral ::= functionLiteral callExpression
 private callOrArrayTail ::= 'inline'? ( thisSuperAbstractOrReferenceExpression | parenthesizedExpression)
-private immediateArrayAccess ::= arrayLiteral arrayAccessExpression
 
 // spread operator only allowed  as last  last argument in calls expressions
 spreadExpression ::= (iteratorOperator (referenceExpression | arrayLiteral)) { extends = unaryExpression}

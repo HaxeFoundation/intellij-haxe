@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.lang.annotation.AnnotationHolder;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -36,6 +37,7 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +48,7 @@ import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorH
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
-
+@CustomLog
 public class HaxeTypeResolver {
   @NotNull
   static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
@@ -103,9 +105,10 @@ public class HaxeTypeResolver {
       else {
         return getFieldType(comp, resolver);
       }
-    }
-    catch (Throwable e) {
-      e.printStackTrace();
+    } catch (ProcessCanceledException e) {
+      throw e;
+    } catch (Throwable e) {
+      log.warn("Exception in  _getFieldOrMethodReturnType, returning unknown", e);
       return SpecificTypeReference.getUnknown(comp).createHolder();
     }
   }
