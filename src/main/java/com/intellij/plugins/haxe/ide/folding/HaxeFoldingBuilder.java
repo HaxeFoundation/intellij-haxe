@@ -166,6 +166,9 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       } else if (isDocComment(elementType)) {
         // If no special region were detected and comment is kind of documentation - we should create folding region
         descriptor = buildDocCommentFolding(node);
+
+      } else if (isMultilineComment(node)) {
+        descriptor = buildMultilineCommentFolding(node);
       }
     } else if (isCompilerConditional(elementType)) {
       RegionMarker matched = matchCCRegion(node);
@@ -183,6 +186,16 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
   private static boolean isDocComment(IElementType type) {
     return type == DOC_COMMENT;
+  }
+  private static boolean isMultilineComment(ASTNode node) {
+    ASTNode treeNext = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpaces(node);
+    ASTNode treePrev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpaces(node);
+    if(treeNext == null) return false;
+
+    return node.getElementType() == MSL_COMMENT &&  treeNext.getElementType() == MSL_COMMENT
+           //makes sure we do not create regions inside a block of comments
+           && (treePrev == null || treePrev.getElementType() !=  MSL_COMMENT);
+
   }
 
   private static boolean isDocComment(ASTNode node) {
@@ -422,6 +435,29 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
 
     if (isValidFoldingSize(textRange)) {
       return new FoldingDescriptor(node, textRange);
+    }
+
+    return null;
+  }
+  private static FoldingDescriptor buildMultilineCommentFolding(@NotNull ASTNode start) {
+    ASTNode end = start;
+    ASTNode next = start;
+
+    while (next != null && next.getElementType() == MSL_COMMENT) {
+      end =next;
+      next = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpaces(next);
+    }
+
+    TextRange textRange = new TextRange(start.getStartOffset(), end.getTextRange().getEndOffset());
+
+    if (isValidFoldingSize(textRange)) {
+      return new FoldingDescriptor(start, textRange) {
+        @Nullable
+        @Override
+        public String getPlaceholderText() {
+          return "//" + PLACEHOLDER_TEXT;
+        }
+      };
     }
 
     return null;

@@ -107,12 +107,30 @@ public class UsefulPsiTreeUtil {
     }
     return result;
   }
+  @Nullable
+  public static ASTNode getPrevSiblingSkipWhiteSpaces(@Nullable ASTNode sibling) {
+    if (sibling == null) return null;
+    ASTNode result = sibling.getTreePrev();
+    while (result != null && isWhitespace(result.getPsi())) {
+      result = result.getTreePrev();
+    }
+    return result;
+  }
 
   @Nullable
   public static ASTNode getNextSiblingSkipWhiteSpacesAndComments(@Nullable ASTNode sibling) {
     if (sibling == null) return null;
     ASTNode result = sibling.getTreeNext();
     while (result != null && isWhitespaceOrComment(result.getPsi())) {
+      result = result.getTreeNext();
+    }
+    return result;
+  }
+  @Nullable
+  public static ASTNode getNextSiblingSkipWhiteSpaces(@Nullable ASTNode sibling) {
+    if (sibling == null) return null;
+    ASTNode result = sibling.getTreeNext();
+    while (result != null && isWhitespace(result.getPsi())) {
       result = result.getTreeNext();
     }
     return result;
@@ -142,6 +160,9 @@ public class UsefulPsiTreeUtil {
 
   public static boolean isWhitespaceOrComment(PsiElement element) {
     return element instanceof PsiWhiteSpace || element instanceof PsiComment;
+  }
+  public static boolean isWhitespace(PsiElement element) {
+    return element instanceof PsiWhiteSpace;
   }
   public static boolean isWhitespaceOrCommentButNotDocs(PsiElement element) {
     return element instanceof PsiWhiteSpace

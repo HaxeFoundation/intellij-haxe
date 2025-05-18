@@ -35,7 +35,7 @@ public class HaxeFoldingOptionsProvider extends BeanConfigurable<HaxeFoldingSett
    * @see HaxeFoldingSettings
    **/
   public HaxeFoldingOptionsProvider() {
-    super(HaxeFoldingSettings.getInstance());
+    super(HaxeFoldingSettings.getInstance(), HaxeBundle.message("haxe.title"));
     final HaxeFoldingSettings settings = getInstance();
 
     checkBox(HaxeBundle.message("haxe.idea.style.regions"), settings::isCollapseHaxePluginStyleRegions, settings::setCollapseHaxePluginStyleRegions);
