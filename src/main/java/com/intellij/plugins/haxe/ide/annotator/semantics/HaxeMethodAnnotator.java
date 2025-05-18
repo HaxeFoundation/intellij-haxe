@@ -9,13 +9,13 @@ import com.intellij.plugins.haxe.model.evaluator.assign.HaxeOverrideOrImplementE
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
-import com.intellij.plugins.haxe.model.type.*;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,7 +23,6 @@ import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspe
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.*;
 import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.OVERRIDE;
-import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible.canAssignToFromReference;
 
 @CustomLog
 public class HaxeMethodAnnotator implements Annotator {
@@ -80,16 +79,14 @@ public class HaxeMethodAnnotator implements Annotator {
       String paramName = param.getName();
 
 
-
       if (checkParameterInitializers) {
-        if (param.getVarInitPsi() != null && param.getTypeTagPsi() != null) {
-          HaxeSemanticsUtil.TypeTagChecker.check(
-            param.getBasePsi(),
-            param.getTypeTagPsi(),
-            param.getVarInitPsi(),
-            true,
-            holder
-          );
+        HaxeVarInit varInitPsi = param.getVarInitPsi();
+        HaxeTypeTag typeTagPsi = param.getTypeTagPsi();
+        if (varInitPsi != null) {
+          checkConstExpression(varInitPsi, holder);
+          if (typeTagPsi != null) {
+            HaxeSemanticsUtil.TypeTagChecker.check(param.getBasePsi(), typeTagPsi, varInitPsi, true, holder);
+          }
         }
       }
 
@@ -104,6 +101,57 @@ public class HaxeMethodAnnotator implements Annotator {
         }
       }
     }
+  }
+
+  private static void checkConstExpression(HaxeVarInit varInitPsi, AnnotationHolder holder) {
+    HaxeExpression expression = varInitPsi.getExpression();
+    checkConstExpression(holder, expression);
+
+  }
+
+  private static void checkConstExpression(AnnotationHolder holder, PsiElement expression) {
+    if (expression instanceof HaxeConstantExpression) return;
+    if (expression instanceof HaxeArrayLiteral
+        || expression instanceof HaxeMapLiteral
+        || expression instanceof HaxeObjectLiteral) {
+      annotateNotConstant(expression, holder);
+
+    } else if (expression instanceof HaxeCallExpression ) {
+      annotateNotConstant(expression, holder);
+
+    } else if (expression instanceof HaxeParenthesizedExpression parenthesizedExpression) {
+      Collection<HaxeExpression> children = PsiTreeUtil.findChildrenOfAnyType(parenthesizedExpression,
+              HaxeParenthesizedExpression.class,
+              HaxeReferenceExpression.class,
+              HaxeArrayLiteral.class,
+              HaxeMapLiteral.class,
+              HaxeObjectLiteral.class);
+
+      for (HaxeExpression haxeExpression : children) {
+        checkConstExpression(holder, haxeExpression);
+      }
+
+
+    } else if (expression instanceof HaxeReferenceExpression referenceExpression) {
+      PsiElement resolve = referenceExpression.resolve();
+      if (resolve instanceof HaxeEnumValueDeclaration) return;
+      if (resolve instanceof HaxePsiField field ) {
+        if( field.isInline())return;
+        PsiClass containingClass = field.getContainingClass();
+        if(containingClass != null && containingClass.isEnum()){
+          // make sure its not a property if in abstract enum
+          if(field instanceof HaxeFieldDeclaration declaration
+             && declaration.getPropertyDeclaration() == null) return;
+        }
+      }
+      annotateNotConstant(expression, holder);
+    }
+  }
+
+  private static void annotateNotConstant(PsiElement element, AnnotationHolder holder) {
+    holder.newAnnotation(HighlightSeverity.ERROR, "Default argument value should be constant")
+            .range(element)
+            .create();
   }
 
   private static final String[] OVERRIDE_FORBIDDEN_MODIFIERS = {FINAL, INLINE, STATIC};

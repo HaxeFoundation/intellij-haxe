@@ -203,6 +203,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testParameterDefaultValues() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testUcFirstClassName() throws Exception {
     doTestActions("Change name");
   }
