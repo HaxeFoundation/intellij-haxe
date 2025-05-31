@@ -91,7 +91,7 @@ public class HaxeAnonymousAssignUtil {
         }
       }else if (toMember instanceof HaxeFieldModel toFieldModel) {
         optional = toFieldModel.isOptional() || toFieldModel.hasInitializer();
-        ignored = toFieldModel.isStatic();
+        ignored = toFieldModel.isStatic() || !toFieldModel.isRealVar();
 
         Optional<HaxeBaseMemberModel> modelOptional = fromMembers.stream()
                 .filter(model -> model.getNamePsi().getIdentifier().textMatches(name))

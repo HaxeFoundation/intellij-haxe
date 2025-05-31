@@ -441,6 +441,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testAssignAnonymousType() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testAssignAnonymousTypeStruct() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testAssignStringToDynamic() throws Exception {
