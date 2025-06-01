@@ -1,4 +1,16 @@
 # Changelog
+## 1.7.1
+* Bugfix: incorrect `Incompatible type: missing member` annotation for StructInit (#1214)
+* Bugfix: Correctly checking field references in @:access meta
+* Bugfix: Allow private access for sub-packages when @:allow referees to a package
+* Fixed: resolver would not find getters/setters when macro identifieres where used
+* Added: check for parameter defaults (should be const expressions).
+* Added: Folding for multiple single line comments.
+* improvement: Avoid unnecessary reparsing of functionLiterals.
+* Changed: Lime is added as a default external library when project is configured as lime/openFl project.
+* Changed: hxcpp debugger no longer require intellij ultimate 
+
+
 ## 1.7.0
 * Added: Access control annotation checking keywords(static private, public) and annotations (`@:access` `@:privateAccess`, `@:allow`)
 * Added: unused definition annotations (local functions, fields and methods).
