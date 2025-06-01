@@ -394,6 +394,14 @@ public abstract class SpecificTypeReference {
     }
     return false;
   }
+  public boolean isObjectLiteral() {
+    if (this instanceof SpecificHaxeAnonymousReference) return true;
+    if (this instanceof SpecificHaxeClassReference specificHaxeClassReference) {
+      HaxeClass aClass = specificHaxeClassReference.getHaxeClassReference().getHaxeClass();
+      if (aClass instanceof HaxeObjectLiteral) return true;
+    }
+    return false;
+  }
 
   final public boolean isEnumValue() {
     return (this instanceof SpecificEnumValueReference)

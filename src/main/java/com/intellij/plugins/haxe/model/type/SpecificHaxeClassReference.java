@@ -440,6 +440,13 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
       }
     }
+
+    if(this.isAnonymousType() || this.isObjectLiteral()) {
+      if(this.canAssign(targetClass)){
+        return targetClass;
+      }
+    }
+
     SpecificHaxeClassReference specificHaxeClassReference = tryCastToClass(targetClass);
     if (specificHaxeClassReference == null) {
       specificHaxeClassReference = tryAbstractCast(targetClass);
