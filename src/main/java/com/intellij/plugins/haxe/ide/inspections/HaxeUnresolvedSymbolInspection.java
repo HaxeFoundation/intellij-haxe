@@ -122,6 +122,7 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
 
   private LocalQuickFix[] createQuickfixesIfAvailable(HaxeReferenceExpression reference) {
     List<LocalQuickFix> list = new ArrayList<>();
+    boolean isTypeReference = PsiTreeUtil.getParentOfType(reference, HaxeType.class) != null;
     HaxeClass targetClass = HaxeIntroduceFieldIntention.getTargetClass(reference);
     if (reference.getParent() instanceof HaxeCallExpression callExpression) {
       HaxeExpression expression = callExpression.getExpression();
@@ -135,13 +136,15 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       }
     }else {
       @NotNull PsiElement[] children = reference.getChildren();
-      if (children.length  == 1) { // references is "local"
-        list.add(createLocalVarQuickfix(reference));
-        list.add(createMethodParameterQuickfix(reference));
-      }
-      if (targetClass instanceof HaxeClassDeclaration || targetClass instanceof HaxeExternClassDeclaration) {
-        list.add(createFieldQuickfix(reference, targetClass));
-      }
+        if (!isTypeReference) {
+          if (children.length == 1) { // references is "local"
+            list.add(createLocalVarQuickfix(reference));
+            list.add(createMethodParameterQuickfix(reference));
+          }
+          if (targetClass instanceof HaxeClassDeclaration || targetClass instanceof HaxeExternClassDeclaration) {
+            list.add(createFieldQuickfix(reference, targetClass));
+          }
+        }
 
       checkIfExpectedTypeIsFunctionAndCreateQuickfixes(list, reference, targetClass);
     }
