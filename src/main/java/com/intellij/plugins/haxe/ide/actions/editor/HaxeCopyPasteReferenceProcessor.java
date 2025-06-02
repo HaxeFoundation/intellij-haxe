@@ -15,9 +15,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HaxeCopyPasteReferenceProcessor extends CopyPasteReferenceProcessor<HaxeReferenceExpression> {
 
@@ -75,14 +73,12 @@ public class HaxeCopyPasteReferenceProcessor extends CopyPasteReferenceProcessor
         return referenceExpressions;
     }
 
-    record QNameAndFile(String qname, PsiFile containingFile) {
-    }
-    @Override
-    protected void restoreReferences(ReferenceData @NotNull [] referenceData, HaxeReferenceExpression @NotNull [] referenceExpressions, @NotNull Set<? super String> imported) {
-        List<QNameAndFile> importData = new ArrayList<>();
-        for (int i = 0; i < referenceExpressions.length; i++) {
+    // 2025.2 signature
+    protected void restoreReferences(ReferenceData @NotNull [] referenceData, List<HaxeReferenceExpression> referenceExpressions, @NotNull Set<? super String> imported) {
+        Set<QNameAndFile> importData = new HashSet<>();
+        for (int i = 0; i < referenceExpressions.size(); i++) {
 
-            HaxeReferenceExpression referenceExpression = referenceExpressions[i];
+            HaxeReferenceExpression referenceExpression = referenceExpressions.get(i);
             ReferenceData referenceDatum = referenceData[i];
 
             if (referenceExpression != null && referenceExpression.resolve() == null) {
@@ -94,5 +90,12 @@ public class HaxeCopyPasteReferenceProcessor extends CopyPasteReferenceProcessor
             HaxeAddImportHelper.addImport(data.qname, data.containingFile);
             imported.add(data.qname);
         }
+    }
+
+    record QNameAndFile(String qname, PsiFile containingFile) {
+    }
+    // 2025.1 signature
+    protected void restoreReferences(ReferenceData @NotNull [] referenceData, HaxeReferenceExpression @NotNull [] referenceExpressions, @NotNull Set<? super String> imported) {
+        restoreReferences(referenceData, Arrays.stream(referenceExpressions).toList(), imported);
     }
 }
