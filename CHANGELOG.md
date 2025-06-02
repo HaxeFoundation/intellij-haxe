@@ -1,4 +1,6 @@
 # Changelog
+## 1.7.2
+* Hotfix: Make sure we only add one import statement per type when performing copy-paste (Fix for #1215
 ## 1.7.1
 * Bugfix: incorrect `Incompatible type: missing member` annotation for StructInit (#1214)
 * Bugfix: Correctly checking field references in @:access meta
