@@ -2322,10 +2322,14 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
 
       if(psi instanceof HaxePsiField field) {
-        return field.getComponentName();
+        if(field.getName().equals(qualifiedInfo.memberName)) {
+          return field.getComponentName();
+        }
       }
       if(psi instanceof HaxeMethod method) {
-        return method.getComponentName();
+        if(method.getName().equals(qualifiedInfo.memberName)) {
+          return method.getComponentName();
+        }
       }
     }
 
