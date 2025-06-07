@@ -44,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
   name = "HaxeModuleSettingsStorage",
   storages = {
     @Storage(
-      file = "$MODULE_FILE$"
+      value = "$MODULE_FILE$"
     )
   }
 )
