@@ -16,12 +16,14 @@ import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import java.util.List;
 
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
@@ -48,17 +50,18 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         ResultHolder typeTagType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, method);
         if(typeTagType.isVoid()) return;
 
-        //TODO traverse tree and find branches without return statement
-        Collection<HaxeReturnStatement> returnStatements = PsiTreeUtil.findChildrenOfType(method.getBody(), HaxeReturnStatement.class);
-        Collection<HaxeThrowStatement> throwStatements = PsiTreeUtil.findChildrenOfType(method.getBody(), HaxeThrowStatement.class);
+        @NotNull PsiElement[] children = method.getBody().getChildren();
+        boolean hasAllPathsCovered = hasReturnPathsCovered(children);
 
-        if(returnStatements.isEmpty() && throwStatements.isEmpty()) {
+        if(!hasAllPathsCovered) {
             holder.newAnnotation(HighlightSeverity.ERROR, "Missing return statement")
                     .range(method.getBody().getLastChild())
                     .create();
         }
 
     }
+
+
 
     private void checkReturnStatement(HaxeReturnStatement returnStatement, @NotNull AnnotationHolder holder) {
         HaxePsiCompositeElement compositeElement = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class, HaxeFunctionLiteral.class);
@@ -146,4 +149,96 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             }
         };
     }
+
+
+    private static boolean hasReturnPathsCovered(@NotNull PsiElement[] children) {
+        boolean hasReturnPaths = false;
+        for (PsiElement child : children) {
+            // TODO mlo: would this work if we only check last statement ?
+            // would have to make sure last element is not comment,conditional compilation or something like that
+
+            if(child instanceof PsiComment) continue;
+            hasReturnPaths = hasReturnPathsCovered(child);
+        }
+        return hasReturnPaths;
+    }
+
+    private static boolean hasReturnPathsCovered(@Nullable PsiElement child) {
+        // blocks to check
+        // if else, switch-case, try-catch, for-loop, while-loop, block/scope
+
+        if(child == null) return true;
+
+        if(child instanceof HaxeIfStatement ifStatement) {
+            HaxeGuardedStatement guardedStatement = ifStatement.getGuardedStatement();
+            HaxeElseStatement elseStatement = ifStatement.getElseStatement();
+
+            if(guardedStatement!= null && !hasReturnPathsCovered(guardedStatement.getChildren())) {
+                return false;
+            }
+            if(elseStatement != null && !hasReturnPathsCovered(elseStatement.getChildren())) {
+                return false;
+            }
+            return true;
+        }
+        if(child instanceof HaxeSwitchStatement switchStatement) {
+            HaxeSwitchBlock switchBlock = switchStatement.getSwitchBlock();
+            if(switchBlock!= null) {
+                boolean allCasesHaveReturn = true;
+                List<HaxeSwitchCase> switchCaseList = switchBlock.getSwitchCaseList();
+                for (HaxeSwitchCase haxeSwitchCase : switchCaseList) {
+                    HaxeSwitchCaseBlock switchCaseBlock = haxeSwitchCase.getSwitchCaseBlock();
+                    if(switchCaseBlock != null) {
+                        allCasesHaveReturn = allCasesHaveReturn && hasReturnPathsCovered(switchCaseBlock.getChildren());
+                    }
+                }
+                return allCasesHaveReturn;
+            }
+            return false;
+        }
+        if(child instanceof HaxeTryStatement tryStatement) {
+            return hasReturnPathsCovered(tryStatement.getChildren());
+        }
+        if(child instanceof HaxeCatchStatement catchStatement) {
+            return hasReturnPathsCovered(catchStatement.getChildren());
+        }
+        if(child instanceof HaxeForStatement forStatement) {
+            HaxeBlockStatement blockStatement = forStatement.getBlockStatement();
+            if(blockStatement != null) {
+                return hasReturnPathsCovered(blockStatement.getChildren());
+            }
+            return false;
+        }
+        if (child instanceof HaxeDoWhileStatement doWhileStatement) {
+            HaxeDoWhileBody body = doWhileStatement.getBody();
+            if(body != null) {
+                return hasReturnPathsCovered(body.getChildren());
+            }
+            return false;
+        }
+        if (child instanceof HaxeWhileStatement whileStatement) {
+            HaxeDoWhileBody body = whileStatement.getBody();
+            if(body != null) {
+                return hasReturnPathsCovered(body.getChildren());
+            }
+            return false;
+        }
+
+        if(child instanceof HaxeBlockStatement blockStatement) {
+            return hasReturnPathsCovered(blockStatement.getChildren());
+        }
+
+        if(child instanceof HaxeReturnStatement) {
+            return true;
+        }
+        if(child instanceof HaxeThrowStatement) {
+            return true;
+        }
+        // ignore comments
+        if(child instanceof PsiComment) return true;
+
+        return false;
+    }
+
+
 }
