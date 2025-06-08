@@ -671,6 +671,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
       doTestNoFixWithWarnings();
   }
   @Test
+  public void testMissingReturnStatement() throws Exception {
+      doTestNoFixWithWarnings();
+  }
+  @Test
   public void testMonomorphism() throws Exception {
       doTestNoFixWithWarnings();
   }

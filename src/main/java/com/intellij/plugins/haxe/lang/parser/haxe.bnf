@@ -805,7 +805,7 @@ elseStatement ::= 'else' statement
 ifStatement ::= guard guardedStatement (';'? elseStatement)? ';'? {pin=1}
 
 tryStatement ::= 'try' statement ';'? catchStatement*
-catchStatement ::= 'catch' '(' parameter ')' statement ';'?
+inner catchStatement ::= 'catch' '(' parameter ')' statement ';'?
 
 /*
  * expressions

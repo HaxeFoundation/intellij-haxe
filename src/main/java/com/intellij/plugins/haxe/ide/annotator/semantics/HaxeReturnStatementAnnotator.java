@@ -158,6 +158,7 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             // would have to make sure last element is not comment,conditional compilation or something like that
 
             if(child instanceof PsiComment) continue;
+            if(child instanceof HaxeCatchStatement) continue; // handled by try statement logic
             hasReturnPaths = hasReturnPathsCovered(child);
         }
         return hasReturnPaths;
@@ -173,42 +174,48 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             HaxeGuardedStatement guardedStatement = ifStatement.getGuardedStatement();
             HaxeElseStatement elseStatement = ifStatement.getElseStatement();
 
-            if(guardedStatement!= null && !hasReturnPathsCovered(guardedStatement.getChildren())) {
+            if (guardedStatement == null || !hasReturnPathsCovered(guardedStatement.getChildren())) {
                 return false;
             }
-            if(elseStatement != null && !hasReturnPathsCovered(elseStatement.getChildren())) {
+            if (elseStatement == null || !hasReturnPathsCovered(elseStatement.getChildren())) {
                 return false;
             }
+
             return true;
         }
         if(child instanceof HaxeSwitchStatement switchStatement) {
+            boolean isEnumSwitch = isSwitchOnEnum(switchStatement);
+            boolean hasDefault = false;
             HaxeSwitchBlock switchBlock = switchStatement.getSwitchBlock();
             if(switchBlock!= null) {
                 boolean allCasesHaveReturn = true;
                 List<HaxeSwitchCase> switchCaseList = switchBlock.getSwitchCaseList();
                 for (HaxeSwitchCase haxeSwitchCase : switchCaseList) {
+                    if(haxeSwitchCase instanceof HaxeDefaultCase) {
+                        hasDefault = true;
+                    }
                     HaxeSwitchCaseBlock switchCaseBlock = haxeSwitchCase.getSwitchCaseBlock();
                     if(switchCaseBlock != null) {
                         allCasesHaveReturn = allCasesHaveReturn && hasReturnPathsCovered(switchCaseBlock.getChildren());
                     }
+                }
+                // if not enum  then a default block is necessary to cover all cases
+                if(!isEnumSwitch && !hasDefault) {
+                    return false;
                 }
                 return allCasesHaveReturn;
             }
             return false;
         }
         if(child instanceof HaxeTryStatement tryStatement) {
-            return hasReturnPathsCovered(tryStatement.getChildren());
-        }
-        if(child instanceof HaxeCatchStatement catchStatement) {
-            return hasReturnPathsCovered(catchStatement.getChildren());
-        }
-        if(child instanceof HaxeForStatement forStatement) {
-            HaxeBlockStatement blockStatement = forStatement.getBlockStatement();
-            if(blockStatement != null) {
-                return hasReturnPathsCovered(blockStatement.getChildren());
+            boolean returnPathsCovered = hasReturnPathsCovered(tryStatement.getChildren());
+            List<HaxeCatchStatement> catchStatements = tryStatement.getCatchStatementList();
+            for (HaxeCatchStatement catchStatement : catchStatements) {
+                returnPathsCovered = returnPathsCovered && hasReturnPathsCovered(catchStatement.getChildren());
             }
-            return false;
+            return returnPathsCovered;
         }
+
         if (child instanceof HaxeDoWhileStatement doWhileStatement) {
             HaxeDoWhileBody body = doWhileStatement.getBody();
             if(body != null) {
@@ -216,14 +223,6 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             }
             return false;
         }
-        if (child instanceof HaxeWhileStatement whileStatement) {
-            HaxeDoWhileBody body = whileStatement.getBody();
-            if(body != null) {
-                return hasReturnPathsCovered(body.getChildren());
-            }
-            return false;
-        }
-
         if(child instanceof HaxeBlockStatement blockStatement) {
             return hasReturnPathsCovered(blockStatement.getChildren());
         }
@@ -238,6 +237,15 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         if(child instanceof PsiComment) return true;
 
         return false;
+    }
+
+    private static boolean isSwitchOnEnum(HaxeSwitchStatement switchStatement) {
+        ResultHolder switchType = HaxeExpressionEvaluator.evaluate(switchStatement.getExpression()).result;
+        if(switchType.getClassType() != null) {
+            SpecificTypeReference specificTypeReference = switchType.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+            switchType = specificTypeReference.createHolder();
+        }
+        return switchType.isEnum();
     }
 
 
