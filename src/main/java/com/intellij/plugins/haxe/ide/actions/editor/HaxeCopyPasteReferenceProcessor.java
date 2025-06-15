@@ -87,8 +87,11 @@ public class HaxeCopyPasteReferenceProcessor extends CopyPasteReferenceProcessor
         }
 
         for (QNameAndFile data : importData) {
-            HaxeAddImportHelper.addImport(data.qname, data.containingFile);
-            imported.add(data.qname);
+            // ignoring top-level classes when adding imports
+            if(data.qname.contains(".")) {
+                HaxeAddImportHelper.addImport(data.qname, data.containingFile);
+                imported.add(data.qname);
+            }
         }
     }
 
