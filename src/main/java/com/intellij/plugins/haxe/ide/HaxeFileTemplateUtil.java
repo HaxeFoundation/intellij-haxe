@@ -85,15 +85,16 @@ public class HaxeFileTemplateUtil {
     return HaxeIcons.HAXE_LOGO;
   }
 
-  public static PsiElement createClass(String className,
-                                       String packageName,
-                                       PsiDirectory directory,
-                                       String templateName,
-                                       @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader) throws Exception {
+  public static PsiElement createType(String className,
+                                      String generics,
+                                      String packageName,
+                                      PsiDirectory directory,
+                                      String templateName,
+                                      @org.jetbrains.annotations.Nullable java.lang.ClassLoader classLoader) throws Exception {
 
     Project project = directory.getProject();
     final Properties props = new Properties(FileTemplateManager.getInstance(project).getDefaultProperties());
-    props.setProperty(FileTemplate.ATTRIBUTE_NAME, className);
+    props.setProperty(FileTemplate.ATTRIBUTE_NAME, className + generics);
     props.setProperty(FileTemplate.ATTRIBUTE_PACKAGE_NAME, packageName);
 
     final FileTemplate template = FileTemplateManager.getInstance(project).getInternalTemplate(templateName);

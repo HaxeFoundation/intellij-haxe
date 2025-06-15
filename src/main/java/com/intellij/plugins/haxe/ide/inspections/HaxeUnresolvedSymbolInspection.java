@@ -144,6 +144,8 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
           if (targetClass instanceof HaxeClassDeclaration || targetClass instanceof HaxeExternClassDeclaration) {
             list.add(createFieldQuickfix(reference, targetClass));
           }
+        } else {
+          list.addAll(createTypeQuickFixes(reference));
         }
 
       checkIfExpectedTypeIsFunctionAndCreateQuickfixes(list, reference, targetClass);

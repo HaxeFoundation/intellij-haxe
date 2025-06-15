@@ -188,6 +188,18 @@ public class HaxeResolveUtil {
 
     return null;
   }
+  @Nullable
+  public static PsiPackage findPackageByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
+    final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
+    List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
+    if (result != null && !result.isEmpty()) {
+      HaxeModel item = result.getFirst();
+      if (item instanceof HaxePackageModel packageModel && packageModel.getBasePsi() instanceof PsiPackage psiPackage) {
+        return psiPackage;
+      }
+    }
+    return null;
+  }
 
   /**
    * Locates the (parent) element above/surrounding this one in the PSI tree that

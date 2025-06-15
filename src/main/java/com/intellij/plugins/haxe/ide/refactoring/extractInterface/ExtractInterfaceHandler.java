@@ -158,7 +158,7 @@ public class ExtractInterfaceHandler implements RefactoringActionHandler, Elemen
     HaxeClass haxeInterface = null;
     try {
       HaxeFile newFile =
-        (HaxeFile)HaxeFileTemplateUtil.createClass(interfaceName, packageName, targetDir, "HaxeInterface", ExtractInterfaceHandler.class.getClassLoader());
+        (HaxeFile)HaxeFileTemplateUtil.createType(interfaceName, "", packageName, targetDir, "HaxeInterface", ExtractInterfaceHandler.class.getClassLoader());
       HaxeClassModel model = newFile.getModel().getClassModel(interfaceName);
       haxeInterface = model.getPsi();
 

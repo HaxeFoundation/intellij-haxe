@@ -163,7 +163,7 @@ public class HaxeFile extends PsiFileBase
     });
   }
 
-  @Nullable
+  @NotNull
   public HaxeFileModel getModel() {
     if(haxeFileModel != null) return haxeFileModel;
     haxeFileModel =new HaxeFileModel(this);

@@ -63,6 +63,11 @@ public class HaxeElementGenerator {
     assert statement != null;
     return statement.getChildren()[0];
   }
+  public static PsiElement createTypeFromText(Project myProject, String text) {
+    final HaxeFile dummyFile = createDummyFile(myProject, text);
+    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
+      return PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+  }
   public static HaxeFieldDeclaration createVarDeclaration(Project myProject, String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
     final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
@@ -230,5 +235,21 @@ public class HaxeElementGenerator {
 
   public static PsiElement createNewLine(@NotNull Project project) {
     return PsiParserFacade.getInstance(project).createWhiteSpaceFromText("\n").copy();
+  }
+
+  public static PsiElement createClass(@NotNull Project project, String name) {
+      return createTypeFromText(project, "class " + name + "{\n}");
+  }
+
+  public static PsiElement createInterface(@NotNull Project project, String name) {
+    return createTypeFromText(project, "interface " + name + "{\n}");
+  }
+
+  public static PsiElement createEnum(@NotNull Project project, String name) {
+    return createTypeFromText(project, "enum " + name + "{\n}");
+  }
+
+  public static PsiElement createAbstract(@NotNull Project project, String name) {
+    return createTypeFromText(project, "abstract " + name + " {\n}");
   }
 }

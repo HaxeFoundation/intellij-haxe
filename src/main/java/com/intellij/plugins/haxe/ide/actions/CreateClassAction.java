@@ -17,7 +17,6 @@
  */
 package com.intellij.plugins.haxe.ide.actions;
 
-import com.intellij.ide.IdeBundle;
 import com.intellij.ide.actions.CreateFileFromTemplateDialog;
 import com.intellij.ide.actions.CreateTemplateInPackageAction;
 import com.intellij.ide.fileTemplates.FileTemplate;
@@ -100,6 +99,6 @@ public class CreateClassAction extends CreateTemplateInPackageAction<PsiFile> {
 
   private static PsiElement createClass(String className, String packageName, @NotNull PsiDirectory directory, final String templateName)
     throws Exception {
-    return HaxeFileTemplateUtil.createClass(className, packageName, directory, templateName, CreateClassAction.class.getClassLoader());
+    return HaxeFileTemplateUtil.createType(className, "", packageName, directory, templateName, CreateClassAction.class.getClassLoader());
   }
 }
