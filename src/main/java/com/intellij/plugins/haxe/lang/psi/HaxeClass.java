@@ -138,11 +138,11 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   @Nullable
   HaxeNamedComponent findHaxeFieldByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
-  @Nullable
-  HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
+  @NotNull
+  List<HaxeNamedComponent>  findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
-  @Nullable
-  HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
+  @NotNull
+  List<HaxeNamedComponent>  findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver);
 
   /**
    * Given the class resolver, return the resolver used with members.  In most cases, this is

@@ -146,6 +146,7 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
   public List<HaxeBaseMemberModel> getAllMembers(@Nullable HaxeGenericResolver resolver) {
     return getMembers(resolver);
   }
+  @NotNull
   @Override
   public List<HaxeBaseMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     List<HaxeFieldModel> fields = getFields();

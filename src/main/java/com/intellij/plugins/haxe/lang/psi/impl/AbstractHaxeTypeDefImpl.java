@@ -151,7 +151,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
   }
 
   @Override
-  public HaxeNamedComponent findHaxeMethodByName(@NotNull String name, @Nullable HaxeGenericResolver resolver) {
+  public List<HaxeNamedComponent> findHaxeMethodByName(@NotNull String name, @Nullable HaxeGenericResolver resolver) {
     final HaxeClass targetHaxeClass = getTargetClass().getHaxeClass();
     if (targetHaxeClass != null) {
       return targetHaxeClass.findHaxeMethodByName(name, resolver);

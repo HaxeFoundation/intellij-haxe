@@ -372,32 +372,45 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         }
       }
     }
-    HaxeNamedComponent namedComponent = aClass.findHaxeMethodByName(name, localResolver);
-    if (namedComponent  instanceof HaxeMethod method) {
-      if (context.root == method) return null;
-      if(aClass.isEnum()) {
+    List<HaxeNamedComponent> methods = aClass.findHaxeMethodByName(name, localResolver);
+      if (!methods.isEmpty()) {
+        if (methods.size() == 1 && methods.getFirst() instanceof HaxeMethod method) {
+          if (context.root == method) return null;
+          if (aClass.isEnum()) {
 
-        //Hack/Workaround: EnumValues with empty constructors should be treated as Const values and not constructors
-        //this workaround makes sure we return the Enum type and not the constructor.
-        boolean emptyEnumConstructor = method.getParameterList().isEmpty();
-        if(emptyEnumConstructor) {
-          HaxeClassModel model = aClass.getModel();
-            return model.getInstanceType();
+            //Hack/Workaround: EnumValues with empty constructors should be treated as Const values and not constructors
+            //this workaround makes sure we return the Enum type and not the constructor.
+            boolean emptyEnumConstructor = method.getParameterList().isEmpty();
+            if (emptyEnumConstructor) {
+              HaxeClassModel model = aClass.getModel();
+              return model.getInstanceType();
+            }
+          }
+
+          if (isMacroMethod(method)) {
+            // if macro method replace Expr / ExprOf types
+            ResultHolder functionType = HaxeTypeResolver.getMethodFunctionType(method, localResolver.withoutUnknowns());
+            return HaxeMacroUtil.resolveMacroTypesForFunction(functionType);
+          }
+          // if inherited method map resolver to match declaring class
+          if (method.getContainingClass() instanceof HaxeClass methodTypeClassType) {
+            localResolver = localResolver.translateFromTo(aClass, methodTypeClassType);
+          }
+
+          return HaxeTypeResolver.getMethodFunctionType(method, localResolver);
+        }else if (methods.size()>1){
+          for (HaxeNamedComponent method : methods) {
+            if(method instanceof HaxeMethod haxeMethod) {
+              ResultHolder assignHint = resolver.getAssignHint();
+              ResultHolder functionType = haxeMethod.getModel().getFunctionType(resolver).createHolder();
+              if(functionType.canAssign(assignHint)) {
+                return functionType;
+              }
+            }
+          }
+
         }
       }
-
-        if (isMacroMethod(method)) {
-          // if macro method replace Expr / ExprOf types
-          ResultHolder functionType = HaxeTypeResolver.getMethodFunctionType(method, localResolver.withoutUnknowns());
-          return HaxeMacroUtil.resolveMacroTypesForFunction(functionType);
-        }
-        // if inherited method map resolver to match declaring class
-        if (method.getContainingClass() instanceof HaxeClass methodTypeClassType) {
-          localResolver = localResolver.translateFromTo(aClass, methodTypeClassType);
-        }
-
-        return HaxeTypeResolver.getMethodFunctionType(method, localResolver);
-    }
 
     HaxeNamedComponent field = aClass.findHaxeFieldByName(name, localResolver);
     if (field instanceof HaxePsiField haxePsiField) {

@@ -29,6 +29,7 @@ import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -73,14 +74,14 @@ public class CreateGetterSetterFix extends BaseCreateMethodsFix {
     HaxeFieldModel field = (HaxeFieldModel)fieldDeclaration.getModel();
     final StringBuilder result = new StringBuilder();
     if (myStratagy == Strategy.GETTER || myStratagy == Strategy.GETTERSETTER) {
-      HaxeNamedComponent getterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()), null);
-      if (getterMethod == null) {
+      List<HaxeNamedComponent> haxeMethodByName = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.getterName(field.getName()), null);
+      if (haxeMethodByName.isEmpty()) {
         GetterSetterMethodBuilder.buildGetter(result, field);
       }
     }
     if (myStratagy == Strategy.SETTER || myStratagy == Strategy.GETTERSETTER) {
-      HaxeNamedComponent setterMethod = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(field.getName()), null);
-      if (setterMethod == null) {
+      List<HaxeNamedComponent> haxeMethodByName = myHaxeClass.findHaxeMethodByName(HaxePresentableUtil.setterName(field.getName()), null);
+      if (haxeMethodByName.isEmpty()) {
         GetterSetterMethodBuilder.buildSetter(result, field);
       }
     }

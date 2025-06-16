@@ -272,16 +272,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
 
   @Override
-  public HaxeNamedComponent findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
+  public List<HaxeNamedComponent> findHaxeMethodByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
     List<HaxeMethod> all = getHaxeMethodsAll(HaxeComponentType.INTERFACE);
-    return ContainerUtil.find(all, (Condition<HaxeNamedComponent>)component -> name.equals(component.getName()));
+    return ContainerUtil.findAll(all, component -> name.equals(component.getName()));
   }
+
 
   /** Optimized path to replace findHaxeMethod and findHaxeField when used together. */
   @Override
-  public HaxeNamedComponent findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
+  public List<HaxeNamedComponent> findHaxeMemberByName(@NotNull final String name, @Nullable HaxeGenericResolver resolver) {
     List<HaxeNamedComponent> namedSubComponents = HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(this, resolver);
-    return ContainerUtil.find(namedSubComponents, component -> {
+    return ContainerUtil.findAll(namedSubComponents, component -> {
       HaxeComponentType type = component.getComponentType();
       return ((type == HaxeComponentType.FIELD || type == HaxeComponentType.METHOD) && name.equals(component.getName()));
     });
@@ -302,7 +303,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     });
     // Maybe old style getter?
     if (null == accessor) {
-      accessor = findHaxeMethodByName("__get", resolver);
+      List<HaxeNamedComponent> methods = findHaxeMethodByName("__get", resolver);
+      accessor = methods.isEmpty() ? null : methods.getFirst();
     }
     // maybe ArrayAccess interface for externs (see hackish workaround where findArrayAccessGetter is used)
     if (null == accessor) {
@@ -331,7 +333,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     });
     // Maybe old style getter?
     if (null == accessor) {
-      accessor = findHaxeMethodByName("__set", resolver);
+      List<HaxeNamedComponent> methods = findHaxeMethodByName("__set", resolver);
+      accessor = methods.isEmpty() ? null : methods.getFirst();
     }
     // maybe ArrayAccess interface for externs (see hackish workaround where findArrayAccessGetter is used)
     if (null == accessor) {

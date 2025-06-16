@@ -940,6 +940,22 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testLocalVarImmutability() throws Exception {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testExternOverloadLocal() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testExternOverloadInstance() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testExternOverloadStatic() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   @Test
   public void testFieldImmutability() throws Exception {
     doTestNoFixWithWarnings();

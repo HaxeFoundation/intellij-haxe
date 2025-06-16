@@ -31,6 +31,8 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 /**
  * @author: Fedor.Korotkov
  */
@@ -80,11 +82,12 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
       return null;
     }
     final String memberName = fqn.substring(index + 1);
-    HaxeNamedComponent namedComponent = haxeClass.findHaxeMethodByName(memberName, null);
-    if (namedComponent == null) {
-      namedComponent = haxeClass.findHaxeFieldByName(memberName, null);
+    List<HaxeNamedComponent> haxeMethodByName = haxeClass.findHaxeMethodByName(memberName, null);
+    if (haxeMethodByName.isEmpty()) {
+      return haxeClass.findHaxeFieldByName(memberName, null);
+    }else {
+      return haxeMethodByName.getFirst();
     }
-    return namedComponent == null ? null : namedComponent.getComponentName();
   }
 
   @Override

@@ -55,6 +55,7 @@ public class HaxeObjectLiteralClassModel extends HaxeClassModel {
       .toList();
   }
 
+  @NotNull
   @Override
   public List<HaxeBaseMemberModel> getAllMembers(@Nullable HaxeGenericResolver resolver) {
     return getMembers(resolver);

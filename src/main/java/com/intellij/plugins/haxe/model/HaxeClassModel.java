@@ -431,19 +431,29 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   @Nullable
   public HaxeBaseMemberModel getMember(String name, @Nullable HaxeGenericResolver resolver) {
     if (name == null) return null;
-    HaxeNamedComponent component = haxeClass.findHaxeMemberByName(name, resolver);
-    if (component != null) {
+    List<HaxeNamedComponent> members = haxeClass.findHaxeMemberByName(name, resolver);
+    if (!members.isEmpty()) {
+      HaxeNamedComponent component = members.getFirst();
       return HaxeMemberModel.fromPsi(component);
     }
     return null;
   }
 
+  @NotNull
+  public List<HaxeBaseMemberModel> getMembers(String name, @Nullable HaxeGenericResolver resolver) {
+    if (name == null) return List.of();
+    List<HaxeNamedComponent> members = haxeClass.findHaxeMemberByName(name, resolver);
+    return members.stream().map(HaxeBaseMemberModel::fromPsi).toList();
+  }
+
+  @NotNull
   public List<HaxeBaseMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     final List<HaxeBaseMemberModel> members = new ArrayList<>();
     members.addAll(getMethods(resolver));
     members.addAll(getFields());
     return members;
   }
+  @NotNull
   public List<HaxeBaseMemberModel> getAllMembers(@Nullable HaxeGenericResolver resolver) {
     final List<HaxeBaseMemberModel> members = new ArrayList<>();
     members.addAll(getAllMethods(resolver));
@@ -489,8 +499,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   public HaxeMethodModel getMethod(String name, @Nullable HaxeGenericResolver resolver) {
-    HaxeMethodPsiMixin method = (HaxeMethodPsiMixin)haxeClass.findHaxeMethodByName(name, resolver);
-    return method != null ? method.getModel() : null;
+    List<HaxeNamedComponent> methods = haxeClass.findHaxeMethodByName(name, resolver);
+    if(!methods.isEmpty()  && methods.getFirst() instanceof HaxeMethodPsiMixin method) return method.getModel();
+    return null;
   }
 
   public List<HaxeMethodModel> getMethods(@Nullable HaxeGenericResolver resolver) {

@@ -140,6 +140,7 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
     return model.getMember(name, resolver);
   }
 
+  @NotNull
   @Override
   public List<HaxeBaseMemberModel> getMembers(@Nullable HaxeGenericResolver resolver) {
     List<HaxeBaseMemberModel> members = getValuesStream().map(HaxeBaseMemberModel.class::cast).collect(Collectors.toList());

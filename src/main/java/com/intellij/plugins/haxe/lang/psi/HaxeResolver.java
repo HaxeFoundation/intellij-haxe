@@ -38,7 +38,6 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
@@ -952,8 +951,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if (classModel != null && classModel.isEnum()) {
           HaxeClass haxeClass = classReference.getHaxeClass();
           if (haxeClass != null) {
-            HaxeNamedComponent name = haxeClass.findHaxeMemberByName(reference.getText(), null);
-            if (name != null) {
+            List<HaxeNamedComponent> members = haxeClass.findHaxeMemberByName(reference.getText(), null);
+            if (!members.isEmpty()) {
+              HaxeNamedComponent name = members.getFirst();
               HaxeComponentName componentName = name.getComponentName();
               if (componentName != null) {
                 LogResolution(reference, "via enum member name.");
@@ -1526,7 +1526,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
 
         } else if (pathElement instanceof HaxeObjectLiteral objectLiteral && path instanceof String member) {
-            lastElement = objectLiteral.findHaxeMemberByName(member, null);
+          List<HaxeNamedComponent> members = objectLiteral.findHaxeMemberByName(member, null);
+          lastElement = members.isEmpty() ? null : members.getFirst();
           
         } else if(switchStatement != null){
           ResultHolder resultHolder = HaxeExpressionEvaluator.evaluate(switchStatement.getExpression()).result;
@@ -1821,6 +1822,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<@NotNull PsiElement> psiElement = searchForBestMatch(reference, result);
       if (psiElement != null) return psiElement;
     }
+    //TODO this is a hackish tmp workaround for overloads
+    if(result.getFirst().getParent() instanceof HaxeMethodDeclaration methodDeclaration) {
+      if (methodDeclaration.isOverload()) {
+        result.clear();
+        PsiTreeUtil.treeWalkUp(new ResolveScopeProcessor(result, referenceText, reference, true), reference, maxScope, new ResolveState());
+        List<HaxeBaseMemberModel> methodModels = result.stream()
+                .map(PsiElement::getParent)
+                .filter(Objects::nonNull)
+                .map(HaxeMethodDeclaration.class::cast)
+                .map(HaxeMethodPsiMixin::getModel)
+                .map(HaxeBaseMemberModel.class::cast)
+                .toList();
+        List<HaxeNamedComponent> components = checkMethodOverloads(reference, methodModels);
+        if(components != null) return components;
+      }
+    }
     LogResolution(reference, "via tree walk.");
     return List.of(result.getFirst());
   }
@@ -1960,9 +1977,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();
           final HaxeClass superClass = ((HaxeReference)superExpression).resolveHaxeClass().getHaxeClass();
           if (superClass != null) {
-            final HaxeNamedComponent constructor = superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString(), null); // Self only.
-            LogResolution(reference, "because it's a super expression.");
-            return asList(((constructor != null) ? constructor.getComponentName() : superClass.getComponentName()));
+            List<HaxeNamedComponent> haxeMethodByName = superClass.findHaxeMethodByName(HaxeTokenTypes.ONEW.toString(), null);
+            if(!haxeMethodByName.isEmpty() && haxeMethodByName.getFirst() instanceof HaxeNamedComponent constructor) {
+              LogResolution(reference, "because it's a super expression.");
+              return asList(constructor.getComponentName());
+            } else {
+              return asList(superClass.getComponentName());
+            }
           }
         }
       }
@@ -2147,14 +2168,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       haxeClass = useConstraintsIfTypeParameter(reference, haxeClass);
       haxeClass = useDefaultIfTypeParameter(reference, haxeClass);
       HaxeClassModel classModel = haxeClass.getModel();
-      HaxeBaseMemberModel member = classModel.getMember(identifier, classType.getGenericResolver());
-      if (member != null) {
-        HaxeNamedComponent psi = member.getNamedComponentPsi();
-        if (psi != null) {
-          HaxeComponentName name = psi.getComponentName();
-          if (name != null) {
-            return Collections.singletonList(name);
+      List<HaxeBaseMemberModel> members = classModel.getMembers(identifier, classType.getGenericResolver());
+      if (!members.isEmpty()) {
+        if(members.size() == 1) {
+          HaxeNamedComponent psi = members.getFirst().getNamedComponentPsi();
+          if (psi != null) {
+            HaxeComponentName name = psi.getComponentName();
+            if (name != null) {
+              return Collections.singletonList(name);
+            }
           }
+        }else {
+          List<HaxeNamedComponent> member = checkMethodOverloads(reference, members);
+          if (member != null) return member;
         }
       }
       // check extension methods from meta
@@ -2264,6 +2290,38 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return  List.of();
   }
 
+  private static @Nullable List<HaxeNamedComponent> checkMethodOverloads(HaxeReference reference, List<HaxeBaseMemberModel> members) {
+    // this is probably far from the best solution for method overloads but it seems to work for method calls
+    // it wont work for function type assign, but might attempt to add that later if its necessary (mlo).
+    for (HaxeBaseMemberModel member : members) {
+      if (member instanceof HaxeMethodModel methodModel) {
+        if (reference.getParent() instanceof HaxeCallExpression callExpression) {
+          HaxeCallExpressionContext methodCall = createContextForMethodCall(callExpression, methodModel.getMethod());
+          HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
+          if(evaluate.isValid()) {
+            return Collections.singletonList(member.getNamedComponentPsi());
+          }
+        }else if(reference.getParent() instanceof HaxeVarInit varInit){
+          ResultHolder expected = null;
+          if(varInit.getParent() instanceof HaxePsiField field){
+            if(field.getModel() instanceof HaxeFieldModel fieldModel) {
+              expected = fieldModel.getResultType(null);
+            }
+            if(field.getModel() instanceof HaxeLocalVarModel localVarModel) {
+              expected = localVarModel.getResultType(null);
+            }
+            if(expected  != null) {
+              ResultHolder functionType = methodModel.getFunctionType(null).createHolder();
+              if(functionType.canAssign(expected)){
+                return Collections.singletonList(member.getNamedComponentPsi());
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
 
 
   private static HaxeClass useConstraintsIfTypeParameter(HaxeReference reference, HaxeClass haxeClass) {

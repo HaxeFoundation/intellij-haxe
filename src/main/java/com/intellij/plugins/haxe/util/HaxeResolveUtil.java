@@ -714,7 +714,12 @@ public class HaxeResolveUtil {
   private static HaxeResolveResult getResolveMethodReturnType(HaxeGenericResolver resolver, HaxeClass haxeClass,
                                                               String MethodName, HaxeGenericSpecialization specialization) {
 
-    return getHaxeClassResolveResult(haxeClass == null ? null : haxeClass.findHaxeMethodByName(MethodName, resolver),  specialization);
+    if(haxeClass == null) return getHaxeClassResolveResult(null ,  specialization);
+
+    List<HaxeNamedComponent> methods = haxeClass.findHaxeMethodByName(MethodName, resolver);
+    if(methods.isEmpty()) return getHaxeClassResolveResult(null ,  specialization);
+
+    return getHaxeClassResolveResult(methods.getFirst(),  specialization);
   }
 
   @NotNull

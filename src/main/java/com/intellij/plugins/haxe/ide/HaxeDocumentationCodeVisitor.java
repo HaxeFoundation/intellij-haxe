@@ -63,8 +63,8 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     private boolean replaceContextClassMemberReference(Code code, String member, String literal) {
         HaxeClass parentOfType = PsiTreeUtil.getParentOfType(context, HaxeClass.class);
         if(parentOfType != null) {
-            HaxeNamedComponent haxeMemberByName = parentOfType.findHaxeMemberByName(member, null);
-            if (haxeMemberByName  instanceof PsiMember psiMember) {
+            List<HaxeNamedComponent> members = parentOfType.findHaxeMemberByName(member, null);
+            if (!members.isEmpty() &&  members.getFirst()  instanceof PsiMember psiMember) {
                 PsiClass containingClass = psiMember.getContainingClass();
                 if(containingClass != null) {
                     replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
@@ -109,8 +109,8 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
         }
 
         if (haxeClass != null) {
-            HaxeNamedComponent haxeMemberByName = haxeClass.findHaxeMemberByName(member, null);
-            if (haxeMemberByName instanceof PsiMember psiMember) {
+            List<HaxeNamedComponent> members = haxeClass.findHaxeMemberByName(member, null);
+            if (!members.isEmpty() && members.getFirst() instanceof PsiMember psiMember) {
                 PsiClass containingClass = psiMember.getContainingClass();
                 replaceCodeWithReferenceCodeLink(code, containingClass.getQualifiedName() + "." + member, literal);
                 return true;
