@@ -49,31 +49,46 @@ public class HaxelibInstalledIndex {
     HaxelibInstalledIndex index = new HaxelibInstalledIndex();
 
     List<String> listCmdOutput = HaxelibCommandUtils.issueHaxelibCommand(sdk, workDir,  "list");
-    if ((listCmdOutput.size() > 0) && (!listCmdOutput.get(0).contains("Unknown command"))) {
+    if ((!listCmdOutput.isEmpty()) && (!listCmdOutput.getFirst().contains("Unknown command"))) {
       for (String line : listCmdOutput) {
         int firstColon = line.indexOf(":");
-
-        String libName = line.substring(0,firstColon);
-        String libVersions = line.substring(firstColon+1);
-
-        index.installedLibraries.put(libName, new ConcurrentSkipListSet<>());
-
-        String[] versionArray = libVersions.trim().split("\s+");
-        for (String version : versionArray) {
-          if (version.startsWith("[") && version.endsWith("]")) {
-            version = version.replaceAll("\\[", "").replaceAll("]", "");
-            // remove the dev path from "version"
-            if (version.startsWith("dev:")) {
-              version = "dev";
-            }
-            index.selectedVersions.put(libName, version);
-            index.installedLibraries.get(libName).add(version);
-          }else {
-            index.installedLibraries.get(libName).add(version);
-          }
-        }
+        String libName = line.substring(0, firstColon);
+        String libVersions = line.substring(firstColon + 1);
+        processVersions(libName, libVersions, index);
       }
     }
     return index;
+  }
+
+  /*
+   *  Custom logic to extract version numbers in a way that allow dev paths to contain whitespaces.
+   *  we used to just split on whitespace to separate versions, but this breaks once you have paths with whitespaces.
+   *
+   *  It looks like you cannot toggle between dev and other versions so to simplify things we extract the selected version
+   *  and handle it separately, that way we can use the normal whitespace split for the rest of the string.
+   */
+  private static void processVersions(String libName, String libVersions, HaxelibInstalledIndex index) {
+    Set<String> versionList  = new ConcurrentSkipListSet<>();
+    index.installedLibraries.put(libName, versionList);
+
+    int selectedBegin = libVersions.indexOf("[") ;
+    int selectedEnd = libVersions.indexOf("]");
+
+    if (selectedBegin > -1 && selectedEnd > -1) {
+      String selectedVersion = libVersions.substring(selectedBegin+1, selectedEnd);
+      if (!selectedVersion.isBlank()) {
+        String version = selectedVersion.trim();
+        if (selectedVersion.startsWith("dev:")) {
+          version = "dev";
+        }
+        index.selectedVersions.put(libName, version);
+        versionList.add(version);
+      }
+      String beforeSelect = libVersions.substring(0, selectedBegin);
+      String afterSelect = libVersions.substring(selectedEnd+1);
+      libVersions = beforeSelect+afterSelect;
+    }
+    String[] split = libVersions.trim().split("\s+");
+    versionList.addAll(Arrays.asList(split));
   }
 }
