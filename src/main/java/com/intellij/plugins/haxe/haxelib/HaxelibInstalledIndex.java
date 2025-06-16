@@ -88,7 +88,7 @@ public class HaxelibInstalledIndex {
       String afterSelect = libVersions.substring(selectedEnd+1);
       libVersions = beforeSelect+afterSelect;
     }
-    String[] split = libVersions.trim().split("\s+");
+    String[] split = libVersions.trim().split("\\s+");
     versionList.addAll(Arrays.asList(split));
   }
 }
