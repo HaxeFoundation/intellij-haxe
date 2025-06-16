@@ -1,4 +1,8 @@
 # Changelog
+## 1.7.3
+* Added: experimental support for overload keyword
+* Bugfix: plugin would fail to load dev versions of haxelibs if their libpath contained white-spaces. 
+
 ## 1.7.2
 * Hotfix: Make sure we only add one import statement per type when performing copy-paste (Fix for #1215
 ## 1.7.1
