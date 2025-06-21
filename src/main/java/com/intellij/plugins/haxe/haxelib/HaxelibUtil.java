@@ -221,7 +221,7 @@ public class HaxelibUtil {
     }
 
     logWarningEvent(HaxeBundle.message("haxelib.synchronization.title"),
-                    HaxeBundle.message("could.not.determine.library.source.root.0", libName));
+                    HaxeBundle.message("could.not.determine.library.source.root.0", libName, libVersion));
     return null;
   }
 

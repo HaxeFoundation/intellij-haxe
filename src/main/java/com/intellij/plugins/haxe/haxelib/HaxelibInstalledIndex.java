@@ -54,7 +54,7 @@ public class HaxelibInstalledIndex {
         int firstColon = line.indexOf(":");
         String libName = line.substring(0, firstColon);
         String libVersions = line.substring(firstColon + 1);
-        processVersions(libName, libVersions, index);
+        processVersions(libName, libVersions.trim(), index);
       }
     }
     return index;
@@ -86,9 +86,11 @@ public class HaxelibInstalledIndex {
       }
       String beforeSelect = libVersions.substring(0, selectedBegin);
       String afterSelect = libVersions.substring(selectedEnd+1);
-      libVersions = beforeSelect+afterSelect;
+      libVersions = (beforeSelect+afterSelect).trim();
     }
-    String[] split = libVersions.trim().split("\\s+");
-    versionList.addAll(Arrays.asList(split));
+    if(!libVersions.isBlank()) {
+      String[] split = libVersions.split("\\s+");
+      versionList.addAll(Arrays.asList(split));
+    }
   }
 }
