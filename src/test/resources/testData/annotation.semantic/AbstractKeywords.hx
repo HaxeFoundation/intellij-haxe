@@ -18,16 +18,16 @@ abstract MyAbs(MyClass) {
 
     // WRONG
 
-    <warning descr="Unresolved symbol">classMethod()</warning>; // wrong (abstract does not have method with this name)
+    <warning descr="Unresolved symbol">classMethod</warning>(); // wrong (abstract does not have method with this name)
 
     var x:MyAbs = <error descr="Incompatible type: MyClass should be MyAbs">this</error>; // wrong (type mismatch)
     var x:MyClass = <error descr="Incompatible type: MyAbs should be MyClass">abstract</error>; // wrong (type mismatch)
 
-    this.<warning descr="Unresolved symbol">abstractMethod()</warning>; // wrong ( underlying type does not have this method)
-    abstract.<warning descr="Unresolved symbol">classMethod()</warning>; // wrong  (abstract does not have this method)
+    this.<warning descr="Unresolved symbol">abstractMethod</warning>(); // wrong ( underlying type does not have this method)
+    abstract.<warning descr="Unresolved symbol">classMethod</warning>(); // wrong  (abstract does not have this method)
 
       // super can not be used in abstracts
-    super.<warning descr="Unresolved symbol">classMethod()</warning>;
-    super.<warning descr="Unresolved symbol">abstractMethod()</warning>;
+    super.<warning descr="Unresolved symbol">classMethod</warning>();
+    super.<warning descr="Unresolved symbol">abstractMethod</warning>();
   }
 }

@@ -5,6 +5,6 @@ class <info descr="null">Test</info> {
   public function <info descr="null">new</info>() {
     trace(<info descr="null">ns</info>.<info descr="null">length</info>);
     trace(<error descr="Int is not a callable type"><info descr="null">ns</info>.<info descr="null">length</info>()</error>);
-    trace(<info descr="null">ns</info>.<warning descr="Unresolved symbol">unknown()</warning>);
+    trace(<info descr="null">ns</info>.<warning descr="Unresolved symbol">unknown</warning><info descr="">()</info>);
   }
 }

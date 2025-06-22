@@ -19,6 +19,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeFileType;
@@ -221,6 +222,8 @@ public class HaxeElementGenerator {
     final TextRange range = movedElement.getTextRange();
     final PsiFile file = movedElement.getContainingFile();
     final PsiFile baseFile = file.getViewProvider().getPsi(file.getViewProvider().getBaseLanguage());
+
+    ProgressIndicatorProvider.checkCanceled();
     CodeStyleManager.getInstance(movedElement.getProject()).reformatText(baseFile, range.getStartOffset(), range.getEndOffset());
   }
 

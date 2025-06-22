@@ -6,6 +6,6 @@ class Test {
         // correct
         var x = fn.testExtension( 1);
         // wrong
-        var x = fn.<warning descr="Unresolved symbol">NonExsistingExtension( 1)</warning>;
+        var x = fn.<warning descr="Unresolved symbol">NonExsistingExtension</warning>(1);
     }
 }

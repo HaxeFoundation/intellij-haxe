@@ -30,11 +30,11 @@ class Generics {
         // verify that "chained" expressions work
         getValue(BaseInterface).testA(1); // correct
         getValue(Baseclass).testB("1"); // correct
-        getValue(BaseInterface).<warning descr="Unresolved symbol">testB("1")</warning>; // Wrong BaseInterface does not ccontain
+        getValue(BaseInterface).<warning descr="Unresolved symbol">testB</warning>("1"); // Wrong BaseInterface does not ccontain
 
         var test2Return = notTypeTag2.testA(<error descr="Type mismatch (Expected: 'Int' got: 'String')">""</error>); // wrong: incorrect argument
-        var test2Return = notTypeTag2.<warning descr="Unresolved symbol">testB("")</warning>; // wrong: should not find testB
-        var test2Return = notTypeTag2.<warning descr="Unresolved symbol">testC("")</warning>; // wrong: does not exsist
+        var test2Return = notTypeTag2.<warning descr="Unresolved symbol">testB</warning>(""); // wrong: should not find testB
+        var test2Return = notTypeTag2.<warning descr="Unresolved symbol">testC</warning>(""); // wrong: does not exsist
 
         var passTypeParamToResult  =  haxe.ds.Vector.fromArrayCopy(["A","B"]);
         passTypeParamToResult.get(0).toLowerCase();// correct: should get should return a string as T is string

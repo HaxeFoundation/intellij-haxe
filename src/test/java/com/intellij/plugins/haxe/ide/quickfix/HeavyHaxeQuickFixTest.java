@@ -58,7 +58,9 @@ public class HeavyHaxeQuickFixTest extends HaxeCodeInsightFixtureTestCase {
 
 
         List<IntentionAction> allQuickFixes = myFixture.getAllQuickFixes(fileWithQuickFix);
-        for (final IntentionAction action : allQuickFixes) {
+        // Hackish way to filter out  "hidden" unresolved Symbol quickfixes (the same quickfix is used for both warning and info Problem descriptor)
+        HashSet<IntentionAction> intentionActions = new HashSet<>(allQuickFixes);
+        for (final IntentionAction action : intentionActions) {
             String actionText = action.getText();
             if (actionToPerform.equals(actionText)) {
                 System.out.println("Applying Quickfix " + actionText);

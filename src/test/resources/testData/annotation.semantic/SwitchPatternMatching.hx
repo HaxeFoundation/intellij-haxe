@@ -48,7 +48,7 @@ class PatternMachingTest {
             case TNone | TString(_): _.toLowerCase(); // TODO, while resolvable this one is not usable as it could be a match on TNone
             case TInt(i): i.<warning descr="Unresolved symbol">length</warning>; // WRONG
             case TAny(a): a.indexOf(<error descr="Type mismatch (Expected: 'String' got: 'Int')">1</error>);
-            case TDoubleVal(a, b): b.<warning descr="Unresolved symbol">charAt(a)</warning> ; // WRONG
+            case TDoubleVal(a, b): b.<warning descr="Unresolved symbol">charAt</warning>(a) ; // WRONG
         }
     }
 

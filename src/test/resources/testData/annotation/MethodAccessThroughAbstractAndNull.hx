@@ -11,6 +11,6 @@ class <info descr="null">Test</info> {
     trace(<info descr="null">ms</info>.<info descr="null">toLowerCase</info>);
     trace(<info descr="null">ms</info>.<info descr="null">length</info>);
     trace(<info descr="null">ms</info>.<info descr="null">doubleLength</info>());
-    trace(<info descr="null">ms</info>.<warning descr="Unresolved symbol">unknown()</warning>);
+    trace(<info descr="null">ms</info>.<warning descr="Unresolved symbol">unknown</warning><info descr="">()</info>);
   }
 }

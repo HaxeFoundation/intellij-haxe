@@ -1,15 +1,18 @@
 # Changelog
 ## 1.7.3
-* Added: experimental support for overload keyword
-* Bugfix: plugin would fail to load dev versions of haxelibs if their libpath contained white-spaces. 
+* Added: Experimental support for overload keyword
+* Bugfix: Plugin would fail to load dev versions of haxelibs if their libpath contained white-spaces. 
+* Changed: Unresolved symbol highlighting of callExpression now only highlight the identifier (quickfix is still available in the entire expression)
+
 
 ## 1.7.2
 * Hotfix: Make sure we only add one import statement per type when performing copy-paste (Fix for #1215
+* 
 ## 1.7.1
 * Bugfix: incorrect `Incompatible type: missing member` annotation for StructInit (#1214)
 * Bugfix: Correctly checking field references in @:access meta
 * Bugfix: Allow private access for sub-packages when @:allow referees to a package
-* Fixed: resolver would not find getters/setters when macro identifieres where used
+* Fixed: resolver would not find getters/setters when macro identifiers where used
 * Added: check for parameter defaults (should be const expressions).
 * Added: Folding for multiple single line comments.
 * improvement: Avoid unnecessary reparsing of functionLiterals.
