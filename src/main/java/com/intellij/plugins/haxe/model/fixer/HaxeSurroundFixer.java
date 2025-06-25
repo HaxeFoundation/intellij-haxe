@@ -18,15 +18,23 @@ package com.intellij.plugins.haxe.model.fixer;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
+import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
+import com.intellij.plugins.haxe.model.StripSpaces;
 import com.intellij.psi.PsiElement;
+import lombok.CustomLog;
+import org.apache.commons.text.translate.CharSequenceTranslator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 
+@CustomLog
 public class HaxeSurroundFixer extends HaxeFixer {
+
+
 
   final TextRange range;
   final PsiElement element;
@@ -34,6 +42,7 @@ public class HaxeSurroundFixer extends HaxeFixer {
   final HaxeElementType right;
   final HaxeElementType oldLeft;
   final HaxeElementType oldRight;
+  final CharSequenceTranslator charSequenceTranslator;
 
   public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull HaxeElementType left, @NotNull HaxeElementType right) {
     this(text, el, el.getTextRange(), left, right);
@@ -46,6 +55,12 @@ public class HaxeSurroundFixer extends HaxeFixer {
   public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull TextRange range,
                            @NotNull HaxeElementType left, @NotNull HaxeElementType right,
                            @Nullable HaxeElementType oldLeft, @Nullable HaxeElementType oldRight) {
+    this(text, el, range, left, right, oldLeft, oldRight,  null);
+  }
+  public HaxeSurroundFixer(@NotNull String text, @NotNull PsiElement el, @NotNull TextRange range,
+                           @NotNull HaxeElementType left, @NotNull HaxeElementType right,
+                           @Nullable HaxeElementType oldLeft, @Nullable HaxeElementType oldRight,
+                           @Nullable CharSequenceTranslator charSequenceTranslator) {
     super(text);
     this.element = el;
     this.range= range;
@@ -53,6 +68,7 @@ public class HaxeSurroundFixer extends HaxeFixer {
     this.right = right;
     this.oldLeft = oldLeft;
     this.oldRight = oldRight;
+    this.charSequenceTranslator = charSequenceTranslator;
   }
 
   @Override
@@ -60,10 +76,23 @@ public class HaxeSurroundFixer extends HaxeFixer {
     if (!element.isValid()) return;
 
     HaxeDocumentModel doc = HaxeDocumentModel.fromElement(element);
-    doc.rewrapElement(element, range, left.asCode(), right.asCode(),
-                      null != oldLeft ? oldLeft.asCode() : null,
-                      null != oldRight ? oldRight.asCode() : null);
+    if(charSequenceTranslator !=  null){
+      if (element instanceof HaxeStringLiteralExpression literalExpression) {
+        String originalString = literalExpression.getText();
+        String stringWithoutQuotes = originalString.substring(1, originalString.length() - 1);
+        String translate = charSequenceTranslator.translate(stringWithoutQuotes);
+        doc.replaceElementText(range, left + translate + right, StripSpaces.NONE);
+      }else {
+        log.warn("Text replace failed, expected StringLiteralExpression got " + element.getClass().getName());
+      }
+    } else {
+      doc.rewrapElement(element, range, left.asCode(), right.asCode(),
+              null != oldLeft ? oldLeft.asCode() : null,
+              null != oldRight ? oldRight.asCode() : null);
+    }
   }
+
+
 
   public static HaxeSurroundFixer withParens(PsiElement el) {
     return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.parenthesis"), el, (HaxeElementType)PLPAREN, (HaxeElementType)PRPAREN);
@@ -92,7 +121,8 @@ public class HaxeSurroundFixer extends HaxeFixer {
   public static HaxeSurroundFixer replaceQuotesWithSingleQuotes(PsiElement el) {
     return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.single.quotation.marks"), el, el.getTextRange(),
                                  (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE,
-                                 (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE);
+                                 (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE,
+                                 HaxeStringEscapeUtil.TO_SINGLE_QUOTE_TRANSLATOR);
   }
 
   public static HaxeSurroundFixer exchangeQuoteType(PsiElement el) {
@@ -100,7 +130,8 @@ public class HaxeSurroundFixer extends HaxeFixer {
     if (null != text && text.startsWith("'")) {
       return new HaxeSurroundFixer(HaxeBundle.message("haxe.quickfix.surround.with.double.quotation.marks"), el, el.getTextRange(),
                                    (HaxeElementType)DOUBLE_QUOTE, (HaxeElementType)DOUBLE_QUOTE,
-                                   (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE);
+                                   (HaxeElementType)SINGLE_QUOTE, (HaxeElementType)SINGLE_QUOTE,
+                                   HaxeStringEscapeUtil.TO_DOUBLE_QUOTE_TRANSLATOR);
     }
     return replaceQuotesWithSingleQuotes(el);
   }

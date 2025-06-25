@@ -45,6 +45,8 @@ dependencies {
     implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
 
+    implementation("org.apache.commons:commons-text:1.13.1")
+
     implementation(project(":common"))
     implementation(project(":jps-plugin"))
     implementation(project(":hxcpp-debugger-protocol"))
