@@ -356,6 +356,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testStaticFieldAccess() throws Exception {
+    doTestNoFixWithoutWarnings();
+  }
+  @Test
   public void testStaticsInExtended() throws Exception {
     doTestNoFixWithoutWarnings();
   }

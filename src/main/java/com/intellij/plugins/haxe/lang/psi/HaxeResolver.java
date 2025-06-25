@@ -1038,16 +1038,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     //   super:      super class member access (used when overriding methods and calling base method)
 
     boolean isEmpty = leftReference == null;
-
-    if (isEmpty) {
-      HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
-      List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, false);
-      if (!superElements.isEmpty()) {
-        LogResolution(reference, "via super field.");
-        return superElements;
-      }
-    }
-
     boolean isAbstract = !isEmpty && leftReference.textMatches("abstract");
     boolean isSuper = !isEmpty && leftReference.textMatches("super");
     boolean isThis = !isEmpty && leftReference.textMatches("this");
@@ -1064,6 +1054,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }else if (isThis) {
           List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, true);
+          superElements = removeStaticMembersFromElementList(superElements);
           if (!superElements.isEmpty()) {
             LogResolution(reference, "via super field. (Abstract - this keyword)");
             return superElements;
@@ -1071,6 +1062,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       } else {
         List<? extends PsiElement> superElements = resolveBySuperClassAndSymbol(type, reference, false);
+        superElements = removeStaticMembersFromElementList(superElements);
         if (!superElements.isEmpty()) {
           LogResolution(reference, "via super field. (class)");
           return superElements;
@@ -1079,6 +1071,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     }
     return null;
+  }
+
+  private List<? extends PsiElement> removeStaticMembersFromElementList(List<? extends PsiElement> superElements) {
+    return superElements.stream()
+            .filter(psiElement -> !(psiElement.getParent() instanceof HaxePsiField field && field.isStatic()))
+            .toList();
   }
 
   private List<? extends PsiElement> checkIsTypeParameter(HaxeReference reference) {
