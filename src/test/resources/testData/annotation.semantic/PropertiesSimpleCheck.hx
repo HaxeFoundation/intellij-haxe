@@ -1,3 +1,4 @@
+import sys.thread.Thread.ThreadImpl;
 class Test {
   public var a(<error descr="Can't find getter method">get</error>, <error descr="Can't find setter method">set</error>):Int <error descr="This field cannot be initialized because it is not a real variable">= 10</error>;
   @:isVar public var b(<error descr="Can't find getter method">get</error>, <error descr="Can't find setter method">set</error>):Int = 10;
@@ -13,4 +14,15 @@ class Test2 {
 
 interface ITest {
   var a(get, set):Int;
+}
+
+
+abstract ATest(Dynamic) {
+  // normal abstracts should implement getter/setters
+  public var value(<error descr="Can't find getter method">get</error>,never):Dynamic;
+}
+
+extern abstract ATest(Dynamic) {
+// extern abstracts do not require implementations
+  public var value(get,never):Dynamic;
 }

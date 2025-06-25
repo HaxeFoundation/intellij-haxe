@@ -65,6 +65,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
 
   private Boolean _isPrivate = null;
+  private Boolean _isExtern = null;
 
   static {
     log.info("Loaded AbstractHaxePsiClass");
@@ -168,10 +169,6 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
 
-  @Override
-  public boolean isExtern() {
-    return (this instanceof HaxeExternClassDeclaration || this instanceof HaxeExternInterfaceDeclaration);
-  }
 
   @Override
   public boolean isAbstractType() {
@@ -687,6 +684,26 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
       _isPrivate =  (privateKeyWord != null);
     }
     return _isPrivate;
+  }
+  @Override
+  public boolean isExtern() {
+    if(_isExtern == null) {
+      HaxeExternKeyWord privateKeyWord = null;
+      if (this instanceof HaxeExternClassDeclaration) { // concrete class
+        _isExtern = true;
+        return _isExtern;
+      } else if (this instanceof HaxeExternInterfaceDeclaration declaration) { // concrete class
+        privateKeyWord = declaration.getExternKeyWord();
+      } else if (this instanceof HaxeAbstractTypeDeclaration declaration) { // abstract
+        privateKeyWord = declaration.getExternKeyWord();
+      } else if (this instanceof HaxeTypedefDeclaration declaration) { // typedef
+        privateKeyWord = declaration.getExternKeyWord();
+      } else if (this instanceof HaxeEnumDeclaration declaration) { // enum
+        privateKeyWord = declaration.getExternKeyWord();
+      }
+      _isExtern =  (privateKeyWord != null);
+    }
+    return _isExtern;
   }
 
   private HaxePrivateKeyWord getPrivateKeyWord(HaxeClassModifierList list) {

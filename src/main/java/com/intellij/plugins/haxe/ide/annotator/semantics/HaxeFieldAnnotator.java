@@ -243,7 +243,7 @@ public class HaxeFieldAnnotator implements Annotator {
 
     HaxeClassModel declaringClass = field.getDeclaringClass();
     if(declaringClass != null) {
-      if (declaringClass.isInterface() || declaringClass.isAnonymous()) return;
+      if (declaringClass.isInterface() || declaringClass.isAnonymous() || declaringClass.isExtern()) return;
     }
 
 
