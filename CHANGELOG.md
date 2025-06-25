@@ -1,7 +1,14 @@
 # Changelog
 ## 1.7.3
-* Added: Experimental support for overload keyword
-* Bugfix: Plugin would fail to load dev versions of haxelibs if their libpath contained white-spaces. 
+* Added: Support for "in" operator expressions and overloads (#1220) 
+* Bugfix: Fixed issue where resolver would incorrectly use enumValue as type (#1219) 
+* Bugfix: Fixed issue where child classes could access static members from parent class without import statement (#1218)
+* Bugfix: Fixed issue where haxelib version detection would end up with empty string as version number (#1217)
+* Added: Better support for extern inline overload functions (#1216)
+* Bugfix: Allow redefining of abstract methods if extending class is abstract(#1191)
+* Bugfix: Plugin would fail to load dev versions of haxelibs if their libpath contained white-spaces.
+* Added: quickfix for converting string concatenation to string interpolation  
+* Changed: quickfix for switching between quote types now escapes character is if necessary.
 * Changed: Unresolved symbol highlighting of callExpression now only highlight the identifier (quickfix is still available in the entire expression)
 
 
