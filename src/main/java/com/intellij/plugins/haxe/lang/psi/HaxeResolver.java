@@ -214,8 +214,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         // Remove enumValues if we are resolving typeTag as typeTags should not be EnumValues
         // We also have to remove resolved fields as abstract enums is a thing
         if (isType) {
-          matchesInImport = matchesInImport.stream().filter(element ->  !(element instanceof HaxeEnumValueDeclaration)).toList();
-          matchesInImport = matchesInImport.stream().filter(element ->  !(element instanceof HaxeFieldDeclaration)).toList();
+          matchesInImport = matchesInImport.stream().filter(this::removeNonTypeComponents).toList();
         }
         if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
@@ -277,6 +276,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     return result;
 
+  }
+
+  private boolean removeNonTypeComponents(PsiElement element) {
+    if (element instanceof HaxeComponentName componentName) {
+      element = componentName.getParent();
+    }
+    return switch (element) {
+      case HaxeEnumValueDeclaration declaration -> false;
+      case HaxePsiField declaration -> false;
+      case HaxeMethod declaration -> false;
+      default -> true;
+    };
   }
 
   private static @Nullable List<@NotNull PsiElement> checkQualifiedName(@NotNull HaxeReference reference) {
@@ -2228,7 +2239,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             HaxeClassModel model = haxeClass.getModel();
             String name = model.getName();
             if (name != null && leftReference.textMatches(name)) {
-              extensionType = SpecificHaxeClassReference.getStdClass(haxeClass.isEnum() ? ENUM : CLASS, leftReference, new ResultHolder[]{new ResultHolder(classType)});
+              extensionType = getStdClass(haxeClass.isEnum() ? ENUM : CLASS, leftReference, new ResultHolder[]{new ResultHolder(classType)});
             }
           }
         }
