@@ -92,6 +92,7 @@ public class HaxeExpressionEvaluatorHandlers {
       (expression instanceof HaxeLogicOrExpression) ||
       (expression instanceof HaxeCompareExpression) ||
       (expression instanceof HaxeCoalescingExpression) ||
+      (expression instanceof HaxeInExpression) ||
       (expression instanceof HaxeMultiplicativeExpression)
     ) {
       PsiElement[] children = expression.getChildren();

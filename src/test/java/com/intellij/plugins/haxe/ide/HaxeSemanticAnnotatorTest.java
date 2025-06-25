@@ -986,6 +986,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
+  public void testOperatorAbstractTest2() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testOperatorOnConstraints() throws Throwable {
     doTestNoFixWithWarnings();
   }

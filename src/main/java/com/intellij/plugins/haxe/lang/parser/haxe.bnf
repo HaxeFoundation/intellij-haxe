@@ -201,7 +201,7 @@ fake operator ::= ":" | ";" | "," |"." | "==" | "=" | "!=" | "!" | "~" | "++" | 
               | "-" | "??=" | "??" | '?' | "||" | "|" | "|=" | "&&" | "&=" | "&" | "<<=" | "<<" | "<=" | "<" | "^="
               | "^" | "*=" | "*" | "/=" | "/" | "%=" | "%"
               | <<unsignedShiftRightAssign>> | <<shiftRightAssign>> | <<unsignedShiftRight>> | <<shiftRight>>
-              | <<gtEq>> | ">" | "..." | "in" | '->' | "=>" | "new" | "is"
+              | <<gtEq>> | ">" | "..." | "in" | '->' | "=>" | "new" | "is" |
 
 shiftLeftOperator ::= '<<'                                          { extends=operator }
 shiftRightOperator ::= <<shiftRight>>                               { extends=operator }
@@ -225,6 +225,7 @@ additiveOperator ::= '+' | '-'        { extends=operator }
 assignableOperator ::= '++' | '--'    { extends=operator }
 colonOperator ::= ':'                 { extends=operator }
 isOperator ::= 'is'                   { extends=operator }
+inOperator ::= 'in'                   { extends=operator }
 iteratorOperator ::= '...'            { extends=operator }
 logicAndOperator ::= '&&'             { extends=operator }
 logicOrOperator ::= '||'              { extends=operator }
@@ -856,6 +857,7 @@ expression ::= assignExpression
              | additiveExpression
              | multiplicativeExpression
              | moduloExpression
+             | inExpression
              | isTypeExpression         // With Haxe 4.2, won't compile with prefix; lower than postfix or value.
              | prefixExpression
              | valueOrPostfixExpression
@@ -890,6 +892,10 @@ shiftExpression ::= expression shiftOperator expression                       { 
 additiveExpression ::= expression additiveOperator expression                 { extends=binaryExpression }
 multiplicativeExpression ::= expression multiplicativeOperator expression     { extends=binaryExpression }
 moduloExpression ::= expression moduloOperator expression                     { extends=binaryExpression }
+
+// nessesary for @:op(A in B) support,  (a in someAbstract) is valid expression
+// https://github.com/HaxeFoundation/haxe/issues/6224
+inExpression ::= expression inOperator expression                     { extends=binaryExpression }
 
 prefixExpression ::= (prefixOperator (valueExpression postfixExpression?))
                    | (assignableOperator valueExpression)           { extends=unaryExpression }
