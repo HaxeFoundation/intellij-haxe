@@ -137,6 +137,9 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
+  public void testAbstractClassMethodImplementation() throws Exception {
+    doTestNoFixWithWarnings();
+  }
   @Test
   public void testAbstractKeywords() throws Exception {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);

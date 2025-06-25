@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElement;
 import org.apache.commons.lang3.StringUtils;
@@ -300,14 +301,30 @@ public class HaxeClassAnnotator implements Annotator {
       .filter(not(HaxeMethodModel::isInInterface))
       .collect(Collectors.toMap(m -> m.getMethod().getName(), Function.identity(), (m1, m2) -> m1));
 
-    for (String name : abstractMethods.keySet()) {
+    for ( Map.Entry<String, HaxeMethodModel> entry : abstractMethods.entrySet()) {
+
+      String name = entry.getKey();
+
       if (!nonAbstractMethods.containsKey(name)) {
         missingMethods.add(abstractMethods.get(name));
         missingMethodsNames.add(name);
+      }else {
+        HaxeMethodModel abstractMethod = entry.getValue();
+        HaxeMethodModel methodImplementation = nonAbstractMethods.get(name);
+        ResultHolder expectedReturnType = abstractMethod.getReturnType(null);
+        ResultHolder actualReturnType = methodImplementation.getReturnType(null);
+        if(methodImplementation.getDeclaringClass() == clazz) {
+          if (!(expectedReturnType.canAssign(actualReturnType))) {
+            String message = HaxeBundle.message("haxe.semantic.abstract.method.wrong.type", expectedReturnType.toPresentationString(), actualReturnType.toPresentationString());
+            holder.newAnnotation(HighlightSeverity.ERROR, message)
+                    .range(methodImplementation.getReturnTypeTagOrNameOrBasePsi())
+                    .create();
+          }
+        }
       }
     }
 
-    if (!missingMethods.isEmpty()) {
+    if (!missingMethods.isEmpty() && !clazz.isAbstractClass()) {
       // @TODO: Move to bundle
       boolean macroWarning = hasMacroForCodeGeneration(clazz);
       if (macroWarning) {
