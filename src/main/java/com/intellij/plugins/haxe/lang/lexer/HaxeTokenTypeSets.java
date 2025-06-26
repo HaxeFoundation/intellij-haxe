@@ -165,6 +165,7 @@ public interface HaxeTokenTypeSets {
     //KFROM,
     //KTO,
     KNEVER,
+    OIN,
     ONEW,
     KUNTYPED
   );
