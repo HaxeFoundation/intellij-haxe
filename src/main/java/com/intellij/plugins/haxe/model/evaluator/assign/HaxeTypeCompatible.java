@@ -47,6 +47,10 @@ public class HaxeTypeCompatible {
         if (to == null || from == null) return false;
         return canAssignToFromEvaluation(to, from, DEFAULT_SETTINGS, null).result;
     }
+    static public boolean canAssignToFromReference(@Nullable SpecificTypeReference to, @Nullable SpecificTypeReference from, boolean strict) {
+        if (to == null || from == null) return false;
+        return canAssignToFromEvaluation(to.createHolder(), from.createHolder(),  strict ? DEFAULT_STRICT_SETTINGS : DEFAULT_SETTINGS, null).result;
+    }
 
     /**
      *  Used to perform canAssign in parameters when functionTypes are assigned.

@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
@@ -15,6 +16,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -106,9 +108,10 @@ public class HaxeCallExpressionContext {
         boolean firstArgIsThisReference = isStaticExtension || isMacroFunction;
         boolean hasRestParam = hasRestParameter(parameters);
 
+        List<CallExpressionArgumentModel> argumentsList = new ArrayList<>(arguments); // making a copy since we add callie for extension methods
         int minArgRequired = countRequiredArguments(parameters) - (firstArgIsThisReference ? 1 : 0);
         int maxArgAllowed = hasRestParam && !isBindCall ? Integer.MAX_VALUE : parameters.size() - (firstArgIsThisReference ? 1 : 0);
-        int argumentCount = arguments.size();
+        int argumentCount = argumentsList.size();
 
         boolean hasOptionalParams = parameters.stream().anyMatch(CallExpressionParameterModel::isOptional);
 
@@ -183,7 +186,7 @@ public class HaxeCallExpressionContext {
             // while it might be a waste to re-evaluate the callie assignability
             // we do it  here because we need to keep track if typeParameters
             // perhaps the logic above can be moved down into the argument/parameter check loop
-            arguments.addFirst(new CallExpressionArgumentModel(callie.context, callie));
+            argumentsList.addFirst(new CallExpressionArgumentModel(callie.context, callie));
         }
 
         CallExpressionArgumentModel argumentModel = null;
@@ -196,13 +199,12 @@ public class HaxeCallExpressionContext {
         // loop through all arguments and match them to parameters
         // Note: argument and parameter index  can deviate a lot (optional parameters, rest values, extension method etc)
         while (true) {
-            if (arguments.size() > argumentCounter) {
-                argumentModel = arguments.get(argumentCounter++);
+            if (argumentsList.size() > argumentCounter) {
+                argumentModel = argumentsList.get(argumentCounter++);
             } else {
                 // out of arguments (normal behavior when all arguments have been checked)
                 break;
             }
-
             // if we reach rest parameter then there should not be any parameterModel updates as this is the last one
             if (!reachedRestParameter) {
                 if (parameters.size() > parameterCounter) {
@@ -212,7 +214,9 @@ public class HaxeCallExpressionContext {
                         // if argument is array then this might be a normal parameter and not a rest-parameter
                         SpecificTypeReference typeFromModel = parameterModel.getType();
                         if (HaxeMacroTypeUtil.isMacroVarArgOrRestType(typeFromModel)) {
-                            if (!typeFromModel.canAssign(argumentModel.getType())) {
+                            // strict check here as we want to test if we are dealing with an Array type or type that can be assigned to Array.
+                            // non-strict check would allow Unknown, Dynamic and Expr  to assign and  thus prevent us from setting reachedRestParameter
+                            if (!HaxeTypeCompatible.canAssignToFromReference(typeFromModel, argumentModel.getType(), true)) {
                                 reachedRestParameter = true;
                             }
                         }else {
