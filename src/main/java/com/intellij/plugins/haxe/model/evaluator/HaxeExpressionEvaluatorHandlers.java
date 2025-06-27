@@ -198,11 +198,17 @@ public class HaxeExpressionEvaluatorHandlers {
        typeHolder  = SpecificTypeReference.getUnknown(element).createHolder();
     }else {
       PsiElement firstChild = children[0];
-      // make sure  expression  is not something like  `var myVar = myVar.add(x)`, we cant resolve type from this
-      if (firstChild != element) {
-        typeHolder = handle(firstChild, context, resolver);
+      //TODO mlo: might be able to give a better type based on what macro typedef is used, but for now we stick with
+      // expr to avoid assign errors
+      if(firstChild instanceof HaxeMacroIdentifier) {
+        typeHolder  = HaxeMacroTypeUtil.getExpr(element).createHolder();
       }else {
-        typeHolder  = SpecificTypeReference.getUnknown(element).createHolder();
+        // make sure  expression  is not something like  `var myVar = myVar.add(x)`, we cant resolve type from this
+        if (firstChild != element) {
+          typeHolder = handle(firstChild, context, resolver);
+        } else {
+          typeHolder = SpecificTypeReference.getUnknown(element).createHolder();
+        }
       }
     }
 
