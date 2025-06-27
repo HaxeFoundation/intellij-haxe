@@ -1175,9 +1175,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           return List.of(declaration);
         }
       }
-    }
-
-   else if (parent instanceof HaxeExtractorMatchAssignExpression assignExpression) {
+    } else if (parent instanceof HaxeExtractorMatchAssignExpression assignExpression) {
       // Last attempt to resolve  enum value (not extractor), normally imports would solve this but  some typedefs can omit this.
       HaxeSwitchStatement type = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
       if (type != null) {
@@ -1200,23 +1198,57 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             }
           }
         }
-        if (assignExpression.getParent() instanceof  HaxeSwitchCaseExtractor extractor) {
+        if (assignExpression.getParent() instanceof HaxeSwitchCaseExtractor extractor) {
           List<HaxeExpression> list = extractor.getExpressionList();
           if (!list.isEmpty()) {
             PsiElement expression1 = list.getLast();
-            while(expression1 instanceof HaxeExtractorMatchExpression matchExpression) {
+            while (expression1 instanceof HaxeExtractorMatchExpression matchExpression) {
               HaxeSwitchCaseExpr expr = matchExpression.getMatch();
               @NotNull PsiElement[] children = expr.getChildren();
-              expression1 = children[children.length-1];
+              expression1 = children[children.length - 1];
             }
             LogResolution(reference, "via switch-case extractor match assign");
             return List.of(expression1);
           }
-        }else {
+        } else {
           LogResolution(reference, "via switch-case reference as var (without var keyword)");
-          if(expression != null) return List.of(expression);
+          if (expression != null) return List.of(expression);
         }
       }
+    }
+    // check if enum inside enum ex. case SomeEnum(AnotherEnum(x,y,z))
+    else if (parent instanceof HaxeType  type
+             && type.getParent() instanceof HaxeEnumExtractorArgumentList argumentList
+             && argumentList.getParent() instanceof HaxeEnumArgumentExtractor extractor
+    ) {
+      int index = -1;
+        @NotNull PsiElement @NotNull [] children = argumentList.getChildren();
+        for (int i = 0; i < children.length; i++) {
+            PsiElement child = children[i];
+            if (child == type) {
+                index = i;
+                break;
+            }
+        }
+        if(index > -1) {
+          PsiElement resolve = extractor.getEnumValueReference().getReferenceExpression().resolve();
+          if(resolve  instanceof HaxeEnumValueDeclarationConstructor constructor) {
+            List<HaxeParameterModel> parameters = constructor.getModel().getParameters();
+            if(parameters.size()> index) {
+              ResultHolder paramType = parameters.get(index).getType();
+              if(paramType.isEnum()){
+                SpecificHaxeClassReference classType = paramType.getClassType();
+                if(classType != null && classType.getHaxeClassModel() instanceof HaxeEnumModel enumModel) {
+                  HaxeEnumValueModel value = enumModel.getValue(reference.getText());
+                  if(value != null && value.getEnumValuePsi() != null){
+                    return List.of(value.getEnumValuePsi());
+                  }
+                }
+              }
+            }
+          }
+        }
+
     }
     return null;
   }
