@@ -333,12 +333,13 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "never"                                   {  return emitToken( KNEVER);  }
 "override"                                {  return emitToken( KOVERRIDE);  }
 "inline"                                  {  return emitToken( KINLINE);  }
-"macro" /({WHITE_SPACE_CHAR}+)            {  return emitToken( KMACRO2); }
-"macro:"
-                                          {
-                                            yypushback(1); // do not consume the colon (but catch the macro keyword)
-                                            return emitToken( KMACRO2);
-                                          }
+
+// "macro" is a valid package name so to avoid problems with qnames we require the keyword to be followed
+// by whitespace or other common symbols used in code that does not involve references.
+"macro" /{WHITE_SPACE_CHAR}               {  return emitToken( KMACRO2); }
+"macro" /\(                               {  return emitToken( KMACRO2); }
+"macro" /:                                {  return emitToken( KMACRO2); }
+
 
 "untyped"                                 {  return emitToken( KUNTYPED);  }
 "typedef"                                 {  return emitToken( KTYPEDEF);  }
