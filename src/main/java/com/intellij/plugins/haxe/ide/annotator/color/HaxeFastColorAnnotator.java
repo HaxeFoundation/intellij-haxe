@@ -74,6 +74,10 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
     if (tt == HaxeTokenTypeSets.PPEXPRESSION) {
       annotateCompilationExpression(node, holder);
     }
+    if (tt == HaxeTokenTypeSets.CONDITIONAL_ERROR) {
+      holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
+              .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONAL_ERROR).create();
+    }
     else if (tt == HaxeTokenTypeSets.PPBODY) {
       holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node)
         .textAttributes(HaxeSyntaxHighlighterColors.CONDITIONALLY_NOT_COMPILED).create();

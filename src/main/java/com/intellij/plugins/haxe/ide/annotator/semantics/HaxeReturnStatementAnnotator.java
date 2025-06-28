@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.CONDITIONAL_ERROR;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MSL_COMMENT;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
 
@@ -157,9 +159,14 @@ public class HaxeReturnStatementAnnotator implements Annotator {
             // TODO mlo: would this work if we only check last statement ?
             // would have to make sure last element is not comment,conditional compilation or something like that
 
-            if(child instanceof PsiComment) continue;
-            if(child instanceof HaxeCatchStatement) continue; // handled by try statement logic
-            hasReturnPaths = hasReturnPathsCovered(child);
+            if(child instanceof HaxeCatchStatement) continue;  // handled by try statement logic
+            if(child instanceof PsiComment comment) {
+                if(comment.getTokenType() == CONDITIONAL_ERROR) {
+                    hasReturnPaths = true;
+                }
+            } else {
+                hasReturnPaths = hasReturnPathsCovered(child);
+            }
         }
         return hasReturnPaths;
     }

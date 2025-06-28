@@ -264,7 +264,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 {WHITE_SPACE_CHAR}+                       { return emitToken( com.intellij.psi.TokenType.WHITE_SPACE);}
 
 {CONDITIONAL_LINE}                        { return emitToken( MSL_COMMENT); }
-{CONDITIONAL_ERROR}                       { return emitToken( MSL_COMMENT); }
+{CONDITIONAL_ERROR}                       { return emitToken( CONDITIONAL_ERROR); }
 {END_OF_LINE_COMMENT}                     { return emitToken( MSL_COMMENT); }
 {C_STYLE_COMMENT}                         { return emitToken( MML_COMMENT); }
 {DOC_COMMENT}                             { return emitToken( DOC_COMMENT); }

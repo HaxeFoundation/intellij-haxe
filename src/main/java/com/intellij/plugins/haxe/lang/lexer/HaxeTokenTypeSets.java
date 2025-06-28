@@ -28,6 +28,8 @@ import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public interface HaxeTokenTypeSets {
   IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeLanguage.INSTANCE);
+  IElementType CONDITIONAL_ERROR = new HaxeElementType("CONDITIONAL_ERROR");
+
   IElementType MSL_COMMENT = new HaxeElementType("MSL_COMMENT");
   IElementType MML_COMMENT = new HaxeElementType("MML_COMMENT");
   IElementType DOC_COMMENT = new HaxeElementType("DOC_COMMENT");
@@ -71,6 +73,7 @@ public interface HaxeTokenTypeSets {
     PPERROR,
     PPBODY,
     PPEXPRESSION,
+    CONDITIONAL_ERROR,
     CONDITIONAL_STATEMENT_ID,
     EMBEDDED_META
   );

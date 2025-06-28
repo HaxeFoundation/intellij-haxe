@@ -27,6 +27,11 @@
       <option name="FOREGROUND" value="b25c5e"/>
     </value>
   </option>
+  <option name="HAXE_CONDITIONAL_ERROR">
+    <value>
+      <option name="FOREGROUND" value="b25c5e"/>
+    </value>
+  </option>
   <option name="HAXE_CONDITIONALLY_NOT_COMPILED">
     <value>
       <option name="FOREGROUND" value="89B270"/>
