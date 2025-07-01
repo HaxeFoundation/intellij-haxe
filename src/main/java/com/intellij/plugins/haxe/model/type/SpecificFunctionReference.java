@@ -214,7 +214,10 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       return result;
     }
     if (null != fnType) {
-      return create(new HaxeSpecificFunction(fnType, resolver.getSpecialization(context))).createHolder();
+      HaxeSpecificFunction haxeSpecificFunction = HaxeSpecificFunction.tryCreate(fnType, resolver.getSpecialization(context));
+      if(haxeSpecificFunction != null) {
+        return create(haxeSpecificFunction).createHolder();
+      }
     }
     return SpecificTypeReference.getUnknown(context).createHolder();
   }

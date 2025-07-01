@@ -1021,9 +1021,11 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if (isTypeDef()) {
       HaxeFunctionType type = ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getFunctionType();
       if (type != null) {
-        HaxeSpecificFunction function = new HaxeSpecificFunction(type, getGenericResolver().getSpecialization(this.getElementContext()));
-        typeDefFunction = SpecificFunctionReference.create(function);
-        return typeDefFunction;
+        HaxeSpecificFunction function = HaxeSpecificFunction.tryCreate(type, getGenericResolver().getSpecialization(this.getElementContext()));
+        if(function != null){
+          typeDefFunction = SpecificFunctionReference.create(function);
+          return typeDefFunction;
+        }
       }
     }
     return null;

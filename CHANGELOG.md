@@ -1,4 +1,8 @@
 # Changelog
+## 1.7.4
+* Added: method quickfixes for when unresolved symbol has expected type is abstract with @:callable
+* Fixed: FunctionTypes would cause NPE if Haxe SDK was not configured.  
+
 ## 1.7.3
 * Added: Support for "in" operator expressions and overloads (#1220) 
 * Bugfix: Fixed issue where resolver would incorrectly use enumValue as type (#1219) 

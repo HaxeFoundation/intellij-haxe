@@ -791,8 +791,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           }
           //failsafe check that we can get function model from SDK
           if (SpecificTypeReference.getFunction(resolve).getHaxeClass() != null) {
-            final HaxeClass fn = new HaxeSpecificFunction((HaxeMethod)resolve, specialization);
-            return HaxeResolveResult.create(fn, specialization);
+            final HaxeClass fn = HaxeSpecificFunction.tryCreate((HaxeMethod)resolve, specialization);
+            if(fn != null) return HaxeResolveResult.create(fn, specialization);
           }
         }
       }
