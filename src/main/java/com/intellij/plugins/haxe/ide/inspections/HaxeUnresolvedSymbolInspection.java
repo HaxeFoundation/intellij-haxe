@@ -23,8 +23,10 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceFieldIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -183,8 +185,20 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       if(specificTypeReference instanceof SpecificFunctionReference functionReference) {
         list.add(createMethodQuickfix(functionReference, reference, targetClass));
       }
+      if(specificTypeReference instanceof SpecificHaxeClassReference classReference
+         && classReference.getHaxeClassModel() != null
+         && classReference.getHaxeClassModel().isCallable()) {
+        list.addAll(createMethodQuickfixesForCallable(reference, classReference.getHaxeClassModel(), targetClass));
+      }
+    }else if (resultHolder.getClassType() != null) {
+      HaxeClassModel haxeClassModel = resultHolder.getClassType().getHaxeClassModel();
+      if(haxeClassModel != null && haxeClassModel.isCallable()) {
+        list.addAll(createMethodQuickfixesForCallable(reference, haxeClassModel, targetClass));
+      }
     }
   }
+
+
 
 
   private boolean isPartOfImportStatement(HaxeReferenceExpression reference) {
