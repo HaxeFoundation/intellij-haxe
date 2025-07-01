@@ -147,6 +147,11 @@ public class HaxeElementGenerator {
     final HaxeFile dummyFile = createDummyFile(myProject, "import " + path + ";");
     return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
   }
+  @Nullable
+  public static HaxeUsingStatement createUsingStatementFromPath(Project myProject, String path) {
+    final HaxeFile dummyFile = createDummyFile(myProject, "using " + path + ";");
+    return PsiTreeUtil.getChildOfType(dummyFile, HaxeUsingStatement.class);
+  }
 
   @Nullable
   public static HaxePsiToken createEmptyStatement(Project myProject) {

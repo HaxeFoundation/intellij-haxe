@@ -160,6 +160,15 @@ public class HaxeResolveUtil {
     final GlobalSearchScope scope = getScopeForElement(context);
     return findClassByQName(qName, psiManager, scope);
   }
+  @Nullable
+  public static PsiElement findClassOrMemberByQName(final @Nullable String qName, final @Nullable PsiElement context) {
+    if (context == null || qName == null) {
+      return null;
+    }
+    final PsiManager psiManager = context.getManager();
+    final GlobalSearchScope scope = getScopeForElement(context);
+    return findClassOrMemberByQName(qName, psiManager, scope);
+  }
 
   @NotNull
   public static GlobalSearchScope getScopeForElement(@NotNull PsiElement context) {
@@ -177,15 +186,28 @@ public class HaxeResolveUtil {
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
       HaxeModel item = result.getFirst();
-      if (item instanceof HaxeFileModel) {
-        HaxeClassModel classModel = ((HaxeFileModel)item).getMainClassModel();
+      if (item instanceof HaxeFileModel fileModel) {
+        HaxeClassModel classModel = fileModel.getMainClassModel();
         return classModel != null ? classModel.haxeClass : null;
       }
-      if (item instanceof HaxeClassModel) {
-        return ((HaxeClassModel)item).haxeClass;
+      if (item instanceof HaxeClassModel classModel) {
+        return classModel.haxeClass;
       }
     }
-
+    return null;
+  }
+  @Nullable
+  public static PsiElement findClassOrMemberByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
+    final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
+    List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
+    if (result != null && !result.isEmpty()) {
+      HaxeModel item = result.getFirst();
+      if (item instanceof HaxeFileModel fileModel) {
+        HaxeClassModel classModel = fileModel.getMainClassModel();
+        return classModel != null ? classModel.haxeClass : null;
+      }
+      return item.getBasePsi();
+    }
     return null;
   }
   @Nullable
