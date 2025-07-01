@@ -42,9 +42,11 @@ import java.util.*;
 public class HaxeProjectSettings implements PersistentStateComponent<Element>, HaxeTrackedModifiable {
   public static final String HAXE_SETTINGS = "HaxeProjectSettings";
   public static final String DEFINES = "defines";
-  public static final String AUTO_DETECT = "auto_detect_defines";
+  public static final String AUTO_DETECT_DEFINES = "auto_detect_defines";
+  public static final String AUTO_DETECT_REFERENCES = "auto_detect_references";
   private String userCompilerDefinitions = "";
   private boolean autoDetectDefinitions = true;
+  private boolean detectCodeReferencesInConsole = true;
   private HaxeModificationTracker tracker = new HaxeModificationTracker(getClass().getName());
 
   public Set<String> getUserCompilerDefinitionsAsSet() {
@@ -93,13 +95,12 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   @Override
   public void loadState(Element state) {
     userCompilerDefinitions = state.getAttributeValue(DEFINES, "");
-    String value = state.getAttributeValue(AUTO_DETECT);
-    if (value == null) {
-      // using default value "true" value if not found
-      autoDetectDefinitions = true;
-    }else {
-      autoDetectDefinitions = Boolean.parseBoolean(value);
-    }
+    String defines = state.getAttributeValue(AUTO_DETECT_DEFINES);
+    String references = state.getAttributeValue(AUTO_DETECT_REFERENCES);
+
+    autoDetectDefinitions = Optional.ofNullable(defines).map(Boolean::parseBoolean).orElse(true);
+    detectCodeReferencesInConsole= Optional.ofNullable(references).map(Boolean::parseBoolean).orElse(true);
+
     tracker.notifyUpdated();
   }
 
@@ -107,7 +108,8 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   public Element getState() {
     final Element element = new Element(HAXE_SETTINGS);
     element.setAttribute(DEFINES, userCompilerDefinitions);
-    element.setAttribute(AUTO_DETECT, String.valueOf(autoDetectDefinitions));
+    element.setAttribute(AUTO_DETECT_DEFINES, String.valueOf(autoDetectDefinitions));
+    element.setAttribute(AUTO_DETECT_REFERENCES, String.valueOf(detectCodeReferencesInConsole));
     return element;
   }
 
@@ -126,6 +128,13 @@ public class HaxeProjectSettings implements PersistentStateComponent<Element>, H
   }
 
   public void setAutoDetectDefinitions(boolean selected) {
-    autoDetectDefinitions = selected;
+    detectCodeReferencesInConsole = selected;
+  }
+  public boolean getDetectCodeReferencesInConsole() {
+    return autoDetectDefinitions;
+  }
+
+  public void setDetectCodeReferencesInConsole(boolean selected) {
+    detectCodeReferencesInConsole = selected;
   }
 }

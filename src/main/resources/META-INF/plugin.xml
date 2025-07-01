@@ -429,6 +429,8 @@
 
     <plugins.haxe.haxeMethodsSearch implementation="com.intellij.psi.impl.search.JavaOverridingMethodsSearcher"/>
 
+    <consoleFilterProvider implementation="com.intellij.plugins.haxe.execution.console.HaxeConsoleFilterProvider"/>
+
     <intentionAction>
       <language>Haxe</language>
       <category>Haxe/Imports</category>
