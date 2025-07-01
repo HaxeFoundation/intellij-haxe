@@ -1156,7 +1156,7 @@ public class HaxeResolveUtil {
     final HaxePackageModel packageModel = file.getPackageModel();
     if (packageModel != null) {
       // TODO make index of package members
-      List<HaxeModel> exposedMembers = packageModel.getExposedMembers();
+      List<HaxeModel> exposedMembers = packageModel.getModulesMainClass();
       for (HaxeModel model : exposedMembers) {
         if (name.equals(model.getName())) {
           return model.getBasePsi();

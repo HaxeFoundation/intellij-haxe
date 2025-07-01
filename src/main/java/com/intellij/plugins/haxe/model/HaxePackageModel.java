@@ -180,11 +180,29 @@ public class HaxePackageModel implements HaxeExposableModel {
           if(fileModel != null)result.addAll(fileModel.getExposedMembers());
         }
       }
-
-
       return result;
     }
+    return Collections.emptyList();
+  }
 
+  @NotNull
+  public List<HaxeModel> getModulesMainClass() {
+    PsiDirectory directory = root.access(path);
+    if (directory != null) {
+      PsiFile[] files = directory.getFiles();
+
+      List<HaxeModel>  result = new ArrayList<>();
+      for(PsiFile file : files) {
+        if( file instanceof HaxeFile) {
+          HaxeFileModel fileModel = HaxeFileModel.fromElement(file);
+          if(fileModel != null) {
+            HaxeClassModel mainClassModel = fileModel.getMainClassModel();
+            if(mainClassModel != null)result.add(mainClassModel);
+          }
+        }
+      }
+      return result;
+    }
     return Collections.emptyList();
   }
 

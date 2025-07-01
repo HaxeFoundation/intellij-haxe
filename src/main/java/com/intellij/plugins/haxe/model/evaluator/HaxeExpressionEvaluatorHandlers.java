@@ -112,6 +112,8 @@ public class HaxeExpressionEvaluatorHandlers {
           if (left != null && left.isTypeParameter()) left = tryResolveTypeParameter(left, resolver);
           if (right != null && right.isTypeParameter()) right = tryResolveTypeParameter(right, resolver);
 
+          if(left == null || right == null) return createUnknown(expression);
+
           return HaxeOperatorResolver.getBinaryOperatorResult(expression, left, right, operator, context).createHolder();
         }
       }

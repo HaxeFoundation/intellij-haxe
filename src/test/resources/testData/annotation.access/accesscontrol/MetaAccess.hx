@@ -1,5 +1,7 @@
 package accesscontrol;
 
+import accesscontrol.*;
+
 @:access(accesscontrol.AccessMetaTestClass)
 class MetaAccessTest {
     public function test() {
