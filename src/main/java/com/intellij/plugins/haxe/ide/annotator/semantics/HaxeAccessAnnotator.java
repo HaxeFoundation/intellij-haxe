@@ -87,11 +87,18 @@ public class HaxeAccessAnnotator implements Annotator {
     // ignore if we cant find member (probably a reference to a type)
     if (memberModel != null) {
       checkStaticAccess(holder, referenceExpression, memberModel);
-      if (!memberModel.isPublic()) {
+      // properties can have mixed access for read and write  so isPublic wont do here
+      if (memberModel instanceof HaxeFieldModel fieldModel && fieldModel.isProperty() || !memberModel.isPublic()) {
         checkPrivateAccess(holder, referenceExpression, memberModel, memberClass, memberName);
       }
     }
 
+  }
+
+  private static boolean isWriteExpression(@NotNull HaxeReferenceExpression referenceExpression) {
+    return referenceExpression.getParent() instanceof HaxeAssignExpression
+           || referenceExpression instanceof HaxePostfixExpression
+           || referenceExpression instanceof HaxePrefixExpression;
   }
 
   private void checkStaticAccess(@NotNull AnnotationHolder holder, @NotNull HaxeReferenceExpression referenceExpression, @NotNull HaxeMemberModel memberModel) {
@@ -175,6 +182,20 @@ public class HaxeAccessAnnotator implements Annotator {
     if (overridesMemberInCommonClass(memberModel, currentClass)) {
       // if inherited member then private access allowed
       return;
+    }
+
+    if(memberModel instanceof HaxeFieldModel fieldModel) {
+      if(isWriteExpression(referenceExpression)) {
+        HaxeAccessorType setterType = fieldModel.getSetterType();
+        if(setterType.isAllowedFromOutside()) {
+          return;
+        }
+      }else {
+        HaxeAccessorType getterType = fieldModel.getGetterType();
+        if(getterType.isAllowedFromOutside()) {
+          return;
+        }
+      }
     }
 
     HaxeMemberModel referenceParentModel = getExpressionsParentsModel(referenceExpression);
