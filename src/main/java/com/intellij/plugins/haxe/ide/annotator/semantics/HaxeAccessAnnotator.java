@@ -183,17 +183,19 @@ public class HaxeAccessAnnotator implements Annotator {
       // if inherited member then private access allowed
       return;
     }
-
+    //  check getter and setters if property is public
     if(memberModel instanceof HaxeFieldModel fieldModel) {
-      if(isWriteExpression(referenceExpression)) {
-        HaxeAccessorType setterType = fieldModel.getSetterType();
-        if(setterType.isAllowedFromOutside()) {
-          return;
-        }
-      }else {
-        HaxeAccessorType getterType = fieldModel.getGetterType();
-        if(getterType.isAllowedFromOutside()) {
-          return;
+      if(fieldModel.isPublic() && fieldModel.isProperty()) {
+        if (isWriteExpression(referenceExpression)) {
+          HaxeAccessorType setterType = fieldModel.getSetterType();
+          if (setterType.isAllowedFromOutside()) {
+            return;
+          }
+        } else {
+          HaxeAccessorType getterType = fieldModel.getGetterType();
+          if (getterType.isAllowedFromOutside()) {
+            return;
+          }
         }
       }
     }
