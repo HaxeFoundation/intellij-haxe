@@ -174,7 +174,8 @@ public class HaxeElementGenerator {
   @NotNull
   public static PsiElement createComma(Project myProject) {
     final HaxeFile dummyFile =  createDummyFile(myProject, "var a,b;");
-    return dummyFile.getLastChild().getPrevSibling().getPrevSibling();
+    HaxeModuleFieldDeclaration childOfType = PsiTreeUtil.findChildOfType(dummyFile, HaxeModuleFieldDeclaration.class);
+    return childOfType.getNextSibling();
   }
 
 
