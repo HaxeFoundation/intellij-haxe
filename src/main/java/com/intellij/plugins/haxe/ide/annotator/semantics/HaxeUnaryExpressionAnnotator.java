@@ -65,14 +65,11 @@ public class HaxeUnaryExpressionAnnotator implements Annotator {
             if (expression instanceof HaxeReferenceExpression referenceExpression) {
                 ResultHolder result = HaxeExpressionEvaluator.evaluate(expression).result;
 
-                boolean nonRealVariableWrite = isNonRealVariableWrite(referenceExpression);
-                if (nonRealVariableWrite) {
-                    holder.newAnnotation(HighlightSeverity.ERROR, "This field cannot be accessed because it is not a real variable").range(unaryExpression).create();
-                    return;
-                }
                 boolean isWritable = checkIfPropertyWritable(referenceExpression);
                 if (!isWritable) {
-                    holder.newAnnotation(HighlightSeverity.ERROR, "This expression cannot be accessed for writing").range(unaryExpression).create();
+                    holder.newAnnotation(HighlightSeverity.ERROR, "This expression cannot be accessed for writing")
+                            .range(unaryExpression)
+                            .create();
                     return;
                 }
 

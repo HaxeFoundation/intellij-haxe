@@ -19,9 +19,9 @@ class TestPostfix {
     public var nonPhysical(get, set):Int;
 
     // EXPECT: This field cannot be accessed because it is not a real variable
-    function set_nonPhysical(value:Int):Int {return <error descr="This field cannot be accessed because it is not a real variable">nonPhysical++</error>;}
+    function set_nonPhysical(value:Int):Int {return <error descr="This field cannot be accessed because it is not a real variable">nonPhysical</error>++;}
     // EXPECT: This field cannot be accessed because it is not a real variable
-    function get_nonPhysical():Int {return <error descr="This field cannot be accessed because it is not a real variable">nonPhysical++</error>;}
+    function get_nonPhysical():Int {return <error descr="This field cannot be accessed because it is not a real variable">nonPhysical</error>++;}
 
 
     public var intArray:Array<Int>;

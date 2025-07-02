@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
@@ -24,6 +25,28 @@ public class HaxeFieldAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof HaxeFieldDeclaration field) {
       check(field, holder);
+    }
+    if (element instanceof HaxeReferenceExpression expression) {
+      checkFieldAccessFromGetterSetter(holder, expression);
+    }
+  }
+
+  private static void checkFieldAccessFromGetterSetter(@NotNull AnnotationHolder holder, HaxeReferenceExpression expression) {
+    if(expression.getParent() instanceof HaxeType) return;
+    HaxeMethodDeclaration method = PsiTreeUtil.getParentOfType(expression, HaxeMethodDeclaration.class);
+    if(method != null) {
+      PsiElement resolve = expression.resolve();
+      if(resolve instanceof HaxeFieldDeclaration fieldDeclaration) {
+        HaxeFieldModel fieldModel = (HaxeFieldModel)fieldDeclaration.getModel();
+        if(fieldModel.isRealVar()) return;
+        HaxeMethodModel methodModel = method.getModel();
+        if(fieldModel.getGetterMethod() == methodModel || fieldModel.getSetterMethod() == methodModel) {
+          holder.newAnnotation(HighlightSeverity.ERROR, "This field cannot be accessed because it is not a real variable")
+                  .range(expression)
+                  .withFix(addIsVarFix(fieldModel))
+                  .create();
+        }
+      }
     }
   }
 
