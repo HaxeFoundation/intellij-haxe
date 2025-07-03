@@ -2208,42 +2208,45 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // if type parameter, try to find constraints and use those ?
       haxeClass = useConstraintsIfTypeParameter(reference, haxeClass);
       haxeClass = useDefaultIfTypeParameter(reference, haxeClass);
-      HaxeClassModel classModel = haxeClass.getModel();
-      List<HaxeBaseMemberModel> members = classModel.getMembers(identifier, classType.getGenericResolver());
-      if (!members.isEmpty()) {
-        if(members.size() == 1) {
-          HaxeNamedComponent psi = members.getFirst().getNamedComponentPsi();
-          if (psi != null) {
-            HaxeComponentName name = psi.getComponentName();
-            if (name != null) {
-              return Collections.singletonList(name);
+      if (haxeClass != null) {
+        HaxeClassModel classModel = haxeClass.getModel();
+        List<HaxeBaseMemberModel> members = classModel.getMembers(identifier, classType.getGenericResolver());
+        if (!members.isEmpty()) {
+          if (members.size() == 1) {
+            HaxeNamedComponent psi = members.getFirst().getNamedComponentPsi();
+            if (psi != null) {
+              HaxeComponentName name = psi.getComponentName();
+              if (name != null) {
+                return Collections.singletonList(name);
+              }
+            }
+          } else {
+            List<HaxeNamedComponent> member = checkMethodOverloads(reference, members);
+            if (member != null) return member;
+          }
+        }
+
+        // check extension methods from meta
+        HaxeComponentName match = extensionsFromMetaGuard.doPreventingRecursion(lefthandExpression, true, () -> {
+          int size = classModel.getUsingMetaReferences().size();
+          List<HaxeMethodModel> meta = classModel.getExtensionMethodsFromMeta();
+          if (size != meta.size()) {
+            resolveInnerRecursionGuard.prohibitResultCaching(lefthandExpression);
+          }
+          for (HaxeMethodModel model : meta) {
+            HaxeNamedComponent psi = model.getNamedComponentPsi();
+            if (psi != null) {
+              HaxeComponentName name = psi.getComponentName();
+              if (name != null && name.getIdentifier().textMatches(identifier)) {
+                if (log.isTraceEnabled()) log.trace(traceMsg("Found component name in extension methods"));
+                return name;
+              }
             }
           }
-        }else {
-          List<HaxeNamedComponent> member = checkMethodOverloads(reference, members);
-          if (member != null) return member;
-        }
+          return null;
+        });
+        if (match != null) return Collections.singletonList(match);
       }
-      // check extension methods from meta
-      HaxeComponentName match = extensionsFromMetaGuard.doPreventingRecursion(lefthandExpression, true, () -> {
-        int size = classModel.getUsingMetaReferences().size();
-        List<HaxeMethodModel> meta = classModel.getExtensionMethodsFromMeta();
-        if (size != meta.size()) {
-          resolveInnerRecursionGuard.prohibitResultCaching(lefthandExpression);
-        }
-        for (HaxeMethodModel model : meta) {
-          HaxeNamedComponent psi = model.getNamedComponentPsi();
-          if (psi != null) {
-            HaxeComponentName name = psi.getComponentName();
-            if (name != null && name.getIdentifier().textMatches(identifier)) {
-              if (log.isTraceEnabled()) log.trace(traceMsg("Found component name in extension methods"));
-              return name;
-            }
-          }
-        }
-        return null;
-      });
-      if (match != null) return Collections.singletonList(match);
 
     // Check 'using' classes.
       HaxeFileModel fileModel = HaxeFileModel.fromElement(reference.getContainingFile());
@@ -2264,7 +2267,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       SpecificHaxeClassReference extensionType = classType;
       // check if reference is to a Class or Enum and if so wrap in Class<> or Enum<> so we
       // can match stuff like methods in EnumTools and/or other extensions for Enum/Class types.
-      if (leftReference != null) {
+      if (leftReference != null && haxeClass != null) {
         if (leftReference.getParent() instanceof HaxeReferenceExpression parent) {
           // make sure our HaxeReferenceExpression is the fist element  in parent (ex. MyClass.someMember)
           if (parent.getFirstChild() == leftReference && !(parent.getParent() instanceof HaxeReferenceExpression)) {
