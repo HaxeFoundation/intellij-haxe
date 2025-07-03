@@ -4,7 +4,7 @@ package;
 // Level 1 does not define constraints but since we are calling from level 3 with level 2 in the inherentace hierachy,
 // type parameters and constrains from level 2 should be passed on to level 1 members.
 class Level3Class<T:String> extends Level2Class {
-    public function new() {
+    public function test() {
 
         //CORRECT
         var paramA:Int = this.testTypeParam(1);
@@ -23,7 +23,7 @@ class Level3Class<T:String> extends Level2Class {
     }
 }
 class Level2Class extends Level1Class<Int> {
-    public function new() {}
+    public function new() {super();}
 }
 
 class Level1Class<T>  {

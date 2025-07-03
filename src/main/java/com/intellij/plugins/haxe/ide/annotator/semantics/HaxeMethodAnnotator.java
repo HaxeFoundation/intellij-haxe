@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeFunctionCompatible;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeOverrideOrImplementEvaluation;
+import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
@@ -40,7 +41,10 @@ public class HaxeMethodAnnotator implements Annotator {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
+    checkConstructorSuper(methodPsi, holder);
   }
+
+
 
   private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     if (!MISSING_TYPE_TAG_ON_EXTERN_AND_INTERFACE.isEnabled(currentMethod.getBasePsi())) return;
@@ -283,6 +287,57 @@ public class HaxeMethodAnnotator implements Annotator {
         checkMethodsSignatureCompatibility(currentMethod, parentMethod, holder, true);
       }
     }
+  }
+
+  private static void checkConstructorSuper(HaxeMethod methodPsi, AnnotationHolder holder) {
+    final HaxeMethodModel currentMethod = methodPsi.getModel();
+    HaxeSuperExpression superExpression = PsiTreeUtil.findChildOfType(methodPsi, HaxeSuperExpression.class);
+
+    if(currentMethod.isConstructor()) {
+      HaxeClassModel declaringClass = currentMethod.getDeclaringClass();
+      if (declaringClass != null) {
+        if (declaringClass.isClass()) {
+          List<HaxeClassReferenceModel> extendingTypes = declaringClass.getExtendingTypes();
+          if (extendingTypes.isEmpty()) {
+            if (superExpression != null && superExpression.getParent() instanceof HaxeCallExpression callExpression) {
+
+              holder.newAnnotation(HighlightSeverity.ERROR, "Current class does not have a super")
+                      .range(callExpression)
+                      .withFix(createRemoveSuperFix(callExpression))
+                      .create();
+            }
+          } else {
+            if (superExpression == null) {
+              // only expect one extends when class (interfaces can have multiple)
+              HaxeClassReferenceModel first = extendingTypes.getFirst();
+              HaxeClassModel baseClass = first.getHaxeClassModel();
+              if (baseClass != null) {
+                HaxeMethodModel constructor = baseClass.getConstructor(null);
+                // super is not required if there is no  constructor in base class
+                if (constructor != null) {
+                  holder.newAnnotation(HighlightSeverity.ERROR, "Missing super constructor call")
+                          .range(currentMethod.getNamePsi())
+                          .create();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+   static HaxeFixer createRemoveSuperFix(HaxeCallExpression callExpression) {
+    return new HaxeFixer(HaxeBundle.message("haxe.inspections.remove.super")) {
+      @Override
+      public void run() {
+        if(callExpression.isValid()) {
+          PsiElement possibleSemi = callExpression.getNextSibling();
+          if(possibleSemi.textMatches(";"))possibleSemi.delete();
+          callExpression.delete();
+        }
+      }
+    };
   }
 
   static boolean checkMethodsSignatureCompatibility(

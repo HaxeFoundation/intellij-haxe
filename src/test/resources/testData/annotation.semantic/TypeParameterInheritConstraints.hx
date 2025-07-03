@@ -12,6 +12,7 @@ class Level2<Q = String> extends Level1<Q> {
     function  getV2()return value2;
 
     public function new () {
+        super();
         var v1 = getV1().toLowerCase();
         var v2 = getV2().charAt(0);
         var quad = v1.length * v2.length;
@@ -25,6 +26,7 @@ class Level3A<U:Array<String>> extends Level2<U> {
     function  getV3()return value2;
 
     public function new () {
+        super();
         var v1:Null<String> = getV1().pop();
         var v2 = getV2().iterator();
         var v3 = getV3().length;
@@ -40,6 +42,7 @@ class Level3B extends Level2 {
     var v2 = getV2();
 
     public function new () {
+        super();
         var za = getV1();
         var str = za.toLowerCase();
 

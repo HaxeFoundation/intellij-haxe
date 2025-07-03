@@ -18,13 +18,13 @@ class BaseClassComplete {
 }
 
 class BaseCoversMethodA extends  BaseClassPartial implements TestInterface {
-    public function new() {}
+    public function new() {super();}
     public function MethodB(i:Int):Void {}
     override public function MethodC(i:Int):BaseCoversMethodA {return null;}
 }
 
 class BaseCoversBothMethods extends  BaseClassComplete implements TestInterface {
-    public function new() {}
+    public function new() {super();}
     public function MethodC(i:Int):BaseCoversBothMethods {return null;}
     override public function MethodD(i:Int):BaseCoversMethodA {return null;}
 }
@@ -33,7 +33,7 @@ class MissingMethods implements <error descr="Not implemented methods: MethodA, 
     public function new() {}
 }
 class BaseCoversMethodAButNotB extends BaseClassPartial implements <error descr="Not implemented methods: MethodB">TestInterface</error> {
-    public function new() {}
+    public function new() {super();}
 }
 
 class WrongMethodsA implements TestInterface {
