@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 
 import com.intellij.lang.annotation.*;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeFunctionCompatible;
@@ -41,10 +42,20 @@ public class HaxeMethodAnnotator implements Annotator {
     checkTypeTagInInterfacesAndExternClass(currentMethod, holder);
     checkMethodArguments(currentMethod, holder);
     checkOverride(methodPsi, holder);
+    checkOverload(methodPsi, holder);
     checkConstructorSuper(methodPsi, holder);
   }
 
-
+  private static void checkOverload(HaxeMethod methodPsi, AnnotationHolder holder) {
+    if(methodPsi.isConstructor() && methodPsi.isOverload()) {
+      HaxeClassModel declaringClass = methodPsi.getModel().getDeclaringClass();
+      if(declaringClass != null && !declaringClass.isAbstractType()) { // inline overload allowed for abstracts
+        holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.invalid.modifier.overload.constructor"))
+                .range(methodPsi.getModiferPsi(HaxeTokenTypes.KOVERLOAD))
+                .create();
+      }
+    }
+  }
 
   private static void checkTypeTagInInterfacesAndExternClass(final HaxeMethodModel currentMethod, final AnnotationHolder holder) {
     if (!MISSING_TYPE_TAG_ON_EXTERN_AND_INTERFACE.isEnabled(currentMethod.getBasePsi())) return;

@@ -954,6 +954,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testExternOverloadConstructor() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testExternOverloadInstance() throws Exception {
     doTestNoFixWithWarnings();
   }

@@ -411,6 +411,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   public HaxeMethodModel getConstructor(@Nullable HaxeGenericResolver resolver) {
     return getMethod("new", resolver);
   }
+  public List<HaxeMethodModel> getConstructors(@Nullable HaxeGenericResolver resolver) {
+    return getMethods( resolver).stream().filter(HaxeMethodModel::isConstructor).toList();
+  }
 
   public boolean hasConstructor(@Nullable HaxeGenericResolver resolver) {
     return getConstructor(resolver) != null;

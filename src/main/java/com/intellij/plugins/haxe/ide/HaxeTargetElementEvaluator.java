@@ -42,11 +42,10 @@ public class HaxeTargetElementEvaluator extends TargetElementEvaluatorEx2 {
 
     if (ref != null && refElement != null) {
       if (refElement instanceof HaxeClass) {
-        boolean isInNewExpression = PsiTreeUtil.getParentOfType(ref.getElement(), HaxeNewExpression.class) != null;
-        if (isInNewExpression) {
-          HaxeClassModel classModel = ((HaxeClass)refElement).getModel();
-          HaxeMethodModel constructor = classModel.getConstructorSelf();
-          return null != constructor ? constructor.getBasePsi() : null;
+        HaxeNewExpression newExpression = PsiTreeUtil.getParentOfType(ref.getElement(), HaxeNewExpression.class);
+        if (newExpression != null) {
+          // new expression resolves to constructor (HaxeResolver makes sure to find correct overload)
+          return newExpression.resolve();
         }
       }
     }

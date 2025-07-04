@@ -183,6 +183,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (result == null) result = checkIsFullyQualifiedStatement(reference);
     if (result == null) result = checkIsSuperExpression(reference);
+    if (result == null) result = checkIsNewExpression(reference);
     if (result == null) result = checkMacroIdentifier(reference);
 
     if (result == null) result = checkIsAccessor(reference);
@@ -2033,6 +2034,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return null;
   }
 
+  private List<? extends PsiElement> checkIsNewExpression(@NotNull HaxeReference reference) {
+    if (reference instanceof HaxeNewExpression  newExpression) {
+      ResultHolder type = HaxeTypeResolver.getTypeFromType(newExpression.getType());
+      SpecificHaxeClassReference classType = type.getClassType();
+      if(classType == null) return null;
+
+      HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
+      if(haxeClassModel == null) return null;
+      List<HaxeMethodModel> constructors = haxeClassModel.getConstructors(null);
+      return checkConstructorOverloads(newExpression, constructors);
+    }
+    return null;
+  }
+
+
   @Nullable
   private List<? extends PsiElement> checkIsType(HaxeReference reference) {
     if (reference instanceof HaxeReferenceExpression referenceExpression) {
@@ -2363,6 +2379,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
       }
+    }
+    return null;
+  }
+
+  private static @Nullable List<HaxeNamedComponent> checkConstructorOverloads(HaxeNewExpression newExpression, List<HaxeMethodModel> constructors) {
+    for (HaxeMethodModel constructor : constructors) {
+
+        HaxeCallExpressionContext methodCall = createContextForConstructorCall(newExpression, constructor.getMethod().getModel());
+        HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
+        if (evaluate.isValid()) {
+          return Collections.singletonList(constructor.getNamedComponentPsi());
+        }
     }
     return null;
   }

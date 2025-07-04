@@ -209,11 +209,30 @@ public class HaxeCallExpressionUtil {
     return false;
   }
 
+  // NOTE: Abstract types can have overloads for constructors as long as they are inlined
+  // to ensure we got the right overload we do a resolve on new expression (resolves to constructor)
+  private static HaxeMethodModel getConstructorModelForNewExpression(@NotNull HaxeNewExpression newExpression) {
+    PsiElement constructor = newExpression.resolve();
+    if(constructor instanceof  HaxeConstructorDeclaration declaration) {
+      return declaration.getModel();
+    }
+    return null;
+  }
+
   @Nullable
   public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression) {
-    return createContextForConstructorCall(newExpression, null);
+    HaxeMethodModel methodModel = getConstructorModelForNewExpression(newExpression);
+    return createContextForConstructorCall(newExpression, methodModel, null);
+  }
+
+  public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, HaxeMethodModel methodModel) {
+    return createContextForConstructorCall(newExpression, methodModel, null);
   }
   public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, @Nullable ResultHolder assignHint) {
+    HaxeMethodModel methodModel = getConstructorModelForNewExpression(newExpression);
+    return createContextForConstructorCall(newExpression, methodModel, assignHint);
+  }
+  public static HaxeCallExpressionContext createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, HaxeMethodModel methodModel, @Nullable ResultHolder assignHint) {
 
     HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(newExpression);
     List<CallExpressionArgumentModel> argumentList = getArgumentList(newExpression);
@@ -225,7 +244,17 @@ public class HaxeCallExpressionUtil {
         HaxeGenericResolver referenceGenericResolver = classReference.getGenericResolver();
         HaxeClassModel classModel = classReference.getHaxeClassModel();
         if (classModel != null) {
-          HaxeMethodModel constructorModel = classModel.getConstructor(genericResolver);
+          HaxeMethodModel constructorModel = null;
+          // abstract types can have inline overloads
+          PsiElement resolve = newExpression.getType().getReferenceExpression().resolve();
+          if(resolve instanceof HaxeConstructor constructor) {
+
+          }
+          if (methodModel != null) {
+            constructorModel = methodModel;
+          }else {
+            constructorModel = classModel.getConstructor(genericResolver);
+          }
           if (constructorModel != null) {
             List<CallExpressionParameterModel> parameterList = getParameterList(constructorModel);
 
@@ -251,8 +280,6 @@ public class HaxeCallExpressionUtil {
     }
     return null;
   }
-
-
 
 
   private static List<CallExpressionParameterModel> getParameterList(@NotNull SpecificFunctionReference function) {

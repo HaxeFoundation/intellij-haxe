@@ -592,8 +592,8 @@
 
 
     <group id="Haxe.projectUtils" icon="HaxeIcons.HAXE_LOGO" popup="true"  text="Haxe" class="com.intellij.plugins.haxe.ide.actions.haxelib.HaxeActionGroup">
-      <reference id="Haxe.project.sync-libs"/>
-      <reference id="Haxe.haxlib.update-cache"/>
+      <reference ref="Haxe.project.sync-libs"/>
+      <reference ref="Haxe.haxlib.update-cache"/>
       <add-to-group group-id="ProjectViewPopupMenu"/>
       <add-to-group group-id="EditorPopupMenu"/>
     </group>

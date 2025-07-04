@@ -40,6 +40,7 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
+import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -280,6 +281,19 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   public boolean isInline() {
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
+  }
+  @Nullable
+  @Override
+  public PsiElement getModiferPsi(IElementType tokenType) {
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
+    if (declarationAttributeList != null) {
+      for (HaxePsiModifier modifier : declarationAttributeList) {
+        if(modifier.getFirstChild() instanceof LeafPsiElement psiElement) {
+          if (psiElement.getElementType() == tokenType) return psiElement;
+        }
+      }
+    }
+    return null;
   }
 
   @Override
