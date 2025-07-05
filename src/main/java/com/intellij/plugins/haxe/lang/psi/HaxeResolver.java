@@ -1940,13 +1940,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private List<? extends PsiElement> checkIsAccessor(HaxeReference reference) {
     if (reference instanceof HaxePropertyAccessor) {
       final HaxeAccessorType accessorType = HaxeAccessorType.fromPsi(reference);
-      if (accessorType != HaxeAccessorType.GET && accessorType != HaxeAccessorType.SET) return null;
+      if (!accessorType.isGetter()  && !accessorType.isSetter())return null;
 
       final HaxeFieldDeclaration varDeclaration = PsiTreeUtil.getParentOfType(reference, HaxeFieldDeclaration.class);
       if (varDeclaration == null) return null;
 
       final HaxeFieldModel fieldModel = (HaxeFieldModel)varDeclaration.getModel();
-      final HaxeMethodModel method = accessorType == HaxeAccessorType.GET ? fieldModel.getGetterMethod() : fieldModel.getSetterMethod();
+      final HaxeMethodModel method = accessorType.isGetter() ? fieldModel.getGetterMethod() : fieldModel.getSetterMethod();
 
       if (method != null) {
         LogResolution(reference, "via accessor.");

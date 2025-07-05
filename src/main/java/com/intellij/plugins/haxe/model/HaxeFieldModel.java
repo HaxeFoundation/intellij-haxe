@@ -78,10 +78,12 @@ public class HaxeFieldModel extends HaxeMemberModel {
     return getAccessorPsi(1);
   }
 
+  @NotNull
   public HaxeAccessorType getSetterType() {
     return HaxeAccessorType.fromPsi(getSetterPsi());
   }
 
+  @NotNull
   public HaxeAccessorType getGetterType() {
     return HaxeAccessorType.fromPsi(getGetterPsi());
   }
@@ -118,7 +120,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   @Nullable
   public HaxeMethodModel getGetterMethod() {
-    if (getGetterType() != HaxeAccessorType.GET) return null;
+    HaxeAccessorType getterType = getGetterType();
+    if (getterType != HaxeAccessorType.GET && getterType!= HaxeAccessorType.PRIVATE_GET) return null;
     HaxeClassModel declaringClass = this.getDeclaringClass();
     boolean macroName = isMacroName();
     String name = macroName ? this.getName().substring(1) : this.getName();
@@ -136,7 +139,8 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   @Nullable
   public HaxeMethodModel getSetterMethod() {
-    if (getSetterType() != HaxeAccessorType.SET) return null;
+    HaxeAccessorType setterType = getSetterType();
+    if (setterType != HaxeAccessorType.SET && setterType != HaxeAccessorType.PRIVATE_SET) return null;
     HaxeClassModel declaringClass = this.getDeclaringClass();
     boolean macroName = isMacroName();
     String name = macroName ? this.getName().substring(1) : this.getName();

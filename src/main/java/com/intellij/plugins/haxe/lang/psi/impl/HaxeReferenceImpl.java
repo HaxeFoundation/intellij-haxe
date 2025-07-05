@@ -1404,7 +1404,11 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     else if (type == HaxeTokenTypes.REG_EXP) {
       return "EReg";
     }
-    else if (type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITOCT) {
+    else if (type == HaxeTokenTypes.LITINT
+             || type == HaxeTokenTypes.LITHEX
+             || type == HaxeTokenTypes.LITOCT
+             || type == HaxeTokenTypes.LITBIN
+    ) {
       return "Int";
     }
     return null;

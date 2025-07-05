@@ -4,15 +4,17 @@ typedef TestTypedef = {var value(get, set ):Int;}
 
 class FieldPropertyConstraintsTest {
     public function new() {
+        var missingField:MissingField = null;
         var normalField:NormalField = null;
         var defaultProperty:DefaultProperty = null;
         var nullProperty:NullProperty = null;
         var isVarProperty:IsVarProperty = null;
         var getterSetterProperty:GetterSetterProperty = null;
+        var privategetterProperty:PrivateGetterProperty = null;
 
         //CORRECT
         fieldConstraint(normalField);
-        fieldConstraint(defaultProperty );
+        fieldConstraint(defaultProperty);
         // WRONG
         fieldConstraint(<error descr="Type mismatch (Expected: '{value:Int}' got: 'NullProperty')">nullProperty</error>); // Inconsistent access for field value : (null,null) should be (default,default)
         fieldConstraint(<error descr="Type mismatch (Expected: '{value:Int}' got: 'IsVarProperty')">isVarProperty</error>); // Inconsistent access for field value : (get,set) should be (default,default)
@@ -30,19 +32,34 @@ class FieldPropertyConstraintsTest {
         getterSetterPropertyConstraint(isVarProperty);
         getterSetterPropertyConstraint(getterSetterProperty);
 //        //WRONG
-        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set ):Int;}' got: 'NormalField')">normalField</error>);// Inconsistent access for field value : (default,default) should be (get,set)
-        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set ):Int;}' got: 'DefaultProperty')">defaultProperty</error>); //Inconsistent access for field value : (default,default) should be (get,set)
-        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set ):Int;}' got: 'NullProperty')">nullProperty</error>); //Inconsistent access for field value : (null,null) should be (get,set)
+        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set):Int;}' got: 'NormalField')">normalField</error>);// Inconsistent access for field value : (default,default) should be (get,set)
+        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set):Int;}' got: 'DefaultProperty')">defaultProperty</error>); //Inconsistent access for field value : (default,default) should be (get,set)
+        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set):Int;}' got: 'NullProperty')">nullProperty</error>); //Inconsistent access for field value : (null,null) should be (get,set)
+
+        //WRONG constraint not met, no field named value
+        fieldConstraint(<error descr="Type mismatch (Expected: '{value:Int}' got: 'MissingField')">missingField</error>);
+        defaultPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(default, default):Int;}' got: 'MissingField')">missingField</error>);
+        getterSetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, set):Int;}' got: 'MissingField')">missingField</error>); // TODO  this should give error
+
+        //CORRECT
+        privateGetterPropertyConstraint(privategetterProperty);
+        //WRONG expects "public" got private
+        publicGetterPropertyConstraint(<error descr="Type mismatch (Expected: '{var value(get, never ):Int;}' got: 'PrivateGetterProperty')">privategetterProperty</error>);
 
 
     }
 
     function fieldConstraint<T:{value:Int}>(arg:T) {}
     function defaultPropertyConstraint<T: {var value(default, default):Int;}>(arg:T) {}
-    function getterSetterPropertyConstraint<T: {var value(get, set ):Int;}>(arg:T) {}
+    function getterSetterPropertyConstraint<T: {var value(get, set):Int;}>(arg:T) {}
+
+    function publicGetterPropertyConstraint<T: {var value(get, never ):Int;}>(arg:T) {}
+    function privateGetterPropertyConstraint<T: {var value(private get, never ):Int;}>(arg:T) {}
 
 }
 
+class MissingField {
+}
 
 class NormalField {
     public var value:Int;
@@ -57,6 +74,10 @@ class GetterSetterProperty {
     public var value(get, set):Int;
 
     function set_value(value:Int):Int {return value;}
+    function get_value():Int {return 1;}
+}
+class PrivateGetterProperty {
+    public var value(private get, never):Int;
     function get_value():Int {return 1;}
 }
 class IsVarProperty {

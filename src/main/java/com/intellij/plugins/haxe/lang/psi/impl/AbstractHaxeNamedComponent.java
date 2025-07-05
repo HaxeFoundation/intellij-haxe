@@ -177,14 +177,21 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             haxeClass = typedefDeclaration;
           }
         }
+
         if (haxeClass == null) {
           return "";
         }
-        final Pair<String, String> qName = HaxeResolveUtil.splitQName(haxeClass.getQualifiedName());
+
+        String qualifiedName = haxeClass.getQualifiedName();
+        if(qualifiedName == null) {
+          return "";
+        }
+
+        final Pair<String, String> qName = HaxeResolveUtil.splitQName(qualifiedName);
         if (haxeClass == AbstractHaxeNamedComponent.this) {
           return qName.getFirst();
         }
-        return haxeClass.getQualifiedName() + (path.isEmpty() ? "" : "." + path);
+        return qualifiedName + (path.isEmpty() ? "" : "." + path);
       }
 
       @Override

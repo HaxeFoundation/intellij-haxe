@@ -1378,8 +1378,14 @@ public class HaxeExpressionEvaluatorHandlers {
   static ResultHolder handlePrimitives(PsiElement element, HaxePsiToken psiToken) {
     IElementType type = psiToken.getTokenType();
 
-    if (type == HaxeTokenTypes.LITINT || type == HaxeTokenTypes.LITHEX || type == HaxeTokenTypes.LITOCT) {
+    if (type == HaxeTokenTypes.LITINT
+        || type == HaxeTokenTypes.LITHEX
+        || type == HaxeTokenTypes.LITOCT
+    ) {
       return SpecificHaxeClassReference.primitive("Int", element, Long.decode(element.getText())).createHolder();
+    } else if (type == HaxeTokenTypes.LITBIN) {
+      long value = Long.parseLong(element.getText().substring(2), 2);
+      return SpecificHaxeClassReference.primitive("Int", element, value).createHolder();
     } else if (type == HaxeTokenTypes.LITFLOAT) {
       Float value = Float.valueOf(element.getText());
       return SpecificHaxeClassReference.primitive("Float", element, Double.parseDouble(element.getText()))

@@ -25,6 +25,8 @@ public enum HaxeAccessorType {
   NULL("null"),
   GET("get"),
   SET("set"),
+  PRIVATE_GET("private get"),
+  PRIVATE_SET("private set"),
   DYNAMIC("dynamic"),
   NEVER("never"),
   INVALID(""),
@@ -36,9 +38,11 @@ public enum HaxeAccessorType {
     this.text = text;
   }
 
-  public static HaxeAccessorType fromString(String text) {
+  private static HaxeAccessorType fromString(String text) {
     for (HaxeAccessorType type : HaxeAccessorType.values()) {
-      if (type.text.equals(text)) return type;
+      if (type.text.equals(text)) {
+        return type;
+      }
     }
     return HaxeAccessorType.INVALID;
   }
@@ -48,22 +52,37 @@ public enum HaxeAccessorType {
   }
 
   public boolean isAllowedFromOutside() {
-    return (this != NEVER) && (this != NULL);
+    return (this != NEVER) && (this != NULL) && notPrivate();
+  }
+
+  private boolean notPrivate() {
+    return (this != PRIVATE_GET) && (this != PRIVATE_SET);
   }
 
   public static HaxeAccessorType fromPsi(PsiElement psi) {
-    return (psi != null) ? fromString(psi.getText()) : HaxeAccessorType.INVALID;
+    if(psi instanceof HaxePropertyAccessor propertyAccessor) {
+      String rawText = propertyAccessor.getText();
+      String maxOneWhitespace = rawText.replaceAll("\\s+", " ");
+      return fromString(maxOneWhitespace);
+    }
+    return INVALID;
   }
 
-  public boolean isValidGetterSetter() {
+  public boolean isValidGetOrSetAccessor() {
     return this == DEFAULT || this == NULL || this == DYNAMIC || this == NEVER;
   }
 
-  public boolean isValidGetter() {
-    return isValidGetterSetter() || this == GET;
+  public boolean isValidGetAccessor() {
+    return isValidGetOrSetAccessor() || this == GET || this == PRIVATE_GET;
+  }
+  public boolean isGetter() {
+    return  this == GET || this == PRIVATE_GET;
+  }
+  public boolean isSetter() {
+    return  this == SET || this == PRIVATE_SET;
   }
 
-  public boolean isValidSetter() {
-    return isValidGetterSetter() || this == SET;
+  public boolean isValidSetAccessor() {
+    return isValidGetOrSetAccessor() || this == SET || this == PRIVATE_SET;
   }
 }

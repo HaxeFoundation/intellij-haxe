@@ -186,13 +186,13 @@ public class HaxeFieldAnnotator implements Annotator {
     PsiElement fieldBasePsi = field.getBasePsi();
     if (PROPERTY_ACCESSOR_VALID.isEnabled(fieldBasePsi)) {
 // TODO: Bug here.  (set,get) are being marked as errors.
-      if (field.getGetterPsi() != null && !field.getGetterType().isValidGetter()) {
+      if (field.getGetterPsi() != null && !field.getGetterType().isValidGetAccessor()) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Invalid getter accessor")
           .range(field.getGetterPsi())
           .create();
       }
 
-      if (field.getSetterPsi() != null && !field.getSetterType().isValidSetter()) {
+      if (field.getSetterPsi() != null && !field.getSetterType().isValidSetAccessor()) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Invalid setter accessor")
           .range(field.getSetterPsi())
           .create();
@@ -272,7 +272,7 @@ public class HaxeFieldAnnotator implements Annotator {
 
     HaxeCommonMembersModel membersModel = declaringClass != null ? declaringClass : field.getDeclaringModule();
 
-    if (field.getGetterType() == HaxeAccessorType.GET) {
+    if (field.getGetterType().isGetter()) {
       HaxeMethodModel getterMethod = field.getGetterMethod();
       if (getterMethod == null && field.getGetterPsi() != null) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Can't find getter method")
@@ -282,7 +282,7 @@ public class HaxeFieldAnnotator implements Annotator {
       }
     }
 
-    if (field.getSetterType() == HaxeAccessorType.SET) {
+    if (field.getSetterType().isSetter()) {
       HaxeMethodModel setterMethod = field.getSetterMethod();
       if (setterMethod == null && field.getSetterPsi() != null) {
         holder.newAnnotation(HighlightSeverity.ERROR, "Can't find setter method")

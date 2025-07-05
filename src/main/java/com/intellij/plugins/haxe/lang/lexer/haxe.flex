@@ -193,9 +193,11 @@ END_OF_LINE_COMMENT="/""/"[^\r\n]*
 mHEX_DIGIT = [0-9A-Fa-f]
 mINT_DIGIT = [0-9]
 mOCT_DIGIT = [0-7]
+mBIN_DIGIT = [0-1]
 
 mNUM_INT = "0" | ([1-9] {mINT_DIGIT}*)
 mNUM_HEX = ("0x" | "0X") {mHEX_DIGIT}+
+mNUM_BIN = ("0b" | "0B") {mBIN_DIGIT}+
 mNUM_OCT = "0" {mOCT_DIGIT}+
 
 mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
@@ -279,6 +281,7 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 {mNUM_FLOAT}                              {  return emitToken( LITFLOAT); }
 {mNUM_OCT}                                {  return emitToken( LITOCT); }
+{mNUM_BIN}                                {  return emitToken( LITBIN); }
 {mNUM_HEX}                                {  return emitToken( LITHEX); }
 {mNUM_INT}                                {  return emitToken( LITINT); }
 {mREG_EXP}                                {  return emitToken( REG_EXP); }

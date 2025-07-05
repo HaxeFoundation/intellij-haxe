@@ -181,7 +181,9 @@ public class HaxeExpressionUtil {
       if (type == HaxeTokenTypes.LITFLOAT
           ||  type == HaxeTokenTypes.LITINT
           ||  type == HaxeTokenTypes.LITHEX
-          ||  type == HaxeTokenTypes.LITOCT) {
+          ||  type == HaxeTokenTypes.LITOCT
+          ||  type == HaxeTokenTypes.LITBIN
+      ) {
         return ConstantClass.NUMERIC;
       }
       if (type == HaxeTokenTypes.STRING_LITERAL_EXPRESSION) {
