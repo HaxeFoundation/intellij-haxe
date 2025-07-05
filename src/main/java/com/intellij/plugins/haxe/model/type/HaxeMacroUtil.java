@@ -1,8 +1,11 @@
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.plugins.haxe.lang.psi.HaxeMacroStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -14,6 +17,13 @@ public class HaxeMacroUtil {
       // todo make a better solution to check if macro
       return methodDeclaration.getMethodModifierList().stream().anyMatch(modifier -> modifier.getText().trim().equals("macro"));
       }
+    return false;
+  }
+  public static boolean isInMacroExpression(PsiElement element) {
+    if(PsiTreeUtil.getParentOfType(element, HaxeMacroStatement.class) != null) {
+      return true;
+    }
+
     return false;
   }
 

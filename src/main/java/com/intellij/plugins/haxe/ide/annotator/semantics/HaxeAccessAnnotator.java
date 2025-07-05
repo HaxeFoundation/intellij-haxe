@@ -96,8 +96,11 @@ public class HaxeAccessAnnotator implements Annotator {
   }
 
   private static boolean isWriteExpression(@NotNull HaxeReferenceExpression referenceExpression) {
-    return referenceExpression.getParent() instanceof HaxeAssignExpression
-           || referenceExpression instanceof HaxePostfixExpression
+    if (referenceExpression.getParent() instanceof HaxeAssignExpression assignExpression) {
+      //  left write / right read
+      return PsiTreeUtil.isAncestor(assignExpression.getLeftExpression(), referenceExpression, false);
+    }
+    return referenceExpression instanceof HaxePostfixExpression
            || referenceExpression instanceof HaxePrefixExpression;
   }
 

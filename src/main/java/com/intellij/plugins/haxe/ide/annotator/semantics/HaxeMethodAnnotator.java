@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
+import com.intellij.plugins.haxe.model.type.HaxeMacroUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -303,11 +304,11 @@ public class HaxeMethodAnnotator implements Annotator {
   private static void checkConstructorSuper(HaxeMethod methodPsi, AnnotationHolder holder) {
     final HaxeMethodModel currentMethod = methodPsi.getModel();
     HaxeSuperExpression superExpression = PsiTreeUtil.findChildOfType(methodPsi, HaxeSuperExpression.class);
-
     if(currentMethod.isConstructor()) {
       HaxeClassModel declaringClass = currentMethod.getDeclaringClass();
       if (declaringClass != null) {
         if (declaringClass.isClass()) {
+          if(HaxeMacroUtil.isInMacroExpression(superExpression)) return;
           List<HaxeClassReferenceModel> extendingTypes = declaringClass.getExtendingTypes();
           if (extendingTypes.isEmpty()) {
             if (superExpression != null && superExpression.getParent() instanceof HaxeCallExpression callExpression) {
