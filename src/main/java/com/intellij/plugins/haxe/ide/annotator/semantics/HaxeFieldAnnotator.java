@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.quickfix.CreateGetterSetterQuickfix;
 import com.intellij.plugins.haxe.ide.quickfix.HaxeSwitchMutabilityModifier;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.psi.PsiElement;
@@ -33,6 +34,10 @@ public class HaxeFieldAnnotator implements Annotator {
 
   private static void checkFieldAccessFromGetterSetter(@NotNull AnnotationHolder holder, HaxeReferenceExpression expression) {
     if(expression.getParent() instanceof HaxeType) return;
+    // ignore chained expression as we only want to check self referencing
+    // and updating other instances should be allowed
+    // TODO: this also (incorrectly?) skips this check for `this.property`
+    if(expression.getChildren().length > 1) return;
     HaxeMethodDeclaration method = PsiTreeUtil.getParentOfType(expression, HaxeMethodDeclaration.class);
     if(method != null) {
       PsiElement resolve = expression.resolve();
@@ -40,7 +45,11 @@ public class HaxeFieldAnnotator implements Annotator {
         HaxeFieldModel fieldModel = (HaxeFieldModel)fieldDeclaration.getModel();
         if(fieldModel.isRealVar()) return;
         HaxeMethodModel methodModel = method.getModel();
-        if(fieldModel.getGetterMethod() == methodModel || fieldModel.getSetterMethod() == methodModel) {
+        boolean inGetterMethod = fieldModel.getGetterMethod() == methodModel;
+        boolean inSetterMethod = fieldModel.getSetterMethod() == methodModel;
+        boolean isWriteExpression = HaxeExpressionUtil.isInWriteOperation(expression);
+        boolean isReadExpression = HaxeExpressionUtil.isInReadOperation(expression);
+        if((inGetterMethod && isReadExpression) || (inSetterMethod && isWriteExpression)) {
           holder.newAnnotation(HighlightSeverity.ERROR, "This field cannot be accessed because it is not a real variable")
                   .range(expression)
                   .withFix(addIsVarFix(fieldModel))

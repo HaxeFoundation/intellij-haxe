@@ -82,8 +82,8 @@ class TestPostfix {
         <error descr="Invalid assign">this.intArray.pop()++</error>;
         <error descr="Invalid assign">this.intArray.pop()--</error>;
             // EXPECT:This expression cannot be accessed for writing
-        <error descr="This expression cannot be accessed for writing">this.intArray.length++</error>;
-        <error descr="This expression cannot be accessed for writing">this.intArray.length--</error>;
+        <error descr="This expression cannot be accessed for writing">this.intArray.<error descr="Cannot access field length">length</error>++</error>;
+        <error descr="This expression cannot be accessed for writing">this.intArray.<error descr="Cannot access field length">length</error>--</error>;
 
             // EXPECT: { count : Int } should be Int
         <error descr="{count:Int} should be Int">objArray[0]++</error>;

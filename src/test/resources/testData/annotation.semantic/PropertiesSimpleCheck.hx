@@ -32,7 +32,7 @@ class TestPrivateAccesors {
   public function new() {
     var t:PrivateAccessors;
     // expect no read and no write access
-    t.<error descr="Cannot access private field value">value</error> = t.<error descr="Cannot access private field value">value</error> +1;
+    t.<error descr="Cannot access field value">value</error> = t.<error descr="Cannot access field value">value</error> +1;
   }
 }
 

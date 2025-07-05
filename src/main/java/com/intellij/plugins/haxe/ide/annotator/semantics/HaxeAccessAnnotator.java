@@ -5,6 +5,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
+import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -95,14 +96,6 @@ public class HaxeAccessAnnotator implements Annotator {
 
   }
 
-  private static boolean isWriteExpression(@NotNull HaxeReferenceExpression referenceExpression) {
-    if (referenceExpression.getParent() instanceof HaxeAssignExpression assignExpression) {
-      //  left write / right read
-      return PsiTreeUtil.isAncestor(assignExpression.getLeftExpression(), referenceExpression, false);
-    }
-    return referenceExpression instanceof HaxePostfixExpression
-           || referenceExpression instanceof HaxePrefixExpression;
-  }
 
   private void checkStaticAccess(@NotNull AnnotationHolder holder, @NotNull HaxeReferenceExpression referenceExpression, @NotNull HaxeMemberModel memberModel) {
     // ignore anything inside metas (ex. @:build @:autoBuild etc)
@@ -186,10 +179,12 @@ public class HaxeAccessAnnotator implements Annotator {
       // if inherited member then private access allowed
       return;
     }
+    boolean isPublicProperty = false;
     //  check getter and setters if property is public
     if(memberModel instanceof HaxeFieldModel fieldModel) {
-      if(fieldModel.isPublic() && fieldModel.isProperty()) {
-        if (isWriteExpression(referenceExpression)) {
+      isPublicProperty = fieldModel.isPublic();
+      if(isPublicProperty && fieldModel.isProperty()) {
+        if (HaxeExpressionUtil.isInWriteOperation(referenceExpression)) {
           HaxeAccessorType setterType = fieldModel.getSetterType();
           if (setterType.isAllowedFromOutside()) {
             return;
@@ -216,8 +211,10 @@ public class HaxeAccessAnnotator implements Annotator {
       return;
     }
 
-    // TODO bundle
-    holder.newAnnotation(HighlightSeverity.ERROR, "Cannot access private field " + memberName)
+    // TODO bundle and better message for properties that are public but deny read or write
+    String message = isPublicProperty ? "Cannot access field " + memberName
+                                      : "Cannot access private field " + memberName;
+    holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(referenceExpression.getLastChild())
             .create();
   }
