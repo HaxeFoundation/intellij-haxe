@@ -22,8 +22,7 @@ class TestLocalMethods {
     public function parameters() {
         // correct
         testParameters(test("Hello"), test(42), test(42, "Hello"));
-        //TODO
-        testFunctionTypeParams(test, <error descr="Type mismatch (Expected: 'Int->Int' got: 'String->String')">test</error>, <error descr="Type mismatch (Expected: '(Int, String)->Map<Int, String>' got: 'String->String')">test</error>);
+        testFunctionTypeParams(test, test, test);
 
     }
 

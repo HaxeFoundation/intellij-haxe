@@ -21,8 +21,7 @@ class TestStaticMethods {
     public function parameters() {
         // correct
         testParameters(StaticMethods.test("Hello"), StaticMethods.test(42), StaticMethods.test(42, "Hello"));
-        // TODO
-        testFunctionTypeParams(StaticMethods.test, <error descr="Type mismatch (Expected: 'Int->Int' got: 'String->String')">StaticMethods.test</error>, <error descr="Type mismatch (Expected: '(Int, String)->Map<Int, String>' got: 'String->String')">StaticMethods.test</error>);
+        testFunctionTypeParams(StaticMethods.test, StaticMethods.test, StaticMethods.test);
     }
 }
 

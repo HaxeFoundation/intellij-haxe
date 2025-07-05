@@ -311,7 +311,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       PsiFile file = containingDirectory.findFile(reference.getText() + ".hx");
       if (file instanceof HaxeFile haxeFile) {
         HaxeFileModel model = haxeFile.getModel();
-        if (model != null && model.getModuleBody() != null) return List.of(model.getModuleBody());
+        if (model.getModuleBody() != null) return List.of(model.getModuleBody());
       }
     }
     return null;
@@ -2360,6 +2360,26 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
           if(evaluate.isValid()) {
             return Collections.singletonList(member.getNamedComponentPsi());
+          }
+        } else if (reference.getParent() instanceof HaxeCallExpressionList argumentList) {
+          int argIndex = argumentList.getExpressionList().indexOf(reference);
+          if (argumentList.getParent() instanceof HaxeCallExpression callExpression) {
+            if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+              if (referenceExpression.resolve() instanceof HaxeMethod haxeMethod) {
+                HaxeCallExpressionContext methodCall = createContextForMethodCall(callExpression, haxeMethod);
+                HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
+                int paramIndex = evaluate.getParameterForArgument(argIndex);
+                if (paramIndex != -1) {
+                  ResultHolder parameterType = evaluate.getParameterType(paramIndex);
+                  if(parameterType != null) {
+                    SpecificFunctionReference functionType = methodModel.getFunctionType(null);
+                    if (functionType.canAssign(parameterType)) {
+                      return Collections.singletonList(member.getNamedComponentPsi());
+                    }
+                  }
+                }
+              }
+            }
           }
         }else if(reference.getParent() instanceof HaxeVarInit varInit){
           ResultHolder expected = null;

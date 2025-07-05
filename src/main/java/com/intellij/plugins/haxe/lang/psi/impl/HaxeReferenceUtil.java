@@ -97,6 +97,8 @@ public class HaxeReferenceUtil {
                         boolean inUsingImports = HaxeResolveUtil.isInUsingImports(referenceExpression, haxeMethod);
                         if(inUsingImports) return true;
 
+                        if(callerType.isUnknown()) return false;
+
                         return !(caller instanceof HaxeClass || caller instanceof HaxeImportAlias);
                     }else {
                         return true;

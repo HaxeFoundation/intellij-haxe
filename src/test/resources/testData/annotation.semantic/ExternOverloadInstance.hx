@@ -26,8 +26,7 @@ class TestInstance {
 
         // correct
         testParameters(instance.test("Hello"), instance.test(42), instance.test(42, "Hello"));
-        //TODO
-        testFunctionTypeParams(instance.test, <error descr="Type mismatch (Expected: 'Int->Int' got: 'String->String')">instance.test</error>, <error descr="Type mismatch (Expected: '(Int, String)->Map<Int, String>' got: 'String->String')">instance.test</error>);
+        testFunctionTypeParams(instance.test, instance.test, instance.test);
     }
 }
 
