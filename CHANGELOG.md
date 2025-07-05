@@ -1,7 +1,11 @@
 # Changelog
 ## 1.7.4
-* Added: method quickfixes for when unresolved symbol has expected type is abstract with @:callable
-* Fixed: FunctionTypes would cause NPE if Haxe SDK was not configured.  
+* Added: Initial support for new Haxe 5 preview features (private getters & setters, binary literals) 
+* Added: Method quickfixes for when unresolved symbol has expected type is abstract with @:callable
+* Added: Console output filter to detect code references from haxe compiler and make them navigatable
+* Improvement: Copy-paste processor now also adds imports for methods and extension methods.
+* Improvement: Expanding support for extern inline overload functions to constructors and function references (#1216)
+* Fixed: FunctionTypes would cause NPE if Haxe SDK was not configured.
 
 ## 1.7.3
 * Added: Support for "in" operator expressions and overloads (#1220) 
