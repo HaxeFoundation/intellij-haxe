@@ -1,20 +1,25 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.codeInsight.intention.IntentionAction;
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.*;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeFunctionCompatible;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeOverrideOrImplementEvaluation;
-import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierAddFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierRemoveFixer;
-import com.intellij.plugins.haxe.model.fixer.HaxeModifierReplaceVisibilityFixer;
+import com.intellij.plugins.haxe.model.fixer.*;
 import com.intellij.plugins.haxe.model.type.HaxeMacroUtil;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
@@ -329,6 +334,7 @@ public class HaxeMethodAnnotator implements Annotator {
                 if (constructor != null) {
                   holder.newAnnotation(HighlightSeverity.ERROR, "Missing super constructor call")
                           .range(currentMethod.getNamePsi())
+                          .withFix(createAddSuperFix(currentMethod))
                           .create();
                 }
               }
@@ -351,6 +357,39 @@ public class HaxeMethodAnnotator implements Annotator {
       }
     };
   }
+   static IntentionAction createAddSuperFix(HaxeMethodModel methodModel) {
+     return new HaxeSimpleFixer(HaxeBundle.message("haxe.inspections.insert.super")) {
+       @Override
+       public void invoke(@NotNull Project project, Editor editor, PsiFile file) throws IncorrectOperationException {
+         insertSuper(editor, file, methodModel.getBodyPsi());
+       }
+
+       @Override
+       public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+         PsiElement body = PsiTreeUtil.findSameElementInCopy(methodModel.getBodyPsi(), file);
+         insertSuper(editor, file, body);
+         return IntentionPreviewInfo.DIFF;
+       }
+       private void insertSuper(Editor editor, PsiFile file, PsiElement bodyPsi) {
+         if (bodyPsi.isValid()) {
+           HaxeCallExpression superExpression = (HaxeCallExpression)HaxeElementGenerator.createStatementFromText(bodyPsi.getProject(), "super()");
+           PsiElement semi = HaxeElementGenerator.createSemi(bodyPsi.getProject());
+           PsiElement firstChild = bodyPsi.getFirstChild();
+           superExpression = (HaxeCallExpression) bodyPsi.addAfter(superExpression, firstChild);
+           if (firstChild == null) {
+             bodyPsi.addAfter(semi, superExpression);
+           } else if (firstChild.textMatches("{")) {
+             PsiElement newLine = HaxeElementGenerator.createNewLine(bodyPsi.getProject());
+             bodyPsi.addAfter(semi, superExpression);
+             bodyPsi.addBefore(newLine, superExpression);
+           }
+           editor.getCaretModel().moveToOffset(superExpression.getTextRange().getEndOffset()-1);
+           HaxeCompletionUtil.reformatAndAdjustIndent(file, editor, superExpression.getTextRange());
+
+         }
+       }
+     };
+   }
 
   static boolean checkMethodsSignatureCompatibility(
     @NotNull final HaxeMethodModel currentMethod,

@@ -25,4 +25,11 @@ public class HaxeCompletionUtil {
     styleManager.reformatRange(file, range.getStartOffset(), range.getEndOffset());
     styleManager.adjustLineIndent(file, editor.getCaretModel().getOffset());
   }
+  public static void reformatAndAdjustIndent(PsiFile file, Editor editor, TextRange range) {
+    Project project = file.getProject();
+
+    CodeStyleManager styleManager = CodeStyleManager.getInstance(project);
+    styleManager.reformatRange(file, range.getStartOffset(), range.getEndOffset());
+    styleManager.adjustLineIndent(file, editor.getCaretModel().getOffset());
+  }
 }
