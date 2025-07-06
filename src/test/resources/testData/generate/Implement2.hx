@@ -5,6 +5,7 @@ class Implement2 implements IFoo<Bar> {
 interface IFoo<T> {
   function getFoo():T;
   var varInInterface:T;
+  var propertyInInterface(get, never):T;
 }
 
 class Bar {}

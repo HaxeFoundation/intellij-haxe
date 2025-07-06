@@ -82,7 +82,22 @@ public class HaxeIntroduceUtil {
         return (T) element;
     }
 
-    public static void findTypesRequiringImportsAndAddToFile(List<HaxeParameterModel> parameters, List<ResultHolder> knownParameterTypes, ResultHolder returnType, ResultHolder knownReturnType, PsiFile containingFile) {
+    public static void findTypesRequiringImportsForFieldAndAddToFile(ResultHolder fieldType, ResultHolder knownFieldType, PsiFile containingFile) {
+        Set<String> qNamesToImport = new HashSet<>();
+        List<HaxeClass> typesInOriginal = HaxeIntroduceUtil.collectHaxeClasses(knownFieldType);
+        List<HaxeClass> typesInGenerated = HaxeIntroduceUtil.collectHaxeClasses(fieldType);
+        for (int j = 0; j < typesInGenerated.size(); j++) {
+            HaxeClass newHaxeClass = typesInGenerated.get(j);
+            HaxeClass orgHaxeClass = typesInOriginal.get(j);
+            if (newHaxeClass == null && orgHaxeClass != null) {
+                qNamesToImport.add(orgHaxeClass.getQualifiedName());
+            }
+        }
+        for (String qNames : qNamesToImport) {
+            HaxeAddImportHelper.addImport(qNames, containingFile);
+        }
+    }
+    public static void findTypesRequiringImportsForMethodAndAddToFile(List<HaxeParameterModel> parameters, List<ResultHolder> knownParameterTypes, ResultHolder returnType, ResultHolder knownReturnType, PsiFile containingFile) {
             Set<String> qNamesToImport = new HashSet<>();
         // when generating constructors we might add parameters for fields and they wont be in the known list.
         int size = Math.min(parameters.size(), knownParameterTypes.size());
@@ -154,6 +169,8 @@ public class HaxeIntroduceUtil {
                     if(classReference.isDynamic() && specific.isUnknown()) continue;
                     collectHaxeClasses(specific, haxeClasses);
                 }
+            }else if (classReference.isTypeDef()){
+                haxeClasses.add(classReference.getHaxeClass());
             }else {
                 HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
                 if(haxeClassModel instanceof HaxeAnonymousTypeModel anonymousTypeModel) {

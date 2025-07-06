@@ -21,18 +21,22 @@ package com.intellij.plugins.haxe.ide.generation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
 
 import java.util.Arrays;
 import java.util.List;
 
-import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsAndAddToFile;
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsForFieldAndAddToFile;
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsForMethodAndAddToFile;
 
 /**
  * @author: Fedor.Korotkov
@@ -64,15 +68,21 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
         .filter(modifier -> !modifier.textMatches("abstract"))// keep all modifiers except abstract
         .toList();
 
-      result.append(StringUtil.join(declarationAttributeList, attribute -> attribute.getText(), " "));
+      result.append(StringUtil.join(declarationAttributeList, PsiElement::getText, " "));
       result.append(" ");
     }
     if (isInterfaceElement && !result.toString().contains("public")) {
       result.insert(0, "public ");
     }
+
     if (componentType == HaxeComponentType.FIELD) {
       result.append("var ");
       result.append(element.getName());
+      if(element instanceof HaxeModelTarget target && target.getModel() instanceof HaxeFieldModel fieldModel) {
+        if(fieldModel.isProperty()) {
+          createAccessors(fieldModel, result);
+        }
+      }
     } else {
       result.append("function ");
       appendMethodNameAndParameters(result, element, true, true);
@@ -101,7 +111,16 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
     return result.toString();
   }
 
-  protected void modifyElement(HaxeNamedComponent e) {
+  private String createAccessors(HaxeFieldModel fieldModel, StringBuilder result) {
+    result.append("(");
+    result.append(fieldModel.getGetterType().text);
+    result.append(",");
+    result.append(fieldModel.getSetterType().text);
+    result.append(")");
+    return null;
+  }
+
+  protected void modifyElement(HaxeNamedComponent component) {
 
     if(anchor instanceof HaxeMethodDeclaration methodDeclaration) {
       HaxeMethodModel model = methodDeclaration.getModel();
@@ -113,7 +132,13 @@ public class OverrideImplementMethodFix extends BaseCreateMethodsFix<HaxeNamedCo
         List<ResultHolder> knownParamTypes = ancestorMethod.getParameters().stream().map(HaxeParameterModel::getType).toList();
         ResultHolder knownReturnType = ancestorMethod.getReturnType(null);
 
-        findTypesRequiringImportsAndAddToFile(parameters, knownParamTypes, returnType, knownReturnType, anchor.getContainingFile());
+        findTypesRequiringImportsForMethodAndAddToFile(parameters, knownParamTypes, returnType, knownReturnType, anchor.getContainingFile());
+      }
+    } else if (anchor instanceof HaxeFieldDeclaration newFieldDeclaration
+               && component instanceof HaxeFieldDeclaration sourceFieldDeclaration) {
+      if ( newFieldDeclaration.getModel() instanceof HaxeFieldModel newFieldModel
+           && sourceFieldDeclaration.getModel() instanceof HaxeFieldModel sourceFieldModel) {
+        findTypesRequiringImportsForFieldAndAddToFile(newFieldModel.getResultType(null), sourceFieldModel.getResultType(null), anchor.getContainingFile());
       }
     }
   }

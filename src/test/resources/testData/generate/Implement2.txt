@@ -4,11 +4,14 @@ class Implement2 implements IFoo<Bar> {
     }
 
     public var varInInterface:Bar;
+
+    public var propertyInInterface(get, never):Bar;
 }
 
 interface IFoo<T> {
   function getFoo():T;
   var varInInterface:T;
+  var propertyInInterface(get, never):T;
 }
 
 class Bar {}

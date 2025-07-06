@@ -40,10 +40,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsAndAddToFile;
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsForMethodAndAddToFile;
 
 public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
   @Override
@@ -108,7 +107,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
           HaxeMethodModel newConstructor = constructorDeclaration.getModel();
           List<HaxeParameterModel> parameters = newConstructor.getParameters();
           List<ResultHolder> knownParamTypes = parentConstructor.getParameters().stream().map(HaxeParameterModel::getType).toList();
-          findTypesRequiringImportsAndAddToFile(parameters, knownParamTypes, null, null, psiElement.getContainingFile());
+          findTypesRequiringImportsForMethodAndAddToFile(parameters, knownParamTypes, null, null, psiElement.getContainingFile());
         }
 
       }

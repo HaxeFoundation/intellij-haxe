@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findInsertAfterElementForMethod;
-import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsAndAddToFile;
+import static com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceUtil.findTypesRequiringImportsForMethodAndAddToFile;
 
 public class HaxeIntroduceMethodForCallableIntention
   extends HaxeUnresolvedSymbolIntentionBase<HaxeReferenceExpression>
@@ -73,7 +73,7 @@ public class HaxeIntroduceMethodForCallableIntention
 
         ResultHolder knownReturnType = guessElementType(myPsiElementPointer.getElement());
         if(knownReturnType.isDynamic() || knownReturnType.isUnknown()) knownReturnType = null;
-        findTypesRequiringImportsAndAddToFile(parameters, getKnownParameterTypeList(), returnType, knownReturnType, anchor.getContainingFile());
+        findTypesRequiringImportsForMethodAndAddToFile(parameters, getKnownParameterTypeList(), returnType, knownReturnType, anchor.getContainingFile());
       }
     }
     return anchor.getContainingFile();
