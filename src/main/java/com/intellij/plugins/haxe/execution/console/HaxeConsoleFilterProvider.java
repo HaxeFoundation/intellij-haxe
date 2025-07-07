@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
-    Pattern compilerMessageWithFileAndLine = Pattern.compile("(\\s*(?<label>\\w+)\\s+)?" // optional label/prefix (WARNING, ERROR etc)
+    Pattern compilerMessageWithFileAndLine = Pattern.compile("(\\s*(?<label>\\[?\\w+\\]?)\\s+)?" // optional label/prefix (WARNING, ERROR etc ("[ERROR]" when haxe 5 fromat))
                                                              + "(?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+))" // file path (note absolute path for windows expects forward slashes)
                                                              + ":(?<line>([0-9]+))" // line
                                                              + ":\\s+(characters)\\s+"
