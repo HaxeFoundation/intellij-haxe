@@ -223,6 +223,15 @@ public class HaxeElementGenerator {
     reformat(haxeClass);
     return (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
   }
+  public static HaxeConstructorDeclaration createConstructorDeclaration(Project myProject,
+                                                              String text) {
+    final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
+    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    assert haxeClass != null;
+    reformat(haxeClass);
+    return PsiTreeUtil.findChildOfType(haxeClass, HaxeConstructorDeclaration.class);
+  }
 
   private static void reformat(final PsiMember movedElement) {
     final TextRange range = movedElement.getTextRange();

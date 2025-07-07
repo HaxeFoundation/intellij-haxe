@@ -3,6 +3,7 @@ package;
 import haxe.ds.IntMap;
 
 class Test {
+  function new(){}
   private var map = [ 1 => "one", 2 => "two" ];
   private var intmap:IntMap<String> = [ 1 => "one", 2 => "two" ];
   private var mapi:Map<Int, String> = [ 1 => "one", 2 => "two" ];

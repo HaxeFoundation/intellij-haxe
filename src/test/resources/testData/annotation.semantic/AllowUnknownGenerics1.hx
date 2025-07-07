@@ -26,7 +26,7 @@ class AllowUnknownGenerics {
   }
 }
 
-class WithGenerics<B:MidType>{function new(){}}
+class WithGenerics<B:MidType>{public function new(){}}
 
 class BaseType {public function new(){}}
 class MidType extends BaseType {public function new(){super();}}

@@ -4,9 +4,9 @@ using StringTools;
 import  StringBuf as ImportAlias;
 
 typedef MyStruct = {a:String, b:Int}
-class A {}
-class B extends A {}
-class C implements I {}
+class A {public function new () {}}
+class B extends A {public function new () {super();}}
+class C implements I {public function new () {}}
 interface I {}
 
 class CallExpressionTest {
@@ -87,7 +87,8 @@ class CallExpressionTest {
         interfaceInheritArgs(new C()); // CORRECT  C implements I
         interfaceInheritArgs(<error descr="Type mismatch (Expected: 'C' got: 'B')">new B()</error>); // WRONG B does not implement I
 
-        typeDefArg(new MyStruct());
+        var struct:MyStruct;
+        typeDefArg(struct);
 
         genericArgs(1,2); // CORRECT both args are of same type
         genericArgs(1, <error descr="Type mismatch (Expected: 'Int' got: 'String')">"2"</error>); // WRONG  type missmatch

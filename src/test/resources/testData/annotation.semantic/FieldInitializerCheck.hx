@@ -1,9 +1,9 @@
 interface IBar {}
-class Bar implements IBar {}
-class Bar2 extends Bar {}
-class Bar3 extends <error descr="Cannot extend self">Bar3</error> {}
-class Bar4 extends Bar5 {}
-class Bar5 extends Bar4 {}
+class Bar implements IBar {public function new(){}}
+class Bar2 extends Bar {public function new(){super();}}
+class Bar3 extends <error descr="Cannot extend self">Bar3</error> {public function new(){super();}}
+class Bar4 extends Bar5 {public function new(){super();}}
+class Bar5 extends Bar4 {public function new(){super();}}
 
 class FieldInitializerCheck {
   var ok1:IBar = new Bar2();

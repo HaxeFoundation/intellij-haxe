@@ -4,30 +4,30 @@ using StringTools;
 import  StringBuf as ImportAlias;
 
 typedef MyStruct = {a:String, b:Int}
-class A {}
-class B extends A {}
-class C implements I {}
+class A {public function new () {}}
+class B extends A {public function new () {super();}}
+class C implements I {public function new () {}}
 interface I {}
 
 
-class NoArgs { function new () {}}
-class OneArgs{ function new (arg1:String) {}}
-class ClassArgs{ function new (arg1:Class<String>) {}}
-class OptionalArgs{ function new (arg1:String, ?arg2:Int) {}}
-class DefaultArgs{ function new (arg1:String, arg2:String = "") {}}
-class FunctionArgs{ function new (arg1:String,  arg3:Int->String) {}}
-class FunctionArgs2{ function new (arg1:String,  arg3:(String->Int)->(Int->String)->Float) {}}
-class VarArgs{ function new (arg1:String, extra:Array<haxe.macro.Expr>) {}}
-class RestArgs{ function new (arg1:String, extra:haxe.extern.Rest<String>) {}}
-class RestSyntaxArgs{ function new (arg1:String, ...extra:String) {}}
-class TypeDefArg{ function new (arg1:MyStruct) {}}
-class ClassInheritArgs{ function new (arg1:A) {}}
-class InterfaceInheritArgs{ function new (arg1:C) {}}
-class GenericArgs<T>{ function new (arg1:T, Arg2:T):T {return null;}}
-class GenericClassArgs<T>{ function new (arg1:Class<T>):T {return null;}}
-class GenericConstraintsArgs<T:String>{ function new (arg1:T):T {return null;}}
-class GenericClassConstraintsArgs<T:A>{ function new (arg1:Class<T>):T {return null;}}
-class GenericComplexConstraintsArgs<T:String>{ function new (arg1:Array<T>) {} }
+class NoArgs { public function new () {}}
+class OneArgs{ public function new (arg1:String) {}}
+class ClassArgs{ public function new (arg1:Class<String>) {}}
+class OptionalArgs{ public function new (arg1:String, ?arg2:Int) {}}
+class DefaultArgs{ public function new (arg1:String, arg2:String = "") {}}
+class FunctionArgs{ public function new (arg1:String,  arg3:Int->String) {}}
+class FunctionArgs2{ public function new (arg1:String,  arg3:(String->Int)->(Int->String)->Float) {}}
+class VarArgs{ public function new (arg1:String, extra:Array<haxe.macro.Expr>) {}}
+class RestArgs{ public function new (arg1:String, extra:haxe.extern.Rest<String>) {}}
+class RestSyntaxArgs{ public function new (arg1:String, ...extra:String) {}}
+class TypeDefArg{ public function new (arg1:MyStruct) {}}
+class ClassInheritArgs{ public function new (arg1:A) {}}
+class InterfaceInheritArgs{ public function new (arg1:C) {}}
+class GenericArgs<T>{ public function new (arg1:T, Arg2:T):T {return null;}}
+class GenericClassArgs<T>{ public function new (arg1:Class<T>):T {return null;}}
+class GenericConstraintsArgs<T:String>{ public function new (arg1:T):T {return null;}}
+class GenericClassConstraintsArgs<T:A>{ public function new (arg1:Class<T>):T {return null;}}
+class GenericComplexConstraintsArgs<T:String>{ public function new (arg1:Array<T>) {} }
 
 
 class Test {
@@ -96,7 +96,8 @@ class Test {
 
         new InterfaceInheritArgs(<error descr="Type mismatch (Expected: 'C' got: 'B')">new B()</error>); // WRONG B does not implement I
 
-        new TypeDefArg(new MyStruct());
+        var struct:MyStruct;
+        new TypeDefArg(struct);
 
         new GenericArgs(1,2); // CORRECT both args are of same type
 

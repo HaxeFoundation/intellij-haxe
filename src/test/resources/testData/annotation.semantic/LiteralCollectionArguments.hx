@@ -3,10 +3,10 @@ package;
 import haxe.ds.IntMap;
 
 class Test {
-
+  public function new(){}
   public static function main() {
             // Array<Any> accepts all data types when literal
-            arrayAny([new Test()]) ;
+            arrayAny([new Test()]);
             arrayAny([1]) ;
             arrayAny([""]) ;
             arrayAny([new Test(), 1, ""]) ;

@@ -1,6 +1,6 @@
 package ;
 
-interface  BaseInterface{function testA(i:Int):String;}
+interface BaseInterface{function testA(i:Int):String;}
 class  Baseclass implements BaseInterface {
     public function testA(i:Int):String;
     public function testB(i:String):String;

@@ -31,6 +31,7 @@ class TestInstance {
 }
 
 class InstanceMethods {
+    public function new(){}
     public overload extern inline static function test(a:String):String {
         return a;
     }

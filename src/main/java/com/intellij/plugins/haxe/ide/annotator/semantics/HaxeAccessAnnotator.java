@@ -1,8 +1,10 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceConstructorIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
@@ -14,6 +16,8 @@ import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -36,7 +40,9 @@ public class HaxeAccessAnnotator implements Annotator {
       if (checkIfShouldBeIgnored(referenceExpression)) return;
       checkAccessForReference(referenceExpression, holder);
     }
-
+    else if (element instanceof HaxeNewExpression newExpression) {
+      checkAccessForConstructor(newExpression, holder);
+    }
    else if (element instanceof HaxeCompiletimeMetaArg compileTimeMeta) {
       HaxeMeta haxeMeta = PsiTreeUtil.getParentOfType(compileTimeMeta, HaxeMeta.class);
       if (haxeMeta != null) {
@@ -46,6 +52,58 @@ public class HaxeAccessAnnotator implements Annotator {
       }
     }
   }
+
+  private void checkAccessForConstructor(HaxeNewExpression newExpression, @NotNull AnnotationHolder holder) {
+    PsiElement constructor = newExpression.resolve();
+
+    if(constructor == null) {
+      // check if class has constructor (could be our new expression just got the wrong arguments (see overloads in abstracs))
+      HaxeMethodModel constructorModel = findDefaultConstructor(newExpression);
+      // No constructors in type
+      if (constructorModel == null) {
+        HaxeClass haxeClass = findHaxeClass(newExpression);
+        String message = getQualifiedName(newExpression) + " does not have a constructor";
+        AnnotationBuilder annotationBuilder = holder.newAnnotation(HighlightSeverity.ERROR, message)
+                .range(newExpression);
+        if (haxeClass != null) {
+          annotationBuilder.withFix(new HaxeIntroduceConstructorIntention(newExpression,haxeClass));
+        }
+        annotationBuilder.create();
+      }
+    }else {
+      if (constructor instanceof HaxeConstructorDeclaration declaration) {
+        HaxeMethodModel memberModel = declaration.getModel();
+
+        if(!memberModel.isPublic()){
+          HaxeClass currentClass = PsiTreeUtil.getParentOfType(newExpression, HaxeClass.class);
+          HaxeMemberModel referenceParentModel = getExpressionsParentsModel(newExpression);
+          HaxeClassModel memberClassModel = memberModel.getDeclaringClass();
+          HaxeClass memberClass = memberClassModel == null ? null : memberClassModel.haxeClass;
+
+          // if same class then private access allowed
+          if (memberClass == currentClass) return;
+          // if inherited member then private access allowed
+          if (inheritsFrom(currentClass, memberClass)) return;
+          // @:privateAccess should allow access to normal private members
+          if (expressionHasPrivateAccessMeta(newExpression)) return;
+
+          if (hasAllowMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
+            return;
+          }
+          if (hasAccessMetaFor(currentClass, memberClass, memberModel, referenceParentModel)) {
+            return;
+          }
+
+          String message =  "Cannot access private constructor of " + getQualifiedName(newExpression);
+          holder.newAnnotation(HighlightSeverity.ERROR, message)
+                  .range(newExpression)
+                  .create();
+        }
+      }
+    }
+  }
+
+
 
 
   private static boolean checkIfShouldBeIgnored(HaxeReferenceExpression referenceExpression) {
@@ -270,8 +328,8 @@ public class HaxeAccessAnnotator implements Annotator {
     }
   }
 
-  private boolean expressionHasPrivateAccessMeta(HaxeReferenceExpression referenceExpression) {
-    HaxeReferenceExpression refExpression = referenceExpression;
+  private boolean expressionHasPrivateAccessMeta(PsiElement referenceExpression) {
+    PsiElement refExpression = referenceExpression;
     while (refExpression.getParent() instanceof HaxeReferenceExpression parent) refExpression = parent;
 
     PsiElement expression = referenceExpression;
@@ -450,7 +508,7 @@ public class HaxeAccessAnnotator implements Annotator {
     return metadataFromClass;
   }
 
-  private static @Nullable HaxeMemberModel getExpressionsParentsModel(@NotNull HaxeReferenceExpression referenceExpression) {
+  private static @Nullable HaxeMemberModel getExpressionsParentsModel(@NotNull PsiElement referenceExpression) {
     HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getParentOfType(referenceExpression, HaxeMethodDeclaration.class);
     HaxeMemberModel referenceParentModel =  methodDeclaration == null ? null : methodDeclaration.getModel();
     if(referenceParentModel == null) {
@@ -472,5 +530,24 @@ public class HaxeAccessAnnotator implements Annotator {
     return null;
   }
 
+  private static HaxeMethodModel findDefaultConstructor(HaxeNewExpression newExpression) {
+    ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
+    if(typeFromType.getClassType() == null) return null;
+    HaxeClassModel haxeClassModel = typeFromType.getClassType().getHaxeClassModel();
+    if(haxeClassModel == null) return null;
+    return  haxeClassModel.getConstructor(null);
+  }
+  private static HaxeClass findHaxeClass(HaxeNewExpression newExpression) {
+    ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
+    if(typeFromType.getClassType() == null) return null;
+    HaxeClassModel haxeClassModel = typeFromType.getClassType().getHaxeClassModel();
+    if(haxeClassModel == null) return null;
+    return  haxeClassModel.haxeClass;
+  }
+
+  private static String getQualifiedName(HaxeNewExpression newExpression) {
+    HaxeType type = newExpression.getType();
+    return type.getReferenceExpression().getQualifiedName();
+  }
 
 }
