@@ -18,10 +18,10 @@ import java.util.regex.Pattern;
 
 public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
-    Pattern compilerMessageWithFileAndLine = Pattern.compile("(\\s*(?<label>\\[?\\w+\\]?)\\s+)?" // optional label/prefix (WARNING, ERROR etc ("[ERROR]" when haxe 5 fromat))
+    Pattern compilerMessageWithFileAndLine = Pattern.compile("(\\s*(?<label>\\[?\\w+\\]?)\\s+)?" // optional label/prefix (WARNING, ERROR etc ("[ERROR]" when haxe 5 format))
                                                              + "(?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+))" // file path (note absolute path for windows expects forward slashes)
                                                              + ":(?<line>([0-9]+))" // line
-                                                             + ":\\s+(characters)\\s+"
+                                                             + ":\\s+(?<type>(characters|lines))\\s+"
                                                              + "(?<column>([0-9]+))-\\d+" // position
                                                              + ".*", // rest of message
             Pattern.CASE_INSENSITIVE);
@@ -44,7 +44,12 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
                 if (compilerMessageMatcher.matches()) {
                     String path = compilerMessageMatcher.group("path");
                     String line = compilerMessageMatcher.group("line");
+                    String type = compilerMessageMatcher.group("type");
                     String column = compilerMessageMatcher.group("column");
+                    // if message only provides lines, we set column to null
+                    if(type.equalsIgnoreCase("lines")) {
+                        column = "0";
+                    }
 
                     int lineNo = Integer.parseInt(line);
                     int columnNo = Integer.parseInt(column);
