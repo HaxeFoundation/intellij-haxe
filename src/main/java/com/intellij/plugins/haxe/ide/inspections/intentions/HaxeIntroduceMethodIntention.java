@@ -63,8 +63,6 @@ public class HaxeIntroduceMethodIntention
     PsiElement methodDeclaration = generateDeclaration(project).copy();
     methodDeclaration = anchor.getParent().addAfter(methodDeclaration, anchor);
     anchor.getParent().addBefore(createNewLine(project), methodDeclaration);
-//TODO
-//    generateMissingImports()
 
     methodDeclaration = CodeStyleManager.getInstance(project).reformat(methodDeclaration);
     if(!preview) {

@@ -67,8 +67,6 @@ public class HaxeIntroduceConstructorIntention
         PsiElement constructorDeclaration = generateConstructorDeclaration(project).copy();
         constructorDeclaration = anchor.getParent().addAfter(constructorDeclaration, anchor);
         anchor.getParent().addBefore(createNewLine(project), constructorDeclaration);
-//TODO
-//        generateMissingImports()
 
         constructorDeclaration = CodeStyleManager.getInstance(project).reformat(constructorDeclaration);
         if (!preview) {
