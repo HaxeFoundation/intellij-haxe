@@ -28,9 +28,9 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
     Pattern stacktraceWithFileAndLine = Pattern.compile("(called\\sfrom\\s)"
                                                         + "(?<qname>([\\w_.$]+)+)"
-                                                        + "\\s(\\("
-                                                        + "((?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+)))"
-                                                        + "\\sline\\s(?<line>\\d+)"
+                                                        + "\\s*(\\("
+                                                        + "(?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+))"
+                                                        + "((\\sline\\s)|(:)(?<line>\\d+))"
                                                         + "\\))",
             Pattern.CASE_INSENSITIVE);
 
