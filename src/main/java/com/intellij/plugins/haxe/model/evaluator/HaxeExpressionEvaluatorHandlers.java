@@ -1325,7 +1325,13 @@ public class HaxeExpressionEvaluatorHandlers {
         HaxeClassModel model = parentOfType.getModel();
         // abstracts do not support the super keyword
         if(!model.isAbstractType()) {
-          return model.getInstanceReference().createHolder();
+          List<HaxeClassReferenceModel> extendingTypes = model.getExtendingTypes();
+          if(!extendingTypes.isEmpty()) {
+            HaxeClassModel haxeClassModel = extendingTypes.getFirst().getHaxeClassModel();
+            if(haxeClassModel != null) {
+              return haxeClassModel.getInstanceReference().createHolder();
+            }
+          }
         }
       }
       // called outside class ?
