@@ -180,7 +180,7 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       SpecificFunctionReference functionReference = resultHolder.getFunctionType();
       list.add(createMethodQuickfix(functionReference, reference, targetClass));
     }
-    if(resultHolder.isTypeDef()) {
+    if(resultHolder.isTypeDef() || resultHolder.isNullWrappedType()) {
       SpecificTypeReference specificTypeReference = resultHolder.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
       if(specificTypeReference instanceof SpecificFunctionReference functionReference) {
         list.add(createMethodQuickfix(functionReference, reference, targetClass));
