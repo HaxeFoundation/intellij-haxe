@@ -110,6 +110,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
 
   protected boolean needsToBeStatic() {
     if(hasClassReferenceCallie()) return true;
+    if(hasFieldReferenceCallie()) return false;
     HaxeMethodDeclaration type = PsiTreeUtil.getParentOfType(myPsiElementPointer.getElement(), HaxeMethodDeclaration.class);
     if (type != null) {
       return type.getModel().isStatic();
@@ -118,6 +119,23 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     HaxeFieldDeclaration field = PsiTreeUtil.getParentOfType(myPsiElementPointer.getElement(), HaxeFieldDeclaration.class);
     if (field != null) {
       return ((HaxeFieldModel)field.getModel()).isStatic();
+    }
+    return false;
+  }
+
+  private boolean hasFieldReferenceCallie() {
+    HaxeExpression expression = null;
+    if(myPsiElementPointer.getElement() instanceof  HaxeCallExpression callExpression) {
+      expression = callExpression.getExpression();
+    }else if(myPsiElementPointer.getElement() instanceof  HaxeReferenceExpression referenceExpression) {
+      expression = referenceExpression;
+    }
+    HaxeReference leftReference = getLeftReference(expression);
+    if(leftReference != null) {
+      PsiElement resolve = leftReference.resolve();
+      if(resolve instanceof HaxePsiField) {
+        return true;
+      }
     }
     return false;
   }
