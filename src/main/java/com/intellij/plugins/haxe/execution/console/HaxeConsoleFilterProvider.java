@@ -30,7 +30,7 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
                                                         + "(?<qname>([\\w_.$]+)+)"
                                                         + "\\s*(\\("
                                                         + "(?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+))"
-                                                        + "((\\sline\\s)|(:)(?<line>\\d+))"
+                                                        + "((\\sline\\s|:)(?<line>\\d+))"
                                                         + "\\))",
             Pattern.CASE_INSENSITIVE);
 
@@ -39,62 +39,64 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
         String basePath = project.getBasePath();
         Filter psiFilter = (text, entireLength) -> {
-            if(HaxeProjectSettings.getInstance(project).getDetectCodeReferencesInConsole()) {
-                Matcher compilerMessageMatcher = compilerMessageWithFileAndLine.matcher(text);
-                if (compilerMessageMatcher.matches()) {
-                    String path = compilerMessageMatcher.group("path");
-                    String line = compilerMessageMatcher.group("line");
-                    String type = compilerMessageMatcher.group("type");
-                    String column = compilerMessageMatcher.group("column");
-                    // if message only provides lines, we set column to null
-                    if(type.equalsIgnoreCase("lines")) {
-                        column = "0";
+            if (text.startsWith("Called from")){
+                if (HaxeProjectSettings.getInstance(project).getDetectCodeReferencesInConsole()) {
+                    Matcher compilerMessageMatcher = compilerMessageWithFileAndLine.matcher(text);
+                    if (compilerMessageMatcher.matches()) {
+                        String path = compilerMessageMatcher.group("path");
+                        String line = compilerMessageMatcher.group("line");
+                        String type = compilerMessageMatcher.group("type");
+                        String column = compilerMessageMatcher.group("column");
+                        // if message only provides lines, we set column to null
+                        if (type.equalsIgnoreCase("lines")) {
+                            column = "0";
+                        }
+
+                        int lineNo = Integer.parseInt(line);
+                        int columnNo = Integer.parseInt(column);
+                        int offsetPath = text.indexOf(path);
+
+
+                        VirtualFile virtualFile = HaxeFileUtil.locateFile(path, basePath);
+
+                        if (virtualFile != null) {
+                            OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo - 1, columnNo - 1);
+                            int endOffset = offsetPath + path.length() + line.length();
+                            return new Filter.Result(offsetPath, endOffset + 1, openFileHyperlinkInfo);
+                        }
                     }
+                    Matcher stacktrace = stacktraceWithFileAndLine.matcher(text);
+                    if (stacktrace.matches()) {
+                        String path = stacktrace.group("path");
+                        String line = stacktrace.group("line");
 
-                    int lineNo = Integer.parseInt(line);
-                    int columnNo = Integer.parseInt(column);
-                    int offsetPath = text.indexOf(path);
+                        int lineNo = Integer.parseInt(line);
+                        int offsetPath = text.indexOf(path);
 
 
-                    VirtualFile virtualFile = HaxeFileUtil.locateFile(path, basePath);
+                        VirtualFile virtualFile = HaxeFileUtil.locateFile(path, basePath);
+                        if (virtualFile == null) {
+                            //TODO check if this slows down things
 
-                    if (virtualFile != null) {
-                        OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo-1, columnNo-1);
-                        int endOffset = offsetPath + path.length() + line.length();
-                        return new Filter.Result(offsetPath, endOffset + 1, openFileHyperlinkInfo);
+                            // search all source roots for file
+                            HaxeProjectModel haxeProjectModel = HaxeProjectModel.fromProject(project);
+                            List<HaxeSourceRootModel> roots = haxeProjectModel.getRoots();
+                            virtualFile = roots.stream().map(haxeSourceRootModel -> haxeSourceRootModel.directory)
+                                    .filter(Objects::nonNull)
+                                    .map(directory -> directory.getVirtualFile().getUrl())
+                                    .map(url -> HaxeFileUtil.locateFile(url + "/" + path))
+                                    .filter(Objects::nonNull)
+                                    .findFirst().orElse(null);
+                        }
+
+                        if (virtualFile != null) {
+                            OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo - 1);
+                            int endOffset = offsetPath + path.length();
+                            return new Filter.Result(offsetPath, endOffset, openFileHyperlinkInfo);
+                        }
                     }
                 }
-                Matcher stacktrace = stacktraceWithFileAndLine.matcher(text);
-                if (stacktrace.matches()) {
-                    String path = stacktrace.group("path");
-                    String line = stacktrace.group("line");
-
-                    int lineNo = Integer.parseInt(line);
-                    int offsetPath = text.indexOf(path);
-
-
-                    VirtualFile virtualFile = HaxeFileUtil.locateFile(path, basePath);
-                    if(virtualFile == null) {
-                        //TODO check if this slows down things
-
-                        // search all source roots for file
-                        HaxeProjectModel haxeProjectModel = HaxeProjectModel.fromProject(project);
-                        List<HaxeSourceRootModel> roots = haxeProjectModel.getRoots();
-                        virtualFile = roots.stream().map(haxeSourceRootModel -> haxeSourceRootModel.directory)
-                                .filter(Objects::nonNull)
-                                .map(directory -> directory.getVirtualFile().getUrl())
-                                .map(url -> HaxeFileUtil.locateFile(url + "/" + path))
-                                .filter(Objects::nonNull)
-                                .findFirst().orElse(null);
-                    }
-
-                    if (virtualFile != null) {
-                        OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo-1);
-                        int endOffset = offsetPath + path.length();
-                        return new Filter.Result(offsetPath, endOffset, openFileHyperlinkInfo);
-                    }
-                }
-            }
+        }
             return null;
         };
         return new Filter[]{psiFilter};
