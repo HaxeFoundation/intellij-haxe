@@ -39,7 +39,6 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
         String basePath = project.getBasePath();
         Filter psiFilter = (text, entireLength) -> {
-            if (text.startsWith("Called from")){
                 if (HaxeProjectSettings.getInstance(project).getDetectCodeReferencesInConsole()) {
                     Matcher compilerMessageMatcher = compilerMessageWithFileAndLine.matcher(text);
                     if (compilerMessageMatcher.matches()) {
@@ -95,7 +94,6 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
                             return new Filter.Result(offsetPath, endOffset, openFileHyperlinkInfo);
                         }
                     }
-                }
         }
             return null;
         };
