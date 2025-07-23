@@ -204,7 +204,7 @@ public class HaxeIsTypeExpressionAnnotator implements Annotator, DumbAware {
       }
       if (found instanceof HaxeClass haxeClass) {
         HaxeClassModel model = haxeClass.getModel();
-        if(model.isAbstractType()) {
+        if(model.isAbstractType() && !model.isCoreType()) {
           holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.is.operator.rhs.cannot.be.abstract"))
                   .range(type.getTextRange())
                   .create();
