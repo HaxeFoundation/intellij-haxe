@@ -72,7 +72,10 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
 
         ResultHolder expectedType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, compositeElement);
-        ResultHolder returnedType = HaxeExpressionEvaluator.evaluate(returnStatement).result;
+        HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(returnStatement);
+        resolver.setAssignHint(expectedType);
+
+        ResultHolder returnedType = HaxeExpressionEvaluator.evaluate(returnStatement, resolver).result;
 
         boolean hasReturnValue = returnStatement.getChildren().length != 0;
         PsiElement highlightElement = hasReturnValue ? returnStatement.getChildren()[0] : returnStatement;

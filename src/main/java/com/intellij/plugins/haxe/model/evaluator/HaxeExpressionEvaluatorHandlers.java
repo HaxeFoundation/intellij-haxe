@@ -2183,7 +2183,12 @@ public class HaxeExpressionEvaluatorHandlers {
       for (SpecificTypeReference typeReference : typeList) {
         if (typeReference.isVoid()) continue;
         if (bestGuess == null) {
-          bestGuess = typeReference;
+          ResultHolder assignHint = resolver.getAssignHint();
+          if(assignHint != null &&  assignHint.canAssign(typeReference.createHolder())) {
+            bestGuess = assignHint.getType();
+          }else {
+            bestGuess = typeReference;
+          }
           continue;
         }
         bestGuess = HaxeTypeUnifier.unify(bestGuess, typeReference, switchStatement);
