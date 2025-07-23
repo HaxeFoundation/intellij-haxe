@@ -175,6 +175,10 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
     if(targetClass == null) return;
     if(reference == null) return;
 
+    if(targetClass.isEnum()) {
+      list.add(createEnumValueQuickfix(reference, targetClass));
+    }
+
     ResultHolder resultHolder = guessElementType(reference);
     if(resultHolder.isFunctionType()) {
       SpecificFunctionReference functionReference = resultHolder.getFunctionType();

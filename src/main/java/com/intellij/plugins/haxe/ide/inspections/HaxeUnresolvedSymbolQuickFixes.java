@@ -27,6 +27,10 @@ public class HaxeUnresolvedSymbolQuickFixes {
   public static LocalQuickFix createMethodQuickfix(@NotNull SpecificFunctionReference functionReference, HaxeReferenceExpression referenceExpression, @NotNull HaxeClass targetClass) {
     return new HaxeIntroduceMethodFromTypeIntention(functionReference,referenceExpression, targetClass);
   }
+  public static LocalQuickFix createEnumValueQuickfix(HaxeReferenceExpression reference, HaxeClass targetClass) {
+    if(reference.getParent() instanceof HaxeType) return null;
+    return new HaxeIntroduceEnumValueIntention(reference, targetClass);
+  }
 
   public static List<LocalQuickFix> createMethodQuickfixesForCallable(HaxeReferenceExpression reference, @NotNull HaxeClassModel abstractType, HaxeClass targetClass) {
     List<LocalQuickFix> localQuickFixes = new ArrayList<>();

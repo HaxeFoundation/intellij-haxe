@@ -270,4 +270,9 @@ public class HaxeElementGenerator {
   public static PsiElement createAbstract(@NotNull Project project, String name) {
     return createTypeFromText(project, "abstract " + name + " {\n}");
   }
+
+  public static HaxeEnumValueDeclaration createEnumValueDeclaration(@NotNull Project project, String name) {
+    PsiElement typeFromText = createTypeFromText(project, "enum TmpEnum {" + name + ";}");
+    return PsiTreeUtil.findChildOfType(typeFromText, HaxeEnumValueDeclaration.class);
+  }
 }
