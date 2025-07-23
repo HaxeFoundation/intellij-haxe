@@ -89,13 +89,14 @@ class IsOperator extends Base {
 #end
 
         // Incorrect uses in all versions.
-        var incorrectUse = this.stage is <error descr="Right-hand side of ''is'' operator must be a Type name.">123</error>; //  incorrect use, Expected Type/Class got literal 'Missing ;' in 3.4.
+        var incorrectUse1 = this.stage is <error descr="Right-hand side of ''is'' operator must be a Type name.">123</error>; //  incorrect use, Expected Type/Class got literal 'Missing ;' in 3.4.
         var incorrectUse2 = this.stage is <error descr="Right-hand side of ''is'' operator must be a Type name."><error descr="Type name must start by upper case">myString</error></error>; //  incorrect use, Expected Type/Class got variable. 'Missing ;' in 3.4.
         var incorrectUse3 = myString is <error descr="Unsupported type for ''is'' operator.">{x:1, y:1}</error>;  // Syntax error: 'Unexpected `1`.' 'Missing ;' in 3.4.
         var incorrectUse4 = myString is <error descr="Unsupported type for ''is'' operator.">{x:Int, y:Int}</error> || call(); // 'Unsupported type for `is` operator.' 'Missing ;' in 3.4.
         var incorrectUse5 = myString is <error descr="Type parameters are not supported for the ''is'' operator.">Point<Int></error>;     // 'Type parameters are not supported for the `is` operator.' 'Missing ;' in 3.4.
         var incorrectUse6 = myString is <error descr="Unsupported type for ''is'' operator.">{var x:Int; var y:Int;}</error>  // 'Unsupported type for `is` operator.'
         var incorrectUse7 = myString is <error descr="Unsupported type for ''is'' operator.">{function iterator(){}}</error>  // 'Unsupported type for `is` operator.'
+        var incorrectUse8 = myString is <error descr="Right-hand side of ''is'' operator cannot be Abstract.">MyAbstract</error>;
 
         if (true) {"Some" + "thing";} else {"Nothing";} is<error descr="Missing semicolon."> </error>String; // 4.2: characters 60-66 : Missing ;
         try { var s; s = "else"; } catch (e) {} is<error descr="Missing semicolon."> </error>String; // 4.2: characters 52-58 : Missing ;
@@ -123,3 +124,5 @@ class IsOperator extends Base {
 class Base {
     public function new() {}
 }
+
+abstract MyAbstract(String) {}

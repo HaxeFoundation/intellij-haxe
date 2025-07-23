@@ -1,20 +1,15 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
-import com.intellij.codeInsight.daemon.HighlightDisplayKey;
-import com.intellij.codeInsight.intention.IntentionAction;
-import com.intellij.codeInspection.InspectionProfile;
-import com.intellij.codeInspection.InspectionProfileEntry;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.fixer.HaxeSurroundFixer;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
-import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -206,6 +201,14 @@ public class HaxeIsTypeExpressionAnnotator implements Annotator, DumbAware {
         holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.is.operator.rhs.must.be.type"))
           .range(type.getTextRange())
           .create();
+      }
+      if (found instanceof HaxeClass haxeClass) {
+        HaxeClassModel model = haxeClass.getModel();
+        if(model.isAbstractType()) {
+          holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.is.operator.rhs.cannot.be.abstract"))
+                  .range(type.getTextRange())
+                  .create();
+        }
       }
     }
     else {
