@@ -49,7 +49,9 @@ public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements Hax
   public Stream<HaxeEnumValueModel> getValuesStream() {
     return getValueDeclarationsStream()
       .filter(HaxeAbstractEnumUtil::couldBeAbstractEnumField)
-      .map(model -> (HaxeEnumValueModel)model.getModel());
+      .map(HaxeModelTarget::getModel)
+      .filter(HaxeEnumValueModel.class::isInstance)
+      .map(HaxeEnumValueModel.class::cast);
   }
 
   private Stream<HaxeFieldDeclaration> getValueDeclarationsStream() {
