@@ -1,4 +1,11 @@
 # Changelog
+## 1.7.5
+* Added: Initial support for intellij 2025.2.
+* Added: Detecting code references in console output and making them navigatable.
+* Added: Adding quickfixes for missing constructor, missing Super call and introduce Enum value. 
+* Bugfix: Private constructors would in some cases show as unused when not.
+* Improvement: misc minor bugfixes
+
 ## 1.7.4
 * Added: Initial support for new Haxe 5 preview features (private getters & setters, binary literals) 
 * Added: Method quickfixes for when unresolved symbol has expected type is abstract with @:callable
