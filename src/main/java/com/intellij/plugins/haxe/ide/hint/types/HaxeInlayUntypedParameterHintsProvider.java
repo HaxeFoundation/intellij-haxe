@@ -41,7 +41,7 @@ public class HaxeInlayUntypedParameterHintsProvider implements InlayHintsProvide
         if (!result.isUnknown() && !result.getType().isInvalid()) {
           int offset = parameter.getComponentName().getTextRange().getEndOffset();
           InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(result)
+          sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(result)
           );
         }
       }

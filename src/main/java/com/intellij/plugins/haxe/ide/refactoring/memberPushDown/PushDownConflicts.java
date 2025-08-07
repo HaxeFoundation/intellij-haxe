@@ -27,6 +27,7 @@ import com.intellij.refactoring.util.classMembers.ClassMemberReferencesVisitor;
 import com.intellij.refactoring.util.classMembers.MemberInfo;
 import com.intellij.util.containers.MultiMap;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -100,7 +101,8 @@ public class PushDownConflicts {
     }
     Members:
     for (PsiMember member : myMovedMembers) {
-      for (PsiReference ref : ReferencesSearch.search(member, member.getResolveScope(), false)) {
+      Collection<PsiReference> references = ReferencesSearch.search(member, member.getResolveScope(), false).findAll();
+      for (PsiReference ref : references) {
         final PsiElement element = ref.getElement();
         if (element instanceof PsiReferenceExpression) {
           final PsiReferenceExpression referenceExpression = (PsiReferenceExpression)element;

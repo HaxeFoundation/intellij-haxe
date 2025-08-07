@@ -30,7 +30,7 @@ public class HaxeInlayEnumExtractorHintsProvider implements InlayHintsProvider {
     private static void handleEnumArgumentExtractorHints(@NotNull InlayTreeSink sink, HaxeEnumExtractedValueReference extractedValue) {
       InlineInlayPosition position = new InlineInlayPosition(extractedValue.getTextRange().getEndOffset(), true, 0);
       ResultHolder type = HaxeExpressionEvaluator.evaluate(extractedValue, null).result;
-      sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type));
+      sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(type));
     }
   }
 }

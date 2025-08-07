@@ -15,15 +15,15 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "2.0.21"
+    id("org.jetbrains.kotlin.jvm") version "2.2.0"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.6.0"
+    id("org.jetbrains.intellij.platform") version "2.7.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.0.0"
     // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "0.1.13"
+    id("org.jetbrains.qodana") version "2025.1.1"
     // Gradle Kover Plugin
-    id("org.jetbrains.kotlinx.kover") version "0.6.1"
+    id("org.jetbrains.kotlinx.kover") version "0.9.1"
     // generate parser and lexer
     id("org.jetbrains.grammarkit") version "2022.3.2.2"
     // console output for tests
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
 
-    implementation("org.apache.commons:commons-text:1.13.1")
+    implementation("org.apache.commons:commons-text:1.14.0")
 
     implementation(project(":common"))
     implementation(project(":jps-plugin"))
@@ -122,7 +122,6 @@ subprojects {
         testAnnotationProcessor ("org.projectlombok:lombok:1.18.34")
 
         intellijPlatform {
-            instrumentationTools()
 
             val type = providers.gradleProperty("platformType")
             val version = providers.gradleProperty("platformVersion")

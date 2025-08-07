@@ -711,7 +711,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
       constructorsToSubConstructors.put(constructor, referencingSubConstructors);
       if (constructor != null) {
         // find references
-        for (PsiReference reference : ReferencesSearch.search(constructor, new LocalSearchScope(mySourceClass), false)) {
+        Collection<PsiReference> references = ReferencesSearch.search(constructor, new LocalSearchScope(mySourceClass), false).findAll();
+        for (PsiReference reference : references) {
           final PsiElement element = reference.getElement();
           if (element != null && "super".equals(element.getText())) {
             PsiMethod parentMethod = PsiTreeUtil.getParentOfType(element, PsiMethod.class);
@@ -880,7 +881,8 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
   }
 
   private boolean willBeUsedInSubclass(PsiElement member, PsiClass superclass, PsiClass subclass) {
-    for (PsiReference ref : ReferencesSearch.search(member, new LocalSearchScope(subclass), false)) {
+    Collection<PsiReference> references = ReferencesSearch.search(member, new LocalSearchScope(subclass), false).findAll();
+    for (PsiReference ref : references) {
       PsiElement element = ref.getElement();
       if (!RefactoringHierarchyUtil.willBeInTargetClass(element, myMembersToMove, superclass, false)) {
         return true;

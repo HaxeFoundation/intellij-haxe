@@ -470,7 +470,8 @@ public class PushDownProcessor extends BaseRefactoringProcessor {
       final PsiModifierList list = member.getModifierList();
       log.assertTrue(list != null, "Assertion failed");
       if (list.hasModifierProperty(PsiModifier.STATIC)) {
-        for (final PsiReference reference : ReferencesSearch.search(member)) {
+        Collection<PsiReference> references = ReferencesSearch.search(member).findAll();
+        for (final PsiReference reference : references) {
           final PsiElement element = reference.getElement();
           if (element instanceof PsiReferenceExpression) {
             final PsiExpression qualifierExpression = ((PsiReferenceExpression)element).getQualifierExpression();

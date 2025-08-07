@@ -46,7 +46,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
         if (!result.isUnknown() && !result.getType().isInvalid()) {
           int offset = varDeclaration.getComponentName().getTextRange().getEndOffset();
           InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(result)
+          sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(result)
           );
         }
       }
@@ -61,7 +61,7 @@ public class HaxeInlayCaptureVariableHintsProvider implements InlayHintsProvider
           if (!result.isUnknown() && !result.getType().isInvalid()) {
             int offset = switchCaseExpr.getTextRange().getEndOffset();
             InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-            sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(result)
+            sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(result)
             );
           }
       }

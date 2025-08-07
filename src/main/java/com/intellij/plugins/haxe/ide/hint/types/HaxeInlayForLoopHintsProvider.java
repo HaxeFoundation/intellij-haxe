@@ -63,7 +63,7 @@ public class HaxeInlayForLoopHintsProvider implements InlayHintsProvider {
       if (!type.isUnknown() && !type.getType().isInvalid()) {
         int offset = componentName.getTextRange().getEndOffset();
         InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-        sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
+        sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(type)
         );
       }
     }

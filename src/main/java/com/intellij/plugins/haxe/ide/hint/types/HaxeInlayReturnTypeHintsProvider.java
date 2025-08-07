@@ -42,7 +42,7 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
           int offset = paramListEnd.getTextRange().getEndOffset();
           if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
             InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-            sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));
+            sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(returnType));
           }
         }
       }
@@ -60,7 +60,7 @@ public class HaxeInlayReturnTypeHintsProvider implements InlayHintsProvider {
         int offset = paramListEnd.getTextRange().getEndOffset();
         if (!returnType.isUnknown() && !returnType.getType().isInvalid()) {
           InlineInlayPosition position = new InlineInlayPosition(offset, false, 0);
-          sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(returnType));
+          sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(returnType));
         }
       }
     }

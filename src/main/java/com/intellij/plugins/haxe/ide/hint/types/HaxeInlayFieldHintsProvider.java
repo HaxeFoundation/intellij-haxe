@@ -54,7 +54,7 @@ public class HaxeInlayFieldHintsProvider implements InlayHintsProvider {
               offset = field.getPsiField().getComponentName().getTextRange().getEndOffset();
             }
             InlineInlayPosition position = new InlineInlayPosition(offset, true, 0);
-            sink.addPresentation(position, null, null, false, appendTypeTextToBuilder(type)
+            sink.addPresentation(position, null, null, HintFormat.Companion.getDefault(), appendTypeTextToBuilder(type)
             );
           }
         }

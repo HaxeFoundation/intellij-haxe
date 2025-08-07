@@ -98,7 +98,8 @@ public class HaxeSdkType extends SdkType {
   }
 
   private static void writeSdkData(Sdk sdk, SdkAdditionalData data) {
-      ApplicationManager.getApplication().runWriteAction(() -> {
+    Runnable saveTask = () -> {
+      ApplicationManager.getApplication().runWriteAction( () -> {
         if (data != null) {
           final SdkModificator modificator = sdk.getSdkModificator();
           modificator.setSdkAdditionalData(data);
@@ -106,6 +107,13 @@ public class HaxeSdkType extends SdkType {
           modificator.commitChanges();
         }
       });
+    };
+
+    if (ApplicationManager.getApplication().isWriteAccessAllowed()) {
+      saveTask.run();
+    } else {
+      ApplicationManager.getApplication().invokeLaterOnWriteThread(saveTask);
+    }
   }
 
   @Override

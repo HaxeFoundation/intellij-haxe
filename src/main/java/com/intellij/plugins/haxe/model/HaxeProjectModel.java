@@ -154,7 +154,7 @@ public class HaxeProjectModel {
   }
 
   private void addProjectListeners() {
-    project.getMessageBus().connect().subscribe(ProjectTopics.PROJECT_ROOTS, new ModuleRootListener() {
+    project.getMessageBus().connect().subscribe(ModuleRootListener.TOPIC, new ModuleRootListener() {
       @Override
       public void rootsChanged(ModuleRootEvent event) {
         rootsCache = null;
