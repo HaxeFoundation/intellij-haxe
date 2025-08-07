@@ -39,7 +39,7 @@ class PublicStaticMembers  {
     public function publicMethod():PrivateStaticMembers {
         @:privateAccess var x2= publicVar.privateVar; // OK
         var x1= publicVar.<error descr="Cannot access private field privateVar">privateVar</error>; // WRONG
-        return null;
+        return <weak_warning descr="Return type can be changed to 'Null<PrivateStaticMembers>' to show nullability">null</weak_warning>;
     }
 }
 

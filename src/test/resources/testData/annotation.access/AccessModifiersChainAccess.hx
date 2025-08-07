@@ -13,7 +13,7 @@ class PublicStaticMembers  {
     public var publicProp(default,default):DefaultStaticMembers;
     public function publicMethod():PrivateStaticMembers{
         var x= publicVar.<error descr="Cannot access private field privateVar">privateVar</error>;
-        return null;
+        return <weak_warning descr="Return type can be changed to 'Null<PrivateStaticMembers>' to show nullability">null</weak_warning>;
     }
 }
 class PrivateStaticMembers  {

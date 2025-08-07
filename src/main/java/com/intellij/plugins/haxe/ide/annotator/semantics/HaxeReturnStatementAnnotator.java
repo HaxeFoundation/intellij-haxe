@@ -119,16 +119,27 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                     if (classType != null) {
                         HaxeClassModel model = classType.getHaxeClassModel();
                         if (model != null) {
-                            if (model.hasCompileTimeMeta(NOT_NULL)) {
-                                String message = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning",
-                                        expectedType.toPresentationString());
 
-                                String nullWrapped = "Null<" + expectedType.toTypeString() + ">";
-                                holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
-                                        .range(highlightElement)
-                                        .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
-                                        .create();
+                            String message;
+                            String typeName = expectedType.toTypeString();
+                            if(expectedType.isTypeParameterWithConstraints()) {
+                                HaxeClassModel haxeClassModel = expectedType.getClassType().getHaxeClassModel();
+                                if(haxeClassModel != null) {
+                                    typeName = haxeClassModel.getName();
+                                }
                             }
+
+                            if (model.isAbstractType() && model.hasCompileTimeMeta(NOT_NULL)) {
+                                message = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning",
+                                        expectedType.toPresentationString());
+                            }else {
+                                message = HaxeBundle.message("haxe.semantic.incompatible.type.null.wrap", typeName);
+                            }
+                            String nullWrapped = "Null<" + typeName + ">";
+                            holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
+                                    .range(highlightElement)
+                                    .withFix(ReplaceReturnTypeFix(nullWrapped, typeTag))
+                                    .create();
                         }
                     }
                 }

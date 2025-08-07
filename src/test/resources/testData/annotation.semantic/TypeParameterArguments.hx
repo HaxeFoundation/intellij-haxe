@@ -45,6 +45,6 @@ class Generics {
     }
 
     function getValue<T:BaseInterface>(value:Class<T>):T {
-        return null;
+        return <weak_warning descr="Return type can be changed to 'Null<T>' to show nullability">null</weak_warning>;
     }
 }
