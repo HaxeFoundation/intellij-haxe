@@ -1009,6 +1009,7 @@ public class HaxeResolveUtil {
           if (!matchesInImport.isEmpty()) {
             if (isType) {// typeTags should not contain EnumValues only parent enum type
               matchesInImport = matchesInImport.stream()
+                .map(HaxeResolveUtil::mapToDeclaration)
                 .filter(element -> !(element instanceof HaxeEnumValueDeclaration))
                 .filter(element -> !(element instanceof HaxeFieldDeclaration)) // @:enum abstracts have EnumValues as fields
                 .toList();
@@ -1047,7 +1048,11 @@ public class HaxeResolveUtil {
     return result instanceof HaxeClass haxeClass ? haxeClass : null;
   }
 
-  @Nullable
+    private static PsiElement mapToDeclaration(PsiElement psiElement) {
+        return psiElement instanceof HaxeComponentName componentName ? componentName.getParent() : psiElement;
+    }
+
+    @Nullable
   public static PsiElement searchInSameFile(@NotNull HaxeFileModel file, @NotNull String name, boolean isType) {
     List<HaxeClassModel> models = file.getClassModels();
     if (!isType) {
