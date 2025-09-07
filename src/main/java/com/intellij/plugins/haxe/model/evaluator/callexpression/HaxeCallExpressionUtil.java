@@ -115,6 +115,8 @@ public class HaxeCallExpressionUtil {
 
     HaxeGenericResolver methodTranslatedResolver = translateResolverToMethodDeclaringClass(genericResolver, callieClass, method);
 
+    boolean canCache = argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache) && returnType.cacheable;
+
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
     evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
     evaluation.isStaticExtension = isStaticExtension;
@@ -124,7 +126,7 @@ public class HaxeCallExpressionUtil {
     evaluation.isEnumValueMatchCallExpression = isEnumValueMatchCallExpression(callExpression);
     evaluation.isEnumConstructor = isEnumConstructor(callExpression);
     evaluation.callie = callieType;
-
+    evaluation.canCache = canCache;
 
 
     return evaluation;
@@ -305,7 +307,7 @@ public class HaxeCallExpressionUtil {
       List<HaxeExpression> expressions = expressionListPsi.getExpressionList();
       for (HaxeExpression expression : expressions) {
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
-        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.cacheable);
+        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), !result.isUnknown() && result.cacheable);
         argumentList.add(model);
       }
     }

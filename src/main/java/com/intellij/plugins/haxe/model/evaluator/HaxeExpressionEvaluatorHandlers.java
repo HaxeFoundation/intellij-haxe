@@ -66,7 +66,7 @@ public class HaxeExpressionEvaluatorHandlers {
                                                HaxeGenericResolver resolver) {
 
     if (element == null ) return null;
-    return evaluatorHandlersRecursionGuard.doPreventingRecursion(element, true, () -> handle(element, context, resolver));
+    return evaluatorHandlersRecursionGuard.doPreventingRecursion(element, false, () -> handle(element, context, resolver));
   }
 
 
@@ -1603,6 +1603,8 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeGenericResolver resolver,
     HaxeCallExpression callExpression) {
 
+      boolean allowCaching = true;
+
     HaxeExpression callExpressionRef = callExpression.getExpression();
     // generateResolverFromScopeParents -  making sure we got typeParameters from arguments/parameters
     HaxeGenericResolver localResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
@@ -1625,11 +1627,14 @@ public class HaxeExpressionEvaluatorHandlers {
         ResultHolder assignHint = resolver.getAssignHint();
         SpecificTypeReference assignHintType = assignHint == null ? null : assignHint.getType();
         HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
+        if(!callExpressionContext.canCache) {
+            allowCaching = false;
+        }
         HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
         if(evaluate.isValid()) {
           functionType = evaluate.getFunctionType(methodModel);
         }else {
-          functionType = createUnknown(callExpression).getType();
+          functionType = createUnknown(callExpression, false).getType();
         }
       }else {
         SpecificTypeReference callieRef = tryGetCallieType(callExpression);
@@ -1796,21 +1801,22 @@ public class HaxeExpressionEvaluatorHandlers {
       }
 
       if(returnType.getFunctionType() != null){
-        return returnType.getFunctionType().createHolder();
+          ResultHolder holder = returnType.getFunctionType().createHolder();
+          holder.cacheable = allowCaching;
+          return holder;
       }
 
       if(returnType.isClassType() || returnType.isEnumValueType()) {
-        return returnType.withOrigin(ftype.context);
+          ResultHolder result = returnType.withOrigin(ftype.context);
+          result.cacheable = allowCaching;
+          return result;
       }
-
     }
 
     if (functionType!= null && functionType.isDynamic()) {
-      for (HaxeExpression expression : parameterExpressions) {
-        handle(expression, context, resolver);
-      }
-
-      return functionType.withoutConstantValue().createHolder();
+        ResultHolder holder = functionType.withoutConstantValue().createHolder();
+        holder.cacheable = allowCaching;
+        return holder;
     }
 
     // @TODO: resolve the function type return type
