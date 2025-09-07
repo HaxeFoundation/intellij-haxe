@@ -220,8 +220,8 @@ public class HaxeMethodAnnotator implements Annotator {
     }
     else if (parentMethod != null) {
       if (parentMethod.isStatic()) {
-        holder.newAnnotation(HighlightSeverity.WARNING, "Method '" + currentMethod.getName()
-                                                        + "' overrides a static method of a superclass")
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, "Method '" + currentMethod.getName()
+                                                        + "' shadows a static method of a superclass")
           .range(currentMethod.getNameOrBasePsi())
           .create();
       }
