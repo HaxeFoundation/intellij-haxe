@@ -17,18 +17,19 @@ jobs:
     strategy:
       fail-fast: false # set this to true if you want to cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2025.2]
+        IDEA_VERSION: [2025.2.1]
         OS: [macos-13, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.OS }}
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v5
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: 21
+          cache: 'gradle'
 
       - name: Maximize Build Space (ubuntu/mac)
         if: ${{ matrix.os != 'windows-latest'}}
@@ -45,28 +46,22 @@ jobs:
       - name: Test haxe
         run: haxe -version
 
-      - name: Cache Gradle packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
 
       - name: Cache intelliJ downloads
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: $GITHUB_WORKSPACE/idea
-          key: ${{ matrix.IDEA_VERSION }}-idea-${{ hashFiles('ideaIU-${{ matrix.IDEA_VERSION }}/**') }}
+          key: ${{ matrix.IDEA_VERSION }}-idea
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
 
       - name: Build with Gradle (windows)
-        timeout-minutes: 20
+        timeout-minutes: 25
         if: ${{ matrix.os == 'windows-latest'}}
         run: .\gradlew.bat clean test buildPlugin verifyPlugin
 
       - name: Build with Gradle (linux/mac)
-        timeout-minutes: 20
+        timeout-minutes: 25
         if: ${{ matrix.os != 'windows-latest'}}
         run: ./gradlew clean test buildPlugin verifyPlugin
 
