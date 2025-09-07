@@ -102,7 +102,7 @@ public class HaxeExpressionEvaluator {
     ProgressIndicatorProvider.checkCanceled();
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
       ResultHolder result = handleWithRecursionGuard(element, context, null);
-      context.result = result != null ? result : createUnknown(element);
+      context.result = result != null ? result : createUnknown(element, false);
       return context;
   }
 

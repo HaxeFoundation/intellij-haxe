@@ -54,6 +54,7 @@ public class HaxeCallExpressionContext {
     @Nullable
     private PsiElement sourceExpression;
 
+    public boolean canCache = true;
     public boolean isConstructor = false;
     public boolean isMacroFunction = false;
     public boolean isStaticExtension = false;
@@ -186,7 +187,7 @@ public class HaxeCallExpressionContext {
             // while it might be a waste to re-evaluate the callie assignability
             // we do it  here because we need to keep track if typeParameters
             // perhaps the logic above can be moved down into the argument/parameter check loop
-            argumentsList.addFirst(new CallExpressionArgumentModel(callie.context, callie));
+            argumentsList.addFirst(new CallExpressionArgumentModel(callie.context, callie, false));
         }
 
         CallExpressionArgumentModel argumentModel = null;
