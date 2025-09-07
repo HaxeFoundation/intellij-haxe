@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false # set this to true if you want to cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2025.2]
+        IDEA_VERSION: [2025.2.1]
         OS: [macos-13, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.OS }}
