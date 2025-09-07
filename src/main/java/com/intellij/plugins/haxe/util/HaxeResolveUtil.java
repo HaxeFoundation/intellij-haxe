@@ -74,8 +74,11 @@ public class HaxeResolveUtil {
   }  // We want warnings to get out to the log.
 
   @Nullable
-  public static HaxeReference getLeftReference(@Nullable final PsiElement node) {
+  public static HaxeReference getLeftReference(@Nullable PsiElement node) {
     if (node == null) return null;
+    if(node instanceof HaxeCallExpression expression) {
+        node = expression.getExpression();
+    }
 
     PsiElement leftExpression = UsefulPsiTreeUtil.getFirstChildSkipWhiteSpacesAndComments(node);
     PsiElement dotOrQuestDot = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(leftExpression);
@@ -90,9 +93,9 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    if (leftExpression instanceof HaxeReference) return (HaxeReference)leftExpression;
-    if (leftExpression instanceof HaxeParenthesizedExpression) {
-      HaxeTypeCheckExpr typeCheck = ((HaxeParenthesizedExpression)leftExpression).getTypeCheckExpr();
+    if (leftExpression instanceof HaxeReference reference) return reference;
+    if (leftExpression instanceof HaxeParenthesizedExpression expression) {
+      HaxeTypeCheckExpr typeCheck = expression.getTypeCheckExpr();
       if (null != typeCheck) {
         return typeCheck;
       }

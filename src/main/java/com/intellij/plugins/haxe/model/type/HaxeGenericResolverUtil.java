@@ -15,6 +15,8 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.openapi.util.RecursionGuard;
+import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
@@ -32,6 +34,8 @@ import java.util.*;
 import static com.intellij.plugins.haxe.model.type.HaxeParameterUtil.mapArgumentsToParameters;
 
 public class HaxeGenericResolverUtil {
+
+    private static final RecursionGuard<PsiElement> statementRecursionGuard = RecursionManager.createGuard("StatementGenericResolverGuard");
 
   @NotNull
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
@@ -90,14 +94,10 @@ public class HaxeGenericResolverUtil {
   @NotNull static HaxeGenericResolver appendStatementGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
     if (null == element) return resolver;
 
-    HaxeReference left = HaxeResolveUtil.getLeftReference(element);
-    if ( null != left) {
-      appendStatementGenericResolver(left, resolver);
-    }
     if (element instanceof HaxeReference) {
-      ResultHolder result1 =
-        HaxeExpressionEvaluator.evaluateWithRecursionGuard(element, new HaxeExpressionEvaluatorContext(element), null).result;
-      if (!result1.isUnknown() && result1.getClassType() != null) {
+        ResultHolder result1 =  statementRecursionGuard.doPreventingRecursion(element, true,
+                () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), null).result);
+      if (result1 != null && !result1.isUnknown() && result1.getClassType() != null) {
         SpecificHaxeClassReference result = result1.getClassType();
         resolver.addAll(result.getGenericResolver());
       if (result.getHaxeClass() != null) {
