@@ -943,7 +943,12 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
   static ResultHolder createUnknown(PsiElement element) {
-    return SpecificHaxeClassReference.getUnknown(element).createHolder();
+    return createUnknown(element, true);
+  }
+  static ResultHolder createUnknown(PsiElement element, boolean cacheable) {
+      ResultHolder holder = getUnknown(element).createHolder();
+      holder.cacheable = cacheable;
+      return holder;
   }
 
   static ResultHolder handlePrefixExpression(
@@ -1809,7 +1814,7 @@ public class HaxeExpressionEvaluatorHandlers {
     }
 
     // @TODO: resolve the function type return type
-    return createUnknown(callExpression);
+    return createUnknown(callExpression, false);
   }
 
   private static ResultHolder tryHandleFunctionBind(SpecificFunctionReference functionReference, HaxeCallExpression callExpression) {

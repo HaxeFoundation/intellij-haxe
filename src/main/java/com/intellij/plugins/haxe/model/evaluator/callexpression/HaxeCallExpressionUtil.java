@@ -238,6 +238,7 @@ public class HaxeCallExpressionUtil {
     List<CallExpressionArgumentModel> argumentList = getArgumentList(newExpression);
     ResultHolder type = HaxeTypeResolver.getTypeFromType(newExpression.getType());
     SpecificHaxeClassReference classType = type.getClassType();
+    boolean canCache = type.cacheable && argumentList.stream().allMatch(CallExpressionArgumentModel::isCanCache);
     if (classType != null) {
       SpecificTypeReference typeRef = classType.fullyResolveTypeDefAndUnwrapNullTypeReference();
       if (typeRef instanceof SpecificHaxeClassReference classReference ) {
@@ -273,6 +274,7 @@ public class HaxeCallExpressionUtil {
             evaluation.isMacroFunction = false;
             evaluation.isEnumConstructor = false; // enums dont use the new keyword
             evaluation.isConstructor = true;
+            evaluation.canCache = canCache;
             return evaluation;
           }
         }
@@ -303,7 +305,7 @@ public class HaxeCallExpressionUtil {
       List<HaxeExpression> expressions = expressionListPsi.getExpressionList();
       for (HaxeExpression expression : expressions) {
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
-        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType());
+        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.cacheable);
         argumentList.add(model);
       }
     }
@@ -313,9 +315,10 @@ public class HaxeCallExpressionUtil {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
       List<HaxeExpression> expressions = newExpression.getExpressionList();
       for (HaxeExpression expression : expressions) {
-        ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
-        CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType());
-        argumentList.add(model);
+          ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
+          CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.cacheable);
+          model.canCache = result.cacheable;
+          argumentList.add(model);
       }
     return argumentList;
   }
@@ -323,7 +326,7 @@ public class HaxeCallExpressionUtil {
   private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull List<SpecificTypeReference> types) {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
     for (SpecificTypeReference type : types) {
-      CallExpressionArgumentModel model = CallExpressionArgumentModel.create(type.getElementContext(), type);
+      CallExpressionArgumentModel model = CallExpressionArgumentModel.create(type.getElementContext(), type, false);
       argumentList.add(model);
     }
     return argumentList;

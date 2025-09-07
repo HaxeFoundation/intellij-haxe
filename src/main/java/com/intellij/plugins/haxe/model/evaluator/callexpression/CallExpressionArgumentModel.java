@@ -10,10 +10,11 @@ import lombok.Getter;
 public class CallExpressionArgumentModel {
   PsiElement psiElement;
   SpecificTypeReference type;
+  boolean canCache;
 
 
-  public static CallExpressionArgumentModel create(PsiElement psiElement, SpecificTypeReference type) {
-    return new CallExpressionArgumentModel(psiElement, type);
+  public static CallExpressionArgumentModel create(PsiElement psiElement, SpecificTypeReference type, boolean canCache) {
+    return new CallExpressionArgumentModel(psiElement, type, canCache);
   }
 
 
