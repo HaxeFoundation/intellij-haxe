@@ -23,6 +23,13 @@ jobs:
     runs-on: ${{ matrix.OS }}
     timeout-minutes: 25
     steps:
+      - name: Maximize Build Space (ubuntu/mac)
+        if: ${{ matrix.os != 'windows-latest'}}
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
+
       - uses: actions/checkout@v5
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -31,12 +38,6 @@ jobs:
           java-version: 21
           cache: 'gradle'
 
-      - name: Maximize Build Space (ubuntu/mac)
-        if: ${{ matrix.os != 'windows-latest'}}
-        run: |
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /usr/local/lib/android
-          sudo rm -rf /opt/ghc
 
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
