@@ -4,6 +4,8 @@
 * Added: Detecting code references in console output and making them navigatable.
 * Added: Adding quickfixes for missing constructor, missing Super call and introduce Enum value. 
 * Bugfix: Private constructors would in some cases show as unused when not.
+* Bugfix: Fixed issue where recursion guard would cause resolve to fail. (#1222)
+* Changed: shadowing static methods changed from warning to weak warning.
 * Improvement: misc minor bugfixes
 
 ## 1.7.4
