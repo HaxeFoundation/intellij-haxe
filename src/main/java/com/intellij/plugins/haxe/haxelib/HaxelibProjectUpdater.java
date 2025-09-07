@@ -35,6 +35,7 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.roots.*;
+import com.intellij.openapi.roots.ex.ProjectRootManagerEx;
 import com.intellij.openapi.roots.libraries.Library;
 import com.intellij.openapi.roots.libraries.LibraryTable;
 import com.intellij.openapi.roots.libraries.LibraryTablesRegistrar;
@@ -1213,7 +1214,7 @@ public class HaxelibProjectUpdater {
   /**
    * Tracks the state of a project for updating class paths.
    */
-  public final class ProjectTracker implements Disposable {
+  public final class ProjectTracker implements ProjectRootManagerEx.ProjectJdkListener, Disposable {
     final Project myProject;
     boolean myIsDirty;
     boolean myIsUpdating;
@@ -1389,6 +1390,12 @@ public class HaxelibProjectUpdater {
       HaxelibCacheManager.removeInstance(module);
       myLibraryCacheManager.removeInstance(module);
     }
+
+      @Override
+      public void projectJdkChanged() {
+        this.setDirty(true);
+          myQueue.add(this);
+      }
   } // end class ProjectTracker
 
 
@@ -1427,7 +1434,7 @@ public class HaxelibProjectUpdater {
           tracker = new ProjectTracker(project);
           myMap.put(project.getName(), tracker);
         }
-
+          ProjectRootManagerEx.getInstanceEx(project).addProjectJdkListener(tracker);
         tracker.addReference();
       }
       return tracker;
@@ -1439,6 +1446,7 @@ public class HaxelibProjectUpdater {
           ProjectTracker tracker = myMap.get(project.getName());
           if (null != tracker) {
             int refs = tracker.removeReference();
+              ProjectRootManagerEx.getInstanceEx(project).removeProjectJdkListener(tracker);
             if (refs == 0) {
               return  null != myMap.remove(project.getName());
             }
