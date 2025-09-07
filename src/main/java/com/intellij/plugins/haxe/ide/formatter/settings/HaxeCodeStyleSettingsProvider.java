@@ -17,8 +17,10 @@
  */
 package com.intellij.plugins.haxe.ide.formatter.settings;
 
+import com.intellij.lang.Language;
 import com.intellij.openapi.options.Configurable;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsProvider;
 import com.intellij.psi.codeStyle.CustomCodeStyleSettings;
@@ -45,4 +47,9 @@ public class HaxeCodeStyleSettingsProvider extends CodeStyleSettingsProvider {
   public CustomCodeStyleSettings createCustomSettings(CodeStyleSettings settings) {
     return new HaxeCodeStyleSettings(settings);
   }
+
+    @Override
+    public @Nullable Language getLanguage() {
+        return HaxeLanguage.INSTANCE;
+    }
 }
