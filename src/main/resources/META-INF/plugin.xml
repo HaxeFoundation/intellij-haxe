@@ -512,7 +512,9 @@
                 canCloseContents="true"
                 factoryClass="com.intellij.plugins.haxe.ide.toolWindow.HaxelibConsoleWindowFactory"/>
 
-    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"/>
+    <readWriteAccessDetector implementation="com.intellij.plugins.haxe.ide.HaxeReadWriteAccessDetector"
+                             id="haxe"
+                             order="first, before kotlin, before java"/>
 
     <postStartupActivity implementation="com.intellij.plugins.haxe.haxelib.HaxelibProjectStartActivity"/>
 
