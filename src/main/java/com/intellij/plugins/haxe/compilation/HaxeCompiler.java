@@ -19,15 +19,12 @@
 package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.compiler.options.CompileStepBeforeRun;
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.ExecutionManager;
-import com.intellij.execution.Executor;
 import com.intellij.execution.configurations.ModuleBasedConfiguration;
 import com.intellij.execution.configurations.RunConfiguration;
 import com.intellij.execution.configurations.RunConfigurationModule;
-import com.intellij.execution.executors.DefaultRunExecutor;
-import com.intellij.execution.runners.ExecutionEnvironment;
-import com.intellij.execution.runners.ExecutionEnvironmentBuilder;
+import com.intellij.execution.executors.DefaultDebugExecutor;
+import com.intellij.execution.impl.ExecutionManagerImpl;
+import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
@@ -48,6 +45,7 @@ import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
+import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
@@ -367,19 +365,9 @@ public class HaxeCompiler implements FileProcessingCompiler {
     };
   }
 
-    // replaces old code (api was changed to Internal):
-    //ExecutionManager.getInstance(module.getProject()).isStarting( configuration.getName(), DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
-    // NOTE mlo: not sure if this does anything useful, both old and new seems to end up as false.
     private static boolean isDebug(Module module, ModuleBasedConfiguration configuration) {
-        try {
-            ExecutionManager executionManager = ExecutionManager.getInstance(module.getProject());
-            Executor executorInstance = DefaultRunExecutor.getRunExecutorInstance();
-            ExecutionEnvironmentBuilder builder = ExecutionEnvironmentBuilder.create(module.getProject(), executorInstance, configuration);
-            ExecutionEnvironment build = builder.build(null);
-            return executionManager.isStarting(build);
-        } catch (ExecutionException e) {
-            return false;
-        }
+        String name = RunnerAndConfigurationSettingsImpl.getUniqueIdFor(configuration);
+        return ExecutionManagerImpl.getInstance(module.getProject()).isStarting(name, DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
     }
 
     private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {
