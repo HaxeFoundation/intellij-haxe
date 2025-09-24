@@ -67,17 +67,6 @@ public class JpsHaxeSdkAdditionalDataImpl extends JpsElementBase<JpsHaxeSdkAddit
     myAdditionalData.setHaxelibPath(haxelibPath);
   }
 
-  @NotNull
-  @Override
-  public JpsHaxeSdkAdditionalDataImpl createCopy() {
-    return new JpsHaxeSdkAdditionalDataImpl(myAdditionalData);
-  }
-
-  @Override
-  public void applyChanges(@NotNull JpsHaxeSdkAdditionalDataImpl modified) {
-    myAdditionalData = modified.myAdditionalData;
-  }
-
   @Override
   public boolean getUseCompilerCompletionFlag() {
     return myAdditionalData.getUseCompilerCompletionFlag();

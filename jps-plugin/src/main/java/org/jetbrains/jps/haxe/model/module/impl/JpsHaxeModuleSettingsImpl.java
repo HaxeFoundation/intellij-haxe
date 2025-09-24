@@ -206,14 +206,4 @@ public class JpsHaxeModuleSettingsImpl extends JpsElementBase<JpsHaxeModuleSetti
     mySettingsBase.setBuildConfig(buildConfig);
   }
 
-  @NotNull
-  @Override
-  public JpsHaxeModuleSettingsImpl createCopy() {
-    return new JpsHaxeModuleSettingsImpl(mySettingsBase);
-  }
-
-  @Override
-  public void applyChanges(@NotNull JpsHaxeModuleSettingsImpl modified) {
-    mySettingsBase = modified.mySettingsBase;
-  }
 }
