@@ -1,4 +1,8 @@
 # Changelog
+## 1.7.6
+* bugfix: Intellij 2025.2 plugin code changes broke debugging, it should now work again. 
+* Bugfix: Find usage would not show write access (#1226 - Fix by LviatYi)
+
 ## 1.7.5
 * Added: Initial support for intellij 2025.2.
 * Added: Detecting code references in console output and making them navigatable.
