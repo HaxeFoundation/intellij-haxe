@@ -22,12 +22,13 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.psi.LiteralTextEscaper;
-import com.intellij.psi.PsiLanguageInjectionHost;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost {
+abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost, PsiLiteralValue {
 
   public HaxeStringLiteralImpl(ASTNode node) {
     super(node);
@@ -71,4 +72,15 @@ abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements
       }
     };
   }
+
+    @Override
+    public @Nullable Object getValue() {
+        // necessary for making navigatable web/url references
+        return this.getText();
+    }
+
+    public PsiReference @NotNull [] getReferences() {
+      // necessary for making navigatable web/url references
+        return ReferenceProvidersRegistry.getReferencesFromProviders(this);
+    }
 }
