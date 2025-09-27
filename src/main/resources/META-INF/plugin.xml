@@ -258,6 +258,9 @@
     <codeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeCodeStyleSettingsProvider"/>
     <langCodeStyleSettingsProvider implementation="com.intellij.plugins.haxe.ide.formatter.settings.HaxeLanguageCodeStyleSettingsProvider"/>
 
+    <breadcrumbsInfoProvider implementation="com.intellij.plugins.haxe.ide.editor.HaxeBreadcrumbsInfoProvider" id="Haxe"/>
+
+
     <quoteHandler fileType="Haxe" className="com.intellij.plugins.haxe.ide.HaxeQuoteHandler"/>
 
     <extendWordSelectionHandler implementation="com.intellij.plugins.haxe.editor.actions.wordSelection.HaxeStringSelectioner" />
