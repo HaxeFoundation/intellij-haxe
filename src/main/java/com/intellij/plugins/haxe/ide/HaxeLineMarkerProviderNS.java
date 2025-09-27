@@ -71,10 +71,10 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
             if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
                 PsiElement resolve = referenceExpression.resolve();
                 if (resolve == parentMethod) {
-
+                    PsiElement psiElement = referenceExpression.getIdentifier().getFirstChild();
                     LineMarkerInfo<PsiElement> lineMarkerInfo = new LineMarkerInfo<>(
-                            callExpression,
-                            callExpression.getTextRange(),
+                            psiElement,
+                            psiElement.getTextRange(),
                             AllIcons.Gutter.RecursiveMethod,
                             null,
                             null,
