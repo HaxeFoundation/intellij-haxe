@@ -1,5 +1,7 @@
 # Changelog
 ## 1.7.6
+* Added: Line marker for recursions 
+* Added: Support for showing breadcrumbs 
 * bugfix: Intellij 2025.2 plugin code changes broke debugging, it should now work again. 
 * Bugfix: Find usage would not show write access (#1226 - Fix by LviatYi)
 
