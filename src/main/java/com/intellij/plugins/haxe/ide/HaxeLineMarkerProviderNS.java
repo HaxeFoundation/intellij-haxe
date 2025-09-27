@@ -24,13 +24,15 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
-import com.intellij.openapi.project.DumbService;
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -56,12 +58,36 @@ public abstract class HaxeLineMarkerProviderNS implements LineMarkerProvider {
       if (element instanceof HaxeClass haxeClass) {
         if (haxeClass.isObjectLiteralType()) continue;// ignore object literals as they do not inherit)
         if (haxeClass instanceof HaxeGenericListPart) continue;// ignore typeParameter definitions
-        HaxeLineMarkerProviderNS.collectClassMarkers(result, haxeClass);
+        collectClassMarkers(result, haxeClass);
+      }else if (element instanceof HaxeCallExpression callExpression) {
+          collectRecursionMarkers(result, callExpression);
       }
     }
   }
 
-  private static void collectClassMarkers(@NotNull Collection<? super LineMarkerInfo<?>> result, @NotNull HaxeClass haxeClass) {
+    private static void collectRecursionMarkers(Collection<? super LineMarkerInfo<?>> result, HaxeCallExpression callExpression) {
+        HaxeMethod parentMethod = PsiTreeUtil.getParentOfType(callExpression, HaxeMethod.class);
+        if (parentMethod != null) {
+            if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+                PsiElement resolve = referenceExpression.resolve();
+                if (resolve == parentMethod) {
+
+                    LineMarkerInfo<PsiElement> lineMarkerInfo = new LineMarkerInfo<>(
+                            callExpression,
+                            callExpression.getTextRange(),
+                            AllIcons.Gutter.RecursiveMethod,
+                            null,
+                            null,
+                            GutterIconRenderer.Alignment.LEFT,
+                            () -> "Recursive call"
+                    );
+                    result.add(lineMarkerInfo);
+                }
+            }
+        }
+    }
+
+    private static void collectClassMarkers(@NotNull Collection<? super LineMarkerInfo<?>> result, @NotNull HaxeClass haxeClass) {
     final List<HaxeClass> supers = HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeExtendsList());
     supers.addAll(HaxeResolveUtil.tryResolveClassesByQName(haxeClass.getHaxeImplementsList()));
     final List<HaxeNamedComponent> superItems =  HaxeNamedSubComponentUtil.uniqueNamedSubComponents(HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassTypes(supers));
