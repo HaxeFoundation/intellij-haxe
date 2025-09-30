@@ -34,7 +34,6 @@ import com.intellij.psi.search.searches.FunctionalExpressionSearch;
 import com.intellij.psi.util.*;
 import com.intellij.refactoring.RefactoringBundle;
 import com.intellij.refactoring.classMembers.MemberInfoBase;
-import com.intellij.refactoring.util.CommonRefactoringUtil;
 import com.intellij.refactoring.util.RefactoringConflictsUtil;
 import com.intellij.refactoring.util.RefactoringHierarchyUtil;
 import com.intellij.refactoring.util.RefactoringUIUtil;
@@ -47,10 +46,7 @@ import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PullUpConflictsUtil {
   private PullUpConflictsUtil() {}
@@ -269,7 +265,8 @@ public class PullUpConflictsUtil {
         final PsiMethod method = (PsiMethod)member;
         final PsiModifierList modifierList = method.getModifierList();
         if (!modifierList.hasModifierProperty(PsiModifier.PRIVATE)) {
-          for (PsiClass subClass : ClassInheritorsSearch.search(superClass)) {
+            Collection<PsiClass> search = ClassInheritorsSearch.search(superClass).findAll();
+            for (PsiClass subClass : search) {
             if (method.getContainingClass() != subClass) {
               MethodSignature signature = ((PsiMethod) member).getSignature(TypeConversionUtil.getSuperClassSubstitutor(superClass, subClass, PsiSubstitutor.EMPTY));
               final PsiMethod wouldBeOverriden = MethodSignatureUtil.findMethodBySignature(subClass, signature, false);

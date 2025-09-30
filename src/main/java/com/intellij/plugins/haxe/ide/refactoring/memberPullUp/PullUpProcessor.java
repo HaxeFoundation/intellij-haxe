@@ -156,7 +156,7 @@ public class PullUpProcessor extends BaseRefactoringProcessor implements PullUpD
           @Override
           public void run() {
             if (!myTargetSuperClass.isValid()) return;
-            final Query<PsiClass> search = ClassInheritorsSearch.search(myTargetSuperClass);
+            final Collection<PsiClass> search = ClassInheritorsSearch.search(myTargetSuperClass).findAll();
             final Set<VirtualFile> hierarchyFiles = new HashSet<VirtualFile>();
             for (PsiClass aClass : search) {
               final PsiFile containingFile = aClass.getContainingFile();
