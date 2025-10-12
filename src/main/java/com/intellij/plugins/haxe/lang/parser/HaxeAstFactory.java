@@ -64,7 +64,7 @@ public class HaxeAstFactory extends ASTFactory {
     if (HaxeTokenTypeSets.COMMENTS.contains(type) && !typeIsMeta(type)) {
       // TODO need to create  types of PsiDocCommentBase (at least for docs comments)
       if(type == DOC_COMMENT) {
-        return new haxePsiDocCommentImpl(type, text);
+        return new HaxePsiDocCommentImpl(type, text);
       }
       return new PsiCommentImpl(type, text);
     }

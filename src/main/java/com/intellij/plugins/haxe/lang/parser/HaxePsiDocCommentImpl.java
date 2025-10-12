@@ -13,17 +13,17 @@ import org.jetbrains.annotations.Nullable;
 
 
 
-public class haxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocCommentBase {
+public class HaxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocCommentBase {
 
     private String extractedDocs;
 
-    public haxePsiDocCommentImpl(@NotNull IElementType type, @NotNull CharSequence text) {
+    public HaxePsiDocCommentImpl(@NotNull IElementType type, @NotNull CharSequence text) {
         super(type, text);
     }
 
     @Override
     public @Nullable PsiElement getOwner() {
-        return CachedValuesManager.getProjectPsiDependentCache(this, haxePsiDocCommentImpl::_getOwner);
+        return CachedValuesManager.getProjectPsiDependentCache(this, HaxePsiDocCommentImpl::_getOwner);
     }
 
     private static @Nullable PsiElement _getOwner(PsiElement element) {

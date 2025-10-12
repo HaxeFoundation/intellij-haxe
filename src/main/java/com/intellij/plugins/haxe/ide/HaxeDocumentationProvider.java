@@ -24,7 +24,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.util.text.HtmlBuilder;
 import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.parser.haxePsiDocCommentImpl;
+import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -154,7 +154,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   @Override
   public @Nls @Nullable String generateRenderedDoc(@NotNull PsiDocCommentBase comment) {
-    if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
+    if(comment instanceof  HaxePsiDocCommentImpl haxeDocComment) {
       HaxeDocumentationRenderer renderer = haxeDocComment.getProject().getService(HaxeDocumentationRenderer.class);
 
       String rawDocContent = haxeDocComment.getDocsWithoutIndents();
@@ -170,10 +170,10 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   public void collectDocComments(@NotNull PsiFile file, @NotNull Consumer<? super @NotNull PsiDocCommentBase> sink) {
     if (file instanceof HaxeFile haxeFile) {
 
-      Collection<haxePsiDocCommentImpl> children = PsiTreeUtil.findChildrenOfAnyType(haxeFile, haxePsiDocCommentImpl.class);
+      Collection<HaxePsiDocCommentImpl> children = PsiTreeUtil.findChildrenOfAnyType(haxeFile, HaxePsiDocCommentImpl.class);
       for (PsiComment child : children) {
         if (child.getTokenType() == DOC_COMMENT) {
-          if (child instanceof haxePsiDocCommentImpl haxePsiDocComment) {
+          if (child instanceof HaxePsiDocCommentImpl haxePsiDocComment) {
             sink.accept(haxePsiDocComment);
           }
         }
@@ -281,7 +281,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
   private static void appendDocumentation(HaxeNamedComponent namedComponent, HaxeDocumentationRenderer service, HtmlBuilder htmlBuilder) {
     final PsiComment comment = HaxeResolveUtil.findDocumentation(namedComponent);
-    if(comment instanceof  haxePsiDocCommentImpl haxeDocComment) {
+    if(comment instanceof  HaxePsiDocCommentImpl haxeDocComment) {
       String rawDocContent = haxeDocComment.getDocsWithoutIndents();
       HaxeDocumentationRenderer renderer = haxeDocComment.getProject().getService(HaxeDocumentationRenderer.class);
       String rendered = renderer.parseAndRenderDocs(rawDocContent, haxeDocComment);
