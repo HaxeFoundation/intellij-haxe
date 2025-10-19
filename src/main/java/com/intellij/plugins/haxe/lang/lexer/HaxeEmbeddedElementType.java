@@ -17,9 +17,8 @@ package com.intellij.plugins.haxe.lang.lexer;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
-import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.impl.source.tree.LazyParseablePsiElement;
+import com.intellij.plugins.haxe.lang.parser.HaxePsiMetaElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -52,7 +51,7 @@ public class HaxeEmbeddedElementType extends HaxeLazyParseableElementType {
   @Nullable
   @Override
   public ASTNode createNode(CharSequence text) {
-    return new LazyParseablePsiElement(this, text);
+    return new HaxePsiMetaElement(this, text);
   }
 
 }

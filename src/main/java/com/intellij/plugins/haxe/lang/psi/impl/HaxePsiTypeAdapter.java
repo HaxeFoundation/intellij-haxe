@@ -40,6 +40,7 @@ import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.ArrayFactory;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
@@ -575,6 +576,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @Override
   public ASTNode getNode() {
+    PsiUtilCore.ensureValid(myType);
     return myType.getNode();
   }
 

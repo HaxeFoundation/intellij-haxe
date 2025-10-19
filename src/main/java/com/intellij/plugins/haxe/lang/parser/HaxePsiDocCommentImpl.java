@@ -13,7 +13,7 @@ import org.jetbrains.annotations.Nullable;
 
 
 
-public class HaxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocCommentBase {
+public class HaxePsiDocCommentImpl extends PsiCommentImpl  implements PsiDocCommentBase, HaxeLazyWithOwner {
 
     private String extractedDocs;
 
