@@ -174,7 +174,8 @@
     <renamePsiElementProcessor order="first" implementation="com.intellij.plugins.haxe.ide.refactoring.rename.HaxeRenameProcessor"/>
     <!-- =============================================================================================== -->
 
-    <statementUpDownMover implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeMoveDeclarationHandler" id="Haxe"/>
+    <statementUpDownMover implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeMoveDeclarationHandler" id="HaxeMoveDeclaration"/>
+    <statementUpDownMover implementation="com.intellij.plugins.haxe.ide.refactoring.move.HaxeMoveStatementHandler" id="HaxeMoveStatement" order="after HaxeMoveDeclaration"/>
 
     <codeInsight.lineMarkerProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeLineMarkerProvider"/>
     <codeInsight.gotoSuper language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeGotoSuperHandler"/>

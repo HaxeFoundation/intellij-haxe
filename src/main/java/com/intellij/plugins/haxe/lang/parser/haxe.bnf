@@ -611,7 +611,12 @@ type ::= referenceExpression qualifiedReferenceExpression* typeParam?
 typeOrAnonymous ::=  anonymousType | type
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
-blockStatement ::= '{' !objectLiteralElementList statementList? '}' {pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin" extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"}
+blockStatement ::= '{' !objectLiteralElementList statementList? '}'
+{
+  pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeBlockStatementPsiMixinImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"
+  extends="com.intellij.plugins.haxe.lang.psi.HaxeBlockStatementPsiMixin"
+}
 private statementWithOptionalSemicolon ::= statement <<semicolonUnlessPrecededByStatement>>  {pin=1}
 private statementList ::= (statementWithOptionalSemicolon)+ {recoverWhile="statement_recovery"}
 private statement_recovery ::= !('}' | 'case' | 'default' )
@@ -708,6 +713,7 @@ valueIterator ::= componentName
 iterable ::= expression
 
 doWhileBody ::= statement
+ {implements="com.intellij.plugins.haxe.lang.psi.HaxeCodeBlock"}
 whileStatement ::= 'while' '(' expression ')' doWhileBody ';'?
   { methods=[guard="expression" body="doWhileBody"]}
 doWhileStatement ::= 'do' doWhileBody 'while' '(' expression ')' ';'
@@ -731,6 +737,7 @@ switchStatement ::= 'switch' expression switchBlock {pin=1}
 switchBlock ::= '{' (switchCase | defaultCase)* '}'{pin=1}
 
 switchCaseBlock ::=  statementList | (literalExpression <<semicolonUnlessPrecededByStatement>>)
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeCodeBlock"}
 switchCase ::= 'case'  switchCaseExpr ((','|'|') switchCaseExpr)* guard? ':' switchCaseBlock? {pin=1 recoverWhile="switch_case_recover"}
 private switchCaseExprElement ::= <<pushCollectionInitializersAllow>>   (switchExtractorExpression  | switchCaseCaptureVar | switchCaseCapture | switchEnumBitOperationExpression | enumExtractObjectLiteral | min2RefsQualifiedReferenceExpression | enumExtractedValue | statement ) {hooks=[popCollectionInitializersRule]}
 switchCaseExprArray ::= "["  (switchCaseExprElement ","?)* "]"
@@ -802,7 +809,9 @@ defaultCase ::= 'default' ':' switchCaseBlock? {pin=1 extends="switchCase"}
 
 guard ::= 'if' '(' expression ')'
 guardedStatement ::= statement
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeCodeBlock"}
 elseStatement ::= 'else' statement
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeCodeBlock"}
 ifStatement ::= guard guardedStatement (';'? elseStatement)? ';'? {pin=1}
 
 tryStatement ::= 'try' statement ';'? catchStatement*

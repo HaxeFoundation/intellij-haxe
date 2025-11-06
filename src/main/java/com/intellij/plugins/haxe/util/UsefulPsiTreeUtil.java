@@ -157,10 +157,18 @@ public class UsefulPsiTreeUtil {
   public static boolean isWhitespaceOrComment(ASTNode node) {
     return isWhitespaceOrComment(node.getPsi());
   }
+  public static boolean isHaxePsiToken(PsiElement element) {
+    return element instanceof HaxePsiToken;
+  }
 
   public static boolean isWhitespaceOrComment(PsiElement element) {
     return element instanceof PsiWhiteSpace || element instanceof PsiComment;
   }
+
+  public static boolean isComment(PsiElement element) {
+    return  element instanceof PsiComment;
+  }
+
   public static boolean isWhitespace(PsiElement element) {
     return element instanceof PsiWhiteSpace;
   }
@@ -375,6 +383,15 @@ public class UsefulPsiTreeUtil {
     PsiElement sibling = element.getNextSibling();
     while (sibling != null && isWhitespaceOrComment(sibling)) {
       sibling = sibling.getNextSibling();
+    }
+    return sibling;
+  }
+  @Nullable
+  public static PsiElement getPrevSiblingSkipWhiteSpacesAndComments(@Nullable PsiElement element) {
+    if (element == null) return null;
+    PsiElement sibling = element.getPrevSibling();
+    while (sibling != null && isWhitespaceOrComment(sibling)) {
+      sibling = sibling.getPrevSibling();
     }
     return sibling;
   }

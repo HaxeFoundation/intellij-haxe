@@ -1,14 +1,10 @@
 package com.intellij.plugins.haxe.ide.refactoring.move;
 
-import com.intellij.codeInsight.editorActions.moveUpDown.LineMover;
 import com.intellij.codeInsight.editorActions.moveUpDown.LineRange;
 import com.intellij.codeInsight.editorActions.moveUpDown.StatementUpDownMover;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.LogicalPosition;
-import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.parser.HaxeLazyWithOwner;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
@@ -26,19 +22,7 @@ import java.util.Objects;
 
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.*;
 
-public class HaxeMoveDeclarationHandler extends LineMover {
-
-
-    @Override
-    public void beforeMove(@NotNull Editor editor, @NotNull MoveInfo info, boolean down) {
-        super.beforeMove(editor, info, down);
-    }
-
-    @Override
-    public void afterMove(@NotNull Editor editor, @NotNull PsiFile file, @NotNull MoveInfo info, boolean down) {
-        super.afterMove(editor, file, info, down);
-    }
-
+public class HaxeMoveDeclarationHandler extends HaxeLineMover {
 
     @Override
     public boolean checkAvailable(@NotNull Editor editor, @NotNull PsiFile file, @NotNull StatementUpDownMover.MoveInfo info, boolean down) {
@@ -53,30 +37,47 @@ public class HaxeMoveDeclarationHandler extends LineMover {
             TreeUtil.ensureParsed(file.getNode());
 
             // TODO honor minimum lines between declarations
-            int lines = getMinimumLinesToKeep(info.toMove, editor, haxeFile);
+            LineRange firstRange = info.toMove;
+            LineRange secondRange = info.toMove2;
 
-            LineRange rangeIncludingDocsAndMeta = findRangeForComponent(info.toMove, editor, haxeFile);
+            int lines = getMinimumLinesToKeep(firstRange, editor, haxeFile);
+
+            LineRange rangeIncludingDocsAndMeta = findRangeForComponent(firstRange, editor, haxeFile);
             if (rangeIncludingDocsAndMeta == null) {
                 return false;
             }
 
+
             if (down) {
                 LineRange lineAfterComponent = getLineAfter(rangeIncludingDocsAndMeta);
                 LineRange nextComponent = findRangeForComponent(lineAfterComponent, editor, haxeFile);
-                info.toMove = rangeIncludingDocsAndMeta;
-                info.toMove2 = Objects.requireNonNullElse(nextComponent, lineAfterComponent);
+
+                firstRange = rangeIncludingDocsAndMeta;
+                if(nextComponent != null && nextComponent.startLine >= lineAfterComponent.startLine) {
+                    secondRange = nextComponent;
+                }else {
+                    // TODO validate not changing scope (one problem is multi-line metadata)
+                    secondRange = lineAfterComponent;
+                }
             } else {
                 LineRange lineBeforeComponent = getLineBefore(rangeIncludingDocsAndMeta);
                 if(lineBeforeComponent == null) {
                     return info.prohibitMove();
                 }
                 LineRange previousComponent = findRangeForComponent(lineBeforeComponent, editor, haxeFile);
-                info.toMove = rangeIncludingDocsAndMeta;
-                info.toMove2 = Objects.requireNonNullElse(previousComponent, lineBeforeComponent);
+                firstRange= rangeIncludingDocsAndMeta;
+                secondRange = Objects.requireNonNullElse(previousComponent, lineBeforeComponent);
             }
 
-            if(!validateMove(info)) {
+            if(!moveInSameScope(editor, firstRange, secondRange, haxeFile)){
                 return info.prohibitMove();
+            }
+
+            if(!validateMove(firstRange, secondRange)) {
+                return info.prohibitMove();
+            }else {
+                info.toMove = firstRange;
+                info.toMove2 = secondRange;
             }
 
             return true;
@@ -84,13 +85,25 @@ public class HaxeMoveDeclarationHandler extends LineMover {
         return false;
     }
 
-    private boolean validateMove(@NotNull StatementUpDownMover.MoveInfo info) {
-        return  !info.toMove.contains(info.toMove2) && !info.toMove2.contains(info.toMove);
+    private boolean moveInSameScope(@NotNull Editor editor,LineRange firstRange , LineRange secondRange,  HaxeFile haxeFile) {
+        HaxeNamedComponent source = findComponent(firstRange, editor, haxeFile);
+        HaxeNamedComponent target = findComponent(secondRange, editor, haxeFile);
+        if(target == null || source == null) return true;
+        if (PsiTreeUtil.isAncestor(source, target, true)) return false;
+        if (PsiTreeUtil.isAncestor(target, source, true)) return false;
+        return true;
     }
+
 
     @Nullable
     private LineRange findRangeForComponent(LineRange range, Editor editor, HaxeFile file) {
-        if(!valid(range)) return null;
+        if(!validRange(range)) return null;
+
+        // if our line is an expression in a codeblock inside a component we don't want to move the component
+        PsiElement expression = findExpression(range, editor, file, true);
+        if (expression != null && this.parentIsCodeBlock(expression) ) {
+            return null;
+        }
 
         LineRange expanded = expandRangeToDefinition(range, editor, file);
         if (expanded == null) return null;
@@ -99,22 +112,6 @@ public class HaxeMoveDeclarationHandler extends LineMover {
         if (possibleComponent == null) return null;
 
         return expandRangeToIncludeMetadataAndDocs(editor, expanded, possibleComponent);
-    }
-
-    private boolean valid(@Nullable LineRange range) {
-        if(range == null) return false;
-        return range.startLine >= 0;
-    }
-
-    @Nullable
-    private HaxeNamedComponent findComponent(LineRange originalRange, Editor editor, HaxeFile file) {
-        LineRange expanded = expandRangeToDefinition(originalRange, editor, file);
-        if (expanded == null) return null;
-
-        int lineStartOffset = editor.getDocument().getLineStartOffset(expanded.startLine);
-        PsiElement startElement = file.findElementAt(lineStartOffset);
-
-        return findComponentOnLine(startElement, editor.getDocument(), expanded.startLine);
     }
 
 
@@ -132,44 +129,19 @@ public class HaxeMoveDeclarationHandler extends LineMover {
         };
     }
 
-    private static @NotNull LineRange getLineAfter(LineRange range) {
-        return new LineRange(range.endLine, range.endLine + 1);
-    }
-
-    private static @Nullable LineRange getLineBefore(LineRange range) {
-        if(range.startLine == 0) return null;
-        return new LineRange(range.startLine - 1, range.startLine);
-    }
-
-
-    @Nullable
-    public static HaxeNamedComponent findComponentOnLine(@Nullable PsiElement element, @NotNull Document document, int expandedLine) {
-        if (element == null) return null;
-        PsiElement sibling = element;
-        while (!(sibling instanceof HaxeNamedComponent component)) {
-            if (sibling instanceof HaxeLazyWithOwner lazyWithOwner) {
-                if (lazyWithOwner.getOwner() instanceof HaxeNamedComponent namedComponent) {
-                    return namedComponent;
-                }
-            }
-            sibling = sibling.getNextSibling() == null ? sibling.getParent() : sibling.getNextSibling();
-            if (document.getLineNumber(sibling.getTextOffset()) != expandedLine) return null;
-        }
-        return component;
-    }
-
-
     private LineRange expandRangeToIncludeMetadataAndDocs(@NotNull Editor editor, LineRange range, PsiElement component) {
         PsiElement element = component;
         PsiElement iterator = element;
         do {
             iterator = findPreviousSiblingIncludingFromParent(iterator);
+            if(iterator == element) break; // prevent eternal loop when on beginning of file
             if (isMetadataOrDoc(iterator)) {
                 // TODO only include 1x docs
                 element = iterator;
             } else if (!isWhitespaceOrCommentButNotDocs(iterator)) {
                 break;
             }
+
         } while (true);
 
         if (element == component) return range;
@@ -186,6 +158,7 @@ public class HaxeMoveDeclarationHandler extends LineMover {
 
         // if we are first child in parent, go one  level deeper
         PsiElement first = parent.getFirstChild();
+        if(parent instanceof PsiFile) return first;
         if (first == element) {
             return findPreviousSiblingIncludingFromParent(parent);
         }
@@ -207,47 +180,12 @@ public class HaxeMoveDeclarationHandler extends LineMover {
             element = element.getFirstChild();
         }
         return switch (element) {
-            //Use HaxePsiDocCommentImpl not HaxePsiDocComment
+            //important: Use HaxePsiDocCommentImpl not HaxePsiDocComment
             case HaxePsiDocCommentImpl e -> true;
             case HaxeMeta e -> true;
             case null, default -> false;
         };
     }
 
-    private LineRange expandRangeToDefinition(LineRange originalRange, Editor editor, HaxeFile file) {
-
-        Pair<PsiElement, PsiElement> selectionPair = getElementRange(editor, file, originalRange);
-        if (selectionPair != null) {
-            PsiElement selectionPsiStart = selectionPair.getFirst();
-            PsiElement selectionPsiEnd = selectionPair.getSecond();
-
-            PsiElement definition = PsiTreeUtil.findCommonParent(selectionPsiStart, selectionPsiEnd);
-            Pair<PsiElement, PsiElement> definitionPair = getElementRange(definition, selectionPsiStart, selectionPsiEnd);
-            if (definitionPair != null) {
-
-                Document document = editor.getDocument();
-
-                PsiElement definitionPsiStart = definitionPair.getFirst();
-                PsiElement definitionPsiEnd = definitionPair.getSecond();
-
-                LogicalPosition startPos = editor.offsetToLogicalPosition(definitionPsiStart.getTextOffset());
-                int startLine = Math.min(originalRange.startLine, startPos.line);
-
-                int endLine;
-                int endOffset = definitionPsiEnd.getTextRange().getEndOffset();
-                if (endOffset == document.getTextLength()) {
-                    endLine = document.getLineCount();
-                } else {
-                    endLine = editor.offsetToLogicalPosition(endOffset).line + 1;
-                    endLine = Math.min(endLine, document.getLineCount());
-                }
-                endLine = Math.max(endLine, originalRange.endLine);
-
-                return new LineRange(startLine, endLine);
-            }
-
-        }
-        return null;
-    }
 
 }
