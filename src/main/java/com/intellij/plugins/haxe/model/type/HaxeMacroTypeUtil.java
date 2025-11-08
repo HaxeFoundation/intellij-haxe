@@ -61,7 +61,7 @@ public class HaxeMacroTypeUtil {
     return SpecificHaxeClassReference.withoutGenerics(reference);
   }
 
-  public static SpecificTypeReference getExprOf(@NotNull PsiElement context, @NotNull ResultHolder specific) {
+  public static SpecificHaxeClassReference getExprOf(@NotNull PsiElement context, @NotNull ResultHolder specific) {
     HaxeClass classByQName = getCachedExprOf(context, context.getProject());
     HaxeClassReference reference = classByQName != null
                                    ? new HaxeClassReference(classByQName.getModel(), context)

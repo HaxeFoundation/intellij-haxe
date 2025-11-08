@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.ide.info;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl;
+import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -31,13 +32,16 @@ class HaxeFunctionDescriptionBuilder {
     final HaxeGenericSpecialization specialization = expression.getSpecialization();
     final boolean isStaticExtension = expression.resolveIsStaticExtension();
 
-    final HaxeReference reference = (HaxeReference)expression.getExpression();
-    final PsiElement target = reference.resolve();
+    if(expression.getExpression() instanceof  HaxeReference reference) {
+        final PsiElement target = reference.resolve();
 
-    if (target instanceof HaxeMethod) {
-      final HaxeClass haxeClass = (HaxeClass)((HaxeMethod)target).getContainingClass();
-      final HaxeResolveResult resolveResult = HaxeResolveResult.create(haxeClass, specialization);
-      return build((HaxeMethod)target, resolveResult, isStaticExtension);
+        if (target instanceof HaxeMethod method) {
+            HaxeMethodModel model = method.getModel();
+            boolean memberMacro = model.isMacroMember();
+            final HaxeClass haxeClass = (HaxeClass) method.getContainingClass();
+            final HaxeResolveResult resolveResult = HaxeResolveResult.create(haxeClass, specialization);
+            return build(method, resolveResult, isStaticExtension | memberMacro);
+        }
     }
     return null;
   }
@@ -73,15 +77,15 @@ class HaxeFunctionDescriptionBuilder {
 
   private static HaxeFunctionDescription build(HaxeMethod method,
                                                HaxeResolveResult resolveResult,
-                                               boolean isExtension) {
+                                               boolean skipFirstParameter) {
 
     HaxeParameterDescription[] parameterDescriptions = null;
 
     final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(method, HaxeParameterList.class);
     if (parameterList != null) {
       List<HaxeParameter> list = parameterList.getParameterList();
-      if (isExtension) {
-        list.remove(0);
+      if (skipFirstParameter) {
+        list.removeFirst();
       }
       parameterDescriptions = HaxeParameterDescriptionBuilder.buildFromList(list, resolveResult);
     }

@@ -469,6 +469,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   @Nullable
   public SpecificHaxeClassReference tryCastToClass(SpecificHaxeClassReference targetClass) {
+      return tryCastToClass(targetClass, false);
+  }
+  public SpecificHaxeClassReference tryCastToClass(SpecificHaxeClassReference targetClass, boolean allowExprOf) {
     if (targetClass == null) return null;
     HaxeClass targetHaxeClass = targetClass.getHaxeClass();
     HaxeClass sourceHaxeClass = this.getHaxeClass();
@@ -496,7 +499,19 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
         }
       }
     }
-    return null;
+      //allowing casting to ExprOf<T>, used to map between macro  and no macro code
+      // ex.
+      // macro function test<T>(value: ExprOf<T>): ExprOf<T> {return value;}
+      // var result:String = test("stringValue");
+      if (allowExprOf) {
+          if (targetClass.isExprOf()) {
+              ResultHolder holder = targetClass.createHolder();
+              if (holder.containsUnknownTypeParameters()) {
+                  return HaxeMacroTypeUtil.getExprOf(context, createHolder());
+              }
+          }
+      }
+      return null;
   }
   @Nullable
   public SpecificHaxeClassReference tryAbstractCast(SpecificHaxeClassReference targetClass) {

@@ -65,8 +65,9 @@ public class HaxeAssignEvaluation {
     boolean toMacroScope = isMacroScope(toContext);
     boolean fromMacroScope = isMacroScope(fromContext);
 
-    to = fullyResolve(to, toMacroScope);
-    from = fullyResolve(from, fromMacroScope);
+        // do not resolve exprOf to Expr, we will lose important type info
+      if (!to.isExprOf()) to = fullyResolve(to, toMacroScope);
+      if (!from.isExprOf()) from = fullyResolve(from, fromMacroScope);
   }
 
   private static boolean isMacroScope(PsiElement context) {
@@ -131,7 +132,18 @@ public class HaxeAssignEvaluation {
         }
       }
     }
-
+      if(to.isExprOf() && to instanceof SpecificHaxeClassReference toClass) {
+          @NotNull ResultHolder[] specifics = toClass.getSpecifics();
+          if (specifics.length>0) {
+              return specifics[0].canAssign(from.createHolder());
+          }
+      }
+      if(from.isExprOf() && to instanceof SpecificHaxeClassReference fromClass) {
+          @NotNull ResultHolder[] specifics = fromClass.getSpecifics();
+          if (specifics.length>0) {
+              return specifics[0].canAssign(to.createHolder());
+          }
+      }
     return false;
   }
 

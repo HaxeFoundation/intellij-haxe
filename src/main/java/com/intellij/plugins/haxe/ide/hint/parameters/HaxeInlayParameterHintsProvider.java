@@ -96,7 +96,7 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
       HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, constructorModel.getMethod());
       HaxeCallExpressionEvaluation validation = context.evaluate();
       List<HaxeParameterModel> parameters = MapParametersToModel(constructorModel.getConstructorParameters());
-      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList);
+      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, false);
     }
   }
 
@@ -109,7 +109,8 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
 
     if (validation.isCompleted()) {
       List<HaxeParameterModel> parameters = model.getParameters();
-      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList);
+      boolean skipFirstParam = context.isStaticExtension | context.isMacroMemberMethod();
+      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, skipFirstParam);
     }
   }
 
@@ -123,7 +124,8 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
         if (model == null) return;
         List<HaxeExpression> expressionList = newExpression.getExpressionList();
         List<HaxeParameterModel> parameters = model.getParameters();
-        processArguments(validation.getArgumentToParameterMapping(), expressionList, parameters, infoList);
+          boolean skipFirstParam = context.isStaticExtension || context.isMacroMemberMethod();
+          processArguments(validation.getArgumentToParameterMapping(), expressionList, parameters, infoList, skipFirstParam);
       }
     }
   }
@@ -137,13 +139,14 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
   private void processArguments(Map<Integer, Integer> indexMap,
                                 List<HaxeExpression> expressionList,
                                 List<HaxeParameterModel> parameters,
-                                List<InlayInfo> infoList) {
+                                List<InlayInfo> infoList, boolean skipFirstParam) {
     int maxCounter = Math.min(expressionList.size(), parameters.size());
     for (int i = 0; i < maxCounter; i++) {
-      HaxeExpression expression = expressionList.get(i);
-      // since we can have optional parameters and they are matched by type, we use result from CallExpression evaluater to connect argument  to correct parameter
-      if (indexMap == null || indexMap.containsKey(i)) {
-        int parameterIndex = indexMap == null ? i : indexMap.get(i);
+        HaxeExpression expression = expressionList.get(i);
+        int index = skipFirstParam ? i + 1 : i;
+        // since we can have optional parameters and they are matched by type, we use result from CallExpression evaluater to connect argument  to correct parameter
+      if (indexMap == null || indexMap.containsKey(index)) {
+        int parameterIndex = indexMap == null ? index : indexMap.get(index);
         HaxeParameterModel parameterModel = parameters.get(parameterIndex);
         boolean literal = isLiteral(expression) || showHintsForAnyParameterExpressions.get();
 

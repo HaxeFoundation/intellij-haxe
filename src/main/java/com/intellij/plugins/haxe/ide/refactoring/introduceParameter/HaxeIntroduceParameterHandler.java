@@ -60,16 +60,14 @@ public class HaxeIntroduceParameterHandler extends HaxeIntroduceHandler {
         return true;
     }else {
       // check for block parent, we need a block to put assign statement in
-      if (PsiTreeUtil.getParentOfType(element, HaxeBlockStatement.class) != null) {
-        return true;
-      }
+        return PsiTreeUtil.getParentOfType(element, HaxeBlockStatement.class) != null;
     }
     return false;
   }
 
   private boolean isVarDeclaration(PsiElement element) {
     HaxeLocalVarDeclarationList varDeclarations = PsiTreeUtil.getParentOfType(element, HaxeLocalVarDeclarationList.class);
-    if(varDeclarations.getLocalVarDeclarationList().size() == 1) {
+    if(varDeclarations != null && varDeclarations.getLocalVarDeclarationList().size() == 1) {
       HaxeLocalVarDeclaration varDeclaration = varDeclarations.getLocalVarDeclarationList().get(0);
       if (varDeclaration != null && element instanceof HaxeComponentName varName) {
         return varDeclaration.getComponentName() == varName;

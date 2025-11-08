@@ -300,5 +300,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     if(declaringClass == null) return null;
     return declaringClass.getAncestorMethod(getName(), resolver);
   }
+
+    public boolean isMacroMember() {
+        return isMacro() | !isStatic();
+    }
 }
 

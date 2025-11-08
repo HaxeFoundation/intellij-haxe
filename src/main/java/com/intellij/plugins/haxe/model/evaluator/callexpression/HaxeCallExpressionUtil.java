@@ -66,7 +66,8 @@ public class HaxeCallExpressionUtil {
 
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, resolver, methodGenericResolver);
 
-    evaluation.isMacroFunction = methodModel.isMacro() && !methodModel.isStatic();
+    evaluation.isMacroMethod = methodModel.isMacro();
+    evaluation.isStaticMethod = methodModel.isStatic();
     evaluation.isEnumConstructor = false;
     evaluation.callie = callie;
     return evaluation;
@@ -101,7 +102,6 @@ public class HaxeCallExpressionUtil {
     List<CallExpressionArgumentModel> argumentList = getArgumentList(callExpression);
     List<CallExpressionParameterModel> parameterList = getParameterList(methodModel);
     ResultHolder returnType = methodModel.getReturnType(null);
-    boolean isMacroFunction = methodModel.isMacro() && !methodModel.isStatic();
     boolean isStaticExtension = callExpression.resolveIsStaticExtension();
 
     SpecificHaxeClassReference callieClass = null;
@@ -120,7 +120,8 @@ public class HaxeCallExpressionUtil {
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, parentResolver, methodTranslatedResolver);
     evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
     evaluation.isStaticExtension = isStaticExtension;
-    evaluation.isMacroFunction = isMacroFunction;
+    evaluation.isMacroMethod = methodModel.isMacro();
+    evaluation.isStaticMethod = methodModel.isStatic();
     evaluation.isBindCall = isBindCall(callExpression);
     evaluation.isInEnumValueMatchArgument = isEnumValueMatchCall(callExpression);
     evaluation.isEnumValueMatchCallExpression = isEnumValueMatchCallExpression(callExpression);
@@ -192,7 +193,8 @@ public class HaxeCallExpressionUtil {
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, genericResolver, null);
     SpecificTypeReference callie = tryGetCallieType(callExpression, null, evaluation.isStaticExtension);
     evaluation.isStaticExtension = false;
-    evaluation.isMacroFunction = false;
+    evaluation.isMacroMethod = false;
+    evaluation.isStaticMethod = false;
     evaluation.isBindCall = isBindCall(callExpression);
     evaluation.callie = callie;
 
@@ -273,7 +275,8 @@ public class HaxeCallExpressionUtil {
             HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, type, constructorResolver, null);
             evaluation.assignHint = assignHint != null ? assignHint.getType() : null;
             evaluation.isStaticExtension = false;
-            evaluation.isMacroFunction = false;
+            evaluation.isMacroMethod = false;
+            evaluation.isStaticMethod = false;
             evaluation.isEnumConstructor = false; // enums dont use the new keyword
             evaluation.isConstructor = true;
             evaluation.canCache = canCache;

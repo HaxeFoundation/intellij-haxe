@@ -56,9 +56,12 @@ public class HaxeCallExpressionContext {
 
     public boolean canCache = true;
     public boolean isConstructor = false;
-    public boolean isMacroFunction = false;
+    public boolean isMacroMethod = false;
+    public boolean isStaticMethod = false;
     public boolean isStaticExtension = false;
-
+    public boolean isMacroMemberMethod() {
+        return isMacroMethod && !isStaticMethod;
+    }
     /**
      *
      * @param argumentList  list of arguments passed to the function/method beeing called
@@ -106,7 +109,7 @@ public class HaxeCallExpressionContext {
         evaluation.callExpressionResolver = new HaxeGenericResolver();
         evaluation.callExpressionResolver.addAll(callExpressionScopeResolver);
 
-        boolean firstArgIsThisReference = isStaticExtension || isMacroFunction;
+        boolean firstArgIsThisReference = isStaticExtension || isMacroMemberMethod();
         boolean hasRestParam = hasRestParameter(parameters);
 
         List<CallExpressionArgumentModel> argumentsList = new ArrayList<>(arguments); // making a copy since we add callie for extension methods
@@ -367,7 +370,7 @@ public class HaxeCallExpressionContext {
             }
             else if (parameterClassReference.createHolder().containsUnknownTypeParameters()) {
                 if(argumentType instanceof  SpecificHaxeClassReference argumentClassReference) {
-                    SpecificHaxeClassReference downCastedType = argumentClassReference.tryCastToClass(parameterClassReference);
+                    SpecificHaxeClassReference downCastedType = argumentClassReference.tryCastToClass(parameterClassReference, true);
                     if (downCastedType != null) {
                         @NotNull ResultHolder[] parameterSpecifics = parameterClassReference.getSpecifics();
                         @NotNull ResultHolder[] argumentSpecifics = downCastedType.getSpecifics();

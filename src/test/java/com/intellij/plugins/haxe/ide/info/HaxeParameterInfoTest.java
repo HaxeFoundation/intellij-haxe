@@ -141,6 +141,17 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
   }
 
+  @Test
+  public void testParamInfoExtensionMethod() throws Throwable {
+    doTest("?quotes:Bool = null", 0);
+  }
+
+  @Test
+  public void testParamInfoMacroMethod() throws Throwable {
+    doTest("valueB:Int = 1, ValueC:Float = 1.0", 1);
+  }
+
+
   // Disabled - Tests issue #615.
   //@Test public void testLocalShadowingChainedGenerics() throws Throwable {
   //  doTest("t:Node", 0);
