@@ -302,7 +302,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
     public boolean isMacroMember() {
-        return isMacro() | !isStatic();
+        return isMacro() && !isStatic();
     }
 }
 
