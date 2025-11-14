@@ -16,6 +16,7 @@ import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
+import com.intellij.plugins.haxe.model.type.HaxeConstraintsTypeUtil;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -61,14 +62,17 @@ public class HaxeAccessAnnotator implements Annotator {
       HaxeMethodModel constructorModel = findDefaultConstructor(newExpression);
       // No constructors in type
       if (constructorModel == null) {
-        HaxeClass haxeClass = findHaxeClass(newExpression);
-        String message = getQualifiedName(newExpression) + " does not have a constructor";
-        AnnotationBuilder annotationBuilder = holder.newAnnotation(HighlightSeverity.ERROR, message)
-                .range(newExpression);
-        if (haxeClass != null) {
-          annotationBuilder.withFix(new HaxeIntroduceConstructorIntention(newExpression,haxeClass));
-        }
-        annotationBuilder.create();
+          // not a Constructible abstract
+          if (!isConstructableType(newExpression)) {
+              HaxeClass haxeClass = findHaxeClass(newExpression);
+              String message = getQualifiedName(newExpression) + " does not have a constructor";
+              AnnotationBuilder annotationBuilder = holder.newAnnotation(HighlightSeverity.ERROR, message)
+                      .range(newExpression);
+              if (haxeClass != null) {
+                  annotationBuilder.withFix(new HaxeIntroduceConstructorIntention(newExpression, haxeClass));
+              }
+              annotationBuilder.create();
+          }
       }
     }else {
       if (constructor instanceof HaxeConstructorDeclaration declaration) {
@@ -530,13 +534,21 @@ public class HaxeAccessAnnotator implements Annotator {
     return null;
   }
 
-  private static HaxeMethodModel findDefaultConstructor(HaxeNewExpression newExpression) {
-    ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
-    if(typeFromType.getClassType() == null) return null;
-    HaxeClassModel haxeClassModel = typeFromType.getClassType().getHaxeClassModel();
-    if(haxeClassModel == null) return null;
-    return  haxeClassModel.getConstructor(null);
+    private static HaxeMethodModel findDefaultConstructor(HaxeNewExpression newExpression) {
+        ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
+        if (typeFromType.getClassType() == null) return null;
+        HaxeClassModel haxeClassModel = typeFromType.getClassType().getHaxeClassModel();
+        if (haxeClassModel == null) return null;
+        return haxeClassModel.getConstructor(null);
+    }
+  private static boolean isConstructableType(HaxeNewExpression newExpression) {
+      ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
+      if (typeFromType.getClassType() == null) return false;
+      HaxeClass constructableType = HaxeConstraintsTypeUtil.getConstructableType(newExpression);
+      HaxeClassModel model = constructableType.getModel();
+      return typeFromType.canAssign(model.getInstanceReference().createHolder());
   }
+
   private static HaxeClass findHaxeClass(HaxeNewExpression newExpression) {
     ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(newExpression.getType());
     if(typeFromType.getClassType() == null) return null;
