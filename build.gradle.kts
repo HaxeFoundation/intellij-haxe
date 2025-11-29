@@ -25,7 +25,7 @@ plugins {
     // Gradle Kover Plugin
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     // generate parser and lexer
-    id("org.jetbrains.grammarkit") version "2022.3.2.2"
+    id("org.jetbrains.grammarkit") version "2023.3.0.1"
     // console output for tests
     id("com.adarshr.test-logger") version "3.2.0"
 }

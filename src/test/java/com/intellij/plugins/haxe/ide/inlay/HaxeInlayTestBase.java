@@ -5,12 +5,10 @@ import com.intellij.openapi.diagnostic.DefaultLogger;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.LanguageLevelProjectExtension;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.util.HaxeTestUtils;
-import com.intellij.pom.java.LanguageLevel;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.testFramework.builders.ModuleFixtureBuilder;
@@ -71,7 +69,6 @@ public abstract class HaxeInlayTestBase extends DeclarativeInlayHintsProviderTes
     }
     myFixture.setTestDataPath(getTestDataPath());
     myFixture.setUp();
-    LanguageLevelProjectExtension.getInstance(getProject()).setLanguageLevel(LanguageLevel.JDK_1_8);
 
     // disable RecursionPrevention assert as type inference will cause several RecursionPrevention events,
     // and want to be able to test inlays for inferred types

@@ -1,5 +1,6 @@
 # Changelog
 ## 1.7.7
+* Added: Intellij 2025.3 support
 * Added: Declaration and expression move up/down handers
 * Fixed: Parameter info and inlays where incorrectly showing first parameter for extension methods and macro member methods 
 
