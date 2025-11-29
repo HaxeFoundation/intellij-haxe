@@ -275,7 +275,7 @@ public class HaxePullUpHelper implements PullUpHelper<MemberInfo> {
 
       if (!PsiUtil.isLanguageLevel6OrHigher(mySourceClass) && myIsTargetInterface) {
         if (isOriginalMethodAbstract) {
-          for (PsiMethod oMethod : OverridingMethodsSearch.search(method)) {
+          for (PsiMethod oMethod : OverridingMethodsSearch.search(method).findAll()) {
             deleteOverrideAnnotationIfFound(oMethod);
           }
         }
