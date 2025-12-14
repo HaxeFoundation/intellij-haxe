@@ -261,10 +261,27 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean isNumeric() {
-    return isInt() || isFloat() || isSingle();
+    return isInt() || isFloat() || isSingle() || canCastToNumeric();
   }
 
-  final public boolean isBool() {
+    // Some targets have their own numeric types (see cpp  & cs)
+    // instead of adding all definitions from all languages we "cheat" by just check
+    // if the type is a core runtime type that can be casted to the normal numeric types.
+    private boolean canCastToNumeric() {
+        if (this instanceof SpecificHaxeClassReference classReference) {
+            if(classReference.isRuntimeValueMeta() && classReference.isCoreType()  && classReference.isAbstractType()) {
+                List<SpecificTypeReference> directCastType = classReference.getDirectCastToTypes();
+                for (SpecificTypeReference typeReference : directCastType) {
+                    if(typeReference.isNumeric()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    final public boolean isBool() {
     return this.isNamedType(BOOL);
   }
 

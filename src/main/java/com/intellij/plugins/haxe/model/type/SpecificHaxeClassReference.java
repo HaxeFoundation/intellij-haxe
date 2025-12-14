@@ -1046,10 +1046,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return null;
   }
 
-  public boolean isCoreType() {
+    public boolean isCoreType() {
+        return isCompileTimeMeta("coreType");
+    }
+
+    public boolean isRuntimeValueMeta() {
+        return isCompileTimeMeta("runtimeValue");
+    }
+
+  public boolean isCompileTimeMeta(String metaName) {
     HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());
     for (HaxeMeta meta : list) {
-      if (meta.isCompileTimeMeta() && meta.isType("coreType")) {
+      if (meta.isCompileTimeMeta() && meta.isType(metaName)) {
         return true;
       }
     }
