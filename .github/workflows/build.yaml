@@ -57,12 +57,12 @@ jobs:
 
 
       - name: Build with Gradle (windows)
-        timeout-minutes: 25
+        timeout-minutes: 30
         if: ${{ matrix.os == 'windows-latest'}}
         run: .\gradlew.bat clean test buildPlugin verifyPlugin
 
       - name: Build with Gradle (linux/mac)
-        timeout-minutes: 25
+        timeout-minutes: 30
         if: ${{ matrix.os != 'windows-latest'}}
         run: ./gradlew clean test buildPlugin verifyPlugin
 
