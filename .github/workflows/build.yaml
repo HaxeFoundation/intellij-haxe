@@ -21,7 +21,7 @@ jobs:
         OS: [macos-15-intel, ubuntu-latest, windows-latest]
 
     runs-on: ${{ matrix.OS }}
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Maximize Build Space (ubuntu/mac)
         if: ${{ matrix.os != 'windows-latest'}}
