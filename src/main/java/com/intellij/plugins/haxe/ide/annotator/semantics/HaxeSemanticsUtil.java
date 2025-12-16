@@ -1,20 +1,26 @@
 package com.intellij.plugins.haxe.ide.annotator.semantics;
 
+import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeEnumModel;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.fixer.HaxeExpressionConversionFixer;
+import com.intellij.plugins.haxe.model.fixer.HaxeFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeRemoveElementFixer;
 import com.intellij.plugins.haxe.model.fixer.HaxeTypeTagChangeFixer;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -36,7 +42,8 @@ public class HaxeSemanticsUtil {
       final ResultHolder varType = HaxeTypeResolver.getTypeFromTypeTag(tag, erroredElement);
       final ResultHolder initType = getTypeFromVarInit(initExpression, varType);
       if (initType.isInvalid()) return;
-      HaxeAssignEvaluation assignEvaluation = varType.canAssignEvaluation(initType);
+        checkNullAssignForNonNullableType(holder, initExpression, tag, initType, varType);
+        HaxeAssignEvaluation assignEvaluation = varType.canAssignEvaluation(initType);
       if (!assignEvaluation.result) {
         AssignExplanation messages = assignEvaluation.explanations;
         if(messages.hasMissingMembers()) {
@@ -75,7 +82,9 @@ public class HaxeSemanticsUtil {
       }
     }
 
-    private static boolean isTypeFromMacroVar(HaxeTypeTag tag) {
+
+
+      private static boolean isTypeFromMacroVar(HaxeTypeTag tag) {
       if (tag.getTypeOrAnonymous() != null) {
         return tag.getTypeOrAnonymous().getText().startsWith("$");
       }
@@ -133,5 +142,55 @@ public class HaxeSemanticsUtil {
     }
   }
 
+    public static void checkNullAssignForNonNullableType(AnnotationHolder holder, HaxeVarInit initExpression, HaxeTypeTag tag, ResultHolder initType, ResultHolder varType) {
+        if (initType.getConstant() instanceof HaxeNull && initExpression.getExpression() != null) {
+            if(varType.getType() instanceof SpecificHaxeClassReference classReference && classReference.isNotNullMeta()) {
+                String typePresentationString = varType.toPresentationString();
+                String nullabilityWarning = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning", typePresentationString);
+                holder.newAnnotation(HighlightSeverity.WEAK_WARNING, nullabilityWarning)
+                        .withFix(NullWrapTypeFix("Null<"+typePresentationString+">", tag))
+                        .range(initExpression.getExpression())
+                        .create();
+            }
+        }
+    }
+    public static void checkNullAssignForNonNullableType(AnnotationHolder holder, ResultHolder initType, ResultHolder varType, PsiElement rhs) {
+        if (initType.getConstant() instanceof HaxeNull) {
+            if(varType.getType() instanceof SpecificHaxeClassReference classReference && classReference.isNotNullMeta()) {
+                String typePresentationString = varType.toPresentationString();
+                String nullabilityWarning = HaxeBundle.message("haxe.semantic.incompatible.type.null.warning", typePresentationString);
+
+                AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.WEAK_WARNING, nullabilityWarning).range(rhs);
+
+                if(varType.getContext() instanceof  HaxeReferenceExpression referenceExpression) {
+                    PsiElement resolve = referenceExpression.resolve();
+                    if(resolve instanceof HaxePsiField field) {
+                        HaxeTypeTag typeTag = field.getTypeTag();
+                        HaxeFixer fix = NullWrapTypeFix("Null<" + typePresentationString + ">", typeTag);
+                        builder.withFix(fix);
+                    }
+                }
+                builder.create();
+            }
+        }
+    }
+
+    private static @NotNull HaxeFixer NullWrapTypeFix(String newValue, HaxeTypeTag typeTag) {
+        return new HaxeFixer("Replace type with " + newValue) {
+            @Override
+            public void run() {
+                HaxeDocumentModel.fromElement(typeTag).replaceElementText(typeTag, ":" + newValue);
+            }
+
+            @Override
+            public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+                int startOffset = typeTag.getTextRange().getStartOffset();
+                int endOffset = typeTag.getTextRange().getEndOffset();
+                editor.getDocument().replaceString(startOffset,endOffset , ":" + newValue);
+
+                return IntentionPreviewInfo.DIFF;
+            }
+        };
+    }
 
 }

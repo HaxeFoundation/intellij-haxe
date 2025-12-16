@@ -1053,6 +1053,9 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     public boolean isRuntimeValueMeta() {
         return isCompileTimeMeta("runtimeValue");
     }
+    public boolean isNotNullMeta() {
+        return isCompileTimeMeta("notNull");
+    }
 
   public boolean isCompileTimeMeta(String metaName) {
     HaxeMetadataList list = HaxeMetadataUtils.getMetadataList(this.getHaxeClass());

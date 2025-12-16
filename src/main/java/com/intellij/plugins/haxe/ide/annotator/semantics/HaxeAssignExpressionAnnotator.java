@@ -106,5 +106,6 @@ public class HaxeAssignExpressionAnnotator implements Annotator {
         .range(psi)
         .create();
     }
+      HaxeSemanticsUtil.checkNullAssignForNonNullableType(holder, rhsType, lhsType, rhs);
   }
 }
