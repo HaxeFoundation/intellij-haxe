@@ -1,4 +1,8 @@
 # Changelog
+## 1.7.8
+* Bugfix: Fixed issue where numeric operators would incorrectly display an error for platform specific numeric types  (#1228)
+* Added: Weak warning when assigning `null` to types annotated with @:notNull  
+
 ## 1.7.7
 * Added: Intellij 2025.3 support
 * Added: Declaration and expression move up/down handers
