@@ -1137,4 +1137,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
 
+ @Test
+ public void testGenericBuildTypeParameters() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+ }
+
 }

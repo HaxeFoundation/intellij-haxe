@@ -172,6 +172,28 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return haxeClass.hasCompileTimeMeta(HaxeMeta.CALLABLE);
   }
 
+    public boolean isGenericBuild() {
+        return haxeClass.hasCompileTimeMeta(HaxeMeta.GENERIC_BUILD);
+    }
+
+    // @:genericBuild macro supports "rest"/vararg typeParameters, so we ignore typeParameters mismatch.
+    // https://haxe.org/manual/macro-generic-build.html
+    // https://gist.github.com/nadako/b086569b9fffb759a1b5
+    public boolean isGenericBuildWithRestTypeParam() {
+      if(reference == null) return false;
+        HaxeClassModel haxeClassModel = reference.getHaxeClassModel();
+        if(haxeClassModel != null && haxeClassModel.isGenericBuild()) {
+            List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
+            if (!genericParams.isEmpty()) {
+                HaxeGenericParamModel last = genericParams.getLast();
+                String name = last.haxeClass.getName();
+                return name != null && name.equals("Rest");
+            }
+        }
+        return false;
+    }
+
+
   @Nullable
   public HaxeModifiersModel getModifiers() {
 

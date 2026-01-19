@@ -314,9 +314,19 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
         list.forEach(resolver::addAll);
       } else {
-        List<HaxeGenericParamModel> params = model.getGenericParams();
-        for (int n = 0; n < params.size(); n++) {
-          HaxeGenericParamModel paramModel = params.get(n);
+          List<HaxeGenericParamModel> params = model.getGenericParams();
+          boolean hasTypeParamRest = model.isGenericBuildWithRestTypeParam();
+          int paramSize = params.size();
+          int count = paramSize;
+
+          if (hasTypeParamRest) {
+              count = this.getSpecifics().length;
+          }
+
+        boolean hasReachedRestTypeParam = false;
+        for (int n = 0; n < count; n++) {
+            int parameterIndex = Math.min(n, paramSize - 1);
+            HaxeGenericParamModel paramModel = params.get(parameterIndex);
           boolean enoughParams = n < getSpecifics().length;
           ResultHolder specific = null;
           if (enoughParams) {
@@ -333,8 +343,16 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
               specific = paramModel.getInstanceType();
             }
           }
-          resolver.add(paramModel.getTypeParameter(), specific);
-          resolver.addConstraint(paramModel.getTypeParameter(), specific);
+          if(!hasReachedRestTypeParam && "Rest".equals(paramModel.getName())) {
+              hasReachedRestTypeParam = true;
+          }
+          if (hasTypeParamRest && hasReachedRestTypeParam) {
+              resolver.add(paramModel.getTypeParameter(), specific, n);
+              resolver.addConstraint(paramModel.getTypeParameter(), specific, n);
+          }else {
+              resolver.add(paramModel.getTypeParameter(), specific);
+              resolver.addConstraint(paramModel.getTypeParameter(), specific);
+          }
         }
       }
     }

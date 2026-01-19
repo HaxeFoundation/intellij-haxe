@@ -102,6 +102,8 @@ public class HaxeTypeAnnotator implements Annotator {
         }
         if (typeParameterCount > classParameterCountMax) {
           if (typeName.startsWith("$"))return; // ignore when type is from macro variable
+            HaxeClassModel haxeClassModel = haxeClassReference.getHaxeClassModel();
+            if(haxeClassModel != null && haxeClassModel.isGenericBuildWithRestTypeParam()) return;
           holder.newAnnotation(HighlightSeverity.ERROR,
                                HaxeBundle.message("haxe.inspections.parameter.count.mismatch.description", typeName, classParameterCountMax, typeParameterCount))
             .range(type)

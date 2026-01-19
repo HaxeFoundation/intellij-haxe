@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil;
 import com.intellij.psi.PsiElement;
@@ -19,9 +21,23 @@ public class HaxeClassAssignUtil  {
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
     if (toClassReference.getHaxeClass() == fromClassReference.getHaxeClass()) {
-      if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
-        return true;
-      }
+        if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
+            return true;
+        } else {
+            //NOTE: special case for GenericBuild macros:
+            // we ignore typeParameter mismatch if class has a GenericBuild macro with type parameter named "Rest"
+            // "Rest" and "Const" seems to be reserved names for these macros and Rest allows you to use it with
+            // an unspecified amount of TypeParameters.
+            HaxeClassModel haxeClassModel = toClassReference.getHaxeClassModel();
+            if (haxeClassModel != null && haxeClassModel.isGenericBuildWithRestTypeParam()) {
+                for (ResultHolder specific : toClassReference.getSpecifics()) {
+                    if (specific.getType() instanceof SpecificHaxeClassReference classReference) {
+                        String className = classReference.getClassName();
+                        if(className != null && className.equals("Rest")) return true;
+                    }
+                }
+            }
+        }
     }
     return false;
   }
