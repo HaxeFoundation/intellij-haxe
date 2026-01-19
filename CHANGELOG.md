@@ -1,4 +1,7 @@
 # Changelog
+## 1.7.9
+* Changed: Allow arbitrary amount of typeParameters when `@:genericBuild` macros are used in conjugation with TypeParameter named "Rest"  
+
 ## 1.7.8
 * Bugfix: Fixed issue where numeric operators would incorrectly display an error for platform specific numeric types  (#1228)
 * Added: Weak warning when assigning `null` to types annotated with @:notNull  
