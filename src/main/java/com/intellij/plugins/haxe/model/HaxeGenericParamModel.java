@@ -38,10 +38,6 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
   final private HaxeGenericListPart part;
   @Getter final private int index;
   @Getter final private HaxeModel owner;
-  @Nullable
-  final private HaxeGenericConstraintPart constraints;
-  final private HaxeTypeOrAnonymous defaultType;
-  final private HaxeFunctionType defaultFunction;
 
 
   public HaxeGenericParamModel(@NotNull HaxeGenericListPart part) {
@@ -72,12 +68,6 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
     super(part);
     this.index = index;
     this.part = part;
-
-    HaxeGenericDefaultType defaultPart = part.getGenericDefaultType();
-    this.defaultType = defaultPart == null ? null : defaultPart.getTypeOrAnonymous();
-    this.defaultFunction = defaultPart == null ? null : defaultPart.getFunctionType();
-    this.constraints  = part.getGenericConstraintPart();
-
     owner = findOwner(part);
   }
 
@@ -94,16 +84,20 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
     });
   }
 
-  public  boolean hasDefault() {
-    return defaultType != null || defaultFunction !=  null;
+  public boolean hasDefault() {
+      //TODO cache
+      return CachedValuesManager.getProjectPsiDependentCache(part, HaxeGenericParamModel::_getDefaultType) != null
+              || CachedValuesManager.getProjectPsiDependentCache(part, HaxeGenericParamModel::_getDefaultFunction) != null;
   }
+
+
   public  boolean hasConstraint() {
-    return constraints != null;
+    return  getConstraintPsi()  != null;
   }
 
 
   public HaxeGenericListPart getPsi() { return part; }
-  public HaxeGenericConstraintPart getConstraintPsi() { return constraints; }
+  public HaxeGenericConstraintPart getConstraintPsi() { return CachedValuesManager.getProjectPsiDependentCache(part, HaxeGenericParamModel::_getConstraints) ; }
 
   @Nullable
   public ResultHolder getConstraint(@Nullable HaxeGenericResolver resolver) {
@@ -178,13 +172,31 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
     return null;
   }
 
-  public @Nullable ResultHolder getDefaultType(HaxeGenericResolver resolver) {
-    if(defaultType != null) return HaxeTypeResolver.getTypeFromTypeOrAnonymous(defaultType, resolver);
-    if(defaultFunction != null) return HaxeTypeResolver.getTypeFromFunctionType(defaultFunction, resolver);
-    return null;
-  }
+    public @Nullable ResultHolder getDefaultType(HaxeGenericResolver resolver) {
+        HaxeTypeOrAnonymous defaultType = CachedValuesManager.getProjectPsiDependentCache(part, HaxeGenericParamModel::_getDefaultType);
+        if (defaultType != null) return HaxeTypeResolver.getTypeFromTypeOrAnonymous(defaultType, resolver);
+
+        HaxeFunctionType defaultFunction = CachedValuesManager.getProjectPsiDependentCache(part, HaxeGenericParamModel::_getDefaultFunction);
+        if (defaultFunction != null) return HaxeTypeResolver.getTypeFromFunctionType(defaultFunction, resolver);
+
+        return null;
+    }
 
   public HaxeTypeParameterDeclaration getTypeParameter() {
     return part;
   }
+
+
+
+    private static HaxeTypeOrAnonymous _getDefaultType(HaxeGenericListPart part) {
+        HaxeGenericDefaultType defaultPart = part.getGenericDefaultType();
+        return defaultPart == null ? null : defaultPart.getTypeOrAnonymous();
+    }
+    private static HaxeFunctionType _getDefaultFunction(HaxeGenericListPart part) {
+        HaxeGenericDefaultType defaultPart = part.getGenericDefaultType();
+        return defaultPart == null ? null : defaultPart.getFunctionType();
+    }
+    private static HaxeGenericConstraintPart _getConstraints(HaxeGenericListPart part) {
+        return  part.getGenericConstraintPart();
+    }
 }

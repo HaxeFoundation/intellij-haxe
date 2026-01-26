@@ -1,6 +1,8 @@
 # Changelog
 ## 1.7.9
-* Changed: Allow arbitrary amount of typeParameters when `@:genericBuild` macros are used in conjugation with TypeParameter named "Rest"  
+* Changed: Allow arbitrary amount of typeParameters when `@:genericBuild` macros are used in conjugation with TypeParameter named "Rest"
+* Bugfix: Fixed incorrect annotation on typeParameters when mixing TypeParameters with and without defaults 
+
 
 ## 1.7.8
 * Bugfix: Fixed issue where numeric operators would incorrectly display an error for platform specific numeric types  (#1228)

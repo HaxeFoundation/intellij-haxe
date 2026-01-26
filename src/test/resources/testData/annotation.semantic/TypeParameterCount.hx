@@ -20,15 +20,23 @@ class Test
 
         // OK
         var defaultTypeParam4:Bar<String, String>;
-        // Wrong (all requred when only some have default value)
+
+        // Wrong (since the last typeParameter is not default, 2 typeParameters will be required)
         var defaultTypeParam1:<error descr="Invalid number of type parameters for Bar (expected: 2 got: 0)">Bar</error>;
         var defaultTypeParam2:<error descr="Invalid number of type parameters for Bar (expected: 2 got: 1)">Bar<String></error>;
         var defaultTypeParam3:<error descr="Invalid number of type parameters for Bar (expected: 2 got: 1)">Bar<Int></error>;
+
+        // OK
+        var defaultTypeParam5:Baz<String, String>;
+        var defaultTypeParam6:Baz<String>; // using default
+
+        // Wrong
+        var defaultTypeParam6:<error descr="Invalid number of type parameters for Baz (expected: 1 got: 0)">Baz</error>; //Not enough type parameters for Baz
 
 
     }
 }
 class Foo<T = String, P= Int> {}
-
 class Bar<T = String, P> {}
+class Baz<T, P = Int> {}
 

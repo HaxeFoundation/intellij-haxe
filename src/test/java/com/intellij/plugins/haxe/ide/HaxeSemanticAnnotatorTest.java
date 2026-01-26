@@ -978,6 +978,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
+  public void testTypeParameterDefaults() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignFromRecursiveMethod() throws Throwable {
     doTestNoFixWithWarnings();
   }
