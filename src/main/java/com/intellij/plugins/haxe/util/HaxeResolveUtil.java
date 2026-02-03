@@ -1158,8 +1158,16 @@ public class HaxeResolveUtil {
    */
   public static boolean walkDirectoryImports(HaxeFileModel file, @NotNull java.util.function.Function<HaxeFileModel, Boolean> processor) {
     if (null == file) return true;
+    HaxeFile haxeFile = file.getFile();
 
-    final VirtualFile vfile = file.getFile().getVirtualFile();
+    // Attempt to get physical file if possible, necessary if we are to walk directories
+    if(!file.getFile().isPhysical()) {
+      if(file.getFile().getOriginalFile() instanceof HaxeFile realFile) {
+        haxeFile = realFile;
+      }
+    }
+
+    final VirtualFile vfile = haxeFile.getVirtualFile();
     if (null == vfile) return true; // In memory files
 
     final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
@@ -1167,7 +1175,7 @@ public class HaxeResolveUtil {
     if (null == sourceRoot) return true;
 
     boolean keepRunning = true;
-    HaxeFile haxeFile = file.getFile();
+
     PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
     final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
     while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
