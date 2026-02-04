@@ -1,0 +1,6 @@
+BASIC 1 INCLUDES
+abs
+abs2
+AbsHelper
+abs(n:Int):Int
+abs2(n:Int):Int
