@@ -350,7 +350,7 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
 
   @Test
   public void testImportHxFile() throws Throwable {
-    myFixture.configureByFiles("ImportHxFile.hx", "Import.hx", "com/util/MathUtil.hx");
+    myFixture.configureByFiles("ImportHxFile.hx", "import.hx", "com/util/MathUtil.hx");
     doTestVariantsInner("ImportHxFile.txt");
   }
 
