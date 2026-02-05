@@ -52,6 +52,12 @@ public class HaxeDocumentationRenderer {
   }
 
 
+  public String parseAndRender(String docs) {
+    Node document = parser.parse(docs);
+    wrapInDefaultHtmlTags(document);
+    return renderer.render(document);
+  }
+
   public String parseAndRenderDocs(String docs, @NotNull PsiDocCommentBase comment) {
     Node document = parser.parse(docs);
     document.accept(new HaxeDocumentationCodeVisitor(comment));

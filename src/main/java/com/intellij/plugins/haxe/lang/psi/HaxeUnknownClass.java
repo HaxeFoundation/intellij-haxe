@@ -3,13 +3,14 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.SyntheticElement;
+import com.intellij.psi.impl.source.DummyHolderElement;
 import org.jetbrains.annotations.Nullable;
 
-public class HaxeUnknownClass extends AbstractHaxePsiClass implements HaxeClass {
+public class HaxeUnknownClass extends AbstractHaxePsiClass implements HaxeClass, SyntheticElement {
 
-    public HaxeUnknownClass(@NotNull ASTNode node) {
-        super(node);
+    public HaxeUnknownClass(ASTNode node) {
+        super(node != null ? node : new DummyHolderElement("Unknown"));
     }
 
     @Nullable

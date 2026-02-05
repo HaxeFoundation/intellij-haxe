@@ -26,6 +26,9 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil;
@@ -56,6 +59,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode.FAKE_PSI_KEY;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQname;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.textCanBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
@@ -2195,7 +2199,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     //List<List<? extends PsiElement>> debugList = new ArrayList<>();
 
-    String identifier = reference instanceof HaxeReferenceExpression referenceExpression ? referenceExpression.getIdentifier().getText() : reference.getText();
+    PsiElement identifier = reference instanceof HaxeReferenceExpression referenceExpression ? referenceExpression.getIdentifier() : reference;
+    String identifierText = identifier.getText();
     HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(lefthandExpression);
 
     ResultHolder result = extensionsMethodGuard.doPreventingRecursion(lefthandExpression, true, () -> {
@@ -2226,7 +2231,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       haxeClass = useDefaultIfTypeParameter(reference, haxeClass);
       if (haxeClass != null) {
         HaxeClassModel classModel = haxeClass.getModel();
-        List<HaxeBaseMemberModel> members = classModel.getMembers(identifier, classType.getGenericResolver());
+        List<HaxeBaseMemberModel> members = classModel.getMembers(identifierText, classType.getGenericResolver());
         if (!members.isEmpty()) {
           if (members.size() == 1) {
             HaxeNamedComponent psi = members.getFirst().getNamedComponentPsi();
@@ -2241,6 +2246,28 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             if (member != null) return member;
           }
         }
+        //
+        // mapping the string-literal "member" .code to a fake Psi with docs
+        // making sure it's a string literal and only 1 char long
+        if (identifierText.equals("code") && lefthandExpression instanceof HaxeStringLiteralExpression literalExpression) {
+          if (identifier instanceof HaxeIdentifier haxeIdentifier) {
+            if (literalExpression.getTextLength() == 3) { // quotes + char = 3
+              synchronized (reference) {
+                HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
+                if (fakePsi != null) {
+                  return Collections.singletonList(fakePsi);
+                } else {
+                  HaxeFakeComponentStringCode fakeElement = new HaxeFakeComponentStringCode(haxeIdentifier);
+                  reference.putUserData(FAKE_PSI_KEY, fakeElement);
+                  return Collections.singletonList(fakeElement);
+                }
+              }
+            }
+          }
+        }
+        // TODO should probably handle this in a different place and in a better way
+        // clear if no longer resolvable
+        clearFakePsi(reference);
 
         // check extension methods from meta
         HaxeComponentName match = extensionsFromMetaGuard.doPreventingRecursion(lefthandExpression, true, () -> {
@@ -2253,7 +2280,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             HaxeNamedComponent psi = model.getNamedComponentPsi();
             if (psi != null) {
               HaxeComponentName name = psi.getComponentName();
-              if (name != null && name.getIdentifier().textMatches(identifier)) {
+              if (name != null && name.getIdentifier().textMatches(identifierText)) {
                 if (log.isTraceEnabled()) log.trace(traceMsg("Found component name in extension methods"));
                 return name;
               }
@@ -2299,7 +2326,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       HaxeMethodModel foundMethod = null;
         for (int i = usingModels.size() - 1; i >= 0; --i) {
           foundMethod = usingModels.get(i)
-            .findExtensionMethod(identifier, extensionType);
+            .findExtensionMethod(identifierText, extensionType);
           if (null != foundMethod && !foundMethod.HasNoUsingMeta()) {
 
             if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + foundMethod.getName());
@@ -2310,9 +2337,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           // check other types ("using" can be used to find typedefsetc)
 
           //TODO mlo:  try to get namedComponent from element
-          PsiElement element = usingModels.get(i).exposeByName(identifier);
+          PsiElement element = usingModels.get(i).exposeByName(identifierText);
           if (element != null) {
-            if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + identifier);
+            if (log.isTraceEnabled()) log.trace("Found method in 'using' import: " + identifierText);
             //return List.of(element);
             //debugList.add(List.of(element));
             return List.of(element);
@@ -2322,7 +2349,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (log.isTraceEnabled()) log.trace(traceMsg(null));
 
-    final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, identifier);
+    final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, identifierText);
     if (componentName != null) {
       if (log.isTraceEnabled()) log.trace("Found component " + componentName.getText());
       return Collections.singletonList(componentName);
@@ -2331,13 +2358,25 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // Try resolving keywords (super, new), arrays, literals, etc.
     if(type instanceof SpecificFunctionReference) {
       //check if reference is bind
-      // Note: there is no code to resolve for this method so we just return the function it applies to
-      if ("bind".equals(identifier)) {
-        PsiElement resolve = leftReference.resolve();
-        if(resolve instanceof  HaxeNamedComponent namedComponent) {
-          return List.of(namedComponent);
+      // Note: there is no code to resolve  to so we use a fakePsi with a reference to the method being bound.
+      if ("bind".equals(identifierText)) {
+        if (identifier instanceof HaxeIdentifier haxeIdentifier) {
+          PsiElement resolve = leftReference.resolve();
+          synchronized (resolve) {
+            if (resolve instanceof HaxeNamedComponent namedComponent) {
+              HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
+              if (fakePsi != null) {
+                return Collections.singletonList(fakePsi);
+              } else {
+                HaxeFakePsiElement fakeElement = new HaxeFakeComponentBindMethod(haxeIdentifier, namedComponent);
+                reference.putUserData(FAKE_PSI_KEY, fakeElement);
+                return Collections.singletonList(fakeElement);
+              }
+            }
+          }
         }
       }
+      clearFakePsi(reference);
     }
 
     if(fromEnumValue) {
@@ -2348,6 +2387,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if(type != null) return resolveByClassAndSymbol(type, null, reference);
     return  List.of();
+  }
+
+  private static void clearFakePsi(HaxeReference reference) {
+    if(reference.getUserData(FAKE_PSI_KEY) != null) {
+      reference.putUserData(FAKE_PSI_KEY, null);
+    }
   }
 
   private static @Nullable List<HaxeNamedComponent> checkMethodOverloads(HaxeReference reference, List<HaxeBaseMemberModel> members) {

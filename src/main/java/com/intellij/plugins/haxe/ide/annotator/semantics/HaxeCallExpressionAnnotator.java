@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -27,7 +28,12 @@ public class HaxeCallExpressionAnnotator implements Annotator {
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
     if (element instanceof HaxeCallExpression callExpression) {
       if (callExpression.getExpression() instanceof HaxeReference reference) {
-        final PsiElement resolved = reference.resolve();
+        PsiElement resolved = reference.resolve();
+
+        if(resolved instanceof HaxeFakeComponentBindMethod bindMethod) {
+          // map bind call to original method that we are binding as that's where the parameter info is.
+          resolved = bindMethod.getOriginalMethodOrFunction();
+        }
         if (resolved instanceof HaxePsiField  || resolved instanceof HaxeParameter ) {
           HaxeNamedComponent component = (HaxeNamedComponent)resolved;
           HaxeGenericResolver resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(reference);

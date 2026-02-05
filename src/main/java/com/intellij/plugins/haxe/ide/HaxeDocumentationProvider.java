@@ -26,6 +26,7 @@ import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -104,8 +105,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     if (namedComponent == null) {
       if(element instanceof  HaxeModule module) {
         createModuleDocs(mainBuilder, module);
-      }
-      if (element instanceof HaxeLiteralExpression) {
+      }else if (element instanceof HaxeLiteralExpression) {
         return null; // no need to  show docs for literal expressions
       }else {
         HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(element);
@@ -116,6 +116,14 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     }
 
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
+
+    if(namedComponent instanceof HaxeFakePsiElement fakePsiElement) {
+      String docs = fakePsiElement.getDocs();
+      String render = renderer.parseAndRender(docs);
+      mainBuilder.appendRaw(render);
+      return mainBuilder.toString();
+    }
+
     final HaxeComponentType type = namedComponent.getComponentType();
     HtmlBuilder definitionBuilder = new HtmlBuilder();
     //TODO support key-value iterator "vars" , capture vars etc

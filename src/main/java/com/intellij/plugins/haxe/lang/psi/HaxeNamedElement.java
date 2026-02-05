@@ -25,4 +25,7 @@ import com.intellij.psi.PsiNamedElement;
  * @author: Fedor.Korotkov
  */
 public interface HaxeNamedElement extends HaxePsiCompositeElement, PsiNamedElement, NavigationItem, PsiNameIdentifierOwner {
+    default boolean isSynthetic() {
+        return false;
+    }
 }
