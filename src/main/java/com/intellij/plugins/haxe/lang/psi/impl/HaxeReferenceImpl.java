@@ -25,13 +25,12 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.ide.lookup.HaxeClassLookupElement;
-import com.intellij.plugins.haxe.ide.lookup.HaxeLookupElement;
-import com.intellij.plugins.haxe.ide.lookup.HaxeMemberLookupElement;
-import com.intellij.plugins.haxe.ide.lookup.HaxePackageLookupElement;
+import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
@@ -1255,6 +1254,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
   public Object[] getVariants() {
     final Set<HaxeComponentName> suggestedVariants = new HashSet<>();
     final Set<HaxeComponentName> suggestedVariantsExtensions = new HashSet<>();
+    final Set<HaxeLookupElement> syntheticElements = new HashSet<>();
 
     // if not first in chain
     // foo.bar.baz
@@ -1264,6 +1264,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     if (leftReference != null) {
       resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(leftReference);
       ResultHolder leftResult = HaxeTypeResolver.getPsiElementType(leftReference, resolver);
+
+      addSyntheticElementCompletions(syntheticElements,leftResult, leftReference);
+
       if (leftResult.getClassType() != null) {
         SpecificTypeReference reference = leftResult.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
         if(reference instanceof  SpecificHaxeClassReference classReference) {
@@ -1348,8 +1351,43 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       PsiPackage rootPackage = JavaPsiFacade.getInstance(getElement().getProject()).findPackage("");
       if (rootPackage != null) variants.addAll(HaxePackageLookupElement.convert(rootPackage.getSubPackages()));
     }
-
+    variants.addAll(syntheticElements);
     return variants.toArray();
+  }
+
+  private void addSyntheticElementCompletions(Set<HaxeLookupElement> syntheticElements, ResultHolder type, HaxeReference reference) {
+    if(type.isFunctionType()) {
+      SpecificFunctionReference functionType = type.getFunctionType();
+      addBindSuggestion(syntheticElements, reference,  functionType);
+    }
+    if(reference instanceof HaxeStringLiteralExpression stringLiteral) {
+      if(stringLiteral.getTextLength() == 3) { // 2x quotes + single char
+        addStringCodeSuggestion(syntheticElements);
+      }
+    }
+  }
+
+  private void addBindSuggestion(Set<HaxeLookupElement> lookupElements, HaxeReference reference, @NotNull SpecificFunctionReference functionReference) {
+
+      PsiElement elementContext = functionReference.getElementContext();
+      if(elementContext instanceof HaxeMethodDeclaration method) {
+        HaxeComponentName componentName = method.getComponentName();
+        HaxeIdentifier identifier = componentName.getIdentifier();
+        HaxeFakeComponentBindMethod bind = new HaxeFakeComponentBindMethod(identifier, method);
+        lookupElements.add(HaxeSynteticLookupElements.bind(bind));
+      }else {
+        HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(this, HaxeIdentifier.class);
+        if(reference.resolve() instanceof HaxeNamedComponent component) {
+          HaxeFakeComponentBindMethod bind = new HaxeFakeComponentBindMethod(identifier, component);
+          lookupElements.add(HaxeSynteticLookupElements.bind(bind));
+        }
+      }
+    }
+
+  private void addStringCodeSuggestion(Set<HaxeLookupElement> lookupElements) {
+    HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(this, HaxeIdentifier.class);
+    HaxeFakeComponentStringCode bind = new HaxeFakeComponentStringCode(identifier);
+    lookupElements.add(HaxeSynteticLookupElements.code(bind));
   }
 
   private boolean isInUsingStatement() {
