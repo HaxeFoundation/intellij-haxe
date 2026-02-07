@@ -241,7 +241,7 @@ public class HaxeExpressionEvaluator {
     }
 
     if (element instanceof HaxeEnumExtractedValueReference extractedValue) {
-      return handleEnumExtractedValue(extractedValue, resolver);
+      return handleExtractedValue(extractedValue, resolver);
     }
 
 

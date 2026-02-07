@@ -1542,7 +1542,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       boolean checkParent = true;
 
       HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
-      PsiElement pathElement = buildExtractVarLiteralPath(parent, checkParent, objectPath, switchStatement);
+      PsiElement pathElement = buildExtractVarPath(parent, checkParent, objectPath, switchStatement);
 
       HaxeNamedComponent lastElement = null;
       Collections.reverse(objectPath);
@@ -1599,7 +1599,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return null;
   }
 
-  private static @Nullable PsiElement buildExtractVarLiteralPath(PsiElement extractedValue, boolean checkParent, Stack<Object> objectPath, HaxeSwitchStatement switchStatement) {
+  public static @Nullable PsiElement buildExtractVarPath(PsiElement extractedValue, boolean checkParent, Stack<Object> objectPath, HaxeSwitchStatement switchStatement) {
     PsiElement pastParent = extractedValue;
     PsiElement valueParent = extractedValue.getParent();
     PsiElement pathElement = null;
@@ -1608,6 +1608,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
       if (valueParent instanceof HaxeEnumObjectLiteralElement objectLiteralElement) {
         objectPath.add(extractObjectLiteralName(objectLiteralElement));
+
+      } else if (valueParent instanceof HaxeEnumExtractArrayLiteral arrayLiteral) {
+        List<PsiElement> caseExpressionList = Arrays.asList(arrayLiteral.getChildren());
+        objectPath.add(caseExpressionList.indexOf(pastParent));
 
       } else if (valueParent instanceof HaxeSwitchCaseExprArray caseExprArray) {
         List<PsiElement> caseExpressionList = Arrays.asList(caseExprArray.getChildren());

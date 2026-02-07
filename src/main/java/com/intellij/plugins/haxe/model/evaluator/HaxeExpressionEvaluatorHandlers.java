@@ -39,6 +39,7 @@ import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.ONLY_COMMENTS;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.KUNTYPED;
+import static com.intellij.plugins.haxe.lang.psi.HaxeResolver.buildExtractVarPath;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.getLiteralClassName;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl.tryToFindTypeFromCallExpression;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.isStaticExtension;
@@ -856,28 +857,88 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
 
-  static ResultHolder handleEnumExtractedValue(@NotNull HaxeEnumExtractedValueReference extractedValue, @NotNull HaxeGenericResolver resolver) {
-    HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(extractedValue, HaxeExtractorMatchExpression.class, true, HaxeEnumArgumentExtractor.class);
+  static ResultHolder handleExtractedValue(@NotNull HaxeEnumExtractedValueReference extractedValueRef, @NotNull HaxeGenericResolver resolver) {
+    HaxeExtractorMatchExpression matchExpression = PsiTreeUtil.getParentOfType(extractedValueRef, HaxeExtractorMatchExpression.class, true, HaxeEnumArgumentExtractor.class);
     if (matchExpression != null) {
       HaxeSwitchCaseExpr match = matchExpression.getMatch();
-      if (PsiTreeUtil.isAncestor(match, extractedValue, false)) {
+      if (PsiTreeUtil.isAncestor(match, extractedValueRef, false)) {
         return evaluate(matchExpression.getExtractorExpression(), resolver).result;
       }
     }
 
-    HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValue, HaxeEnumArgumentExtractor.class, true, HaxeEnumArgumentExtractor.class);
+    HaxeEnumArgumentExtractor extractor = PsiTreeUtil.getParentOfType(extractedValueRef, HaxeEnumArgumentExtractor.class, true, HaxeEnumArgumentExtractor.class);
     if (extractor != null) {
       HaxeEnumExtractorModel extractorModel = (HaxeEnumExtractorModel)extractor.getModel();
-      return extractorModel.resolveExtractedValueType(extractedValue);
+      return extractorModel.resolveExtractedValueType(extractedValueRef);
     }
 
-    PsiElement resolve = extractedValue.resolve();
+    PsiElement resolve = extractedValueRef.resolve();
     if(resolve != null) {
-      return evaluate(resolve).result;
+
+      ResultHolder result = evaluate(resolve).result;
+
+        if (extractedValueRef.getParent() instanceof HaxeEnumExtractedValue extractedValue) {
+          //TODO: mlo - We should probably try to  redo how switch extractors are parsed in the BNF
+          // to get more consistency between ExprArray and ArrayLiteral (we might not need both)
+          if (extractedValue.getParent() instanceof HaxeEnumExtractArrayLiteral
+                  || extractedValue.getParent() instanceof HaxeSwitchCaseExprArray) {
+
+            Stack<Object> objectPath = new Stack<>();
+
+            HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(extractedValue, HaxeSwitchStatement.class);
+            buildExtractVarPath(extractedValue, true, objectPath, switchStatement);
+
+            Collections.reverse(objectPath);
+            // workaround for switch on literal array  (ex. switch (["mixed Types", 1, false]{...}))
+            // as we are not going to look for generics in these  situations to determine type.
+            boolean isLiteralInSwitchExpression = isLiteralInSwitchExpression(resolve, extractedValueRef);
+            int offset = isLiteralInSwitchExpression ? 1 : 0;
+
+            ResultHolder typePointer = result;
+              for (int i = offset; i < objectPath.size(); i++) {
+                  Object o = objectPath.get(i);
+                  if (typePointer == null || typePointer.isUnknown()) break;
+
+                  if (o instanceof Integer index) {
+                      typePointer = typeFromArray(typePointer, index);
+                    //TODO do we need support for objects here ?
+//                  } else if (o instanceof String name) {
+                    // typePointer = typeFromObjectName(typePointer,name);
+                  }
+              }
+            return typePointer != null ? typePointer : createUnknown(extractedValueRef);
+          }
+        }
+      return result;
     }
-    return createUnknown(extractedValue);
+    return createUnknown(extractedValueRef);
   }
 
+  private static boolean isLiteralInSwitchExpression(PsiElement resolve, @NotNull HaxeEnumExtractedValueReference extractedValueRef) {
+    HaxeLiteralExpression isLiteral = PsiTreeUtil.getParentOfType(resolve, HaxeLiteralExpression.class, false, HaxeSwitchStatement.class);
+    HaxeArrayLiteral isInsideArrayLiteral = PsiTreeUtil.getParentOfType(resolve, HaxeArrayLiteral.class, false, HaxeSwitchStatement.class);
+    HaxeSwitchStatement resolvedSwitchParent = PsiTreeUtil.getParentOfType(resolve, HaxeSwitchStatement.class);
+    if(resolvedSwitchParent == null) return false;
+    boolean isInSameSwitch = PsiTreeUtil.isAncestor(resolvedSwitchParent.getSwitchBlock(), extractedValueRef, false);
+    return isInSameSwitch && (isLiteral != null || isInsideArrayLiteral != null);
+  }
+
+  private static ResultHolder typeFromArray(ResultHolder typePointer, Integer index) {
+
+      SpecificHaxeClassReference classType = typePointer.getClassType();
+      if(classType != null){
+        if(classType.fullyResolveTypeDefAndUnwrapNullTypeReference() instanceof SpecificHaxeClassReference classReference) {
+          if(classReference.isArray()) {
+            @NotNull ResultHolder[] specifics = classReference.getSpecifics();
+            if(specifics.length == 1) return specifics[0];
+//          }else {
+            // TODO considder checking array access in other types for expected return value
+            // - verify if its supported first
+          }
+        }
+      }
+      return null;
+    }
 
 
   static ResultHolder handleForStatement(

@@ -22,13 +22,14 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeLiteralExpression;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.reference.ReferenceProvidersRegistry;
 import com.intellij.psi.impl.source.tree.LeafElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost, PsiLiteralValue {
+abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost, PsiLiteralValue, HaxeLiteralExpression {
 
   public HaxeStringLiteralImpl(ASTNode node) {
     super(node);
