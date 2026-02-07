@@ -1430,14 +1430,26 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
                                        HaxeReferenceImpl reference) {
 
     if (ourClass == null) return;
+    HaxeFileModel haxeFileModel = HaxeFileModel.fromElement(reference);
+    if(haxeFileModel != null) {
 
-    HaxeFileModel.fromElement(reference).getUsingModels().stream()
-      .flatMap(model -> model.getExtensionMethods(ourClass, reference).stream())
-      .map(HaxeMemberModel::getNamePsi)
-      .forEach(name -> {
-        variants.add(name);
-        variantsWithExtension.add(name);
-      });
+      List<HaxeUsingModel> importHxUsingModels = findImportHxFileUsingModels(haxeFileModel);
+      importHxUsingModels.stream()
+              .flatMap(model -> model.getExtensionMethods(ourClass, reference).stream())
+              .map(HaxeMemberModel::getNamePsi)
+              .forEach(name -> {
+                variants.add(name);
+                variantsWithExtension.add(name);
+              });
+
+      haxeFileModel.getUsingModels().stream()
+              .flatMap(model -> model.getExtensionMethods(ourClass, reference).stream())
+              .map(HaxeMemberModel::getNamePsi)
+              .forEach(name -> {
+                variants.add(name);
+                variantsWithExtension.add(name);
+              });
+    }
 
     List<HaxeMethodModel> extensionMethodsFromMeta = ourClass.getModel().getExtensionMethodsFromMeta();
     extensionMethodsFromMeta.stream()
@@ -1448,6 +1460,15 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       });
 
 
+  }
+
+  private static  @NotNull List<HaxeUsingModel> findImportHxFileUsingModels(HaxeFileModel haxeFileModel) {
+    final List<HaxeUsingModel> usingModels = new ArrayList<>();
+    HaxeResolveUtil.walkDirectoryImports(haxeFileModel, (importModel) ->{
+      usingModels.addAll(importModel.getUsingModels());
+      return true;
+    });
+    return usingModels;
   }
 
   private static void addClassVariants(Set<HaxeComponentName> suggestedVariants, @Nullable HaxeClass haxeClass, boolean filterByAccess,

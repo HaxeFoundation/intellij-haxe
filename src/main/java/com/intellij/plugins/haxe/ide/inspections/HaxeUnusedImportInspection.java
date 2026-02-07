@@ -70,6 +70,9 @@ public class HaxeUnusedImportInspection extends LocalInspectionTool {
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull InspectionManager manager, boolean isOnTheFly) {
     if (!(file instanceof HaxeFile)) return null;
+    // ignoring "import.hx" as it's a special file that is used as  imports for other files
+    if (file.getVirtualFile().getName().equals("import.hx")) return null;
+
     List<HaxeImportStatement> unusedImports = HaxeImportUtil.findUnusedImports(file);
     if (unusedImports.isEmpty()) {
       return ProblemDescriptor.EMPTY_ARRAY;
