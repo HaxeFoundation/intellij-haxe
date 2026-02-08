@@ -757,6 +757,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   private static HaxeGenericParam getGenericParamPsiCached(@NotNull HaxeClass haxeClass) {
     boolean isAnonymous = haxeClass instanceof HaxeAnonymousType;
+    //TODO Should probably rewrite so that changes in parent will invalidate cache
     HaxeGenericParam param = isAnonymous ? getGenericParamFromParent(haxeClass) : haxeClass.getGenericParam();
     return  param;
   }

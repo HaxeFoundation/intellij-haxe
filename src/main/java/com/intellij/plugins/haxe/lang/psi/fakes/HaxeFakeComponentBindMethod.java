@@ -1,12 +1,17 @@
 package com.intellij.plugins.haxe.lang.psi.fakes;
 
+import com.intellij.navigation.ItemPresentation;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.psi.PsiElement;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
 
@@ -80,5 +85,21 @@ public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
     @Override
     public boolean isValid() {
         return super.isValid() && boundMethodOrFunction.isValid();
+    }
+
+    @Override
+    public @Nullable ItemPresentation getPresentation() {
+        return new ItemPresentation() {
+
+            @Override
+            public @NlsSafe @Nullable String getPresentableText() {
+                return parent.getText();
+            }
+
+            @Override
+            public @Nullable Icon getIcon(boolean unused) {
+                return HaxeIcons.Method;
+            }
+        };
     }
 }
