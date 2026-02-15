@@ -34,8 +34,8 @@ import java.util.regex.Pattern;
  */
 public class HaxeCompletionCache {
   static HaxeCompletionCache instance = null;
-  public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]+([^\\r\\n]+)");
-  public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+)[^:]+:[\\t\\s]([^\\r\\n]+)");
+  public static final Pattern META_TAG_PATTERN = Pattern.compile("@:([^\\r\\n\\t\\s]+[^:]+):[\\t\\s]+([^\\r\\n]+)");
+  public static final Pattern DEFINE_PATTERN = Pattern.compile("([^\\r\\n\\t\\s]+[^:]+):[\\t\\s]([^\\r\\n]+)");
 
   private static final List<HXMLCompletionItem> metaTags = new ArrayList<>();
   private static final List<HXMLCompletionItem> defines = new ArrayList<>();
@@ -80,7 +80,7 @@ public class HaxeCompletionCache {
       Matcher matcher = META_TAG_PATTERN.matcher(string);
 
       if (matcher.find()) {
-        metaTags.add(new HXMLCompletionItem(matcher.group(1), matcher.group(2)));
+        metaTags.add(new HXMLCompletionItem(matcher.group(1).trim(), matcher.group(2).trim()));
       }
     }
   }

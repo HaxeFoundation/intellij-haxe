@@ -1,0 +1,746 @@
+[ {
+    "metadata" : "@:abi",
+    "arguments" : [ ],
+    "description" : "Function ABI/calling convention.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:abstract",
+    "arguments" : [ ],
+    "description" : "Sets the underlying class implementation as `abstract`.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:access",
+    "arguments" : [ "<Target path>" ],
+    "description" : "Forces private access to package, type or field. See [lf-access-control](https://haxe.org/manual/lf-access-control.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:allow",
+    "arguments" : [ "<Target path>" ],
+    "description" : "Allows private access from package, type or field. See [lf-access-control](https://haxe.org/manual/lf-access-control.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:analyzer",
+    "arguments" : [ ],
+    "description" : "Used to configure the static analyzer.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:annotation",
+    "arguments" : [ ],
+    "description" : "Annotation (`@interface`) definitions on `--java-lib` imports will be annotated with\n            this metadata. Has no effect on types compiled by Haxe.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:arrayAccess",
+    "arguments" : [ ],
+    "description" : "Allows array access on an abstract. See [types-abstract-array-access](https://haxe.org/manual/types-abstract-array-access.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:cs.assemblyMeta",
+    "arguments" : [ ],
+    "description" : "Used to declare a native C# assembly attribute",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:cs.assemblyStrict",
+    "arguments" : [ ],
+    "description" : "Used to declare a native C# assembly attribute; is type checked",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:astSource",
+    "arguments" : [ ],
+    "description" : "Filled by the compiler with the parsed expression of the field.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:autoBuild",
+    "arguments" : [ "<Build macro call>" ],
+    "description" : "Extends `@:build` metadata to all extending and implementing classes. See [macro-auto-build](https://haxe.org/manual/macro-auto-build.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:bind",
+    "arguments" : [ ],
+    "description" : "Override SWF class declaration.",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:bitmap",
+    "arguments" : [ "<Bitmap file path>" ],
+    "description" : "Embeds given bitmap data into the class (must extend `flash.display.BitmapData`). See [target-flash-resources](https://haxe.org/manual/target-flash-resources.html).",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:bridgeProperties",
+    "arguments" : [ ],
+    "description" : "Creates native property bridges for all Haxe properties in this class.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:build",
+    "arguments" : [ "<Build macro call>" ],
+    "description" : "Builds a class, enum, or abstract from a macro. See [macro-type-building](https://haxe.org/manual/macro-type-building.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:buildXml",
+    "arguments" : [ ],
+    "description" : "Specify XML data to be injected into `Build.xml`.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:bypassAccessor",
+    "arguments" : [ ],
+    "description" : "Do not call property accessor method and access the field directly. See [class-field-property](https://haxe.org/manual/class-field-property.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:callable",
+    "arguments" : [ ],
+    "description" : "Abstract forwards call to its underlying type.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:classCode",
+    "arguments" : [ ],
+    "description" : "Used to inject platform-native code into a class.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:commutative",
+    "arguments" : [ ],
+    "description" : "Declares an abstract operator as commutative. See [types-abstract-operator-overloading](https://haxe.org/manual/types-abstract-operator-overloading.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:const",
+    "arguments" : [ ],
+    "description" : "Allows a type parameter to accept expression values.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:coreApi",
+    "arguments" : [ ],
+    "description" : "Identifies this class as a core API class (forces API check).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:coreType",
+    "arguments" : [ ],
+    "description" : "Identifies an abstract as core type so that it requires no implementation. See [types-abstract-core-type](https://haxe.org/manual/types-abstract-core-type.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:cppFileCode",
+    "arguments" : [ ],
+    "description" : "Code to be injected into generated cpp file.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:cppInclude",
+    "arguments" : [ ],
+    "description" : "File to be included in generated cpp file.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:cppNamespaceCode",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:cs.using",
+    "arguments" : [ ],
+    "description" : "Add using directives to your module",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:dce",
+    "arguments" : [ ],
+    "description" : "Forces dead code elimination even when `--dce full` is not specified. See [cr-dce](https://haxe.org/manual/cr-dce.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:debug",
+    "arguments" : [ ],
+    "description" : "Forces debug information to be generated into the SWF even without `--debug`.",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:decl",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:delegate",
+    "arguments" : [ ],
+    "description" : "Automatically added by `--net-lib` on delegates.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:depend",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:deprecated",
+    "arguments" : [ ],
+    "description" : "Mark a type or field as deprecated.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:eager",
+    "arguments" : [ ],
+    "description" : "Forces typedefs to be followed early.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:enum",
+    "arguments" : [ ],
+    "description" : "Defines finite value sets to abstract definitions. See [types-abstract-enum](https://haxe.org/manual/types-abstract-enum.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:event",
+    "arguments" : [ ],
+    "description" : "Automatically added by `--net-lib` on events. Has no effect on types compiled by Haxe.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:expose",
+    "arguments" : [ "<name>" ],
+    "description" : "Includes the class or field in Haxe exports (default name is the classpath). See [target-javascript-expose](https://haxe.org/manual/target-javascript-expose.html).",
+    "platforms" : [ "js", " lua" ]
+}, {
+    "metadata" : "@:extern",
+    "arguments" : [ ],
+    "description" : "Marks the field as extern so it is not generated.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:file",
+    "arguments" : [ "<File path>" ],
+    "description" : "Includes a given binary file into the target SWF and associates it with the class (must extend `flash.utils.ByteArray`).\n            See [target-flash-resources](https://haxe.org/manual/target-flash-resources.html).",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:fileXml",
+    "arguments" : [ ],
+    "description" : "Include a given XML attribute snippet in the `Build.xml` entry for the file.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:final",
+    "arguments" : [ ],
+    "description" : "Prevents a class or interface from being extended or a method from being overridden. Deprecated by the\n            keyword `final`. See [class-field-final](https://haxe.org/manual/class-field-final.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:fixed",
+    "arguments" : [ ],
+    "description" : "Declares an anonymous object to have fixed fields.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:flash.property",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:font",
+    "arguments" : [ "<TTF path>", " <Range String>" ],
+    "description" : "Embeds the given TrueType font into the class (must extend `flash.text.Font`). See [target-flash-resources](https://haxe.org/manual/target-flash-resources.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:forward",
+    "arguments" : [ "<List of field names>" ],
+    "description" : "Forwards field access to underlying type. See [types-abstract-forward](https://haxe.org/manual/types-abstract-forward.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:forward.new",
+    "arguments" : [ ],
+    "description" : "Forwards constructor call to underlying type.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:forwardStatics",
+    "arguments" : [ "<List of field names>" ],
+    "description" : "Forwards static field access to underlying type. See [types-abstract-forward](https://haxe.org/manual/types-abstract-forward.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:forward.variance",
+    "arguments" : [ ],
+    "description" : "Forwards variance unification to underlying type.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:from",
+    "arguments" : [ ],
+    "description" : "Specifies that the field of the abstract is a cast operation from the type identified in the function. See\n            [types-abstract-implicit-casts](https://haxe.org/manual/types-abstract-implicit-casts.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:functionCode",
+    "arguments" : [ ],
+    "description" : "Used to inject platform-native code into a function.",
+    "platforms" : [ "cpp", " java", " cs" ]
+}, {
+    "metadata" : "@:functionTailCode",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:generic",
+    "arguments" : [ ],
+    "description" : "Marks a class or class field as generic so each type parameter combination generates its own type/field. See\n            [type-system-generic](https://haxe.org/manual/type-system-generic.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:genericBuild",
+    "arguments" : [ ],
+    "description" : "Builds instances of a type using the specified macro.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:genericClassPerMethod",
+    "arguments" : [ ],
+    "description" : "Makes compiler generate separate class per generic static method specialization",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:getter",
+    "arguments" : [ "<Class field name>" ],
+    "description" : "Generates a native getter function on the given field.",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:hack",
+    "arguments" : [ ],
+    "description" : "Allows extending classes marked as `@:final`. Not guaranteed to work on all targets.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:headerClassCode",
+    "arguments" : [ ],
+    "description" : "Code to be injected into the generated class, in the header.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:headerCode",
+    "arguments" : [ ],
+    "description" : "Code to be injected into the generated header file.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:headerInclude",
+    "arguments" : [ ],
+    "description" : "File to be included in generated header file.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:headerNamespaceCode",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:hlNative",
+    "arguments" : [ ],
+    "description" : "Specifies `hdll` name and function prefix for native functions.",
+    "platforms" : [ "hl" ]
+}, {
+    "metadata" : "@:hxGen",
+    "arguments" : [ ],
+    "description" : "Annotates that an extern class was generated by Haxe.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:ifFeature",
+    "arguments" : [ "<Feature name>" ],
+    "description" : "Causes a field to be kept by DCE if the given feature is part of the compilation. See [cr-dce](https://haxe.org/manual/cr-dce.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:pythonImport",
+    "arguments" : [ ],
+    "description" : "Generates python import statement for extern classes.",
+    "platforms" : [ "python" ]
+}, {
+    "metadata" : "@:include",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:inheritDoc",
+    "arguments" : [ ],
+    "description" : "Append documentation from a parent field or class (if used without an argument) or from a specified class or\n            field (if used like @:inheritDoc(pack.Some.field)).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:inline",
+    "arguments" : [ ],
+    "description" : "Inserted by the parser in case of `inline expr` and `inline function`.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:internal",
+    "arguments" : [ ],
+    "description" : "Generates the annotated field/class with 'internal' access.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:isVar",
+    "arguments" : [ ],
+    "description" : "Forces a physical field to be generated for properties that otherwise would not require one. See [class-field-property-rules](https://haxe.org/manual/class-field-property-rules.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:javaCanonical",
+    "arguments" : [ "<Output type package>", " <Output type name>" ],
+    "description" : "Used by the Java target to annotate the canonical path of the type.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:java.default",
+    "arguments" : [ ],
+    "description" : "Equivalent to the default modifier of the Java language",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:jvm.synthetic",
+    "arguments" : [ ],
+    "description" : "Mark generated class, field or method as synthetic",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:jsRequire",
+    "arguments" : [ ],
+    "description" : "Generate JavaScript module require expression for given extern. See [target-javascript-require](https://haxe.org/manual/target-javascript-require.html).",
+    "platforms" : [ "js" ]
+}, {
+    "metadata" : "@:luaRequire",
+    "arguments" : [ ],
+    "description" : "Generate Lua module require expression for given extern.",
+    "platforms" : [ "lua" ]
+}, {
+    "metadata" : "@:luaDotMethod",
+    "arguments" : [ ],
+    "description" : "Indicates that the given extern type instance should have dot-style invocation for methods instead of\n            colon.",
+    "platforms" : [ "lua" ]
+}, {
+    "metadata" : "@:keep",
+    "arguments" : [ ],
+    "description" : "Causes a field or type to be kept by DCE. See [cr-dce](https://haxe.org/manual/cr-dce.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:keepInit",
+    "arguments" : [ ],
+    "description" : "Causes a class to be kept by DCE even if all its field are removed. See [cr-dce](https://haxe.org/manual/cr-dce.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:keepSub",
+    "arguments" : [ ],
+    "description" : "Extends `@:keep` metadata to all implementing and extending classes. See [cr-dce](https://haxe.org/manual/cr-dce.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:markup",
+    "arguments" : [ ],
+    "description" : "Used as a result of inline XML parsing. See [lf-markup](lf-markup).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:macro",
+    "arguments" : [ ],
+    "description" : "(deprecated)",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:mergeBlock",
+    "arguments" : [ ],
+    "description" : "Merge the annotated block into the current scope.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:multiReturn",
+    "arguments" : [ ],
+    "description" : "Annotates an extern class as the result of multi-return function. See [target-lua-multireturns](https://haxe.org/manual/target-lua-multireturns.html).",
+    "platforms" : [ "lua" ]
+}, {
+    "metadata" : "@:multiType",
+    "arguments" : [ "<Relevant type parameters>" ],
+    "description" : "Specifies that an abstract chooses its this-type from its `@:to` functions.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:native",
+    "arguments" : [ "<Output path>" ],
+    "description" : "Rewrites the path of a type or class field during generation. See [lf-externs](https://haxe.org/manual/lf-externs.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:java.native",
+    "arguments" : [ ],
+    "description" : "Annotates that a function has implementation in native code through JNI.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:nativeChildren",
+    "arguments" : [ ],
+    "description" : "Annotates that all children from a type should be treated as if it were an extern definition - platform\n            native.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:nativeGen",
+    "arguments" : [ ],
+    "description" : "Annotates that a type should be treated as if it were an extern definition - platform native.",
+    "platforms" : [ "java", " cs", " python" ]
+}, {
+    "metadata" : "@:nativeProperty",
+    "arguments" : [ ],
+    "description" : "Use native properties which will execute even with dynamic usage.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:nativeStaticExtension",
+    "arguments" : [ ],
+    "description" : "Converts static function syntax into member call.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:noCompletion",
+    "arguments" : [ ],
+    "description" : "Prevents the compiler from suggesting completion on this field or type. See [cr-completion](https://haxe.org/manual/cr-completion.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:noClosure",
+    "arguments" : [ ],
+    "description" : "Prevents a method or all methods in a class from being used as a value.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:noDebug",
+    "arguments" : [ ],
+    "description" : "Does not generate debug information even if `--debug` is set.",
+    "platforms" : [ "flash", " cpp" ]
+}, {
+    "metadata" : "@:noDoc",
+    "arguments" : [ ],
+    "description" : "Prevents a type or field from being included in documentation generation.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:noImportGlobal",
+    "arguments" : [ ],
+    "description" : "Prevents a static field from being imported with `import Class.*`.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:nonVirtual",
+    "arguments" : [ ],
+    "description" : "Declares function to be non-virtual in cpp.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:noPrivateAccess",
+    "arguments" : [ ],
+    "description" : "Disallow private access to anything for the annotated expression.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:noStack",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:notNull",
+    "arguments" : [ ],
+    "description" : "Declares an abstract type as not accepting null values. See [types-nullability](https://haxe.org/manual/types-nullability.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:noUsing",
+    "arguments" : [ ],
+    "description" : "Prevents a field from being used with static extension. See [lf-static-extension](https://haxe.org/manual/lf-static-extension.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:nullSafety",
+    "arguments" : [ "<Off | Loose | Strict | StrictThreaded>" ],
+    "description" : "Enables null safety for classes or fields. Disables null safety for classes, fields or expressions if\n            provided with `Off` as an argument. See [cr-null-safety](https://haxe.org/manual/cr-null-safety.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:objc",
+    "arguments" : [ ],
+    "description" : "Declares a class or interface that is used to interoperate with Objective-C code.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:objcProtocol",
+    "arguments" : [ ],
+    "description" : "Associates an interface with, or describes a function in, a native Objective-C protocol.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:op",
+    "arguments" : [ "<The operation>" ],
+    "description" : "Declares an abstract field as being an operator overload. See [types-abstract-operator-overloading](https://haxe.org/manual/types-abstract-operator-overloading.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:optional",
+    "arguments" : [ ],
+    "description" : "Marks the field of a structure as optional. See [types-nullability-optional-arguments](https://haxe.org/manual/types-nullability-optional-arguments.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:overload",
+    "arguments" : [ "<Function specification (no expression)>" ],
+    "description" : "Allows the field to be called with different argument types. See [target-javascript-external-libraries](https://haxe.org/manual/target-javascript-external-libraries.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:persistent",
+    "arguments" : [ ],
+    "description" : "Keeps the value of static variables in macro context across compilations.",
+    "platforms" : [ "eval" ]
+}, {
+    "metadata" : "@:php.attribute",
+    "arguments" : [ ],
+    "description" : "Adds a PHP attribute to the annotated symbol. Meta argument expects a string constant. E.g. `@:php.attribute('\\\\my\\\\Attr(123)')`\n            will be generated as `#[\\my\\Attr(123)]` in the compiled php file.",
+    "platforms" : [ "php" ]
+}, {
+    "metadata" : "@:phpGlobal",
+    "arguments" : [ ],
+    "description" : "Indicates that static fields of an extern class actually are located in the global PHP namespace.",
+    "platforms" : [ "php" ]
+}, {
+    "metadata" : "@:phpClassConst",
+    "arguments" : [ ],
+    "description" : "Indicates that a static var of an extern class is a PHP class constant.",
+    "platforms" : [ "php" ]
+}, {
+    "metadata" : "@:phpMagic",
+    "arguments" : [ ],
+    "description" : "Treat annotated field as special PHP magic field - this meta makes compiler avoid renaming such fields on\n            generating PHP code.",
+    "platforms" : [ "php" ]
+}, {
+    "metadata" : "@:phpNoConstructor",
+    "arguments" : [ ],
+    "description" : "Special meta for extern classes which do not have native constructor in PHP, but need a constructor in Haxe\n            extern.",
+    "platforms" : [ "php" ]
+}, {
+    "metadata" : "@:pos",
+    "arguments" : [ "<Position>" ],
+    "description" : "Sets the position of a reified expression. See [macro-reification](https://haxe.org/manual/macro-reification.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:publicFields",
+    "arguments" : [ ],
+    "description" : "Forces all class fields of inheriting classes to be public.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:private",
+    "arguments" : [ ],
+    "description" : "Marks a class field as being private.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:privateAccess",
+    "arguments" : [ ],
+    "description" : "Allow private access to anything for the annotated expression.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:protected",
+    "arguments" : [ ],
+    "description" : "Marks a class field as being protected.",
+    "platforms" : [ "cs", " java", " flash" ]
+}, {
+    "metadata" : "@:property",
+    "arguments" : [ ],
+    "description" : "Marks a field to be compiled as a native C# property.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:pure",
+    "arguments" : [ ],
+    "description" : "Marks a class field, class or expression as pure (side-effect free).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:readOnly",
+    "arguments" : [ ],
+    "description" : "Generates a field with the `readonly` native keyword.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:remove",
+    "arguments" : [ ],
+    "description" : "Causes an interface to be removed from all implementing classes before generation.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:require",
+    "arguments" : [ "<Compiler flag to check>" ],
+    "description" : "Allows access to a field only if the specified compiler flag is set. See [lf-condition-compilation](https://haxe.org/manual/lf-condition-compilation.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:resolve",
+    "arguments" : [ ],
+    "description" : "Abstract fields marked with this metadata can be used to resolve unknown fields.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:rtti",
+    "arguments" : [ ],
+    "description" : "Adds runtime type information. See [cr-rtti](https://haxe.org/manual/cr-rtti.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:runtimeValue",
+    "arguments" : [ ],
+    "description" : "Marks an abstract as being a runtime value.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:scalar",
+    "arguments" : [ ],
+    "description" : "Used by hxcpp to mark a custom coreType abstract.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:selfCall",
+    "arguments" : [ ],
+    "description" : "Translates method calls into calling object directly. See [target-javascript-external-libraries](https://haxe.org/manual/target-javascript-external-libraries.html).",
+    "platforms" : [ "js", " lua" ]
+}, {
+    "metadata" : "@:semantics",
+    "arguments" : [ "<value | reference | variable>" ],
+    "description" : "The native semantics of the type.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:setter",
+    "arguments" : [ "<Class field name>" ],
+    "description" : "Generates a native setter function on the given field.",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:sound",
+    "arguments" : [ "<File path>" ],
+    "description" : "Includes a given .wav or .mp3 file into the target SWF and associates it with the class (must extend `flash.media.Sound`).\n            See [target-flash-resources](https://haxe.org/manual/target-flash-resources.html).",
+    "platforms" : [ "flash" ]
+}, {
+    "metadata" : "@:sourceFile",
+    "arguments" : [ ],
+    "description" : "Source code filename for external class.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:stackOnly",
+    "arguments" : [ ],
+    "description" : "Instances of this type can only appear on the stack.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:strict",
+    "arguments" : [ ],
+    "description" : "Used to declare a native C# attribute or a native Java metadata; is type checked.",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:struct",
+    "arguments" : [ ],
+    "description" : "Marks a class definition as a struct.",
+    "platforms" : [ "cs", " hl" ]
+}, {
+    "metadata" : "@:structAccess",
+    "arguments" : [ ],
+    "description" : "Marks an extern class as using struct access (`.`) not pointer (`->`).",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:structInit",
+    "arguments" : [ ],
+    "description" : "Allows one to initialize the class with a structure that matches constructor parameters.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:suppressWarnings",
+    "arguments" : [ ],
+    "description" : "Adds a `SuppressWarnings` annotation for the generated Java class.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:templatedCall",
+    "arguments" : [ ],
+    "description" : "Indicates that the first parameter of static call should be treated as a template argument.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:throws",
+    "arguments" : [ "<Type as String>" ],
+    "description" : "Adds a `throws` declaration to the generated function.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:to",
+    "arguments" : [ ],
+    "description" : "Specifies that the field of the abstract is a cast operation to the type identified in the function. See [types-abstract-implicit-casts](https://haxe.org/manual/types-abstract-implicit-casts.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:transient",
+    "arguments" : [ ],
+    "description" : "Adds the `transient` flag to the class field.",
+    "platforms" : [ "java" ]
+}, {
+    "metadata" : "@:transitive",
+    "arguments" : [ ],
+    "description" : "Allows transitive casts with an abstract.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:volatile",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "java", " cs" ]
+}, {
+    "metadata" : "@:unifyMinDynamic",
+    "arguments" : [ ],
+    "description" : "Allows a collection of types to unify to `Dynamic`.",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:unreflective",
+    "arguments" : [ ],
+    "description" : "",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:unsafe",
+    "arguments" : [ ],
+    "description" : "Declares a class, or a method with the C#'s `unsafe` flag.",
+    "platforms" : [ "cs" ]
+}, {
+    "metadata" : "@:using",
+    "arguments" : [ ],
+    "description" : "Automatically uses the argument types as static extensions for the annotated type. See [lf-static-extension-metadata](https://haxe.org/manual/lf-static-extension-metadata.html).",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:haxe.warning",
+    "arguments" : [ ],
+    "description" : "Modifies warning options, equivalent to the -w CLI argument",
+    "platforms" : [ "all" ]
+}, {
+    "metadata" : "@:void",
+    "arguments" : [ ],
+    "description" : "Use Cpp native `void` return type.",
+    "platforms" : [ "cpp" ]
+}, {
+    "metadata" : "@:nativeArrayAccess",
+    "arguments" : [ ],
+    "description" : "When used on an extern class which implements haxe.ArrayAccess native array access syntax will be\n            generated",
+    "platforms" : [ "cpp" ]
+} ]

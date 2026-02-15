@@ -25,8 +25,9 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
 
   /**
    * @return the type element (e.g. "isVar", "final") from the metadata.
+   * (can be null when only "@"/"@:" is present in the code)
    */
-  @NotNull
+  @Nullable
   HaxeMetadataType getType();
 
   /**

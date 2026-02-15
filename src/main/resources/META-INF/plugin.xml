@@ -151,7 +151,13 @@
     <lang.findUsagesProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeFindUsagesProvider"/>
     <lang.implementationTextSelectioner language="Haxe"
                                         implementationClass="com.intellij.plugins.haxe.ide.HaxeImplementationTextSelectioner"/>
-    <lang.documentationProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeDocumentationProvider"/>
+
+<!--    TODO migrate to psiTargetProvider /  linkHandler etc-->
+    <lang.documentationProvider language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.documentation.providers.HaxeDocumentationProvider"/>
+
+    <platform.backend.documentation.targetProvider  implementation="com.intellij.plugins.haxe.ide.documentation.providers.HaxeMetadataDocumentationProvider"/>
+    <platform.backend.documentation.lookupElementTargetProvider implementation="com.intellij.plugins.haxe.ide.documentation.providers.HaxeLookupElementDocumentationProvider"/>
+
     <lang.commenter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeCommenter"/>
     <lang.psiStructureViewFactory language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.structure.HaxeStructureViewFactory"/>
     <lang.surroundDescriptor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.surroundWith.HaxeSurroundDescriptor"/>
@@ -280,7 +286,7 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMacroCompletionContributor"/>
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor"/>
+    <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
@@ -324,7 +330,7 @@
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache"/>
 
-    <projectService serviceImplementation="com.intellij.plugins.haxe.ide.HaxeDocumentationRenderer"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationRenderer"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 

@@ -1,6 +1,7 @@
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.documentation;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.ide.ReferenceCodeLink;
 import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;

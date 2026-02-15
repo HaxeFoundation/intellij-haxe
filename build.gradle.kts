@@ -45,6 +45,7 @@ dependencies {
     implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
 
+    implementation("tools.jackson.core:jackson-databind:3.0.4")
     implementation("org.apache.commons:commons-text:1.14.0")
 
     implementation(project(":common"))

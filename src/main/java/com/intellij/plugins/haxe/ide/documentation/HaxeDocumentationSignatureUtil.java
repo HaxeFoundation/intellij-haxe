@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.documentation;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiElement;

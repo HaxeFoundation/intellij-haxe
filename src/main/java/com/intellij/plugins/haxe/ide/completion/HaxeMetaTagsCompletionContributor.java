@@ -19,19 +19,22 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.ide.documentation.providers.HaxeMetadataDocumentations;
+import com.intellij.plugins.haxe.ide.lookup.HaxeMetadataLookupElement;
+import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.util.HaxeCompletionCache;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -40,8 +43,7 @@ import java.util.List;
 @CustomLog
 public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
   public HaxeMetaTagsCompletionContributor() {
-
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.META_ID), new CompletionProvider<>() {
+    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeMetadataTokenTypes.META_TYPE), new CompletionProvider<>() {
       @Override
       protected void addCompletions(@NotNull CompletionParameters parameters,
                                     ProcessingContext context,
@@ -57,8 +59,22 @@ public class HaxeMetaTagsCompletionContributor extends CompletionContributor {
 
         final List<HXMLCompletionItem> metaTags = HaxeCompletionCache.getInstance(module).getMetaTags();
 
-        for (HXMLCompletionItem completionItem : metaTags) {
-          result.addElement(LookupElementBuilder.create(completionItem.name).withTailText(" " + completionItem.description, true));
+        if(!metaTags.isEmpty()) {
+          for (HXMLCompletionItem completionItem : metaTags) {
+            //check if we got complementary docs and use those if available, otherwise use compiler results.
+            HaxeMetadataDocumentations.MetadataInfo docs = HaxeMetadataDocumentations.getDocsFor(completionItem.name);
+            if (docs != null) {
+              result.addElement(new HaxeMetadataLookupElement(docs));
+            } else {
+              String presentation = ":" + completionItem.name;
+              String description = completionItem.description;
+              result.addElement(new HaxeMetadataLookupElement(presentation, description, ""));
+            }
+          }
+        } else {
+          for (HaxeMetadataDocumentations.MetadataInfo docs : HaxeMetadataDocumentations.getDocs()) {
+            result.addElement(new HaxeMetadataLookupElement(docs));
+          }
         }
       }
     });

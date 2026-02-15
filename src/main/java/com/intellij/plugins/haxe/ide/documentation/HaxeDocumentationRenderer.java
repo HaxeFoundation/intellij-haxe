@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.documentation;
 
 import com.intellij.codeInsight.documentation.DocumentationManagerUtil;
 import com.intellij.lang.Language;
@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.richcopy.HtmlSyntaxInfoUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.ide.ReferenceCodeLink;
 import com.intellij.psi.PsiDocCommentBase;
 import org.commonmark.Extension;
 import org.commonmark.ext.autolink.AutolinkExtension;

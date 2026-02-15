@@ -42,7 +42,7 @@ public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMet
 
   @Override
   public HaxeMetadataType getType() {
-    return findNotNullChildByType(HaxeMetadataTokenTypes.TYPE);
+    return findChildByType(HaxeMetadataTokenTypes.TYPE);
   }
 
   @Override
@@ -93,7 +93,8 @@ public class HaxeMetaImpl extends HaxePsiCompositeElementImpl implements HaxeMet
       name = name.substring(trim);
     }
 
-    return this.getType().textMatches(name);
+    HaxeMetadataType type = this.getType();
+    return type != null && type.textMatches(name);
   }
 
   @Override

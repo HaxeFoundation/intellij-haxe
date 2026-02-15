@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.documentation;
 
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;

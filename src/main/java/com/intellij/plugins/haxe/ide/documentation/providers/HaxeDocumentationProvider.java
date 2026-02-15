@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.documentation.providers;
 
 import com.intellij.codeInsight.documentation.DocumentationManagerUtil;
 import com.intellij.icons.AllIcons;
@@ -24,6 +24,7 @@ import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.util.text.HtmlBuilder;
 import com.intellij.openapi.util.text.HtmlChunk;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationRenderer;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
@@ -44,7 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static com.intellij.plugins.haxe.ide.HaxeDocumentationSignatureUtil.*;
+import static com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationSignatureUtil.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.DOC_COMMENT;
 import static com.intellij.util.ui.UIUtil.colorToHex;
 
@@ -79,7 +80,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     }
     // convert to one liner
     String result = mainBuilder.toString();
-    result = result.replaceAll("<br\\/>|<br>", " ");
+    result = result.replaceAll("<br/>|<br>", " ");
     result = result.replaceAll("&#32;", " ");
 
     return result.isEmpty() ? null : result;
@@ -462,10 +463,10 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
   private static void makeHeader(HtmlBuilder builder, ResultHolder result) {
     if (result != null && !result.isUnknown()) {
       Color color = DefaultLanguageHighlighterColors.LINE_COMMENT.getDefaultAttributes().getForegroundColor();
-      HtmlChunk.Element element = new HtmlBuilder().append(" (Type: " + result.getType().withoutConstantValue() + ")")
+      HtmlChunk.Element element = new HtmlBuilder().append("(Type: " + result.getType().withoutConstantValue() + ")")
         .wrapWith(HtmlChunk.Element.tag("code").attr("color", "#" + colorToHex(color))).wrapWith(HtmlChunk.Element.tag("i"));
 
-      builder.append(element).br();
+      builder.append(" ").append(element).br();
     }
   }
 
