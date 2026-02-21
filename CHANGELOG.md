@@ -1,9 +1,13 @@
 # Changelog
 ## 1.7.10
+* Added: Initial support for `@:overload` on methods and constructors.
 * Bugfix: Fixed issue where capture variables would show the wrong type (#1233)
+* Improvement: Completion suggestions for built-in metadata should now work better and show more detailed docs.
 * Improvement: Added imports and using from `import.hx` to completion suggestions (#1234)
 * Improvement: Support for numeric separators (#1232) 
 * Improvement: Completion for function `bind` and single character string `code` (#1231)
+* Fixed: Incorrect missing return statement annotations on switch statements with capture variables
+* Fixed: Incorrect cannot assign annotation for object literals with functions to typedef types.
 
 ## 1.7.9
 * Changed: Allow arbitrary amount of typeParameters when `@:genericBuild` macros are used in conjugation with TypeParameter named "Rest"
