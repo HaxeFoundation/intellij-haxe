@@ -434,7 +434,23 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return getMethod("new", resolver);
   }
   public List<HaxeMethodModel> getConstructors(@Nullable HaxeGenericResolver resolver) {
-    return getMethods( resolver).stream().filter(HaxeMethodModel::isConstructor).toList();
+      List<HaxeMethodModel> normalConstructors = getMethods(resolver).stream()
+            .filter(HaxeMethodModel::isConstructor)
+            .toList();
+
+      List<HaxeMethodModel> constructors = new ArrayList<>(normalConstructors);
+
+    for (HaxeMethodModel constructor : normalConstructors) {
+      HaxeMethod method = constructor.getMethod();
+      if (method.hasCompileTimeMetadata(HaxeMetadataCompileTimeMeta.OVERLOAD)) {
+        List<HaxeMethodModel> overloadConstructors = method.getModel().extractOverloadsForMethod().stream()
+                .map(HaxeMethodPsiMixin::getModel)
+                .toList();
+
+        constructors.addAll(overloadConstructors);
+      }
+    }
+    return constructors;
   }
 
   public boolean hasConstructor(@Nullable HaxeGenericResolver resolver) {

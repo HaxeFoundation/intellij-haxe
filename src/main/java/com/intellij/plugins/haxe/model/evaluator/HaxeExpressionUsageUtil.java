@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
@@ -61,10 +62,12 @@ public class HaxeExpressionUsageUtil {
     if (index == -1) return null;
 
     if (resolved instanceof HaxeMethod method) {
-      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-      HaxeCallExpressionEvaluation evaluated = context.evaluate();
-      if (context.isStaticExtension) index++;
-     return evaluated.getParameterType(index);
+      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+      HaxeCallExpressionEvaluation evaluated = contextContainer.evaluateContexts();
+      if (evaluated != null) {
+        if (contextContainer.getContext().isStaticExtension) index++;
+        return evaluated.getParameterType(index);
+      }
     }
     return null;
   }
@@ -76,11 +79,11 @@ public class HaxeExpressionUsageUtil {
     if (list != null) index = list.indexOf(referenceExpression);
     if (index == -1) return null;
     ResultHolder  assignHint=  lookForAssignHints(newExpression);
-      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression, assignHint);
-      if(context != null) {
-        HaxeCallExpressionEvaluation evaluated = context.evaluate();
-        if (context.isStaticExtension) index++;
-        return evaluated.getParameterType(index);
+    HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression, assignHint);
+    HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+      if(evaluation != null) {
+        if (contextContainer.getContext().isStaticExtension) index++;
+        return evaluation.getParameterType(index);
       }
       return null;
   }
@@ -515,17 +518,19 @@ public class HaxeExpressionUsageUtil {
         && referenceExpression.getParent() instanceof HaxeCallExpression callExpression) {
 
       HaxeMethodModel methodModel = methodDeclaration.getModel();
-      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, methodModel.getMethod());
-      HaxeCallExpressionEvaluation validation = context.evaluate();
-      HaxeGenericResolver resolverFromCallExpression = validation.getCallExpressionResolver();
-      if (resolverFromCallExpression != null) {
-        SpecificHaxeClassReference classType = resultHolder.getClassType();
-        if(classType != null && methodModel.getDeclaringClass() != null) {
-          HaxeClass methodDeclaringClass = methodModel.getDeclaringClass().haxeClass;
-          HaxeGenericResolver translatedResolver = resolverFromCallExpression.translateFromTo(methodDeclaringClass, classType.getHaxeClass());
-          ResultHolder resolve = translatedResolver.resolve(classType.replaceUnknownsWithTypeParameter());
-          if (resolve != null) {
-            return resolve;
+      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, methodModel.getMethod());
+      HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+      if(validation != null) {
+        HaxeGenericResolver resolverFromCallExpression = validation.getCallExpressionResolver();
+        if (resolverFromCallExpression != null) {
+          SpecificHaxeClassReference classType = resultHolder.getClassType();
+          if (classType != null && methodModel.getDeclaringClass() != null) {
+            HaxeClass methodDeclaringClass = methodModel.getDeclaringClass().haxeClass;
+            HaxeGenericResolver translatedResolver = resolverFromCallExpression.translateFromTo(methodDeclaringClass, classType.getHaxeClass());
+            ResultHolder resolve = translatedResolver.resolve(classType.replaceUnknownsWithTypeParameter());
+            if (resolve != null) {
+              return resolve;
+            }
           }
         }
       }

@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.fixer.*;
@@ -790,10 +791,9 @@ public class HaxeExpressionEvaluatorHandlers {
             HaxeMethod method = constructor.getMethod();
             HaxeMethodModel methodModel = method.getModel();
             if (methodModel.getGenericParams().isEmpty()) {
-              HaxeCallExpressionContext expressionContext = HaxeCallExpressionUtil.createContextForConstructorCall(expression);
-              if (expressionContext != null) {
-                HaxeCallExpressionEvaluation validation = expressionContext.evaluate();
-
+              HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(expression);
+              HaxeCallExpressionEvaluation validation =contextContainer.evaluateContexts();
+              if (validation != null) {
                 ResultHolder returnType = validation.getReturnType();
 
                 // NOTE:
@@ -1128,23 +1128,25 @@ public class HaxeExpressionEvaluatorHandlers {
           PsiElement resolve = referenceExpression.resolve();
           if(resolve instanceof  HaxeMethod method) {
             int index = callExpressionList.getExpressionList().indexOf(function);
-            HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-            HaxeCallExpressionEvaluation validation = callExpressionContext.evaluate();
-            Map<Integer, Integer> indexMap = validation.getArgumentToParameterIndex();
-            int parameterIndex = indexMap.getOrDefault(index, -1);
-            ResultHolder holder = validation.getParameterType(parameterIndex);
-            if (holder != null && !holder.isUnknown()) {
-              SpecificTypeReference reference;
-              if (holder.getClassType() != null){
-                reference = holder.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-              }else {
-                reference = holder.getFunctionType();
-              }
-              if (reference instanceof  SpecificFunctionReference functionReference) {
+            HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+            HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+            if (validation != null) {
+              Map<Integer, Integer> indexMap = validation.getArgumentToParameterIndex();
+              int parameterIndex = indexMap.getOrDefault(index, -1);
+              ResultHolder holder = validation.getParameterType(parameterIndex);
+              if (holder != null && !holder.isUnknown()) {
+                SpecificTypeReference reference;
+                if (holder.getClassType() != null) {
+                  reference = holder.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+                } else {
+                  reference = holder.getFunctionType();
+                }
+                if (reference instanceof SpecificFunctionReference functionReference) {
                   // if type found in param, override  argumentType (default is unknown)
                   if (argumentType.isUnknown() && !functionReference.getArguments().isEmpty()) {
                     HaxeArgument argument = functionReference.getArguments().get(0);
                     argumentType = argument.getType();
+                  }
                 }
               }
             }
@@ -1688,12 +1690,12 @@ public class HaxeExpressionEvaluatorHandlers {
 
         ResultHolder assignHint = resolver.getAssignHint();
         SpecificTypeReference assignHintType = assignHint == null ? null : assignHint.getType();
-        HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
-        if(!callExpressionContext.canCache) {
+        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, assignHintType, methodModel.getMethod());
+        if(!contextContainer.canCache()) {
             allowCaching = false;
         }
-        HaxeCallExpressionEvaluation evaluate = callExpressionContext.evaluate();
-        if(evaluate.isValid()) {
+        HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+        if(evaluate != null && evaluate.isValid()) {
           functionType = evaluate.getFunctionType(methodModel);
         }else {
           functionType = createUnknown(callExpression, false).getType();
@@ -1847,9 +1849,11 @@ public class HaxeExpressionEvaluatorHandlers {
 
       // if reference to "real" method, try to use any argument to type parameter mapping
       if (ftype.method != null && returnType.isOrContainsTypeParameters()) {
-        HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, ftype.method.getMethod());
-        HaxeCallExpressionEvaluation validation = callExpressionContext.evaluate();
+        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, ftype.method.getMethod());
+        HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+        if(validation != null) {
         functionResolver.addAll(validation.getCallExpressionResolver());
+        }
       }
 
       //ResultHolder resolved = functionResolver.resolveReturnType(returnType.tryUnwrapNullType());
@@ -1869,7 +1873,7 @@ public class HaxeExpressionEvaluatorHandlers {
       }
 
       if(returnType.isClassType() || returnType.isEnumValueType()) {
-          ResultHolder result = returnType.withOrigin(ftype.context);
+          ResultHolder result = returnType.copy();
           result.cacheable = allowCaching;
           return result;
       }
@@ -2612,15 +2616,17 @@ public class HaxeExpressionEvaluatorHandlers {
       if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
         PsiElement resolve = referenceExpression.resolve();
         if (resolve instanceof HaxeMethod method) {
-          HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-          HaxeCallExpressionEvaluation evaluate = context.evaluate();
-          ResultHolder parameterType = evaluate.getParameterType(index);
-          if (parameterType != null && !parameterType.isUnknown()) {
-            SpecificHaxeClassReference classType = parameterType.getClassType();
-            if(classType != null) {
-              SpecificHaxeClassReference tmpArray = createArray(createUnknown(element), element);
-              SpecificHaxeClassReference cast = classType.tryCastToClass(tmpArray);
-              if(cast != null && !cast.getSpecifics()[0].isTypeParameter()) return cast.createHolder();
+          HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+          HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+          if (evaluate != null) {
+            ResultHolder parameterType = evaluate.getParameterType(index);
+            if (parameterType != null && !parameterType.isUnknown()) {
+              SpecificHaxeClassReference classType = parameterType.getClassType();
+              if (classType != null) {
+                SpecificHaxeClassReference tmpArray = createArray(createUnknown(element), element);
+                SpecificHaxeClassReference cast = classType.tryCastToClass(tmpArray);
+                if (cast != null && !cast.getSpecifics()[0].isTypeParameter()) return cast.createHolder();
+              }
             }
           }
         }

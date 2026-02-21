@@ -36,7 +36,7 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
@@ -916,10 +916,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
           if (classType != null && classType.getHaxeClass() != null) {
             methodModel = classType.getHaxeClass().getModel().getConstructor(null);
             expressionList = newExpression.getExpressionList();
-            HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
-            if (context != null) {
-              validation = context.evaluate();
-            }
+            HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+            validation = contextContainer.evaluateContexts();
           }
         }
         // double parent due to CallExpressionList level
@@ -930,8 +928,8 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               if (expressionListPsi != null) {
                 expressionList = expressionListPsi.getExpressionList();
                 methodModel = haxeMethod.getModel();
-                HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, haxeMethod);
-                validation = context.evaluate();
+                HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, haxeMethod);
+                validation = contextContainer.evaluateContexts();
               }
             }
           }

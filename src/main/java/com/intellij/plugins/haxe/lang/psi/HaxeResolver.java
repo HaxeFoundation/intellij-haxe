@@ -39,7 +39,7 @@ import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
@@ -405,10 +405,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           HaxeMethodModel constructor = declaration.getModel().getConstructor(null);
           if (constructor != null) {
             int index = newExpression.getExpressionList().indexOf(reference);
-            HaxeCallExpressionContext context = createContextForConstructorCall(newExpression);
-            if (context != null) {
-              HaxeCallExpressionEvaluation evaluate = context.evaluate();
-              return evaluate.getParameterType(index);
+            HaxeCallExpressionContextContainer contextContainer = createContextForConstructorCall(newExpression);
+            HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+            if (evaluation != null) {
+              return evaluation.getParameterType(index);
             }
           }
         }
@@ -420,9 +420,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             PsiElement resolve = referenceExpression.resolve();
             if (resolve instanceof HaxeMethod method) {
               int index = expressionList.getExpressionList().indexOf(reference);
-              HaxeCallExpressionContext context = createContextForMethodCall(callExpression, method);
-              HaxeCallExpressionEvaluation evaluate = context.evaluate();
-              return evaluate.getParameterType(index);
+              HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(callExpression, method);
+              HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+              return evaluate == null ? null : evaluate.getParameterType(index);
             }
           }
         }
@@ -450,12 +450,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (parent instanceof HaxeNewExpression newExpression) {
         int index = newExpression.getExpressionList().indexOf(reference);
         if(index>-1) {
-          HaxeCallExpressionContext context = createContextForConstructorCall(newExpression);
-          if (context != null) {
-            HaxeCallExpressionEvaluation evaluate = context.evaluate();
-            Integer paramIndex = evaluate.getArgumentToParameterMapping().get(index);
+          HaxeCallExpressionContextContainer contextContainer = createContextForConstructorCall(newExpression);
+          HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+          if (evaluation != null) {
+            Integer paramIndex = evaluation.getArgumentToParameterMapping().get(index);
             if (paramIndex != null) {
-              return evaluate.getParameterType(index);
+              return evaluation.getParameterType(index);
             }
           }
         }
@@ -465,9 +465,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           PsiElement resolve = referenceExpression.resolve();
           if (resolve instanceof HaxeMethod method) {
             int index = expressionList.getExpressionList().indexOf(reference);
-            HaxeCallExpressionContext context = createContextForMethodCall(callExpression, method);
-            HaxeCallExpressionEvaluation evaluate = context.evaluate();
-            return evaluate.getParameterType(index);
+            HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(callExpression, method);
+            HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+            return evaluate == null ? null : evaluate.getParameterType(index);
           }
         }
       }
@@ -529,9 +529,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private static boolean testAsEnumValueConstructor(@NotNull HaxeEnumValueDeclarationConstructor enumValueDeclaration, @NotNull HaxeReference reference) {
       if (reference.getParent() instanceof HaxeCallExpression haxeCallExpression) {
         HaxeMethod method = enumValueDeclaration.getModel().getMethod();
-        HaxeCallExpressionContext context = createContextForMethodCall(haxeCallExpression, method);
-        HaxeCallExpressionEvaluation validation = context.evaluate();
-        return validation.isCompleted() && validation.isValid();
+        HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(haxeCallExpression, method);
+        HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+        return validation != null && validation.isCompleted() && validation.isValid();
       }
     return false;
   }
@@ -897,15 +897,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (argumentList != null) {
             int argumentIndex = argumentList.getExpressionList().indexOf(argument);
             if (argumentIndex > -1) {
-              HaxeCallExpressionContext context = createContextForMethodCall(methodCallCall, haxeMethod);
-              HaxeCallExpressionEvaluation validation = context.evaluate();
-              int parameterIndex = validation.getParameterForArgument(argumentIndex);
-              ResultHolder parameterType = validation.getParameterType(parameterIndex);
-              if (parameterType != null) {
-                SpecificHaxeClassReference possibleType = parameterType.getClassType();
-                if (possibleType != null && possibleType.isEnumType()) {
-                  List<HaxeComponentName> member = findEnumMember(reference, possibleType);
-                  if (member != null) return member;
+              HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(methodCallCall, haxeMethod);
+              HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+              if(validation != null) {
+                int parameterIndex = validation.getParameterForArgument(argumentIndex);
+                ResultHolder parameterType = validation.getParameterType(parameterIndex);
+                if (parameterType != null) {
+                  SpecificHaxeClassReference possibleType = parameterType.getClassType();
+                  if (possibleType != null && possibleType.isEnumType()) {
+                    List<HaxeComponentName> member = findEnumMember(reference, possibleType);
+                    if (member != null) return member;
+                  }
                 }
               }
             }
@@ -917,11 +919,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       List<HaxeExpression> argumentList = constructorCall.getExpressionList();
       int argumentIndex = argumentList.indexOf(argument);
       if (argumentIndex> -1) {
-        HaxeCallExpressionContext context = createContextForConstructorCall(constructorCall);
-        if (context != null) {
-          HaxeCallExpressionEvaluation validation = context.evaluate();
-          int parameterIndex = validation.getParameterForArgument(argumentIndex);
-          ResultHolder parameterType = validation.getParameterType(parameterIndex);
+        HaxeCallExpressionContextContainer contextContainer = createContextForConstructorCall(constructorCall);
+        HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+        if (evaluation != null) {
+          int parameterIndex = evaluation.getParameterForArgument(argumentIndex);
+          ResultHolder parameterType = evaluation.getParameterType(parameterIndex);
           if (parameterType != null) {
             SpecificHaxeClassReference possibleType = parameterType.getClassType();
             if (possibleType != null && possibleType.isEnumType()) {
@@ -1901,8 +1903,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           // the code might be incomplete and validation might fail so we keep track of the element
           // as a method  match is more correct than a field match
           bestGuess = psiElement;
-          HaxeCallExpressionContext context = createContextForMethodCall(callExpression, method);
-          if (context.evaluate().isValid()) {
+          HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(callExpression, method);
+          HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+          if (evaluation != null && evaluation.isValid()) {
             LogResolution(reference, "via tree walk. (method filtered)");
             return List.of(psiElement);
           }
@@ -2405,9 +2408,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     for (HaxeBaseMemberModel member : members) {
       if (member instanceof HaxeMethodModel methodModel) {
         if (reference.getParent() instanceof HaxeCallExpression callExpression) {
-          HaxeCallExpressionContext methodCall = createContextForMethodCall(callExpression, methodModel.getMethod());
-          HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
-          if(evaluate.isValid()) {
+          HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(callExpression, methodModel.getMethod());
+          HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+          if (evaluate != null && evaluate.isValid()) {
             return Collections.singletonList(member.getNamedComponentPsi());
           }
         } else if (reference.getParent() instanceof HaxeCallExpressionList argumentList) {
@@ -2415,15 +2418,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (argumentList.getParent() instanceof HaxeCallExpression callExpression) {
             if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
               if (referenceExpression.resolve() instanceof HaxeMethod haxeMethod) {
-                HaxeCallExpressionContext methodCall = createContextForMethodCall(callExpression, haxeMethod);
-                HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
-                int paramIndex = evaluate.getParameterForArgument(argIndex);
-                if (paramIndex != -1) {
-                  ResultHolder parameterType = evaluate.getParameterType(paramIndex);
-                  if(parameterType != null) {
-                    SpecificFunctionReference functionType = methodModel.getFunctionType(null);
-                    if (functionType.canAssign(parameterType)) {
-                      return Collections.singletonList(member.getNamedComponentPsi());
+                HaxeCallExpressionContextContainer contextContainer = createContextForMethodCall(callExpression, haxeMethod);
+                HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+                if(evaluate != null) {
+                  int paramIndex = evaluate.getParameterForArgument(argIndex);
+                  if (paramIndex != -1) {
+                    ResultHolder parameterType = evaluate.getParameterType(paramIndex);
+                    if (parameterType != null) {
+                      SpecificFunctionReference functionType = methodModel.getFunctionType(null);
+                      if (functionType.canAssign(parameterType)) {
+                        return Collections.singletonList(member.getNamedComponentPsi());
+                      }
                     }
                   }
                 }
@@ -2454,12 +2459,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   private static @Nullable List<HaxeNamedComponent> checkConstructorOverloads(HaxeNewExpression newExpression, List<HaxeMethodModel> constructors) {
     for (HaxeMethodModel constructor : constructors) {
-
-        HaxeCallExpressionContext methodCall = createContextForConstructorCall(newExpression, constructor.getMethod().getModel());
-        HaxeCallExpressionEvaluation evaluate = methodCall.evaluate();
-        if (evaluate.isValid()) {
-          return Collections.singletonList(constructor.getNamedComponentPsi());
-        }
+      HaxeCallExpressionContextContainer contextContainer = createContextForConstructorCall(newExpression, constructor.getMethod().getModel());
+      HaxeCallExpressionEvaluation evaluation = contextContainer.evaluateContexts();
+      if (evaluation != null && evaluation.isValid()) {
+        return Collections.singletonList(constructor.getNamedComponentPsi());
+      }
     }
     return null;
   }

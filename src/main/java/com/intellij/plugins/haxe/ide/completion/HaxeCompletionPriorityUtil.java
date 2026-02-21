@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
@@ -256,10 +257,8 @@ public class HaxeCompletionPriorityUtil {
         return true;
       }else {
         // else if completing parameters
-        HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
-        if (context != null) {
-          validation = context.evaluate();
-        }
+        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+        validation = contextContainer.evaluateContexts();
       }
     }
 
@@ -295,7 +294,8 @@ public class HaxeCompletionPriorityUtil {
     if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
       PsiElement resolve = referenceExpression.resolve();
       if (resolve instanceof HaxeMethod method) {
-        return HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method).evaluate();
+        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+        return contextContainer.evaluateContexts();
       }
     }
     return null;

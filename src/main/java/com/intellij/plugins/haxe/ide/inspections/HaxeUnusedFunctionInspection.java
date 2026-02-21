@@ -65,17 +65,20 @@ public class HaxeUnusedFunctionInspection extends LocalInspectionTool {
         final List<ProblemDescriptor> result = new ArrayList<>();
         for (HaxeLocalFunctionDeclaration unusedFunction : LocalFunctionDeclarations) {
             HaxeComponentName componentName = unusedFunction.getComponentName();
-            String nameText = componentName.getText();
-            result.add(manager.createProblemDescriptor(
-                    componentName,
-                    HaxeBundle.message("haxe.inspections.unused.function.description", nameText),
-                    new LocalQuickFix[]{
-                            createRemoveFunctionFix(nameText)
-                    },
-                    ProblemHighlightType.LIKE_UNUSED_SYMBOL,
-                    isOnTheFly,
-                    false
-            ));
+            // note: @:overload(...) may contain unnamed functions
+            if (componentName != null) {
+                String nameText = componentName.getText();
+                result.add(manager.createProblemDescriptor(
+                        componentName,
+                        HaxeBundle.message("haxe.inspections.unused.function.description", nameText),
+                        new LocalQuickFix[]{
+                                createRemoveFunctionFix(nameText)
+                        },
+                        ProblemHighlightType.LIKE_UNUSED_SYMBOL,
+                        isOnTheFly,
+                        false
+                ));
+            }
         }
 
         return result.isEmpty() ? ProblemDescriptor.EMPTY_ARRAY : ArrayUtil.toObjectArray(result, ProblemDescriptor.class);

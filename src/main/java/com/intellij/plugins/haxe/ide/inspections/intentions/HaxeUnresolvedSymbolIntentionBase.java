@@ -13,7 +13,7 @@ import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -324,12 +324,14 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
         if (callExpression.getExpression() instanceof HaxeReference reference) {
           PsiElement resolved = reference.resolve();
           if (resolved instanceof HaxeMethod method) {
-            HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-            HaxeCallExpressionEvaluation validation = context.evaluate();
-            Integer parameterIndex = validation.getArgumentToParameterMapping().get(index);
-            if (parameterIndex != null) {
-              ResultHolder paramType = validation.getParameterType(parameterIndex);
-              if(paramType != null) return paramType;
+            HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+            HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+            if (validation != null) {
+              Integer parameterIndex = validation.getArgumentToParameterMapping().get(index);
+              if (parameterIndex != null) {
+                ResultHolder paramType = validation.getParameterType(parameterIndex);
+                if (paramType != null) return paramType;
+              }
             }
           }
         }

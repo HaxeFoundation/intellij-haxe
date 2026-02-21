@@ -8,10 +8,7 @@ import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.EvaluationAnnotationData;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
@@ -59,9 +56,11 @@ public class HaxeCallExpressionAnnotator implements Annotator {
               HaxeCallExpressionEvaluation validation = context.evaluateWithAnnotationData(callExpression);
               createAnnotations(holder, validation);
             } else {
-              HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, functionType.method.getMethod());
-              HaxeCallExpressionEvaluation validation = context.evaluateWithAnnotationData(callExpression);
-              createAnnotations(holder, validation);
+              HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, functionType.method.getMethod());
+              HaxeCallExpressionEvaluation validation = contextContainer.evaluateContextsWithAnnotationData(callExpression);
+              if(validation != null) {
+                createAnnotations(holder, validation);
+              }
             }
           } else if (typeReference instanceof SpecificHaxeClassReference classReference) {
             HaxeClassModel haxeClassModel = classReference.getHaxeClassModel();
@@ -101,18 +100,20 @@ public class HaxeCallExpressionAnnotator implements Annotator {
         }
         else if (resolved instanceof HaxeMethod method) {
           if (isTrace(method))return;
-          HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-          HaxeCallExpressionEvaluation validation = context.evaluateWithAnnotationData(callExpression);
-          createAnnotations(holder, validation);
+          HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+          HaxeCallExpressionEvaluation validation = contextContainer.evaluateContextsWithAnnotationData(callExpression);
+          if(validation != null) {
+            createAnnotations(holder, validation);
+          }
         }
       }
     }
     if (element instanceof HaxeNewExpression newExpression) {
-      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
-      if (context != null) {
-        HaxeCallExpressionEvaluation validation = context.evaluateWithAnnotationData(newExpression);
-        createAnnotations(holder, validation);
-      }
+      HaxeCallExpressionContextContainer context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+        HaxeCallExpressionEvaluation validation = context.evaluateContextsWithAnnotationData(newExpression);
+        if(validation != null) {
+          createAnnotations(holder, validation);
+        }
     }
   }
 

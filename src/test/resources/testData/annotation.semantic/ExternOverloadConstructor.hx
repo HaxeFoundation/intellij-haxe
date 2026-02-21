@@ -7,7 +7,7 @@ class Test {
         new MyAbstract(1);
         var a = new MyAbstract(1);
         var b = new MyAbstract(1,"test");// CORRECT: overload allowed for abstract
-        var c = <error descr="Too many arguments (expected 1 but got 3)\"">new MyAbstract(1,"test", true)</error>;// WRONG: no overload with these params
+        var c = <error descr="Too many arguments (expected 2 but got 3)\"">new MyAbstract(1,"test", true)</error>;// WRONG: no overload with these params
     }
 }
 

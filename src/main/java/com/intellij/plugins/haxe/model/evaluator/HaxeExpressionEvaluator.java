@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
@@ -742,10 +743,12 @@ public class HaxeExpressionEvaluator {
           final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
           if (hint != null && leftReference == reference) {
             if (resolved instanceof HaxeMethod method ) {
-              HaxeCallExpressionContext callExpressionContext = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-              HaxeCallExpressionEvaluation validation  = callExpressionContext.evaluate();
-              ResultHolder hintResolved = validation.getCallExpressionResolver().resolve(hint);
-              if (hintResolved != null) return hintResolved;
+              HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
+              HaxeCallExpressionEvaluation validation  = contextContainer.evaluateContexts();
+              if(validation != null) {
+                ResultHolder hintResolved = validation.getCallExpressionResolver().resolve(hint);
+                if (hintResolved != null) return hintResolved;
+              }
             }
           }
         }

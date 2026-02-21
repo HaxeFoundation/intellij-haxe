@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.psi.PsiElement;
@@ -93,10 +94,12 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
     if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel && constructorModel.getConstructorParameters() != null) {
-      HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, constructorModel.getMethod());
-      HaxeCallExpressionEvaluation validation = context.evaluate();
-      List<HaxeParameterModel> parameters = MapParametersToModel(constructorModel.getConstructorParameters());
-      processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, false);
+      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, constructorModel.getMethod());
+      HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+      if(validation != null) {
+        List<HaxeParameterModel> parameters = MapParametersToModel(constructorModel.getConstructorParameters());
+        processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, false);
+      }
     }
   }
 
@@ -104,10 +107,11 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     HaxeCallExpressionList expressionList = callExpression.getExpressionList();
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
-    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, model.getMethod());
-    HaxeCallExpressionEvaluation validation = context.evaluate();
+    HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, model.getMethod());
+    HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
 
-    if (validation.isCompleted()) {
+    if (validation != null && validation.isCompleted()) {
+      HaxeCallExpressionContext context = contextContainer.getContext();
       List<HaxeParameterModel> parameters = model.getParameters();
       boolean skipFirstParam = context.isStaticExtension | context.isMacroMemberMethod();
       processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, skipFirstParam);
@@ -116,10 +120,14 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
 
   @Nullable
   private void handleNewExpressions(HaxeNewExpression newExpression, List<InlayInfo> infoList) {
-    HaxeCallExpressionContext context = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
-    if (context != null) {
-      HaxeCallExpressionEvaluation validation = context.evaluate();
-      HaxeMethodModel model = getMethodModel(newExpression);
+    HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForConstructorCall(newExpression);
+    HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+    HaxeCallExpressionContext context = contextContainer.getContext();
+
+    if (validation != null) {
+
+      HaxeMethodModel model = findMethodModel(newExpression);
+
       if (validation.isCompleted()) {
         if (model == null) return;
         List<HaxeExpression> expressionList = newExpression.getExpressionList();
@@ -128,6 +136,17 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
           processArguments(validation.getArgumentToParameterMapping(), expressionList, parameters, infoList, skipFirstParam);
       }
     }
+  }
+
+  private static HaxeMethodModel findMethodModel(HaxeNewExpression newExpression) {
+    // we use resolve in order to get correct model for overloaded methods
+    HaxeMethodModel model = null;
+    PsiElement resolve = newExpression.resolve();
+    if (resolve instanceof HaxeMethod method) {
+      return method.getModel();
+    }
+    // fallback
+    return getMethodModel(newExpression);
   }
 
   @NotNull

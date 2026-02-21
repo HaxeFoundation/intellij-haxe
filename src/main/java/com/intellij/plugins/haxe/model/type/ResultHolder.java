@@ -25,7 +25,6 @@ import com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.assign.HaxeTypeCompatible;
 import com.intellij.psi.PsiElement;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,8 +37,6 @@ public class ResultHolder {
 
   public  boolean cacheable = true;
 
-  @Getter private final PsiElement origin;
-
   @NotNull
   private SpecificTypeReference type;
   // NOTE: morph flag is used for typeParameters (prevent updating type)
@@ -50,11 +47,7 @@ public class ResultHolder {
 
 
   public ResultHolder(@NotNull SpecificTypeReference type) {
-    this(type, null);
-  }
-  public ResultHolder(@NotNull SpecificTypeReference type, @Nullable PsiElement origin) {
     this.type = type;
-    this.origin = origin;
   }
 
   @NotNull
@@ -214,8 +207,8 @@ public class ResultHolder {
   }
 
 
-  public ResultHolder withOrigin(PsiElement origin) {
-    return new ResultHolder(this.getType(), origin);
+  public ResultHolder copy() {
+    return new ResultHolder(this.getType());
   }
 
   public boolean isInvalid() {

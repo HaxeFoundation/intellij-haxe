@@ -22,7 +22,9 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 import com.intellij.openapi.util.Key;
 
@@ -62,6 +65,30 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
   public HaxeMethod getMethod() {
     return haxeMethod;
+  }
+
+  @NotNull
+  public List<HaxeMethodModel> getOverloadsFromMeta() {
+    if (haxeMethod.hasCompileTimeMetadata(HaxeMetadataCompileTimeMeta.OVERLOAD)) {
+      return extractOverloadsForMethod().stream()
+              .map(HaxeMethodPsiMixin::getModel)
+              .toList();
+
+    }
+    return List.of();
+  }
+
+  public List<HaxeMethod> extractOverloadsForMethod() {
+    HaxeMetadataList metadataList = haxeMethod.getMetadataList(HaxeMetadataCompileTimeMeta.class);
+    return metadataList.stream()
+            .filter(haxeMeta -> haxeMeta.isType(HaxeMetadataCompileTimeMeta.OVERLOAD))
+            .map(HaxeMeta::getContent)
+            .map(content -> PsiTreeUtil.findChildOfType(content, HaxeCompiletimeMetaArg.class))
+            .filter(Objects::nonNull)
+            .map(PsiElement::getFirstChild)
+            .filter(psiElement -> psiElement instanceof HaxeMethod)
+            .map(HaxeMethod.class::cast)
+            .toList();
   }
 
   public HaxeMethodPsiMixin getMethodPsi() {
