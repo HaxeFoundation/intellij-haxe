@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
+import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxePropertyAccessor;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @CustomLog
@@ -57,10 +59,11 @@ public class HaxeAnonymousAssignUtil {
           // check for method declarations in types
           Optional<HaxeMethodModel> modelOptional = fromMembers.stream()
                   .filter(model -> model instanceof HaxeMethodModel)
-                  .map(model -> (HaxeMethodModel) model)
+                  .map(HaxeMethodModel.class::cast)
                   .filter(mm -> methodModel.getParameters().size() == mm.getParameters().size())
                   .filter(model -> model.getNamePsi().getIdentifier().textMatches(name))
                   .findAny();
+
 
           if (modelOptional.isPresent()) {
                 memberExists = true;
@@ -84,7 +87,35 @@ public class HaxeAnonymousAssignUtil {
                   context.explanations.addWrongTypeMember(fromText, toText, memberBasePsi);
                   allMembersMatches = false;
                 }
+
+            } else {
+            Optional<SpecificFunctionReference> OptionalfunctionReference = fromMembers.stream()
+                    .filter(model -> model instanceof HaxeObjectLiteralMemberModel)
+                    .map(HaxeObjectLiteralMemberModel.class::cast)
+                    .filter(m -> m.getName().equals(name))
+                    .map(HaxeBaseMemberModel::getResultType)
+                    .filter(ResultHolder::isFunctionType)
+                    .map(ResultHolder::getFunctionType)
+                    .filter(Objects::nonNull)
+                    .filter(o -> methodModel.getParameters().size() == o.getArguments().size())
+                    .findAny();
+
+            if(OptionalfunctionReference.isPresent()) {
+              memberExists = true;
+
+              SpecificFunctionReference toType = methodModel.getFunctionType(toResolver);
+              SpecificFunctionReference fromType = OptionalfunctionReference.get();
+
+              PsiElement memberBasePsi = fromType.getElementContext();
+
+              if (!toType.canAssign(fromType)) {
+                String fromText = fromType.toPresentationString();
+                String toText = toMember.getPresentableText(null, toResolver);
+                context.explanations.addWrongTypeMember(fromText, toText, memberBasePsi);
+                allMembersMatches = false;
+              }
             }
+          }
         }else {
           // ignore methods in @:structInit classes
           ignored = true;

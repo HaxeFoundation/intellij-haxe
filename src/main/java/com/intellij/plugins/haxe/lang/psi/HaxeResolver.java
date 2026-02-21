@@ -2368,16 +2368,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // Note: there is no code to resolve  to so we use a fakePsi with a reference to the method being bound.
       if ("bind".equals(identifierText)) {
         if (identifier instanceof HaxeIdentifier haxeIdentifier) {
-          PsiElement resolve = leftReference.resolve();
-          synchronized (resolve) {
-            if (resolve instanceof HaxeNamedComponent namedComponent) {
-              HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
-              if (fakePsi != null) {
-                return Collections.singletonList(fakePsi);
-              } else {
-                HaxeFakePsiElement fakeElement = new HaxeFakeComponentBindMethod(haxeIdentifier, namedComponent);
-                reference.putUserData(FAKE_PSI_KEY, fakeElement);
-                return Collections.singletonList(fakeElement);
+          PsiElement resolve = leftReference != null ?leftReference.resolve() : null;
+          if (resolve != null) {
+            synchronized (FAKE_PSI_KEY) {
+              if (resolve instanceof HaxeNamedComponent namedComponent) {
+                HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
+                if (fakePsi != null) {
+                  return Collections.singletonList(fakePsi);
+                } else {
+                  HaxeFakePsiElement fakeElement = new HaxeFakeComponentBindMethod(haxeIdentifier, namedComponent);
+                  reference.putUserData(FAKE_PSI_KEY, fakeElement);
+                  return Collections.singletonList(fakeElement);
+                }
               }
             }
           }
