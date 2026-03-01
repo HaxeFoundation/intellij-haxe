@@ -312,6 +312,10 @@ public class HaxeMethodAnnotator implements Annotator {
     if(currentMethod.isConstructor()) {
       HaxeClassModel declaringClass = currentMethod.getDeclaringClass();
       if (declaringClass != null) {
+        // extern classes does not need implementation, thats also true when extern classes extend extern classes.
+        if(currentMethod.getBodyPsi() == null && currentMethod.getDeclaringClass().isExtern()) {
+          return;
+        }
         if (declaringClass.isClass()) {
           if(HaxeMacroUtil.isInMacroExpression(superExpression)) return;
           List<HaxeClassReferenceModel> extendingTypes = declaringClass.getExtendingTypes();
