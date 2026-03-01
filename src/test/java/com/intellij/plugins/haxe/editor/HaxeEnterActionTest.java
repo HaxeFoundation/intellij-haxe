@@ -28,90 +28,155 @@ import org.junit.Test;
  * @author winmain
  */
 public class HaxeEnterActionTest extends AbstractEnterActionTestCase {
-  //private HaxeDebugLogger.HierarchyManipulator oldLogSettings;
 
-  public void setUp() throws Exception {
-    //oldLogSettings = HaxeDebugLogger.mutePrimaryConfiguration();
-    super.setUp();
-  }
+    public void setUp() throws Exception {
+        super.setUp();
+    }
 
-  @Override
-  public void tearDown() throws Exception {
-    // Must come before super.tearDown because oldLogSettings is cleared magically (via reflection).
-    //oldLogSettings.restore();
-    //oldLogSettings = null;
-    HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
-    super.tearDown();
-  }
+    @Override
+    public void tearDown() throws Exception {
+        HaxeTestUtils.cleanupUnexpiredAppleUITimers(this::addSuppressedException);
+        super.tearDown();
+    }
 
-  @NotNull
-  @Override
-  protected String getTestDataPath() {
-    return HaxeTestUtils.BASE_TEST_DATA_PATH;
-  }
+    @NotNull
+    @Override
+    protected String getTestDataPath() {
+        return HaxeTestUtils.BASE_TEST_DATA_PATH;
+    }
 
-  @Override
-  protected void doTest() throws Exception {
-    doTest("hx");
-  }
+    @Override
+    protected void doTest() throws Exception {
+        doTest("hx");
+    }
 
-  @Test
-  public void testEnterInAbstract() throws Throwable {
-    doTextTest("hx",
-               "abstract Test {\n" +
-               "    var a;<caret>\n" +
-               "}",
-               "abstract Test {\n" +
-               "    var a;\n" +
-               "    \n" +
-               "}");
-  }
+    @Test
+    public void testEnterInAbstract() throws Throwable {
+        doTextTest("hx",
+                """
+                        abstract Test {
+                            var a;<caret>
+                        }""",
+                """
+                        abstract Test {
+                            var a;
+                           \s
+                        }""");
+    }
 
-  @Test
-  public void testEnterInClass() throws Throwable {
-    doTextTest("hx",
-               "class Test {\n" +
-               "    var a;<caret>\n" +
-               "}",
-               "class Test {\n" +
-               "    var a;\n" +
-               "    \n" +
-               "}");
-  }
+    @Test
+    public void testEnterInClass() throws Throwable {
+        doTextTest("hx",
+                """
+                        class Test {
+                            var a;<caret>
+                        }""",
+                """
+                        class Test {
+                            var a;
+                           \s
+                        }""");
+    }
 
-  @Test
-  public void testEnterInEnum() throws Throwable {
-    doTextTest("hx",
-               "enum Test {\n" +
-               "    FOO;<caret>\n" +
-               "}",
-               "enum Test {\n" +
-               "    FOO;\n" +
-               "    \n" +
-               "}");
-  }
+    @Test
+    public void testEnterInEnum() throws Throwable {
+        doTextTest("hx",
+                """
+                        enum Test {
+                            FOO;<caret>
+                        }""",
+                """
+                        enum Test {
+                            FOO;
+                           \s
+                        }""");
+    }
 
-  @Test
-  public void testEnterInExternClass() throws Throwable {
-    doTextTest("hx",
-               "extern class Test {\n" +
-               "    var a;<caret>\n" +
-               "}",
-               "extern class Test {\n" +
-               "    var a;\n" +
-               "    \n" +
-               "}");
-  }
+    @Test
+    public void testEnterInExternClass() throws Throwable {
+        doTextTest("hx",
+                """
+                        extern class Test {
+                            var a;<caret>
+                        }""",
+                """
+                        extern class Test {
+                            var a;
+                           \s
+                        }""");
+    }
 
-  @Test
-  public void testEnterInInterface() throws Throwable {
-    doTextTest("hx",
-               "interface Test {\n" +
-               "    function qwe():Void;<caret>\n" +
-               "}",
-               "interface Test {\n" +
-               "    function qwe():Void;\n" +
-               "    \n" +
-               "}");
-  }
+    @Test
+    public void testEnterInInterface() throws Throwable {
+        doTextTest("hx",
+                """
+                        interface Test {
+                            function qwe():Void;<caret>
+                        }""",
+                """
+                        interface Test {
+                            function qwe():Void;
+                           \s
+                        }""");
+    }
+
+    @Test
+    public void testEnterAfterDocumentationStart() throws Throwable {
+        doTextTest("hx",
+                """
+                        class Test {
+                            /**<caret>
+                            function foo():Void {}
+                        }
+                        """,
+                """
+                        class Test {
+                            /**
+                              \s
+                            **/
+                            function foo():Void {}
+                        }
+                        """);
+    }
+
+    @Test
+    public void testEnterAfterDocumentationStartWhenClosed() throws Throwable {
+        doTextTest("hx",
+                """
+                        class Test {
+                            /**<caret>
+                            **/
+                            function foo():Void {}
+                        }
+                        """,
+                // TODO formatting should probably indent this the same way as testEnterAfterDocumentationStart
+                """
+                        class Test {
+                            /**
+                           \s
+                            **/
+                            function foo():Void {}
+                        }
+                        """);
+    }
+
+    @Test
+    public void testEnterAfterDocumentationStartOnLineWithContent() throws Throwable {
+        doTextTest("hx",
+                """
+                        class Test {/**<caret>
+                            function foo():Void {}
+                        }
+                        """,
+                // TODO formatting
+                """
+                       class Test {/**
+                         \s
+                       **/
+                           function foo():Void {}
+                       }
+                       """);
+    }
+
+
 }
