@@ -207,6 +207,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
     if (result == null)result =  searchInSameFile(reference, fileModel, isType);
+    if (result == null) result = checkIsModuleName(reference);
     if (result == null) result = checkIsClassName(reference);
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkSwitchOnEnum(reference);
@@ -223,28 +224,39 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
         if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
-            if(matchesInImport.size()> 1 && parent instanceof  HaxeCallExpression callExpression) {
-              int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+            if (matchesInImport.size() > 1)
+                if (parent instanceof HaxeCallExpression callExpression) {
+                    int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
 
-              // test  call expression if possible
-              for (PsiElement importElement : matchesInImport) {
-                if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
-                  boolean isValidConstructor = testAsEnumValueConstructor(enumValueDeclaration, reference);
-                  if (isValidConstructor) return List.of(importElement);
-                }
-              }
-              // fallback, check method parameters (needs work , optional are not handled)
-              for (PsiElement importElement : matchesInImport) {
-                if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
-                  int currentSize =
-                    Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
-                  if (expectedSize == currentSize) {
-                    LogResolution(reference, "via import  & enum value declaration");
-                    return List.of(importElement);
+                    // test  call expression if possible
+                    for (PsiElement importElement : matchesInImport) {
+                        if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+                            boolean isValidConstructor = testAsEnumValueConstructor(enumValueDeclaration, reference);
+                            if (isValidConstructor) return List.of(importElement);
+                        }
+                    }
+                    // fallback, check method parameters (needs work , optional are not handled)
+                    for (PsiElement importElement : matchesInImport) {
+                        if (importElement.getParent() instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+                            int currentSize =
+                                    Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
+                            if (expectedSize == currentSize) {
+                                LogResolution(reference, "via import  & enum value declaration");
+                                return List.of(importElement);
+                            }
+                        }
+                    }
+                } else if (parent instanceof HaxeType type) {
+                  // handle cases where we got both module and main-class match and we know we want the class
+                  String memberName = type.getText();
+                  for (PsiElement element : matchesInImport) {
+                    if (element instanceof HaxeClass haxeClass) {
+                      if (haxeClass.getModel().getName().equals(memberName)) {
+                        return List.of(element);
+                      }
+                    }
                   }
                 }
-              }
-            }
             return matchesInImport.isEmpty() ? null : matchesInImport;
           }
         boolean expectedEnumIsConstructor = parent instanceof HaxeCallExpression;
@@ -1998,6 +2010,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
+  private List<? extends PsiElement> checkIsModuleName(@NotNull HaxeReference reference) {
+    final PsiElement element = HaxeResolveUtil.tryResolveModuleReference(reference);
+    if (element != null) {
+      LogResolution(reference, "via module qualified name.");
+      return asList(element);
+    }
+    return null;
+  }
+
+  @Nullable
   private List<? extends PsiElement> checkIsClassName(@NotNull HaxeReference reference) {
     final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
     if (resultClass != null) {
@@ -2182,7 +2204,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // recursive so we try to  resolve first element in the chain first and go up the chain
       // using normal resolve so result is cached (resolveChain is early in the resolve logic so should not cause much overhead)
       PsiElement resolve = leftReference.resolve();
-      if(resolve != null) parentResolve.add(reference);
+      if(resolve != null) parentResolve.add(resolve);
     }
 
     if (canBeQname(reference)) {

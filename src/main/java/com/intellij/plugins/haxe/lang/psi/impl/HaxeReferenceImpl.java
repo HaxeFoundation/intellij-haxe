@@ -1260,6 +1260,9 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     HaxeGenericResolver resolver = null;
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(this);
     if (leftReference != null) {
+
+      addModuleMemberSuggestions(leftReference, suggestedVariants);
+
       resolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(leftReference);
       ResultHolder leftResult = HaxeTypeResolver.getPsiElementType(leftReference, resolver);
 
@@ -1352,6 +1355,45 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     variants.addAll(syntheticElements);
     return variants.toArray();
   }
+
+  private void addModuleMemberSuggestions(HaxeReference leftReference, Set<HaxeComponentName> suggestedVariants) {
+    JavaResolveResult[] results = leftReference.multiResolve(true);
+    for (JavaResolveResult result : results) {
+      PsiElement element = result.getElement();
+
+      if (element instanceof HaxeModule haxeModule) {
+        HaxeModel model = haxeModule.getModel();
+        if (model instanceof HaxeModuleModel moduleModel) {
+          List<HaxeModel> exposedMembers = moduleModel.getExposedMembers();
+          addModuleMemberSuggestions(suggestedVariants, exposedMembers);
+        }
+      } else if (element instanceof HaxeClass haxeClass) {
+        HaxeClassModel classModel = haxeClass.getModel();
+        HaxeModuleModel moduleModel = classModel.getModule();
+        String moduleName = moduleModel.getName();
+        if (leftReference.textMatches(moduleName)) {
+          if (moduleName.equals(classModel.getName())) {
+            List<HaxeModel> exposedMembers = moduleModel.getExposedMembers();
+            addModuleMemberSuggestions(suggestedVariants, exposedMembers);
+          }
+        }
+      }
+    }
+  }
+
+  private void addModuleMemberSuggestions(Set<HaxeComponentName> suggestedVariants, List<HaxeModel> exposedMembers) {
+      for (HaxeModel exposedMember : exposedMembers) {
+
+        PsiElement base = exposedMember.getBasePsi();
+        if(base instanceof HaxeModuleFieldDeclaration fieldDeclaration) {
+          suggestedVariants.add(fieldDeclaration.getComponentName());
+        }
+        else if(base instanceof HaxeModuleMethodDeclaration methodDeclaration) {
+          suggestedVariants.add(methodDeclaration.getComponentName());
+        }
+      }
+
+    }
 
   private void addSyntheticElementCompletions(Set<HaxeLookupElement> syntheticElements, ResultHolder type, HaxeReference reference) {
     if(type.isFunctionType()) {

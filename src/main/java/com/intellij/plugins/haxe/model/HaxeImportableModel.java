@@ -63,6 +63,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   }
 
   private static List<HaxeModel> getExposedMembersCached(final HaxeImportableModel importableModel) {
+
     return CachedValuesManager.getCachedValue(importableModel.getBasePsi(), () -> {
       List<HaxeModel> exposedMembers = importableModel.getExposedMembersInternal();
       PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
@@ -71,6 +72,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
       for (HaxeModel xMember : exposedMembers) {
         dependencies[i++] = xMember.getBasePsi();
       }
+
       return new CachedValueProvider.Result<>(exposedMembers, (Object[]) dependencies);
     });
   }
@@ -83,10 +85,15 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
 
   @Nullable
   protected HaxeModel getExposedMember(String name) {
+    return getExposedMember(name, false);
+  }
+  protected HaxeModel getExposedMember(String name, boolean isUsing) {
     List<? extends HaxeModel> members = getExposedMembers();
     if (members.isEmpty()) return null;
     for (HaxeModel model : members) {
       if (name.equals(model.getName())) {
+        // using imports does not seem to include modules
+        if(isUsing && model instanceof HaxeModuleModel) continue;
         return model;
       }
     }

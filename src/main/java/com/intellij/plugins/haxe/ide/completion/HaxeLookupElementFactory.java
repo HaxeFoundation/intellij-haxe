@@ -19,6 +19,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeBundle;
+import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeExposableModel;
@@ -41,16 +42,25 @@ public class HaxeLookupElementFactory {
   }
   public static LookupElementBuilder create(@NotNull HaxeModel model, @Nullable String alias, boolean showAliasText) {
     PsiElement basePsi = model.getBasePsi();
-    HaxeNamedComponent namedComponent = getNamedComponent(basePsi);
+    ItemPresentation presentation = null;
+    if(basePsi instanceof HaxeModule haxeModule) {
+      presentation = haxeModule.getPresentation();
+    }else {
+      HaxeNamedComponent namedComponent = getNamedComponent(basePsi);
+      if (namedComponent != null) {
+        presentation = namedComponent.getPresentation();
+      }
+    }
 
-    if (namedComponent == null) return null;
+
+    if(presentation == null) return null;
 
     String name = StringUtil.defaultIfEmpty(alias, model.getName());
     String presentableText = null;
     String tailText = getParentPath(model);
     Icon icon = null;
 
-    ItemPresentation presentation = namedComponent.getPresentation();
+
     if (presentation != null) {
       icon = presentation.getIcon(false);
       presentableText = presentation.getPresentableText();
@@ -106,8 +116,8 @@ public class HaxeLookupElementFactory {
 
   @Nullable
   private static HaxeNamedComponent getNamedComponent(PsiElement element) {
-    return element instanceof HaxeNamedComponent
-           ? (HaxeNamedComponent)element
+    return element instanceof HaxeNamedComponent namedComponent
+           ? namedComponent
            : PsiTreeUtil.findChildOfType(element, HaxeNamedComponent.class);
   }
 

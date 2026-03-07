@@ -1018,18 +1018,19 @@ public class HaxeResolveUtil {
                 .toList();
             }
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
-            if(matchesInImport.size()> 1 &&  type.getParent() instanceof  HaxeCallExpression callExpression) {
-              int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
-              for (PsiElement element : matchesInImport) {
-                if (element instanceof  HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
-                  int currentSize = Optional.of(enumValueDeclaration.getParameterList()).map(p ->  p.getParameterList().size()).orElse(0);
-                  if (expectedSize == currentSize) {
-                    result = element;
-                    break;
+              if (matchesInImport.size() > 1)
+                  if (type.getParent() instanceof HaxeCallExpression callExpression) {
+                      int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+                      for (PsiElement element : matchesInImport) {
+                          if (element instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+                              int currentSize = Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
+                              if (expectedSize == currentSize) {
+                                  result = element;
+                                  break;
+                              }
+                          }
+                      }
                   }
-                }
-              }
-            }
             if (result == null && !matchesInImport.isEmpty()) result = matchesInImport.get(0);
           }
         }
@@ -1099,12 +1100,7 @@ public class HaxeResolveUtil {
       HaxeImportableModel model = models.get(i);
 
       if (model instanceof HaxeImportModel importModel) {
-        List<PsiElement> elements = importModel.exposeAllByName(name);
-        if(elements.isEmpty()) {
-          addIfModuleMatch(name, importModel, results);
-        } else {
-          results.addAll(elements);
-        }
+        results.addAll(importModel.exposeAllByName(name));
       } else {
         PsiElement element = model.exposeByName(name);
         if (element != null) {
@@ -1115,18 +1111,6 @@ public class HaxeResolveUtil {
     return results;
   }
 
-  private static void addIfModuleMatch(String name, HaxeImportModel importModel, List<PsiElement> results) {
-    HaxeReferenceExpression referenceExpression = importModel.getReferenceExpression();
-    if ((referenceExpression != null)) {
-      PsiElement lastChild = referenceExpression.getLastChild();
-      if(name.equals(lastChild.getText())){
-        PsiElement resolve = referenceExpression.resolve();
-        if(resolve instanceof HaxeModule module) {
-          results.add(module);
-        }
-      }
-    }
-  }
 
   /**
    * Searches for import.hx files between the file's directory and the source root,
@@ -1516,5 +1500,40 @@ public class HaxeResolveUtil {
     }
 
     return false;
+  }
+
+    public static PsiElement tryResolveModuleReference(@NotNull HaxeReference reference) {
+      return tryResolveModuleReference(reference, true);
+    }
+
+  public static PsiElement tryResolveModuleReference(@NotNull HaxeReference reference, boolean allowRecursive) {
+    // if we only got a name its hard to tell if its a class or module we are accessing,
+    // so we check if references is part of a chain and use that as hint.
+    if (allowRecursive) {
+      if (!reference.textContains('.') && reference.getParent() instanceof HaxeReferenceExpression parent) {
+        return tryResolveModuleReference(parent, false);
+      }
+    }
+    if (reference instanceof HaxeReferenceExpression referenceExpression) {
+      final HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
+      if (fileModel != null) {
+        HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
+        if (leftReference != null) {
+          String refName = leftReference.getText();
+          List<PsiElement> matchesInImport = searchInImports(fileModel, refName);
+          String memberName = referenceExpression.getIdentifier().getText();
+          for (PsiElement element : matchesInImport) {
+            if (element instanceof HaxeModule haxeModule && haxeModule.getModel() instanceof HaxeModuleModel model) {
+              if (model.getMember(memberName, null) != null) {
+                return element;
+              }else if (model.getClass(memberName, null) != null) {
+                return element;
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
   }
 }

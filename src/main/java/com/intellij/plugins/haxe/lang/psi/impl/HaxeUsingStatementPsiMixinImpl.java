@@ -24,7 +24,12 @@ import com.intellij.psi.PsiElementVisitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class HaxeUsingStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeUsingStatement {
+
+  private final AtomicReference<HaxeUsingModel> haxeUsingModel = new AtomicReference<>();
+
   public HaxeUsingStatementPsiMixinImpl(ASTNode node) {
     super(node);
   }
@@ -32,7 +37,16 @@ public class HaxeUsingStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl im
   @NotNull
   @Override
   public HaxeUsingModel getModel() {
-    return new HaxeUsingModel(this);
+    HaxeUsingModel model = haxeUsingModel.get();
+    if (model != null) {
+      return model;
+    }
+    HaxeUsingModel newValue = new HaxeUsingModel(this);
+    if (haxeUsingModel.compareAndSet(null, newValue)) {
+      return newValue;
+    } else {
+      return haxeUsingModel.get();
+    }
   }
 
   public void accept(@NotNull PsiElementVisitor visitor) {

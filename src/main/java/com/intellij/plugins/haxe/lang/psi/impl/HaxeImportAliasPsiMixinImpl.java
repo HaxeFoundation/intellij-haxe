@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeAliasModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -9,7 +10,12 @@ import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiElementVisitor;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 public class HaxeImportAliasPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeImportAlias {
+
+  private final AtomicReference<HaxeAliasModel> aliasModel = new AtomicReference<>();
+
   public HaxeImportAliasPsiMixinImpl(ASTNode node) {
     super(node);
   }
@@ -21,6 +27,19 @@ public class HaxeImportAliasPsiMixinImpl extends HaxeStatementPsiMixinImpl imple
     }
     else {
       super.accept(visitor);
+    }
+  }
+
+  public HaxeAliasModel getModel() {
+    HaxeAliasModel model = aliasModel.get();
+    if (model != null) {
+      return model;
+    }
+    HaxeAliasModel newValue = new HaxeAliasModel(this);
+    if (aliasModel.compareAndSet(null, newValue)) {
+      return newValue;
+    } else {
+      return aliasModel.get();
     }
   }
 

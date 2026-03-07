@@ -19,14 +19,12 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportAlias;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeImportAliasPsiMixinImpl;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class HaxeImportModel extends HaxeImportableModel {
@@ -63,7 +61,7 @@ public class HaxeImportModel extends HaxeImportableModel {
   @NotNull
   public List<HaxeModel> getExposedMembersInternal() {
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
-    List<HaxeModel> result =  new ArrayList<>();
+    Set<HaxeModel> result =  new HashSet<>();
     if (hasWildcard()) {
       if (qualifiedInfo.memberName != null) return Collections.emptyList();
 
@@ -75,17 +73,40 @@ public class HaxeImportModel extends HaxeImportableModel {
         result = items.stream()
           .filter(model -> model instanceof HaxeExposableModel)
           .flatMap(model -> ((HaxeExposableModel)model).getExposedMembers().stream())
-          .collect(Collectors.toList());
+          .collect(Collectors.toSet());
       }
     } else {
-      result.addAll(super.getExposedMembersInternal());
+      List<HaxeModel> exposedMembers = super.getExposedMembersInternal();
+
+        HaxeModuleModel moduleModel = null;
+        for (HaxeModel haxeModel : exposedMembers) {
+            if (haxeModel instanceof HaxeModuleModel model) {
+                moduleModel = model;
+                break;
+            }
+        }
+
+        // if we are importing a module directly, we do not want to expose the module only its members
+      if(moduleModel != null && moduleModel.getName().equals(qualifiedInfo.moduleName)) {
+
+        List<HaxeModel> moduleMembers = moduleModel.getExposedMembers();
+        List<HaxeModel> members = new ArrayList<>(exposedMembers);
+        members.remove(moduleModel);
+        members.addAll(moduleMembers);
+        result.addAll(members);
+      }  else {
+        result.addAll(exposedMembers);
+      }
+
 
       if (hasAlias() && qualifiedInfo.moduleName != null && qualifiedInfo.className == null) {
-        result.add(new HaxeAliasModel(getBasePsi().getAlias()));
+        if(getBasePsi().getAlias() instanceof HaxeImportAliasPsiMixinImpl aliasPsi) {
+          result.add(aliasPsi.getModel());
+        }
       }
     }
 
-    return exposeEnumValues(result);
+    return exposeEnumValues(new ArrayList<>(result));
   }
 
 
@@ -157,7 +178,7 @@ public class HaxeImportModel extends HaxeImportableModel {
             PsiElement element = exposedMember instanceof HaxeNamedComponentModel componentModel
                                  ? componentModel.getNamePsi()
                                  : exposedMember.getBasePsi();
-            return List.of(element);
+            results.add(element);
           }
         }
       }

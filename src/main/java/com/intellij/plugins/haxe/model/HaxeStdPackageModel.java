@@ -116,12 +116,6 @@ public class HaxeStdPackageModel extends HaxePackageModel {
     return result;
   }
 
-  @Nullable
-  public HaxeGlobalUsingModel resolveGlobalUsings(FullyQualifiedInfo info) {
-    HaxeModel found = resolveGlobalSubpackage(info, globalUsings);
-    return null == found ? null : new HaxeGlobalUsingModel(found.getBasePsi());
-  }
-
 
   @NotNull
   public List<HaxeGlobalUsingModel> getGlobalUsings() {

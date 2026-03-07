@@ -172,6 +172,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   public boolean isInline() {
     return hasModifier(INLINE);
   }
+  public boolean isModuleMember() {
+    return basePsi instanceof HaxeModuleFieldDeclaration
+            || basePsi instanceof HaxeModuleMethodDeclaration;
+  }
 
 
   private HaxeModifiersModel _modifiers;

@@ -56,6 +56,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author: Fedor.Korotkov
@@ -119,40 +120,51 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return HaxeResolveUtil.joinQName(packageName, name);
   }
 
+  private final AtomicReference<HaxeClassModel> _model = new AtomicReference<>();
 
-  private HaxeClassModel _model = null;
 
   @NotNull
   public HaxeClassModel getModel() {
-    if (_model == null) {
-      // note HaxeGenericConstraintPartImpl implements anonymous interface so it must be first
-      // this is a temp workaround until the class hierarchy and abstractClass can be replaced with more flexible interfaces
-      if (this instanceof HaxeConstraintTypeListImpl constraintTypeList) {
-        _model = new HaxeConstraintTypeListModel(constraintTypeList);
-      } else if (this instanceof HaxeAnonymousType anonymousType) {
-        _model = new HaxeAnonymousTypeModel(anonymousType);
-      } else if (this instanceof HaxeEnumDeclaration enumDeclaration) {
-        _model = new HaxeEnumModelImpl(enumDeclaration);
-      } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) {
-        _model = new HaxeExternClassModel(externClassDeclaration);
-      } else if (this instanceof HaxeObjectLiteralImpl objectLiteral) {
-        _model =  new HaxeObjectLiteralClassModel(objectLiteral);
-      } else if (this instanceof HaxeGenericListPart genericListPart) {
-        _model = new HaxeGenericParamModel(genericListPart);
-      } else if (this instanceof HaxeInterfaceDeclaration interfaceDeclaration) {
-        _model = new HaxeInterfaceModel(interfaceDeclaration);
-      } else if (this instanceof HaxeAbstractTypeDeclaration abstractDeclaration) {
-        if (abstractDeclaration.isEnum()) {
-          _model = new HaxeAbstractEnumModel(abstractDeclaration);
-        } else {
-          _model = new HaxeAbstractClassModel(abstractDeclaration);
-        }
-      } else {
-        _model = new HaxeClassModel(this);
-      }
+    HaxeClassModel model = _model.get();
+    if (model != null) {
+      return model;
+    }
+    HaxeClassModel newValue = createModel();
+    if (_model.compareAndSet(null, newValue)) {
+      return newValue;
+    } else {
+      return _model.get();
     }
 
-    return _model;
+  }
+  @NotNull
+  private HaxeClassModel createModel() {
+        // note HaxeGenericConstraintPartImpl implements anonymous interface so it must be first
+        // this is a temp workaround until the class hierarchy and abstractClass can be replaced with more flexible interfaces
+      switch (this) {
+          case HaxeConstraintTypeListImpl constraintTypeList:
+              return new HaxeConstraintTypeListModel(constraintTypeList);
+          case HaxeAnonymousType anonymousType:
+              return new HaxeAnonymousTypeModel(anonymousType);
+          case HaxeEnumDeclaration enumDeclaration:
+              return new HaxeEnumModelImpl(enumDeclaration);
+          case HaxeExternClassDeclaration externClassDeclaration:
+              return new HaxeExternClassModel(externClassDeclaration);
+          case HaxeObjectLiteralImpl objectLiteral:
+              return new HaxeObjectLiteralClassModel(objectLiteral);
+          case HaxeGenericListPart genericListPart:
+              return new HaxeGenericParamModel(genericListPart);
+          case HaxeInterfaceDeclaration interfaceDeclaration:
+              return new HaxeInterfaceModel(interfaceDeclaration);
+          case HaxeAbstractTypeDeclaration abstractDeclaration:
+              if (abstractDeclaration.isEnum()) {
+                  return new HaxeAbstractEnumModel(abstractDeclaration);
+              } else {
+                  return new HaxeAbstractClassModel(abstractDeclaration);
+              }
+          default:
+              return new HaxeClassModel(this);
+      }
   }
 
   // check if class is declared inside haxe module `MyClass.MySupportType`

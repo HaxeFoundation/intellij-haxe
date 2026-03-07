@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class HaxeModuleModel implements HaxeCommonMembersModel {
 
@@ -27,25 +28,24 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
 
   @Override
   public List<HaxeModel> getExposedMembers() {
-    ArrayList<HaxeModel> members = new ArrayList<>();
-    members.addAll(findFieldsAndMethods());
-    // TODO add classes enums etc
-    return members;
+      List<HaxeModel> list = new ArrayList<>();
+      for (HaxeNamedComponent component : HaxeNamedSubComponentUtil.getNamedComponentsInModule(module)) {
+          if (component instanceof HaxeModelTarget haxeModelTarget) {
+              HaxeModel model = haxeModelTarget.getModel();
+              list.add(model);
+          }
+      }
+      return list;
   }
 
   private ArrayList<HaxeModel> findFieldsAndMethods() {
     ArrayList<HaxeModel> members = new ArrayList<>();
-    for (HaxeNamedComponent declaration : PsiTreeUtil.getChildrenOfAnyType(module, HaxeFieldDeclaration.class, HaxeMethod.class)) {
-      if (!(declaration instanceof PsiMember)) continue;
-      if (declaration instanceof HaxeFieldDeclaration varDeclaration) {
-        if (varDeclaration.isPublic() && varDeclaration.isStatic()) {
-          members.add(varDeclaration.getModel());
-        }
-      } else {
-        HaxeMethodDeclaration method = (HaxeMethodDeclaration)declaration;
-        if (method.isStatic() && method.isPublic()) {
-          members.add(method.getModel());
-        }
+    List<? extends HaxeNamedComponent> namedComponents = PsiTreeUtil.getChildrenOfAnyType(module, HaxeModuleFieldDeclaration.class, HaxeModuleMethodDeclaration.class);
+    for (HaxeNamedComponent declaration : namedComponents) {
+      if (declaration instanceof HaxeModuleFieldDeclaration fieldDeclaration) {
+          members.add(fieldDeclaration.getModel());
+      } else if (declaration instanceof HaxeModuleMethodDeclaration methodDeclaration) {
+          members.add(methodDeclaration.getModel());
       }
     }
     return members;
@@ -102,6 +102,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   }
 
   public HaxeMethodModel getMethod(String name, @Nullable HaxeGenericResolver resolver) {
+    if(name == null) return null;
     List<HaxeNamedComponent> components = getAllHaxeNamedComponents(HaxeComponentType.METHOD);
     HaxeNamedComponent match = ContainerUtil.find(components, component -> name.equals(component.getName()));
     if (match == null) return null;
@@ -110,6 +111,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   }
   @Override
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {
+    if(name == null) return null;
     List<HaxeNamedComponent> components = getAllHaxeNamedComponents(HaxeComponentType.FIELD );
     HaxeNamedComponent match = ContainerUtil.find(components, component -> name.equals(component.getName()));
     if (match == null) return null;
@@ -117,11 +119,19 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   }
 
   public HaxeBaseMemberModel getMember(String name, @Nullable HaxeGenericResolver resolver) {
-
+    if(name == null) return null;
     final List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getNamedComponentsInModule(module);
-    HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> name.equals(component.getName()));
+    HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> Objects.equals(name, component.getName()));
     if (match == null) return null;
     return HaxeBaseMemberModel.fromPsi(match);
+  }
+
+  public HaxeClassModel getClass(String name, @Nullable HaxeGenericResolver resolver) {
+    if(name == null) return null;
+    List<HaxeNamedComponent> allNamedComponents = getAllHaxeNamedComponents(HaxeComponentType.CLASS );
+    HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> Objects.equals(name, component.getName()));
+    if (match  instanceof HaxeClass haxeClass) return haxeClass.getModel();
+    return null;
   }
 
 

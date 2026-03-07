@@ -70,7 +70,7 @@ public class HaxeUsingModel extends HaxeImportableModel {
     if (name == null || name.isEmpty()) return null;
 
     if (getReferenceExpression() != null) {
-      HaxeModel member = getExposedMember(name);
+      HaxeModel member = getExposedMember(name, true);
       if (member != null) {
         return member instanceof HaxeNamedComponentModel componentModel
                              ? componentModel.getNamePsi()

@@ -79,11 +79,19 @@ public class HaxeFileModel implements HaxeExposableModel {
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
-    List<HaxeClassModel> models = getClassModels();
     List<HaxeModel> publicModels = new ArrayList<>();
-    for(HaxeClassModel model : models) {
-      if(model.isPublic()) publicModels.add(model);
+
+    HaxeModule module = getModuleBody();
+    if(module != null && module.getModel() instanceof HaxeModuleModel model){
+      publicModels.add(model);
     }
+  // NOTE: order matters there, we want module first and then main class
+    HaxeClassModel mainClassModel = getMainClassModel();
+    if(mainClassModel != null) {
+      publicModels.add(mainClassModel);
+    }
+
+
     return  publicModels;
   }
 
@@ -286,6 +294,9 @@ public class HaxeFileModel implements HaxeExposableModel {
         // it's not obvious whether  `import somePackage.SomeName.SomeOtherName;` is an import of a non-module named class in a module or a static member in a class
         // so we check  for "shifted" values
         member = findMember(info.moduleName, className);
+        if(member == null) {
+          member = findModuleMember(memberName);
+        }
       }
       if (member != null && info.parameter != null) {
         if (member instanceof HaxeMethodModel methodModel) {
@@ -298,6 +309,15 @@ public class HaxeFileModel implements HaxeExposableModel {
     }
     return null;
   }
+
+    private HaxeModel findModuleMember(String memberName) {
+      HaxeModule module = getModuleBody();
+      if(module != null && module.getModel() instanceof HaxeModuleModel model){
+        return model.getMember(memberName, null);
+      }
+
+      return null;
+    }
 
   private HaxeModel findMember(String className, String memberName) {
     HaxeClassModel classModel = getClassModel(className);

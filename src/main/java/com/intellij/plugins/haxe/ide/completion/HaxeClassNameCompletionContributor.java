@@ -44,10 +44,13 @@ import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
+import static java.util.function.Predicate.not;
+import static org.bouncycastle.asn1.x500.style.RFC4519Style.member;
 
 /**
  * @author: Fedor.Korotkov
@@ -125,19 +128,25 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
 
   private static void addVariantsFromImports(final CompletionResultSet resultSet,
                                              final PsiFile targetFile) {
-    targetFile.acceptChildren(new HaxeRecursiveVisitor() {
-      @Override
-      public void visitImportStatement(@NotNull HaxeImportStatement importStatement) {
-        final List<HaxeModel> exposedMembers = importStatement.getModel().getExposedMembers();
-        final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getIdentifier().getText() : null;
+      targetFile.acceptChildren(new HaxeRecursiveVisitor() {
+          @Override
+          public void visitImportStatement(@NotNull HaxeImportStatement importStatement) {
+              final List<HaxeModel> exposedMembers = new ArrayList<>();
+              for (HaxeModel haxeModel : importStatement.getModel().getExposedMembers()) {
+                  if (!(haxeModel instanceof HaxeAliasModel)) {
+                      exposedMembers.add(haxeModel);
+                  }
+              }
 
-        for (HaxeModel member : exposedMembers) {
-          LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(member, alias);
-          if (lookupElement != null) resultSet.addElement(lookupElement);
-          if (alias != null) return;
-        }
-      }
-    });
+              final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getIdentifier().getText() : null;
+
+              for (HaxeModel member : exposedMembers) {
+                  LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(member, alias);
+                  if (lookupElement != null) resultSet.addElement(lookupElement);
+                  if (alias != null) return;
+              }
+          }
+      });
   }
 
 

@@ -602,9 +602,17 @@ public class HaxeTypeResolver {
 
     HaxeReferenceExpression expression = type.getReferenceExpression();
     HaxeClassReference reference;
-    // Note: using caching here as the expression evaluation cache wont cache results with unknown typeParameters
-    // but this resolve resolves Type Psi with empty GenericResolver so the result should always be the same until psi changes
-    ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(expression, HaxeTypeResolver::resolveTypeFromType);
+    ResultHolder result;
+    if(!expression.textContains('.')){
+      // Note: using caching here as the expression evaluation cache wont cache results with unknown typeParameters
+      // but this resolve resolves Type Psi with empty GenericResolver so the result should always be the same until psi changes
+    result = CachedValuesManager.getProjectPsiDependentCache(expression, HaxeTypeResolver::resolveTypeFromType);
+    }else {
+      // Note: avoid caching when references contain more than just type name, ex. ModuleName.ClassName
+      // as we have some issues with caching unknown for these references
+      result = HaxeTypeResolver.resolveTypeFromType(expression);
+    }
+
 
     final HaxeClass resolvedHaxeClass =( result != null  && !result.isUnknown() && result.isClassType()) ? result.getClassType().getHaxeClass() : null;
     if (resolvedHaxeClass == null) {
