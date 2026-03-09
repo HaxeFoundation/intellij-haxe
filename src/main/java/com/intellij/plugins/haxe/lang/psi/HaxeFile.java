@@ -83,13 +83,7 @@ public class HaxeFile extends PsiFileBase
 
   @Override
   public PsiElement setName(@NotNull String newName) throws IncorrectOperationException {
-    final String oldName = FileUtil.getNameWithoutExtension(getName());
-    final PsiElement result = super.setName(newName);
-    final HaxeClass haxeClass = HaxeResolveUtil.findComponentDeclaration(this, oldName);
-    if (haxeClass != null) {
-      haxeClass.setName(FileUtil.getNameWithoutExtension(newName));
-    }
-    return result;
+   return super.setName(newName);
   }
 
   @Nullable

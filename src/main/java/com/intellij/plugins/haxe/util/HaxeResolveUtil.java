@@ -1526,7 +1526,7 @@ public class HaxeResolveUtil {
             if (element instanceof HaxeModule haxeModule && haxeModule.getModel() instanceof HaxeModuleModel model) {
               if (model.getMember(memberName, null) != null) {
                 return element;
-              }else if (model.getClass(memberName, null) != null) {
+              }else if (model.getClass(memberName) != null) {
                 return element;
               }
             }

@@ -18,16 +18,27 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.editor.CaretState;
+import com.intellij.openapi.ui.MessageConstants;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.ide.refactoring.rename.HaxeRenameProcessor;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiNamedElement;
+import com.intellij.refactoring.rename.RenameProcessor;
 import com.intellij.util.ArrayUtil;
+import lombok.CustomLog;
+import org.jetbrains.annotations.Nullable;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author: Fedor.Korotkov
  */
+@CustomLog
 public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
@@ -54,6 +65,72 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.getEditor().getCaretModel().setCaretsAndSelections(useCaret);
 
     myFixture.testRename(getTruncatedResultFileName(), newName);
+  }
+  public void doTestWithoutFileVerify(String newName, int dialogAnswer, Map<String, String> expectedRename, String... additionalFiles) {
+    doTest(newName,dialogAnswer,expectedRename, false, additionalFiles);
+  }
+  public void doTest(String newName, int dialogAnswer, Map<String, String> expectedRename,  String... additionalFiles) {
+    doTest(newName,dialogAnswer,expectedRename, true, additionalFiles);
+  }
+  public void doTest(String newName, int dialogAnswer, Map<String, String> expectedRename, boolean verifyAfter,  String... additionalFiles) {
+    HaxeRenameProcessor.alsoRenameAnswer = dialogAnswer;
+    myFixture.configureByFiles(ArrayUtil.reverseArray(ArrayUtil.append(additionalFiles, getTruncatedSourceFileName())));
+
+
+    PsiElement elementAtCaret = myFixture.getElementAtCaret();
+    RenameProcessor renameProcessor = new RenameProcessor(elementAtCaret.getProject(), elementAtCaret, newName, true, true);
+
+
+    LinkedHashMap<PsiElement, String> allRenames = new LinkedHashMap<>();
+    allRenames.put(elementAtCaret, newName);
+    renameProcessor.prepareRenaming(elementAtCaret, newName, allRenames);
+
+    Map<@Nullable String, String> renameMap = allRenames.entrySet().stream()
+            .collect(Collectors.toMap(HaxeRenameTest::getElementName, Map.Entry::getValue));
+
+    renameProcessor.doRun();
+
+    log.warn("----------");
+    for (Map.Entry<String, String> entry : renameMap.entrySet()) {
+      log.warn(String.format("rename entry '%s' => '%s'", entry.getKey(), entry.getValue()));
+    }
+    log.warn("----------");
+
+    for (Map.Entry<String, String> entry : expectedRename.entrySet()) {
+      String key = entry.getKey();
+      assertTrue("no rename entry found for " + key, renameMap.containsKey(key));
+      assertEquals(entry.getValue(), renameMap.get(key));
+    }
+
+    expectedRename.keySet().forEach(renameMap::remove);
+    if(!expectedRename.isEmpty()){
+      for (Map.Entry<String, String> entry : renameMap.entrySet()) {
+        log.warn(String.format("unexpected rename entry '%s' => '%s'", entry.getKey(), entry.getValue()));
+      }
+    }
+    assertEquals(0, renameMap.size());
+    if(verifyAfter) {
+      myFixture.checkResultByFile(getTruncatedResultFileName());
+    }
+
+  }
+
+  private static @Nullable String getElementName(Map.Entry<PsiElement, String> e) {
+    PsiElement psiElement = e.getKey();
+    if(psiElement instanceof HaxeComponentName componentName) {
+      psiElement = componentName.getParent();
+    }
+    if(psiElement instanceof PsiNamedElement element) {
+
+      if(element instanceof PsiFile) {
+        return "FILE:"+element.getName();
+      }
+      HaxeComponentType haxeComponentType = HaxeComponentType.typeOf(element);
+      String name = haxeComponentType != null ? haxeComponentType.name() : "<unknown>";
+      return name+":"+element.getName();
+    }else {
+      return null;
+    }
   }
 
   private String toSourceName(String name) {
@@ -158,5 +235,29 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   public void testDoNotRenameConstructorName() throws Throwable {
     doTest("foo");
+  }
+
+  @Test
+  public void testRenameModuleAndClass1() {
+    Map<String, String> expectedRenames = Map.of(
+            "FILE:RenameModuleAndClass.hx", "NewClassAndModuleName.hx",
+            "MODULE:RenameModuleAndClass", "NewClassAndModuleName",
+            "CLASS:RenameModuleAndClass", "NewClassAndModuleName"
+    );
+    doTest("NewClassAndModuleName", MessageConstants.YES, expectedRenames);
+  }
+
+  @Test
+  public void testRenameModuleAndClass2() {
+    Map<String, String> expectedRenames = Map.of(
+            "CLASS:RenameModuleAndClass", "NewClassAndModuleName"
+    );
+    doTest("NewClassAndModuleName", MessageConstants.NO, expectedRenames);
+  }
+
+  @Test
+  public void testRenameModuleAndClass3() {
+    Map<String, String> expectedRenames = Map.of();
+    doTestWithoutFileVerify("NewClassAndModuleName", MessageConstants.CANCEL, expectedRenames);
   }
 }

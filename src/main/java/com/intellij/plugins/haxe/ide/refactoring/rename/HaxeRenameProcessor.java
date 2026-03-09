@@ -15,22 +15,33 @@
  */
 package com.intellij.plugins.haxe.ide.refactoring.rename;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.ui.MessageConstants;
+import com.intellij.openapi.util.NlsContexts;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.HaxeRefactoringBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.listeners.RefactoringElementListener;
 import com.intellij.refactoring.rename.RenamePsiElementProcessor;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.IncorrectOperationException;
+import com.intellij.util.containers.MultiMap;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+
+import static com.intellij.openapi.ui.Messages.*;
 
 /**
  * Handle renaming of elements.  This class accomplishes two things: it ensures that the default
@@ -42,7 +53,8 @@ import java.util.Map;
  * dealing with it.
  */
 public class HaxeRenameProcessor extends RenamePsiElementProcessor {
-
+  @TestOnly
+  public static int alsoRenameAnswer = MessageConstants.YES;
   /**
    * Specifies whether a specific instance of an element can be
    * renamed.
@@ -89,8 +101,7 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
     // prevent the inclusion of the constructor itself.  However, the RenameJavaClassProcessor *also*
     // tries to handle the rename and we can't preempt the constructor being included via that code path.
 
-    Collection<PsiReference> references = super.findReferences(element, searchScope, searchInCommentsAndStrings);
-    return references;
+      return super.findReferences(element, searchScope, searchInCommentsAndStrings);
   }
 
 
@@ -99,10 +110,9 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
   public PsiElement substituteElementToRename(@NotNull PsiElement element, @Nullable Editor editor) {
 
     // If the element selected is a "new" statement, then we really want to rename the class, not the constructor.
-    if (element instanceof HaxeMethodDeclaration) {
-      HaxeMethodDeclaration method = (HaxeMethodDeclaration) element;
-      if (method.isConstructor()) {
-        return ((HaxeMethodDeclaration)element).getContainingClass();
+    if (element instanceof HaxeMethodDeclaration methodDeclaration) {
+        if (methodDeclaration.isConstructor()) {
+        return methodDeclaration.getContainingClass();
       }
     }
 
@@ -134,49 +144,197 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
     // the PomRenameProcessor stating that it could handle the rename after we've already substituted the
     // proper elements.  But since we are handling it anyway the PomRenameProcessor is cut out of the loop.
     if (canBeRenamed(element)) {
-
-      PsiFile containingFile = element.getContainingFile();
-      if (shouldRenameFile(element, containingFile)) {
-        containingFile.setName(newName + ".hx");
-      }
-
       super.renameElement(element, newName, usages, listener);
     }
   }
 
-  private boolean shouldRenameFile(PsiElement element, PsiFile containingFile) {
-    //TODO make it possible to just rename file and not its primary type?
-
-    // it's possible to rename a class both by file (in project view) and in code (code editor)
-    // project view will use class declaration while editor might give you a componentName
-    if (element instanceof  HaxeComponentName) {
-      element = element.getParent();
-    }
-
-    if (element instanceof HaxeClass haxeClass) {
-      String fileName = containingFile.getName();
-      String typeName = haxeClass.getName();
-
-      String expectedName = fileName.replace(".hx", "");
-      return expectedName.equals(typeName);
-    }
-    return false;
-  }
 
 
   @Override
   public void prepareRenaming(@NotNull PsiElement element, @NotNull String newName, @NotNull Map<PsiElement, String> allRenames) {
+    if(element instanceof HaxeComponentName componentName) {
+      if(componentName.getParent() instanceof HaxeClass haxeClass) {
+        element = haxeClass;
+      }
+    }
+
+    if (element instanceof HaxeModule haxeModule) {
+      addRenameFile(allRenames, haxeModule, newName);
+      HaxeClass mainClass = findMainClass(haxeModule);
+      if(mainClass != null) {
+        int response = askRenameMain(mainClass, "module");
+        if(response == MessageConstants.YES) {
+           addRenameMain(allRenames, mainClass, newName);
+        }else if(response == MessageConstants.CANCEL) {
+          allRenames.clear();
+          return;
+        }
+      }
+    }
+    else  if(element instanceof HaxeFile haxeFile) {
+      HaxeModule module = findModule(haxeFile);
+      addRenameModule(allRenames, module, newName);
+      HaxeClass mainClass = findMainClass(module);
+      if(mainClass != null) {
+        int response = askRenameMain(mainClass, "file");
+        if (response == MessageConstants.YES) {
+          addRenameMain(allRenames, mainClass, dropFileExtension(newName));
+        } else if (response == MessageConstants.CANCEL) {
+          allRenames.clear();
+          return;
+        }
+      }
+    } else if (element instanceof HaxeClass haxeClass) {
+      if(isMainClass(haxeClass)) {
+        HaxeModule module = findModule(haxeClass);
+        boolean gotMembers = hasModuleMembers(module);
+        if (gotMembers) {
+          int response = askRenameModule(module);
+          if (response == MessageConstants.YES) {
+            addRenameFile(allRenames, module, newName);
+            addRenameModule(allRenames, module, newName);
+            //TODO if answer is NO, then references might have to add module name to be correctly resolved
+          } else if (response == MessageConstants.CANCEL) {
+            allRenames.clear();
+            return;
+          }
+        }else {
+          // if no other module members are present, we also want to rename the file
+          addRenameFile(allRenames, module, newName);
+        }
+      }
+    }
+
     super.prepareRenaming(element, newName, allRenames);
   }
 
   @Override
-  public void prepareRenaming(@NotNull PsiElement element,
-                              @NotNull String newName,
-                              @NotNull Map<PsiElement, String> allRenames,
-                              @NotNull SearchScope scope) {
+  public void findExistingNameConflicts(@NotNull PsiElement element,
+                                        @NotNull String newName,
+                                        @NotNull MultiMap<PsiElement, @NlsContexts.DialogMessage String> conflicts,
+                                        @NotNull Map<PsiElement, String> allRenames) {
+    allRenames.forEach((psiElement, name) ->  findConflict(conflicts, psiElement, name));
+  }
+
+
+  private void findConflict(@NotNull MultiMap<PsiElement, @NlsContexts.DialogMessage String> conflicts, PsiElement element, String newName) {
+    if (element instanceof HaxeComponentName componentName) {
+      element = componentName.getParent();
+    }
+
+    if (element instanceof HaxeClass haxeClass) {
+      HaxeClassModel model = haxeClass.getModel();
+      FullyQualifiedInfo info = model.getQualifiedInfo();
+      if (info != null) {
+        FullyQualifiedInfo newQname = info.withClassName(newName);
+        HaxeClass resolvedClass = HaxeResolveUtil.findClassByQName(newQname.toString(), element);
+        if (resolvedClass != null) {
+          conflicts.putValue(resolvedClass, HaxeRefactoringBundle.message("class.0.already.exists", newName));
+        }
+      }
+    } else if (element instanceof HaxeMethod method) {
+      HaxeMethodModel model = method.getModel();
+      FullyQualifiedInfo info = model.getQualifiedInfo();
+      if (info != null) {
+        FullyQualifiedInfo newQname = info.withMemberName(newName);
+        PsiElement resolved = HaxeResolveUtil.findClassOrMemberByQName(newQname.toString(), element);
+        if (resolved instanceof HaxeMethod) {
+          conflicts.putValue(resolved, HaxeRefactoringBundle.message("method.0.already.exists", newName));
+        }
+      }
+    } else if (element instanceof HaxePsiField field) {
+      HaxeBaseMemberModel model = field.getModel();
+      FullyQualifiedInfo info = model.getQualifiedInfo();
+      if (info != null) {
+        FullyQualifiedInfo newQname = info.withMemberName(newName);
+        PsiElement resolved = HaxeResolveUtil.findClassOrMemberByQName(newQname.toString(), element);
+        if (resolved instanceof HaxePsiField) {
+          conflicts.putValue(resolved, HaxeRefactoringBundle.message("field.0.already.exists", newName));
+        }
+      }
+    }
+  }
 
 
 
-    super.prepareRenaming(element, newName, allRenames, scope);
+
+
+
+  private int askRenameModule(HaxeModule module) {
+    if(ApplicationManager.getApplication().isUnitTestMode()) {
+      return alsoRenameAnswer;
+    }
+    return showYesNoCancelDialog(module.getProject(),
+            HaxeRefactoringBundle.message("also.rename.module.message"),
+            HaxeRefactoringBundle.message("also.rename.module.title"),
+            getYesButton(), getNoButton(), getCancelButton(),
+            getQuestionIcon());
+
+  }
+
+  private int askRenameMain(PsiElement mainClass, String type) {
+    if(ApplicationManager.getApplication().isUnitTestMode()) {
+      return alsoRenameAnswer;
+    }
+    return showYesNoCancelDialog(mainClass.getProject(),
+            HaxeRefactoringBundle.message("also.rename.class.message", type),
+            HaxeRefactoringBundle.message("also.rename.class.title"),
+            getYesButton(), getNoButton(),getCancelButton(),
+            getQuestionIcon());
+  }
+
+  private void addRenameFile(@NotNull Map<PsiElement, String> allRenames, HaxeModule haxeModule, @NotNull String newName) {
+    HaxeFile parentOfType = PsiTreeUtil.getParentOfType(haxeModule, HaxeFile.class);
+    String name = parentOfType.getName();
+    int end = name.lastIndexOf(".");
+    String fileExtension = name.substring(end);
+    allRenames.put(parentOfType, newName + fileExtension);
+  }
+
+  private void addRenameMain(@NotNull Map<PsiElement, String> allRenames, PsiElement mainClass, @NotNull String newName) {
+    allRenames.put(mainClass, newName);
+
+  }
+  private void addRenameModule(@NotNull Map<PsiElement, String> allRenames, HaxeModule module, @NotNull String newName) {
+    allRenames.put(module, newName);
+  }
+
+  private @NotNull String dropFileExtension(@NotNull String newName) {
+    int end = newName.lastIndexOf(".");
+    return newName.substring(0, end);
+  }
+
+  private boolean hasModuleMembers(HaxeModule module) {
+    if (module.getModel() instanceof HaxeModuleModel model) {
+      for (HaxeModel haxeModel : model.getExposedMembers()) {
+        PsiElement psi = haxeModel.getBasePsi();
+        if (psi instanceof HaxeModuleFieldDeclaration || psi instanceof HaxeModuleMethodDeclaration) {
+          return true;
+        }
+      }
+
+      List<HaxeClassModel> classes = model.getClasses();
+      classes.remove(model.getMainClass());
+      return !classes.isEmpty();
+    }
+    return false;
+  }
+
+  private boolean isMainClass(HaxeClass haxeClass) {
+    HaxeModule module = findModule(haxeClass);
+    return findMainClass(module) == haxeClass;
+  }
+
+  private HaxeModule findModule(PsiElement element) {
+    return PsiTreeUtil.getChildOfType(element.getContainingFile(), HaxeModule.class);
+  }
+
+  private HaxeClass findMainClass(HaxeModule haxeModule) {
+    if(haxeModule.getModel() instanceof HaxeModuleModel model) {
+      HaxeClassModel mainClass = model.getMainClass();
+      if(mainClass != null) return mainClass.haxeClass;
+    }
+    return null;
+
   }
 }

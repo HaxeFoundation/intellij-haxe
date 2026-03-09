@@ -126,12 +126,21 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     return HaxeBaseMemberModel.fromPsi(match);
   }
 
-  public HaxeClassModel getClass(String name, @Nullable HaxeGenericResolver resolver) {
+  public HaxeClassModel getClass(String name) {
     if(name == null) return null;
     List<HaxeNamedComponent> allNamedComponents = getAllHaxeNamedComponents(HaxeComponentType.CLASS );
     HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> Objects.equals(name, component.getName()));
     if (match  instanceof HaxeClass haxeClass) return haxeClass.getModel();
     return null;
+  }
+  public List<HaxeClassModel> getClasses() {
+      List<@NotNull HaxeClassModel> list = new ArrayList<>();
+      for (HaxeNamedComponent namedComponent : getAllHaxeNamedComponents(HaxeComponentType.CLASS)) {
+          if (namedComponent instanceof HaxeClass haxeClass) {
+            list.add(haxeClass.getModel());
+          }
+      }
+      return list;
   }
 
 
@@ -141,4 +150,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     return HaxeNamedSubComponentUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
 
+    public HaxeClassModel getMainClass() {
+        return getClass(getName());
+    }
 }

@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
+import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nullable;
@@ -58,7 +59,7 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
     }
     final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
     if (componentType == HaxeComponentType.METHOD || componentType == HaxeComponentType.FIELD) {
-      final String name = ((HaxeComponent)element).getName();
+      final String name = ((PsiNamedElement)element).getName();
       final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class, true);
       if (name != null && haxeClass != null) {
         return haxeClass.getQualifiedName() + "#" + name;
