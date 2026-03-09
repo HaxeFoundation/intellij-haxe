@@ -1,4 +1,10 @@
 # Changelog
+## 1.7.11
+* Fixed: Documentation completion should now result in the correct indentation
+* Bugfix: Extern classes with a constructor that extends other classes should no longer warn about missing super call.
+* Fixed: Module member references should now be resolved correctly when imported using wildcard.
+* Improvement: Initial support for collision detection when performing rename operations.
+
 ## 1.7.10
 * Added: Initial support for `@:overload` on methods and constructors.
 * Bugfix: Fixed issue where capture variables would show the wrong type (#1233)
