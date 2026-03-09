@@ -126,6 +126,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     return HaxeBaseMemberModel.fromPsi(match);
   }
 
+  @Nullable
   public HaxeClassModel getClass(String name) {
     if(name == null) return null;
     List<HaxeNamedComponent> allNamedComponents = getAllHaxeNamedComponents(HaxeComponentType.CLASS );
@@ -150,6 +151,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     return HaxeNamedSubComponentUtil.filterNamedComponentsByType(allNamedComponents, componentType);
   }
 
+  @Nullable
     public HaxeClassModel getMainClass() {
         return getClass(getName());
     }

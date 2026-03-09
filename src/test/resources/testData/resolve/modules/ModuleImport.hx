@@ -5,7 +5,7 @@ import other.OtherModule;
 class <info descr="null">ModuleImportTest</info> {
     public function <info descr="null">new</info>() {
         // should resolve (FQN)
-        <info descr="null">modules.ModuleWithMainClass</info>.<info descr="null">moduleAFunction</info>();
+        modules.ModuleWithMainClass.<info descr="null">moduleAFunction</info>();
         modules.ModuleWithoutMainClass.<info descr="null">moduleBFunction</info>();
 
         // should resolve (wildcard import)

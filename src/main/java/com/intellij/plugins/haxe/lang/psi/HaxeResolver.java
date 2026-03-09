@@ -2123,9 +2123,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if(textCanBeQname(maybeQname)) {
           HaxeClass classByQName = HaxeResolveUtil.findClassByQName(maybeQname, reference);
           if(classByQName != null) {
+            // if part of a longer chain, need to check if it is a module or mainclass reference
+            if(referenceExpression.getParent() instanceof HaxeReferenceExpression expression) {
+              HaxeModuleModel module = classByQName.getModel().getModule();
+              HaxeClassModel classModel = module.getMainClass();
+              if(classModel != null && classModel.haxeClass == classByQName) {
+                HaxeBaseMemberModel member = module.getMember(expression.getIdentifier().getText(), null);
+                if (member != null) {
+                  // if the parent reference is a member of the module, we return the module instead of the class
+                  LogResolution(reference, "via fully qualified module name.");
+                  return List.of(module.module);
+                }
+              }
+            }
             HaxeComponentName componentName = classByQName.getComponentName();
             if(componentName != null) {
-              LogResolution(reference, "via fully qualified name.");
+              LogResolution(reference, "via fully qualified class name.");
               return List.of(componentName);
             }
           }
