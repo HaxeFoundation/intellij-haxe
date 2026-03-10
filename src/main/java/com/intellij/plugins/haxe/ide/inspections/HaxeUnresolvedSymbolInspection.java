@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
 import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceFieldIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
@@ -120,7 +121,9 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
             ));
           }
         }
-
+        if(isInsideMetadataToIgnore(nameIdentifier)) {
+          return;
+        }
         result.add(manager.createProblemDescriptor(
           nameIdentifier,
           nameIdentifier,
@@ -133,6 +136,15 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
     }.visitFile(file);
     return ArrayUtil.toObjectArray(result, ProblemDescriptor.class);
   }
+
+    private boolean isInsideMetadataToIgnore(PsiElement nameIdentifier) {
+      HaxeMetadataCompileTimeMeta meta = PsiTreeUtil.getParentOfType(nameIdentifier, HaxeMetadataCompileTimeMeta.class);
+      if(meta != null) {
+        // might want to add more meta types here when we see more cases where  the parameter list contains unresolvable values.
+        if(meta.isType(HaxeMetadataCompileTimeMeta.OP)) return true;
+      }
+      return false;
+    }
 
   private LocalQuickFix[] createQuickfixesIfAvailable(HaxeReferenceExpression reference) {
     List<LocalQuickFix> list = new ArrayList<>();
