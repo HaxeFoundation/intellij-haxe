@@ -17,7 +17,10 @@ import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.regex.Pattern;
+
 import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_PREFIX;
+import static com.intellij.plugins.haxe.ide.HaxeCommenter.DOC_COMMENT_SUFFIX;
 
 /// Custom logic to correctly handle completion of haxe documentation block (the default javadoc stuff does not work correctly for haxedocs)
 /// if block is incomplete then this handler will add the end "tag" and make sure we get correct indentation
@@ -61,7 +64,7 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
                 String docIndent = indentOptions.USE_TAB_CHARACTER ? "\t" : "   ";
                 String docNewLine = indent + docIndent;
 
-                String toInsert = "\n" + docNewLine + "\n" + indent + HaxeCommenter.DOC_COMMENT_SUFFIX;
+                String toInsert = "\n" + docNewLine + "\n" + indent + DOC_COMMENT_SUFFIX;
                 document.insertString(caretOffset, toInsert);
 
                 editor.getCaretModel().moveToOffset(caretOffset + 1 + docNewLine.length());
@@ -77,11 +80,11 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
     private static boolean isInsideDocsWithoutCloseTag(@NotNull PsiFile file, int caretOffset) {
         PsiElement elementAtOffset = PsiUtilCore.getElementAtOffset(file, caretOffset);
         if (elementAtOffset instanceof HaxePsiDocCommentImpl docComment) {
-            String text = docComment.getText();
+            String text = getDocumentWithoutDocumentationBlocks(docComment);
             if (caretOffset < elementAtOffset.getTextOffset() + DOC_COMMENT_PREFIX.length()) {
                 return false;
             }
-            if(text.endsWith(HaxeCommenter.BLOCK_COMMENT_SUFFIX) || text.endsWith(HaxeCommenter.DOC_COMMENT_SUFFIX)) {
+            if(text.endsWith(HaxeCommenter.BLOCK_COMMENT_SUFFIX) || text.endsWith(DOC_COMMENT_SUFFIX)) {
                 return false;
             }
             return true;
@@ -89,6 +92,20 @@ public class HaxeDocumentationEnterHandler extends EnterHandlerDelegateAdapter {
         return false;
     }
 
+    /**
+     * Removes all other documentation blocks from text to avoid accidentally finding endTag belonging to a different block.
+     */
+    private static @NotNull String getDocumentWithoutDocumentationBlocks(HaxePsiDocCommentImpl docComment) {
+        String text = docComment.getText();
+        int startTag = text.indexOf(DOC_COMMENT_PREFIX);
+        String startOfDocument = text.substring(0, startTag + DOC_COMMENT_PREFIX.length());
+        String restOfDocument = text.substring(startTag + DOC_COMMENT_PREFIX.length());
+
+        String escapedPrefix = Pattern.quote(DOC_COMMENT_PREFIX);
+        String escapedSuffix = Pattern.quote(DOC_COMMENT_SUFFIX);
+        // return text without any other documentation blocks
+        return startOfDocument + restOfDocument.replaceAll("(?s)" + escapedPrefix + ".*" + escapedSuffix, "");
+    }
 
     /**
      * Temp solution to find line indentation (should probably be handled by formatter)
