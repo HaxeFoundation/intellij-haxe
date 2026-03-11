@@ -780,7 +780,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (!(referenceParent instanceof HaxeType)) {
         HaxeParameter parameterFromReferenceExpression = null;
         HaxePsiField fieldFromReferenceExpression = null;
-        HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(reference, HaxeAssignExpression.class, true, HaxeCallExpression.class);
+        HaxeAssignExpression assignExpression = PsiTreeUtil.getParentOfType(referenceParent, HaxeAssignExpression.class, false, HaxeCallExpression.class);
         if (assignExpression != null) {
           HaxeExpression left = assignExpression.getLeftExpression();
           //guard to avoid another resolve of the same reference, and attempts to check assignExpression for only part of a reference expression
