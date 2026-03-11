@@ -97,19 +97,19 @@ public class HaxeExpressionEvaluatorContext {
     scope = scope.parent;
   }
 
-  public void setLocal(String key, ResultHolder value) {
+  public void setLocal(PsiElement key, ResultHolder value) {
     this.scope.set(key, value);
   }
 
-  public void setLocalWhereDefined(String key, ResultHolder value) {
+  public void setLocalWhereDefined(PsiElement key, ResultHolder value) {
     this.scope.setWhereDefined(key, value);
   }
 
-  public boolean has(String key) {
+  public boolean has(PsiElement key) {
     return this.scope.has(key);
   }
 
-  public ResultHolder get(String key) {
+  public ResultHolder get(PsiElement key) {
     return this.scope.get(key);
   }
 

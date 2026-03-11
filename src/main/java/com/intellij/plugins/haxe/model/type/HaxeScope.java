@@ -17,6 +17,7 @@
  */
 package com.intellij.plugins.haxe.model.type;
 
+import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,7 @@ public class HaxeScope<T> {
   // we may save time by not looking into every loop or if statement
   // if they are not relevant to what we are trying to solve
   public  boolean deepSearchForReturnValues = false;
-  private Map<String, T> items = new HashMap<String, T>();
+  private Map<PsiElement, T> items = new HashMap<>();
 
   public UnificationRules unificationRules = UnificationRules.DEFAULT;
 
@@ -39,27 +40,27 @@ public class HaxeScope<T> {
     this(null);
   }
 
-  public HaxeScope<T> set(@NotNull String name, T value) {
-    this.items.put(name, value);
+  public HaxeScope<T> set(@NotNull PsiElement key, T value) {
+    this.items.put(key, value);
     return this;
   }
 
-  public HaxeScope<T> setWhereDefined(@NotNull String name, T value) {
-    if (items.containsKey(name)) {
-      this.items.put(name, value);
+  public HaxeScope<T> setWhereDefined(@NotNull PsiElement key, T value) {
+    if (items.containsKey(key)) {
+      this.items.put(key, value);
     } else if (parent != null) {
-      parent.setWhereDefined(name, value);
+      parent.setWhereDefined(key, value);
     }
     return this;
   }
 
   @Nullable
-  public boolean has(@NotNull String name) {
+  public boolean has(@NotNull PsiElement name) {
     return get(name) != null;
   }
 
   @Nullable
-  public T get(@NotNull String name) {
+  public T get(@NotNull PsiElement name) {
     if (items.containsKey(name)) {
       return items.get(name);
     } else if (parent != null) {

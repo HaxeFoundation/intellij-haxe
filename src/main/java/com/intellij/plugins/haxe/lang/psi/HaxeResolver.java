@@ -2213,10 +2213,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // TODO: Merge with resolveByClassAndSymbol()??  It is very similar to this method.
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(reference);
     List<PsiElement> parentResolve = new ArrayList<>();
+    PsiElement resolve = null;
     if (leftReference != null) {
       // recursive so we try to  resolve first element in the chain first and go up the chain
       // using normal resolve so result is cached (resolveChain is early in the resolve logic so should not cause much overhead)
-      PsiElement resolve = leftReference.resolve();
+      resolve = leftReference.resolve();
       if(resolve != null) parentResolve.add(resolve);
     }
 
@@ -2243,8 +2244,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     PsiElement identifier = reference instanceof HaxeReferenceExpression referenceExpression ? referenceExpression.getIdentifier() : reference;
     String identifierText = identifier.getText();
-    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(lefthandExpression);
 
+    HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(lefthandExpression);
     ResultHolder result = extensionsMethodGuard.doPreventingRecursion(lefthandExpression, true, () -> {
       return HaxeExpressionEvaluator.evaluate(lefthandExpression, context, null).result;
     });
@@ -2403,7 +2404,6 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // Note: there is no code to resolve  to so we use a fakePsi with a reference to the method being bound.
       if ("bind".equals(identifierText)) {
         if (identifier instanceof HaxeIdentifier haxeIdentifier) {
-          PsiElement resolve = leftReference != null ?leftReference.resolve() : null;
           if (resolve != null) {
             synchronized (FAKE_PSI_KEY) {
               if (resolve instanceof HaxeNamedComponent namedComponent) {
