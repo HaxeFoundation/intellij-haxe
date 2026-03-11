@@ -33,8 +33,9 @@ public class HaxeModuleTest extends HaxeCodeInsightFixtureTestCase {
         doTest(
                 "modules/ModuleWithMainClass.hx",
                 "modules/ModuleWithoutMainClass.hx",
-                "other/OtherModule.hx"
-        );
+                "other/OtherModule.hx",
+                "umods/UsingModule.hx"
+                );
     }
 
 }

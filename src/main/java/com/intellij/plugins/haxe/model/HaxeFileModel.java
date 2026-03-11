@@ -94,6 +94,16 @@ public class HaxeFileModel implements HaxeExposableModel {
 
     return  publicModels;
   }
+  @NotNull
+  public List<HaxeModel> getModuleMembers() {
+    List<HaxeModel> publicModels = new ArrayList<>();
+
+    HaxeModule module = getModuleBody();
+    if(module != null && module.getModel() instanceof HaxeModuleModel model){
+      publicModels.addAll(model.getExposedMembers());
+    }
+    return  publicModels;
+  }
 
   @Nullable
   public HaxeClassModel getMainClassModel() {

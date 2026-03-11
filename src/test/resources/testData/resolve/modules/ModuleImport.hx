@@ -1,6 +1,7 @@
 package ;
 import modules.* ;
 import other.OtherModule;
+using <info descr="null">umods.UsingModule</info>;
 
 class <info descr="null">ModuleImportTest</info> {
     public function <info descr="null">new</info>() {
@@ -18,6 +19,11 @@ class <info descr="null">ModuleImportTest</info> {
 
         ModuleWithMainClass.<info descr="null">moduleField</info>;
         ModuleWithoutMainClass.<info descr="null">moduleProperty</info>;
+
+        // verify using on module  return all types
+        var <info descr="null">usingImportsTypedef</info>:<info descr="null">MyTypeDef</info>;
+        var <info descr="null">usingImportsSub</info>:<info descr="null">SomeClassUsing</info>;
+        var <info descr="null">usingImportsMain</info>:<info descr="null">UsingModule</info>;
 
 
         // should resolve

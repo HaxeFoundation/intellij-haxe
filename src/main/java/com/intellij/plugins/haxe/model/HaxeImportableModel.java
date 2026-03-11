@@ -50,14 +50,17 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
 
   @NotNull
   public List<HaxeModel> getExposedMembersInternal() {
+    boolean isUsing = this instanceof HaxeUsingModel; // TODO should probably  do thins in a different way
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
     List<HaxeModel> result;
     result = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
     if (result != null && !result.isEmpty()) {
       HaxeModel firstItem = result.getFirst();
-      if (firstItem instanceof HaxeFileModel || firstItem instanceof HaxePackageModel) {
-        result = ((HaxeExposableModel)firstItem).getExposedMembers();
-      }
+        if (firstItem instanceof HaxeFileModel fileModel) {
+            result = isUsing ? fileModel.getModuleMembers() : fileModel.getExposedMembers();
+        } else if (firstItem instanceof HaxePackageModel packageModel) {
+            result = packageModel.getExposedMembers();
+        }
     }
     return result == null ? Collections.emptyList() : result;
   }
