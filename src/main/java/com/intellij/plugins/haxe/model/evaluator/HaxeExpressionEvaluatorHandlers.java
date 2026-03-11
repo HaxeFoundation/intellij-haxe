@@ -1252,6 +1252,11 @@ public class HaxeExpressionEvaluatorHandlers {
         ResultHolder resolve = resolver.resolve(left.createHolder());
         if(resolve != null && !resolve.isUnknown())left = resolve.getType();
       }
+      // make sure we fully resolve and unwrap any nulls and typedefs before searching for accessors or checking if array class
+      if(left instanceof SpecificHaxeClassReference classReference) {
+        left = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+      }
+
       if (left.isArray()) {
         Object constant = null;
         if (left.isConstant()) {
@@ -1284,11 +1289,6 @@ public class HaxeExpressionEvaluatorHandlers {
       }
       //if not native array, look up ArrayAccessGetter method and use result
       if(left instanceof SpecificHaxeClassReference classReference) {
-        // make sure we fully resolve and unwrap any nulls and typedefs before searching for accessors
-        SpecificTypeReference reference = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
-        if (reference instanceof SpecificHaxeClassReference fullyResolved){
-          classReference = fullyResolved;
-        }
 
         HaxeClass haxeClass = classReference.getHaxeClass();
         if (haxeClass != null) {
