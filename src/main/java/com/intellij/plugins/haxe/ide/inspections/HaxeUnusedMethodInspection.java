@@ -22,6 +22,7 @@ import java.util.List;
 import static com.intellij.plugins.haxe.ide.inspections.HaxeUnusedDeclarationsFixes.createAddKeepMetaFix;
 import static com.intellij.plugins.haxe.ide.inspections.HaxeUnusedDeclarationsFixes.createRemoveMethodFix;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.KEEP;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OP;
 
 public class HaxeUnusedMethodInspection extends LocalInspectionTool {
     @NotNull
@@ -53,6 +54,7 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
                 //TODO
                 if (methodDeclaration.isPublic()) return;
                 if (methodDeclaration.isOverride()) return;
+                if (methodDeclaration.hasMetadata(OP, HaxeMetadataCompileTimeMeta.class)) return;
                 if (methodDeclaration.hasMetadata(KEEP, HaxeMetadataCompileTimeMeta.class)) return;
                 if (isGetterOrSetter(methodDeclaration)) return;
                 Collection<PsiReference> references;
