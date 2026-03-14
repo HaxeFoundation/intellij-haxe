@@ -18,10 +18,9 @@ package com.intellij.plugins.haxe.buildsystem.hxml.model;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
-import com.intellij.plugins.haxe.hxml.psi.HXMLOption;
-import com.intellij.plugins.haxe.hxml.psi.HXMLProperty;
-import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
+import com.intellij.openapi.vfs.VirtualFileSystem;
+import com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlReference;
+import com.intellij.plugins.haxe.hxml.psi.*;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -33,6 +32,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import static java.util.function.Predicate.not;
 
 /**
  * Created by ebishton on 9/8/2017.
@@ -76,22 +77,82 @@ public class HXMLProjectModel {
 
   // public Map<String,String> getDefinitions();
   // public List<String> getMacros();
-  // public List<String> getClasspath();
   // public String getMainClass();
 
+   public List<String> getClasspath() {
+     List<String> classPaths = new ArrayList<>();;
+     List<PsiFile> configFiles = getConfigFiles(psiFile);
+     searchAndCollectLClassPaths(configFiles, classPaths);
+
+     return classPaths;
+
+   }
+
+
+
   public List<String> getLibraries() {
-      List<String> found = new ArrayList<>();;
-      HXMLLib[] libs = UsefulPsiTreeUtil.getChildrenOfType(psiFile, HXMLLib.class, null);
-      if (null != libs) {
+    List<String> libraries = new ArrayList<>();;
+    List<PsiFile> configFiles = getConfigFiles(psiFile);
+    searchAndCollectLibs(configFiles, libraries);
+
+    return libraries;
+  }
+
+  private static List<PsiFile> getConfigFiles(PsiFile psiFile) {
+    List<PsiFile> configFiles = new ArrayList<>();
+    configFiles.add(psiFile);
+    configFiles.addAll(getHxmlReferencedFiles(psiFile));
+    collectConfigFromReferencesFiles(configFiles);
+    return configFiles;
+  }
+
+  private static void collectConfigFromReferencesFiles(List<PsiFile> configFiles) {
+    for (PsiFile configFile : configFiles) {
+      getHxmlReferencedFiles(configFile).stream()
+              .filter(not(configFiles::contains))
+              .forEach(configFiles::add);
+    }
+  }
+
+  private static @NotNull List<PsiFile> getHxmlReferencedFiles(PsiFile psiFile) {
+    List<HxmlReference> hxmlReferences = UsefulPsiTreeUtil.getChildren(psiFile, HxmlReference.class);
+      return hxmlReferences.stream().map(HxmlReference::resolveFileReference).filter(Objects::nonNull).toList();
+  }
+
+  private static PsiFile findExtraParamsHxmlFile(PsiFile psiFile) {
+    VirtualFile parentDir = psiFile.getVirtualFile().getParent();
+    String canonicalPath = parentDir.getCanonicalPath() +"/extraParams.hxml";
+
+    VirtualFileSystem fileSystem = parentDir.getFileSystem();
+    VirtualFile resolvedFile = fileSystem.findFileByPath(canonicalPath);
+    if(resolvedFile != null) {
+      return PsiManager.getInstance(psiFile.getProject()).findFile(resolvedFile);
+    }
+    return null;
+  }
+
+  private static void searchAndCollectLClassPaths(List<PsiFile> configFiles, List<String> classPaths) {
+    for (PsiFile configFile : configFiles) {
+      List<HXMLClasspath> classpaths = UsefulPsiTreeUtil.getChildren(configFile, HXMLClasspath.class);
+      classpaths.stream()
+              .map(HXMLClasspath::getValue)
+              .filter(Objects::nonNull)
+              .map(PsiElement::getText)
+              .forEach(classPaths::add);
+    }
+  }
+
+  private static void searchAndCollectLibs(List<PsiFile> configFiles, List<String> libraries) {
+      for (PsiFile configFile : configFiles) {
+        List<HXMLLib> libs = UsefulPsiTreeUtil.getChildren(configFile, HXMLLib.class);
         for (HXMLLib lib : libs) {
           lib.getValueList().stream()
-            .map(PsiElement::getText)
-            .filter(Objects::nonNull)
-            .forEach(found::add);
+                  .map(PsiElement::getText)
+                  .filter(Objects::nonNull)
+                  .forEach(libraries::add);
         }
       }
-    return found;
-  }
+    }
 
   @Nullable
   public String getSwfOutputFileName() {

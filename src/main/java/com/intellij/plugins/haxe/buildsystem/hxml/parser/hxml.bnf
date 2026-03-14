@@ -17,7 +17,7 @@
 
 simpleFile ::= line_* unterminated_line_?
 
-hxml ::= HXML_FILE
+hxml ::= HXML_FILE {mixin="com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlFileReferenceMixin"}
 private classname_ ::= qualifiedName
 
 qualifiedName ::= QUALIFIEDCLASSNAME {methods=[getQName]}
