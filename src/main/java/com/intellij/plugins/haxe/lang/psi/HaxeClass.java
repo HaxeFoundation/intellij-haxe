@@ -164,18 +164,6 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
   HaxeNamedComponent findArrayAccessGetter(@Nullable HaxeGenericResolver resolver);
   HaxeNamedComponent findArrayAccessSetter(@Nullable HaxeGenericResolver resolver);
 
-  default boolean hasMeta(HaxeMetadataTypeName meta) {
-    return HaxeMetadataUtils.hasMeta(this, meta);
-  }
-
-  default boolean hasCompileTimeMeta(HaxeMetadataTypeName meta) {
-    return HaxeMetadataUtils.hasMeta(this, HaxeMetadataCompileTimeMeta.class, meta);
-  }
-
-  default HaxeMetadataList getCompileTimeMeta(HaxeMetadataTypeName meta) {
-    return HaxeMetadataUtils.getMetadataList(this, HaxeMetadataCompileTimeMeta.class, meta);
-  }
-
   PsiPackage getPackage();
 
   HaxeModule getModule();

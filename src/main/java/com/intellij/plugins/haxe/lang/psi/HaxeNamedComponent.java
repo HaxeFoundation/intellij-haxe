@@ -18,7 +18,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.Nullable;
@@ -50,4 +53,16 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
   // Added the slowdowns from HaxeComponentType.typeOf()
   // se method description for explanation description
   HaxeComponentType getComponentType();
+
+  default boolean hasMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.hasMeta(this, meta);
+  }
+
+  default boolean hasCompileTimeMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.hasMeta(this, HaxeMetadataCompileTimeMeta.class, meta);
+  }
+
+  default HaxeMetadataList getCompileTimeMeta(HaxeMetadataTypeName meta) {
+    return HaxeMetadataUtils.getMetadataList(this, HaxeMetadataCompileTimeMeta.class, meta);
+  }
 }

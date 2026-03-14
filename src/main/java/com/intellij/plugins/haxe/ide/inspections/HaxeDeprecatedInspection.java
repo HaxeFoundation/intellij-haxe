@@ -73,39 +73,11 @@ public class HaxeDeprecatedInspection extends LocalInspectionTool {
     final List<ProblemDescriptor> result = new ArrayList<ProblemDescriptor>();
     new HaxeAnnotatingVisitor() {
       @Override
-      protected void handleDeprecatedFunctionDeclaration(@NotNull HaxeMethodDeclaration function) {
-        PsiIdentifier nameIdentifier = function.getNameIdentifier();
-
-        if (nameIdentifier != null) {
-          result.add(manager.createProblemDescriptor(
-            nameIdentifier,
-            TextRange.from(0, nameIdentifier.getTextLength()),
-            getDisplayName(),
-            ProblemHighlightType.LIKE_DEPRECATED,
-            isOnTheFly
-          ));
-        }
-      }
-
-      @Override
       protected void handleDeprecatedCallExpression(HaxeReferenceExpression referenceExpression) {
         PsiIdentifier identifier = referenceExpression.getIdentifier();
         result.add(manager.createProblemDescriptor(
           identifier,
           TextRange.from(0, identifier.getTextLength()),
-          getDisplayName(),
-          ProblemHighlightType.LIKE_DEPRECATED,
-          isOnTheFly
-        ));
-      }
-
-      @Override
-      protected void handleDeprecatedFieldDeclaration(HaxeFieldDeclaration varDeclaration) {
-        PsiIdentifier nameIdentifier = varDeclaration.getNameIdentifier();
-
-        result.add(manager.createProblemDescriptor(
-          nameIdentifier,
-          TextRange.from(0, nameIdentifier.getTextLength()),
           getDisplayName(),
           ProblemHighlightType.LIKE_DEPRECATED,
           isOnTheFly

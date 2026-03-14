@@ -28,6 +28,9 @@ import com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationRenderer;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
+import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -69,6 +72,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
         resolveTypeAndMakeHeader(mainBuilder, namedComponent);
         return mainBuilder.toString();
       }
+      appendDeprecatedInfo(namedComponent, mainBuilder);
       switch (type) {
         case CLASS, ABSTRACT, INTERFACE, TYPEDEF, ENUM -> processType(mainBuilder, namedComponent, renderer);
         case METHOD, FUNCTION -> processMethod(mainBuilder, namedComponent, renderer);
@@ -132,6 +136,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
       resolveTypeAndMakeHeader(mainBuilder, namedComponent);
       return mainBuilder.toString();
     }
+    appendDeprecatedInfo(namedComponent, mainBuilder);
     switch (type) {
       case CLASS, ABSTRACT, INTERFACE, TYPEDEF, ENUM -> processType(definitionBuilder, namedComponent, renderer);
       case METHOD, FUNCTION -> processMethod(definitionBuilder, namedComponent, renderer);
@@ -147,6 +152,40 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     mainBuilder.br();
     return mainBuilder.toString();
   }
+
+    private void appendDeprecatedInfo(HaxeNamedComponent namedComponent, HtmlBuilder mainBuilder) {
+      HaxeMetadataList compileTimeMeta = namedComponent.getCompileTimeMeta(HaxeMeta.DEPRECATED);
+      if(compileTimeMeta!= null) {
+        HaxeMeta first = compileTimeMeta.getFirst();
+        Color color = DefaultLanguageHighlighterColors.METADATA.getDefaultAttributes().getForegroundColor();
+        HtmlChunk.Element chunk = HtmlChunk.div().italic().bold()
+                .attr("color", "#" + colorToHex(color))
+                .addText("Deprecated");
+
+        mainBuilder.append(chunk);
+
+        HaxeMetadataContent content = first.getContent();
+        if (content != null && content.getText() != null) {
+          String contentText = content.getText();
+          if ((contentText.startsWith("\"") || contentText.startsWith("'"))
+                  && (contentText.endsWith("\"") || contentText.endsWith("'"))) {
+           String  message = contentText.substring(1, contentText.length() - 1); // drop string quotes
+
+            mainBuilder.br();
+            HtmlChunk.Element messageChunk = HtmlChunk.div()
+                    .attr("color", "#" + colorToHex(color))
+                    .addText(message)
+                    .bold()
+                    .italic();
+            mainBuilder.append(messageChunk);
+          }
+        }
+
+
+
+        mainBuilder.append(HtmlChunk.hr());
+      }
+    }
 
   private void createModuleDocs(HtmlBuilder mainBuilder, HaxeModule module) {
     if( module.getModel() instanceof  HaxeModuleModel model) {
