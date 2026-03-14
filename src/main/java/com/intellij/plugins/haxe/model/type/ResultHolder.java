@@ -131,8 +131,6 @@ public class ResultHolder {
     return this;
   }
 
-
-
   public ResultHolder setImmutable(boolean immutable) {
     this.canMutate = !immutable;
     return this;
@@ -222,83 +220,24 @@ public class ResultHolder {
   }
 
   public  boolean isOrContainsTypeParameters() {
-    return isOrContainsTypeParameters(this);
-  }
-  public static boolean isOrContainsTypeParameters(ResultHolder holder) {
-    if (holder.isUnknown()) return  false;
-    if (holder.isTypeParameter()) return true;
-    SpecificTypeReference type = holder.getType();
-    if (type instanceof  SpecificHaxeClassReference classReference) {
-      for (ResultHolder specific : classReference.getSpecifics()) {
-        if (specific.type != type && isOrContainsTypeParameters(specific)) return  true;
-      }
-    }
-    if (type instanceof SpecificFunctionReference  function) {
-      return !function.getTypeParameters().isEmpty();
-    }
-    return false;
+    return HaxeTypeUtils.isOrContainsTypeParameters(this);
   }
 
-  public boolean containsUnknownTypeParameters() {
-    return containsUnknownTypeParameters(this);
+  public boolean containsUnknownOrUnresolvedTypeParameters() {
+    return HaxeTypeUtils.containsUnknownOrUnresolvedTypeParameters(this);
   }
+
+  public boolean containsUnknownOrUnresolvedTypes() {
+    return HaxeTypeUtils.containsUnknownOrUnresolvedTypes(this);
+  }
+
   public boolean containsUnknownTypes() {
-    if(isUnknown()) return true;
-    if(isFunctionType()) {
-      return containsUnknownTypeParameters(this) || getFunctionType().containsUnknownTypes();
-    }else if(isTypeParameterWithConstraints()){
-        return !hasNoGenericsOrTheOnlyGenericTypeisItSelf(this);
-    }else{
-      return containsUnknownTypeParameters(this);
-    }
+    return HaxeTypeUtils.containsUnknownTypes(this);
   }
-  // in order to better cache results we check if unknown typeParameters are "self" references and if so we may cache the result (ex class Node<T:Node<T>)
-  private static boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf(@NotNull ResultHolder type) {
-    return hasNoGenericsOrTheOnlyGenericTypeisItSelf(type, type);
-  }
-  public boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf() {
-    return hasNoGenericsOrTheOnlyGenericTypeisItSelf(this);
-  }
-  private static boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf(@NotNull ResultHolder selfType, @NotNull ResultHolder currentType) {
-    if (currentType.isUnknown()) return  false;
-    // plain typeParameter OK
-    if (currentType.isTypeParameter() && !currentType.isTypeParameterWithConstraints() ) return true;
-    if(currentType.isOrContainsTypeParameters()) {
-      SpecificTypeReference type = currentType.getType();
-      if (type instanceof SpecificHaxeClassReference classReference) {
-        for (ResultHolder specific : classReference.getSpecifics()) {
-          if (specific.isUnknown() || hasNoGenericsOrTheOnlyGenericTypeisItSelf(selfType, specific)) return true;
-        }
-      }
-      if (type instanceof SpecificFunctionReference function) {
-        List<ResultHolder> parameters = function.getTypeParameters();
-        for (ResultHolder parameter : parameters) {
-          if (parameter.isUnknown()) return true;
-        }
-      }
-      if(currentType.getType().isSameType(selfType.getType())) return true;
-    }
 
-    return true;
-  }
-  public static boolean containsUnknownTypeParameters(ResultHolder holder) {
-    if (holder.isUnknown()) return  false;
-    if (holder.isTypeParameter()) return true;
-    SpecificTypeReference type = holder.getType();
-    if (type instanceof  SpecificHaxeClassReference classReference) {
-      for (ResultHolder specific : classReference.getSpecifics()) {
-        // ignore unknown if in Dynamic
-        if(specific.isDynamic() && containsUnknownTypeParameters(specific)) return false;
-        if (specific.isUnknown() || containsUnknownTypeParameters(specific)) return  true;
-      }
-    }
-    if (type instanceof SpecificFunctionReference  function) {
-      List<ResultHolder> parameters = function.getTypeParameters();
-      for (ResultHolder parameter : parameters) {
-          if(parameter.isUnknown()) return true;
-      }
-    }
-    return false;
+  // in order to better cache results we check if unknown typeParameters are "self" references and if so we may cache the result (ex class Node<T:Node<T>)
+  public boolean hasNoGenericsOrTheOnlyGenericTypeisItSelf() {
+    return HaxeTypeUtils.hasNoGenericsOrTheOnlyGenericTypeisItSelf(this, this);
   }
 
   public ResultHolder tryUnwrapNullType() {
@@ -325,16 +264,6 @@ public class ResultHolder {
     return holder == null || holder.isUnknown();
   }
 
-  @Nullable
-  public ResultHolder getTypeParameterConstraint() {
-    SpecificHaxeClassReference classType = getClassType();
-    if (classType != null) {
-      if (classType.getHaxeClassModel() instanceof HaxeGenericParamModel genericParamModel) {
-        return genericParamModel.getConstraint(null);
-      }
-    }
-    return null;
-  }
 
   public @NotNull ResultHolder noCache() {
     cacheable = false;
@@ -343,9 +272,7 @@ public class ResultHolder {
 
   public PsiElement getContext() {
     return getType().context;
-
   }
-
 
   public boolean canMorph() {
     return canMorph;

@@ -1,7 +1,5 @@
 package com.intellij.plugins.haxe.model.evaluator;
 
-import com.intellij.openapi.util.RecursionGuard;
-import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
@@ -44,7 +42,7 @@ public class HaxeExpressionEvaluatorCacheService  {
     ResultHolder holder = _handle(element, context, resolver);
     if (holder == null) return SpecificTypeReference.getUnknown(element).createHolder();
     if (holder.cacheable && !holder.isUnknown()) {
-      if (!holder.containsUnknownTypes()) {
+      if (!holder.containsUnknownOrUnresolvedTypes()) {
         cacheMap.put(key, holder);
       }
     }

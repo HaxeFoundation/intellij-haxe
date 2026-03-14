@@ -6,6 +6,7 @@ import com.intellij.codeInsight.hints.Option;
 import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
@@ -94,8 +95,7 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
     List<HaxeExpression> expressions = expressionList == null ? List.of() : expressionList.getExpressionList();
 
     if (enumValueModel instanceof HaxeEnumValueConstructorModel constructorModel && constructorModel.getConstructorParameters() != null) {
-      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, constructorModel.getMethod());
-      HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+      HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(constructorModel.getMethod(), callExpression);
       if(validation != null) {
         List<HaxeParameterModel> parameters = MapParametersToModel(constructorModel.getConstructorParameters());
         processArguments(validation.getArgumentToParameterMapping(), expressions, parameters, infoList, false);

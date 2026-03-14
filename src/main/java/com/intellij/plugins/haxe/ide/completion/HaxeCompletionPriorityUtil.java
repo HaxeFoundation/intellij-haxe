@@ -8,8 +8,8 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
-import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
@@ -294,8 +294,7 @@ public class HaxeCompletionPriorityUtil {
     if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
       PsiElement resolve = referenceExpression.resolve();
       if (resolve instanceof HaxeMethod method) {
-        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-        return contextContainer.evaluateContexts();
+        return HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(method, callExpression);
       }
     }
     return null;

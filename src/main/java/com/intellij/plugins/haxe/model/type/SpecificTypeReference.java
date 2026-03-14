@@ -496,15 +496,15 @@ public abstract class SpecificTypeReference {
   }
 
   final public boolean getConstantAsBool() {
-    return HaxeTypeUtils.getBoolValue(getConstant());
+    return HaxeTypeLiteralsUtils.getBoolValue(getConstant());
   }
 
   final public double getConstantAsDouble() {
-    return HaxeTypeUtils.getDoubleValue(getConstant());
+    return HaxeTypeLiteralsUtils.getDoubleValue(getConstant());
   }
 
   final public int getConstantAsInt() {
-    return HaxeTypeUtils.getIntValue(getConstant());
+    return HaxeTypeLiteralsUtils.getIntValue(getConstant());
   }
 
   @NotNull

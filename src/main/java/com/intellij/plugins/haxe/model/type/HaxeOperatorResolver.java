@@ -141,7 +141,7 @@ public class HaxeOperatorResolver {
         }
       }else {
         if (result != null) {
-          result = result.withConstantValue(HaxeTypeUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
+          result = result.withConstantValue(HaxeTypeLiteralsUtils.applyBinOperator(left.getConstant(), right.getConstant(), operator));
         }
       }
     }

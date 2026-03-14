@@ -18,6 +18,7 @@ public class HaxeExpressionEvaluatorCacheChangeListener implements PsiModificati
 
   public void modificationCountChanged() {
     myProject.getService(HaxeExpressionEvaluatorCacheService.class).clearCaches();
+    myProject.getService(HaxeCallExpressionEvaluatorCacheService.class).clearCaches();
   }
 }
 

@@ -337,6 +337,7 @@
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheService"/>
+    <projectService serviceImplementation="com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService"/>
 
     <projectConfigurable instance="com.intellij.plugins.haxe.config.HaxeProjectSettingsConfigurable"
                          parentId="build"

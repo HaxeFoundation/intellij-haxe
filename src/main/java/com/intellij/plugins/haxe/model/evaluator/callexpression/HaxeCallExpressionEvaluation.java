@@ -88,6 +88,9 @@ public class HaxeCallExpressionEvaluation {
     public List<ResultHolder> getParameterTypes() {
         return List.copyOf(parameterIndexToType.values());
     }
+    public List<ResultHolder> getArgumentTypes() {
+        return List.copyOf(argumentIndexToType.values());
+    }
 
     public Map<Integer, Integer> getArgumentToParameterMapping() {
         return argumentToParameterIndex;
@@ -102,6 +105,10 @@ public class HaxeCallExpressionEvaluation {
         ResultHolder resolve = callExpressionResolver.resolve(returnType);
         resolve = addMissingTypeParametersIfNecessary(resolve);
         return resolve != null ? resolve : returnType;
+    }
+
+    public ResultHolder getReturnTypeWithoutResolve() {
+        return returnType;
     }
 
     // TODO : HACK

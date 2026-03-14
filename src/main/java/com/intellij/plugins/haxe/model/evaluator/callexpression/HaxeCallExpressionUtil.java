@@ -67,10 +67,13 @@ public class HaxeCallExpressionUtil {
     methodModels.add(methodModel);
     methodModels.addAll(methodModel.getOverloadsFromMeta());
 
-    List<HaxeCallExpressionContext> list = methodModels.stream()
-            .map(model -> createContextForMethodCall(callExpression, assignHint, method, model))
-            .toList();
-    return HaxeCallExpressionContextContainer.create(list);
+      List<HaxeCallExpressionContext> list = new ArrayList<>();
+
+      for (HaxeMethodModel model : methodModels) {
+          HaxeCallExpressionContext contextForMethodCall = createContextForMethodCall(callExpression, assignHint, method, model);
+          list.add(contextForMethodCall);
+      }
+      return HaxeCallExpressionContextContainer.create(list);
 
   }
 

@@ -34,6 +34,7 @@ import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
@@ -928,8 +929,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
               if (expressionListPsi != null) {
                 expressionList = expressionListPsi.getExpressionList();
                 methodModel = haxeMethod.getModel();
-                HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, haxeMethod);
-                validation = contextContainer.evaluateContexts();
+                validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(haxeMethod, callExpression);
               }
             }
           }

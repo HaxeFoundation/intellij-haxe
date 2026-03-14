@@ -524,7 +524,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       if (allowExprOf) {
           if (targetClass.isExprOf()) {
               ResultHolder holder = targetClass.createHolder();
-              if (holder.containsUnknownTypeParameters()) {
+              if (holder.containsUnknownOrUnresolvedTypeParameters()) {
                   return HaxeMacroTypeUtil.getExprOf(context, createHolder());
               }
           }

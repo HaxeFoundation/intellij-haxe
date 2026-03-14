@@ -44,15 +44,6 @@ public class SpecificFunctionReference extends SpecificTypeReference {
     return functionType != null ? HaxeResolveResult.create(functionType) : null;
   }
 
-  public boolean containsUnknownTypes() {
-    for (HaxeArgument argument : getArguments()) {
-      ResultHolder argumentType = argument.getType();
-      if(argumentType.isUnknown() || argumentType.containsUnknownTypes()) return true;
-    }
-
-    ResultHolder type = getReturnType();
-    return type.isUnknown() || type.containsUnknownTypes();
-  }
 
   public SpecificFunctionReference performMethodBind(List<HaxeArgument> argumentList, @Nullable HaxeGenericResolver resolver) {
     ResultHolder newReturnType = returnValue;
@@ -75,13 +66,6 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       return new SpecificFunctionReference(newArgumentList, newReturnType, functionType,context);
     }else {
     return  new SpecificFunctionReference(newArgumentList, newReturnType, method,context);
-    }
-  }
-
-
-  public static class StdFunctionReference extends SpecificFunctionReference {
-    public StdFunctionReference(@NotNull PsiElement context) {
-      super(new ArrayList<HaxeArgument>(), SpecificTypeReference.getDynamic(context).createHolder(), (HaxeMethodModel)null, context);
     }
   }
 

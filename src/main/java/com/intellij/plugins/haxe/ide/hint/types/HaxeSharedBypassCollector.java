@@ -61,7 +61,7 @@ public abstract class HaxeSharedBypassCollector implements SharedBypassCollector
                 builder.text(className, inlayActionData);
             }
             // hide Unknown generics if Dynamic
-            if(type.isDynamic() && type.containsUnknownTypeParameters()) return;;
+            if(type.isDynamic() && type.containsUnknownOrUnresolvedTypeParameters()) return;;
 
             @NotNull ResultHolder[] specifics = classReference.getSpecifics();
             if(specifics.length > 0 ) {

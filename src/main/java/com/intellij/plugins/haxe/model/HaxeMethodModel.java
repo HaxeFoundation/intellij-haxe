@@ -194,7 +194,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     ResultHolder result = CachedValuesManager.getProjectPsiDependentCache(haxeMethod, HaxeMethodModel::getReturnTypeCacheProvider);
     if (resolver != null) {
       ResultHolder resolve = resolver.resolve(result);
-      if(resolve != null && resolve.containsUnknownTypeParameters()){
+      if(resolve != null && resolve.containsUnknownOrUnresolvedTypeParameters()){
         // Special corner-case, might be only for multi-type abstracts ?
         // if we dont have any typeTag the return type is resolved come from an expression, and for abstracts that can be underlying type
         // and in the case of abstract Map(IMap) methods like the "get" method that use underlying type that is an interface so we need to translate

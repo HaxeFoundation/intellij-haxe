@@ -743,8 +743,7 @@ public class HaxeExpressionEvaluator {
           final HaxeReference leftReference = PsiTreeUtil.getChildOfType(callExpression.getExpression(), HaxeReference.class);
           if (hint != null && leftReference == reference) {
             if (resolved instanceof HaxeMethod method ) {
-              HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-              HaxeCallExpressionEvaluation validation  = contextContainer.evaluateContexts();
+              HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(method, callExpression);
               if(validation != null) {
                 ResultHolder hintResolved = validation.getCallExpressionResolver().resolve(hint);
                 if (hintResolved != null) return hintResolved;

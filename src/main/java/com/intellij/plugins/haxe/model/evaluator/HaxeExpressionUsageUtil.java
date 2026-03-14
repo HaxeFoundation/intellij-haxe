@@ -185,7 +185,7 @@ public class HaxeExpressionUsageUtil {
             if (result == null) return null;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes() || updatedType.isDynamic()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes() || updatedType.isDynamic()) return updatedType;
           }
 
           if (parent instanceof HaxeAssignExpression assignExpression) {
@@ -217,7 +217,7 @@ public class HaxeExpressionUsageUtil {
                 }
               }
             }
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes()) return updatedType;
           }
 
           if (parent.getParent() instanceof HaxeAssignExpression assignExpression) {
@@ -225,7 +225,7 @@ public class HaxeExpressionUsageUtil {
            if (result == null) continue;
            if (result.isDynamic()) return result;
            if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-           if (!updatedType.containsUnknownTypes() || updatedType.isDynamic()) return updatedType;
+           if (!updatedType.containsUnknownOrUnresolvedTypes() || updatedType.isDynamic()) return updatedType;
           }
 
           if (parent instanceof HaxeReferenceExpression referenceExpression) {
@@ -233,7 +233,7 @@ public class HaxeExpressionUsageUtil {
             if (result == null) continue;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
@@ -241,7 +241,7 @@ public class HaxeExpressionUsageUtil {
             if (result == null) return null;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeArrayAccessExpression arrayAccessExpression) {
@@ -249,7 +249,7 @@ public class HaxeExpressionUsageUtil {
             if (result == null) return null;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes()) return updatedType;
           }
 
           if (parent instanceof HaxeObjectLiteralElement literalElement) {
@@ -257,7 +257,7 @@ public class HaxeExpressionUsageUtil {
             if (result == null) return null;
             if (result.isDynamic()) return result;
             if (!result.isUnknown()) updatedType = mapTypeParameterIfAssignable(updatedType, result);
-            if (!updatedType.containsUnknownTypes()) return updatedType;
+            if (!updatedType.containsUnknownOrUnresolvedTypes()) return updatedType;
           }
         }
       }
@@ -360,7 +360,7 @@ public class HaxeExpressionUsageUtil {
             newSpecifics[i] = foundSpecific.duplicate();
             newSpecifics[i].disableMorphing();
           }else {
-            if(currentSpecific.containsUnknownTypeParameters()) {
+            if(currentSpecific.containsUnknownOrUnresolvedTypeParameters()) {
               newSpecifics[i] = mapTypeParameter(currentSpecific, foundSpecific);
             }else {
               newSpecifics[i] = currentSpecific;
@@ -518,8 +518,7 @@ public class HaxeExpressionUsageUtil {
         && referenceExpression.getParent() instanceof HaxeCallExpression callExpression) {
 
       HaxeMethodModel methodModel = methodDeclaration.getModel();
-      HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, methodModel.getMethod());
-      HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+      HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(methodModel.getMethod(), callExpression);
       if(validation != null) {
         HaxeGenericResolver resolverFromCallExpression = validation.getCallExpressionResolver();
         if (resolverFromCallExpression != null) {

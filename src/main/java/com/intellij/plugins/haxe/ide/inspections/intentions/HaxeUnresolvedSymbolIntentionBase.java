@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
+import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
@@ -324,8 +325,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
         if (callExpression.getExpression() instanceof HaxeReference reference) {
           PsiElement resolved = reference.resolve();
           if (resolved instanceof HaxeMethod method) {
-            HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-            HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+            HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(method, callExpression);
             if (validation != null) {
               Integer parameterIndex = validation.getArgumentToParameterMapping().get(index);
               if (parameterIndex != null) {

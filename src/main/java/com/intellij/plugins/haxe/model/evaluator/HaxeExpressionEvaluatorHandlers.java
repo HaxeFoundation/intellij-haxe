@@ -1129,8 +1129,7 @@ public class HaxeExpressionEvaluatorHandlers {
           PsiElement resolve = referenceExpression.resolve();
           if(resolve instanceof  HaxeMethod method) {
             int index = callExpressionList.getExpressionList().indexOf(function);
-            HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-            HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+            HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(method, callExpression);
             if (validation != null) {
               Map<Integer, Integer> indexMap = validation.getArgumentToParameterIndex();
               int parameterIndex = indexMap.getOrDefault(index, -1);
@@ -1269,7 +1268,7 @@ public class HaxeExpressionEvaluatorHandlers {
             final HaxeRange constraint = right.getRangeConstraint();
             HaxeRange arrayBounds = new HaxeRange(0, array.size());
             if (right.isConstant()) {
-              final int index = HaxeTypeUtils.getIntValue(right.getConstant());
+              final int index = HaxeTypeLiteralsUtils.getIntValue(right.getConstant());
               if (arrayBounds.contains(index)) {
                 constant = array.get(index);
               }
@@ -1368,8 +1367,8 @@ public class HaxeExpressionEvaluatorHandlers {
       Object constant = null;
       if (left.isConstant() && right.isConstant()) {
         constant = new HaxeRange(
-          HaxeTypeUtils.getIntValue(left.getConstant()),
-          HaxeTypeUtils.getIntValue(right.getConstant())
+          HaxeTypeLiteralsUtils.getIntValue(left.getConstant()),
+          HaxeTypeLiteralsUtils.getIntValue(right.getConstant())
         );
       }
       return SpecificHaxeClassReference.getIterator(SpecificHaxeClassReference.getInt(iteratorExpression)).withConstantValue(constant)
@@ -1850,8 +1849,7 @@ public class HaxeExpressionEvaluatorHandlers {
 
       // if reference to "real" method, try to use any argument to type parameter mapping
       if (ftype.method != null && returnType.isOrContainsTypeParameters()) {
-        HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, ftype.method.getMethod());
-        HaxeCallExpressionEvaluation validation = contextContainer.evaluateContexts();
+        HaxeCallExpressionEvaluation validation = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(ftype.method.getMethod(), callExpression);
         if(validation != null) {
         functionResolver.addAll(validation.getCallExpressionResolver());
         }
@@ -2040,10 +2038,10 @@ public class HaxeExpressionEvaluatorHandlers {
       result = tryToFindTypeFromUsage(element, result, hint, context, resolver, null);
     }
 
-    if (isUnknownLiteralArray(result) && result.containsUnknownTypeParameters()) {
+    if (isUnknownLiteralArray(result) && result.containsUnknownOrUnresolvedTypeParameters()) {
       result = searchReferencesForTypeParameters(name, context, resolver, result);
     }
-    if (result != null && result.containsUnknownTypeParameters()) {
+    if (result != null && result.containsUnknownOrUnresolvedTypeParameters()) {
       result = searchReferencesForTypeParameters(name, context, resolver, result);
     }
 
@@ -2617,8 +2615,7 @@ public class HaxeExpressionEvaluatorHandlers {
       if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
         PsiElement resolve = referenceExpression.resolve();
         if (resolve instanceof HaxeMethod method) {
-          HaxeCallExpressionContextContainer contextContainer = HaxeCallExpressionUtil.createContextForMethodCall(callExpression, method);
-          HaxeCallExpressionEvaluation evaluate = contextContainer.evaluateContexts();
+          HaxeCallExpressionEvaluation evaluate = HaxeCallExpressionEvaluatorCacheService.cachedHaxeCallExpressionEvaluation(method, callExpression);
           if (evaluate != null) {
             ResultHolder parameterType = evaluate.getParameterType(index);
             if (parameterType != null && !parameterType.isUnknown()) {
