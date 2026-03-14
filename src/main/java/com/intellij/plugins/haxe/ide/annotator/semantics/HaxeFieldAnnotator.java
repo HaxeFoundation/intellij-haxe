@@ -24,6 +24,8 @@ import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.IS_VAR;
 public class HaxeFieldAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
+
     if (element instanceof HaxeFieldDeclaration field) {
       check(field, holder);
     }

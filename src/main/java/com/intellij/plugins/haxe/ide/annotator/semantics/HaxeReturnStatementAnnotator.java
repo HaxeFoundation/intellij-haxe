@@ -33,6 +33,7 @@ import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMeth
 public class HaxeReturnStatementAnnotator implements Annotator {
     @Override
     public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+        if(!element.isValid()) return;
 
         if (element instanceof HaxeReturnStatement returnStatement) {
             checkReturnStatement(returnStatement, holder);

@@ -42,6 +42,8 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
+
     if (element instanceof HaxeStringLiteralExpression stringLiteral) {
       check(stringLiteral, holder);
     }

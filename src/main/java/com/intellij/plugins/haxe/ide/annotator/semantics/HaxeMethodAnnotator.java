@@ -39,7 +39,9 @@ public class HaxeMethodAnnotator implements Annotator {
 
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
-      if (element instanceof HaxeMethod haxeMethod) {
+    if(!element.isValid()) return;
+
+    if (element instanceof HaxeMethod haxeMethod) {
         check(haxeMethod, holder);
       }
   }

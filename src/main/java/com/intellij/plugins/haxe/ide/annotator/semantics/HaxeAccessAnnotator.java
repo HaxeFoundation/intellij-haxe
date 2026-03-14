@@ -36,6 +36,8 @@ import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
 public class HaxeAccessAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
+
     if (element instanceof HaxeReferenceExpression referenceExpression) {
       // we want to ignore references used in package, type or metas
       if (checkIfShouldBeIgnored(referenceExpression)) return;

@@ -40,16 +40,18 @@ import static com.intellij.plugins.haxe.ide.annotator.color.HaxeColorAnnotatorUt
  */
 public class HaxeSlowColorAnnotator implements Annotator {
   @Override
-  public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
-    if (node instanceof PsiWhiteSpace) return;
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
+
+    if (element instanceof PsiWhiteSpace) return;
 
 
-    if(isReification(node) || node instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {
+    if(isReification(element) || element instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {
     //if(node instanceof HaxePsiToken token && token.getTokenType() == HaxeTokenTypes.MACRO_ID) {
-      colorizeReification(holder, node);
+      colorizeReification(holder, element);
     }
 
-    if (node instanceof HaxeReference reference) {
+    if (element instanceof HaxeReference reference) {
       final boolean chain = PsiTreeUtil.getChildOfType(reference, HaxeReference.class) != null;
       if (chain) {
         if (tryAnnotateQName(reference, holder)) return;
@@ -60,30 +62,30 @@ public class HaxeSlowColorAnnotator implements Annotator {
         // skipping all reference-types that would not result in a highlight, no need waste time  resolving etc.
         return;
       }
-      PsiElement element = reference.resolve();
+      PsiElement resolved = reference.resolve();
 
       // TODO consider custom style for fake/non-exsisting elements
-      if (element instanceof HaxeFakeNamedComponent fakeNamedComponent) {
+      if (resolved instanceof HaxeFakeNamedComponent fakeNamedComponent) {
         if(fakeNamedComponent.getComponentName() != null) {
           TextAttributesKey attribute = getAttributeByType(fakeNamedComponent.componentType(), false);
           if(attribute != null) {
             holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(fakeNamedComponent.getParent()).textAttributes(attribute).create();
           }
         }
-      } else if (element instanceof HaxeNamedComponent namedComponent) {
+      } else if (resolved instanceof HaxeNamedComponent namedComponent) {
         HaxeComponentName componentName = namedComponent.getComponentName();
         if (componentName != null) {
-          final boolean isStatic = PsiTreeUtil.getParentOfType(node, HaxeImportStatement.class) == null && checkStatic(componentName.getParent());
+          final boolean isStatic = PsiTreeUtil.getParentOfType(element, HaxeImportStatement.class) == null && checkStatic(componentName.getParent());
           TextAttributesKey attribute = getAttributeByType(HaxeComponentType.typeOf(componentName.getParent()), isStatic);
 
           // TODO make a HaxeComponentType for enum values
-          if (element.getParent() instanceof HaxeEnumValueDeclarationConstructor) {
+          if (resolved.getParent() instanceof HaxeEnumValueDeclarationConstructor) {
             attribute = getAttributeByType(HaxeComponentType.FIELD, false);
           }
           if (attribute != null) {
-            element = reference.getReferenceNameElement();
-            if (element != null) node = element;
-            holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(node).textAttributes(attribute).create();
+            resolved = reference.getReferenceNameElement();
+            if (resolved != null) element = resolved;
+            holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(element).textAttributes(attribute).create();
           }
         }
       }

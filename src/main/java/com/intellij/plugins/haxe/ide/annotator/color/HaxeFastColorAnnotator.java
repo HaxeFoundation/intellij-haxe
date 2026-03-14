@@ -45,10 +45,12 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
   public static final Key<String> PP_EXPRESSION_KEY = Key.create("haxe.ppexpression.key");
   public static final Key<String> PP_EXPRESSION_VALUE = Key.create("haxe.ppexpression.value");
   @Override
-  public void annotate(@NotNull PsiElement node, @NotNull AnnotationHolder holder) {
-    if (node instanceof PsiWhiteSpace) return;
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
 
-    if (node instanceof HaxePsiToken token) {
+    if (element instanceof PsiWhiteSpace) return;
+
+    if (element instanceof HaxePsiToken token) {
 
       if (isNewOperator(token) || isIsOperator(token)) {
         colorizeKeyword(holder, token);
@@ -58,9 +60,9 @@ public class HaxeFastColorAnnotator implements Annotator , DumbAware {
         colorizeKeyword(holder, token);
       }
 
-    }else if (node instanceof PsiComment) {
-      ppElements(node, holder);
-    }else if (node instanceof HaxeComponentName componentName) {
+    }else if (element instanceof PsiComment) {
+      ppElements(element, holder);
+    }else if (element instanceof HaxeComponentName componentName) {
       checkComponentName(componentName, holder);
     }
 

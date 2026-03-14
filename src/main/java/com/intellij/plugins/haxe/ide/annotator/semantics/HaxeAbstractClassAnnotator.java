@@ -18,6 +18,8 @@ import java.util.List;
 public class HaxeAbstractClassAnnotator implements Annotator {
   @Override
   public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if(!element.isValid()) return;
+
     if (element instanceof HaxeClass haxeClass) {
       checkClass(haxeClass, holder);
     }
