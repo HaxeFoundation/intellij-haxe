@@ -754,7 +754,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               expression = parenthesizedExpression.getExpression();
             }
 
-            PsiElement fromPath = enumMEmberTraverseUsagePath(reference);
+            PsiElement fromPath = enumMemberTraverseUsagePath(reference);
             if (fromPath instanceof HaxeEnumDeclaration enumDeclaration) {
               HaxeBaseMemberModel member = enumDeclaration.getModel().getMember(reference.getText(), null);
               if (member != null) {
@@ -1631,7 +1631,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return null;
   }
   @Nullable
-  private static PsiElement enumMEmberTraverseUsagePath(HaxeReference reference) {
+  private PsiElement enumMemberTraverseUsagePath(HaxeReference reference) {
     PsiElement parent = reference.getParent();
     if (parent instanceof HaxeEnumValueReference) {
       Stack<Object> objectPath = new Stack<>();
@@ -1646,30 +1646,32 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         Object path = objectPath.get(i);
         if (pathElement instanceof HaxeReferenceExpression referenceExpression) {
           pathElement = referenceExpression.resolve();
-          if (pathElement instanceof HaxePsiField psiField) {
-            ResultHolder result = HaxeExpressionEvaluator.evaluate(psiField).result;
-            if (result != null && result.getClassType() != null) {
-              HaxeClassModel haxeClassModel = result.getClassType().getHaxeClassModel();
-              if (path instanceof String memberName) {
-                if (haxeClassModel != null) {
-                  HaxeBaseMemberModel member = haxeClassModel.getMember(memberName, null);
-                  if (member != null) {
-                    lastElement = member.getNamedComponentPsi();
-                    continue;
-                  }
-                }
-              } else if (path instanceof Integer arrayIndex) {
-                SpecificTypeReference fullyResolved = result.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-                if (fullyResolved instanceof SpecificHaxeClassReference classReference) {
-                  ResultHolder iterableType = classReference.getIterableElementType(null);
-                  if (iterableType != null && iterableType.getType() instanceof SpecificHaxeClassReference classType)
-                    lastElement = classType.getHaxeClass();
+
+        }
+        if (pathElement instanceof HaxePsiField psiField) {
+          ResultHolder result = HaxeExpressionEvaluator.evaluate(psiField).result;
+          if (result != null && result.getClassType() != null) {
+            HaxeClassModel haxeClassModel = result.getClassType().getHaxeClassModel();
+            if (path instanceof String memberName) {
+              if (haxeClassModel != null) {
+                HaxeBaseMemberModel member = haxeClassModel.getMember(memberName, null);
+                if (member != null) {
+                  lastElement = member.getNamedComponentPsi();
                   continue;
                 }
+              }
+            } else if (path instanceof Integer) { // Integer means array access
+              SpecificTypeReference fullyResolved = result.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+              if (fullyResolved instanceof SpecificHaxeClassReference classReference) {
+                ResultHolder iterableType = classReference.getIterableElementType(null);
+                if (iterableType != null && iterableType.getType() instanceof SpecificHaxeClassReference classType)
+                  lastElement = classType.getHaxeClass();
+                continue;
               }
             }
           }
         }
+
         if (pathElement instanceof HaxeArrayLiteral arrayLiteral && path instanceof Integer index) {
           HaxeExpressionList expressionList = arrayLiteral.getExpressionList();
           if (expressionList != null) {
@@ -1679,6 +1681,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         } else if (pathElement instanceof HaxeObjectLiteral objectLiteral && path instanceof String member) {
           List<HaxeNamedComponent> members = objectLiteral.findHaxeMemberByName(member, null);
           lastElement = members.isEmpty() ? null : members.getFirst();
+
+        }
+        else if(pathElement instanceof HaxeEnumExtractObjectLiteral objectLiteral && path instanceof String member) {
+          List<HaxeEnumObjectLiteralElement> elementList = objectLiteral.getEnumObjectLiteralElementList();
+          for (HaxeEnumObjectLiteralElement element : elementList) {
+            if(element.getComponentName().textMatches(member)) {
+                HaxeModel model = getModelForElement(element);
+                if (model instanceof HaxeBaseMemberModel memberModel) {
+                  pathElement = memberModel.getNamedComponentPsi();
+                  break;
+                }
+            }
+          }
         }
       }
       if(lastElement != null) return lastElement;
@@ -1715,9 +1730,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           if (expression instanceof HaxeArrayLiteral || expression instanceof HaxeObjectLiteral) {
             pathElement = expression;
           }
-
         }
-
+      } else if (valueParent instanceof HaxeEnumExtractObjectLiteral objectLiteral) {
+        checkParent = false;
+        pathElement = objectLiteral;
       }
       pastParent = valueParent;
       valueParent = valueParent.getParent();
