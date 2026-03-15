@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.model.evaluator;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -47,20 +48,23 @@ public class HaxeCallExpressionEvaluatorCacheService  {
     if(evaluate == null) return null;
 
     if(evaluate.isValid() && evaluate.isCompleted()) {
-      if(noUnknownResolvedValues(evaluate)) {
-        cacheMap.put(key, evaluate);
+      HaxeCallExpressionContext context = contextContainer.getContext();
+      if(context != null && context.canCache) {
+        if (noUnknownResolvedValues(evaluate)) {
+          cacheMap.put(key, evaluate);
+        }
       }
     }
 
     return evaluate;
   }
 
-    private boolean noUnknownResolvedValues(HaxeCallExpressionEvaluation evaluate) {
+  private boolean noUnknownResolvedValues( HaxeCallExpressionEvaluation evaluate) {
       if(evaluate.getReturnTypeWithoutResolve().containsUnknownTypes()) {
         return false;
       }
-      for (ResultHolder argumentType : evaluate.getParameterTypes()) {
-        if(argumentType.containsUnknownTypes()) {
+      for (ResultHolder parameterType : evaluate.getParameterTypes()) {
+        if(parameterType.containsUnknownTypes()) {
           return false;
         }
       }

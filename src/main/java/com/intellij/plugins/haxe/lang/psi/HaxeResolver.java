@@ -433,8 +433,38 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             PsiElement resolve = referenceExpression.resolve();
             if (resolve instanceof HaxeMethod method) {
               int index = expressionList.getExpressionList().indexOf(reference);
+
+
               HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(method, callExpression);
-              return evaluate == null ? null : evaluate.getParameterType(index);
+              if(evaluate != null){
+                ResultHolder parameterType = evaluate.getParameterType(index);
+                if(parameterType != null) return parameterType;
+              }
+
+              //TODO mlo  - HACK:
+              // A workaround for recursion issues when resolving enum value constructor and the call expression got
+              // anonymous structures as arguments, the CallExpression evaluation fails and we are unable to determine the type.
+              // .
+              // The problem occurs when the code tries to evaluate callExpression and logic to find genericResolver from parent causes issues.
+              //  ex. the canAssign for anonymous structures triggers another resolve when it tries to get genericResolver.
+              // .
+              // This hack only works for EnumValues that does not have generics and dont use optional  parameters
+              //
+              if (method.getModel() instanceof HaxeEnumValueConstructorModel enumValueConstructorModel) {
+                HaxeClassModel declaringEnum = enumValueConstructorModel.getDeclaringEnum();
+                if (declaringEnum != null) {
+                  List<HaxeGenericParamModel> genericParams = declaringEnum.getGenericParams();
+                  if (genericParams.isEmpty()) {
+                    List<HaxeParameterModel> parameters = enumValueConstructorModel.getParameters();
+                    for (int i = 0; i < parameters.size(); i++) {
+                      HaxeParameterModel parameter = parameters.get(i);
+                      if (parameter.isOptional()) break;
+                      if (i == index) return parameter.getType(null);
+                    }
+                  }
+                }
+              }
+              return null;
             }
           }
         }

@@ -262,7 +262,7 @@ public class HaxeCallExpressionContext {
 
             if (assignEvaluation == null) {
                 // Recursion guard
-                return evaluation.validationFailed();
+                return evaluation.validationFailed(true);
 //        break;
             } else if (assignEvaluation.result) {
                 //assign OK, add to evaluation result

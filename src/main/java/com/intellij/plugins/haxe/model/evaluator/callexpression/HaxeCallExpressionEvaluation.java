@@ -29,6 +29,8 @@ public class HaxeCallExpressionEvaluation {
     @Getter
     @Setter
     private boolean valid = true;
+    @Getter
+    private boolean failedBecauseOfRecursionGuard = false;
 
 
     @Getter
@@ -147,6 +149,10 @@ public class HaxeCallExpressionEvaluation {
     }
 
     public HaxeCallExpressionEvaluation validationFailed() {
+        return validationFailed(false);
+    }
+    public HaxeCallExpressionEvaluation validationFailed( boolean recursion) {
+        failedBecauseOfRecursionGuard = recursion;
         valid = false;
         return this;
     }
