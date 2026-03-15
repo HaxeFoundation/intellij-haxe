@@ -88,9 +88,8 @@ public class HaxeKeywordCompletionPatterns {
         psiElement().inside(HaxeFieldDeclaration.class)
       );// consider adding check: is after equals sign
 
-  public static final PsiElementPattern.Capture<PsiElement> insideSwitchCase = psiElement()
-    .inside(HaxeSwitchBlock.class)
-    .andNot(psiElement().inside(HaxeSwitchCase.class));
+  public static final PsiElementPattern.Capture<PsiElement> insideSwitchCase = psiElement().withParent(HaxeSwitchBlock.class);
+
   public static final PsiElementPattern.Capture<PsiElement> isInsideLoopBlock = psiElement()
     .andOr(
       psiElement().inside(HaxeForStatement.class),
