@@ -753,19 +753,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             while (expression instanceof HaxeParenthesizedExpression parenthesizedExpression) {
               expression = parenthesizedExpression.getExpression();
             }
-            HaxeSwitchCaseExprArray exprArray = PsiTreeUtil.getParentOfType(reference, HaxeSwitchCaseExprArray.class);
-            // TODO: if necessary support array inside array ?
-            int index = findSwitchArrayIndex(exprArray, reference);
-            if (expression instanceof HaxeArrayLiteral arrayLiteral) {
-              HaxeExpressionList list = arrayLiteral.getExpressionList();
-              if (list != null && index > -1) {
-                List<HaxeExpression> expressionList = list.getExpressionList();
-                if (expressionList.size()> index) {
-                  HaxeExpression haxeExpression = expressionList.get(index);
-                  List<HaxeComponentName> components = evaluateAndFindEnumMember(reference, haxeExpression);
-                  if (components != null) return components;
-                }
+
+            PsiElement fromPath = enumMEmberTraverseUsagePath(reference);
+            if (fromPath instanceof HaxeEnumDeclaration enumDeclaration) {
+              HaxeBaseMemberModel member = enumDeclaration.getModel().getMember(reference.getText(), null);
+              if (member != null) {
+                return List.of(member.getNamedComponentPsi());
               }
+            } else if (fromPath instanceof HaxeExpression haxeExpression) {
+              List<HaxeComponentName> components = evaluateAndFindEnumMember(reference, haxeExpression);
+              if (components != null) return components;
             }
 
             List<HaxeComponentName> components = evaluateAndFindEnumMember(reference, expression);
@@ -1630,7 +1627,62 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
       if(lastElement != null) return List.of(lastElement);
       if(pathElement != null) return List.of(pathElement);
+    }
+    return null;
+  }
+  @Nullable
+  private static PsiElement enumMEmberTraverseUsagePath(HaxeReference reference) {
+    PsiElement parent = reference.getParent();
+    if (parent instanceof HaxeEnumValueReference) {
+      Stack<Object> objectPath = new Stack<>();
 
+      HaxeSwitchStatement switchStatement = PsiTreeUtil.getParentOfType(reference, HaxeSwitchStatement.class);
+      PsiElement pathElement = buildExtractVarPath(parent, true, objectPath, switchStatement);
+
+      HaxeNamedComponent lastElement = null;
+      Collections.reverse(objectPath);
+
+      for (int i = 0; i < objectPath.size(); i++) {
+        Object path = objectPath.get(i);
+        if (pathElement instanceof HaxeReferenceExpression referenceExpression) {
+          pathElement = referenceExpression.resolve();
+          if (pathElement instanceof HaxePsiField psiField) {
+            ResultHolder result = HaxeExpressionEvaluator.evaluate(psiField).result;
+            if (result != null && result.getClassType() != null) {
+              HaxeClassModel haxeClassModel = result.getClassType().getHaxeClassModel();
+              if (path instanceof String memberName) {
+                if (haxeClassModel != null) {
+                  HaxeBaseMemberModel member = haxeClassModel.getMember(memberName, null);
+                  if (member != null) {
+                    lastElement = member.getNamedComponentPsi();
+                    continue;
+                  }
+                }
+              } else if (path instanceof Integer arrayIndex) {
+                SpecificTypeReference fullyResolved = result.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
+                if (fullyResolved instanceof SpecificHaxeClassReference classReference) {
+                  ResultHolder iterableType = classReference.getIterableElementType(null);
+                  if (iterableType != null && iterableType.getType() instanceof SpecificHaxeClassReference classType)
+                    lastElement = classType.getHaxeClass();
+                  continue;
+                }
+              }
+            }
+          }
+        }
+        if (pathElement instanceof HaxeArrayLiteral arrayLiteral && path instanceof Integer index) {
+          HaxeExpressionList expressionList = arrayLiteral.getExpressionList();
+          if (expressionList != null) {
+            pathElement = expressionList.getExpressionList().get(index);
+          }
+
+        } else if (pathElement instanceof HaxeObjectLiteral objectLiteral && path instanceof String member) {
+          List<HaxeNamedComponent> members = objectLiteral.findHaxeMemberByName(member, null);
+          lastElement = members.isEmpty() ? null : members.getFirst();
+        }
+      }
+      if(lastElement != null) return lastElement;
+      if(pathElement != null) return pathElement;
     }
     return null;
   }
