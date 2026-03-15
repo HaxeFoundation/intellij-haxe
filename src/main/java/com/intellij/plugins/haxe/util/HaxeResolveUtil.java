@@ -905,7 +905,7 @@ public class HaxeResolveUtil {
     if (element == null || element.getContext() == null) {
       return null;
     }
-    String name = getQNameFromImportStatment(element);
+    String name = getQNameFromImportStatement(element);
     PsiElement type = tryGetReferenceExpressionFromType(element);
     HaxeClass result = name == null ? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, element.getContext());
     result = result != null ? result : findClassByQNameInSuperPackages(type);
@@ -970,7 +970,7 @@ public class HaxeResolveUtil {
   }
 
   @Nullable
-  private static String getQNameFromImportStatment(@NotNull PsiElement type) {
+  private static String getQNameFromImportStatement(@NotNull PsiElement type) {
     HaxeImportStatement importStatement = PsiTreeUtil.getParentOfType(type, HaxeImportStatement.class, false);
     if (importStatement != null) {
       HaxeReferenceExpression referenceExpression = importStatement.getReferenceExpression();
@@ -1018,20 +1018,34 @@ public class HaxeResolveUtil {
                 .toList();
             }
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
-              if (matchesInImport.size() > 1)
-                  if (type.getParent() instanceof HaxeCallExpression callExpression) {
-                      int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
-                      for (PsiElement element : matchesInImport) {
-                          if (element instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
-                              int currentSize = Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
-                              if (expectedSize == currentSize) {
-                                  result = element;
-                                  break;
-                              }
-                          }
-                      }
+            if (matchesInImport.size() > 1) {
+              if (type.getParent() instanceof HaxeCallExpression callExpression) {
+                int expectedSize = Optional.ofNullable(callExpression.getExpressionList()).map(e -> e.getExpressionList().size()).orElse(0);
+                for (PsiElement element : matchesInImport) {
+                  if (element instanceof HaxeEnumValueDeclarationConstructor enumValueDeclaration) {
+                    int currentSize = Optional.of(enumValueDeclaration.getParameterList()).map(p -> p.getParameterList().size()).orElse(0);
+                    if (expectedSize == currentSize) {
+                      result = element;
+                      break;
+                    }
                   }
-            if (result == null && !matchesInImport.isEmpty()) result = matchesInImport.get(0);
+                }
+                // we may also get multiple matches due to both module and class names can be the same,
+                // so we check if we are resolving a reference expression and check if the class contains
+                // the expected member
+              } else if (type.getParent() instanceof HaxeReferenceExpression reference) {
+                String memberName = reference.getIdentifier().getText();
+                for (PsiElement element : matchesInImport) {
+                  if (element instanceof HaxeClass haxeClass) {
+                    HaxeClassModel model = haxeClass.getModel();
+                    if (model.getMember(memberName, null) != null) {
+                      return haxeClass;
+                    }
+                  }
+                }
+              }
+            }
+            if (result == null && !matchesInImport.isEmpty()) result = matchesInImport.getFirst();
           }
         }
         if (result == null) result = searchInSamePackage(fileModel, className, false, false);

@@ -218,12 +218,14 @@ public class HaxeReturnStatementAnnotator implements Annotator {
                     }else {
                         // check if we got cases with capture variables that cover remaining cases.
                         List<HaxeSwitchCaseExpr> switchCaseExprList = haxeSwitchCase.getSwitchCaseExprList();
-                        HaxeSwitchCaseExpr first = switchCaseExprList.getFirst();
-                        PsiElement firstChild = first.getFirstChild();
-                        if (firstChild instanceof HaxeEnumExtractedValue) {
-                            hasDefault = true;
-                        }else if (firstChild instanceof HaxeSwitchCaseCaptureVar) {
-                            hasDefault = true;
+                        if(!switchCaseExprList.isEmpty()) {
+                            HaxeSwitchCaseExpr first = switchCaseExprList.getFirst();
+                            PsiElement firstChild = first.getFirstChild();
+                            if (firstChild instanceof HaxeEnumExtractedValue) {
+                                hasDefault = true;
+                            } else if (firstChild instanceof HaxeSwitchCaseCaptureVar) {
+                                hasDefault = true;
+                            }
                         }
                     }
                     HaxeSwitchCaseBlock switchCaseBlock = haxeSwitchCase.getSwitchCaseBlock();
