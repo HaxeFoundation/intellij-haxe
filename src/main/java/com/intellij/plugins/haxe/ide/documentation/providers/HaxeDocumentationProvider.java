@@ -155,7 +155,7 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
     private void appendDeprecatedInfo(HaxeNamedComponent namedComponent, HtmlBuilder mainBuilder) {
       HaxeMetadataList compileTimeMeta = namedComponent.getCompileTimeMeta(HaxeMeta.DEPRECATED);
-      if(compileTimeMeta!= null) {
+      if(compileTimeMeta!= null && !compileTimeMeta.isEmpty()) {
         HaxeMeta first = compileTimeMeta.getFirst();
         Color color = DefaultLanguageHighlighterColors.METADATA.getDefaultAttributes().getForegroundColor();
         HtmlChunk.Element chunk = HtmlChunk.div().italic().bold()

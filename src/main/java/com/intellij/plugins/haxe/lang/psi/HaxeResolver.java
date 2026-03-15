@@ -448,6 +448,16 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
       }
+      if (parent instanceof HaxeReturnStatement returnStatement) {
+        HaxeMethod method = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class);
+        if(method != null) {
+          HaxeMethodModel model = method.getModel();
+          HaxeTypeTag tagPsi = model.getReturnTypeTagPsi();
+          if(tagPsi != null) {
+            return model.getReturnType(null);
+          }
+        }
+      }
     }else {
       if (parent instanceof HaxeReturnStatement returnStatement) {
         HaxeMethod method = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class);
@@ -487,13 +497,21 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (parent instanceof HaxeObjectLiteralElement literalElement) {
       if (literalElement.getParent() instanceof HaxeObjectLiteral objectLiteral) {
         ResultHolder parentAssignType = findParentAssignType(objectLiteral, true);
-        if (parentAssignType != null && parentAssignType.isAnonymousType()) {
-          HaxeClassModel model = parentAssignType.getClassType().getHaxeClassModel();
-          HaxeBaseMemberModel member = model.getMember(literalElement.getName(), null);
-          if (member != null) {
-            ResultHolder resultType = member.getResultType(null);
-            if (resultType != null && !resultType.isUnknown()) {
-              return resultType;
+        if (parentAssignType != null) {
+         boolean canBeObjectLiteral = parentAssignType.isAnonymousType();
+          SpecificHaxeClassReference classType = parentAssignType.getClassType();
+          if(!canBeObjectLiteral && classType != null) {
+            HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
+            canBeObjectLiteral = haxeClassModel != null && haxeClassModel.isStructInit();
+          }
+          if(canBeObjectLiteral) {
+            HaxeClassModel model = classType.getHaxeClassModel();
+            HaxeBaseMemberModel member = model.getMember(literalElement.getName(), null);
+            if (member != null) {
+              ResultHolder resultType = member.getResultType(null);
+              if (resultType != null && !resultType.isUnknown()) {
+                return resultType;
+              }
             }
           }
         }
