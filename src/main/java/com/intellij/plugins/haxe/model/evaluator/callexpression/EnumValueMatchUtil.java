@@ -1,9 +1,13 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeEnumValueFieldModel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext.countRequiredArguments;
 
@@ -50,6 +54,26 @@ public class EnumValueMatchUtil {
                 }
             }
         }
+    }
+
+    public static boolean isInsidePatternMatcher(@NotNull PsiElement reference) {
+        HaxeCallExpression parentOfType = PsiTreeUtil.getParentOfType(reference.getParent(), HaxeCallExpression.class);
+        if(parentOfType != null && parentOfType.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+            if(referenceExpression.resolve() instanceof HaxeMethod method) {
+                return isPatternMatcher(method);
+            }
+        }
+        return false;
+    }
+
+    public static boolean isPatternMatcher(HaxeMethod method) {
+        if(method == null) return false;
+        FullyQualifiedInfo info = method.getModel().getQualifiedInfo();
+        return info != null
+                && Objects.equals(info.memberName, "match")
+                && Objects.equals(info.className, "EnumValue")
+                && Objects.equals(info.moduleName, "EnumValue")
+                && Objects.equals(info.packagePath, "");
     }
 
     public static HaxeCallExpressionEvaluation checkPatternMatchingOutsideMatchFunction(HaxeCallExpressionContext context, HaxeCallExpressionEvaluation evaluation, boolean trackErrors) {

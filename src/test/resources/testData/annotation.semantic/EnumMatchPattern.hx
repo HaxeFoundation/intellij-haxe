@@ -20,6 +20,7 @@ class EnumPattern {
 
         var match = valA.match(constructorA(_) | ValueB);
         var match = valA.match(constructorA(_)  | constructorB(_));
+        var match = valA.match(ValueA | constructorA(_) |  ValueB | constructorB(_));
 
         // wrong
         var match = <error descr="Unable to apply operator | for types ValueA and ValueB">ValueA |  ValueB</error>; // pattern not allowed outside match

@@ -65,6 +65,8 @@ import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQna
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.textCanBeQname;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.getArrayAccessTypeFromClass;
+import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
+import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isPatternMatcher;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForConstructorCall;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForMethodCall;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
@@ -368,16 +370,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             // check Enum values
             if(haxeClass.isEnum()) {
               if(haxeClass.getModel() instanceof  HaxeEnumModel enumModel) {
+                boolean isInPatternMatcher = isInsidePatternMatcher(reference);
                 for (HaxeEnumValueModel value : enumModel.getValues()) {
                   if(value.getNamePsi().textMatches(reference)) {
                     if (value instanceof HaxeEnumValueConstructorModel constructorModel) {
                       // validate parameters if callExpression ignore if EnumExtractor
-                      if(!(reference.getParent() instanceof HaxeEnumValueReference)) {
+                      if (!(reference.getParent() instanceof HaxeEnumValueReference)) {
                         boolean isValidConstructor = testAsEnumValueConstructor(constructorModel.getEnumValuePsi(), referenceExpression);
-                        if (!isValidConstructor) continue;
+                        if (isValidConstructor || isInPatternMatcher) {
+                          return List.of(constructorModel.getNamePsi());
+                        }
                       }
+                    } else if (isInPatternMatcher && value instanceof HaxeEnumValueFieldModel fieldModel) {
+                      return List.of(fieldModel.getNamePsi());
                     }
-                    return List.of(value.getNamePsi());
                   }
                 }
               }
@@ -395,6 +401,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     return null;
   }
+
 
   // Experimental
   // try to step one level up until we find a type definition and then pass that back down
@@ -516,9 +523,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
           PsiElement resolve = referenceExpression.resolve();
           if (resolve instanceof HaxeMethod method) {
+
+            // enumRef.match(enumMember) expects members from the same Enum so it should resolve members without the need of imports.
+            if (isPatternMatcher(method)) {
+              ResultHolder type = findTypeFromPatternMatchExpression(referenceExpression);
+              if(type != null && type.isEnum()) return type;
+            }
+
             int index = expressionList.getExpressionList().indexOf(reference);
             HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(method, callExpression);
-            return evaluate == null ? null : evaluate.getParameterType(index);
+            if (evaluate != null && evaluate.isValid() && evaluate.isCompleted()) {
+              return evaluate.getParameterType(index);
+            }
           }
         }
       }
@@ -584,6 +600,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     return findParentAssignType(parent, isValueExpression);
   }
+
+  private @Nullable ResultHolder findTypeFromPatternMatchExpression(HaxeReferenceExpression referenceExpression) {
+    HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
+    if (leftReference instanceof HaxeReferenceExpression callieReference) {
+      ResultHolder callieType = HaxeExpressionEvaluator.evaluate(callieReference).result;
+      if (callieType != null && callieType.getType() instanceof SpecificHaxeClassReference classReference) {
+        SpecificTypeReference resolvedType = classReference.fullyResolveTypeDefAndUnwrapNullTypeReference();
+        if (resolvedType.isEnumReference()) return resolvedType.createHolder();
+      }
+    }
+    return null;
+  }
+
+
 
   private static @Nullable HaxeCallExpressionEvaluation cachedHaxeCallExpressionEvaluation(HaxeMethod method, HaxeCallExpression callExpression) {
 
