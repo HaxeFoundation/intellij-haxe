@@ -40,7 +40,7 @@ class HaxeMetadataDocumentationTarget implements DocumentationTarget {
 
     @Override
     public @NotNull TargetPresentation computePresentation() {
-        return new HaxeEmptyTargetPresentation();
+        return TargetPresentation.builder("").presentation();
     }
 
     @Override
