@@ -15,9 +15,9 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.20"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.intellij.platform") version "2.13.1"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.0.0"
     // Gradle Qodana Plugin
@@ -25,7 +25,7 @@ plugins {
     // Gradle Kover Plugin
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     // generate parser and lexer
-    id("org.jetbrains.grammarkit") version "2023.3.0.1"
+    id("org.jetbrains.grammarkit") version "2023.3.0.3"
     // console output for tests
     id("com.adarshr.test-logger") version "3.2.0"
 }
@@ -259,6 +259,11 @@ tasks {
     }
 
     compileJava {
+        dependsOn("generateParser")
+        dependsOn("generateLexer")
+    }
+
+    compileKotlin {
         dependsOn("generateParser")
         dependsOn("generateLexer")
     }
