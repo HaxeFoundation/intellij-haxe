@@ -31,8 +31,7 @@ tasks {
     }
 }
 
-
-tasks.create<Exec>("installHxJava") {
+tasks.register<Exec>("installHxJava") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     commandLine = listOf("haxelib", "install", "hxjava", hxjavaVersion, haxeLibChangeVersion)
@@ -40,14 +39,14 @@ tasks.create<Exec>("installHxJava") {
 
 }
 
-tasks.create<Exec>("installHxcppDebugger") {
+tasks.register<Exec>("installHxcppDebugger") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     commandLine = listOf("haxelib", "git", "hxcpp-debugger", hxcppDebuggerGit, hxcppDebuggerBranch, haxeLibChangeVersion)
     if (!logger.isDebugEnabled()) standardOutput = ByteArrayOutputStream() // avoid to much output (loads of empty lines on install)
 }
 
-tasks.create<Exec>("generateDebuggerJavaSource") {
+tasks.register<Exec>("generateDebuggerJavaSource") {
     group = "hxcpp"
     onlyIf({ generateHxcppDebugger })
     dependsOn("installHxJava")
@@ -63,7 +62,7 @@ tasks.create<Exec>("generateDebuggerJavaSource") {
 }
 
 
-tasks.create<Delete>("cleanGenerated") {
+tasks.register<Delete>("cleanGenerated") {
     group = "hxcpp"
     delete.add("src/gen/")
 }
