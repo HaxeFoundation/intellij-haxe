@@ -1,6 +1,7 @@
 # Changelog
 ## 1.8.0
-* Support for intellij 2026.1
+* Support for intellij 2026.1 (Release Candidate) 
+* Updated dependencies & build-system to support 2026.1
 
 ## 1.7.11
 * Bugfix: Extern classes with a constructor that extends other classes should no longer warn about missing super call.
