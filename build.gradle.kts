@@ -15,19 +15,19 @@ plugins {
     // Java support
     id("java")
     // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "2.2.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.20"
     // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.intellij.platform") version "2.13.1"
     // Gradle Changelog Plugin
-    id("org.jetbrains.changelog") version "2.0.0"
+    id("org.jetbrains.changelog") version "2.5.0"
     // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "2025.1.1"
+    id("org.jetbrains.qodana") version "2025.3.2"
     // Gradle Kover Plugin
     id("org.jetbrains.kotlinx.kover") version "0.9.1"
     // generate parser and lexer
-    id("org.jetbrains.grammarkit") version "2023.3.0.1"
+    id("org.jetbrains.grammarkit") version "2023.3.0.3"
     // console output for tests
-    id("com.adarshr.test-logger") version "3.2.0"
+    id("com.adarshr.test-logger") version "4.0.0"
 }
 
 group = properties("pluginGroup").get()
@@ -40,12 +40,14 @@ var platformType = properties("platformType").get();
 val ideaBaseDir = "${project.rootDir}/idea"
 val ideaTargetDir = "${ideaBaseDir}/idea${platformType}-${platformVersion}"
 
+val lombokDependency = "org.projectlombok:lombok:1.18.44";
+
 dependencies {
     implementation("org.commonmark:commonmark:0.21.0")
     implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
     implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
 
-    implementation("tools.jackson.core:jackson-databind:3.0.4")
+    implementation("tools.jackson.core:jackson-databind:3.1.0")
     implementation("org.apache.commons:commons-text:1.14.0")
 
     implementation(project(":common"))
@@ -71,10 +73,10 @@ dependencies {
     testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
     testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
 
-    compileOnly("org.projectlombok:lombok:1.18.34")
-    testCompileOnly("org.projectlombok:lombok:1.18.34")
-    annotationProcessor ("org.projectlombok:lombok:1.18.34")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.34")
+    compileOnly(lombokDependency)
+    testCompileOnly(lombokDependency)
+    annotationProcessor (lombokDependency)
+    testAnnotationProcessor (lombokDependency)
 
     // TODO upgrade to junit5 (testFramework(TestFrameworkType.JUnit5))
     testImplementation("junit:junit:4.13.2")
@@ -89,7 +91,9 @@ dependencies {
         bundledPlugins(properties("platformBundledPlugins").map { it.split(',') })
 
         // TODO upgrade to JUnit5
+        testFramework(TestFrameworkType.Platform)
         testFramework(TestFrameworkType.Bundled)
+        testFramework(TestFrameworkType.Plugin.Java)
 
     }
 
@@ -117,10 +121,10 @@ subprojects {
     }
 
     dependencies {
-        compileOnly("org.projectlombok:lombok:1.18.34")
-        testCompileOnly("org.projectlombok:lombok:1.18.34")
-        annotationProcessor ("org.projectlombok:lombok:1.18.34")
-        testAnnotationProcessor ("org.projectlombok:lombok:1.18.34")
+        compileOnly(lombokDependency)
+        testCompileOnly(lombokDependency)
+        annotationProcessor (lombokDependency)
+        testAnnotationProcessor (lombokDependency)
 
         intellijPlatform {
 
@@ -259,6 +263,11 @@ tasks {
     }
 
     compileJava {
+        dependsOn("generateParser")
+        dependsOn("generateLexer")
+    }
+
+    compileKotlin {
         dependsOn("generateParser")
         dependsOn("generateLexer")
     }

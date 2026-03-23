@@ -90,11 +90,11 @@ public class HaxeRenameTest extends HaxeCodeInsightFixtureTestCase {
 
     renameProcessor.doRun();
 
-    log.warn("----------");
+    log.debug("----------");
     for (Map.Entry<String, String> entry : renameMap.entrySet()) {
-      log.warn(String.format("rename entry '%s' => '%s'", entry.getKey(), entry.getValue()));
+      log.debug(String.format("rename entry '%s' => '%s'", entry.getKey(), entry.getValue()));
     }
-    log.warn("----------");
+    log.debug("----------");
 
     for (Map.Entry<String, String> entry : expectedRename.entrySet()) {
       String key = entry.getKey();
