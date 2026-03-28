@@ -280,27 +280,30 @@ public class HaxeResolveUtil {
 
   @NotNull
   public static List<HaxeType> findExtendsList(@Nullable HaxeInheritList extendsList) {
-    List<? extends HaxeInherit> ext = null == extendsList ? null : extendsList.getExtendsDeclarationList();
-    return findExtendsImplementsListImpl(ext);
+    if(extendsList == null) return List.of();
+    List<HaxeExtendsDeclaration> declarationList = extendsList.getExtendsDeclarationList();
+    return findInheritTypes(declarationList);
   }
 
   public static List<HaxeType> getImplementsList(@Nullable HaxeInheritList extendsList) {
-    List<? extends HaxeInherit> ext = null == extendsList ? null : extendsList.getImplementsDeclarationList();
-    return findExtendsImplementsListImpl(ext);
+    if(extendsList == null) return List.of();
+    List<? extends HaxeInheritDeclaration> declarationList = extendsList.getImplementsDeclarationList();
+    return findInheritTypes(declarationList);
   }
 
   @NotNull
-  private static List<HaxeType> findExtendsImplementsListImpl(@Nullable List<? extends HaxeInherit> extendsList) {
+  private static List<HaxeType> findInheritTypes(@Nullable List<? extends HaxeInheritDeclaration> extendsList) {
     if (extendsList == null) {
       return Collections.emptyList();
     }
     final List<HaxeType> result = new ArrayList<HaxeType>();
-    for (HaxeInherit inherit : extendsList) {
-      final List<HaxeType> inheritTypes = inherit.getTypeList();
-      result.addAll(inheritTypes);
+    for (HaxeInheritDeclaration declaration : extendsList) {
+      HaxeType type = declaration.getType();
+      if(type != null) result.add(type);
     }
     return result;
   }
+
 
   public static List<HaxeFieldDeclaration> getClassVarDeclarations(HaxeClass haxeClass) {
     PsiElement body = null;

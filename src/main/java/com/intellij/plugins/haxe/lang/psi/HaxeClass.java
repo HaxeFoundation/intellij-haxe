@@ -20,7 +20,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -31,8 +34,8 @@ import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiPackage;
+import com.intellij.psi.*;
+import com.intellij.psi.impl.source.DummyHolderElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,9 +52,10 @@ public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
    * Create a Non-existent (source) class that is used to mark untyped monomorphs and unconstrained type parameters.
    * @param node - The AST Node for which we are creating the class.
    */
-  static HaxeClass createUnknownClass(ASTNode node) {
-    return new HaxeUnknownClass(node);
+  static HaxeClass createUnknownClass(@NotNull PsiElement context) {
+    return new HaxeUnknownClass(context);
   }
+
 
 
   String getQualifiedName();

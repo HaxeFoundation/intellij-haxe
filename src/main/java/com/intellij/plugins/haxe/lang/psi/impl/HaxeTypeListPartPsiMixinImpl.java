@@ -562,19 +562,6 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
     @Override
     @NotNull
-    public PsiReferenceList getExtendsList() {
-      // Haxe BNF doesn't allow for extends in this position.
-      return new HaxeExtendsDeclarationImpl(new HaxeDummyASTNode("Empty Extends List", getProject()));
-    }
-
-    @Override
-    public PsiReferenceList getImplementsList() {
-      // Haxe BNF doesn't allow for implements in this position.
-      return new HaxeImplementsDeclarationImpl(new HaxeDummyASTNode("Empty Implements List", getProject()));
-    }
-
-    @Override
-    @NotNull
     public PsiClassType[] getExtendsListTypes() {
       return PsiClassType.EMPTY_ARRAY;
     }

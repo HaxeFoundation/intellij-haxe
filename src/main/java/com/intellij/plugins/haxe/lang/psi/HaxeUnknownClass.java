@@ -1,17 +1,31 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.SyntheticElement;
-import com.intellij.psi.impl.source.DummyHolderElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 public class HaxeUnknownClass extends AbstractHaxePsiClass implements HaxeClass, SyntheticElement {
 
-    public HaxeUnknownClass(ASTNode node) {
-        super(node != null ? node : new DummyHolderElement("Unknown"));
+    private static ASTNode getNode(@NonNull PsiElement context) {
+        ASTNode node = context.getNode();
+        if(node != null && context.isPhysical())  return node;
+        PsiElementFactory factory = JavaPsiFacade.getInstance(context.getProject()).getElementFactory();
+        PsiElement unknown = factory.createDummyHolder("Unknown", HaxeTokenTypes.CLASS_DECLARATION, context);
+        return unknown.getNode();
     }
+
+    public HaxeUnknownClass(@NotNull PsiElement context) {
+        super(getNode(context));
+    }
+
 
     @Nullable
     @Override

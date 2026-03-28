@@ -430,17 +430,22 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   @Nullable
-  public PsiReferenceList getExtendsList() {
-    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
-    return null == inh ? null : PsiTreeUtil.getChildOfType(inh, HaxeExtendsDeclaration.class);
+  public HaxeInheritList getExtendsList() {
+    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+  }
+
+  @Override
+  @Nullable
+  public HaxeInheritList getImplementsList() {
+    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
   @NotNull
   public PsiClassType[] getExtendsListTypes() {
-    final PsiReferenceList extendsList = this.getExtendsList();
+    final HaxeInheritList extendsList = this.getExtendsList();
     if (extendsList != null) {
-      return extendsList.getReferencedTypes();
+      return extendsList.getReferencedExtends();
     }else if (this instanceof  HaxeTypedefDeclaration typeDeclaration) {
       HaxeTypeOrAnonymous typeOrAnonymous = typeDeclaration.getTypeOrAnonymous();
       if (typeOrAnonymous != null) {
@@ -454,27 +459,22 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return PsiClassType.EMPTY_ARRAY;
   }
 
+  @Override
+  @NotNull
+  public PsiClassType[] getImplementsListTypes() {
+    final HaxeInheritList implementsList = this.getImplementsList();
+    if (implementsList != null) {
+      return implementsList.getReferencedImplements();
+    }
+    return PsiClassType.EMPTY_ARRAY;
+  }
+
+
+
   @NotNull
   private PsiClassType getReferencedType(HaxeReferenceExpression referenceExpression) {
     PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
     return factory.createType(referenceExpression);
-  }
-
-  @Override
-  @Nullable
-  public PsiReferenceList getImplementsList() {
-    HaxeInheritList inh = PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
-    return null == inh ? null : PsiTreeUtil.getChildOfType(inh, HaxeImplementsDeclaration.class);
-  }
-
-  @Override
-  @NotNull
-  public PsiClassType[] getImplementsListTypes() {
-    final PsiReferenceList implementsList = this.getImplementsList();
-    if (implementsList != null) {
-      return implementsList.getReferencedTypes();
-    }
-    return PsiClassType.EMPTY_ARRAY;
   }
 
   @Override

@@ -15,19 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.lang.psi.impl;
+package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiReferenceList;
+import org.jetbrains.annotations.NotNull;
 
-import com.intellij.lang.ASTNode;
-import com.intellij.plugins.haxe.lang.psi.HaxeInherit;
+import java.util.List;
 
 /**
  * Created by ebishton on 10/9/14.
  */
-public abstract class HaxeInheritImpl extends HaxeInheritPsiMixinImpl implements HaxeInherit {
+public interface HaxePsiInheritList extends HaxePsiCompositeElement, PsiReferenceList{
 
-  public HaxeInheritImpl(ASTNode node) {
-    super(node);
-  }
+  @NotNull
+  List<HaxeType> getTypeList();
+
+  PsiClassType @NotNull [] getReferencedImplements();
+
+  PsiClassType @NotNull [] getReferencedExtends();
+
 
 }

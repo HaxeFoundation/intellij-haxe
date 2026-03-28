@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.ide.HaxeFileTemplateUtil;
 import com.intellij.plugins.haxe.ide.refactoring.memberPullUp.PullUpProcessor;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeInheritList;
+import com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;

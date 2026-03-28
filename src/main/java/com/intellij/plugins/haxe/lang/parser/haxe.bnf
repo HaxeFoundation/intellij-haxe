@@ -1052,13 +1052,16 @@ safeCastExpression ::= 'cast' (('(' expression ',' typeWrapper ')'))
 //{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiInheritListImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList" pin=1}
 
 private inherit ::= extendsDeclaration | implementsDeclaration
-{pin=1 recoverWhile="inherit_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritPsiMixin"}
+{pin=1 recoverWhile="inherit_recover"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 
-extendsDeclaration ::= 'extends' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
-implementsDeclaration ::= 'implements' type {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeInheritImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeInherit" pin=1}
+extendsDeclaration ::= 'extends' type
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" pin=1}
+implementsDeclaration ::= 'implements' type
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" pin=1}
 
 
 // typedefs can "merge" anonymous structures ( not classes, interfaces etc)
