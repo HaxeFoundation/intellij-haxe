@@ -8,139 +8,37 @@ import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtensi
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
-fun properties(key: String) = providers.gradleProperty(key)
-fun environment(key: String) = providers.environmentVariable(key)
-
 plugins {
-    // Java support
-    id("java")
-    // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "2.3.20"
-    // Gradle IntelliJ Plugin
-    id("org.jetbrains.intellij.platform") version "2.13.1"
-    // Gradle Changelog Plugin
-    id("org.jetbrains.changelog") version "2.5.0"
-    // Gradle Qodana Plugin
-    id("org.jetbrains.qodana") version "2025.3.2"
-    // Gradle Kover Plugin
-    id("org.jetbrains.kotlinx.kover") version "0.9.1"
-    // generate parser and lexer
-    id("org.jetbrains.grammarkit") version "2023.3.0.3"
-    // console output for tests
-    id("com.adarshr.test-logger") version "4.0.0"
+    id("java") // Java support
+
+    alias(libs.plugins.kotlin) // Kotlin support
+    alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
+    alias(libs.plugins.changelog) // Gradle Changelog Plugin
+    alias(libs.plugins.qodana) // Gradle Qodana Plugin
+    alias(libs.plugins.kover) // Gradle Kover Plugin
+    alias(libs.plugins.grammarkit) // generate parser and lexer
+    alias(libs.plugins.testLogger) // console output for tests
 }
 
-group = properties("pluginGroup").get()
-version = properties("pluginVersion").get()
-sourceSets["main"].java.srcDirs("src/main/gen")
+group = providers.gradleProperty("pluginGroup").get()
+version = providers.gradleProperty("pluginVersion").get()
 
-var platformVersion = properties("platformVersion").get();
-var platformType = properties("platformType").get();
-
-val ideaBaseDir = "${project.rootDir}/idea"
-val ideaTargetDir = "${ideaBaseDir}/idea${platformType}-${platformVersion}"
-
-val lombokDependency = "org.projectlombok:lombok:1.18.44";
-
-dependencies {
-    implementation("org.commonmark:commonmark:0.21.0")
-    implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
-    implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
-
-    implementation("tools.jackson.core:jackson-databind:3.1.0")
-    implementation("org.apache.commons:commons-text:1.14.0")
-
-    implementation(project(":common"))
-    implementation(project(":jps-plugin"))
-    implementation(project(":hxcpp-debugger-protocol"))
-
-    val flexShared = "${ideaTargetDir}/config/plugins/flex/lib/flex-shared.jar"
-    val flexSupport = "${ideaTargetDir}/config/plugins/flex/lib/FlexSupport.jar"
-
-    compileOnly(files(flexShared))
-    compileOnly(files(flexSupport))
-
-    compileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
-    compileOnly(files("${ideaTargetDir}/lib/util.jar"))
-
-    testCompileOnly(project(":jps-plugin"))
-    testCompileOnly(project(":common"))
-    testCompileOnly(project(":hxcpp-debugger-protocol"))
-
-    testCompileOnly(files(flexShared))
-    testCompileOnly(files(flexSupport))
-
-    testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
-    testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
-
-    compileOnly(lombokDependency)
-    testCompileOnly(lombokDependency)
-    annotationProcessor (lombokDependency)
-    testAnnotationProcessor (lombokDependency)
-
-    // TODO upgrade to junit5 (testFramework(TestFrameworkType.JUnit5))
-    testImplementation("junit:junit:4.13.2")
-    // https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1663#issuecomment-2182516044
-    testImplementation("org.opentest4j:opentest4j:1.3.0")
-
-    intellijPlatform {
-        pluginVerifier()
-        create(platformType, platformVersion)
-
-        plugins(properties("platformPlugins").map { it.split(',') })
-        bundledPlugins(properties("platformBundledPlugins").map { it.split(',') })
-
-        // TODO upgrade to JUnit5
-        testFramework(TestFrameworkType.Platform)
-        testFramework(TestFrameworkType.Bundled)
-        testFramework(TestFrameworkType.Plugin.Java)
-
-    }
-
-}
-allprojects {
-    apply(plugin = "java")
-    apply(plugin = "idea")
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-    java {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
+kotlin {
+    jvmToolchain(21)
 }
 
-subprojects {
-    apply(plugin = "org.jetbrains.intellij.platform.module")
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
-    repositories {
-        mavenCentral()
-        intellijPlatform {
-            defaultRepositories()
-            mavenCentral()
-        }
-    }
-
-    dependencies {
-        compileOnly(lombokDependency)
-        testCompileOnly(lombokDependency)
-        annotationProcessor (lombokDependency)
-        testAnnotationProcessor (lombokDependency)
-
-        intellijPlatform {
-
-            val type = providers.gradleProperty("platformType")
-            val version = providers.gradleProperty("platformVersion")
-            create(type, version)
-
-            plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
-            bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
-
-            testFramework(TestFrameworkType.Bundled)
+sourceSets {
+    main {
+        java {
+            srcDir("src/main/gen")
         }
     }
 }
-
-apply(plugin = "org.jetbrains.intellij.platform")
 
 
 // Configure project's dependencies
@@ -152,15 +50,80 @@ repositories {
     }
 }
 
+
+dependencies {
+
+    var platformVersion = providers.gradleProperty("platformVersion").get();
+    var platformType = providers.gradleProperty("platformType").get();
+
+
+    val ideaBaseDir = "${project.rootDir}/idea"
+    val ideaTargetDir = "${ideaBaseDir}/idea${platformType}-${platformVersion}"
+
+
+    implementation("org.commonmark:commonmark:0.21.0")
+    implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
+    implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
+
+    implementation("tools.jackson.core:jackson-databind:3.1.0")
+    implementation("org.apache.commons:commons-text:1.14.0")
+
+    val flexShared = "${ideaTargetDir}/config/plugins/flex/lib/flex-shared.jar"
+    val flexSupport = "${ideaTargetDir}/config/plugins/flex/lib/FlexSupport.jar"
+
+    compileOnly(files(flexShared))
+    compileOnly(files(flexSupport))
+
+    compileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
+    compileOnly(files("${ideaTargetDir}/lib/util.jar"))
+
+    testCompileOnly(files(flexShared))
+    testCompileOnly(files(flexSupport))
+
+    testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
+    testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
+
+    compileOnly("org.projectlombok:lombok:1.18.44")
+    testCompileOnly("org.projectlombok:lombok:1.18.44")
+    annotationProcessor ("org.projectlombok:lombok:1.18.44")
+    testAnnotationProcessor ("org.projectlombok:lombok:1.18.44")
+
+    // TODO upgrade to junit5 (testFramework(TestFrameworkType.JUnit5))
+    testImplementation(libs.junit)
+    // https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/1663#issuecomment-2182516044
+    testImplementation(libs.opentest4j)
+
+    intellijPlatform {
+        pluginVerifier()
+        intellijIdea(providers.gradleProperty("platformVersion"))
+
+        plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
+        bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
+        bundledModules(providers.gradleProperty("platformBundledModules").map { it.split(',') })
+
+        // TODO upgrade to JUnit5
+        testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Bundled)
+        testFramework(TestFrameworkType.Plugin.Java)
+
+        pluginComposedModule(implementation(project(":hxcpp-debugger-protocol")))
+        pluginComposedModule(implementation(project(":jps-plugin")))
+        pluginComposedModule(implementation(project(":common")))
+
+    }
+
+}
+
 // Configure Gradle IntelliJ Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellijPlatform {
     pluginConfiguration {
-        name = properties("pluginName").get()
-        group = properties("pluginGroup").get()
+        name = providers.gradleProperty("pluginName").get()
+        group = providers.gradleProperty("pluginGroup").get()
 
-        ideaVersion.sinceBuild.set(properties("pluginSinceBuild"))
-        ideaVersion.untilBuild.set(properties("pluginUntilBuild"))
+        ideaVersion.sinceBuild.set(providers.gradleProperty("pluginSinceBuild"))
+        ideaVersion.untilBuild.set(providers.gradleProperty("pluginUntilBuild"))
     }
+
 
     pluginVerification(fun IntelliJPlatformExtension.PluginVerification.() {
         freeArgs = listOf("-mute", "TemplateWordInPluginId,ForbiddenPluginIdPrefix")
@@ -192,7 +155,7 @@ changelog {
 
 tasks {
     wrapper {
-        gradleVersion = properties("gradleVersion").get()
+        gradleVersion = providers.gradleProperty("gradleVersion").get()
     }
 
     buildPlugin {
@@ -210,9 +173,9 @@ tasks {
     }
 
     patchPluginXml {
-        version = properties("pluginVersion").get();
-        sinceBuild.set(properties("pluginSinceBuild"))
-        untilBuild.set(properties("pluginUntilBuild"))
+        version = providers.gradleProperty("pluginVersion").get();
+        sinceBuild.set(providers.gradleProperty("pluginSinceBuild"))
+        untilBuild.set(providers.gradleProperty("pluginUntilBuild"))
 
 
         // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
@@ -230,7 +193,7 @@ tasks {
 
         val changelog = project.changelog // local variable for configuration cache compatibility
         // Get the latest available change notes from the changelog file
-        changeNotes.set(properties("pluginVersion").map { pluginVersion ->
+        changeNotes.set(providers.gradleProperty("pluginVersion").map { pluginVersion ->
             with(changelog) {
                 renderItem(
                         (getOrNull(pluginVersion) ?: getUnreleased())
@@ -244,14 +207,14 @@ tasks {
 
 
     signPlugin {
-        certificateChain.set(environment("CERTIFICATE_CHAIN"))
-        privateKey.set(environment("PRIVATE_KEY"))
-        password.set(environment("PRIVATE_KEY_PASSWORD"))
+        certificateChain.set(providers.environmentVariable("CERTIFICATE_CHAIN"))
+        privateKey.set(providers.environmentVariable("PRIVATE_KEY"))
+        password.set(providers.environmentVariable("PRIVATE_KEY_PASSWORD"))
     }
 
     publishPlugin {
         dependsOn("patchChangelog")
-        token.set(environment("PUBLISH_TOKEN"))
+        token.set(providers.environmentVariable("PUBLISH_TOKEN"))
         // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
         // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
@@ -300,7 +263,7 @@ tasks {
 
     buildPlugin {
         val oldName = archiveBaseName.get() + "-" + archiveVersion.get() + ".zip"
-        val newName = "intellij-haxe-" + properties("platformVersion").get() + ".zip"
+        val newName = "intellij-haxe-" + providers.gradleProperty("platformVersion").get() + ".zip"
 
         outputs.upToDateWhen {
             file("${project.rootDir}/" + newName).exists()

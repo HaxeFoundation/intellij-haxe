@@ -1,5 +1,23 @@
 import java.io.ByteArrayOutputStream
 
+plugins {
+    id("org.jetbrains.intellij.platform.module")
+}
+
+repositories {
+    mavenCentral()
+
+    intellijPlatform {
+        defaultRepositories()
+    }
+}
+
+dependencies {
+    intellijPlatform {
+        intellijIdea(providers.gradleProperty("platformVersion"))
+    }
+}
+
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
 
@@ -13,7 +31,13 @@ val generateHxcppDebugger = properties("generateHxcppDebugger").getOrElse("false
 
 val hxcppGeneratedFolder = if (generateHxcppDebugger) "src/gen/src" else "src/fallback/java"
 
-sourceSets["main"].java.srcDirs(hxcppGeneratedFolder)
+sourceSets {
+    main {
+        java {
+            srcDir(hxcppGeneratedFolder)
+        }
+    }
+}
 
 //// helping intellij detecting source directories
 idea.module {
@@ -23,9 +47,11 @@ idea.module {
 }
 
 tasks {
+
     compileJava {
         dependsOn("generateDebuggerJavaSource")
     }
+
     clean {
         dependsOn("cleanGenerated")
     }
