@@ -28,16 +28,11 @@ import java.util.regex.Pattern;
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.STRING_INTERPOLATION_QUOTE_CHECK;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.convertToInterpolationFix;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringInterpolationUtil.stripStringWrapping;
+import static com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringTemplateUtils.*;
 
 
 public class HaxeStringAnnotator implements Annotator, DumbAware {
 
-  // These patterns are designed to find likely string templates; they are not intended to be exhaustive.
-  private static final String DOUBLE_QUOTE = "\"";
-  private static final String SINGE_QUOTE = "'";
-
-  private static final Pattern shortTemplate = Pattern.compile("(\\$+)\\w+");
-  private static final Pattern longTemplate = Pattern.compile("(\\$+)\\{.*}");
 
 
   @Override
@@ -65,10 +60,6 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
     }
   }
 
-  private static boolean isSingleQuotesRequired(HaxeStringLiteralExpression psi) {
-    String text = psi.getText();
-    return text.startsWith(DOUBLE_QUOTE) && (templateMatches(text, shortTemplate) || templateMatches(text, longTemplate));
-  }
 
   private static boolean templateMatches(String text, Pattern pattern) {
     // We need an odd number of dollar signs to avoid detecting escaped dollar signs as templates.

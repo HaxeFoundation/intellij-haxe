@@ -29,7 +29,7 @@ import com.intellij.psi.impl.source.tree.LeafElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost, PsiLiteralValue, HaxeLiteralExpression {
+abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements PsiLanguageInjectionHost, PsiLiteralValue, HaxeLiteralExpression, PsiLiteralExpression {
 
   public HaxeStringLiteralImpl(ASTNode node) {
     super(node);
@@ -84,4 +84,9 @@ abstract public class HaxeStringLiteralImpl extends HaxeReferenceImpl implements
       // necessary for making navigatable web/url references
         return ReferenceProvidersRegistry.getReferencesFromProviders(this);
     }
+
+  @Override
+  public @Nullable PsiType getType() {
+    return null;
+  }
 }

@@ -1,0 +1,6 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij.grazie">
+        <textExtractor language="Haxe" implementationClass="com.intellij.plugins.haxe.spellchecker.grazie.HaxeGrazieTextExtractor"/>
+        <problemFilter language="Haxe" implementationClass="com.intellij.plugins.haxe.spellchecker.grazie.HaxeGrazieProblemFilter"/>
+    </extensions>
+</idea-plugin>

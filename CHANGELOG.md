@@ -1,4 +1,8 @@
 # Changelog
+## 1.8.1
+* Added: Initial support for spellchecking
+* Fixed: Hierarchy view missing elements from interfaces extending more than one interface.
+
 ## 1.8.0
 * Support for intellij 2026.1 (Release Candidate) 
 * Updated dependencies & build-system to support 2026.1
