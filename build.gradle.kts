@@ -106,8 +106,10 @@ dependencies {
         testFramework(TestFrameworkType.Bundled)
         testFramework(TestFrameworkType.Plugin.Java)
 
+        pluginModule(implementation(project(":jps-plugin")))
+        pluginModule(implementation(project(":common")))
+
         pluginComposedModule(implementation(project(":hxcpp-debugger-protocol")))
-        pluginComposedModule(implementation(project(":jps-plugin")))
         pluginComposedModule(implementation(project(":common")))
 
     }

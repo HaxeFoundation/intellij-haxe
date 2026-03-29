@@ -52,7 +52,7 @@
 
     <iconMapper mappingFile="HaxeIconMappings.json"/>
       <!-- NOTE: Looks like intellij-platform-gradle-plugin 2.7.0 prefixes all extra jars with rootProject.name-->
-      <compileServer.plugin  id="haxe" classpath="Haxe-plugin.jps-plugin.jar;Haxe-plugin.common.jar"/>
+      <compileServer.plugin  id="haxe" classpath="modules/Haxe-plugin.jps-plugin.jar;modules/Haxe-plugin.common.jar"/>
     <testFinder implementation="com.intellij.plugins.haxe.ide.HaxeTestFinder"/>
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
