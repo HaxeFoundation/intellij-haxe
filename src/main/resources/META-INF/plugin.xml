@@ -321,14 +321,21 @@
     <defaultLiveTemplates file="liveTemplates/haxe_iterations.xml"/>
     <defaultLiveTemplates file="liveTemplates/haxe_miscellaneous.xml"/>
 
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeComponentIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeTypeDefInheritanceIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeSymbolIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeConstructorIndex"/>
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.ide.index.HaxeStaticMemberIndex"/>
-    <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeClassContributor"/>
-    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.HaxeSymbolContributor"/>
+
+    <stubElementTypeHolder  class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubElementTypes" externalIdPrefix="haxe." />
+
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex"/>
+
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeConstructorStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticMethodNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex"/>
+
+    <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoClassContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoSymbolContributor"/>
 
     <definitionsScopedSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher"/>
 

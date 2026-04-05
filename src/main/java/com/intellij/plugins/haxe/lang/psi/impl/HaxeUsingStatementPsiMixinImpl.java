@@ -20,6 +20,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeUsingStub;
 import com.intellij.plugins.haxe.model.HaxeUsingModel;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.stubs.IStubElementType;
