@@ -140,9 +140,8 @@ public class HaxeNamedSubComponentUtil {
 
         if (typeReference instanceof SpecificHaxeClassReference classReference) {
             final HaxeClass element = classReference.getHaxeClass();
-            HaxeGenericResolver resolver = classReference.getGenericResolver();
-            if (element != null) {
 
+            if (element != null) {
                 List<HaxeComponentType> typeFilter = Arrays.asList(excludeTypes);
                 if(typeFilter.contains(element.getComponentType())) {
                     return List.of();
@@ -158,8 +157,8 @@ public class HaxeNamedSubComponentUtil {
                     case HaxeAbstractTypeDeclaration declaration -> getMembersFromAbstractType(declaration, true, classReference);
 
                     // types that inherit their members (should not be cached)
-                    case HaxeTypedefDeclaration typedef -> getMembersFromTypeDef(typedef,includeInherited, resolver, excludeTypes);
-                    case HaxeGenericListPart listPart -> getMembersFromGenericPart(listPart, resolver, includeInherited);
+                    case HaxeTypedefDeclaration typedef -> getMembersFromTypeDef(typedef,includeInherited, classReference.getGenericResolver(), excludeTypes);
+                    case HaxeGenericListPart listPart -> getMembersFromGenericPart(listPart, classReference.getGenericResolver(), includeInherited);
                     case HaxeGenericConstraintPart constraint -> getMembersFromConstraint(constraint, includeInherited);
                     //NOTE! ConstraintType currently extends AnonymousType so it needs to come before anonymousType
                     case HaxeConstraintTypeList constraint -> getMembersFromConstraintList(constraint, includeInherited);

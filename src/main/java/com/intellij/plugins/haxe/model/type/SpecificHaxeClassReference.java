@@ -823,7 +823,7 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     if(clazz instanceof HaxeTypedefDeclaration) return true;
       return getHaxeClassModel() != null && getHaxeClassModel().isTypedef();
   }
-  //TODO MLO: Warning, typedef of typedef will be considered class, should probably return false in this case and create istypeDefOfTypeDef or something
+
   public boolean isTypeDefOfClass() {
     if (_isTypeDefOfClass == null) {
       _isTypeDefOfClass = false;
@@ -840,10 +840,18 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
 
   public boolean isTypeDefOfFunction() {
     if (_isTypeDefOfFunction == null) {
-      _isTypeDefOfFunction = isTypeDef() && ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getFunctionType() != null;
+      _isTypeDefOfFunction = false;
+      if (isTypeDef()) {
+        if (getHaxeClass() instanceof AbstractHaxeTypeDefImpl typeDefOfClass) {
+          //TODO mlo: if possible add this as stub info ?
+          _isTypeDefOfFunction = typeDefOfClass.getFunctionType() != null;
+          return _isTypeDefOfFunction;
+        }
+      }
     }
     return _isTypeDefOfFunction;
   }
+
 
   @Nullable
   //Note that typeDef of typeParameter (typedef TD<T> = T) can return any type
@@ -972,7 +980,15 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
           SpecificHaxeClassReference targetClass = typeDef.getTargetClass(resolver);
           if (targetClass != null) {
             reference = targetClass;
-            if (reference.isTypeDefOfClass()) {
+            if (reference.isTypeDefOfFunction()) {
+              HaxeClass referenceHaxeClass = reference.getHaxeClass();
+              if (referenceHaxeClass instanceof HaxeTypedefDeclaration declaration) {
+                HaxeGenericResolver genericResolver = reference.getGenericResolver();
+                ResultHolder resultHolder = HaxeTypeResolver.getTypeFromFunctionType(declaration.getFunctionType(), genericResolver);
+                return resultHolder.getFunctionType();
+              }
+            }
+            else if (reference.isTypeDefOfClass()) {
               haxeClass = reference.getHaxeClass();
               resolver = reference.getGenericResolver();
             }

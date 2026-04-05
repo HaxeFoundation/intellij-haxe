@@ -106,4 +106,11 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
     return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
   }
 
+  @NotNull
+  @Override
+  public String deduplicateKey() {
+    // TODO  handle overloads somehow
+    return fullyQualifiedInfo.toString();
+  }
+
 }

@@ -24,10 +24,9 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.RangeMarker;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiDocumentManager;
@@ -42,6 +41,7 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -93,10 +93,10 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<Haxe
 
           if (referenceExpression.resolve() == null) {
             final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(referenceExpression);
-            final List<HaxeComponent> components =
-              HaxeComponentIndex.getItemsByName(referenceExpression.getText(), project, scope);
+            final Collection<HaxeClass> components =
+              HaxeClassNameStubIndex.getByName(referenceExpression.getText(), project, scope);
             if (!components.isEmpty() && components.size() == 1) {
-              qualifiedName = ((HaxeClass)components.get(0)).getQualifiedName();
+              qualifiedName = components.iterator().next().getQualifiedName();
               if (!haxeClassList.contains(qualifiedName)) {
                 haxeClassList.add(qualifiedName);
               }

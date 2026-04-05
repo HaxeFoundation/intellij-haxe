@@ -62,6 +62,10 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
 
 
                filteredCompletions =  HaxeCompletionPriorityUtil.calculatePriority(filteredCompletions, parameters);
+
+               // TODO mlo : check performance and make concurrent if nessesary
+               //  see (JobLauncher.getInstance().invokeConcurrentlyUnderProgress)
+
                filteredCompletions.stream()
                  .map(HaxeCompletionPriorityUtil::convertToPrioritized)
                  .forEach(result::passResult); // Add everything we want to keep to the result set.
@@ -94,21 +98,25 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     return filtered;
   }
 
-  private static String getDedupeName(CompletionResult candidate) {
-    LookupElement el = candidate.getLookupElement();
-    if (el == null) return null;
+  private static String getDedupeKey(CompletionResult candidate) {
+    LookupElement element = candidate.getLookupElement();
+    if (element == null) return null;
+    if (element instanceof HaxePsiLookupElement lookupElement) {
+      return lookupElement.deduplicateKey();
+    }
     // we don't want to filter away classes with similar names we want to show classes from different packages and/or libs
     // for now we try use fully Qualified name for classes but this might break de-duping for compiler completion
-    if (el.getObject() instanceof HaxeComponentName element) {
-      if (element.getParent() instanceof HaxeClass haxeClass) {
+    Object elementObject = element.getObject();
+    if (elementObject instanceof HaxeComponentName componentName) {
+      if (componentName.getParent() instanceof HaxeClass haxeClass) {
         return haxeClass.getQualifiedName();
       }
-    } else if (el.getObject() instanceof HaxeNamedComponent namedComponent) {
+    } else if (elementObject instanceof HaxeNamedComponent namedComponent) {
         return namedComponent.filterName();
-    } else if (el.getObject() instanceof String stringValue) {
+    } else if (elementObject instanceof String stringValue) {
       return stringValue;
     }
-    return el.getLookupString();
+    return element.getLookupString();
   }
 
   private static boolean shouldRemoveDuplicateCompletions(PsiFile file) {

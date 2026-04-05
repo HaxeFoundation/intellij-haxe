@@ -96,6 +96,12 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     JavaCompletionUtil.insertClassReference(haxeClass, context.getFile(), context.getStartOffset());
   }
 
+  @NotNull
+  @Override
+  public String deduplicateKey() {
+    // TODO get from stub
+    return haxeClass.getQualifiedName();
+  }
 
   @NotNull
   @Override

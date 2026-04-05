@@ -117,10 +117,14 @@ public class HaxeResolveUtil {
   @NotNull
   public static Pair<String, String> splitQName(@NotNull String qName) {
     final int dotIndex = qName.lastIndexOf('.');
-    final String packageName = dotIndex == -1 ? "" : qName.substring(0, dotIndex);
-    final String className = dotIndex == -1 ? qName : qName.substring(dotIndex + 1);
+      final String packageName = dotIndex == -1 ? "" : qName.substring(0, dotIndex);
+      final String className = dotIndex == -1 ? qName : qName.substring(dotIndex + 1);
 
-    return Pair.create(packageName, className);
+      return Pair.create(packageName, className);
+    }
+
+  public static String getSimpleName(@NotNull String qName) {
+    return qName.contains(".") ? qName.substring(qName.lastIndexOf('.') + 1) : qName;
   }
 
   @NotNull
