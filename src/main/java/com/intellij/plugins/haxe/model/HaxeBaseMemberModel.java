@@ -20,7 +20,6 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -103,11 +102,11 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
 
   @Deprecated
   public ResultHolder getResultType() {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi);
+    return HaxeTypeResolver.getFieldOrMethodReturnType((HaxeNamedComponent)this.basePsi);
   }
 
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    return HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent)this.basePsi, resolver);
+    return HaxeTypeResolver.getFieldOrMethodReturnType((HaxeNamedComponent)this.basePsi, resolver);
   }
 
   public String getPresentableText(HaxeMethodContext context) {
@@ -116,7 +115,7 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
 
   public String getPresentableText(HaxeMethodContext context, @Nullable HaxeGenericResolver resolver) {
     PsiElement basePsi = getBasePsi();
-    if (basePsi instanceof AbstractHaxeNamedComponent namedComponent) {
+    if (basePsi instanceof HaxeNamedComponent namedComponent) {
       return namedComponent.getPresentation().getPresentableText();
     }
     return this.getName();
@@ -128,11 +127,11 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
 
 
   public HaxeModule getModule() {
-    return PsiTreeUtil.getChildOfType(getDocument().getFile(), HaxeModule.class);
+    return PsiTreeUtil.getStubChildOfType(getDocument().getFile(), HaxeModule.class);
   }
 
   public PsiPackage getPackage() {
-    HaxePackageStatement childOfType = PsiTreeUtil.getChildOfType(getDocument().getFile(), HaxePackageStatement.class);
+    HaxePackageStatement childOfType = PsiTreeUtil.getStubChildOfType(getDocument().getFile(), HaxePackageStatement.class);
     if(childOfType!= null) {
       HaxeReferenceExpression reference = childOfType.getReferenceExpression();
       if(reference!= null && reference.resolve() instanceof PsiPackage aPackage) return aPackage;

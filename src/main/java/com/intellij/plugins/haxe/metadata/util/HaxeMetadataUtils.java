@@ -15,6 +15,7 @@
  */
 package com.intellij.plugins.haxe.metadata.util;
 
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.psi.HaxeCompiletimeMetaArg;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
@@ -133,14 +134,16 @@ public class HaxeMetadataUtils {
     // Workaround for getting metadata from  module members when metadata is not included in the module
     if (null == prev && self.getParent() != null) {
       PsiElement parent = self.getParent();
+      if(parent instanceof PsiFile) return;
       prev = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(parent, true);
     }
 
     if (null != prev  && prev.getNode() != null && EMBEDDED_META == prev.getNode().getElementType()) {
+      ProgressIndicatorProvider.checkCanceled();
       findPrevMeta(prev, lambda);
       PsiElement metaElement = prev.getFirstChild();
-      if (metaElement instanceof HaxeMeta) {
-        lambda.accept((HaxeMeta)metaElement);
+      if (metaElement instanceof HaxeMeta meta) {
+        lambda.accept(meta);
       }
     }
   }

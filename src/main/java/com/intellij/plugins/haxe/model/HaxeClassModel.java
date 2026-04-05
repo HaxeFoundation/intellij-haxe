@@ -58,9 +58,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // TODO: Anonymous structures can extend several structs.  Need to be able to find/check/use all of them.
     List<HaxeType> list = getExtendsList();
     if (!list.isEmpty()) {
-      PsiElement haxeClass = list.get(0).getReferenceExpression().resolve();
-      if (haxeClass instanceof HaxeClass) {
-        return ((HaxeClass)haxeClass).getModel();
+      PsiElement haxeClass = list.getFirst().getReferenceExpression().resolve();
+      if (haxeClass instanceof HaxeClass parentClass) {
+        return parentClass.getModel();
       }
     }
     return null;
@@ -180,16 +180,17 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // https://haxe.org/manual/macro-generic-build.html
     // https://gist.github.com/nadako/b086569b9fffb759a1b5
     public boolean isGenericBuildWithRestTypeParam() {
-      if(reference == null) return false;
+      if(reference != null) {
         HaxeClassModel haxeClassModel = reference.getHaxeClassModel();
-        if(haxeClassModel != null && haxeClassModel.isGenericBuild()) {
-            List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
-            if (!genericParams.isEmpty()) {
-                HaxeGenericParamModel last = genericParams.getLast();
-                String name = last.haxeClass.getName();
-                return name != null && name.equals("Rest");
-            }
+        if (haxeClassModel != null && haxeClassModel.isGenericBuild()) {
+          List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
+          if (!genericParams.isEmpty()) {
+            HaxeGenericParamModel last = genericParams.getLast();
+            String name = last.haxeClass.getName();
+            return name != null && name.equals("Rest");
+          }
         }
+      }
         return false;
     }
 
@@ -787,7 +788,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
    * only intended for typedefs with anonymous structures
    */
   private static HaxeGenericParam getGenericParamFromParent(HaxeClass haxeClass) {
-    HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
+    HaxeTypedefDeclaration type = PsiTreeUtil.getStubOrPsiParentOfType(haxeClass, HaxeTypedefDeclaration.class);
     if (type == null) return null;
     return type.getGenericParam();
   }
@@ -963,7 +964,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
     HaxeClass haxeClass = element instanceof HaxeClass
                           ? (HaxeClass) element
-                          : PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+                          : PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
 
     if (haxeClass != null) {
       return haxeClass.getModel();

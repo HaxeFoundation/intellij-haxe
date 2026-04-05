@@ -60,6 +60,7 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   private boolean strikeout = false;
   private boolean bold = false;
   private Icon icon = null;
+  private boolean presentationCalculated = false;
 
   @NotNull
   public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
@@ -119,7 +120,6 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
     this.resolver = resolver;
     this.model = model;
     this.isFunctionType = functionType;
-    calculatePresentation();
   }
 
   @NotNull
@@ -130,6 +130,10 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
+    if (!presentationCalculated) {
+      calculatePresentation();
+      presentationCalculated = true;
+    }
     presentation.setItemText(presentableText);
     presentation.setStrikeout(strikeout);
     presentation.setItemTextBold(bold);

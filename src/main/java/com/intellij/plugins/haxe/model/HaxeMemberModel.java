@@ -134,23 +134,20 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Override
   @Nullable
   public HaxeClassModel getDeclaringClass() {
-    return  CachedValuesManager.getProjectPsiDependentCache(getMemberPsi(), HaxeMemberModel::_getDeclaringClass);
-  }
-
-  public HaxeModuleModel getDeclaringModule() {
-    HaxeModuleImpl module = PsiTreeUtil.getParentOfType(getMemberPsi(), HaxeModuleImpl.class);
-    if (module == null) return null;
-    return module.getModel();
-  }
-
-  private static HaxeClassModel _getDeclaringClass(PsiMember member) {
-    PsiClass containingClass = member.getContainingClass();
+    PsiClass containingClass = getMemberPsi().getContainingClass();
     if (containingClass instanceof HaxeClass haxeClass) {
       return haxeClass.getModel();
     }else {
       return null;
     }
   }
+
+  public HaxeModuleModel getDeclaringModule() {
+    HaxeModuleImpl module = PsiTreeUtil.getStubOrPsiParentOfType(getMemberPsi(), HaxeModuleImpl.class);
+    if (module == null) return null;
+    return module.getModel();
+  }
+
 
   public boolean isInInterface() {
     HaxeClassModel declaringClass = getDeclaringClass();

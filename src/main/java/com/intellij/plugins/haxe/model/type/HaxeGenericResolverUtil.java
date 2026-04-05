@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +70,7 @@ public class HaxeGenericResolverUtil {
   @Nullable static HaxeGenericResolver appendClassGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
     HaxeClass clazz = element instanceof HaxeClass
                       ? (HaxeClass) element
-                      : UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
+                      : PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
 
     HaxeClassModel classModel = HaxeClassModel.fromElement(clazz);
     if (null != classModel) {

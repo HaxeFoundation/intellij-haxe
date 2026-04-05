@@ -116,17 +116,7 @@ public class HaxeHierarchyUtils {
    */
   @NotNull
   public static List<HaxeClass> getClassList(@NotNull HaxeFile psiRoot) {
-    return  CachedValuesManager.getCachedValue(psiRoot, () -> {
-      ArrayList<HaxeClass> classes = new ArrayList<>();
-      @NotNull PsiElement[] children = psiRoot.getModel().getModuleBodyChildren();
-      for (PsiElement child : children) {
-        if (child instanceof HaxeClass haxeClass) {
-          classes.add(haxeClass);
-        }
-      }
-      return new CachedValueProvider.Result<>(classes, psiRoot);
-    });
-
+    return PsiTreeUtil.getStubChildrenOfTypeAsList(psiRoot.getModule(), HaxeClass.class);
   }
 
   /**

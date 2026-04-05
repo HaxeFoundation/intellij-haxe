@@ -25,7 +25,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeConstructorDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeFieldModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
@@ -81,7 +80,7 @@ public class HaxeConstructorHandler extends BaseHaxeGenerateHandler {
         }
         for (HaxeNamedComponent node : elementsToProcess) {
           if(node instanceof HaxeFieldDeclaration) {
-            ResultHolder fieldOrMethodReturnType = HaxeTypeResolver.getFieldOrMethodReturnType((AbstractHaxeNamedComponent) node);
+            ResultHolder fieldOrMethodReturnType = HaxeTypeResolver.getFieldOrMethodReturnType(node);
             String stringWithoutConstant = fieldOrMethodReturnType.toStringWithoutConstant();
             ParamElement element = new ParamElement(node.getName(), stringWithoutConstant, false);
             params.add(element);

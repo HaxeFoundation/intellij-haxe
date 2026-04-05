@@ -1,30 +1,18 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- * Copyright 2020 Eric Bishton
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.StubWithModifiers;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.StubBasedPsiElement;
+import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -60,6 +48,20 @@ public class HaxeModifiersModel {
     PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxePsiModifier.class, modifier);
 
     if (result == null && baseElement instanceof HaxeMetadataListOwner) {
+      // Fast path:
+      // read metadata flags from stub to avoid expensive sibling PSI traversal.
+      // When PSI is stub-backed (library files, not open in editor), getStub() is non-null
+      // and we can answer the metadata question entirely from pre-computed stub data.
+      // NOTE: We return `baseElement` as a non-null sentinel — this is safe for all
+      // read-only callers (hasModifier, hasAnyModifier, etc.).  Editing callers
+      // (removeModifier) only run on files open in the editor where stubs are null,
+      // so they always fall through to the slow path below.
+      Boolean fromStub = getMetaModifierFromStub(modifier);
+      if (fromStub != null) {
+        return fromStub ? baseElement : null;
+      }
+
+      // Slow path: walk preceding siblings to find metadata annotations.
       HaxeMetadataList metas = ((HaxeMetadataListOwner)baseElement).getMetadataList(HaxeMeta.COMPILE_TIME);
       for (HaxeMeta meta : metas) {
         if (meta.isType(modifier)) {
@@ -70,6 +72,24 @@ public class HaxeModifiersModel {
     }
 
     return result;
+  }
+
+  /**
+   * Checks whether the given modifier is present as a compile-time metadata annotation
+   * using stub data, without touching the PSI tree.
+   *
+   * @return {@code true}/{@code false} if the stub has definitive info,
+   *         {@code null} if no stub is available or the modifier is not tracked.
+   */
+  @Nullable
+  private Boolean getMetaModifierFromStub(@ModifierConstant String modifier) {
+    if (baseElement instanceof StubBasedPsiElement<?> element) {
+      if( element.getStub() instanceof StubWithModifiers stub) {
+        Boolean result = stub.hasMetaForModifier(modifier);
+        if (result != null) return result;
+      }
+    }
+    return null;
   }
 
   public PsiElement getModifierPsiOrBase(@ModifierConstant String modifier) {

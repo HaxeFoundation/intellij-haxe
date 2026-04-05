@@ -72,7 +72,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   }
 
   public String getPackageName() {
-    HaxePackageStatement type = PsiTreeUtil.getChildOfType(module.getContainingFile(), HaxePackageStatement.class);
+    HaxePackageStatement type = PsiTreeUtil.getStubChildOfType(module.getContainingFile(), HaxePackageStatement.class);
     if (type == null) return ""; // no package statement is either an error or just root/default
     return type.getPackageName();
   }

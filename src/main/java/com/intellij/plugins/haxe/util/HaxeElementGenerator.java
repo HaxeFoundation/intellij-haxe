@@ -55,8 +55,8 @@ public class HaxeElementGenerator {
 
   public static PsiElement createStatementFromText(Project myProject, String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapStatement(text).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     final HaxeMethodDeclaration mainMethod =
       (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
@@ -66,21 +66,21 @@ public class HaxeElementGenerator {
   }
   public static PsiElement createTypeFromText(Project myProject, String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, text);
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-      return PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+      return PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
   }
   public static HaxeFieldDeclaration createVarDeclaration(Project myProject, String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     return haxeClass.getFieldSelf(null).iterator().next();
   }
   public static HaxeTypeTag createTypeTag(Project myProject, String text) {
     var statment = "var someVar:" +text;
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(statment).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     HaxeFieldDeclaration next = haxeClass.getFieldSelf(null).iterator().next();
     return next.getTypeTag();
@@ -88,8 +88,8 @@ public class HaxeElementGenerator {
   public static HaxeParameter createParameter(Project myProject, String text) {
     var statment = "function  dummy (" +text+ ", dummyParam:Int){}";
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(statment).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     HaxeMethodDeclaration method = (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).get(0);
     return method.getParameterList().getParameterList().get(0);
@@ -110,8 +110,8 @@ public class HaxeElementGenerator {
 
   public static List<HaxeNamedComponent> createNamedSubComponentsFromText(Project myProject, String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     reformat(haxeClass);
     List<HaxeNamedComponent> components = HaxeNamedSubComponentUtil.getAllNamedSubComponentsFromClassType(haxeClass);
@@ -145,12 +145,12 @@ public class HaxeElementGenerator {
   @Nullable
   public static HaxeImportStatement createImportStatementFromPath(Project myProject, String path) {
     final HaxeFile dummyFile = createDummyFile(myProject, "import " + path + ";");
-    return PsiTreeUtil.getChildOfType(dummyFile, HaxeImportStatement.class);
+    return PsiTreeUtil.getStubChildOfType(dummyFile, HaxeImportStatement.class);
   }
   @Nullable
   public static HaxeUsingStatement createUsingStatementFromPath(Project myProject, String path) {
     final HaxeFile dummyFile = createDummyFile(myProject, "using " + path + ";");
-    return PsiTreeUtil.getChildOfType(dummyFile, HaxeUsingStatement.class);
+    return PsiTreeUtil.getStubChildOfType(dummyFile, HaxeUsingStatement.class);
   }
 
   @Nullable
@@ -164,7 +164,7 @@ public class HaxeElementGenerator {
   @Nullable
   public static HaxePackageStatement createPackageStatementFromPath(Project myProject, String path) {
     final HaxeFile dummyFile = createDummyFile(myProject, "package " + path + ";");
-    return PsiTreeUtil.getChildOfType(dummyFile, HaxePackageStatement.class);
+    return PsiTreeUtil.getStubChildOfType(dummyFile, HaxePackageStatement.class);
   }
   @NotNull
   public static PsiElement createSemi(Project myProject) {
@@ -217,8 +217,8 @@ public class HaxeElementGenerator {
   public static HaxeMethodDeclaration createMethodDeclaration(Project myProject,
                                                               String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapInterfaceFunction(text).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     reformat(haxeClass);
     return (HaxeMethodDeclaration)haxeClass.getHaxeMethodsSelf(null).iterator().next();
@@ -226,8 +226,8 @@ public class HaxeElementGenerator {
   public static HaxeConstructorDeclaration createConstructorDeclaration(Project myProject,
                                                               String text) {
     final HaxeFile dummyFile = createDummyFile(myProject, HaxeCodeGenerateUtil.wrapFunction(text).getFirst());
-    final HaxeModule haxeModule = PsiTreeUtil.getChildOfType(dummyFile, HaxeModule.class);
-    final HaxeClass haxeClass = PsiTreeUtil.getChildOfType(haxeModule, HaxeClass.class);
+    final HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(dummyFile, HaxeModule.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClass.class);
     assert haxeClass != null;
     reformat(haxeClass);
     return PsiTreeUtil.findChildOfType(haxeClass, HaxeConstructorDeclaration.class);

@@ -25,10 +25,9 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Pair;
-import com.intellij.plugins.haxe.ide.index.HaxeClassInfo;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.ide.lookup.HaxeIndexedClassElement;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
@@ -38,9 +37,9 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import com.intellij.util.Processor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,8 +48,6 @@ import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
-import static java.util.function.Predicate.not;
-import static org.bouncycastle.asn1.x500.style.RFC4519Style.member;
 
 /**
  * @author: Fedor.Korotkov
@@ -122,8 +119,28 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            @Nullable final InsertHandler<LookupElement> insertHandler) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-    final MyProcessor processor = new MyProcessor(resultSet, prefixPackage, insertHandler, targetFile);
-    HaxeComponentIndex.processAll(project, processor, scope);
+    final PrefixMatcher matcher = resultSet.getPrefixMatcher();
+
+    // Collecting matching keys first as  processElements cannot be called inside
+    // a processAllKeys callback (same index lock -> deadlock assertion).
+    final List<String> matchingKeys = new ArrayList<>();
+    StubIndex.getInstance().processAllKeys(HaxeClassNameStubIndex.KEY, project, key -> {
+      if (matcher.prefixMatches(key)) matchingKeys.add(key);
+      return true;
+    });
+
+    for (String key : matchingKeys) {
+      StubIndex.getInstance().processElements(HaxeClassNameStubIndex.KEY, key, project, scope, HaxeClass.class, haxeClass -> {
+        String name = haxeClass.getName();
+        if (name == null) return true;
+        String qualifiedName = haxeClass.getQualifiedName();
+        String path = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
+        if (prefixPackage == null || prefixPackage.equalsIgnoreCase(path)) {
+          resultSet.addElement(new HaxeIndexedClassElement(name, path, haxeClass.getComponentType(), targetFile));
+        }
+        return true;
+      });
+    }
   }
 
   private static void addVariantsFromImports(final CompletionResultSet resultSet,
@@ -185,31 +202,5 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       });
   }
 
-  private static class MyProcessor implements Processor<Pair<String, HaxeClassInfo>> {
-    private final CompletionResultSet myResultSet;
-    @Nullable private final InsertHandler<LookupElement> myInsertHandler;
-    @Nullable private final String myPrefixPackage;
-    @Nullable private final PsiElement element;
-
-    private MyProcessor(CompletionResultSet resultSet,
-                        @Nullable String prefixPackage,
-                        @Nullable InsertHandler<LookupElement> insertHandler,
-                        @Nullable PsiElement element
-    ) {
-      this.element = element;
-      myResultSet = resultSet;
-      myPrefixPackage = prefixPackage;
-      myInsertHandler = insertHandler;
-
-    }
-
-    @Override
-    public boolean process(Pair<String, HaxeClassInfo> pair) {
-      HaxeClassInfo info = pair.getSecond();
-      if (myPrefixPackage == null || myPrefixPackage.equalsIgnoreCase(info.getPath())) {
-        myResultSet.addElement(new HaxeIndexedClassElement(info.getName(), info.getPath(), info.getType(), element));
-      }
-      return true;
-    }
-  }
 }
+

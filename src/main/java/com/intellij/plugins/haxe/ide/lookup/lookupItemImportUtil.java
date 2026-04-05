@@ -37,7 +37,7 @@ public class lookupItemImportUtil {
 
 
   public static boolean isCorrectClass(PsiElement element, String expectedQname) {
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
     if (haxeClass != null) {
       String qualifiedName = haxeClass.getQualifiedName();
       return qualifiedName!= null && qualifiedName.equals(expectedQname);

@@ -40,13 +40,12 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.*;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
 import com.intellij.plugins.haxe.ide.projectStructure.TreeHaxeClassChooserDialog;
 import com.intellij.plugins.haxe.ide.projectStructure.autoimport.HaxelibAutoImport;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.RawCommandLineEditor;
@@ -139,9 +138,9 @@ public class HaxeConfigurationEditor {
         String mainClass = HaxeModuleSettings.getInstance(myModule).getMainClass();
         HaxeClass haxeClass = null;
         if (!mainClass.isEmpty()) {
-          for (HaxeComponent component : HaxeComponentIndex.getItemsByName(mainClass, project, myModule.getModuleScope())) {
+          for (HaxeClass component : HaxeClassNameStubIndex.getByName(mainClass, project, myModule.getModuleScope())) {
             if (component instanceof HaxeClass) {
-              haxeClass = (HaxeClass)component;
+              haxeClass = component;
             }
           }
         }

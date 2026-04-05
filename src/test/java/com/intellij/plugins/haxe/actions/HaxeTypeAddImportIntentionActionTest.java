@@ -23,8 +23,10 @@ import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
@@ -53,8 +55,8 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
     final HaxeType type = PsiTreeUtil.getParentOfType(file.findElementAt(myFixture.getCaretOffset()), HaxeType.class, false);
     assertNotNull(type);
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
-    new HaxeTypeAddImportIntentionAction(type, HaxeComponentIndex
-      .getItemsByName(type.getReferenceExpression().getText(), type.getProject(), scope))
+    new HaxeTypeAddImportIntentionAction(type, new java.util.ArrayList<HaxeComponent>(HaxeClassNameStubIndex
+      .getByName(type.getReferenceExpression().getText(), type.getProject(), scope)))
       .execute();
     FileDocumentManager.getInstance().saveAllDocuments();
     myFixture.checkResultByFile(getTestName(false) + ".txt");

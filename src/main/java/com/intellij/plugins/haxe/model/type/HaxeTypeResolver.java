@@ -24,7 +24,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
@@ -51,7 +50,7 @@ import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 @CustomLog
 public class HaxeTypeResolver {
   @NotNull
-  static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
+  static public ResultHolder getFieldOrMethodReturnType(@NotNull HaxeNamedComponent comp) {
     return getFieldOrMethodReturnType(comp, null);
   }
 
@@ -450,7 +449,7 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getTypeFromTypeTag(AbstractHaxeNamedComponent comp, @NotNull PsiElement context) {
+  static public ResultHolder getTypeFromTypeTag(PsiElement comp, @NotNull PsiElement context) {
     return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
   }
 

@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.model.evaluator.callexpression;
 
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -89,6 +90,8 @@ public class HaxeCallExpressionUtil {
                                                                     @NotNull HaxeMethod methodPsi,
                                                                     @NotNull HaxeMethodModel methodModel
   ) {
+    ProgressIndicatorProvider.checkCanceled();
+
     HaxeGenericResolver genericResolver = new HaxeGenericResolver();
 
     HaxeGenericResolver parentResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
@@ -186,6 +189,7 @@ public class HaxeCallExpressionUtil {
   @NotNull
   public static HaxeCallExpressionContext createContextForFunctionCall(@NotNull HaxeCallExpression callExpression,
                                                                        @NotNull SpecificFunctionReference function) {
+    ProgressIndicatorProvider.checkCanceled();
 
     HaxeGenericResolver genericResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
 
@@ -248,9 +252,12 @@ public class HaxeCallExpressionUtil {
   @NotNull
   public static HaxeCallExpressionContextContainer createContextForConstructorCall(@NotNull HaxeNewExpression newExpression) {
     List<HaxeMethodModel> methodModels = getConstructorsModelForNewExpression(newExpression);
-    List<HaxeCallExpressionContext> list = methodModels.stream()
-            .map(methodModel -> createContextForConstructorCall(newExpression, methodModel, null))
-            .toList();
+    List<HaxeCallExpressionContext> list = new ArrayList<>();
+    for (HaxeMethodModel methodModel : methodModels) {
+      ProgressIndicatorProvider.checkCanceled();
+      HaxeCallExpressionContext call = createContextForConstructorCall(newExpression, methodModel, null);
+      list.add(call);
+    }
     return HaxeCallExpressionContextContainer.create(list);
 
   }
@@ -258,18 +265,24 @@ public class HaxeCallExpressionUtil {
   public static HaxeCallExpressionContextContainer createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, HaxeMethodModel methodModel) {
     List<HaxeMethodModel> methodModels =  new ArrayList<>(methodModel.getOverloadsFromMeta());
     methodModels.add(methodModel);
-    List<HaxeCallExpressionContext> list = methodModels.stream()
-            .map(model -> createContextForConstructorCall(newExpression, methodModel, null))
-            .toList();
+    List<HaxeCallExpressionContext> list = new ArrayList<>();
+    for (HaxeMethodModel model : methodModels) {
+      ProgressIndicatorProvider.checkCanceled();
+      HaxeCallExpressionContext call = createContextForConstructorCall(newExpression, model, null);
+      list.add(call);
+    }
     return HaxeCallExpressionContextContainer.create(list);
   }
 
   @NotNull
   public static HaxeCallExpressionContextContainer createContextForConstructorCall(@NotNull HaxeNewExpression newExpression, @Nullable ResultHolder assignHint) {
     List<HaxeMethodModel> methodModels = getConstructorsModelForNewExpression(newExpression);
-    List<HaxeCallExpressionContext> list = methodModels.stream()
-            .map(methodModel -> createContextForConstructorCall(newExpression, methodModel, assignHint))
-            .toList();
+    List<HaxeCallExpressionContext> list = new ArrayList<>();
+    for (HaxeMethodModel methodModel : methodModels) {
+      ProgressIndicatorProvider.checkCanceled();
+      HaxeCallExpressionContext call = createContextForConstructorCall(newExpression, methodModel, assignHint);
+      list.add(call);
+    }
     return HaxeCallExpressionContextContainer.create(list);
 
   }
@@ -346,6 +359,7 @@ public class HaxeCallExpressionUtil {
     if (expressionListPsi != null) {
       List<HaxeExpression> expressions = expressionListPsi.getExpressionList();
       for (HaxeExpression expression : expressions) {
+        ProgressIndicatorProvider.checkCanceled();
         ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
         CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), !result.isUnknown() && result.cacheable);
         argumentList.add(model);
@@ -357,6 +371,7 @@ public class HaxeCallExpressionUtil {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
       List<HaxeExpression> expressions = newExpression.getExpressionList();
       for (HaxeExpression expression : expressions) {
+        ProgressIndicatorProvider.checkCanceled();
           ResultHolder result = HaxeExpressionEvaluator.evaluateWithRecursionGuard(expression).result;
           CallExpressionArgumentModel model = CallExpressionArgumentModel.create(expression, result.getType(), result.cacheable);
           model.canCache = result.cacheable;
@@ -368,6 +383,7 @@ public class HaxeCallExpressionUtil {
   private static @NotNull List<CallExpressionArgumentModel> getArgumentList(@NotNull List<SpecificTypeReference> types) {
     List<CallExpressionArgumentModel> argumentList = new ArrayList<>();
     for (SpecificTypeReference type : types) {
+      ProgressIndicatorProvider.checkCanceled();
       CallExpressionArgumentModel model = CallExpressionArgumentModel.create(type.getElementContext(), type, false);
       argumentList.add(model);
     }
@@ -416,7 +432,7 @@ public class HaxeCallExpressionUtil {
 
       }else {
         // if only 1 child then we are calling on default "this" class reference
-        HaxeClass type = PsiTreeUtil.getParentOfType(callExpression.getExpression(), HaxeClass.class);
+        HaxeClass type = PsiTreeUtil.getStubOrPsiParentOfType(callExpression.getExpression(), HaxeClass.class);
         if(type != null) {
           HaxeClassModel model = type.getModel();
           SpecificHaxeClassReference classType = model.getInstanceType().getClassType();

@@ -136,8 +136,8 @@ public class HaxeMoveTest extends MultiFileTestCase {
 
       PsiElement file = myPsiManager.findFile(src);
       assertNotNull("Psi for " + testHx + " not found", file);
-      HaxeModule haxeModule = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
-      PsiElement cls = PsiTreeUtil.getChildOfType(haxeModule, HaxeClassDeclaration.class);
+      HaxeModule haxeModule = PsiTreeUtil.getStubChildOfType(file, HaxeModule.class);
+      PsiElement cls = PsiTreeUtil.getStubChildOfType(haxeModule, HaxeClassDeclaration.class);
 
       PackageWrapper pack = new PackageWrapper(myPsiManager, targetDirName);
       VirtualFile targetDir = VfsUtil.findRelativeFile(targetDirName, rootDir);

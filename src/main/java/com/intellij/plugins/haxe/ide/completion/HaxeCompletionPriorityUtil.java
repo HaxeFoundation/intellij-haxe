@@ -196,7 +196,7 @@ public class HaxeCompletionPriorityUtil {
   private static boolean trySortForExtends(PsiElement position, List<HaxeLookupElement> list) {
     HaxeInheritList inheritList = PsiTreeUtil.getParentOfType(position, HaxeInheritList.class);
     if (inheritList != null) {
-      HaxeClassDeclaration classDeclaration = PsiTreeUtil.getParentOfType(inheritList, HaxeClassDeclaration.class);
+      HaxeClassDeclaration classDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(inheritList, HaxeClassDeclaration.class);
       if (classDeclaration != null) {
         HaxeExtendsDeclaration extendsDeclaration = PsiTreeUtil.getParentOfType(position, HaxeExtendsDeclaration.class);
         if (extendsDeclaration != null) {

@@ -20,15 +20,14 @@ package com.intellij.plugins.haxe.ide.completion;
 import com.google.common.collect.Sets;
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElement;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkUtil;
-import com.intellij.plugins.haxe.ide.lookup.HaxeIndexedClassElement;
-import com.intellij.plugins.haxe.ide.lookup.HaxeLookupElement;
+import com.intellij.plugins.haxe.ide.lookup.HaxeMemberLookupElement;
+import com.intellij.plugins.haxe.ide.lookup.HaxePsiLookupElement;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.psi.PsiFile;
@@ -67,11 +66,6 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
                  .map(HaxeCompletionPriorityUtil::convertToPrioritized)
                  .forEach(result::passResult); // Add everything we want to keep to the result set.
 
-               // resolving PSI elements for index items is too slow for us to get correct item sorting (involves file parsing)
-               // we still want the PsiReference for documentation lookups, but we dont strictly need it
-               // for the sorting even tho it would be nice to also get the proximity sorting.
-               updatePsiElementValues(filteredCompletions);
-
                // TODO mlo: suggest lambda / function when expected type is  functionType
 
                //TODO mlo: mechanism for filtering getters and setters ( get_X / set_x)  when properties exists ? (could be that noCompletion solves this)
@@ -81,15 +75,6 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
                result.stopHere();
              }
            });
-  }
-
-  private static void updatePsiElementValues(Set<CompletionResult> filteredCompletions) {
-    ReadAction.run(() -> {
-      filteredCompletions.stream()
-        .filter(r -> r.getLookupElement() instanceof HaxeIndexedClassElement)
-        .map(r -> (HaxeIndexedClassElement)r.getLookupElement())
-        .forEach(HaxeIndexedClassElement::updatePsiElement);
-    });
   }
 
   private static Set<CompletionResult> filter(@NotNull CompletionParameters parameters,
@@ -173,20 +158,27 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     // Now remove duplicates by looping over the list, dropping any that match the entry prior.
     ArrayList<CompletionResult> deduped = new ArrayList<CompletionResult>();
     String lastName = null;
+    LookupElement lastAdded = null;
     for (CompletionResult next : sorted) {
 
-      String nextName = getDedupeName(next);
+      String nextName = getDedupeKey(next);
+      LookupElement nextElement = next.getLookupElement();
       // In the long run, it's probably not good enough just to check the name.  Multiple argument types may
       // be present, and we may be able to filter based on the local variables available.
       if (null == lastName || !lastName.equals(nextName)) {
         deduped.add(next);
+        lastAdded = nextElement;
       }
-      //TODO
-      // avoiding de-duping HaxeLookupElement here, its primarily results from  compiler that needs to be removed
-      // de-duping only based on name here will remove classes with same name different package, and we want to avoid that.
-      // we need a better way to solve the compiler results issue
-      if (next.getLookupElement() instanceof HaxeLookupElement) {
+
+      //TODO probably needs some more work and tests, might be able to turn of completelty if compiler suggestions are not enabled
+
+      // HaxeMemberLookupElements with the SAME name as the previous entry are kept ONLY when the
+      // previous entry was also a HaxeMemberLookupElement. This allows a method's call-site and
+      // function-type variants to both appear. Any other type (class names from HaxeIndexedClassElement,
+      // constructors, etc.) takes priority and suppresses the HaxeMemberLookupElement duplicate.
+      else if (nextElement instanceof HaxeMemberLookupElement && lastAdded instanceof HaxeMemberLookupElement) {
         deduped.add(next);
+        lastAdded = nextElement;
       }
       lastName = nextName;
     }

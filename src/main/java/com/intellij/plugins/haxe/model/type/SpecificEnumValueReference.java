@@ -20,6 +20,7 @@ import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,7 @@ public class SpecificEnumValueReference extends SpecificTypeReference {
                                     @NotNull HaxeGenericResolver resolver, @Nullable Object constantValue) {
     super(context);
     HaxeEnumDeclaration enumElement =
-      UsefulPsiTreeUtil.getParentOfType(enumValue, HaxeEnumDeclaration.class);
+      PsiTreeUtil.getStubOrPsiParentOfType(enumValue, HaxeEnumDeclaration.class);
     HaxeEnumModelImpl enumModel = new HaxeEnumModelImpl(enumElement);
 
     HaxeClassReference reference = enumModel.getReference();

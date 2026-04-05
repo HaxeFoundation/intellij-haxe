@@ -28,21 +28,25 @@ import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.actions.HaxeStaticMemberAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
-import com.intellij.plugins.haxe.ide.index.HaxeStaticMemberIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -90,12 +94,12 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
 
   private void tryCreateAnnotation(HaxeReferenceExpression expression) {
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(expression);
-    List<HaxeMemberModel> members =  new ArrayList<>();
-    List<HaxeComponent> classes =  HaxeComponentIndex.getItemsByName(expression.getText(), expression.getProject(), scope);;
-    if(expression.getParent() instanceof HaxeCallExpression) {
-      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.METHOD));
-    }else {
-      members.addAll(HaxeStaticMemberIndex.getMembersByName(expression.getText(), expression.getProject(), scope, HaxeComponentType.FIELD, HaxeComponentType.ENUM));
+    List<HaxeMemberModel> members = new ArrayList<>();
+    List<HaxeComponent> classes = new ArrayList<>(HaxeClassNameStubIndex.getByName(expression.getText(), expression.getProject(), scope));
+    if (expression.getParent() instanceof HaxeCallExpression) {
+      members.addAll(findStaticMembers(expression.getText(), expression.getProject(), scope, true, false));
+    } else {
+      members.addAll(findStaticMembers(expression.getText(), expression.getProject(), scope, false, true));
     }
 
     boolean classesFound = !classes.isEmpty();
@@ -129,6 +133,36 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
       }
     }
     return false;
+  }
+
+  /**
+   * Finds static public members (methods and/or fields/enum-values) with the given name using stub indexes.
+   * No file re-parsing required — stub data is used for static/public flag checks.
+   */
+  private static List<HaxeMemberModel> findStaticMembers(@NotNull String memberName,
+                                                          @NotNull com.intellij.openapi.project.Project project,
+                                                          @NotNull GlobalSearchScope scope,
+                                                          boolean includeMethods,
+                                                          boolean includeFields) {
+    List<HaxeMemberModel> results = new ArrayList<>();
+    if (includeMethods) {
+      for (HaxeMethod method : StubIndex.getElements(HaxeMethodNameStubIndex.KEY, memberName, project, scope, HaxeMethod.class)) {
+        if (method.isStatic() && method.isPublic()) {
+          results.add(method.getModel());
+        }
+      }
+    }
+    if (includeFields) {
+      for (HaxePsiField field : StubIndex.getElements(HaxeFieldNameStubIndex.KEY, memberName, project, scope, HaxePsiField.class)) {
+        if (field.isStatic() && field.isPublic()) {
+          HaxeBaseMemberModel base = field.getModel();
+          if (base instanceof HaxeMemberModel memberModel) {
+            results.add(memberModel);
+          }
+        }
+      }
+    }
+    return results;
   }
 
   private static class AnnotatorTracker extends Key<HighlightSeverity> {

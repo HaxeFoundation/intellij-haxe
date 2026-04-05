@@ -56,7 +56,7 @@ public class HaxeGotoSuperHandler implements LanguageCodeInsightActionHandler {
     final PsiElement at = file.findElementAt(editor.getCaretModel().getOffset());
     final HaxeComponentName componentName = PsiTreeUtil.getParentOfType(at, HaxeComponentName.class);
 
-    final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(at, HaxeClass.class);
+    final HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(at, HaxeClass.class);
     final HaxeNamedComponent namedComponent = componentName == null ? haxeClass : (HaxeNamedComponent)componentName.getParent();
     if (at == null || haxeClass == null || namedComponent == null) return;
 

@@ -22,9 +22,9 @@ import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -120,32 +120,21 @@ public class HaxeFileModel implements HaxeExposableModel {
     HaxeModule module = getModuleBody();
 
     if (module != null) {
-      HaxeClass haxeClass = (HaxeClass)Arrays.stream(module.getChildren())
-        .filter(element -> {
-          if (element instanceof HaxeClass hxClass) {
-            PsiIdentifier identifier = hxClass.getNameIdentifier();
-            return identifier != null && identifier.textMatches(name);
-          }
-          return false;
-        })
-        .findFirst()
-        .orElse(null);
-
-      return haxeClass != null ? haxeClass.getModel() : null;
-
+      List<HaxeClass> list = PsiTreeUtil.getStubChildrenOfTypeAsList(module, HaxeClass.class);
+      for (HaxeClass aClass : list) {
+        if (Objects.equals(aClass.getName(), name)) {
+          return aClass.getModel();
+        }
+      }
     }
     return null;
   }
 
   @Nullable
   public HaxeModule getModuleBody() {
-    for (PsiElement element : getChildren()) {
-      if ((element instanceof HaxeModule module)) {
-        return module;
-      }
-    }
-    return null;
+    return file.getModule();
   }
+
   @NotNull
   private  List<PsiElement> getChildren() {
     return getChildren(file);
@@ -187,7 +176,7 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   @Nullable
   public HaxePackageStatement getPackagePsi() {
-    return UsefulPsiTreeUtil.getChild(file, HaxePackageStatement.class);
+    return PsiTreeUtil.getStubChildOfType(file, HaxePackageStatement.class);
   }
 
   @Nullable

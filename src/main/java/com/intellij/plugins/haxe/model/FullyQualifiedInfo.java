@@ -149,14 +149,20 @@ public class FullyQualifiedInfo {
   }
 
   public String getPresentableText() {
+    return getQualifiedName(true);
+  }
+  public String getQualifiedName(boolean includeModule) {
     StringBuilder builder = new StringBuilder();
     if (packagePath != null && !packagePath.isEmpty()) {
       builder.append(packagePath);
     }
 
-    if (moduleName == null || moduleName.isEmpty()) return builder.toString();
-    if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
-    builder.append(moduleName);
+    if (moduleName == null || moduleName.isEmpty()) {
+      if (!includeModule)return builder.toString();
+    }else {
+      if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
+      builder.append(moduleName);
+    }
 
     if (className != null && !className.isEmpty() && !className.equals(moduleName)) {
       builder.append(PATH_SEPARATOR);

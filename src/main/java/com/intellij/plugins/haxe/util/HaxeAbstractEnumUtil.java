@@ -109,7 +109,7 @@ public class HaxeAbstractEnumUtil {
                                        (HaxeFieldDeclaration)element : null;
     if (couldBeAbstractEnumField(varDecl)) {
       final HaxeAbstractTypeDeclaration abstractEnumClass =
-        PsiTreeUtil.getParentOfType(varDecl, HaxeAbstractTypeDeclaration.class);
+        PsiTreeUtil.getStubOrPsiParentOfType(varDecl, HaxeAbstractTypeDeclaration.class);
       SpecificHaxeClassReference specificRef;
       if (isAbstractEnum(abstractEnumClass)) {
         if (varDecl.getTypeTag() == null) {

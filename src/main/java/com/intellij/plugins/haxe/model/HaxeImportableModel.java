@@ -66,6 +66,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   }
 
   private static List<HaxeModel> getExposedMembersCached(final HaxeImportableModel importableModel) {
+    // TODO mlo use stubs instead of cacheing ?
 
     return CachedValuesManager.getCachedValue(importableModel.getBasePsi(), () -> {
       List<HaxeModel> exposedMembers = importableModel.getExposedMembersInternal();

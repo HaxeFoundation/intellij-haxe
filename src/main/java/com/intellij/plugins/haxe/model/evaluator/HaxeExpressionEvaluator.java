@@ -24,7 +24,6 @@ import com.intellij.openapi.progress.*;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
@@ -404,7 +403,7 @@ public class HaxeExpressionEvaluator {
     if (element instanceof HaxeGenericListPart genericListPart) {
       return genericListPart.getModel().getInstanceType();
     }
-    if (element instanceof AbstractHaxeNamedComponent namedComponent) {
+    if (element instanceof HaxeNamedComponent namedComponent) {
       return HaxeTypeResolver.getFieldOrMethodReturnType(namedComponent, resolver);
     }
     if (element instanceof HaxeMacroValueExpression  macroValueExpression) {
@@ -750,6 +749,7 @@ public class HaxeExpressionEvaluator {
               }
             }
           }
+          return null; // if findUsageAsParameterInFunctionCall return null, we want to pass that along as a recursion guard "hint"
         }
       }
     }

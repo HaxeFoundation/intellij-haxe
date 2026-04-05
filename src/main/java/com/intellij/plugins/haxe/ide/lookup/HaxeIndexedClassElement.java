@@ -56,9 +56,6 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
     icon = componentType.getCompletionIcon();
 
   }
-  public void updatePsiElement() {
-    myElement = HaxeResolveUtil.findClassByQName(qname, helperPsi);
-  }
 
   @Override
   public void handleInsert(InsertionContext context) {
@@ -72,6 +69,9 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
 
   @Override
   public @Nullable PsiElement getPsiElement() {
+    if (myElement == null) {
+      myElement = HaxeResolveUtil.findClassByQName(qname, helperPsi);
+    }
     return myElement;
   }
 
@@ -79,6 +79,19 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
   @Override
   public String getLookupString() {
     return name;
+  }
+
+  /**
+   * Returns the fully-qualified class name so that {@code getDedupeName()} in
+   * {@code HaxeControllingCompletionContributor} uses the qname as the dedup key.
+   * This ensures two classes with the same simple name from different packages are
+   * kept, while two identical entries (same qname) added by different contributor
+   * registrations are properly collapsed to one.
+   */
+  @NotNull
+  @Override
+  public String deduplicateKey() {
+    return qname;
   }
 
   @Override

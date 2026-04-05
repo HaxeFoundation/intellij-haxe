@@ -362,9 +362,9 @@ public class HaxeExpressionEvaluatorHandlers {
           else if (subelement instanceof HaxeFieldDeclaration fieldDeclaration) {
 
             // check if enum abstract field and override type if referenced from outside the enum
-            HaxeAbstractTypeDeclaration abstractParentFromResolved = PsiTreeUtil.getParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
+            HaxeAbstractTypeDeclaration abstractParentFromResolved = PsiTreeUtil.getStubOrPsiParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
             if(abstractParentFromResolved != null) {
-              HaxeAbstractTypeDeclaration abstractParentFromReference = PsiTreeUtil.getParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
+              HaxeAbstractTypeDeclaration abstractParentFromReference = PsiTreeUtil.getStubOrPsiParentOfType(subelement, HaxeAbstractTypeDeclaration.class);
               if (abstractParentFromReference != abstractParentFromResolved) {
                 HaxeClassModel model = abstractParentFromResolved.getModel();
                 if (model.isEnum()) {
@@ -387,7 +387,7 @@ public class HaxeExpressionEvaluatorHandlers {
               HaxeTypeTag tag = fieldDeclaration.getTypeTag();
               if (tag != null) {
                 typeHolder = HaxeTypeResolver.getTypeFromTypeTag(tag, fieldDeclaration);
-                HaxeClass  usedIn = PsiTreeUtil.getParentOfType((PsiElement)reference, HaxeClass.class);
+                HaxeClass  usedIn = PsiTreeUtil.getStubOrPsiParentOfType((PsiElement)reference, HaxeClass.class);
                 HaxeClass containingClass = (HaxeClass)fieldDeclaration.getContainingClass();
                 if (usedIn != null && containingClass != null && usedIn != containingClass && containingClass.isGeneric()) {
                   HaxeGenericResolver inheritedClassResolver = resolver.translateFromTo(usedIn, containingClass);
@@ -1388,7 +1388,7 @@ public class HaxeExpressionEvaluatorHandlers {
       }
       context.addError(superExpression, "Calling super without parent constructor");
     } else {
-      HaxeClass parentOfType = PsiTreeUtil.getParentOfType(superExpression, HaxeClass.class);
+      HaxeClass parentOfType = PsiTreeUtil.getStubOrPsiParentOfType(superExpression, HaxeClass.class);
       if (parentOfType != null){
         HaxeClassModel model = parentOfType.getModel();
         // abstracts do not support the super keyword

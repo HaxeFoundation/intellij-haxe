@@ -32,6 +32,7 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
   private String tailText;
   private boolean strikeout = false;
   private boolean bold = false;
+  private boolean presentationCalculated = false;
   private Icon icon = null;
 
   @NotNull
@@ -49,7 +50,6 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     this.myComponentName = name;
     this.haxeClass = haxeClass;
     this.type = haxeClass.getComponentType();
-    calculatePresentation();
   }
 
   @NotNull
@@ -60,6 +60,10 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
+    if (!presentationCalculated) {
+      calculatePresentation();
+      presentationCalculated = true;
+    }
     presentation.setItemText(presentableText);
     presentation.setStrikeout(strikeout);
     presentation.setItemTextBold(bold);

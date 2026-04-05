@@ -24,11 +24,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.util.Conditions;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
 import com.intellij.plugins.haxe.ide.index.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -117,10 +116,10 @@ public class TreeHaxeClassChooserDialog extends AbstractTreeClassChooserDialog<P
                                             final boolean checkBoxState,
                                             final String pattern,
                                             final GlobalSearchScope searchScope) {
-    List<HaxeComponent> components = HaxeComponentIndex.getItemsByName(name, getProject(), searchScope);
+    List<HaxeClass> components = new ArrayList<>(HaxeClassNameStubIndex.getByName(name, getProject(), searchScope));
     List<PsiClass> classes = new ArrayList<PsiClass>();
 
-    for (HaxeComponent component : components) {
+    for (HaxeClass component : components) {
       if (component instanceof PsiClass) {
         classes.add((PsiClass)component);
       }
