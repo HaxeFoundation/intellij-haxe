@@ -656,6 +656,11 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return null;
   }
 
+  @Override
+  public boolean isValid() {
+    return haxeClass.isValid();
+  }
+
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
     throw new NotImplementedException("Not implemented HaxeClassMethod.addMethodsFromPrototype() : check HaxeImplementMethodHandler");
   }

@@ -76,6 +76,11 @@ public class HaxeFileModel implements HaxeExposableModel {
     return null;
   }
 
+  @Override
+  public boolean isValid() {
+    return file.isValid();
+  }
+
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {

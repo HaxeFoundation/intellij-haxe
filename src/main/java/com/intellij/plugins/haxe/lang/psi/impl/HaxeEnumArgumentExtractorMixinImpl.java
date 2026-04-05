@@ -20,7 +20,7 @@ public abstract class HaxeEnumArgumentExtractorMixinImpl extends HaxeExpressionI
   }
 
   public HaxeModel getModel() {
-    if (model == null) {
+    if (model == null || !model.isValid()) {
       if (this instanceof HaxeEnumArgumentExtractor argumentExtractor)
       model = new HaxeEnumExtractorModel(argumentExtractor);
     }

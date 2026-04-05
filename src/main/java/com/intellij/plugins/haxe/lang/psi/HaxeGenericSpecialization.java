@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.resolver.ResolverEntry;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -236,12 +237,12 @@ public class HaxeGenericSpecialization implements Cloneable {
 
   public static String getGenericKey(@Nullable PsiElement element, @NotNull String genericName) {
     final StringBuilder result = new StringBuilder();
-    final HaxeNamedComponent namedComponent = PsiTreeUtil.getParentOfType(element, HaxeNamedComponent.class, false);
-    if (namedComponent instanceof HaxeClass) {
-      result.append(((HaxeClass)namedComponent).getQualifiedName());
+    final HaxeNamedComponent namedComponent = StubPsiTreeUtil.getStubOrPsiParentOfType(element, HaxeNamedComponent.class, false);
+    if (namedComponent instanceof HaxeClass haxeClass) {
+      result.append(haxeClass.getQualifiedName());
     }
     else if (namedComponent != null) {
-      HaxeClass haxeClass = PsiTreeUtil.getParentOfType(namedComponent, HaxeClass.class);
+      HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(namedComponent, HaxeClass.class);
       if (haxeClass instanceof HaxeAnonymousType) {
         final PsiElement parent = HaxeResolveUtil.findTypeParameterContributor(haxeClass);
         haxeClass = parent instanceof HaxeClass ? (HaxeClass)parent : haxeClass;

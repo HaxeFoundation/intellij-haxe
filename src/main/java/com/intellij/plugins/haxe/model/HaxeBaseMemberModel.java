@@ -139,4 +139,9 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
     }
     return null;
   }
+
+  @Override
+  public boolean isValid() {
+    return basePsi.isValid();
+  }
 }

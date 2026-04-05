@@ -29,22 +29,21 @@ import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
+import com.intellij.plugins.haxe.lang.psi.stubs.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.impl.source.tree.FileElement;
+import com.intellij.psi.stubs.PsiFileStub;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.swing.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class HaxeFile extends PsiFileBase
@@ -55,6 +54,21 @@ public class HaxeFile extends PsiFileBase
   public HaxeFile(@NotNull FileViewProvider viewProvider) {
     super(viewProvider, HaxeLanguage.INSTANCE);
   }
+
+
+  public HaxeModule getModule() {
+    return withGreenStubOrAst(this::ModuleWithStub, this::moduleWithAst);
+  }
+
+  private HaxeModule ModuleWithStub(PsiFileStub<?> stub) {
+    HaxeModuleStub moduleStub = (HaxeModuleStub)stub.findChildStubByElementType(HaxeStubElementTypes.MODULE);
+    return moduleStub == null ? null : moduleStub.getPsi();
+  }
+
+  private HaxeModule moduleWithAst(FileElement element) {
+   return PsiTreeUtil.findChildOfType(this, HaxeModule.class);
+  }
+
 
   @NotNull
   @Override
@@ -71,15 +85,7 @@ public class HaxeFile extends PsiFileBase
     return getName();
   }
 
-  @Override
-  public Icon getIcon(int flags) {
-    return super.getIcon(flags);
-  }
 
-  @Override
-  public PsiReference findReferenceAt(int offset) {
-    return super.findReferenceAt(offset);
-  }
 
   @Override
   public PsiElement setName(@NotNull String newName) throws IncorrectOperationException {
@@ -111,12 +117,26 @@ public class HaxeFile extends PsiFileBase
   }
 
   public PsiPackageStatement getPackageStatement() {
+
     ASTNode node = calcTreeElement().findChildByType(HaxeTokenTypes.PACKAGE_STATEMENT);
     return node != null ? (PsiPackageStatement)node.getPsi() : null;
   }
 
   @Override
   public String getPackageName() {
+    return withGreenStubOrAst(this::PackageNameWithStub, this::PackageNameWithAst);
+  }
+
+  private String PackageNameWithStub(PsiFileStub<?> stub) {
+    HaxePackageStub packageStatement =
+      (HaxePackageStub)stub.findChildStubByElementType(HaxeStubElementTypes.PACKAGE_STATEMENT);
+    if (packageStatement != null) {
+      return packageStatement.getPackageName();
+    }
+    return "";
+  }
+
+  private String PackageNameWithAst(FileElement element) {
     PsiPackageStatement statement = getPackageStatement();
     return statement == null ? "" : statement.getPackageName();
   }
@@ -126,7 +146,7 @@ public class HaxeFile extends PsiFileBase
     // TODO: verify
     HaxePackageStatement packageStatementFromPath = HaxeElementGenerator.createPackageStatementFromPath(getProject(), packageName);
 
-    HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(this, HaxePackageStatement.class);
+    HaxePackageStatement packageStatement = PsiTreeUtil.getStubChildOfType(this, HaxePackageStatement.class);
     if (packageStatement != null) {
       packageStatement.replace(packageStatementFromPath);
     }
@@ -136,30 +156,16 @@ public class HaxeFile extends PsiFileBase
   }
 
   public List<HaxeImportStatement> getImportStatements() {
-    return new ArrayList<>(getImportStatementsCached(this));
+    return PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeImportStatement.class);
   }
   public List<HaxeUsingStatement> getUsingStatements() {
-    return new ArrayList<>(getUsingStatementsCached(this));
+    return PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeUsingStatement.class);
   }
 
-  private static @NotNull List<HaxeImportStatement> getImportStatementsCached(HaxeFile haxeFile) {
-    return CachedValuesManager.getCachedValue(haxeFile, () -> {
-      HaxeImportStatement[] result = PsiTreeUtil.getChildrenOfType(haxeFile, HaxeImportStatement.class);
-      List<HaxeImportStatement> importStatements = result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
-      return new CachedValueProvider.Result<>(importStatements, haxeFile);
-    });
-  }
-  private static @NotNull List<HaxeUsingStatement> getUsingStatementsCached(HaxeFile haxeFile) {
-    return CachedValuesManager.getCachedValue(haxeFile, () -> {
-      HaxeUsingStatement[] result = PsiTreeUtil.getChildrenOfType(haxeFile, HaxeUsingStatement.class);
-      List<HaxeUsingStatement> importStatements = result == null ? Collections.emptyList() : new ArrayList<>(Arrays.asList(result));
-      return new CachedValueProvider.Result<>(importStatements, haxeFile);
-    });
-  }
 
   @NotNull
   public HaxeFileModel getModel() {
-    if(haxeFileModel != null) return haxeFileModel;
+    if(haxeFileModel != null && haxeFileModel.isValid()) return haxeFileModel;
     haxeFileModel =new HaxeFileModel(this);
     return haxeFileModel;
   }

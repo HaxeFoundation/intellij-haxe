@@ -11,7 +11,7 @@
     psiImplPackage="com.intellij.plugins.haxe.lang.psi.impl"
 
     elementTypeHolderClass="com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes"
-    elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
+    elementTypeFactory="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubElementTypeFactory.createElement"
     tokenTypeFactory="com.intellij.plugins.haxe.lang.lexer.HaxeElementType.createToken"
 
 
@@ -264,10 +264,21 @@ abstractExpression ::= 'abstract'
 
 
 packageStatement ::= 'package' simpleQualifiedReferenceExpression? ';'
-{pin=1 implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"}
+{
+  pin=1
+  implements="com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePackageStatementPsiMixinImpl"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub"
+}
 
 private topLevelList ::= topLevel*
-module ::= moduleBody { mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModulePsiMixinImpl" implements=["com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement" "com.intellij.plugins.haxe.model.HaxeModelTarget"]}
+module ::= moduleBody
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeModulePsiMixinImpl"
+  implements=["com.intellij.plugins.haxe.lang.psi.HaxePsiCompositeElement" "com.intellij.plugins.haxe.model.HaxeModelTarget"]
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub"
+ }
+
 private topLevel ::= importStatement | usingStatement |  module {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 //private topLevel ::= importStatement | usingStatement |  (embeddedMeta* topLevelDeclaration) | moduleDeclaration {recoverWhile="top_level_recover" name="import, using, or top level declaration"}
 private top_level_recover ::= !( 'import' | 'using' | 'class' | 'abstract' | 'interface' | 'typedef' | 'enum' | 'function' | 'public' | 'private' | 'extern' | 'final' | 'var' | 'inline' | metaKeyWord | ppToken)
@@ -291,6 +302,7 @@ importStatement ::= 'import' simpleQualifiedReferenceExpression [importWildcard 
 {
   implements="com.intellij.plugins.haxe.lang.psi.HaxeImportStatementPsiMixin"
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeImportStatementPsiMixinImpl"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeImportStub"
   methods=[
     alias="importAlias";
     wildcard="importWildcard"
@@ -301,6 +313,7 @@ usingStatement ::= 'using' simpleQualifiedReferenceExpression ';'
 {
   implements="com.intellij.plugins.haxe.lang.psi.HaxeUsingStatementPsiMixin"
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeUsingStatementPsiMixinImpl"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeUsingStub"
 }
 private topLevelDeclaration ::= classDeclaration
                               | interfaceDeclaration
@@ -345,22 +358,51 @@ private externClassModifier ::= classModifier | externKeyWord
 externClassModifierList ::= classModifier* externKeyWord externClassModifier* {extends=classModifierList}
 
 macroTypedefDeclaration ::= externOrPrivate? 'typedef' componentName? genericParam? '='  typeWrapper ';'?
+{
+  extends=typedefDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 typedefDeclaration ::= externOrPrivate? 'typedef' componentName genericParam? '='  typeWrapper ';'?
-{pin=5 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=5
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeTypeDefImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
 
 macroExternClassDeclaration ::= externClassModifierList 'class' componentName? genericParam? inheritList? externClassDeclarationBody
+{
+  extends=externClassDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 externClassDeclaration ::= externClassModifierList 'class' componentName genericParam? inheritList? externClassDeclarationBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 externClassDeclarationBody ::= '{' externClassDeclarationBodyPart* '}'
 private externClassDeclarationBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="extern_class_body_part_recover"}
 private extern_class_body_part_recover ::= !('public' | 'extern' | 'function' | 'var' | 'final' | 'inline' | 'static' | 'private' | '}' | 'override' | 'dynamic' | metaKeyWord | ppToken)
 
 macroExternInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName? genericParam? inheritList? interfaceBody
-externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  extends=externInterfaceDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
 
-//see moduleOrTopLevelDeclaration
-//moduleDeclaration ::= moduleBody{pin=1}
+externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName genericParam? inheritList? interfaceBody
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 
 moduleMemberModifier::= privateKeyWord | inlineKeyWord | macroKeyword
 
@@ -368,16 +410,36 @@ private moduleBody ::= embeddedMeta* moduleBodyPart+  {pin=2}
 private moduleBodyPart ::=  topLevelDeclaration |  moduleFieldDeclaration |  moduleMethodDeclaration  {recoverWhile="class_body_part_recover"}
 
 moduleFieldDeclaration ::= moduleMemberModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 extends=fieldDeclaration}
+{
+  pin=3
+  extends=fieldDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"
+}
 
-macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody{extends=classDeclaration}
+macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody{extends=classDeclaration stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"}
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
 
 
 macroAbstractTypeDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName? genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
+{
+  extends=abstractTypeDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 abstractTypeDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType componentName genericParam? underlyingType? (abstractToType | abstractFromType)* abstractBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 abstractClassType ::= 'enum'? 'abstract'
 underlyingType ::= '(' typeWrapper ')'
 abstractToType ::= 'to' ('(' typeWrapper ')' | typeWrapper){pin=1}
@@ -392,16 +454,38 @@ private classBodyPart ::= fieldDeclaration | methodDeclaration | constructorDecl
 private class_body_part_recover ::= !('public' | 'private' | 'function' | 'var' | '}' | 'final' | 'static' | 'dynamic' | 'inline' | 'override' | 'macro' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord | ppToken)
 
 macroInterfaceDeclaration ::= privateKeyWord? 'interface' componentName? genericParam? inheritList? interfaceBody
+{
+  extends=interfaceDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 interfaceDeclaration ::= privateKeyWord? 'interface' componentName genericParam? inheritList? interfaceBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 interfaceBody ::= '{' interfaceBodyList? '}'
 private interfaceBodyList ::= interfaceBodyPart+
 private interfaceBodyPart ::= fieldDeclaration | methodDeclaration {recoverWhile="interface_body_part_recover"}
 private interface_body_part_recover ::= !('function' | 'var' | '}' | 'public' | 'static' | 'private' | 'final' | 'dynamic' | 'inline' | 'override' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface' | metaKeyWord| ppToken)
 
 macroEnumDeclaration ::= externOrPrivate? 'enum' componentName? genericParam? enumBody
+{
+  extends=enumDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 enumDeclaration ::= externOrPrivate? 'enum' componentName genericParam? enumBody
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
+
 enumBody ::= '{' enumValueDeclaration* '}'
 { mixin="com.intellij.plugins.haxe.lang.psi.HaxeEnumBodyMixinImpl"}
 
@@ -419,6 +503,7 @@ enumValueDeclarationConstructor ::= componentName genericParam? enumConstructorP
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl"
   implements= ["com.intellij.plugins.haxe.lang.psi.HaxeMethod" "com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration"]
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub"
 }
 
 enumValueDeclarationField ::= componentName genericParam?  typeTag? ';'
@@ -426,21 +511,29 @@ enumValueDeclarationField ::= componentName genericParam?  typeTag? ';'
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl"
   implements= ["com.intellij.plugins.haxe.lang.psi.HaxePsiField" "com.intellij.plugins.haxe.lang.psi.HaxeEnumValueDeclaration"]
   methods=[returnType="typeTag"]
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"
 }
-// todo make enumValueDeclaration
+
 private enumValueDeclaration ::= enumValueDeclarationConstructor |  enumValueDeclarationField
-
-//enumValueDeclaration ::= componentName genericParam? enumConstructorParameters? typeTag? ';'
-//{recoverWhile="enum_value_declaration_recovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField" methods=[returnType="typeTag"]}
-
-private enum_value_declaration_recovery ::= !(ID | '}' | 'class' | 'enum' | 'abstract' | 'typedef' | 'extern' | 'interface')
-
 private enumConstructorParameters ::= parenthesizedParameterList
 
 fieldDeclaration ::= fieldModifier* mutabilityModifier componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{
+  pin=3
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"
+}
+
 optionalFieldDeclaration ::= fieldModifier* mutabilityModifier optionalMark componentName propertyDeclaration? typeTag? varInit? <<semicolonUnlessPrecededByStatement>>
-{pin=3 implements=fieldDeclaration mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{
+  pin=3
+  implements=fieldDeclaration
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"
+}
+
 //NOTE: static local variable is a haxe 4.3+ feature
 localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (',' localVarDeclaration)* <<semicolonUnlessPrecededByStatement>>{pin=2} // TODO make recovery
 localVarDeclaration ::= 'static'? componentName typeTag? varInit?
@@ -475,15 +568,32 @@ private lambdaBody ::= blockStatement
                        | expression
 
 private localFunctionDeclarationAttribute ::= inlineKeyWord;
-moduleMethodDeclaration ::= moduleMemberModifier*  methodHeader untypedKeyword? functionCommonBody {pin=2 extends=methodDeclaration}
+moduleMethodDeclaration ::= moduleMemberModifier*  methodHeader untypedKeyword? functionCommonBody
+{
+  pin=2
+  extends=methodDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub"
+}
 
 methodDeclaration ::= methodModifier* methodHeader untypedKeyword? functionCommonBody
-{pin=2 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"}
+{
+  pin=2
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeMethod"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub"
+}
+
 private methodHeader ::= 'function' methodDeclarator typeTag?
 private methodDeclarator ::= componentName genericParam? parenthesizedParameterList
 
 constructorDeclaration ::= methodModifier* constructorHeader untypedKeyword? functionCommonBody
-{pin=2 extends="methodDeclaration" implements="com.intellij.plugins.haxe.lang.psi.HaxeConstructor"}
+{
+  pin=2
+  extends="methodDeclaration"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeConstructor"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub"
+}
+
 private constructorHeader ::= 'function' constructorDeclarator typeTag? {elementType="methodHeader"}
 private constructorDeclarator ::= constructorName genericParam? parenthesizedParameterList {elementType="methodDeclarator"}
 constructorId ::= 'new' {elementType="identifier"}

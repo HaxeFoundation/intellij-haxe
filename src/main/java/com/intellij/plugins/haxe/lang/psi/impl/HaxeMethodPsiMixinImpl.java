@@ -24,6 +24,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.model.HaxeEnumValueConstructorModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
@@ -36,6 +37,7 @@ import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -52,7 +54,7 @@ import java.util.List;
  * @author: Srikanth.Ganapavarapu
  */
 @CustomLog
-public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeMethodPsiMixin {
+public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent<HaxeMethodStub> implements HaxeMethodPsiMixin {
 
   // TODO: Merge this PsiMixin class(and interface) with HaxeMethod.  There is no reason to keep both, or that this be named 'mixin'.
 
@@ -63,6 +65,10 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   protected HaxeMethodPsiMixinImpl(ASTNode node) {
     super(node);
+  }
+
+  protected HaxeMethodPsiMixinImpl(HaxeMethodStub stub, IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
   @Override
@@ -86,7 +92,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
 
   private HaxeMethodModel _model = null;
   public HaxeMethodModel getModel() {
-    if (_model == null) {
+    if (_model == null || !_model.isValid()) {
       if (this instanceof  HaxeEnumValueDeclarationConstructor constructor) {
         _model = new HaxeEnumValueConstructorModel(constructor);
       }else {
@@ -173,6 +179,16 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     return name != null && name.equals(HaxeTokenTypes.ONEW.toString());
   }
 
+  public boolean isAbstract() {
+    List<HaxeMethodModifier> methodModifiers = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMethodModifier.class);
+    for (HaxeMethodModifier methodModifier : methodModifiers) {
+      if(methodModifier.textMatches(HaxeMethodModifier.ABSTRACT.toString())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @Nullable
   @Override
   public PsiDocComment getDocComment() {
@@ -234,7 +250,7 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @Nullable
   @Override
   public PsiClass getContainingClass() {
-    return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
+    return PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
   }
 
   @NotNull
@@ -306,7 +322,6 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
   @NotNull
   @Override
   public HaxeModifierList getModifierList() {
-
     //
     // Note Haxe's rules for visibility:
     // (from http://haxe.org/manual/class-field-visibility.html)
@@ -326,6 +341,22 @@ public abstract class HaxeMethodPsiMixinImpl extends AbstractHaxeNamedComponent 
     //   lacks their real private behavior.
     //
 
+    // use stub if available
+    HaxeMethodStub stub = getGreenStub();
+    if (stub != null) {
+      HaxeModifierListFromStub list = new HaxeModifierListFromStub(this);
+      if (stub.isStatic()) {
+        list.addModifier(HaxePsiModifier.STATIC);
+      }
+      if (stub.isPublic()) {
+        list.addModifier(HaxePsiModifier.PUBLIC);
+      } else {
+        list.addModifier(HaxePsiModifier.PRIVATE);
+      }
+      return list;
+    }
+
+    // fallback if stub fails
     HaxeModifierList list = super.getModifierList();
 
     if (null == list) {

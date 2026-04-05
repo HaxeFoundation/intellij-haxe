@@ -826,7 +826,14 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
   //TODO MLO: Warning, typedef of typedef will be considered class, should probably return false in this case and create istypeDefOfTypeDef or something
   public boolean isTypeDefOfClass() {
     if (_isTypeDefOfClass == null) {
-      _isTypeDefOfClass = isTypeDef() && ((AbstractHaxeTypeDefImpl)getHaxeClassModel().haxeClass).getTargetClass() != null;
+      _isTypeDefOfClass = false;
+      if(isTypeDef()) {
+        if(getHaxeClass() instanceof AbstractHaxeTypeDefImpl typeDefOfClass) {
+          //TODO mlo: if possible add this as stub info ?
+          _isTypeDefOfClass = typeDefOfClass.getTypeOrAnonymous() != null;
+          return _isTypeDefOfClass;
+        }
+      }
     }
     return _isTypeDefOfClass;
   }

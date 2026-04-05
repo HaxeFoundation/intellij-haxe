@@ -227,6 +227,11 @@ public class HaxePackageModel implements HaxeExposableModel {
     return qualifiedInfo;
   }
 
+  @Override
+  public boolean isValid() {
+    return true;
+  }
+
   public HaxeSourceRootModel getRoot() {
     return root;
   }

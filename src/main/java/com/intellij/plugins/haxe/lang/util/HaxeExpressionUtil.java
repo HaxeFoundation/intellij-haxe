@@ -361,7 +361,7 @@ public class HaxeExpressionUtil {
     PsiElement resolved = null != ref ? ref.resolve() : null;
     String methodName = resolved instanceof HaxeMethod ? ((HaxeMethod)resolved).getName() : null;
 
-    PsiElement parentClass = UsefulPsiTreeUtil.getParentOfType(resolved, HaxeClass.class);
+    PsiElement parentClass = PsiTreeUtil.getStubOrPsiParentOfType(resolved, HaxeClass.class);
     String className = parentClass instanceof HaxeClass ? ((HaxeClass)parentClass).getName() : null;
 
     if ("Std".equals(className)) {

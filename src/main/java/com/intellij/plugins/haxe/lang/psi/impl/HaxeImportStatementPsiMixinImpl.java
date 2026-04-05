@@ -20,13 +20,16 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeImportStub;
 import com.intellij.plugins.haxe.model.HaxeImportModel;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeImportStatement {
+public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStubBasedPsiElementBase<HaxeImportStub>
+  implements HaxeImportStatement, HaxeStatementPsiMixin {
 
   private HaxeImportModel myImportModel = null;
 
@@ -34,10 +37,14 @@ public abstract class HaxeImportStatementPsiMixinImpl extends HaxeStatementPsiMi
     super(node);
   }
 
+  public HaxeImportStatementPsiMixinImpl(HaxeImportStub stub, IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
+  }
+
   @NotNull
   @Override
   public HaxeImportModel getModel() {
-    if (myImportModel == null) {
+    if (myImportModel == null || !myImportModel.isValid()) {
       myImportModel = new HaxeImportModel(this);
     }
     return myImportModel;

@@ -477,7 +477,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
       if (parent instanceof HaxeVarInit varInit) {
-        HaxePsiField field = PsiTreeUtil.getParentOfType(varInit, HaxePsiField.class);
+        HaxePsiField field = PsiTreeUtil.getStubOrPsiParentOfType(varInit, HaxePsiField.class);
         if (field != null) {
           HaxeTypeTag typeTag = field.getTypeTag();
           if (typeTag != null) {
@@ -486,7 +486,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         }
       }
       if (parent instanceof HaxeReturnStatement returnStatement) {
-        HaxeMethod method = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class);
+        HaxeMethod method = PsiTreeUtil.getStubOrPsiParentOfType(returnStatement, HaxeMethod.class);
         if(method != null) {
           HaxeMethodModel model = method.getModel();
           HaxeTypeTag tagPsi = model.getReturnTypeTagPsi();
@@ -497,7 +497,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
     }else {
       if (parent instanceof HaxeReturnStatement returnStatement) {
-        HaxeMethod method = PsiTreeUtil.getParentOfType(returnStatement, HaxeMethod.class);
+        HaxeMethod method = PsiTreeUtil.getStubOrPsiParentOfType(returnStatement, HaxeMethod.class);
         if(method != null) {
           HaxeMethodModel model = method.getModel();
           HaxeTypeTag tagPsi = model.getReturnTypeTagPsi();
@@ -1152,7 +1152,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     boolean isThis = !isEmpty && leftReference.textMatches("this");
     if (isEmpty| isThis || isSuper || isAbstract) {
 
-      HaxeClass type = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
+      HaxeClass type = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeClass.class);
       if (type instanceof HaxeAbstractTypeDeclaration) {
 
         if(isAbstract || isEmpty) {
@@ -2195,7 +2195,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private List<? extends PsiElement> checkIsSuperExpression(HaxeReference reference) {
     if (reference instanceof HaxeSuperExpression && reference.getParent() instanceof HaxeCallExpression) {
-      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(reference, HaxeClass.class);
+      final HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeClass.class);
       if(haxeClass != null) {
         if (!haxeClass.getHaxeExtendsList().isEmpty()) {
           final HaxeExpression superExpression = haxeClass.getHaxeExtendsList().get(0).getReferenceExpression();

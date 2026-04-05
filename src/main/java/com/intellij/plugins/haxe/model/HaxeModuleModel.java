@@ -101,6 +101,11 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     return myQualifiedInfo;
   }
 
+  @Override
+  public boolean isValid() {
+    return module.isValid();
+  }
+
   public HaxeMethodModel getMethod(String name, @Nullable HaxeGenericResolver resolver) {
     if(name == null) return null;
     List<HaxeNamedComponent> components = getAllHaxeNamedComponents(HaxeComponentType.METHOD);

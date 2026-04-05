@@ -187,4 +187,8 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   public int hashCode() {
     return Objects.hash(getBasePsi());
   }
+
+  public boolean isValid() {
+    return basePsi.isValid();
+  }
 }

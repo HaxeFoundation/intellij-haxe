@@ -22,8 +22,10 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,6 +37,10 @@ import java.util.List;
 public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass implements HaxeTypedefDeclaration {
   public AbstractHaxeTypeDefImpl(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public AbstractHaxeTypeDefImpl(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
   private HaxeResolveResult targetClass;

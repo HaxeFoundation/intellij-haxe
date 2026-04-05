@@ -32,7 +32,7 @@ public class HaxeImportAliasPsiMixinImpl extends HaxeStatementPsiMixinImpl imple
 
   public HaxeAliasModel getModel() {
     HaxeAliasModel model = aliasModel.get();
-    if (model != null) {
+    if (model != null && model.isValid()) {
       return model;
     }
     HaxeAliasModel newValue = new HaxeAliasModel(this);

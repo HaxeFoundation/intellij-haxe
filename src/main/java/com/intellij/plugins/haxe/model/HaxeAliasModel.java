@@ -33,4 +33,10 @@ public class HaxeAliasModel implements HaxeModel {
     return null;
   }
 
+  @Override
+  public boolean isValid() {
+    return aliasPsi.isValid();
+  }
+
+
 }

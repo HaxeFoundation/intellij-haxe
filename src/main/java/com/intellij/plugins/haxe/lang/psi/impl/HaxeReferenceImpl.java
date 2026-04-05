@@ -397,7 +397,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     PsiElement resolve = null;
 
     if (isType(HaxeThisExpression.class)) {
-      HaxeClass clazz = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      HaxeClass clazz = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
       // this has different semantics on abstracts
       if (clazz != null && clazz.getModel().isAbstractType()) {
         HaxeTypeOrAnonymous type = clazz.getModel().getUnderlyingTypeOrAnonymous();
@@ -415,7 +415,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
 
     if (isType(HaxeSuperExpression.class)) {
-      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+      final HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
        if (haxeClass == null) return HaxeResolveResult.createEmpty();
       List<HaxeType> extendsList = haxeClass.getHaxeExtendsList();
       if (extendsList.isEmpty()) {
@@ -769,7 +769,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
       }
 
       if (isType(resolve, HaxeEnumValueDeclaration.class)) {
-        final HaxeEnumDeclaration enumDeclaration = UsefulPsiTreeUtil.getParentOfType(resolve, HaxeEnumDeclaration.class);
+        final HaxeEnumDeclaration enumDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(resolve, HaxeEnumDeclaration.class);
         return HaxeResolveResult.create(enumDeclaration, getSpecialization());
       }
 
@@ -1333,7 +1333,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
         }
         else {
           PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(suggestedVariants), this, null, new ResolveState());
-          addClassVariants(suggestedVariants, PsiTreeUtil.getParentOfType(this, HaxeClass.class), false, resolver);
+          addClassVariants(suggestedVariants, PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class), false, resolver);
         }
       }
     }
@@ -1465,7 +1465,7 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     final HaxeReference leftReference = PsiTreeUtil.getChildOfType(expression, HaxeReference.class);
     return leftReference != null
            ? leftReference.resolveHaxeClass()
-           : HaxeResolveResult.create(PsiTreeUtil.getParentOfType(expression, HaxeClass.class));
+           : HaxeResolveResult.create(PsiTreeUtil.getStubOrPsiParentOfType(expression, HaxeClass.class));
   }
 
   @Nullable

@@ -30,7 +30,7 @@ public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractH
   public HaxeNamedComponent getOwner() {
     HaxeMethod methodDeclaration = PsiTreeUtil.getParentOfType(this, HaxeMethodDeclaration.class);
     if (methodDeclaration != null) return methodDeclaration;
-    return PsiTreeUtil.getParentOfType(this, HaxeClass.class);
+    return PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
   }
 
 

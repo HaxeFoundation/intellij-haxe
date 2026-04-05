@@ -36,6 +36,12 @@ public class HaxeModifiersModel {
   }
 
   public boolean hasModifier(@ModifierConstant String modifier) {
+    if (baseElement instanceof StubBasedPsiElement<?> element) {
+      if( element.getStub() instanceof StubWithModifiers stub) {
+        Boolean result = stub.hasKeywordModifier(modifier);
+        if (result != null) return result;
+      }
+    }
     return getModifierPsi(modifier) != null;
   }
 

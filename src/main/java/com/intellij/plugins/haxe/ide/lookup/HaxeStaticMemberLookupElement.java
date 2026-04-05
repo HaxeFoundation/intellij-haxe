@@ -49,7 +49,7 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
                                        String typeValue,
                                        FullyQualifiedInfo fullyQualifiedInfo,
                                        PsiElement helperPsi) {
-      this.fullyQualifiedInfo = fullyQualifiedInfo;
+    this.fullyQualifiedInfo = fullyQualifiedInfo;
     this.packageName = packageName;
     this.moduleName = moduleName;
     this.className = className;
