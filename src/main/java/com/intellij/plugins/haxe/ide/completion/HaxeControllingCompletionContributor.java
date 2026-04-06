@@ -137,8 +137,9 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
 
     // We sort the elements according to name, giving preference to compiler-provided results
     // if the two names are identical.
-    CompletionResult sorted[] = unfilteredCompletions.toArray(new CompletionResult[]{});
-    Arrays.sort(sorted, new Comparator<CompletionResult>() {
+    List<CompletionResult> sorted = unfilteredCompletions.stream()
+            .filter(Objects::nonNull)
+            .sorted(new Comparator<CompletionResult>() {
       @Override
       public int compare(CompletionResult o1, CompletionResult o2) {
         LookupElement el1 = o1.getLookupElement();
@@ -156,12 +157,13 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
           Object obj2 = el2.getObject();
 
           comp = obj1 instanceof HaxeCompilerCompletionItem
-                 ? (obj2 instanceof HaxeCompilerCompletionItem ? 0 : -1)
-                 : (obj2 instanceof HaxeCompilerCompletionItem ? 1 : 0);
+                  ? (obj2 instanceof HaxeCompilerCompletionItem ? 0 : -1)
+                  : (obj2 instanceof HaxeCompilerCompletionItem ? 1 : 0);
         }
         return comp;
       }
-    });
+    })
+            .toList();
 
     // Now remove duplicates by looping over the list, dropping any that match the entry prior.
     ArrayList<CompletionResult> deduped = new ArrayList<CompletionResult>();

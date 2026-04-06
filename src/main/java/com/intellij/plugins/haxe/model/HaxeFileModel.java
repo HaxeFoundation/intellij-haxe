@@ -240,7 +240,8 @@ public class HaxeFileModel implements HaxeExposableModel {
   public List<HaxeUsingModel> getUsingModels() {
     return getChildren().stream()
       .filter(element -> element instanceof HaxeUsingStatement)
-      .map(element -> ((HaxeUsingStatement)element).getModel())
+       .map(HaxeUsingStatement.class::cast)
+      .map(element -> element.getModel())
       .collect(Collectors.toList());
   }
   @NotNull

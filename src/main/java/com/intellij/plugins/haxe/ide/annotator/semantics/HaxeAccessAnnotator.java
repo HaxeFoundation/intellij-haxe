@@ -198,7 +198,7 @@ public class HaxeAccessAnnotator implements Annotator {
     return false;
   }
 
-  private  boolean isStaticAccess(HaxeReferenceExpression referenceExpression) {
+  private boolean isStaticAccess(HaxeReferenceExpression referenceExpression) {
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
     if (leftReference instanceof HaxeReferenceExpressionImpl callie) {
       PsiElement callieResolved = callie.resolve();

@@ -96,7 +96,7 @@ public class HaxeUsingModel extends HaxeImportableModel {
   }
 
   @NotNull
-  private List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo, @Nullable String name) {
+  public List<HaxeMethodModel> getExtensionMethods(@NotNull SpecificTypeReference applyTo, @Nullable String name) {
     List<HaxeClassModel> classes = getClassModels();
     if (classes == null || classes.isEmpty()) return Collections.emptyList();
 

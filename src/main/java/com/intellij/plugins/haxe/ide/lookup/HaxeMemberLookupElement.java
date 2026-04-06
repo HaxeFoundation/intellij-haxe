@@ -33,6 +33,7 @@ import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import icons.HaxeIcons;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -66,8 +67,17 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
                                                             @NotNull Collection<HaxeComponentName> componentNames,
                                                             @NotNull Collection<HaxeComponentName> componentNamesExtension,
-                                                            HaxeGenericResolver resolver) {
+                                                            @Nullable  HaxeGenericResolver resolver) {
+   return convert(leftReferenceResolveResult,componentNames, componentNamesExtension, resolver, false);
+  }
+  @NotNull
+  public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
+                                                            @NotNull Collection<HaxeComponentName> componentNames,
+                                                            @NotNull Collection<HaxeComponentName> componentNamesExtension,
+                                                            @Nullable  HaxeGenericResolver resolver,
+                                                            boolean functionRefsOnly) {
     final List<HaxeMemberLookupElement> result = new ArrayList<>(componentNames.size());
+    if (resolver == null) resolver = new HaxeGenericResolver();
     for (HaxeComponentName componentName : componentNames) {
       HaxeMethodContext context = null;
       boolean shouldBeIgnored = false;
@@ -96,11 +106,12 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
           if (classModel != null && leftReferenceResolveResult != null) {
             HaxeClass currentClass = leftReferenceResolveResult.getHaxeClass();
             HaxeClass membersClass = classModel.haxeClass;
-            if(currentClass != null)  resolver = resolver.translateFromTo(currentClass, membersClass);
+            if(currentClass != null && !resolver.isEmpty())  resolver = resolver.translateFromTo(currentClass, membersClass);
           }
           if (model instanceof  HaxeMethodModel) {
             // adding functionType in addition to method call
             result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model, true));
+            if(functionRefsOnly) continue;
           }
         }
         result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model));

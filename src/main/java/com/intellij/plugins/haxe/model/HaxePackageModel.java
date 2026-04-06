@@ -118,7 +118,7 @@ public class HaxePackageModel implements HaxeExposableModel {
   @Nullable
   public HaxeFileModel getFileModel(String fileName) {
     final HaxeFile file = getFile(fileName);
-    return file != null ? HaxeFileModel.fromElement(file) : null;
+    return file != null && file.isValid() ? HaxeFileModel.fromElement(file) : null;
   }
 
   protected HaxeFile getFile(String filePath) {

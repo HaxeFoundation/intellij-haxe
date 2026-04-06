@@ -589,6 +589,7 @@ public class HaxeTypeResolver {
   }
 
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver, boolean useAssignHint) {
+    //TODO mlo : looks like we need recursion guard (typedef looping back to itself)
     if (resolver != null && !resolver.isEmpty()) {
       PsiElement resolved = type.getReferenceExpression().resolve();
       if (resolved instanceof HaxeTypeParameterDeclaration typeParameter) {

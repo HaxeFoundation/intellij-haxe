@@ -37,12 +37,12 @@ public class HaxeGlobalUsingModel extends HaxeUsingModel {
     }
 
     HaxeModel model = null;
-    if(getBasePsi() instanceof AbstractHaxePsiClass) {
-      model = ((AbstractHaxePsiClass)getBasePsi()).getModel();
+    if(getBasePsi() instanceof AbstractHaxePsiClass psiClass) {
+      model = psiClass.getModel();
     }
 
-    if (getBasePsi() instanceof HaxeFile) {
-      model = ((HaxeFile)getBasePsi()).getModel();
+    if (getBasePsi() instanceof HaxeFile file) {
+      model = file.getModel();
     }
 
     return null == model ? null : model.getQualifiedInfo();
