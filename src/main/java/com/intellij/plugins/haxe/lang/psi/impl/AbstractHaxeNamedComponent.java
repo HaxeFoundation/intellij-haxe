@@ -141,7 +141,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             result.append("(").append(parameterList).append(")");
           }
 
-          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
+          final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
           if (null != typeTag) {
             final String typeName = HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeTag);
             if (!typeName.isEmpty()) {
@@ -213,7 +213,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public HaxeNamedComponent getTypeComponent() {
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
+    final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(getParent(), HaxeTypeTag.class);
     final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;

@@ -450,7 +450,7 @@ public class HaxeTypeResolver {
 
   @NotNull
   static public ResultHolder getTypeFromTypeTag(PsiElement comp, @NotNull PsiElement context) {
-    return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
+    return getTypeFromTypeTag(PsiTreeUtil.getStubChildOfType(comp, HaxeTypeTag.class), context);
   }
 
   @NotNull

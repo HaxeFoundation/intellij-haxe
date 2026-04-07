@@ -140,7 +140,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
             result.append("(").append(parameterList).append(")");
           }
 
-          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(HaxeStubBasedNamedComponent.this, HaxeTypeTag.class);
+          final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(HaxeStubBasedNamedComponent.this, HaxeTypeTag.class);
           if (null != typeTag) {
             final String typeName = HaxePresentableUtil.buildTypeText(HaxeStubBasedNamedComponent.this, typeTag);
             if (!typeName.isEmpty()) {
@@ -208,7 +208,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
 
   @Override
   public HaxeNamedComponent getTypeComponent() {
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
+    final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(getParent(), HaxeTypeTag.class);
     final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;

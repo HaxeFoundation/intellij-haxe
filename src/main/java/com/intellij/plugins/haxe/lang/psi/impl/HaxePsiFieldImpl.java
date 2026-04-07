@@ -170,7 +170,7 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
   @Override
   public PsiType getType() {
     PsiType psiType = null;
-    final HaxeTypeTag tag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
+    final HaxeTypeTag tag = PsiTreeUtil.getStubChildOfType(this, HaxeTypeTag.class);
     if (tag != null) {
       final HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
       final HaxeType type = (toa != null) ? toa.getType() : null;
