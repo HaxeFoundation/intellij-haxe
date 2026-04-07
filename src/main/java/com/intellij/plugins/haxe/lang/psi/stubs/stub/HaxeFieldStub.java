@@ -32,6 +32,10 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
   private final String name;
   private final int flags;
   private final int metaFlags;
+  /** Text of the getter accessor, e.g. {@code "get"}, {@code "null"}, {@code "default"}, or {@code null} if not a property. */
+  @Nullable private final String getter;
+  /** Text of the setter accessor, e.g. {@code "set"}, {@code "null"}, {@code "never"}, or {@code null} if not a property. */
+  @Nullable private final String setter;
 
   public HaxeFieldStub(StubElement parent,
                         @NotNull IStubElementType elementType,
@@ -40,7 +44,9 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
                         boolean isPublic,
                         boolean isFinal,
                         boolean isInline,
-                        int metaFlags) {
+                        int metaFlags,
+                        @Nullable String getter,
+                        @Nullable String setter) {
     super(parent, elementType);
     this.name = name;
     this.flags = (isStatic ? IS_STATIC : 0)
@@ -48,17 +54,23 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
                | (isFinal ? IS_FINAL : 0)
                | (isInline ? IS_INLINE : 0);
     this.metaFlags = metaFlags;
+    this.getter = getter;
+    this.setter = setter;
   }
 
   public HaxeFieldStub(StubElement parent,
                         @NotNull IStubElementType elementType,
                         @Nullable String name,
                         int flags,
-                        int metaFlags) {
+                        int metaFlags,
+                        @Nullable String getter,
+                        @Nullable String setter) {
     super(parent, elementType);
     this.name = name;
     this.flags = flags;
     this.metaFlags = metaFlags;
+    this.getter = getter;
+    this.setter = setter;
   }
 
   @Nullable
@@ -88,6 +100,23 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
 
   public boolean isInline() {
     return (flags & IS_INLINE) != 0;
+  }
+
+  /** Returns the getter accessor text (e.g. {@code "get"}, {@code "null"}), or {@code null} if this is not a property field. */
+  @Nullable
+  public String getGetter() {
+    return getter;
+  }
+
+  /** Returns the setter accessor text (e.g. {@code "set"}, {@code "never"}), or {@code null} if this is not a property field. */
+  @Nullable
+  public String getSetter() {
+    return setter;
+  }
+
+  /** Returns {@code true} if this field has a property declaration (getter/setter accessors). */
+  public boolean isProperty() {
+    return getter != null;
   }
 
   /**

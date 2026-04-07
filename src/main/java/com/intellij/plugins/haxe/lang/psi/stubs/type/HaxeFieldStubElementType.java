@@ -5,11 +5,11 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeMutabilityModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiField;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.HaxePropertyDeclaration;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.psi.stubs.*;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
@@ -45,15 +45,20 @@ public class HaxeFieldStubElementType extends IStubElementType<HaxeFieldStub, Ha
   @Override
   public HaxeFieldStub createStub(@NotNull HaxePsiField psi, StubElement parentStub) {
     boolean isFinal = false;
+    String getter = null;
+    String setter = null;
+
     if (psi instanceof HaxeFieldDeclaration fieldDecl) {
-
-      // TODO add FQN to stub and index for FQN lookup of static members
-//      FullyQualifiedInfo qualifiedInfo = fieldDecl.getModel().getQualifiedInfo();
-
       HaxeMutabilityModifier mutabilityPsi = fieldDecl.getMutabilityModifier();
-
       if (mutabilityPsi != null) {
         isFinal = mutabilityPsi.getText().equals(HaxePsiModifier.FINAL);
+      }
+
+      HaxePropertyDeclaration prop = fieldDecl.getPropertyDeclaration();
+      if (prop != null) {
+        var accessors = prop.getPropertyAccessorList();
+        if (accessors.size() >= 1) getter = accessors.get(0).getText();
+        if (accessors.size() >= 2) setter = accessors.get(1).getText();
       }
     }
 
@@ -66,7 +71,9 @@ public class HaxeFieldStubElementType extends IStubElementType<HaxeFieldStub, Ha
                               psi.isPublic(),
                               isFinal,
                               psi.isInline(),
-                              metaFlags);
+                              metaFlags,
+                              getter,
+                              setter);
   }
 
   /** Walks preceding sibling metadata and packs the result into a metaFlags bitmask. */
@@ -89,16 +96,22 @@ public class HaxeFieldStubElementType extends IStubElementType<HaxeFieldStub, Ha
     dataStream.writeName(stub.getName());
     dataStream.writeVarInt(stub.getFlags());
     dataStream.writeVarInt(stub.getMetaFlags());
+    dataStream.writeName(stub.getGetter());
+    dataStream.writeName(stub.getSetter());
   }
 
   @NotNull
   @Override
   public HaxeFieldStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-    StringRef nameRef = dataStream.readName();
-    int flags = dataStream.readVarInt();
-    int metaFlags = dataStream.readVarInt();
-    String name = nameRef != null ? nameRef.getString() : null;
-    return new HaxeFieldStub(parentStub, this, name, flags, metaFlags);
+    StringRef nameRef   = dataStream.readName();
+    int flags           = dataStream.readVarInt();
+    int metaFlags       = dataStream.readVarInt();
+    StringRef getterRef = dataStream.readName();
+    StringRef setterRef = dataStream.readName();
+    String name   = nameRef   != null ? nameRef.getString()   : null;
+    String getter = getterRef != null ? getterRef.getString() : null;
+    String setter = setterRef != null ? setterRef.getString() : null;
+    return new HaxeFieldStub(parentStub, this, name, flags, metaFlags, getter, setter);
   }
 
   @Override
