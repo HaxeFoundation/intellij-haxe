@@ -632,12 +632,8 @@ public class HaxeTypeResolver {
           if(typeOrAnonymous != null) {
             ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous);
             partResult = resolver.resolve(holder, useAssignHint);
-          }else if(part.getFunctionType()  instanceof  HaxeSpecificFunction function) {
-            SpecificFunctionReference functionReference = SpecificFunctionReference.create(function);
-            SpecificFunctionReference resolved = resolver.resolve(functionReference, useAssignHint);
-            if(resolved != null) {
-              partResult = resolved.createHolder();
-            }
+          }else if(part.getFunctionType() != null) {
+            // HaxeSpecificFunction instances are never in the real PSI tree; handled below.
           }
         }
         if (null == partResult) {

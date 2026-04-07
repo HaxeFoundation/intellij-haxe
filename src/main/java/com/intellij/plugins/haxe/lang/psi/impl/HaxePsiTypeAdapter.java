@@ -279,6 +279,16 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   // HaxeType methods.
   //
 
+  @Nullable
+  @Override
+  public com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub getStub() {
+    return myType.getStub();
+  }
+
+  @Override
+  public com.intellij.psi.stubs.IStubElementType getElementType() {
+    return myType.getElementType();
+  }
 
   @NotNull
   @Override

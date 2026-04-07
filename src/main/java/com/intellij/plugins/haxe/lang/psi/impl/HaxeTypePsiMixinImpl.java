@@ -23,7 +23,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.stubs.IStubElementType;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 10/9/14.
  */
 @CustomLog
-public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypePsiMixin {
+public class HaxeTypePsiMixinImpl extends HaxeContainerStubPsiElementBase implements HaxeTypePsiMixin {
 
   static {
     log.setLevel(LogLevel.DEBUG);
@@ -39,6 +41,10 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
 
   public HaxeTypePsiMixinImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeTypePsiMixinImpl(HaxeContainerStub<?> stub, IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
 

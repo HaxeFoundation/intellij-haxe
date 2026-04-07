@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implements HaxeFunctionType {
+public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl {
 
   public static class Argument extends HaxeFunctionArgumentImpl {
     final private HaxeParameter parameter;
@@ -127,7 +127,6 @@ public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implem
   }
 
   @NotNull
-  @Override
   public List<HaxeFunctionArgument> getFunctionArgumentList() {
     if (null != functionType) {
       return functionType.getFunctionArgumentList();
@@ -142,7 +141,6 @@ public class HaxeSpecificFunction extends HaxeAbstractTypeDeclarationImpl implem
   }
 
   @Nullable
-  @Override
   public HaxeFunctionReturnType getFunctionReturnType() {
     //TODO consider cache ?
     return null != functionType ? functionType.getFunctionReturnType()

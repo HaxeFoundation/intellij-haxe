@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.stubs;
 
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.type.*;
 
@@ -68,4 +69,5 @@ public interface HaxeStubElementTypes {
   HaxeModuleStubElementType MODULE = new HaxeModuleStubElementType();
 
 }
+
 

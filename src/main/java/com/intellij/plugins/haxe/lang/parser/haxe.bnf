@@ -640,7 +640,15 @@ mapLiteral ::=  <<isInitializersAllowed>> <<pushStateMapInitializerOrMacro>> '['
 optionalMark ::= '?'
 // this order is important, if new is first then  the return value for `(Int->Void)->(String->Void)->Float` becomes `(String->Void)->Float` and not `Float` as its suppose to be
 functionType ::= oldFunctionType | newFunctionType
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 functionReturnType ::= typeWrapper
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 // normal types have type parameters that can be nested so its best to check types before function types/function signatures
 // as functions are not nested and checking them first will cause a wasted function type check on every nested type in normal types
 // to avoid normal types from consume tokens from function type we add should not end with function type check ( !'->')
@@ -649,13 +657,25 @@ private typeWrapper ::=  typeOrAnonymous !'->' | functionType
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=4}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]
 functionArgument ::=  optionalFunctionTypeWithoutName  | namedFunctionType | namedTypeOrAnonymous
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 private namedTypeOrAnonymous ::= ([optionalMark] [componentName ':'] (restArgumentType | typeOrAnonymous  ))
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
 private optionalFunctionTypeWithoutName ::= [optionalMark] '(' functionType ')' {pin=3}
 restArgumentType ::= '...' typeWrapper
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 // "oldRestArgumentType" allow us to have ... start arguments in  old functionType style without
 // it consuming parts of the rest of function type (like restArgumentType would as it also looks for functionTypes).
-oldRestArgumentType ::= '...' typeOrAnonymous {extends=restArgumentType}
+oldRestArgumentType ::= '...' typeOrAnonymous
+{
+  extends=restArgumentType
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
 oldFunctionTypeArgument ::=  oldRestArgumentType | (optionalMark? ('(' functionType ')' |  ('(' typeOrAnonymous ')'  | typeOrAnonymous ))) {elementType="functionArgument" pin(".*")=3}
@@ -676,11 +696,16 @@ oldFunctionTypeArgument ::=  oldRestArgumentType | (optionalMark? ('(' functionT
  */
 
 typeTag ::= ':' typeWrapper
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 typeParam ::= '<' typeList '>'
 {
 methods=[typeList="typeListPart"]
 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl"
 implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"
+stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
 }
 private typeList ::= typeListPart (',' typeListPart)*
 private haxe4typeList ::= typeListPart ('&' typeListPart)+ {extends=typeList}
@@ -715,10 +740,14 @@ private normalGenericListPart ::= componentName (':' genericConstraintPart)? ('=
 private constGenericListPart ::= constantExpression (':' genericConstraintPart)? {pin=2}
 
 typeListPart ::= typeWrapper | literalExpression
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
 typeOrAnonymous ::=  anonymousType | type
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
 blockStatement ::= '{' !objectLiteralElementList statementList? '}'

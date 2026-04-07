@@ -186,7 +186,7 @@ public class SpecificFunctionReference extends SpecificTypeReference {
                                 ? determineType(func, resolver, returnType.getFunctionType(), returnType.getTypeOrAnonymous())
                                 : determineType(func, resolver, null, null);
 
-    return new SpecificFunctionReference(args, returnResult, func, func);
+    return new SpecificFunctionReference(args, returnResult, func.getFunctionType(), func);
   }
 
   private static ResultHolder determineType(PsiElement context, HaxeGenericResolver resolver, HaxeFunctionType fnType, HaxeTypeOrAnonymous toa) {
