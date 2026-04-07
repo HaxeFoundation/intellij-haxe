@@ -21,9 +21,11 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.impl.PsiImplUtil;
+import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
@@ -32,12 +34,16 @@ import java.util.List;
 /**
  * @author: Srikanth.Ganapavarapu
  */
-public class HaxeParameterListPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeParameterListPsiMixin {
+public class HaxeParameterListPsiMixinImpl extends HaxeContainerStubPsiElementBase implements HaxeParameterListPsiMixin {
 
   private static HaxeParameter[] EMPTY_ARRAY = new HaxeParameter[0];
 
-  public HaxeParameterListPsiMixinImpl(ASTNode node) {
+  public HaxeParameterListPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public HaxeParameterListPsiMixinImpl(@NotNull HaxeContainerStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   @NotNull

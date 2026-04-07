@@ -68,6 +68,50 @@ public interface HaxeStubElementTypes {
   HaxeUsingStubElementType USING_STATEMENT = new HaxeUsingStubElementType();
   HaxeModuleStubElementType MODULE = new HaxeModuleStubElementType();
 
+  // --- Type sub-tree (container stubs) ---
+  HaxeContainerStubElementType<HaxeTypeTag> TYPE_TAG =
+    new HaxeContainerStubElementType<>("TYPE_TAG", (stub, type) -> new HaxeTypeTagImpl(stub, type));
+  HaxeContainerStubElementType<HaxeTypeOrAnonymous> TYPE_OR_ANONYMOUS =
+    new HaxeContainerStubElementType<>("TYPE_OR_ANONYMOUS", (stub, type) -> new HaxeTypeOrAnonymousImpl(stub, type));
+  HaxeContainerStubElementType<HaxeType> TYPE =
+    new HaxeContainerStubElementType<>("TYPE", (stub, type) -> new HaxeTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeTypeParam> TYPE_PARAM =
+    new HaxeContainerStubElementType<>("TYPE_PARAM", (stub, type) -> new HaxeTypeParamImpl(stub, type));
+  HaxeContainerStubElementType<HaxeTypeListPart> TYPE_LIST_PART =
+    new HaxeContainerStubElementType<>("TYPE_LIST_PART", (stub, type) -> new HaxeTypeListPartImpl(stub, type));
+  HaxeContainerStubElementType<HaxeFunctionType> FUNCTION_TYPE =
+    new HaxeContainerStubElementType<>("FUNCTION_TYPE", (stub, type) -> new HaxeFunctionTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeFunctionArgument> FUNCTION_ARGUMENT =
+    new HaxeContainerStubElementType<>("FUNCTION_ARGUMENT", (stub, type) -> new HaxeFunctionArgumentImpl(stub, type));
+  HaxeContainerStubElementType<HaxeFunctionReturnType> FUNCTION_RETURN_TYPE =
+    new HaxeContainerStubElementType<>("FUNCTION_RETURN_TYPE", (stub, type) -> new HaxeFunctionReturnTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeRestArgumentType> REST_ARGUMENT_TYPE =
+    new HaxeContainerStubElementType<>("REST_ARGUMENT_TYPE", (stub, type) -> new HaxeRestArgumentTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeRestArgumentType> OLD_REST_ARGUMENT_TYPE =
+    new HaxeContainerStubElementType<>("OLD_REST_ARGUMENT_TYPE", (stub, type) -> new HaxeOldRestArgumentTypeImpl(stub, type));
+
+  // --- Parameters ---
+  HaxeParameterStubElementType PARAMETER = new HaxeParameterStubElementType(
+    "PARAMETER", (stub, type) -> new HaxeParameterImpl(stub, type));
+  HaxeParameterStubElementType REST_PARAMETER = new HaxeParameterStubElementType(
+    "REST_PARAMETER", (stub, type) -> new HaxeRestParameterImpl(stub, type));
+  HaxeParameterStubElementType UNTYPED_PARAMETER = new HaxeParameterStubElementType(
+    "UNTYPED_PARAMETER", (stub, type) -> new HaxeUntypedParameterImpl(stub, type));
+  HaxeContainerStubElementType<HaxeParameterList> PARAMETER_LIST =
+    new HaxeContainerStubElementType<>("PARAMETER_LIST", (stub, type) -> new HaxeParameterListImpl(stub, type));
+  HaxeContainerStubElementType<HaxeOpenParameterList> OPEN_PARAMETER_LIST =
+    new HaxeContainerStubElementType<>("OPEN_PARAMETER_LIST", (stub, type) -> new HaxeOpenParameterListImpl(stub, type));
+
+  // --- Generic type params ---
+  HaxeGenericListPartStubElementType GENERIC_LIST_PART =
+    new HaxeGenericListPartStubElementType((stub, type) -> new HaxeGenericListPartImpl(stub, type));
+  HaxeContainerStubElementType<HaxeGenericParam> GENERIC_PARAM =
+    new HaxeContainerStubElementType<>("GENERIC_PARAM", (stub, type) -> new HaxeGenericParamImpl(stub, type));
+  HaxeContainerStubElementType<HaxeGenericDefaultType> GENERIC_DEFAULT_TYPE =
+    new HaxeContainerStubElementType<>("GENERIC_DEFAULT_TYPE", (stub, type) -> new HaxeGenericDefaultTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeGenericConstraintPart> GENERIC_CONSTRAINT_PART =
+    new HaxeContainerStubElementType<>("GENERIC_CONSTRAINT_PART", (stub, type) -> new HaxeGenericConstraintPartImpl(stub, type));
+
 }
 
 

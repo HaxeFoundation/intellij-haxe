@@ -21,7 +21,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
 import com.intellij.psi.*;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
@@ -34,19 +36,15 @@ import java.util.Arrays;
  * @author: Srikanth.Ganapavarapu
  */
 @CustomLog
-public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeParameterPsiMixin {
+public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedComponent<HaxeParameterStub> implements HaxeParameterPsiMixin {
 
 
-  public HaxeParameterPsiMixinImpl(ASTNode node) {
+  public HaxeParameterPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  public HaxeParameterPsiMixinImpl(PsiParameter parameter) {
-    super(parameter.getNode());
-  }
-
-  public HaxeParameterPsiMixinImpl(HaxeParameter parameter) {
-    super(parameter.getNode());
+  public HaxeParameterPsiMixinImpl(@NotNull HaxeParameterStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   @Override

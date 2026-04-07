@@ -613,18 +613,18 @@ private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' lambdaBody
 
 varInit ::= (!';') '=' expression {pin=2}
 parameter ::= optionalMark? componentName typeTag? varInit?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
 restParameter ::= ('...'componentName typeTag?)
-{extends= parameter}
+{extends= parameter stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
 
 
 // An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
-untypedParameter ::= componentName {extends=parameter}
+untypedParameter ::= componentName {extends=parameter stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
 openParameterList ::= untypedParameter
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
 
 private parenthesizedParameterList ::= '(' parameterList ')'
-parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"}
+parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
@@ -712,13 +712,22 @@ private haxe4typeList ::= typeListPart ('&' typeListPart)+ {extends=typeList}
 
 
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 genericListPart ::= normalGenericListPart  | constGenericListPart
 {
   implements="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration"
-  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclarationPsiMixinImpl"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeGenericListPartPsiMixinImpl"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeGenericListPartStub"
 }
 
 genericDefaultType ::= typeWrapper
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 constraintTypeList ::= ('(' (haxe4typeList | typeList) ')' | haxe4typeList )
 {
     methods=[constraintTypes="typeListPart"]
@@ -731,7 +740,10 @@ constraintTypeList ::= ('(' (haxe4typeList | typeList) ')' | haxe4typeList )
 // @:const -> Allows a type parameter to accept expression values.
 
 private genericConstraintType ::=  constraintTypeList |  typeOrAnonymous !'->' | functionType | expression
-genericConstraintPart ::= genericConstraintType {methods=[constExpression="expression"]}
+genericConstraintPart ::= genericConstraintType {methods=[constExpression="expression"]
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+}
 
 
 private normalGenericListPart ::= componentName (':' genericConstraintPart)? ('=' genericDefaultType)?

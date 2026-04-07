@@ -45,6 +45,28 @@ public class HaxeStubElementTypeFactory {
       case "USING_STATEMENT" -> HaxeStubElementTypes.USING_STATEMENT;
       // Package
       case "PACKAGE_STATEMENT" -> HaxeStubElementTypes.PACKAGE_STATEMENT;
+      // Type sub-tree (container stubs)
+      case "TYPE_TAG" -> HaxeStubElementTypes.TYPE_TAG;
+      case "TYPE_OR_ANONYMOUS" -> HaxeStubElementTypes.TYPE_OR_ANONYMOUS;
+      case "TYPE" -> HaxeStubElementTypes.TYPE;
+      case "TYPE_PARAM" -> HaxeStubElementTypes.TYPE_PARAM;
+      case "TYPE_LIST_PART" -> HaxeStubElementTypes.TYPE_LIST_PART;
+      case "FUNCTION_TYPE" -> HaxeStubElementTypes.FUNCTION_TYPE;
+      case "FUNCTION_ARGUMENT" -> HaxeStubElementTypes.FUNCTION_ARGUMENT;
+      case "FUNCTION_RETURN_TYPE" -> HaxeStubElementTypes.FUNCTION_RETURN_TYPE;
+      case "REST_ARGUMENT_TYPE" -> HaxeStubElementTypes.REST_ARGUMENT_TYPE;
+      case "OLD_REST_ARGUMENT_TYPE" -> HaxeStubElementTypes.OLD_REST_ARGUMENT_TYPE;
+      // Parameters
+      case "PARAMETER" -> HaxeStubElementTypes.PARAMETER;
+      case "REST_PARAMETER" -> HaxeStubElementTypes.REST_PARAMETER;
+      case "UNTYPED_PARAMETER" -> HaxeStubElementTypes.UNTYPED_PARAMETER;
+      case "PARAMETER_LIST" -> HaxeStubElementTypes.PARAMETER_LIST;
+      case "OPEN_PARAMETER_LIST" -> HaxeStubElementTypes.OPEN_PARAMETER_LIST;
+      // Generic type params
+      case "GENERIC_LIST_PART" -> HaxeStubElementTypes.GENERIC_LIST_PART;
+      case "GENERIC_PARAM" -> HaxeStubElementTypes.GENERIC_PARAM;
+      case "GENERIC_DEFAULT_TYPE" -> HaxeStubElementTypes.GENERIC_DEFAULT_TYPE;
+      case "GENERIC_CONSTRAINT_PART" -> HaxeStubElementTypes.GENERIC_CONSTRAINT_PART;
       // All other rules — plain element type
       default -> new HaxeElementType(name);
     };
