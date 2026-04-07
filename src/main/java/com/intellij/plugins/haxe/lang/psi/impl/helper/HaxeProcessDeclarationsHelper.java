@@ -80,7 +80,7 @@ public final class HaxeProcessDeclarationsHelper {
     if (openParameterList != null) {
       result.add(openParameterList);
     }
-    final HaxeGenericParam genericParam = PsiTreeUtil.getChildOfType(self, HaxeGenericParam.class);
+    final HaxeGenericParam genericParam = PsiTreeUtil.getStubChildOfType(self, HaxeGenericParam.class);
     if (genericParam != null) {
       result.addAll(genericParam.getGenericListPartList());
     }

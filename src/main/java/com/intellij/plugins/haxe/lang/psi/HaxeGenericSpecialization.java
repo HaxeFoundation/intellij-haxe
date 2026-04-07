@@ -250,7 +250,7 @@ public class HaxeGenericSpecialization implements Cloneable {
       if (haxeClass != null) {
         result.append(haxeClass.getQualifiedName());
       }
-      if (PsiTreeUtil.getChildOfType(namedComponent, HaxeGenericParam.class) != null) {
+      if (PsiTreeUtil.getStubChildOfType(namedComponent, HaxeGenericParam.class) != null) {
         // generic method
         result.append(":");
         result.append(namedComponent.getName());
