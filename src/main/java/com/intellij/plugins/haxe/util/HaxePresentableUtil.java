@@ -19,7 +19,6 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
@@ -56,11 +55,11 @@ public class HaxePresentableUtil {
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean addTypes, boolean addOptionalAndDefaults) {
     final StringBuilder result = new StringBuilder();
-    final HaxeParameterListPsiMixinImpl parameterList = PsiTreeUtil.getChildOfType(element, HaxeParameterListPsiMixinImpl.class);
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(element, HaxeParameterList.class);
     if (parameterList == null) {
       return "";
     }
-    final List<HaxeParameter> list = parameterList.getParametersAsList();
+    final List<HaxeParameter> list = parameterList.getParameterList();
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
       if(addOptionalAndDefaults && parameter.getOptionalMark() != null){

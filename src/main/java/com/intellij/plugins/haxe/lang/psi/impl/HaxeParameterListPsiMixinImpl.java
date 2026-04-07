@@ -55,7 +55,8 @@ public class HaxeParameterListPsiMixinImpl extends HaxeContainerStubPsiElementBa
     }
     return psiParameters;
   }
-
+  //  no longer used ?
+ /*
   public List<HaxeParameter> getParametersAsList() {
     HaxeParameter[] parameters = UsefulPsiTreeUtil.getChildrenOfType(this, HaxeParameter.class, null);
     if (parameters == null) {
@@ -63,7 +64,7 @@ public class HaxeParameterListPsiMixinImpl extends HaxeContainerStubPsiElementBa
     }
     return Arrays.asList(parameters);
   }
-
+*/
   @Override
   public int getParameterIndex(PsiParameter parameter) {
     return PsiImplUtil.getParameterIndex(parameter, this);

@@ -72,7 +72,7 @@ public final class HaxeProcessDeclarationsHelper {
       }
     }
 
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(self, HaxeParameterList.class);
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(self, HaxeParameterList.class);
     if (parameterList != null) {
       result.addAll(parameterList.getParameterList());
     }

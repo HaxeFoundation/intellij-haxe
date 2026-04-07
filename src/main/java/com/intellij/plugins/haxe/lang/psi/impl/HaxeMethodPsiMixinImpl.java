@@ -394,7 +394,7 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
   @NotNull
   @Override
   public PsiParameterList getParameterList() {
-    final HaxeParameterList list = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
+    final HaxeParameterList list = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
     return ((list != null) ? list : new HaxeParameterListImpl(new HaxeDummyASTNode("Dummy parameter list", getProject())));
   }
 

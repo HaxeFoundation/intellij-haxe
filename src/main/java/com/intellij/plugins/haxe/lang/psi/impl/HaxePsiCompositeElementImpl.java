@@ -158,7 +158,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
       }
     }
 
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(this, HaxeParameterList.class);
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
     if (parameterList != null) {
       result.addAll(parameterList.getParameterList());
     }
