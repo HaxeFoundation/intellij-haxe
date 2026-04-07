@@ -404,18 +404,17 @@ public class HaxeClassAnnotator implements Annotator {
           else  if (fieldResultClassOnly.isPresent()){
             final HaxeFieldDeclaration fieldDeclaration = fieldResultClassOnly.get();
 
-            if (intField.getPropertyDeclarationPsi() != null) {
-              HaxePropertyAccessor intGetter = intField.getGetterPsi();
-              HaxePropertyAccessor intSetter = intField.getSetterPsi();
+            if (intField.isProperty()) {
+              String intGetterText = intField.getGetterText();
+              String intSetterText = intField.getSetterText();
               HaxePropertyDeclaration propertyDeclaration = fieldDeclaration.getPropertyDeclaration();
 
               if (propertyDeclaration == null) {
                 // some combinations are compatible with normal variables
-                if (intGetter.textMatches(ACCESSOR_DEFAULT) && (intSetter.textMatches(ACCESSOR_NEVER) || intSetter.textMatches(
-                  ACCESSOR_NULL))) {
+                if (ACCESSOR_DEFAULT.equals(intGetterText) && (ACCESSOR_NEVER.equals(intSetterText) || ACCESSOR_NULL.equals(intSetterText))) {
                   continue;
                 }
-                if (intGetter.textMatches(ACCESSOR_NEVER) && (intSetter.textMatches(ACCESSOR_NULL))) {
+                if (ACCESSOR_NEVER.equals(intGetterText) && ACCESSOR_NULL.equals(intSetterText)) {
                   continue;
                 }
 
@@ -425,25 +424,23 @@ public class HaxeClassAnnotator implements Annotator {
                 HaxePropertyAccessor getter = propertyDeclaration.getPropertyAccessorList().get(0);
                 HaxePropertyAccessor setter = propertyDeclaration.getPropertyAccessorList().get(1);
 
-
-                if (intGetter != null && getter != null) {
+                if (intGetterText != null && getter != null) {
                   // never is just restricting visibility for interface (class may use different access)
                   // null only specifies access allowed from within the defining class (class may use different access)
                   // dynamic: Like get/set access, but does not verify the existence of the accessor field.
-                  if (!intGetter.textMatches(ACCESSOR_NEVER) && !intGetter.textMatches(ACCESSOR_NULL) && intGetter.textMatches(ACCESSOR_DYNAMIC)) {
-
-                  if (!intGetter.textMatches(getter)) {
-                    annotateDifferentAccess(intReference, holder, fieldDeclaration, getter.getElement());
-                  }
+                  if (!ACCESSOR_NEVER.equals(intGetterText) && !ACCESSOR_NULL.equals(intGetterText) && ACCESSOR_DYNAMIC.equals(intGetterText)) {
+                    if (!intGetterText.equals(getter.getText())) {
+                      annotateDifferentAccess(intReference, holder, fieldDeclaration, getter.getElement());
+                    }
                   }
                 }
 
-                if (intSetter != null && setter != null) {
+                if (intSetterText != null && setter != null) {
                   // never is just restricting visibility for interface (class may use different access)
                   // null only specifies access allowed from within the defining class (class may use different access )
                   // dynamic: Like get/set access, but does not verify the existence of the accessor field.
-                  if (!intSetter.textMatches(ACCESSOR_NEVER) && !intSetter.textMatches(ACCESSOR_NULL) && !intSetter.textMatches(ACCESSOR_DYNAMIC)) {
-                    if (!intSetter.textMatches(setter)) {
+                  if (!ACCESSOR_NEVER.equals(intSetterText) && !ACCESSOR_NULL.equals(intSetterText) && !ACCESSOR_DYNAMIC.equals(intSetterText)) {
+                    if (!intSetterText.equals(setter.getText())) {
                       annotateDifferentAccess(intReference, holder, fieldDeclaration, setter.getElement());
                     }
                   }

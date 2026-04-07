@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxePropertyAccessor;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 public enum HaxeAccessorType {
   DEFAULT("default"),
@@ -36,6 +37,12 @@ public enum HaxeAccessorType {
 
   HaxeAccessorType(String text) {
     this.text = text;
+  }
+
+  /** Creates an {@code HaxeAccessorType} from a stub-stored text value. Returns {@link #INVALID} for {@code null}. */
+  public static HaxeAccessorType from(@Nullable String text) {
+    if (text == null) return INVALID;
+    return fromString(text);
   }
 
   private static HaxeAccessorType fromString(String text) {

@@ -20,10 +20,12 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.lang.util.HaxeExpressionUtil;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.StubBasedPsiElement;
 import com.intellij.util.ObjectUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -51,9 +53,51 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   @Nullable
+  private HaxeFieldStub getFieldStub() {
+    if (getPsiField() instanceof StubBasedPsiElement<?> stubPsi) {
+      if (stubPsi.getStub() instanceof HaxeFieldStub fieldStub) {
+        return fieldStub;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
   public HaxePropertyDeclaration getPropertyDeclarationPsi() {
     final PsiElement basePsi = getBasePsi();
     return basePsi instanceof HaxeFieldDeclaration ? ((HaxeFieldDeclaration)basePsi).getPropertyDeclaration() : null;
+  }
+
+  /**
+   * Returns the full property declaration text (e.g. {@code "(get, set)"}), using the stub when available,
+   * falling back to PSI. Returns {@code null} if this is not a property field.
+   */
+  @Nullable
+  public String getPropertyDeclarationText() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) {
+      return stub.isProperty() ? "(" + stub.getGetter() + ", " + stub.getSetter() + ")" : null;
+    }
+    HaxePropertyDeclaration decl = getPropertyDeclarationPsi();
+    return decl != null ? decl.getText() : null;
+  }
+
+  /** Returns the getter accessor text (e.g. {@code "get"}, {@code "null"}), using stub when available. */
+  @Nullable
+  public String getGetterText() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) return stub.getGetter();
+    HaxePropertyAccessor psi = getGetterPsi();
+    return psi != null ? psi.getText() : null;
+  }
+
+  /** Returns the setter accessor text (e.g. {@code "set"}, {@code "never"}), using stub when available. */
+  @Nullable
+  public String getSetterText() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) return stub.getSetter();
+    HaxePropertyAccessor psi = getSetterPsi();
+    return psi != null ? psi.getText() : null;
   }
 
   @Nullable
@@ -80,15 +124,21 @@ public class HaxeFieldModel extends HaxeMemberModel {
 
   @NotNull
   public HaxeAccessorType getSetterType() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) return HaxeAccessorType.from(stub.getSetter());
     return HaxeAccessorType.fromPsi(getSetterPsi());
   }
 
   @NotNull
   public HaxeAccessorType getGetterType() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) return HaxeAccessorType.from(stub.getGetter());
     return HaxeAccessorType.fromPsi(getGetterPsi());
   }
 
   public boolean isProperty() {
+    HaxeFieldStub stub = getFieldStub();
+    if (stub != null) return stub.isProperty();
     return getPropertyDeclarationPsi() != null;
   }
 
