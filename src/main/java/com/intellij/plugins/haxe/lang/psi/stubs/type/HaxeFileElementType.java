@@ -1,6 +1,8 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.type;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.HaxeLanguage;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFileStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubVersions;
@@ -51,7 +53,18 @@ public class HaxeFileElementType extends IStubFileElementType<HaxeFileStub> {
         }
         return new HaxeFileStub(null);
       }
+
+      /**
+       * Prevents stub creation for anything inside a method/function body.
+       * blockStatement is the grammar rule for all function bodies (methods, constructors,
+       * lambdas, local functions). None of the nodes inside a body contribute to stub
+       * indexes, and stubbing them (e.g. typeTag on local variables) wastes disk space
+       * and slows down indexing.
+       */
+      @Override
+      public boolean skipChildProcessingWhenBuildingStubs(@NotNull ASTNode parent, @NotNull ASTNode node) {
+        return parent.getElementType() == HaxeTokenTypes.BLOCK_STATEMENT;
+      }
     };
   }
 }
-
