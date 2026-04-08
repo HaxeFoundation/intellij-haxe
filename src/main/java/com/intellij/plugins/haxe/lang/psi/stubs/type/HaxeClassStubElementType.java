@@ -66,7 +66,6 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     // Collect super type names from extends/implements without resolving references.
     // IMPORTANT: typedefs implementation of getHaxeExtendsList() resolves through to the target class,
     // which triggers index access  which is illegal during stub creation/indexing.
-    //TODO consider making stub for type & anonymous ?
     List<String> superNames = new ArrayList<>();
     if (psi instanceof HaxeTypedefDeclaration typedefDecl) {
       HaxeTypeOrAnonymous typeOrAnonymous = typedefDecl.getTypeOrAnonymous();
@@ -76,8 +75,23 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
           String typeName = getUnresolvedTypeName(type);
           if (typeName != null) superNames.add(typeName);
         }else {
-          // TODO anonymous type stub maybe ?
-          //  + collect supers from anonymous type
+          // Anonymous type supers are collected when the anonymous type stub itself is created below.
+        }
+      }
+    } else if (psi instanceof HaxeAnonymousType anonymousType) {
+      // Collect composite type names (intersection types: TypeA & TypeB & { ... })
+      for (HaxeType type : anonymousType.getTypeList()) {
+        String typeName = getUnresolvedTypeName(type);
+        if (typeName != null) superNames.add(typeName);
+      }
+      // Collect extension types ({> TypeA, > TypeB, ...fields})
+      for (HaxeAnonymousTypeBody body : anonymousType.getAnonymousTypeBodyList()) {
+        HaxeTypeExtendsList extendsList = body.getTypeExtendsList();
+        if (extendsList != null) {
+          for (HaxeType type : extendsList.getTypeList()) {
+            String typeName = getUnresolvedTypeName(type);
+            if (typeName != null) superNames.add(typeName);
+          }
         }
       }
     } else {

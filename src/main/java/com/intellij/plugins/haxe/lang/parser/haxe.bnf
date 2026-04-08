@@ -1230,29 +1230,52 @@ private compositeAnonymousType ::=   (compositePart ('&' compositePart)+) | (ano
 //       See parse_block_elt and parse_anonymous in grammar.mly (Haxe compiler sources).
 
 anonymousType ::= compositeAnonymousType // Yes, we need two levels to keep parity with other types.
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.AnonymousHaxeTypeImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
 
 anonymousTypeBody ::= (& '{') (anonymousTypeWithEmptyBody | regularAnonymousTypeBody)
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
 private anonymousTypeWithEmptyBody ::= '{' '}' {pin=2}
 private regularAnonymousTypeBody ::= '{' anonymousTypeBodyContents '}' {pin=2}
 private anonymousTypeBodyContents ::= extendedAnonymousTypeBody | simpleAnonymousTypeBody | anonymousInterfaceBodyList
 private extendedAnonymousTypeBody ::= typeExtendsList ',' (anonymousTypeFieldList)? (anonymousInterfaceBodyList)? {pin=1}
 private anonymousInterfaceBodyList ::= (optionalFieldDeclaration | interfaceBodyPart )+  {recoverWhile="interface_body_part_recover"}
 private simpleAnonymousTypeBody ::= anonymousTypeFieldList (sep anonymousInterfaceBodyList)?
-typeExtendsList ::= '>' type (',' '>' type)* {pin=1 recoverWhile=type_extends_list_recover}
+typeExtendsList ::= '>' type (',' '>' type)*
+{
+  pin=1
+  recoverWhile=type_extends_list_recover
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
 private type_extends_list_recover ::= !(',' | '}' | '>')
 
-anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* ','? {recoverWhile="object_literal_part_recover" pin=1}
+anonymousTypeFieldList ::= anonymousTypeField (',' anonymousTypeField)* ','?
+{
+  pin=1
+  recoverWhile="object_literal_part_recover"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
 private sep ::= ',' | ';'
 anonymousTypeField ::= optionalMark? componentName typeTag
-{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
+{pin=3 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"}
 
 // Do NOT genericize objectLiteral by making objectLiteralElementList optional.  Doing so
 // makes blockStatement be overridden by objectLiteral in return statements.
 private emptyObjectLiteral ::= '{' '}' {name="Object Literal"}
 private nonEmptyObjectLiteral ::= '{' objectLiteralElementList '}' {pin=2}
 objectLiteral ::= nonEmptyObjectLiteral | emptyObjectLiteral
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralTypeImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralTypeImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeClass"
+}
 
 private objectLiteralElementList ::= objectLiteralElement (',' objectLiteralElement)* ','? {pin=1 recoverWhile="object_literal_list_recover"}
 private object_literal_list_recover ::= !('}')

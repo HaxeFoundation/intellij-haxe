@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.util.CachedValuesManager;
-import com.intellij.psi.util.PsiTreeUtil;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -161,17 +160,16 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
   private List<HaxeFieldModel> getFieldsFromBody(HaxeAnonymousTypeBody body) {
     if (body != null) {
       List<HaxeFieldModel> list = new ArrayList<>();
-      List<HaxePsiField> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeFieldDeclaration.class, HaxeAnonymousTypeField.class, HaxeEnumValueDeclarationField.class);
-      for (HaxePsiField field : children) {
-        HaxeFieldModel model = (HaxeFieldModel)field.getModel();
-        list.add(model);
+      for (HaxeFieldDeclaration field : body.getFieldDeclarationList()) {
+        list.add((HaxeFieldModel)field.getModel());
       }
-
-      List<HaxeAnonymousTypeFieldList> anonymList = PsiTreeUtil.getChildrenOfAnyType(body, HaxeAnonymousTypeFieldList.class);
-      for (HaxeAnonymousTypeFieldList fieldList : anonymList) {
+      for (HaxeOptionalFieldDeclaration field : body.getOptionalFieldDeclarationList()) {
+        list.add((HaxeFieldModel)field.getModel());
+      }
+      HaxeAnonymousTypeFieldList fieldList = body.getAnonymousTypeFieldList();
+      if (fieldList != null) {
         for (HaxeAnonymousTypeField field : fieldList.getAnonymousTypeFieldList()) {
-          HaxeFieldModel model = (HaxeFieldModel)field.getModel();
-          list.add(model);
+          list.add((HaxeFieldModel)field.getModel());
         }
       }
       return list;
@@ -182,10 +180,8 @@ public class HaxeAnonymousTypeModel extends HaxeClassModel {
   private List<HaxeMethodModel> getMethodsFromBody(HaxeAnonymousTypeBody body) {
     if (body != null) {
       List<HaxeMethodModel> list = new ArrayList<>();
-      List<HaxeMethodDeclaration> children = PsiTreeUtil.getChildrenOfAnyType(body, HaxeMethodDeclaration.class);
-      for (HaxeMethodDeclaration methodDeclaration : children) {
-        HaxeMethodModel model = methodDeclaration.getModel();
-        list.add(model);
+      for (HaxeMethodDeclaration methodDeclaration : body.getMethodDeclarationList()) {
+        list.add(methodDeclaration.getModel());
       }
       return list;
     } else {

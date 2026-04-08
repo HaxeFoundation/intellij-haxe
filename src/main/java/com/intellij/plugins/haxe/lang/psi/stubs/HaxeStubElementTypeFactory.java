@@ -20,6 +20,12 @@ public class HaxeStubElementTypeFactory {
       case "TYPEDEF_DECLARATION" -> HaxeStubElementTypes.TYPEDEF_DECLARATION;
       case "EXTERN_CLASS_DECLARATION" -> HaxeStubElementTypes.EXTERN_CLASS_DECLARATION;
       case "EXTERN_INTERFACE_DECLARATION" -> HaxeStubElementTypes.EXTERN_INTERFACE_DECLARATION;
+
+      case "ANONYMOUS_TYPE" -> HaxeStubElementTypes.ANONYMOUS_TYPE;
+      case "ANONYMOUS_TYPE_BODY" -> HaxeStubElementTypes.ANONYMOUS_TYPE_BODY;
+      case "TYPE_EXTENDS_LIST" -> HaxeStubElementTypes.TYPE_EXTENDS_LIST;
+      case "ANONYMOUS_TYPE_FIELD_LIST" -> HaxeStubElementTypes.ANONYMOUS_TYPE_FIELD_LIST;
+      case "ANONYMOUS_TYPE_FIELD" -> HaxeStubElementTypes.ANONYMOUS_TYPE_FIELD;
       // Macro type declarations
       case "MACRO_CLASS_DECLARATION" -> HaxeStubElementTypes.MACRO_CLASS_DECLARATION;
       case "MACRO_INTERFACE_DECLARATION" -> HaxeStubElementTypes.MACRO_INTERFACE_DECLARATION;
@@ -69,6 +75,10 @@ public class HaxeStubElementTypeFactory {
       case "GENERIC_PARAM" -> HaxeStubElementTypes.GENERIC_PARAM;
       case "GENERIC_DEFAULT_TYPE" -> HaxeStubElementTypes.GENERIC_DEFAULT_TYPE;
       case "GENERIC_CONSTRAINT_PART" -> HaxeStubElementTypes.GENERIC_CONSTRAINT_PART;
+      //inheritance
+      case "INHERIT_LIST" -> HaxeStubElementTypes.INHERIT_LIST;
+      case "EXTENDS_DECLARATION" -> HaxeStubElementTypes.EXTENDS_DECLARATION;
+      case "IMPLEMENTS_DECLARATION" -> HaxeStubElementTypes.IMPLEMENTS_DECLARATION;
       // All other rules — plain element type
       default -> new HaxeElementType(name);
     };

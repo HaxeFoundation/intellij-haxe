@@ -119,6 +119,31 @@ public interface HaxeStubElementTypes {
   HaxeContainerStubElementType<HaxeGenericConstraintPart> GENERIC_CONSTRAINT_PART =
     new HaxeContainerStubElementType<>("GENERIC_CONSTRAINT_PART", (stub, type) -> new HaxeGenericConstraintPartImpl(stub, type));
 
+  // --- Anonymous type (uses HaxeClassStub like other class-like declarations) ---
+  HaxeClassStubElementType ANONYMOUS_TYPE = new HaxeClassStubElementType(
+    "ANONYMOUS_TYPE", (stub, type) -> new HaxeAnonymousTypeImpl(stub, type));
+
+  // --- Anonymous type children ---
+  HaxeContainerStubElementType<HaxeAnonymousTypeBody> ANONYMOUS_TYPE_BODY =
+    new HaxeContainerStubElementType<>("ANONYMOUS_TYPE_BODY", (stub, type) -> new HaxeAnonymousTypeBodyImpl(stub, type));
+  HaxeContainerStubElementType<HaxeTypeExtendsList> TYPE_EXTENDS_LIST =
+    new HaxeContainerStubElementType<>("TYPE_EXTENDS_LIST", (stub, type) -> new HaxeTypeExtendsListImpl(stub, type));
+  HaxeContainerStubElementType<HaxeAnonymousTypeFieldList> ANONYMOUS_TYPE_FIELD_LIST =
+    new HaxeContainerStubElementType<>("ANONYMOUS_TYPE_FIELD_LIST", (stub, type) -> new HaxeAnonymousTypeFieldListImpl(stub, type));
+  HaxeFieldStubElementType ANONYMOUS_TYPE_FIELD = new HaxeFieldStubElementType(
+    "ANONYMOUS_TYPE_FIELD", (stub, type) -> new HaxeAnonymousTypeFieldImpl(stub, type));
+
+
+  // --- Inheritance ---
+  HaxeContainerStubElementType<HaxeInheritList> INHERIT_LIST =
+    new HaxeContainerStubElementType<>("INHERIT_LIST", (stub, type) -> new HaxeInheritListImpl(stub, type));
+  HaxeContainerStubElementType<HaxeExtendsDeclaration> EXTENDS_DECLARATION =
+    new HaxeContainerStubElementType<>("EXTENDS_DECLARATION", (stub, type) -> new HaxeExtendsDeclarationImpl(stub, type));
+  HaxeContainerStubElementType<HaxeImplementsDeclaration> IMPLEMENTS_DECLARATION =
+    new HaxeContainerStubElementType<>("IMPLEMENTS_DECLARATION", (stub, type) -> new HaxeImplementsDeclarationImpl(stub, type));
+
+
+
 }
 
 
