@@ -61,6 +61,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     int componentTypeKey = componentType != null ? componentType.getKey() : -1;
     boolean isPrivate = !psi.isPublic();
     boolean isExtern = psi.isExtern();
+    boolean isEnum = hasEnumPsiElement();
 
     // Collect super type names from extends/implements without resolving references.
     // IMPORTANT: typedefs implementation of getHaxeExtendsList() resolves through to the target class,
@@ -97,7 +98,13 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
 
     return new HaxeClassStub(parentStub, this, name,
                              qualifiedName, componentTypeKey,
-                             isPrivate, isExtern, superNamesArray, metaFlags);
+                             isPrivate, isExtern, isEnum,
+                             superNamesArray, metaFlags);
+  }
+
+  private boolean hasEnumPsiElement() {
+    return this instanceof HaxeAbstractTypeDeclaration declaration &&
+           declaration.getAbstractClassType().getFirstChild().textMatches("enum");
   }
 
   /** Walks preceding sibling metadata and packs the result into a metaFlags bitmask. */
@@ -129,6 +136,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     dataStream.writeVarInt(stub.getComponentTypeKey());
     dataStream.writeBoolean(stub.isPrivate());
     dataStream.writeBoolean(stub.isExtern());
+    dataStream.writeBoolean(stub.isEnum());
     String[] superTypeNames = stub.getSuperTypeNames();
     dataStream.writeVarInt(superTypeNames.length);
     for (String superName : superTypeNames) {
@@ -148,6 +156,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     int componentTypeKey = dataStream.readVarInt();
     boolean isPrivate = dataStream.readBoolean();
     boolean isExtern = dataStream.readBoolean();
+    boolean isEnum = dataStream.readBoolean();
     int superCount = dataStream.readVarInt();
     String[] superTypeNames = new String[superCount];
     for (int i = 0; i < superCount; i++) {
@@ -163,7 +172,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     String name = nameRef != null ? nameRef.getString() : null;
     String qualifiedName = qualifiedNameRef != null ? qualifiedNameRef.getString() : null;
 
-    return new HaxeClassStub(parentStub, this, name, qualifiedName, componentTypeKey, isPrivate, isExtern, superTypeNames, metaFlags);
+    return new HaxeClassStub(parentStub, this, name, qualifiedName, componentTypeKey, isPrivate, isExtern, isEnum, superTypeNames, metaFlags);
   }
 
   @Override

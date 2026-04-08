@@ -50,6 +50,9 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String BIND = "@:bind";
   @NonNls String HACK = "@:hack";
 
+  @NonNls String ENUM_META = "@:enum";
+  @NonNls String ABSTRACT_META = "@:abstract";
+
   @NonNls String MACRO2 = "@:macro";
   @NonNls String UNREFLECTIVE = "@:unreflective";
 
@@ -69,7 +72,7 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
 
   @MagicConstant(stringValues = {
     PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, EXTERN, DYNAMIC, ABSTRACT, OVERRIDE, OVERLOAD, FINAL_META, KEEP, IS_VAR, COREAPI, BIND, MACRO, MACRO2, HACK,
-    REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
+    ENUM_META, ABSTRACT_META, REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
     AUTOBUILD, UNREFLECTIVE, DEPRECATED, INLINE
   })
   @interface ModifierConstant {

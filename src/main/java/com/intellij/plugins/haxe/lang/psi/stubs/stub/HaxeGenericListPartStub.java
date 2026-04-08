@@ -1,7 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.stub;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
@@ -22,6 +21,7 @@ public class HaxeGenericListPartStub extends HaxeClassStub {
           HaxeComponentType.TYPE_PARAMETER.getKey(),
           false,                              // isPrivate
           false,                              // isExtern
+          false,                              // isEnum
           new String[0],                      // superTypeNames
           0);                                 // metaFlags
   }

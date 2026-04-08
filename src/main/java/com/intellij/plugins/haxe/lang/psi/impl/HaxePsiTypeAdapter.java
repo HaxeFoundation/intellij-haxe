@@ -38,6 +38,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.ArrayFactory;
@@ -285,7 +286,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
   }
 
   @Override
-  public com.intellij.psi.stubs.IStubElementType getElementType() {
+  public IStubElementType getElementType() {
     return myType.getElementType();
   }
 

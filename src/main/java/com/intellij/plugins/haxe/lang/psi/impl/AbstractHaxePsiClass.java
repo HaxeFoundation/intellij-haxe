@@ -232,16 +232,16 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+    return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
 
   @NotNull
   @Override
   public List<HaxeType> getHaxeImplementsList() {
-    return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+    return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
   public @Nullable HaxeInheritList getHaxeImplementsListPsi() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
@@ -390,7 +390,13 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   public boolean isEnum() {
     if (getComponentType() == HaxeComponentType.ENUM) return true;
     if (isAbstractType()) {
-      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
+      HaxeClassStub greenStub = getGreenStub();
+      if(greenStub != null){
+        return greenStub.isEnum() || greenStub.hasMetaForModifier(HaxePsiModifier.ENUM_META) == Boolean.TRUE;
+      }else {
+        return hasCompileTimeMeta(HaxeMeta.ENUM) ||
+               ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
+      }
     }
     return false;
   }
@@ -449,13 +455,13 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   @Override
   @Nullable
   public HaxeInheritList getExtendsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
   @Nullable
   public HaxeInheritList getImplementsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
@@ -819,7 +825,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
   @Override
   public HaxeModule getModule() {
-    return PsiTreeUtil.getStubChildOfType(getContainingFile(), HaxeModule.class);
+    return PsiTreeUtil.getStubOrPsiParentOfType(this,HaxeModule.class);
   }
 
   @Override
