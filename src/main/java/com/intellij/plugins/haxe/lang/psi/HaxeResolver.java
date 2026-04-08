@@ -29,10 +29,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil;
-import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
@@ -71,6 +68,7 @@ import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallE
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForMethodCall;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
+import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getReferenceTextFromStubOrPsi;
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.searchInSameFileForEnumValues;
 import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
 
@@ -142,8 +140,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     boolean traceEnabled = log.isTraceEnabled();
-
-    String referenceText = reference.getText();
+    String referenceText  = getReferenceTextFromStubOrPsi(reference);
     if (traceEnabled) {
       log.trace(traceMsg("-----------------------------------------"));
       log.trace(traceMsg("Resolving reference: " + referenceText));
@@ -161,6 +158,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     return foundElements;
   }
 
+
   private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceText) {
 
     if (reportCacheMetrics) {
@@ -177,7 +175,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     PsiElement parent = reference.getParent();
-    boolean isType = parent instanceof HaxeType || PsiTreeUtil.getParentOfType(reference, HaxeTypeTag.class) != null;
+    boolean isType = parent instanceof HaxeType || PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeTypeTag.class) != null;
     List<? extends PsiElement> result = checkIsTypeParameter(reference);
 
     // NOTE: always Keep checkIsType  high up, it is used a lot (ex. when resolving type for HaxeType)

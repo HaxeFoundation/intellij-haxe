@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.PsiClassType;
@@ -66,7 +66,7 @@ public abstract class HaxePsiInheritListImpl extends HaxeContainerStubPsiElement
     super(node);
   }
 
-  public HaxePsiInheritListImpl(HaxeContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxePsiInheritListImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
     super(stub, type);
   }
 

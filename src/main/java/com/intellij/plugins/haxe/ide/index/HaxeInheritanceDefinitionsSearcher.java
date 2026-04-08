@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -135,34 +137,45 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
 
     for (HaxeType type : subClass.getHaxeExtendsList()) {
       HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
-      if(referenceExpression.textMatches(targetQName)) return true;
-      if(referenceExpression.textMatches(targetSimpleName)) {
-        PsiElement resolve = referenceExpression.resolve();
-        String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
-        if (targetQName.equals(resolvedQname)) return true;
+      HaxeReferenceExpressionStub stub = referenceExpression.getStub();
+      if (stub != null) {
+        String refText = stub.getText();
+        if(targetQName.equals(refText)) return true;
+        if(targetSimpleName.equals(refText)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+      }else {
+        if (referenceExpression.textMatches(targetQName)) return true;
+        if (referenceExpression.textMatches(targetSimpleName)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
       }
     }
     for (HaxeType type : subClass.getHaxeImplementsList()) {
       HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
-      if(referenceExpression.textMatches(targetQName)) return true;
-      if(referenceExpression.textMatches(targetSimpleName)) {
-        PsiElement resolve = referenceExpression.resolve();
-        String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
-        if (targetQName.equals(resolvedQname)) return true;
+      HaxeReferenceExpressionStub stub = referenceExpression.getStub();
+      if (stub != null) {
+        String refText = stub.getText();
+        if (targetQName.equals(refText)) return true;
+        if (targetSimpleName.equals(refText)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+        else {
+          if (referenceExpression.textMatches(targetQName)) return true;
+          if (referenceExpression.textMatches(targetSimpleName)) {
+            PsiElement resolve = referenceExpression.resolve();
+            String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+            if (targetQName.equals(resolvedQname)) return true;
+          }
+        }
       }
     }
-    return false;
-  }
-
-  /**
-   * Returns true if {@code storedRef} (the raw reference text from source, e.g. {@code "Foo"} or
-   * {@code "com.example.Foo"}) refers to the type identified by {@code targetQName}.
-   */
-  private static boolean refMatchesQName(@NotNull String storedRef, @NotNull String targetQName) {
-    // Exact FQN match: stored "com.example.Foo", target "com.example.Foo"
-    if (targetQName.equals(storedRef)) return true;
-    // Simple-name match: stored "Foo", target "com.example.Foo"
-    if (targetQName.endsWith("." + storedRef)) return true;
     return false;
   }
 }

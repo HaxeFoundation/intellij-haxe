@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs;
 
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.type.*;
 
 /**
@@ -67,6 +68,12 @@ public interface HaxeStubElementTypes {
   HaxeImportStubElementType IMPORT_STATEMENT = new HaxeImportStubElementType();
   HaxeUsingStubElementType USING_STATEMENT = new HaxeUsingStubElementType();
   HaxeModuleStubElementType MODULE = new HaxeModuleStubElementType();
+
+  // --- Reference expression (stub for use in type sub-tree) ---
+  //HaxeContainerStubElementType<HaxeReferenceExpression> REFERENCE_EXPRESSION =
+  //  new HaxeContainerStubElementType<>("REFERENCE_EXPRESSION", (stub, type) -> new HaxeReferenceExpressionImpl(stub, type));
+  HaxeReferenceExpressionElementType REFERENCE_EXPRESSION =
+    new HaxeReferenceExpressionElementType("REFERENCE_EXPRESSION", (stub, type) -> new HaxeReferenceExpressionImpl(stub, type));
 
   // --- Type sub-tree (container stubs) ---
   HaxeContainerStubElementType<HaxeTypeTag> TYPE_TAG =

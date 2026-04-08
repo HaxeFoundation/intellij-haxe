@@ -18,10 +18,11 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -181,6 +182,16 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   @Nullable
   public String getPackageName() {
+    StubElement<?> stub = file.getStub();
+    if(stub != null) {
+      Optional<HaxePackageStub> packageStub = stub.getChildrenStubs().stream()
+        .filter(HaxePackageStub.class::isInstance)
+        .map(HaxePackageStub.class::cast)
+        .findFirst();
+      if(packageStub.isPresent()){
+        return packageStub.get().getPackageName();
+      }
+    }
     HaxePackageStatement value = getPackagePsi();
     if (value != null) {
       String name = value.getPackageName();
@@ -246,19 +257,30 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
   @NotNull
   public List<HaxeImportableModel> getOrderedImportAndUsingModels() {
-    List<PsiElement> children = getChildren();
-    List<HaxeImportableModel>  result = new ArrayList<>();
-    for(PsiElement child : children) {
+    List<HaxeImportableModel> result = new ArrayList<>();
+    List<PsiElement> children = getChildrenFromStubOrPsi();
+    for (PsiElement child : children) {
 
-       if(child instanceof HaxeImportStatement importStatement) {
+      if (child instanceof HaxeImportStatement importStatement) {
         result.add(importStatement.getModel());
       }
-      else if(child instanceof HaxeUsingStatement usingStatement) {
+      else if (child instanceof HaxeUsingStatement usingStatement) {
         result.add(usingStatement.getModel());
       }
-
     }
-    return result ;
+
+    return result;
+  }
+
+  private @NotNull List<PsiElement> getChildrenFromStubOrPsi() {
+    StubElement<?> stub = file.getStub();
+    if(stub != null) {
+      return stub.getChildrenStubs().stream()
+        .map(StubElement::getPsi)
+        .map(PsiElement.class::cast)
+        .toList();
+    }
+    return getChildren();
   }
 
   public HaxePackageModel getPackageModel() {

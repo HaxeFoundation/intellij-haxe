@@ -24,12 +24,11 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
-import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.plugins.haxe.lang.psi.HaxeMacroTypeReification;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParam;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
@@ -281,7 +280,7 @@ public class HaxePsiTypeAdapter extends PsiType implements HaxeType {
 
   @Nullable
   @Override
-  public com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub getStub() {
+  public HaxeEmptyContainerStub getStub() {
     return myType.getStub();
   }
 

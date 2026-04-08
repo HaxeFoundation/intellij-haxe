@@ -29,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getReferenceTextFromStubOrPsi;
+
 public abstract class HaxeImportableModel implements HaxeExposableModel {
   protected final PsiElement basePsi;
 
@@ -42,7 +44,9 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
     HaxeReferenceExpression referenceExpression = getReferenceExpression();
-    return referenceExpression == null ? null : new FullyQualifiedInfo(referenceExpression);
+    if(referenceExpression == null) return null;
+    String text = getReferenceTextFromStubOrPsi(referenceExpression);
+    return new FullyQualifiedInfo(text);
   }
 
   @Nullable

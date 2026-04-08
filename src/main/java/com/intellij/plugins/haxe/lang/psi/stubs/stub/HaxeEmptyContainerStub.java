@@ -6,8 +6,8 @@ import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
 
 /** Stub for container PSI elements that hold no data of their own. */
-public class HaxeContainerStub<T extends PsiElement> extends StubBase<T> {
-  public HaxeContainerStub(StubElement<?> parent, IStubElementType<?, ?> elementType) {
+public class HaxeEmptyContainerStub<T extends PsiElement> extends StubBase<T> {
+  public HaxeEmptyContainerStub(StubElement<?> parent, IStubElementType<?, ?> elementType) {
     super(parent, elementType);
   }
 }

@@ -23,7 +23,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.stubs.IStubElementType;
 import lombok.CustomLog;
@@ -43,7 +43,7 @@ public class HaxeTypePsiMixinImpl extends HaxeContainerStubPsiElementBase implem
     super(node);
   }
 
-  public HaxeTypePsiMixinImpl(HaxeContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypePsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
     super(stub, type);
   }
 

@@ -20,7 +20,9 @@ import com.intellij.plugins.haxe.lang.psi.HaxeImportAlias;
 import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeImportAliasPsiMixinImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeImportStub;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,15 +42,26 @@ public class HaxeImportModel extends HaxeImportableModel {
   }
 
   public boolean hasAlias() {
+    HaxeImportStub stub = getStub();
+    if(stub != null) {
+      return stub.getAlias() != null;
+    }
     return getBasePsi().getAlias() != null;
   }
 
+
+
   public boolean hasWildcard() {
-    return getBasePsi().getWildcard() != null;
+    HaxeImportStub stub = getStub();
+    return stub != null ? stub.hasWildcard() : getBasePsi().getWildcard() != null;
   }
 
   @Nullable
   public String getAliasName() {
+    HaxeImportStub stub = getStub();
+    if(stub != null) {
+      return stub.getAlias();
+    }
     HaxeImportAlias alias = getBasePsi().getAlias();
     if (alias == null) return null;
     return alias.getIdentifier().getText();
@@ -206,6 +219,10 @@ public class HaxeImportModel extends HaxeImportableModel {
     }
     return null;
 
+  }
+
+  private HaxeImportStub getStub() {
+    return getBasePsi().getStub();
   }
 
   @Override

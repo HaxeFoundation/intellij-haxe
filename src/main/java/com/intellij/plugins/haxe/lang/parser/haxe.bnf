@@ -621,10 +621,10 @@ restParameter ::= ('...'componentName typeTag?)
 // An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
 untypedParameter ::= componentName {extends=parameter stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
 openParameterList ::= untypedParameter
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
 
 private parenthesizedParameterList ::= '(' parameterList ')'
-parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
+parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
@@ -642,12 +642,12 @@ optionalMark ::= '?'
 functionType ::= oldFunctionType | newFunctionType
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 functionReturnType ::= typeWrapper
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 // normal types have type parameters that can be nested so its best to check types before function types/function signatures
 // as functions are not nested and checking them first will cause a wasted function type check on every nested type in normal types
@@ -659,7 +659,7 @@ private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*
 functionArgument ::=  optionalFunctionTypeWithoutName  | namedFunctionType | namedTypeOrAnonymous
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 private namedTypeOrAnonymous ::= ([optionalMark] [componentName ':'] (restArgumentType | typeOrAnonymous  ))
 private namedFunctionType ::= [optionalMark] [componentName ':'] functionType
@@ -667,14 +667,14 @@ private optionalFunctionTypeWithoutName ::= [optionalMark] '(' functionType ')' 
 restArgumentType ::= '...' typeWrapper
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 // "oldRestArgumentType" allow us to have ... start arguments in  old functionType style without
 // it consuming parts of the rest of function type (like restArgumentType would as it also looks for functionTypes).
 oldRestArgumentType ::= '...' typeOrAnonymous
 {
   extends=restArgumentType
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 private oldFunctionType ::= oldFunctionTypeArgumentsList ('(' functionReturnType ')' | functionReturnType) {pin=2}
 private oldFunctionTypeArgumentsList ::= ( oldFunctionTypeArgument '->')+
@@ -698,14 +698,14 @@ oldFunctionTypeArgument ::=  oldRestArgumentType | (optionalMark? ('(' functionT
 typeTag ::= ':' typeWrapper
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 typeParam ::= '<' typeList '>'
 {
 methods=[typeList="typeListPart"]
 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParamPsiMixinImpl"
 implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin"
-stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 private typeList ::= typeListPart (',' typeListPart)*
 private haxe4typeList ::= typeListPart ('&' typeListPart)+ {extends=typeList}
@@ -714,7 +714,7 @@ private haxe4typeList ::= typeListPart ('&' typeListPart)+ {extends=typeList}
 genericParam ::= '<' genericListPart (',' genericListPart)* '>'
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 genericListPart ::= normalGenericListPart  | constGenericListPart
 {
@@ -726,7 +726,7 @@ genericListPart ::= normalGenericListPart  | constGenericListPart
 genericDefaultType ::= typeWrapper
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 constraintTypeList ::= ('(' (haxe4typeList | typeList) ')' | haxe4typeList )
 {
@@ -742,7 +742,7 @@ constraintTypeList ::= ('(' (haxe4typeList | typeList) ')' | haxe4typeList )
 private genericConstraintType ::=  constraintTypeList |  typeOrAnonymous !'->' | functionType | expression
 genericConstraintPart ::= genericConstraintType {methods=[constExpression="expression"]
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 
 
@@ -752,13 +752,13 @@ private normalGenericListPart ::= componentName (':' genericConstraintPart)? ('=
 private constGenericListPart ::= constantExpression (':' genericConstraintPart)? {pin=2}
 
 typeListPart ::= typeWrapper | literalExpression
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeListPartPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypeListPartPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
 type ::= referenceExpression qualifiedReferenceExpression* typeParam?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeTypePsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
 typeOrAnonymous ::=  anonymousType | type
 {
   mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
-  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
 }
 
 // The predicate !(objectLiteralElementList) is required to keep blockStatement from competing for precedence. Also need to override the statement pin value.
@@ -1171,7 +1171,11 @@ identifierOrReferenceAllowedKeyword ::= identifier | 'new'
 private thisSuperAbstractOrReferenceExpression ::= referenceExpression | thisExpression | superExpression | abstractExpression
 
 referenceExpression ::= identifier
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub"
+}
 left qualifiedNullSafeReferenceExpression ::= ('?.'|'.') identifierOrReferenceAllowedKeyword {elementType="referenceExpression" pin=2}
 left qualifiedReferenceExpression ::= '.' identifierOrReferenceAllowedKeyword  {elementType="referenceExpression" pin=2}
 private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression * { elementType="referenceExpression"}
@@ -1203,16 +1207,16 @@ safeCastExpression ::= 'cast' (('(' expression ',' typeWrapper ')'))
 //{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiInheritListImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub" pin=1}
+{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiInheritListImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
 
 private inherit ::= extendsDeclaration | implementsDeclaration
 {pin=1 recoverWhile="inherit_recover"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 
 extendsDeclaration ::= 'extends' type
-{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub" pin=1}
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
 implementsDeclaration ::= 'implements' type
-{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub" pin=1}
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
 
 
 // typedefs can "merge" anonymous structures ( not classes, interfaces etc)

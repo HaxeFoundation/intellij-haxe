@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
@@ -36,6 +37,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -51,6 +53,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -1021,13 +1024,16 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String className = type.getText();
+    String className = type instanceof HaxeReference haxeReference
+                       ? getReferenceTextFromStubOrPsi(haxeReference)
+                       : type.getText();
+
     PsiElement result = null;
 
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
       if (fileModel != null) {
-        boolean isType =  type.getParent() instanceof HaxeType ||  PsiTreeUtil.getParentOfType(type, HaxeTypeTag.class) != null;
+        boolean isType =  type.getParent() instanceof HaxeType ||  PsiTreeUtil.getStubOrPsiParentOfType(type, HaxeTypeTag.class) != null;
         result = searchInSameFile(fileModel, className, isType);
         if (result == null) {
           List<PsiElement> matchesInImport = searchInImports(fileModel, className);
@@ -1571,5 +1577,16 @@ public class HaxeResolveUtil {
       }
     }
     return null;
+  }
+
+
+  public static @NlsSafe String getReferenceTextFromStubOrPsi(@NonNull HaxeReference reference) {
+    if(reference instanceof HaxeReferenceImpl haxeReference) {
+      HaxeReferenceExpressionStub stub = haxeReference.getStub();
+      if(stub != null) {
+        return stub.getText();
+      }
+    }
+    return reference.getText();
   }
 }

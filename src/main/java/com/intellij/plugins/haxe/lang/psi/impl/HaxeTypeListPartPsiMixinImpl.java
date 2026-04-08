@@ -22,7 +22,7 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
@@ -75,7 +75,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxeContainerStubPsiElementBas
     super(node);
   }
 
-  public HaxeTypeListPartPsiMixinImpl(HaxeContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypeListPartPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
     super(stub, type);
   }
 

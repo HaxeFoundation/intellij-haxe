@@ -45,6 +45,8 @@ public class HaxeStubElementTypeFactory {
       case "USING_STATEMENT" -> HaxeStubElementTypes.USING_STATEMENT;
       // Package
       case "PACKAGE_STATEMENT" -> HaxeStubElementTypes.PACKAGE_STATEMENT;
+      // Reference expression (stub for use in type sub-tree)
+      case "REFERENCE_EXPRESSION" -> HaxeStubElementTypes.REFERENCE_EXPRESSION;
       // Type sub-tree (container stubs)
       case "TYPE_TAG" -> HaxeStubElementTypes.TYPE_TAG;
       case "TYPE_OR_ANONYMOUS" -> HaxeStubElementTypes.TYPE_OR_ANONYMOUS;

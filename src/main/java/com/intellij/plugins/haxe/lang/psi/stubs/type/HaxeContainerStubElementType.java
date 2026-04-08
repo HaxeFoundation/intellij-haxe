@@ -1,7 +1,7 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.type;
 
 import com.intellij.plugins.haxe.HaxeLanguage;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.*;
 import org.jetbrains.annotations.NotNull;
@@ -14,12 +14,12 @@ import java.util.function.BiFunction;
  *
  * @param <P> the concrete PSI element interface
  */
-public class HaxeContainerStubElementType<P extends PsiElement> extends IStubElementType<HaxeContainerStub<P>, P> {
+public class HaxeContainerStubElementType<P extends PsiElement> extends IStubElementType<HaxeEmptyContainerStub<P>, P> {
 
-  private final BiFunction<HaxeContainerStub<P>, HaxeContainerStubElementType<P>, P> psiFactory;
+  private final BiFunction<HaxeEmptyContainerStub<P>, HaxeContainerStubElementType<P>, P> psiFactory;
 
   public HaxeContainerStubElementType(@NotNull String debugName,
-                                       @NotNull BiFunction<HaxeContainerStub<P>, HaxeContainerStubElementType<P>, P> psiFactory) {
+                                       @NotNull BiFunction<HaxeEmptyContainerStub<P>, HaxeContainerStubElementType<P>, P> psiFactory) {
     super(debugName, HaxeLanguage.INSTANCE);
     this.psiFactory = psiFactory;
   }
@@ -31,30 +31,30 @@ public class HaxeContainerStubElementType<P extends PsiElement> extends IStubEle
   }
 
   @Override
-  public P createPsi(@NotNull HaxeContainerStub<P> stub) {
+  public P createPsi(@NotNull HaxeEmptyContainerStub<P> stub) {
     return psiFactory.apply(stub, this);
   }
 
   @NotNull
   @Override
-  public HaxeContainerStub<P> createStub(@NotNull P psi, StubElement<?> parentStub) {
-    return new HaxeContainerStub<>(parentStub, this);
+  public HaxeEmptyContainerStub<P> createStub(@NotNull P psi, StubElement<?> parentStub) {
+    return new HaxeEmptyContainerStub<>(parentStub, this);
   }
 
   @Override
-  public void serialize(@NotNull HaxeContainerStub<P> stub, @NotNull StubOutputStream dataStream) throws IOException {
+  public void serialize(@NotNull HaxeEmptyContainerStub<P> stub, @NotNull StubOutputStream dataStream) throws IOException {
     // Container stubs hold no data — nothing to serialize.
   }
 
   @NotNull
   @Override
   @SuppressWarnings("rawtypes")
-  public HaxeContainerStub<P> deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-    return new HaxeContainerStub<>(parentStub, this);
+  public HaxeEmptyContainerStub<P> deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
+    return new HaxeEmptyContainerStub<>(parentStub, this);
   }
 
   @Override
-  public void indexStub(@NotNull HaxeContainerStub<P> stub, @NotNull IndexSink sink) {
+  public void indexStub(@NotNull HaxeEmptyContainerStub<P> stub, @NotNull IndexSink sink) {
     // NOOP — no stub indexes for type sub-tree elements.
   }
 }

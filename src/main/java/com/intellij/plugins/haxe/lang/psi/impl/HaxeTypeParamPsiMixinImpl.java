@@ -20,7 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeListPart;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.stubs.IStubElementType;
@@ -34,7 +34,7 @@ public class HaxeTypeParamPsiMixinImpl extends HaxeContainerStubPsiElementBase i
     super(node);
   }
 
-  public HaxeTypeParamPsiMixinImpl(HaxeContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypeParamPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
     super(stub, type);
   }
 

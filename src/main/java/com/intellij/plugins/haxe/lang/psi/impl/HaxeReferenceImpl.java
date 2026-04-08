@@ -22,17 +22,14 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.TextRange;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.ide.refactoring.move.HaxeFileMoveHandler;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
-import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
-import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
-import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -65,7 +62,7 @@ import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.CLASS;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 
 @CustomLog
-abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements HaxeReference {
+abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<HaxeReferenceExpressionStub> implements HaxeExpression, HaxeReference {
 
   public static final String DOT = ".";
   private static boolean skipUnimplementedWarnings = true;
@@ -76,6 +73,10 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
 
   public HaxeReferenceImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeReferenceImpl(HaxeReferenceExpressionStub stub, IStubElementType stubType) {
+    super(stub, stubType);
   }
 
   @Override
@@ -330,6 +331,30 @@ abstract public class HaxeReferenceImpl extends HaxeExpressionImpl implements Ha
     }
     if (log.isTraceEnabled()) traceAs(log, HaxeDebugUtil.getCallerStackFrame(), this.getDebugName() + " is not a " + clazz.getName());
     return false;
+  }
+
+  public String getDebugName() {
+    String name = null;
+    String text = null;
+
+    text = getText();
+    name = getName();
+
+    StringBuilder sb = new StringBuilder();
+    if (null != name) {
+      sb.append('\'');
+      sb.append(name);
+      sb.append('\'');
+    }
+    if (null != text) {
+      if (null != name) {
+        sb.append(' ');
+      }
+      sb.append('"');
+      sb.append(text);
+      sb.append('"');
+    }
+    return sb.toString();
   }
 
   /**
