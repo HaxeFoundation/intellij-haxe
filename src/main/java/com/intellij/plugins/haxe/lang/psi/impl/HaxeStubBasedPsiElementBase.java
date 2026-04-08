@@ -9,10 +9,7 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.ResolveState;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.stubs.IStubElementType;
@@ -43,6 +40,11 @@ public abstract class HaxeStubBasedPsiElementBase<T extends StubElement<?>> exte
 
   public IElementType getTokenType() {
     return getNode().getElementType();
+  }
+
+
+  public IElementType getIElementType() {
+    return getElementTypeImpl();
   }
 
   @Override
