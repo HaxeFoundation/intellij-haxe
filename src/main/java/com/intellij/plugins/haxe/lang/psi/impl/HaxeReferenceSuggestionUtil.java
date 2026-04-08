@@ -59,7 +59,7 @@ public class HaxeReferenceSuggestionUtil {
                     addClassStaticMemberSuggestions(variants, haxeClass, ignorePrivateMembers);
                     // ExtensionMethods can accept Class<T> and Enum<T>
                     ResultHolder wrappedType = wrapTypeInClassOrEnum(resolvedPsi, haxeClass);
-                    addExtensionMethodSugestions(variants, wrappedType, targetReference);
+                    addExtensionMethodSuggestions(variants, wrappedType, targetReference);
                 }
                 // to avoid ambiguity when it comes to class vs module resolve we add both  when module name and class name are identical.
                 if(hasModuleName)addModuleMemberSuggestions(variants, haxeClass.getModule(), true);
@@ -72,7 +72,7 @@ public class HaxeReferenceSuggestionUtil {
                 }else if (resolvedType.isFunctionType()) {
                     addFunctionBindSuggestion(variants, haxeField, resolvedType.getFunctionType(), haxeReference);
                 }
-                addExtensionMethodSugestions(variants, resolvedType, targetReference);
+                addExtensionMethodSuggestions(variants, resolvedType, targetReference);
 
             }
             case null, default -> {}
@@ -107,7 +107,7 @@ public class HaxeReferenceSuggestionUtil {
             addClassMemberSuggestions(variants, resolvedType, targetReference);
         }
         if(leftReference!= null) {
-            addExtensionMethodSugestions(variants, resolvedType, targetReference);
+            addExtensionMethodSuggestions(variants, resolvedType, targetReference);
         }else {
             // if we do not have leftReference it means the complteion suggestion is a single word
             // and that means we should show anything that can be a valid references, packages, local members etc.
@@ -196,14 +196,14 @@ public class HaxeReferenceSuggestionUtil {
         }
     }
 
-    private static void addClassMemberSuggestions(List<HaxeLookupElement> variants, ResultHolder resolvedType, HaxeReference targetReference,  boolean ignorePrivateMembers, boolean functionRefsOnly) {
+    private static void addClassMemberSuggestions(List<HaxeLookupElement> variants, ResultHolder resolvedType, HaxeReference targetReference,  boolean ignorePrivateMembers, boolean excludeCallSuggestions) {
         if(resolvedType.isClassType()) {
             SpecificHaxeClassReference classType = resolvedType.getClassType();
             HaxeClass haxeClass = classType.getHaxeClass();
             HaxeGenericResolver genericResolver = classType.getGenericResolver();
 
             Set<HaxeComponentName> nonStaticMembers = findClassNonStaticMembers(haxeClass, targetReference, genericResolver, ignorePrivateMembers);
-            variants.addAll(HaxeMemberLookupElement.convert(classType.asResolveResult(), nonStaticMembers, List.of(), genericResolver, functionRefsOnly));
+            variants.addAll(HaxeMemberLookupElement.convert(classType.asResolveResult(), nonStaticMembers, List.of(), genericResolver, excludeCallSuggestions, false));
         }
     }
 
@@ -292,13 +292,13 @@ public class HaxeReferenceSuggestionUtil {
         variants.addAll(HaxeMemberLookupElement.convert(currentClass.asResolveResult(), nonStaticMembers, List.of(), genericResolver));
     }
 
-    private static void addExtensionMethodSugestions(List<HaxeLookupElement> variants, ResultHolder holder, HaxeReference targetReference) {
+    private static void addExtensionMethodSuggestions(List<HaxeLookupElement> variants, ResultHolder holder, HaxeReference targetReference) {
         SpecificTypeReference specificTypeReference = holder.getType();
         HaxeGenericResolver genericResolver = specificTypeReference instanceof  SpecificHaxeClassReference classReference
                 ? classReference.getGenericResolver() :  new HaxeGenericResolver();
 
         Set<HaxeComponentName> usingVariants = findUsingVariants(specificTypeReference, targetReference);
-        variants.addAll(HaxeMemberLookupElement.convert(specificTypeReference.asResolveResult(), usingVariants, usingVariants, genericResolver));
+        variants.addAll(HaxeMemberLookupElement.convert(specificTypeReference.asResolveResult(), usingVariants, usingVariants, genericResolver,false,true));
     }
 
     private static void addClassStaticMemberSuggestions(List<HaxeLookupElement> variants, HaxeClass haxeClass, boolean ignorePrivateMembers) {

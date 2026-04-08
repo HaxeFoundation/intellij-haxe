@@ -26,7 +26,6 @@ import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolverUtil;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
@@ -68,14 +67,14 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
                                                             @NotNull Collection<HaxeComponentName> componentNames,
                                                             @NotNull Collection<HaxeComponentName> componentNamesExtension,
                                                             @Nullable  HaxeGenericResolver resolver) {
-   return convert(leftReferenceResolveResult,componentNames, componentNamesExtension, resolver, false);
+   return convert(leftReferenceResolveResult,componentNames, componentNamesExtension, resolver, false, false);
   }
   @NotNull
   public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
                                                             @NotNull Collection<HaxeComponentName> componentNames,
                                                             @NotNull Collection<HaxeComponentName> componentNamesExtension,
                                                             @Nullable  HaxeGenericResolver resolver,
-                                                            boolean functionRefsOnly) {
+                                                            boolean excludeCallSuggestions, boolean excludeMethodReferenceSuggestions) {
     final List<HaxeMemberLookupElement> result = new ArrayList<>(componentNames.size());
     if (resolver == null) resolver = new HaxeGenericResolver();
     for (HaxeComponentName componentName : componentNames) {
@@ -108,10 +107,15 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
             HaxeClass membersClass = classModel.haxeClass;
             if(currentClass != null && !resolver.isEmpty())  resolver = resolver.translateFromTo(currentClass, membersClass);
           }
-          if (model instanceof  HaxeMethodModel) {
+          if (model instanceof HaxeMethodModel) {
             // adding functionType in addition to method call
-            result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model, true));
-            if(functionRefsOnly) continue;
+            if(!excludeMethodReferenceSuggestions) {
+              result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model, true));
+            }
+            if(!excludeCallSuggestions) {
+              result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model));
+            }
+            continue;
           }
         }
         result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model));
