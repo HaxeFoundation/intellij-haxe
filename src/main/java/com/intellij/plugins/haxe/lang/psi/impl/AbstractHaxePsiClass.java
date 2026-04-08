@@ -67,10 +67,6 @@ import java.util.concurrent.atomic.AtomicReference;
 @CustomLog
 public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<HaxeClassStub> implements HaxeClass {
 
-
-  private Boolean _isPrivate = null;
-  private Boolean _isExtern = null;
-
   static {
     log.info("Loaded AbstractHaxePsiClass");
     log.setLevel(LogLevel.DEBUG);
@@ -544,8 +540,8 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   @NotNull
   private static PsiMethod[] getMethodsCached(HaxeClass haxeClass) {
     return CachedValuesManager.getCachedValue(haxeClass, () -> {
-      final List<HaxeNamedComponent> alltypes = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
-      final List<HaxeNamedComponent> methods = HaxeNamedSubComponentUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+      final List<HaxeNamedComponent> allTypes = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
+      final List<HaxeNamedComponent> methods = HaxeNamedSubComponentUtil.filterNamedComponentsByType(allTypes, HaxeComponentType.METHOD);
       PsiMethod[] array = methods.toArray(PsiMethod.EMPTY_ARRAY);
       return new CachedValueProvider.Result<>(array, haxeClass);
     });

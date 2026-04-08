@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStubBasedNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -47,11 +48,11 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
 
   public static HaxeBaseMemberModel fromPsi(PsiElement element) {
     if (element instanceof HaxeMethod method) return method.getModel();
-    if (element instanceof HaxeFieldDeclaration fieldDeclaration) return (HaxeBaseMemberModel)fieldDeclaration.getModel();
+    if (element instanceof HaxeFieldDeclaration fieldDeclaration) return fieldDeclaration.getModel();
     if (element instanceof HaxeEnumValueDeclaration enumValueDeclaration)  return (HaxeBaseMemberModel) enumValueDeclaration.getModel();
-    if (element instanceof HaxeLocalVarDeclaration varDeclaration) return (HaxeBaseMemberModel) varDeclaration.getModel();
-    if (element instanceof HaxeAnonymousTypeField anonymousTypeField) return (HaxeBaseMemberModel) anonymousTypeField.getModel();
-    if (element instanceof HaxeObjectLiteralElement objectLiteralElement) return (HaxeBaseMemberModel) objectLiteralElement.getModel();
+    if (element instanceof HaxeLocalVarDeclaration varDeclaration) return varDeclaration.getModel();
+    if (element instanceof HaxeAnonymousTypeField anonymousTypeField) return anonymousTypeField.getModel();
+    if (element instanceof HaxeObjectLiteralElement objectLiteralElement) return objectLiteralElement.getModel();
 
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     if (element instanceof HaxeForStatement) return null;
@@ -83,6 +84,9 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
   }
 
   public String getName() {
+    if(basePsi instanceof HaxeStubBasedNamedComponent<?> stubBasedNamedComponent){
+      return stubBasedNamedComponent.getName();
+    }
     HaxeComponentName namePsi = getNamePsi();
     return namePsi == null ? "" : namePsi.getText();
   }

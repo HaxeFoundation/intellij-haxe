@@ -24,6 +24,7 @@ import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -32,6 +33,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.NotImplementedException;
@@ -512,6 +514,17 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @NotNull
   public List<HaxeBaseMemberModel> getMembersSelf() {
+    if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeClassStub greenStub = psiClass.getGreenStub();
+      if(greenStub != null) {
+        return greenStub.getChildrenStubs().stream()
+          .map(StubElement::getPsi)
+          .map(HaxeBaseMemberModel::fromPsi)
+          .filter(Objects::nonNull)
+          .toList();
+      }
+    }
+
     final List<HaxeBaseMemberModel> members = new ArrayList<>();
     HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
