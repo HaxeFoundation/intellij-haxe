@@ -4,11 +4,14 @@ import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeStubBasedNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -76,6 +79,15 @@ public class HaxeNamedSubComponentUtil {
 
     @NotNull
     public static  List<HaxeNamedComponent> getNamedComponentsInModule(@NotNull HaxeModule haxeModule) {
+        HaxeModuleStub stub = haxeModule.getStub();
+        if(stub != null) {
+            return stub.getChildrenStubs().stream()
+              .map(StubElement::getPsi)
+              .filter(HaxeNamedComponent.class::isInstance)
+              .map(HaxeNamedComponent.class::cast)
+              .toList();
+        }
+
         return  CachedValuesManager.getCachedValue(haxeModule, () -> {
             final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(haxeModule, HaxeNamedComponent.class);
             List<HaxeNamedComponent> result = new ArrayList<>();
@@ -227,19 +239,41 @@ public class HaxeNamedSubComponentUtil {
 
     @NotNull
     private static List<HaxeNamedComponent> getMembersFromClassType(HaxeClass classType, boolean includeInherited, HaxeComponentType ...fromTypes) {
-        // cacheable
-        List<HaxeNamedComponent> cacheable =  CachedValuesManager.getCachedValue(classType, () -> {
-            HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(classType, HaxeInterfaceBody.class, HaxeEnumBody.class, HaxeClassBody.class, HaxeExternClassDeclarationBody.class);
-            List<HaxeNamedComponent> result = new ArrayList<>();
-            if (body != null) {
-                final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
-                if (namedComponents != null) result.addAll(Arrays.asList(namedComponents));
+        // from stub
+        boolean usingStubData = false;
+        List<HaxeNamedComponent> primaryMembers  = new ArrayList<>();
+        if(classType instanceof HaxeStubBasedNamedComponent<?> classStub) {
+            String name = classStub.getName(); // TODO remove: for debug purposes
+            StubElement<?> stub = classStub.getGreenStub();
+            if(stub != null) {
+                usingStubData = true;
+                List<StubElement<?>> stubs = stub.getChildrenStubs();
+                for (StubElement<?> element : stubs) {
+                    if(element.getPsi() instanceof HaxeNamedComponent component) {
+                        primaryMembers.add(component);
+                    }
+                }
             }
-            return new CachedValueProvider.Result<>(result, classType);
-        });
+        }
+        if(!usingStubData){
+            // cacheable as all elements are children of  classType
+             primaryMembers = CachedValuesManager.getCachedValue(classType, () -> {
+                HaxePsiCompositeElement body = PsiTreeUtil.getChildOfAnyType(classType,
+                                                                             HaxeInterfaceBody.class,
+                                                                             HaxeEnumBody.class,
+                                                                             HaxeClassBody.class,
+                                                                             HaxeExternClassDeclarationBody.class);
+                List<HaxeNamedComponent> result = new ArrayList<>();
+                if (body != null) {
+                    final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(body, HaxeNamedComponent.class);
+                    if (namedComponents != null) result.addAll(Arrays.asList(namedComponents));
+                }
+                return new CachedValueProvider.Result<>(result, classType);
+            });
+        }
 
         // nonCacheable
-        List<HaxeNamedComponent> nonCacheable = new ArrayList<>();
+        List<HaxeNamedComponent> inheritedMembers = new ArrayList<>();
         if(includeInherited) {
             List<HaxeType> baseTypes = new ArrayList<>();
             baseTypes.addAll(classType.getHaxeExtendsList());
@@ -249,12 +283,12 @@ public class HaxeNamedSubComponentUtil {
                     ResultHolder type = HaxeTypeResolver.getTypeFromType(baseType);
                     return getNamedSubComponentsInType(type.getType(), includeInherited, fromTypes);
                 });
-                if (members != null) nonCacheable.addAll(members);
+                if (members != null) inheritedMembers.addAll(members);
             }
         }
         List<HaxeNamedComponent> result = new ArrayList<>();
-        result.addAll(cacheable);
-        result.addAll(nonCacheable);
+        result.addAll(primaryMembers);
+        result.addAll(inheritedMembers);
         return result;
     }
 
