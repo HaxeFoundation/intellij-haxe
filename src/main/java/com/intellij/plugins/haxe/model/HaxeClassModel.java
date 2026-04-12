@@ -542,7 +542,10 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @Nullable
   public HaxeBaseMemberModel getMemberSelf(String name, @Nullable HaxeGenericResolver resolver) {
-    return getMembersSelf().stream().filter(model -> model.getNamePsi().getIdentifier().textMatches(name)).findFirst().orElse(null);
+    return getMembersSelf().stream()
+      .filter(model -> name.equals(model.getName()))
+      .findFirst()
+      .orElse(null);
   }
 
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {

@@ -1184,7 +1184,11 @@ private simpleQualifiedReferenceExpression ::= referenceExpression qualifiedRefe
 private min2RefsQualifiedReferenceExpression ::= referenceExpression qualifiedReferenceExpression+ { elementType="referenceExpression"}
 
 componentName ::= identifier
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeNamedElementImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeNamedElement"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeComponentNameStub"
+}
 
 // XXX - This could be callExpression, and it makes sense that newExpression would extend/implement callExpression,
 //       but that affects a lot of code and is best not attempted just before a release...

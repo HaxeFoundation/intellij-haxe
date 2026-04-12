@@ -24,11 +24,12 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.io.FileUtilRt;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
-
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeComponentNameStub;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
@@ -42,10 +43,14 @@ import javax.swing.*;
  * @author: Fedor.Korotkov
  */
 @CustomLog
-public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl implements HaxeComponentName {
+public abstract class HaxeNamedElementImpl extends HaxeStubBasedPsiElementBase<HaxeComponentNameStub> implements HaxeComponentName {
 
   public HaxeNamedElementImpl(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public HaxeNamedElementImpl(@NotNull HaxeComponentNameStub stub, @NotNull IStubElementType<?, ?> stubType) {
+    super(stub, stubType);
   }
 
   @Override
@@ -72,6 +77,10 @@ public abstract class HaxeNamedElementImpl extends HaxePsiCompositeElementImpl i
 
   @Override
   public String getName() {
+    HaxeComponentNameStub stub = getStub();
+    if (stub != null) {
+      return stub.getName();
+    }
     try {
       return getIdentifier().getText();
     }

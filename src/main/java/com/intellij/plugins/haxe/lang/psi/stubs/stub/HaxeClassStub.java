@@ -28,6 +28,8 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
   public static final int META_ENUM          = 0b0100000;  // @:enum
   public static final int META_ABSTRACT      = 0b1000000;  // @:abstract
 
+  // TODO metas:  GENERIC_BUILD
+
   private final String name;
 
   @Getter private final String qualifiedName;
