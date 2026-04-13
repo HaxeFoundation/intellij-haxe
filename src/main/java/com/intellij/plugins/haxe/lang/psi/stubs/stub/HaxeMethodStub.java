@@ -15,13 +15,13 @@ import org.jetbrains.annotations.Nullable;
 public class HaxeMethodStub extends StubBase<HaxeMethod> implements StubWithModifiers, StubWithName {
 
   // Keyword-modifier flags (stored in `flags`)
-  private static final int IS_STATIC       = 0b000001;
-  private static final int IS_PUBLIC       = 0b000010;
-  private static final int IS_OVERRIDE     = 0b000100;
-  private static final int IS_ABSTRACT     = 0b001000;
-  private static final int IS_INLINE       = 0b010000;
+  public static final int IS_STATIC       = 0b000001;
+  public static final int IS_PUBLIC       = 0b000010;
+  public static final int IS_OVERRIDE     = 0b000100;
+  public static final int IS_ABSTRACT     = 0b001000;
+  public static final int IS_INLINE       = 0b010000;
 
-  private static final int HAS_PARAMETERS  = 0b100000;
+  public static final int HAS_PARAMETERS  = 0b100000;
 
   // TODO overload ?
 
@@ -38,6 +38,7 @@ public class HaxeMethodStub extends StubBase<HaxeMethod> implements StubWithModi
   public static final int META_KEEP          = 0b10000000;  // @:keep
 
   private final String name;
+
   private final int flags;
   private final int metaFlags;
 
@@ -134,11 +135,11 @@ public class HaxeMethodStub extends StubBase<HaxeMethod> implements StubWithModi
   @Nullable
   public Boolean hasKeywordModifier(@HaxePsiModifier.ModifierConstant String modifier) {
     return switch (modifier) {
-      case HaxePsiModifier.ABSTRACT     -> (metaFlags & IS_ABSTRACT)      != 0;
-      case HaxePsiModifier.PUBLIC       -> (metaFlags & IS_PUBLIC)        != 0;
-      case HaxePsiModifier.STATIC       -> (metaFlags & IS_STATIC)        != 0;
-      case HaxePsiModifier.INLINE       -> (metaFlags & IS_INLINE)        != 0;
-      case HaxePsiModifier.OVERRIDE     -> (metaFlags & IS_OVERRIDE)      != 0;
+      case HaxePsiModifier.ABSTRACT     -> (flags & IS_ABSTRACT)      != 0;
+      case HaxePsiModifier.PUBLIC       -> (flags & IS_PUBLIC)        != 0;
+      case HaxePsiModifier.STATIC       -> (flags & IS_STATIC)        != 0;
+      case HaxePsiModifier.INLINE       -> (flags & IS_INLINE)        != 0;
+      case HaxePsiModifier.OVERRIDE     -> (flags & IS_OVERRIDE)      != 0;
       default -> null;
     };
   }

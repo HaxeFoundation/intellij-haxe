@@ -45,17 +45,10 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
     boolean hasParameters = psi.getParameterList().getParametersCount() > 0;
 
     // Capture relevant/frequently used compile-time metadata
+    int flags = buildFlags(psi);
     int metaFlags = buildMetaFlags(psi);
 
-    return new HaxeMethodStub(parentStub, this,
-                               psi.getName(),
-                               psi.isStatic(),
-                               psi.isPublic(),
-                               psi.isOverride(),
-                               psi.isAbstract(),
-                               psi.isInline(),
-                               hasParameters,
-                               metaFlags);
+    return new HaxeMethodStub(parentStub, this, psi.getName(), flags, metaFlags);
   }
 
   /** Walks preceding sibling metadata and packs the result into a metaFlags bitmask. */
@@ -74,6 +67,18 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
     }
     return flags;
   }
+
+  private static int buildFlags(@NotNull HaxeMethod psi) {
+    int flags = 0;
+    if (psi.isStatic())       flags |= HaxeMethodStub.IS_STATIC;
+    if (psi.isPublic())       flags |= HaxeMethodStub.IS_PUBLIC;
+    if (psi.isOverride())     flags |= HaxeMethodStub.IS_OVERRIDE;
+    if (psi.isAbstract())     flags |= HaxeMethodStub.IS_ABSTRACT;
+    if (psi.isInline())       flags |= HaxeMethodStub.IS_INLINE;
+    if (psi.hasParameters())  flags |= HaxeMethodStub.HAS_PARAMETERS;
+    return flags;
+  }
+
 
   @Override
   public void serialize(@NotNull HaxeMethodStub stub, @NotNull StubOutputStream dataStream) throws IOException {

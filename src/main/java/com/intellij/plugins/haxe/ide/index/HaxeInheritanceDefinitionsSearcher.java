@@ -166,13 +166,12 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
           String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
           if (targetQName.equals(resolvedQname)) return true;
         }
-        else {
-          if (referenceExpression.textMatches(targetQName)) return true;
-          if (referenceExpression.textMatches(targetSimpleName)) {
-            PsiElement resolve = referenceExpression.resolve();
-            String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
-            if (targetQName.equals(resolvedQname)) return true;
-          }
+      } else {
+        if (referenceExpression.textMatches(targetQName)) return true;
+        if (referenceExpression.textMatches(targetSimpleName)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
         }
       }
     }
