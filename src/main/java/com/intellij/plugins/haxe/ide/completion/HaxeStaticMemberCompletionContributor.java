@@ -48,41 +48,31 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
 
     // Static public methods
-    Collection<String> methodKeys = StubIndex.getInstance().getAllKeys(HaxeMethodNameStubIndex.KEY, project);
-    List<String> methodKeyList = new ArrayList<>(methodKeys);
+    StubIndex stubIndex = StubIndex.getInstance();
+    Collection<String> methodKeys = stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, project);
 
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(
-            methodKeyList,
-            ProgressManager.getInstance().getProgressIndicator(),
-            name -> ReadAction.compute(() -> {
-              StubIndex.getInstance().processElements(HaxeStaticMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class, (method -> {
-                if (method.isPublic()) {
-                  addMemberElement(resultSet, method, name, filterText, targetFile);
-                }
-                return true;
-              }));
-              return true; // continue processing
-            })
-    );
+    methodKeys.forEach(name -> {
+      stubIndex.processElements(HaxeStaticMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class, (method -> {
+          if (method.isStatic() && method.isPublic()) {
+            addMemberElement(resultSet, method, filterText);
+          }
+          return true;
+        }));
+    });
 
+    // TODO mlo: might want to split this into 2 different CompletionContributors if it means we can do this in parallel
 
     // Static public fields (includes enum value fields and regular fields)
-    Collection<String> fieldKeys = StubIndex.getInstance().getAllKeys(HaxeFieldNameStubIndex.KEY, project);
-    List<String> fieldKeyList = new ArrayList<>(fieldKeys);
+    Collection<String> fieldKeys = stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, project);
 
-    JobLauncher.getInstance().invokeConcurrentlyUnderProgress(
-            fieldKeyList,
-            ProgressManager.getInstance().getProgressIndicator(),
-            name -> ReadAction.compute(() -> {
-              StubIndex.getInstance().processElements(HaxeStaticFieldNameStubIndex.KEY, name, project, scope, HaxePsiField.class, (field -> {
-                if (field.isStatic() && field.isPublic()) {
-                  addMemberElement(resultSet, field, name, filterText, targetFile);
-                }
-                return true;
-              }));
-              return true; // continue processing
-            })
-    );
+    fieldKeys.forEach(name ->
+      stubIndex.processElements(HaxeStaticFieldNameStubIndex.KEY, name, project, scope, HaxePsiField.class, (field -> {
+        if (field.isStatic() && field.isPublic()) {
+          addMemberElement(resultSet, field, filterText);
+        }
+        return true;
+      })));
+
   }
 
 

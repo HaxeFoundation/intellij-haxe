@@ -121,17 +121,19 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
     final PrefixMatcher matcher = resultSet.getPrefixMatcher();
 
-    // Collecting matching keys first as  processElements cannot be called inside
+    // Collecting matching keys first as processElements cannot be called inside
     // a processAllKeys callback (same index lock -> deadlock assertion).
+    StubIndex stubIndex = StubIndex.getInstance();
+
     final List<String> matchingKeys = new ArrayList<>();
-    StubIndex.getInstance().processAllKeys(HaxeClassNameStubIndex.KEY, project, key -> {
+    stubIndex.processAllKeys(HaxeClassNameStubIndex.KEY, project, key -> {
       if (matcher.prefixMatches(key)) matchingKeys.add(key);
       return true;
     });
 
 
     for (String key : matchingKeys) {
-      StubIndex.getInstance().processElements(HaxeClassNameStubIndex.KEY, key, project, scope, HaxeClass.class, haxeClass -> {
+      stubIndex.processElements(HaxeClassNameStubIndex.KEY, key, project, scope, HaxeClass.class, haxeClass -> {
         String name = haxeClass.getName();
         if (name == null) return true;
         String qualifiedName = haxeClass.getQualifiedName();

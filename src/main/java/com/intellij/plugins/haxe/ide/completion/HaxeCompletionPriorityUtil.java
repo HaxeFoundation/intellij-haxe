@@ -2,9 +2,6 @@ package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.CompletionLocation;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResult;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -21,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
 import static com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData.*;
 
 public class HaxeCompletionPriorityUtil {
@@ -315,7 +311,7 @@ public class HaxeCompletionPriorityUtil {
 
     if (model instanceof HaxeMethodModel methodModel) {
       element.getPriority().type += METHOD;
-      // update lookupType with  functionType instead of return type
+      // update lookupType with functionType instead of return type
       if (element.isFunctionType()) {
         lookupType = methodModel.getFunctionType(element.getResolver()).createHolder();
       }

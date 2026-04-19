@@ -97,7 +97,7 @@ public class HaxeGenericResolverUtil {
 
     if (element instanceof HaxeReference) {
         ResultHolder result1 =  statementRecursionGuard.doPreventingRecursion(element, true,
-                () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), null).result);
+                () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), resolver.copy()).result);
       if (result1 != null && !result1.isUnknown() && result1.getClassType() != null) {
         SpecificHaxeClassReference result = result1.getClassType();
         resolver.addAll(result.getGenericResolver());

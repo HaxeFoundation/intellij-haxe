@@ -14,7 +14,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * More or less a copy of CompletionAutoPopupHandler but with allow "$" logic.
+ * More or less a copy of CompletionAutoPopupHandler but allows "$" (macros) and "#" (preprocessor).
  */
 @CustomLog
 public class HaxeCompletionAutoPopupHandler extends CompletionAutoPopupHandler {
@@ -39,7 +39,7 @@ public class HaxeCompletionAutoPopupHandler extends CompletionAutoPopupHandler {
       return Result.STOP;
     }
 
-    if (Character.isLetterOrDigit(charTyped) || charTyped == '_'|| charTyped == '$') {
+    if (Character.isLetterOrDigit(charTyped) || charTyped == '_'|| charTyped == '$' || charTyped == '#') {
       if (phase instanceof CompletionPhase.EmptyAutoPopup && ((CompletionPhase.EmptyAutoPopup)phase).allowsSkippingNewAutoPopup(editor, charTyped)) {
         return Result.CONTINUE;
       }
