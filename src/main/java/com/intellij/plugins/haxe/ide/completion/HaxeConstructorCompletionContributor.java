@@ -59,7 +59,7 @@ public class HaxeConstructorCompletionContributor extends CompletionContributor 
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
     final Collection<HaxeMethod> constructors = HaxeConstructorStubIndex.getConstructors(project, scope);
 
-    //TODO mlo: make sure overloads are included
+    //TODO mlo: add support for overloads
     for (HaxeMethod constructor : constructors) {
       final HaxeClass containingClass = PsiTreeUtil.getStubOrPsiParentOfType(constructor, HaxeClass.class);
       if (containingClass == null) continue;

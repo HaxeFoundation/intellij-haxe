@@ -99,7 +99,6 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
   @NotNull
   @Override
   public String deduplicateKey() {
-    // TODO get from stub
     return haxeClass.getQualifiedName();
   }
 

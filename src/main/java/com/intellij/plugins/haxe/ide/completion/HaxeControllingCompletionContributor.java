@@ -48,7 +48,6 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     extend(CompletionType.BASIC, PlatformPatterns.psiElement(HaxeTokenTypes.ID)
              .withParent(HaxeIdentifier.class)
              .withSuperParent(2, HaxeReferenceExpression.class),
-
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,

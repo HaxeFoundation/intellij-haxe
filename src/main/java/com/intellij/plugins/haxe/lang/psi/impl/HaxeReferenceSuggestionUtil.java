@@ -120,9 +120,8 @@ public class HaxeReferenceSuggestionUtil {
     }
 
 
-
     private static void addModuleMemberSuggestions(List<HaxeLookupElement> variants, HaxeModule haxeModule, boolean skipMainClass) {
-        HaxeModuleModel moduleModel = (HaxeModuleModel) haxeModule.getModel();
+        HaxeModuleModel moduleModel = (HaxeModuleModel)haxeModule.getModel();
         List<HaxeModel> exposedMembers = moduleModel.getExposedMembers();
         List<HaxeComponentName> suggestedVariants = new ArrayList<>();
         for (HaxeModel exposedMember : exposedMembers) {
@@ -190,7 +189,6 @@ public class HaxeReferenceSuggestionUtil {
             HaxeGenericResolver genericResolver = classType.getGenericResolver();
 
             boolean ignorePrivateMembers = shouldIgnorePrivateMembers(classType, targetReference);
-
             Set<HaxeComponentName> nonStaticMembers = findClassNonStaticMembers(haxeClass, targetReference, genericResolver, ignorePrivateMembers);
             variants.addAll(HaxeMemberLookupElement.convert(classType.asResolveResult(), nonStaticMembers, List.of(), genericResolver));
         }
@@ -268,19 +266,6 @@ public class HaxeReferenceSuggestionUtil {
         HaxeResolveResult resolveResult = superClass.getModel().getInstanceReference().asResolveResult();
         variants.addAll(HaxeMemberLookupElement.convert(resolveResult, nonStaticMembers, List.of(), genericResolver));
 
-//        SpecificHaxeClassReference currentClass = resolvedType.getClassType();
-//        if (currentClass == null || currentClass.getHaxeClass() == null) return;
-//        List<HaxeType> extendsList = currentClass.getHaxeClass().getHaxeExtendsList();
-//        if(extendsList.isEmpty()) return;
-//        HaxeType first = extendsList.getFirst(); // classes should only extend one other class (and we dont care about interfaces here)
-//        PsiElement resolve = first.getReferenceExpression().resolve();
-//        if(resolve instanceof HaxeClass superClass) {
-//            HaxeGenericResolver genericResolver = currentClass.getGenericResolver().translateFromTo(currentClass.getHaxeClass(), superClass);
-//            Set<HaxeComponentName> nonStaticMembers = findClassNonStaticMembers(superClass, superExpression, genericResolver, false);
-//            HaxeResolveResult resolveResult = superClass.getModel().getInstanceReference().asResolveResult();
-//            variants.addAll(HaxeMemberLookupElement.convert(resolveResult, nonStaticMembers, List.of(), genericResolver));
-//        }
-
     }
 
     private static void addThisSuggestions(List<HaxeLookupElement> variants, HaxeThisExpression thisExpression, ResultHolder resolvedType) {
@@ -317,9 +302,7 @@ public class HaxeReferenceSuggestionUtil {
         }
         SpecificHaxeClassReference instanceReference = haxeClass.getModel().getInstanceReference();
         HaxeGenericResolver genericResolver = instanceReference.getGenericResolver();
-        HaxeResolveResult resolveResult = instanceReference.asResolveResult();
-
-        variants.addAll(HaxeMemberLookupElement.convert(resolveResult, staticMembers, List.of(), genericResolver));
+        variants.addAll(HaxeMemberLookupElement.createExtensionMembers(instanceReference, genericResolver, staticMembers));
     }
 
     private static void addPackageSuggestions(List<HaxeLookupElement> variants, PsiPackage psiPackage) {
@@ -340,26 +323,31 @@ public class HaxeReferenceSuggestionUtil {
 
         Set<HaxeComponentName> variants = new HashSet<>();
         HaxeFileModel haxeFileModel = HaxeFileModel.fromElement(reference);
-        if(haxeFileModel != null) {
+        if (haxeFileModel != null) {
 
             List<HaxeUsingModel> importHxUsingModels = findImportHxFileUsingModels(haxeFileModel);
-            importHxUsingModels.stream()
-                    .flatMap(model -> model.getExtensionMethods(typeReference, null).stream())
-                    .map(HaxeMemberModel::getNamePsi)
-                    .forEach(variants::add);
+            for (HaxeUsingModel importHxUsingModel : importHxUsingModels) {
+                for (HaxeMethodModel methodModel : importHxUsingModel.getExtensionMethods(typeReference, null)) {
+                    HaxeComponentName psi = methodModel.getNamePsi();
+                    variants.add(psi);
+                }
+            }
 
-            haxeFileModel.getUsingModels().stream()
-                    .flatMap(model -> model.getExtensionMethods(typeReference, null).stream())
-                    .map(HaxeMemberModel::getNamePsi)
-                    .forEach(variants::add);
+          for (HaxeUsingModel model : haxeFileModel.getUsingModels()) {
+            for (HaxeMethodModel methodModel : model.getExtensionMethods(typeReference, null)) {
+              HaxeComponentName psi = methodModel.getNamePsi();
+              variants.add(psi);
+            }
+          }
         }
-        if(typeReference instanceof  SpecificHaxeClassReference classReference) {
+        if (typeReference instanceof SpecificHaxeClassReference classReference) {
             HaxeClass haxeClass = classReference.getHaxeClass();
-            if(haxeClass != null) {
+            if (haxeClass != null) {
                 List<HaxeMethodModel> extensionMethodsFromMeta = haxeClass.getModel().getExtensionMethodsFromMeta();
-                extensionMethodsFromMeta.stream()
-                        .map(HaxeMemberModel::getNamePsi)
-                        .forEach(variants::add);
+                for (HaxeMethodModel model : extensionMethodsFromMeta) {
+                    HaxeComponentName psi = model.getNamePsi();
+                    variants.add(psi);
+                }
             }
         }
 
@@ -463,7 +451,7 @@ public class HaxeReferenceSuggestionUtil {
                     return callie.getLastChild().textMatches(name);
                 }
             }
-            if(resolvedPsi instanceof PsiPackage aPackage){
+            if(resolvedPsi instanceof PsiPackage){
                 return true;
             }
         }

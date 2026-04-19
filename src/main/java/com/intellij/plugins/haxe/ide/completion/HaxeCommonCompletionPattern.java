@@ -27,6 +27,7 @@ import lombok.CustomLog;
 
 import org.jetbrains.annotations.Nullable;
 
+import static com.intellij.codeInsight.completion.CompletionUtil.DUMMY_IDENTIFIER_TRIMMED;
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 public class HaxeCommonCompletionPattern {
@@ -144,7 +145,7 @@ public class HaxeCommonCompletionPattern {
                    : ""));
         if (o instanceof PsiElement && log.isTraceEnabled()) {
           PsiElement element = (PsiElement)o;
-          int dumplevel = "IntellijIdeaRulezzz".equals(element.getText()) ? 5 : 2;
+          int dumplevel = DUMMY_IDENTIFIER_TRIMMED.equals(element.getText()) ? 5 : 2;
           PsiElement superParent = HaxeDebugPsiUtil.getParents((PsiElement)o, dumplevel, false);
           log.trace(HaxeDebugPsiUtil.printElementTree(superParent));
         }

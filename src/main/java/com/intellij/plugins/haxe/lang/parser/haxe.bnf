@@ -91,6 +91,7 @@
       ppEND="#end"
       ppERROR="#error"
       ppLINE="#line"
+      ppHASH="#"
 
       kBREAK="break"
       kDEFAULT="default"
@@ -854,11 +855,20 @@ private forDeclaration ::= keyValueIterator | valueIterator
 keyValueIterator ::= iteratorkey fatArrowOperator iteratorValue
 
 iteratorkey ::= componentName
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIteratorMixin"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"
+}
 iteratorValue ::= componentName
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIteratorMixin"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"
+}
 valueIterator ::= componentName
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeIteratorMixin"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"
+}
 
 
 iterable ::= expression
@@ -921,7 +931,13 @@ switchExtractorExpressionArrayLiteral ::= '[' (enumExtractorArgumentList ','?)? 
 // extracted value identifiers must start with lowercase, but since your allowed to create enum-values that also start with lowercase,
 // we cant use that to tell the difference between an extractedvalue and a enumvalue reference
 enumExtractedValueReference ::= (<<startWithLowercaseOrUnderscoreCheck>> componentName)
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumExtractedValueMixin"
+  implements=[
+  "com.intellij.plugins.haxe.lang.psi.HaxeReference"
+  "com.intellij.plugins.haxe.model.HaxeModelTarget"
+  ]
+}
 enumExtractedValue::= enumExtractedValueReference | primitiveExtractedValue
 
 //extractVariable ::= identifier
@@ -940,7 +956,6 @@ enumObjectLiteralElement ::= objectLiteralComponentName ':' ( expressionOrEnumEx
 private enumObjectLiteralElementList ::= enumObjectLiteralElement (',' enumObjectLiteralElement)* ','? {pin=1 recoverWhile="object_literal_list_recover"}
 enumExtractObjectLiteral ::= '{' enumObjectLiteralElementList '}' {pin=2}
 enumExtractArrayLiteral ::= '[' expressionOrEnumExtractorExpression (',' expressionOrEnumExtractorExpression)* ']' {pin=2}
-//{mixin="com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent" implements="com.intellij.plugins.haxe.lang.psi.HaxeComponent"}
 
 private switchExtractorExpressionArgument ::= (  extractorMatchExpressionVariant | switchExtractorExpressionArrayLiteral |  switchExtractorExpression  |  switchEnumBitOperationExpression | switchCaseCapture | enumExtractedValue  |<<startWithUppercaseCheck>> type | literalExpression)
 

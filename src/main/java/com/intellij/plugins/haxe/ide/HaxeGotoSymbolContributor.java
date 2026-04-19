@@ -37,14 +37,14 @@ public class HaxeGotoSymbolContributor implements ChooseByNameContributor {
   @Override
   public String[] getNames(@NotNull final Project project, final boolean includeNonProjectItems) {
     if (DumbService.isDumb(project)) return ArrayUtil.EMPTY_STRING_ARRAY;
-    final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
+    StubIndex stubIndex = StubIndex.getInstance();
 
     final Set<String> result = new LinkedHashSet<>();
-    result.addAll(StubIndex.getInstance().getAllKeys(HaxeClassNameStubIndex.KEY, project));
-    for (String name : StubIndex.getInstance().getAllKeys(HaxeMethodNameStubIndex.KEY, project)) {
+    result.addAll(stubIndex.getAllKeys(HaxeClassNameStubIndex.KEY, project));
+    for (String name : stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, project)) {
       if (!"new".equals(name)) result.add(name);
     }
-    result.addAll(StubIndex.getInstance().getAllKeys(HaxeFieldNameStubIndex.KEY, project));
+    result.addAll(stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, project));
     return ArrayUtil.toStringArray(result);
   }
 

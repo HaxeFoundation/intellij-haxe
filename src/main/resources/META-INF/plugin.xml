@@ -284,7 +284,10 @@
     <typedHandler implementation="com.intellij.plugins.haxe.ide.completion.HaxeCompletionAutoPopupHandler" id="TestingAutopopup"/>
 
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
+    <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
+
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionContributor" order="after ControllingCompletion"/>
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePPKeywordCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePrecompilerContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeEnumValuesCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeConstructorCompletionContributor"/>
@@ -292,7 +295,6 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMacroCompletionContributor"/>
-    <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>

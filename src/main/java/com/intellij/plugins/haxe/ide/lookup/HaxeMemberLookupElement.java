@@ -19,15 +19,13 @@ package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.completion.JavaCompletionUtil;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
-import com.intellij.navigation.ItemPresentation;
+import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
+import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxePresentableUtil;
 import icons.HaxeIcons;
 import lombok.Getter;
@@ -36,23 +34,23 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NO_COMPLETION;
 
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeMemberLookupElement extends LookupElement  implements HaxeLookupElement {
+public class HaxeMemberLookupElement extends LookupElement implements HaxeLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
-  private final HaxeComponentName myComponentName;
-  private final HaxeResolveResult leftReference;
-  private final HaxeMethodContext context;
 
-  private final HaxeGenericResolver resolver;
+  @Getter private final SpecificTypeReference leftReference;
+  @Getter private final HaxeGenericResolver resolver;
+  @Getter private final HaxeBaseMemberModel model;
+  @Getter private final HaxeMethodContext context;
   @Getter private final boolean isFunctionType;
-  @Getter private HaxeBaseMemberModel model;
 
   private String presentableText;
   private String tailText;
@@ -62,85 +60,119 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   private Icon icon = null;
   private boolean presentationCalculated = false;
 
-  @NotNull
-  public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
-                                                            @NotNull Collection<HaxeComponentName> componentNames,
-                                                            @NotNull Collection<HaxeComponentName> componentNamesExtension,
-                                                            @Nullable  HaxeGenericResolver resolver) {
-   return convert(leftReferenceResolveResult,componentNames, componentNamesExtension, resolver, false, false);
-  }
-  @NotNull
-  public static Collection<HaxeMemberLookupElement> convert(HaxeResolveResult leftReferenceResolveResult,
-                                                            @NotNull Collection<HaxeComponentName> componentNames,
-                                                            @NotNull Collection<HaxeComponentName> componentNamesExtension,
-                                                            @Nullable  HaxeGenericResolver resolver,
-                                                            boolean excludeCallSuggestions, boolean excludeMethodReferenceSuggestions) {
-    final List<HaxeMemberLookupElement> result = new ArrayList<>(componentNames.size());
-    if (resolver == null) resolver = new HaxeGenericResolver();
-    for (HaxeComponentName componentName : componentNames) {
-      HaxeMethodContext context = null;
-      boolean shouldBeIgnored = false;
-      if (componentNamesExtension.contains(componentName)) {
-        context = HaxeMethodContext.EXTENSION;
-      } else {
-        context = HaxeMethodContext.NO_EXTENSION;
-      }
 
-      // TODO figure out if  @:noUsing / NO_USING should be filtered
+  // TODO add private/visability to filter (needs to be able to access private when same class/module)
+  public static Set<HaxeComponentName> filterCompletable(Set<HaxeComponentName> componentNames) {
 
-      if(componentName.getParent() instanceof HaxeFieldDeclaration fieldDeclaration) {
-        shouldBeIgnored = fieldDeclaration.hasCompileTimeMetadata(NO_COMPLETION) ;
+    return componentNames.stream().filter(componentName -> {
+      if (componentName.getParent() instanceof HaxeFieldDeclaration fieldDeclaration) {
+        //if(hidePrivate && !fieldDeclaration.isPublic()) return false;
+        if(fieldDeclaration.hasCompileTimeMetadata(NO_COMPLETION)) return false;
       }
-      if(componentName.getParent() instanceof HaxeMethodDeclaration methodDeclaration) {
-        shouldBeIgnored = methodDeclaration.hasCompileTimeMetadata(NO_COMPLETION) ;
+      if (componentName.getParent() instanceof HaxeMethodDeclaration methodDeclaration) {
+        //if(hidePrivate && !methodDeclaration.isPublic()) return false;
+        if(methodDeclaration.hasCompileTimeMetadata(NO_COMPLETION)) return false;
       }
       // ignore constructors for now, (completion creates `new()`)
-      if (componentName.textMatches("new")) {
-        shouldBeIgnored = true;
+      if (componentName.textMatches(HaxeTokenTypes.ONEW.toString())) {
+        return false;
       }
-      if (!shouldBeIgnored) {
-        HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(componentName);
-        if (model != null) {
-          HaxeClassModel classModel = model.getDeclaringClass();
-          if (classModel != null && leftReferenceResolveResult != null) {
-            HaxeClass currentClass = leftReferenceResolveResult.getHaxeClass();
-            HaxeClass membersClass = classModel.haxeClass;
-            if(currentClass != null && !resolver.isEmpty())  resolver = resolver.translateFromTo(currentClass, membersClass);
+      return true;
+    }).collect(Collectors.toSet());
+
+  }
+
+  public static List<HaxeMemberLookupElement> createLocalMembers(SpecificHaxeClassReference leftReference,
+                                                                 HaxeGenericResolver resolver,
+                                                                 Set<HaxeComponentName> componentNames) {
+
+    return create(leftReference, resolver, componentNames, HaxeMethodContext.NO_EXTENSION, true, true);
+  }
+  public static List<HaxeMemberLookupElement> createClassMembers(SpecificHaxeClassReference leftReference,
+                                                                 HaxeGenericResolver resolver,
+                                                                 Set<HaxeComponentName> componentNames) {
+
+    return create(leftReference, resolver, componentNames, HaxeMethodContext.NO_EXTENSION, true,true);
+  }
+
+  public static List<HaxeMemberLookupElement> createClassMembers(SpecificHaxeClassReference leftReference,
+                                                                 HaxeGenericResolver resolver,
+                                                                 Set<HaxeComponentName> componentNames,
+                                                                 boolean addFunctionReference,
+                                                                 boolean addFunctionCallExpression
+  ) {
+
+    return create(leftReference, resolver, componentNames, HaxeMethodContext.NO_EXTENSION, addFunctionReference,addFunctionCallExpression);
+  }
+
+  public static List<HaxeMemberLookupElement> createModuleMembers(Set<HaxeComponentName> componentNames) {
+
+    return create(null, new HaxeGenericResolver(), componentNames, HaxeMethodContext.NO_EXTENSION, true,true);
+  }
+
+  public static List<HaxeMemberLookupElement> createExtensionMembers(SpecificTypeReference leftReference,
+                                                                     HaxeGenericResolver resolver,
+                                                                     Set<HaxeComponentName> componentNames) {
+
+    return create(leftReference, resolver, componentNames, HaxeMethodContext.EXTENSION, false, true);
+  }
+
+  public static List<HaxeMemberLookupElement> create(SpecificTypeReference leftReference,
+                                                     HaxeGenericResolver resolver,
+                                                     Set<HaxeComponentName> componentNames,
+                                                     HaxeMethodContext context,
+                                                     boolean addFunctionReference,
+                                                     boolean addFunctionCallExpression
+  ) {
+
+    Set<HaxeComponentName> filtered = filterCompletable(componentNames);
+    List<HaxeMemberLookupElement> lookupElements = new ArrayList<>();
+    for (HaxeComponentName name : filtered) {
+      // TODO check if stub-friendly code?
+      if(name.getParent() instanceof HaxeModelTarget modelTarget) {
+        HaxeModel model = modelTarget.getModel();
+        if(model instanceof HaxeBaseMemberModel memberModel) {
+          if( memberModel instanceof HaxeMethodModel) {
+            if(addFunctionReference) {
+              HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, true);// TODO
+              lookupElements.add(element2);
+            }
+            if(addFunctionCallExpression) {
+              HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false);// TODO
+              lookupElements.add(element2);
+            }
           }
-          if (model instanceof HaxeMethodModel) {
-            // adding functionType in addition to method call
-            if(!excludeMethodReferenceSuggestions) {
-              result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model, true));
-            }
-            if(!excludeCallSuggestions) {
-              result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model));
-            }
-            continue;
+          else { //HaxeLocalVarModel ++
+            HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false);// TODO
+            lookupElements.add(element2);
           }
         }
-        result.add(new HaxeMemberLookupElement(leftReferenceResolveResult, componentName, context, resolver, model));
       }
     }
-    return result;
+    return lookupElements;
   }
 
 
-  public HaxeMemberLookupElement(HaxeResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context, HaxeGenericResolver resolver, HaxeBaseMemberModel model) {
-    this(leftReference, name, context, resolver, model, false);
-  }
-  public HaxeMemberLookupElement(HaxeResolveResult leftReference, HaxeComponentName name, HaxeMethodContext context, HaxeGenericResolver resolver, HaxeBaseMemberModel model, boolean functionType) {
-    this.leftReference = leftReference;
-    this.myComponentName = name;
+
+
+  public HaxeMemberLookupElement(@NotNull HaxeBaseMemberModel memberModel,
+                                 @NotNull HaxeGenericResolver memberResolver,
+                                 @NotNull HaxeMethodContext context,
+                                 @Nullable SpecificTypeReference leftReference,
+                                 boolean functionType) {
+    this.model = memberModel;
+    this.resolver = memberResolver;
     this.context = context;
-    this.resolver = resolver;
-    this.model = model;
+    this.leftReference = leftReference;
     this.isFunctionType = functionType;
   }
+
+
 
   @NotNull
   @Override
   public String getLookupString() {
-    return myComponentName.getIdentifier().getText();
+    return model.getName();
   }
 
   @Override
@@ -163,15 +195,16 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
     presentableText = getLookupString();
 
     if (!isFunctionType) {
-      final ItemPresentation myComponentNamePresentation = myComponentName.getPresentation();
-      if (myComponentNamePresentation == null) return;
-      icon = myComponentNamePresentation.getIcon(true);
+      HaxeComponentType type = HaxeComponentType.typeOf(model.getNamedComponentPsi());
+      if(type != null) {
+        icon = type.getCompletionIcon();
+      }
     } else {
       // TODO functionType references should perhaps have its own icon?
       icon = HaxeIcons.Field;
     }
     if (model != null) {
-      determineStriketrough();
+      determineStrikethrough();
       determineBold();
 
       evaluateTailText();
@@ -180,11 +213,46 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   }
 
   private void evaluateTypeText() {
+    if(model instanceof HaxeLocalValueElementModel localValueModel){
+      ResultHolder type = localValueModel.getVariableType();
+      if(type != null && !type.isUnknown()) {
+        typeText = type.toPresentationString();
+      }
+    }
     if (isFunctionType && model instanceof HaxeMethodModel methodModel) {
+      if(leftReference instanceof SpecificHaxeClassReference classReference) {
+        HaxeClass haxeClass = classReference.getHaxeClass();
+        HaxeClassModel methodsParentClass = model.getDeclaringClass();
+        if (methodsParentClass != null) {
+          HaxeGenericResolver translatedResolver = resolver.translateFromTo(haxeClass, methodsParentClass.haxeClass);
+          SpecificFunctionReference functionType = methodModel.getFunctionType(resolver);
+          SpecificFunctionReference resolve = translatedResolver.resolve(functionType);
+          if (resolve != null && !resolve.isUnknown()) {
+            typeText = resolve.toPresentationString();
+            return;
+          }
+        }
+      }
       SpecificFunctionReference functionType = methodModel.getFunctionType(resolver);
       typeText =  functionType.toPresentationString();
       return;
     }
+    if (leftReference instanceof SpecificHaxeClassReference classReference) {
+      HaxeClass haxeClass = classReference.getHaxeClass();
+      HaxeClassModel declaringClass = model.getDeclaringClass();
+      if (declaringClass != null) {
+        HaxeGenericResolver translatedResolver = resolver.translateFromTo(haxeClass, declaringClass.haxeClass);
+        ResultHolder type = model.getResultType(translatedResolver);
+        // TODO mlo: figure out why this is necessary (would expect getResultType to handle this)
+        type = translatedResolver.resolve(type);
+
+        if (type != null && !type.isUnknown()) {
+          typeText = type.toPresentationString();
+          return;
+        }
+      }
+    }
+
     ResultHolder type = model.getResultType(resolver);
     if (type != null && !type.isUnknown()) {
       typeText = type.toPresentationString();
@@ -192,16 +260,14 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
   }
 
   private void evaluateTailText() {
-    if (model instanceof  HaxeMethodModel && !isFunctionType) {
-      if (leftReference != null) {
-        tailText = "(" + getParameterListAsText() + ")";
-      }
+    if (model instanceof HaxeMethodModel && !isFunctionType) {
+      tailText = "(" + getParameterListAsText() + ")";
     }
   }
 
   private @NotNull String getParameterListAsText() {
     if (leftReference != null){
-      return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi(), leftReference.getSpecialization(), true, false);
+      return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi(), resolver, true, false);
     }else {
       return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi());
     }
@@ -209,15 +275,15 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
 
   private void determineBold() {
     // Check for non-inherited members to highlight them as intellij-java does
-    if (leftReference != null) {
+    if (leftReference  instanceof SpecificHaxeClassReference classReference) {
       HaxeClassModel declaringClass = model.getDeclaringClass();
-      if (declaringClass!= null && declaringClass.getPsi() == leftReference.getHaxeClass()) {
+      if (declaringClass!= null && declaringClass.getPsi() == classReference.getHaxeClass()) {
         bold = true;
       }
     }
   }
 
-  private void determineStriketrough() {
+  private void determineStrikethrough() {
     if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
           strikeout = true;
         }
@@ -225,14 +291,11 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
 
   @Override
   public void handleInsert(@NotNull InsertionContext context) {
-    HaxeBaseMemberModel memberModel = HaxeBaseMemberModel.fromPsi(myComponentName);
     boolean hasParams = false;
     boolean isMethod = false;
-    if (memberModel != null) {
-      if (memberModel instanceof HaxeMethodModel methodModel)  {
+      if (model instanceof HaxeMethodModel methodModel)  {
         hasParams = !methodModel.getParametersWithContext(this.context).isEmpty();
         isMethod = true;
-      }
     }
 
     if (isMethod && !isFunctionType) {
@@ -242,31 +305,11 @@ public class HaxeMemberLookupElement extends LookupElement  implements HaxeLooku
     }
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
-
 
   @NotNull
   @Override
   public Object getObject() {
-    return myComponentName;
+    return model.getNamePsi();
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o instanceof HaxeMemberLookupElement lookupElement) {
-      return myComponentName.equals(lookupElement.myComponentName) && lookupElement.isFunctionType == isFunctionType;
-    }else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return myComponentName.hashCode();
-  }
 }

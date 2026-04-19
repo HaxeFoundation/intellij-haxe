@@ -21,6 +21,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
 import com.intellij.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
@@ -29,6 +30,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 
@@ -159,17 +161,24 @@ public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedCompon
   @NotNull
   @Override
   public HaxeModifierList getModifierList() {
+    HaxeParameterStub stub = getGreenStub();
+    if (stub != null) {
+      return createStubBackedModifierList();
+    } else {
+      return createASTBackedModifierList();
+    }
+  }
+
+  private @NonNull HaxeModifierList createASTBackedModifierList() {
     HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
     // Triplicated code! HaxeMethodPsiMixinImpl + HaxeParameterPsiMixinImpl + HaxePsiFieldImpl
     if (isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
     }
-
     if (isInline()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.INLINE, true);
     }
-
     if (isPublic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
     }
@@ -182,6 +191,23 @@ public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedCompon
     // E.g. see AbstractHaxeClassPsi
 
     return haxePsiModifierList;
+  }
+
+  private @NonNull HaxeModifierListFromStub createStubBackedModifierList() {
+    HaxeModifierListFromStub list = new HaxeModifierListFromStub(this);
+    if (isStatic()) {
+      list.addModifier(HaxePsiModifier.STATIC);
+    }
+    if (isInline()) {
+      list.addModifier(HaxePsiModifier.INLINE);
+    }
+    if (isPublic()) {
+      list.addModifier(HaxePsiModifier.PUBLIC);
+    }
+    else {
+      list.addModifier(HaxePsiModifier.PRIVATE);
+    }
+    return list;
   }
 
   @Override

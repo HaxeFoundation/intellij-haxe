@@ -24,11 +24,10 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
+import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
 
 public class HaxeStaticMemberCompletionContributor extends CompletionContributor {
   public HaxeStaticMemberCompletionContributor() {
@@ -40,8 +39,11 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
                                            @NotNull CompletionResultSet result) {
                final PsiFile file = parameters.getOriginalFile();
                var position = parameters.getOriginalPosition();
-               position = position != null ? position : parameters.getPosition();
-               addVariantsFromIndex(result, file, position.getText());
+               boolean newExpression = identifierInNewExpression.accepts(position);
+               if(!newExpression) {
+                 position = position != null ? position : parameters.getPosition();
+                 addVariantsFromIndex(result, file, position.getText());
+               }
              }
            });
   }

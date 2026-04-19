@@ -19,8 +19,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
 import static com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData.*;
@@ -222,13 +220,6 @@ public class HaxeCompletionPriorityUtil {
     return false;
   }
 
-  private static Set<CompletionResult> prioritizeConstructorsRemoveOtherMembers(Set<CompletionResult> completions) {
-    Stream<CompletionResult>  constructors =  completions.stream()
-      .filter(result -> result.getLookupElement() instanceof HaxeConstructorLookupElement)
-      .peek(result -> ((HaxeConstructorLookupElement)result.getLookupElement()).getPriority().type += 1);
-    Stream<CompletionResult> others =  completions.stream().filter(result -> !(result.getLookupElement() instanceof HaxeLookupElement));
-    return Stream.concat(constructors, others).collect(Collectors.toSet());
-  }
 
   private static boolean trySortForArgument(PsiElement position, List<HaxeLookupElement> lookupElements) {
     HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(position, HaxeCallExpression.class, true, HaxeNewExpression.class);
