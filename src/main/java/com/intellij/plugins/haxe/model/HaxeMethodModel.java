@@ -247,7 +247,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isMacro() {
-    return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO2);
+    return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO_META);
   }
 
   @Override
@@ -276,10 +276,8 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (haxeMethod.getGenericParam() != null) {
-      int index = 0;
       for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
         out.add(part.getModel());
-        index++;
       }
     }
     return out;

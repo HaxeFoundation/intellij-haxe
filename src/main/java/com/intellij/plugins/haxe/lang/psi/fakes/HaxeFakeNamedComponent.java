@@ -48,6 +48,11 @@ public abstract class HaxeFakeNamedComponent  extends HaxeFakePsiElement impleme
     }
 
     @Override
+    public boolean isDynamic() {
+        return false;
+    }
+
+    @Override
     public String filterName() {
         return "";
     }

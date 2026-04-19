@@ -180,9 +180,28 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
   }
 
   public boolean isAbstract() {
+    HaxeMethodStub stub = getGreenStub();
+    if (stub != null) {
+      return stub.isAbstract();
+    }
+
     List<HaxeMethodModifier> methodModifiers = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMethodModifier.class);
     for (HaxeMethodModifier methodModifier : methodModifiers) {
-      if(methodModifier.textMatches(HaxeMethodModifier.ABSTRACT.toString())) {
+      if(methodModifier.textMatches(HaxeMethodModifier.ABSTRACT)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  public boolean isMacro() {
+    HaxeMethodStub stub = getGreenStub();
+    if (stub != null) {
+      return stub.isMacro();
+    }
+
+    List<HaxeMethodModifier> methodModifiers = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeMethodModifier.class);
+    for (HaxeMethodModifier methodModifier : methodModifiers) {
+      if(methodModifier.textMatches(HaxeMethodModifier.MACRO)) {
         return true;
       }
     }

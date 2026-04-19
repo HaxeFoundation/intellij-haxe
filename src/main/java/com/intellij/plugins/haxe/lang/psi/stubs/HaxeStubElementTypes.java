@@ -75,8 +75,6 @@ public interface HaxeStubElementTypes {
     new HaxeComponentNameElementType("COMPONENT_NAME", (stub, type) -> new HaxeComponentNameImpl(stub, type));
 
   // --- Reference expression (stub for use in type sub-tree) ---
-  //HaxeContainerStubElementType<HaxeReferenceExpression> REFERENCE_EXPRESSION =
-  //  new HaxeContainerStubElementType<>("REFERENCE_EXPRESSION", (stub, type) -> new HaxeReferenceExpressionImpl(stub, type));
   HaxeReferenceExpressionElementType REFERENCE_EXPRESSION =
     new HaxeReferenceExpressionElementType("REFERENCE_EXPRESSION", (stub, type) -> new HaxeReferenceExpressionImpl(stub, type));
 

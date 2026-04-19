@@ -490,6 +490,9 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     else if (component instanceof HaxeEnumExtractedValue) {
       resolveTypeAndMakeHeader(builder, component);
     }
+    else if (component instanceof HaxeEnumExtractedValueReference) {
+      resolveTypeAndMakeHeader(builder, component);
+    }
   }
 
   private static void resolveTypeAndMakeHeader(HtmlBuilder builder, HaxeNamedComponent component) {

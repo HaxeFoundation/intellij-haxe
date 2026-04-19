@@ -294,6 +294,10 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
 
   @Override
   public boolean isOverload() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isOverload();
+    }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERLOAD);
   }
@@ -306,6 +310,15 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
+  }
+  @Override
+  public boolean isDynamic() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isDynamic();
+    }
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KDYNAMIC);
   }
 
   @Nullable

@@ -45,10 +45,11 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
     boolean hasParameters = psi.getParameterList().getParametersCount() > 0;
 
     // Capture relevant/frequently used compile-time metadata
-    int flags = buildFlags(psi);
+    int keywordFlags = buildKeywordFlags(psi);
     int metaFlags = buildMetaFlags(psi);
+    int propertyFlags = buildPropertyFlags(psi);
 
-    return new HaxeMethodStub(parentStub, this, psi.getName(), flags, metaFlags);
+    return new HaxeMethodStub(parentStub, this, psi.getName(), keywordFlags, metaFlags, propertyFlags);
   }
 
   /** Walks preceding sibling metadata and packs the result into a metaFlags bitmask. */
@@ -68,14 +69,23 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
     return flags;
   }
 
-  private static int buildFlags(@NotNull HaxeMethod psi) {
+  private static int buildKeywordFlags(@NotNull HaxeMethod psi) {
     int flags = 0;
     if (psi.isStatic())       flags |= HaxeMethodStub.IS_STATIC;
     if (psi.isPublic())       flags |= HaxeMethodStub.IS_PUBLIC;
     if (psi.isOverride())     flags |= HaxeMethodStub.IS_OVERRIDE;
     if (psi.isAbstract())     flags |= HaxeMethodStub.IS_ABSTRACT;
     if (psi.isInline())       flags |= HaxeMethodStub.IS_INLINE;
+    if (psi.isOverload())     flags |= HaxeMethodStub.IS_OVERLOAD;
+    if (psi.isMacro())        flags |= HaxeMethodStub.IS_MACRO;
+    if (psi.isDynamic())      flags |= HaxeMethodStub.IS_DYNAMIC;
+    return flags;
+  }
+  private static int buildPropertyFlags(@NotNull HaxeMethod psi) {
+    int flags = 0;
+    if (psi.isConstructor())  flags |= HaxeMethodStub.IS_CONSTRUCTOR;
     if (psi.hasParameters())  flags |= HaxeMethodStub.HAS_PARAMETERS;
+    if (psi.isVarArgs())      flags |= HaxeMethodStub.HAS_VARARG_PARAMETERS;
     return flags;
   }
 
@@ -83,18 +93,20 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
   @Override
   public void serialize(@NotNull HaxeMethodStub stub, @NotNull StubOutputStream dataStream) throws IOException {
     dataStream.writeName(stub.getName());
-    dataStream.writeVarInt(stub.getFlags());
+    dataStream.writeVarInt(stub.getKeywordFlags());
     dataStream.writeVarInt(stub.getMetaFlags());
+    dataStream.writeVarInt(stub.getPropertyFlags());
   }
 
   @NotNull
   @Override
   public HaxeMethodStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
     StringRef nameRef = dataStream.readName();
-    int flags = dataStream.readVarInt();
+    int keywordFlags = dataStream.readVarInt();
     int metaFlags = dataStream.readVarInt();
+    int propertyFlags = dataStream.readVarInt();
     String name = nameRef != null ? nameRef.getString() : null;
-    return new HaxeMethodStub(parentStub, this, name, flags, metaFlags);
+    return new HaxeMethodStub(parentStub, this, name, keywordFlags, metaFlags, propertyFlags);
   }
 
   @Override

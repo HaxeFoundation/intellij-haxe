@@ -2,9 +2,6 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.StubWithModifiers;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
@@ -12,7 +9,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.StubBasedPsiElement;
-import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +23,8 @@ public class HaxeModifiersModel {
     if (baseElement instanceof StubBasedPsiElement<?> element) {
       if( element.getStub() instanceof StubWithModifiers stub) {
         Boolean result = stub.hasKeywordModifier(modifier);
+        if (result != null) return result;
+        result = stub.hasMetaModifier(modifier);
         if (result != null) return result;
       }
     }
@@ -85,7 +83,7 @@ public class HaxeModifiersModel {
   private Boolean getMetaModifierFromStub(@ModifierConstant String modifier) {
     if (baseElement instanceof StubBasedPsiElement<?> element) {
       if( element.getStub() instanceof StubWithModifiers stub) {
-        Boolean result = stub.hasMetaForModifier(modifier);
+        Boolean result = stub.hasMetaModifier(modifier);
         if (result != null) return result;
       }
     }

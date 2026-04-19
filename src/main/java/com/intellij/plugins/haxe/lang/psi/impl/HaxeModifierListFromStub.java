@@ -12,10 +12,8 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.light.LightModifierList;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,7 +71,7 @@ public class HaxeModifierListFromStub extends LightModifierList implements HaxeM
       return classStub.hasMetaForModifier(modifierKey);
     }
     if (stub instanceof HaxeMethodStub methodStub) {
-      return methodStub.hasMetaForModifier(modifierKey);
+      return methodStub.hasMetaModifier(modifierKey);
     }
     if (stub instanceof HaxeFieldStub fieldStub) {
       return fieldStub.hasMetaForModifier(modifierKey);

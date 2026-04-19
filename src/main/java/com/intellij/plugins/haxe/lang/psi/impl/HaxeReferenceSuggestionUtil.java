@@ -45,6 +45,7 @@ public class HaxeReferenceSuggestionUtil {
             if(possibleParentType != null) resolvedType = possibleParentType;
         }
 
+        boolean hasProcessedTypeMembers = false;
         boolean isStaticAccess = isStaticAccess(leftReference, resolvedPsi);
 
         switch (resolvedPsi) {
@@ -73,7 +74,7 @@ public class HaxeReferenceSuggestionUtil {
                     addFunctionBindSuggestion(variants, haxeField, resolvedType.getFunctionType(), haxeReference);
                 }
                 addExtensionMethodSuggestions(variants, resolvedType, targetReference);
-
+                hasProcessedTypeMembers = true;
             }
             case null, default -> {}
         }
@@ -103,11 +104,13 @@ public class HaxeReferenceSuggestionUtil {
                     yield false;
                 }
             };
-        if(!skipTypeMembers){
+        if(!skipTypeMembers && !hasProcessedTypeMembers){
             addClassMemberSuggestions(variants, resolvedType, targetReference);
         }
         if(leftReference!= null) {
-            addExtensionMethodSuggestions(variants, resolvedType, targetReference);
+            if(!hasProcessedTypeMembers) {
+                addExtensionMethodSuggestions(variants, resolvedType, targetReference);
+            }
         }else {
             // if we do not have leftReference it means the complteion suggestion is a single word
             // and that means we should show anything that can be a valid references, packages, local members etc.

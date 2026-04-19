@@ -46,6 +46,8 @@ public interface HaxeNamedComponent extends HaxePsiCompositeElement {
 
   boolean isInline();
 
+  boolean isDynamic();
+
   String filterName();
 
   PsiElement getModiferPsi(IElementType tokenType);

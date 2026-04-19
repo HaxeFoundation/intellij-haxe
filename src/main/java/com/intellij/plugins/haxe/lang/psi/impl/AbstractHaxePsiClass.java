@@ -222,7 +222,10 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     return  false;
   }
 
-
+  @Override
+  public boolean isDynamic() {
+    return false;
+  }
 
 
   @NotNull

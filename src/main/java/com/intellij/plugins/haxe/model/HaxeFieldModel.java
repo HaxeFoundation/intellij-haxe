@@ -206,7 +206,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   }
 
   public boolean isRealVar() {
-    if (this.getModifiers().hasModifier(HaxePsiModifier.IS_VAR)) return true;
+    if (this.getModifiers().hasModifier(HaxePsiModifier.IS_VAR_META)) return true;
     if (!isProperty()) return true;
     HaxeAccessorType setter = getSetterType();
     HaxeAccessorType getter = getGetterType();

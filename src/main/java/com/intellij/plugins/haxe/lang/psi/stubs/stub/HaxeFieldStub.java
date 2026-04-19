@@ -128,7 +128,7 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
     return switch (modifier) {
       case HaxePsiModifier.FINAL_META   -> (metaFlags & META_FINAL)         != 0;
       case HaxePsiModifier.NATIVE       -> (metaFlags & META_NATIVE)        != 0;
-      case HaxePsiModifier.IS_VAR       -> (metaFlags & META_IS_VAR)        != 0;
+      case HaxePsiModifier.IS_VAR_META  -> (metaFlags & META_IS_VAR)        != 0;
       case HaxePsiModifier.DEPRECATED   -> (metaFlags & META_DEPRECATED)    != 0;
       default -> null;
     };

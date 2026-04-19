@@ -140,7 +140,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     boolean traceEnabled = log.isTraceEnabled();
-    String referenceText  = getReferenceTextFromStubOrPsi(reference);
+    String referenceText = traceEnabled ?   getReferenceTextFromStubOrPsi(reference) : null;
     if (traceEnabled) {
       log.trace(traceMsg("-----------------------------------------"));
       log.trace(traceMsg("Resolving reference: " + referenceText));
@@ -159,7 +159,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
 
-  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceText) {
+  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceDebugText) {
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
@@ -217,7 +217,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
 
       if (fileModel != null) {
-          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, referenceText);
+          List<PsiElement> matchesInImport = HaxeResolveUtil.searchInImports(fileModel, reference.getText());
         // Remove enumValues if we are resolving typeTag as typeTags should not be EnumValues
         // We also have to remove resolved fields as abstract enums is a thing
         if (isType) {
@@ -261,7 +261,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             return matchesInImport.isEmpty() ? null : matchesInImport;
           }
         boolean expectedEnumIsConstructor = parent instanceof HaxeCallExpression|| parent.getParent() instanceof  HaxeEnumArgumentExtractor;
-        PsiElement target = HaxeResolveUtil.searchInSamePackage(fileModel, referenceText, true, expectedEnumIsConstructor);
+        PsiElement target = HaxeResolveUtil.searchInSamePackage(fileModel, reference.getText(), true, expectedEnumIsConstructor);
 
         if (target != null) {
           LogResolution(reference, "via import.");
@@ -288,7 +288,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     if (log.isTraceEnabled()) {
-      String message = "caching result for :" + referenceText;
+      String message = "caching result for :" + referenceDebugText;
       traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
     }
 
