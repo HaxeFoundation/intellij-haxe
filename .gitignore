@@ -1,10 +1,11 @@
 .DS_Store
 .idea/
+.intellijPlatform/
 .gradle/
 /idea/
 /build/
 */build/
-*/gen/
+**/src/main/gen/
 .iml
 .project
 local-build-overrides.xml
