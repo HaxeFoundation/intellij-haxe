@@ -82,6 +82,7 @@ public class HaxeClassReference {
 
   private String getClassName(HaxeClassModel clazz) {
     if(clazz!= null && clazz.getPsi().getParent() != null) {
+      //TODO mlo: might want to try to clean up this now that we use stubs
       return CachedValuesManager.getProjectPsiDependentCache(clazz.getPsi(), HaxeClassReference::getNameCached);
     }else {
       return getClassNameInternal(clazz.getPsi().getModel());
