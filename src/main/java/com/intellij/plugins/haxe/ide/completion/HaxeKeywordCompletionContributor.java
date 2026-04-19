@@ -160,12 +160,6 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       if (insideSwitchCase.accepts(completionElementAsComment)) {
         addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
         addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
-
-        HaxeSwitchCase type = PsiTreeUtil.getPrevSiblingOfType(completionElementAsComment, HaxeSwitchCase.class);
-        if (type != null) {
-          // TODO, solve this using getVariants and walkTree
-          addSwitchVars(type, lookupElements);
-        }
       }
 
       if (isAfterIfStatement.accepts(completionElementAsComment)) {

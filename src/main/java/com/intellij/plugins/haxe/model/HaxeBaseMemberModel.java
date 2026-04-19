@@ -20,6 +20,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumExtractedValueMixin;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeStubBasedNamedComponent;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
@@ -53,6 +54,7 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
     if (element instanceof HaxeLocalVarDeclaration varDeclaration) return varDeclaration.getModel();
     if (element instanceof HaxeAnonymousTypeField anonymousTypeField) return anonymousTypeField.getModel();
     if (element instanceof HaxeObjectLiteralElement objectLiteralElement) return objectLiteralElement.getModel();
+    if (element instanceof HaxeEnumExtractedValueMixin extractedValue) return (HaxeBaseMemberModel)  extractedValue.getModel();
 
     if (element instanceof HaxeParameter) return new HaxeParameterModel((HaxeParameter)element);
     if (element instanceof HaxeForStatement) return null;
@@ -102,6 +104,7 @@ public abstract class HaxeBaseMemberModel implements HaxeNamedComponentModel {
   @Nullable
   public abstract HaxeClassModel getDeclaringClass();
 
+  @Nullable
   public abstract HaxeModuleModel getDeclaringModule();
 
   @Deprecated

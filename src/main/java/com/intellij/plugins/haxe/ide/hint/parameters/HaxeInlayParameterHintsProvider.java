@@ -151,7 +151,10 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
 
   @NotNull
   private static List<HaxeParameterModel> MapParametersToModel(HaxeParameterList parameterList) {
-    return parameterList.getParameterList().stream().map(HaxeParameterModel::new).toList();
+    return parameterList.getParameterList().stream()
+      .map(HaxeModelTarget::getModel)
+      .map(HaxeParameterModel.class::cast)
+      .toList();
   }
 
 

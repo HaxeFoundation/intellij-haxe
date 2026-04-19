@@ -82,7 +82,8 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
     LookupElement element = candidate.getLookupElement();
     if (element == null) return null;
     if (element instanceof HaxePsiLookupElement lookupElement) {
-      return lookupElement.deduplicateKey();
+      String deduplicateKey = lookupElement.deduplicateKey();
+      if (deduplicateKey != null)return deduplicateKey;
     }
     // we don't want to filter away classes with similar names we want to show classes from different packages and/or libs
     // for now we try use fully Qualified name for classes but this might break de-duping for compiler completion

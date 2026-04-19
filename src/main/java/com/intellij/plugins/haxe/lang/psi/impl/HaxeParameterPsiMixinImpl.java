@@ -23,6 +23,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
+import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.util.IncorrectOperationException;
@@ -38,8 +40,9 @@ import java.util.Arrays;
  * @author: Srikanth.Ganapavarapu
  */
 @CustomLog
-public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedComponent<HaxeParameterStub> implements HaxeParameterPsiMixin {
+public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedComponent<HaxeParameterStub> implements HaxeParameterPsiMixin, HaxeParameter {
 
+  private HaxeParameterModel _model;
 
   public HaxeParameterPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
@@ -215,4 +218,11 @@ public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedCompon
     return getModifierList().hasModifierProperty(name);
   }
 
+  @Override
+  public HaxeModel getModel() {
+    if (_model == null || !_model.isValid()) {
+      _model = new HaxeParameterModel(this);
+    }
+    return _model;
+  }
 }

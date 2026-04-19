@@ -19,6 +19,9 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.Nls;
@@ -82,6 +85,36 @@ public class HaxePresentableUtil {
 
     return result.toString();
   }
+  @NotNull
+  public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericResolver resolver, boolean addTypes, boolean addOptionalAndDefaults) {
+    final StringBuilder result = new StringBuilder();
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(element, HaxeParameterList.class);
+    if (parameterList == null) {
+      return "";
+    }
+    final List<HaxeParameter> list = parameterList.getParameterList();
+    for (int i = 0, size = list.size(); i < size; i++) {
+      HaxeParameter parameter = list.get(i);
+      if(addOptionalAndDefaults && parameter.getOptionalMark() != null){
+        result.append("?");
+      }
+      result.append(parameter.getName());
+
+      if (addTypes && parameter.getTypeTag() != null) {
+        result.append(":");
+        result.append(buildTypeText(parameter.getTypeTag(), resolver));
+      }
+      if(addOptionalAndDefaults && parameter.getVarInit() != null) {
+        result.append(parameter.getVarInit().getText());
+      }
+
+      if (i < size - 1) {
+        result.append(", ");
+      }
+    }
+
+    return result.toString();
+  }
 
   public static String buildTypeText(HaxeNamedComponent element,
                                      @Nullable HaxeTypeListPart typeTag,
@@ -101,6 +134,14 @@ public class HaxePresentableUtil {
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag) {
     return buildTypeText(element, typeTag, new HaxeGenericSpecialization());
+  }
+  public static String buildTypeText(HaxeTypeTag typeTag, HaxeGenericResolver resolver) {
+    ResultHolder tag = HaxeTypeResolver.getTypeFromTypeTag(typeTag, typeTag.getParent());
+    ResultHolder resolved = resolver.resolve(tag);
+    if(resolved != null && !resolved.isUnknown()){
+      return resolved.toPresentationString();
+    }
+    return typeTag.getText();
   }
 
   public static String buildTypeText(HaxeNamedComponent element, HaxeTypeTag typeTag, HaxeGenericSpecialization specialization) {

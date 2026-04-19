@@ -404,16 +404,16 @@ public class HaxeExpressionEvaluatorHandlers {
           }
           else if (subelement instanceof HaxeMethod haxeMethod) {
             boolean isFromCallExpression = reference instanceof  HaxeCallExpression;
-            //TODO resolversClass is unreliable due to  gaps in type parameter inheritance and we might not get a resolver with  class typeParams
-            HaxeClass resolversClass = resolver.resolversClass();
+
             HaxeMethodModel model = haxeMethod.getModel();
             HaxeGenericResolver localResolver = new HaxeGenericResolver();
             localResolver.addAll(resolver);
 
             if(model != null) {
+              HaxeClass referenceClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
               HaxeClassModel classModel = model.getDeclaringClass();
-              if(resolversClass != null && classModel != null && classModel.haxeClass != null) {
-                localResolver = resolver.translateFromTo(resolversClass, classModel.haxeClass);
+              if(referenceClass != null && classModel != null && classModel.haxeClass != null) {
+                localResolver = resolver.translateFromTo(referenceClass, classModel.haxeClass);
               }
             }
 
@@ -2391,7 +2391,10 @@ public class HaxeExpressionEvaluatorHandlers {
         List<HaxeUsingModel> usingModels = HaxeFileModel.fromElement(parent).getUsingModels();
         for (HaxeUsingModel usingModel : usingModels) {
           HaxeMethodModel extensionMethod = usingModel.findExtensionMethod(iteratorName, resolvedClassReference);
-          if (extensionMethod != null) iterator = extensionMethod;
+          if (extensionMethod != null){
+            iterator = extensionMethod;
+            break;
+          }
         }
       }
 
