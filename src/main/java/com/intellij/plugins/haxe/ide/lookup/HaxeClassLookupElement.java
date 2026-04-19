@@ -25,7 +25,7 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
   private final HaxeComponentName myComponentName;
   private final HaxeClass haxeClass;
   @Getter private HaxeClassModel model;
-  @Getter private HaxeComponentType type;
+  @Getter private final HaxeComponentType type;
 
 
   private String presentableText;
@@ -121,8 +121,4 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     return myComponentName.hashCode();
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this,priority.calculate());
-  }
 }

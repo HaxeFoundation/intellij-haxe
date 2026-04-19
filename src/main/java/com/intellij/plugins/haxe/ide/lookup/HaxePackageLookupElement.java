@@ -31,11 +31,6 @@ public class HaxePackageLookupElement extends PackageLookupItem implements HaxeL
     this.aPackage = aPackage;
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
   @NotNull
   @Override
   public Object getObject() {

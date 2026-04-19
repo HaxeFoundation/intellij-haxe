@@ -299,6 +299,9 @@
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
     <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
     <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionContributor"/>
+
+    <weigher key="completion" implementationClass="com.intellij.plugins.haxe.ide.completion.weigher.HaxeLookupCompletionWeigher" id="Haxe"  />
+
     <!-- Keep the compiler contributor last because it is slow compared to the internal stuff.
          Don't use order="LAST" because that puts it after the default contributor, which puts up the "No Suggestions"
          box, and we want compiler error messages to be displayed instead. -->

@@ -1,10 +1,6 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.concurrency.JobLauncher;
-import com.intellij.extapi.psi.StubBasedPsiElementBase;
-import com.intellij.openapi.application.ReadAction;
-import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -13,14 +9,11 @@ import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticMethodNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubIndex;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,48 +87,22 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
 
 
 
-  private static void addMemberElement(CompletionResultSet resultSet,
-                                        HaxeNamedComponent member,
-                                        String memberName,
-                                        String filterText,
-                                        PsiFile helperPsi) {
-    final HaxeClass cls = PsiTreeUtil.getStubOrPsiParentOfType(member, HaxeClass.class);
-    if (cls == null) return;
+  private static void addMemberElement(CompletionResultSet resultSet, HaxeNamedComponent member, @NlsSafe String filterText) {
+    if(member instanceof HaxeModelTarget modelTarget) {
+      HaxeModel model = modelTarget.getModel();
+      if (model instanceof HaxeMemberModel memberModel) {
 
-    // Same exclusions as the original indexer
-    if (cls.isTypeDef() || cls.isInterface() || cls.isAbstractType() || cls.isAnonymousType()) return;
+        HaxeClassModel possibleClass = memberModel.getDeclaringClass();
+        String className = possibleClass != null ? possibleClass.getName() : "";
+        if (!className.startsWith(filterText))  return;
 
-    String className = null;
-    String packageName = "";
-    String moduleName = "";
-    FullyQualifiedInfo fqi = null;
+        HaxeModule module = memberModel.getModule();
+        String moduleName = module != null ? module.getName() : "";
+        if (moduleName == null || !moduleName.startsWith(filterText)) return;
 
-    if (cls instanceof StubBasedPsiElementBase<?> stubPsi) {
-      StubElement<?> stub = stubPsi.getStub();
-      if (stub instanceof HaxeClassStub classStub) {
-        className = classStub.getName();
-        String qname = classStub.getQualifiedName();
-        if (qname != null) {
-          fqi = new FullyQualifiedInfo(qname);
-          packageName = fqi.packagePath != null ? fqi.packagePath : "";
-          moduleName  = fqi.moduleName  != null ? fqi.moduleName  : (className != null ? className : "");
-        }
+
+        resultSet.addElement(new HaxeStaticMemberLookupElement(memberModel));
       }
     }
-    if (className == null) className = cls.getName();
-    if (className == null) return;
-    if (fqi == null) {
-      fqi = new FullyQualifiedInfo(cls.getQualifiedName());
-      if (fqi.packagePath != null) packageName = fqi.packagePath;
-      if (fqi.moduleName  != null) moduleName  = fqi.moduleName;
-    }
-
-    // Same filter logic as original processAll(): match on className or moduleName prefix
-    if (!className.startsWith(filterText) && !moduleName.startsWith(filterText)) return;
-
-    resultSet.addElement(new HaxeStaticMemberLookupElement(
-      packageName, moduleName, className, memberName,
-      member.getComponentType(), "",
-      fqi.withMemberName(memberName), helperPsi));
   }
 }

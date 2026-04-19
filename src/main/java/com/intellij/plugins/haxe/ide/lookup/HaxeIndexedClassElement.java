@@ -1,78 +1,64 @@
 package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.*;
 
 
 public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
+
   @Getter private final String name;
-  @Getter private final  String path;
   @Getter private final HaxeComponentType type;
-  @Getter private String qname;
+  private final String tailText;
+  private final Icon icon;
+
+  private final boolean strikeout = false;
+  private final boolean bold = false;
 
 
-  // we need a psi element  when resolving qname (making sure we get data from the right project etc)
-  private final PsiElement helperPsi;
-  // findClassByQName is too slow for "normal" use, so we delay  the resolve so we can get  docs lookup
-  private PsiElement myElement = null;
+  private final HaxeClassModel model;
 
-  private String presentableText;
-  private String tailText;
-  private boolean strikeout = false;
-  private boolean bold = false;
-  private Icon icon = null;
+  public HaxeIndexedClassElement(HaxeClassModel model) {
+    this.model = model;
+    this.name = model.getName();
+    this.type = model.haxeClass.getComponentType();
+    this.icon = this.type != null ? type.getCompletionIcon() : null;
 
-  public HaxeIndexedClassElement(String name, String path, HaxeComponentType componentType, PsiElement helperPsi) {
-    this.name  = name;
-    this.path  = path;
-    qname = createQname(name, path);
-
-    this.helperPsi = helperPsi;
-
-    presentableText = name + " ";
-    tailText = path;
-    type = componentType;
-    icon = componentType.getCompletionIcon();
-
+    FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+    String qualifiedName = qualifiedInfo != null ? qualifiedInfo.getQualifiedName(false) : "";
+    this.tailText = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
   }
+
 
   @Override
   public void handleInsert(InsertionContext context) {
     PsiFile file = context.getFile();
     PsiElement element = file.findElementAt(context.getStartOffset());
-    addImportIfNecessary(context, element, qname);
+
+    FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+    if (qualifiedInfo != null) {
+      addImportIfNecessary(context, element, qualifiedInfo.toShortendImportReferenceString());
+    }
   }
-
-
 
 
   @Override
   public @Nullable PsiElement getPsiElement() {
-    if (myElement == null) {
-      myElement = HaxeResolveUtil.findClassByQName(qname, helperPsi);
-    }
-    return myElement;
+    return model.getPsi();
   }
 
   @NotNull
@@ -81,30 +67,23 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
     return name;
   }
 
-  /**
-   * Returns the fully-qualified class name so that {@code getDedupeName()} in
-   * {@code HaxeControllingCompletionContributor} uses the qname as the dedup key.
-   * This ensures two classes with the same simple name from different packages are
-   * kept, while two identical entries (same qname) added by different contributor
-   * registrations are properly collapsed to one.
-   */
+
   @NotNull
   @Override
   public String deduplicateKey() {
-    return qname;
+    FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+    if (qualifiedInfo != null) {
+      return qualifiedInfo.toString();
+    }
+    return "*Error*"; //ideally this shouldn't really happen, but currently it might due to some anonymous types
   }
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
-    presentation.setItemText(presentableText);
+    presentation.setItemText(name);
     presentation.setStrikeout(strikeout);
     presentation.setItemTextBold(bold);
     presentation.setIcon(icon);
     presentation.setTailText(tailText, true);
-  }
-
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this,priority.calculate());
   }
 }

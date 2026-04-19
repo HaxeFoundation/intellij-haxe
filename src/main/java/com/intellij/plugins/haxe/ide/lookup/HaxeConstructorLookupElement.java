@@ -95,16 +95,6 @@ public class HaxeConstructorLookupElement extends LookupElement implements HaxeP
   }
 
 
-
-
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
-
-
-
   static PsiElement insertParentheses(@NotNull InsertionContext context,
                                       @NotNull LookupElement item,
                                       boolean hasParams,

@@ -129,6 +129,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       return true;
     });
 
+
     for (String key : matchingKeys) {
       StubIndex.getInstance().processElements(HaxeClassNameStubIndex.KEY, key, project, scope, HaxeClass.class, haxeClass -> {
         String name = haxeClass.getName();
@@ -136,7 +137,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         String qualifiedName = haxeClass.getQualifiedName();
         String path = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
         if (prefixPackage == null || prefixPackage.equalsIgnoreCase(path)) {
-          resultSet.addElement(new HaxeIndexedClassElement(name, path, haxeClass.getComponentType(), targetFile));
+          HaxeClassModel model = haxeClass.getModel();
+          resultSet.addElement(new HaxeIndexedClassElement(model));
         }
         return true;
       });

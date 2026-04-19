@@ -53,35 +53,16 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
              protected void addCompletions(@NotNull CompletionParameters parameters,
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
-
-               // Run all of the providers so that we can capture all of their results.
-               LinkedHashSet<CompletionResult> unfilteredCompletions = result.runRemainingContributors(parameters, false);
-               // Now filter out duplicates, etc.
-               Set<CompletionResult> filteredCompletions = filter(parameters, unfilteredCompletions);
-
-
-               filteredCompletions =  HaxeCompletionPriorityUtil.calculatePriority(filteredCompletions, parameters);
-
-               // TODO mlo : check performance and make concurrent if nessesary
-               //  see (JobLauncher.getInstance().invokeConcurrentlyUnderProgress)
-
-               filteredCompletions.stream()
-                 .map(HaxeCompletionPriorityUtil::convertToPrioritized)
-                 .forEach(result::passResult); // Add everything we want to keep to the result set.
-
-               // TODO mlo: suggest lambda / function when expected type is  functionType
-
-               //TODO mlo: mechanism for filtering getters and setters ( get_X / set_x)  when properties exists ? (could be that noCompletion solves this)
-
-               // Since we've already run all of the providers, don't let them be repeated.
+               LinkedHashSet<CompletionResult> unfilteredCompletions = result.runRemainingContributors(parameters, true);
+               filterDuplicates(parameters, unfilteredCompletions);
 
                result.stopHere();
              }
            });
   }
 
-  private static Set<CompletionResult> filter(@NotNull CompletionParameters parameters,
-                                              Set<CompletionResult> unfilteredCompletions) {
+  private static Set<CompletionResult> filterDuplicates(@NotNull CompletionParameters parameters,
+                                                        Set<CompletionResult> unfilteredCompletions) {
 
     if (null == unfilteredCompletions || unfilteredCompletions.size() <= 1) {
       // Nothing to filter.

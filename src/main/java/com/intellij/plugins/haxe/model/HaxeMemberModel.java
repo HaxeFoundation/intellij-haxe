@@ -134,7 +134,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Override
   @Nullable
   public HaxeClassModel getDeclaringClass() {
-    PsiClass containingClass = getMemberPsi().getContainingClass();
+    HaxeClass containingClass = PsiTreeUtil.getStubOrPsiParentOfType(getMemberPsi(), HaxeClass.class);
     if (containingClass instanceof HaxeClass haxeClass) {
       return haxeClass.getModel();
     }else {

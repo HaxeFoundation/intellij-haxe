@@ -76,8 +76,7 @@ public class HaxeMacroCompletionContributor extends CompletionContributor {
       // ignoring type definitions and method/function definitions
       HaxeModel model = HaxeBaseMemberModel.fromPsi(name);
       if ((model instanceof HaxeMethodModel) || (name.getParent() instanceof HaxeClass)) continue;
-        HaxeMacroLookupElement lookupElement = HaxeMacroLookupElement.create(name, new HaxeGenericResolver());
-        result.addElement(lookupElement.toPrioritized());
+      result.addElement(HaxeMacroLookupElement.create(name, new HaxeGenericResolver()));
 
     }
   }

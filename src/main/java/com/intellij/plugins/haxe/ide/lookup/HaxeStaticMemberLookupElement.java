@@ -5,12 +5,10 @@ import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
-import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.model.*;
 import com.intellij.psi.*;
 import icons.HaxeIcons;
+import lombok.CustomLog;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -22,51 +20,43 @@ import java.util.Set;
 
 import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.*;
 
+@CustomLog
 @EqualsAndHashCode
 public class HaxeStaticMemberLookupElement extends LookupElement implements HaxePsiLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
   @Getter private final HaxeComponentType type;
-  @Getter private final String packageName;
-  @Getter private final String moduleName;
-  @Getter private final String className;
-  @Getter private final String memberName;
-  @Getter private final String typeValue;
+  private final HaxeMemberModel memberModel;
 
-  private final Icon icon = HaxeIcons.Method;
-  private final String presentableText;
-  private final FullyQualifiedInfo fullyQualifiedInfo;
+  @Getter private String packageName;
+  @Getter private String moduleName;
+  @Getter private String className;
+  @Getter private String memberName;
 
+  @Getter private String typeValue = ""; // TODO remove
 
-    // we need a psi element  when resolving qname (making sure we get data from the right project etc)
-  private PsiElement helperPsi;
+  private boolean presentationCalculated = false;
+  private Icon icon;
 
 
-  public HaxeStaticMemberLookupElement(String packageName,
-                                       String moduleName,
-                                       String className,
-                                       String memberName,
-                                       HaxeComponentType type,
-                                       String typeValue,
-                                       FullyQualifiedInfo fullyQualifiedInfo,
-                                       PsiElement helperPsi) {
-    this.fullyQualifiedInfo = fullyQualifiedInfo;
-    this.packageName = packageName;
-    this.moduleName = moduleName;
-    this.className = className;
-    this.memberName = memberName;
-    this.typeValue = typeValue;
-    this.type = type;
 
-    this.presentableText = getLookupString() + " ";
-
-    this.helperPsi = helperPsi;
-
+  public HaxeStaticMemberLookupElement(HaxeMemberModel memberModel) {
+    type = HaxeComponentType.typeOf(memberModel.getNamedComponentPsi());
+    icon = type.getCompletionIcon();
+    this.memberModel = memberModel;
   }
 
   @NotNull
   @Override
   public String getLookupString() {
-    return className + "." + memberName;
+    if (!presentationCalculated) {
+      calculatePresentation();
+    }
+    if (className != null) {
+      return className + "." + memberName;
+    }
+    else {
+      return moduleName + "." + memberName;
+    }
   }
 
   @Override
@@ -76,7 +66,10 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
-    presentation.setItemText(presentableText);
+    if (!presentationCalculated) {
+      calculatePresentation();
+    }
+    presentation.setItemText(getLookupString());
     presentation.setTypeText(packageName);
     presentation.setIcon(icon);
   }
@@ -86,31 +79,49 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
   public void handleInsert(InsertionContext context) {
     PsiFile file = context.getFile();
     PsiElement element = file.findElementAt(context.getStartOffset());
-    addImportIfNecessary(context, element, fullyQualifiedInfo.withMemberName(null).toShortendImportReferenceString());
+    FullyQualifiedInfo qualifiedInfo = memberModel.getQualifiedInfo();
+    if (qualifiedInfo != null) {
+      addImportIfNecessary(context, element, qualifiedInfo.withMemberName(null).toShortendImportReferenceString());
+    }
+    else {
+      log.error("Unable to get fullyQualifiedInfo (1)");
+    }
   }
-
 
 
   @Override
   public @Nullable PsiElement getPsiElement() {
-    HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(fullyQualifiedInfo.toString(), helperPsi);
-    if (haxeClass == null) return null;
-    HaxeBaseMemberModel member = haxeClass.getModel().getMember(memberName, null);
-    if (member == null) return null;
-    return member.getNameOrBasePsi();
+    return memberModel.getBasePsi();
   }
 
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
+  private void calculatePresentation() {
+
+    HaxeClassModel classModel = memberModel.getDeclaringClass();
+    HaxeModuleModel moduleModel = memberModel.getDeclaringModule();
+
+    FullyQualifiedInfo qualifiedInfo = memberModel.getQualifiedInfo();
+
+    packageName = qualifiedInfo != null ? qualifiedInfo.packagePath : "";
+    moduleName = moduleModel != null ? moduleModel.getName() : null;
+    className = classModel != null ? classModel.getName() : null;
+    memberName = memberModel.getName();
+
+
+    presentationCalculated = true;
   }
+
 
   @NotNull
   @Override
   public String deduplicateKey() {
-    // TODO  handle overloads somehow
-    return fullyQualifiedInfo.toString();
+    FullyQualifiedInfo qualifiedInfo = memberModel.getQualifiedInfo();
+    if (qualifiedInfo != null) {
+      return qualifiedInfo.toString();
+    }
+    else {
+      log.warn("Unable to get fullyQualifiedInfo (2)");
+      return "Error";
+    }
   }
-
 }
