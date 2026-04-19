@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.index.specialized;
 
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubVersions;
@@ -12,6 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collection;
+import java.util.Collections;
 
 public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMethod> {
 
@@ -29,6 +31,7 @@ public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMetho
     }
 
     public static @NotNull @Unmodifiable Collection<HaxeMethod> getConstructors(@NotNull Project project, @Nullable GlobalSearchScope scope) {
+        if (DumbService.isDumb(project)) return Collections.emptyList();
         return StubIndex.getElements(HaxeConstructorStubIndex.KEY, "new", project, scope, HaxeMethod.class);
     }
 }
