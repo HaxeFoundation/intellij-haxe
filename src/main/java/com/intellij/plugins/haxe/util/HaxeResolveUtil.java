@@ -36,6 +36,7 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
@@ -996,13 +997,13 @@ public class HaxeResolveUtil {
 
   @Nullable
   private static String getQNameFromImportStatement(@NotNull PsiElement type) {
-    HaxeImportStatement importStatement = PsiTreeUtil.getParentOfType(type, HaxeImportStatement.class, false);
+    HaxeImportStatement importStatement = StubPsiTreeUtil.getStubOrPsiParentOfType(type, HaxeImportStatement.class, false);
     if (importStatement != null) {
       HaxeReferenceExpression referenceExpression = importStatement.getReferenceExpression();
       return referenceExpression == null ? null : referenceExpression.getText();
     }
 
-    HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
+    HaxeUsingStatement usingStatement = StubPsiTreeUtil.getStubOrPsiParentOfType(type, HaxeUsingStatement.class, false);
     if (usingStatement != null) {
       HaxeReferenceExpression expression = usingStatement.getReferenceExpression();
       return expression == null ? null : expression.getText();

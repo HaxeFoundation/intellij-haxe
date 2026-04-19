@@ -131,21 +131,14 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
     final boolean isBlock = this instanceof HaxeBlockStatement || this instanceof HaxeSwitchCaseBlock;
     final PsiElement stopper = isBlock ? lastParent : null;
     final Set<PsiElement> result = new LinkedHashSet<>();// note using linkedHashSet because order is important here
-    addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFieldDeclaration.class));
+    //addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFieldDeclaration.class));
+
+    // method members
     addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclarationList.class, stopper));
-
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeMethodDeclaration.class));
     addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeClassDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeExternClassDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeInterfaceDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeTypedefDeclaration.class));
-    HaxeEnumDeclaration[] enumDeclarations = PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class);
-    addEnumMembers(enumDeclarations, result);
-    addDeclarations(result, enumDeclarations);
-
     addFunctionLiteralsWithName(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeFunctionLiteral.class, stopper));
 
+    // scopes inside methods (switch expression members)
     if(this instanceof HaxeSwitchCase switchCase) {
       List<HaxeSwitchCaseExpr> list = switchCase.getSwitchCaseExprList();
       for (HaxeSwitchCaseExpr expr : list) {
@@ -156,19 +149,6 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         addDeclarations(result, getArrayLiteralReferences(expr));
         addCaptureVariableDeclarations(expr, result);
       }
-    }
-
-    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
-    if (parameterList != null) {
-      result.addAll(parameterList.getParameterList());
-    }
-    final HaxeOpenParameterList openParameterList = PsiTreeUtil.getChildOfType(this, HaxeOpenParameterList.class);
-    if (openParameterList != null) {
-      result.add(openParameterList);
-    }
-    final HaxeGenericParam tygenericParameParam = PsiTreeUtil.getStubChildOfType(this, HaxeGenericParam.class);
-    if (tygenericParameParam != null) {
-      result.addAll(tygenericParameParam.getGenericListPartList());
     }
 
     if (this instanceof HaxeForStatement forStatement) {
@@ -185,7 +165,9 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         }
       }
     }
-    if (this instanceof  HaxeSwitchCase switchCase) {
+
+    // TODO mlo - looks related to the one above, might want to merge
+    if (this instanceof HaxeSwitchCase switchCase) {
       for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
         HaxeSwitchCaseCaptureVar captureVar = expr.getSwitchCaseCaptureVar();
         if (captureVar!= null) {
@@ -209,7 +191,6 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         }
       }
     }
-
     if (this instanceof HaxeSwitchCaseCaptureVar captureVar) {
       HaxeComponentName componentName = captureVar.getComponentName();
       result.add(componentName);
@@ -225,6 +206,36 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
         result.add(catchParameter);
       }
     }
+
+
+    // Method declaration members / parameters
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
+    if (parameterList != null) {
+      result.addAll(parameterList.getParameterList());
+    }
+    final HaxeOpenParameterList openParameterList = PsiTreeUtil.getChildOfType(this, HaxeOpenParameterList.class);
+    if (openParameterList != null) {
+      result.add(openParameterList);
+    }
+
+
+    // class & other module members
+    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeFieldDeclaration.class));
+    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeMethodDeclaration.class));
+
+    // classes
+    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeClass.class));
+
+    // Enum declarations
+    HaxeEnumDeclaration[] enumDeclarations = PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class);
+    addEnumMembers(enumDeclarations, result);
+
+    final HaxeGenericParam genericParam = PsiTreeUtil.getStubChildOfType(this, HaxeGenericParam.class);
+    if (genericParam != null) {
+      result.addAll(genericParam.getGenericListPartList());
+    }
+
+
     return result;
   }
 

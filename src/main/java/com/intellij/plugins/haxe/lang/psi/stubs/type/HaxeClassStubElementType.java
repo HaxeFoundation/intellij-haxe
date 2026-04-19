@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs.type;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
@@ -61,7 +62,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     int componentTypeKey = componentType != null ? componentType.getKey() : -1;
     boolean isPrivate = !psi.isPublic();
     boolean isExtern = psi.isExtern();
-    boolean isEnum = hasEnumPsiElement();
+    boolean isEnum = hasEnumPsiElement(psi);
 
     // Collect super type names from extends/implements without resolving references.
     // IMPORTANT: typedefs implementation of getHaxeExtendsList() resolves through to the target class,
@@ -116,8 +117,8 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
                              superNamesArray, metaFlags);
   }
 
-  private boolean hasEnumPsiElement() {
-    return this instanceof HaxeAbstractTypeDeclaration declaration &&
+  private boolean hasEnumPsiElement(@NotNull HaxeClass psi) {
+    return psi instanceof HaxeAbstractTypeDeclaration declaration &&
            declaration.getAbstractClassType().getFirstChild().textMatches("enum");
   }
 
@@ -192,9 +193,11 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
   @Override
   public void indexStub(@NotNull HaxeClassStub stub, @NotNull IndexSink sink) {
     String name = stub.getName();
-    if (name != null) {
-      sink.occurrence(com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex.KEY, name);
-    }
+    // ignore anonymous types (as they can be part of type tags, not to be confused with typedefs)
+    if (name == null) return;
+
+    sink.occurrence(HaxeClassNameStubIndex.KEY, name);
+
     String qualifiedName = stub.getQualifiedName();
     if (qualifiedName != null) {
       sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedName);

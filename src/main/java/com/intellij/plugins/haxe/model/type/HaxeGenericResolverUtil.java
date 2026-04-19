@@ -68,8 +68,8 @@ public class HaxeGenericResolverUtil {
   }
 
   @Nullable static HaxeGenericResolver appendClassGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
-    HaxeClass clazz = element instanceof HaxeClass
-                      ? (HaxeClass) element
+    HaxeClass clazz = element instanceof HaxeClass haxeClass
+                      ? haxeClass
                       : PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
 
     HaxeClassModel classModel = HaxeClassModel.fromElement(clazz);
@@ -81,7 +81,7 @@ public class HaxeGenericResolverUtil {
   }
 
   @NotNull public static HaxeGenericResolver appendMethodGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
-    HaxeMethod method = UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
+    HaxeMethod method = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeMethod.class);
     if (null != method) {
       appendMethodGenericResolver(method, resolver);
 

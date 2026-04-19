@@ -121,6 +121,8 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
       }
     }
 
+    if(name == null) return "";
+
     PsiFile file = getContainingFile();
     if (file == null) return name == null ? "" : name;
 

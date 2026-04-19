@@ -24,7 +24,6 @@ import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileTypes.FileType;
-import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeFileType;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyUtils;
@@ -34,7 +33,6 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.model.HaxeFileModel;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.FileElement;
 import com.intellij.psi.stubs.PsiFileStub;
@@ -57,10 +55,10 @@ public class HaxeFile extends PsiFileBase
 
 
   public HaxeModule getModule() {
-    return withGreenStubOrAst(this::ModuleWithStub, this::moduleWithAst);
+    return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
   }
 
-  private HaxeModule ModuleWithStub(PsiFileStub<?> stub) {
+  private HaxeModule moduleWithStub(PsiFileStub<?> stub) {
     HaxeModuleStub moduleStub = (HaxeModuleStub)stub.findChildStubByElementType(HaxeStubElementTypes.MODULE);
     return moduleStub == null ? null : moduleStub.getPsi();
   }

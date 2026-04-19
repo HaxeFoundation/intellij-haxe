@@ -37,7 +37,7 @@ public class HaxeAbstractEnumUtil {
 
   @Contract("null -> false")
   public static boolean isAbstractEnum(@Nullable PsiClass clazz) {
-    return clazz instanceof HaxeClass && ((HaxeClass)clazz).isAbstractType() && clazz.isEnum();
+    return clazz instanceof HaxeClass haxeClass && haxeClass.isAbstractType() && clazz.isEnum();
   }
 
   /**

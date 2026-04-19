@@ -529,9 +529,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             }
 
             int index = expressionList.getExpressionList().indexOf(reference);
-            HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(method, callExpression);
-            if (evaluate != null && evaluate.isValid() && evaluate.isCompleted()) {
-              return evaluate.getParameterType(index);
+            if(index>-1) {
+              HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(method, callExpression);
+              if (evaluate != null && evaluate.isValid() && evaluate.isCompleted()) {
+                return evaluate.getParameterType(index);
+              }
             }
           }
         }
@@ -1187,53 +1189,54 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   private List<? extends PsiElement> checkIsTypeParameter(HaxeReference reference) {
-    HaxeTypeTag typeTag = PsiTreeUtil.getParentOfType(reference, HaxeTypeTag.class);
-    if (typeTag != null) {
+    if(reference instanceof HaxeReferenceExpression) {
+      HaxeTypeTag typeTag = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeTypeTag.class);
+      if (typeTag != null) {
+        //HaxeReferenceExpression.class
+        HaxeFieldDeclaration fieldDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeFieldDeclaration.class);
+        if (fieldDeclaration != null) {
+          HaxeModel model = fieldDeclaration.getModel();
+          if (model instanceof HaxeFieldModel fieldModel) {
+            HaxeClassModel declaringClass = fieldModel.getDeclaringClass();
+            if (declaringClass != null) {
+              List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+              return findTypeParameterPsi(reference, params);
+            }
+          }
+        }
 
-      HaxeFieldDeclaration fieldDeclaration = PsiTreeUtil.getParentOfType(reference, HaxeFieldDeclaration.class);
-      if (fieldDeclaration != null) {
-        HaxeModel model = fieldDeclaration.getModel();
-        if (model instanceof HaxeFieldModel fieldModel) {
-          HaxeClassModel declaringClass = fieldModel.getDeclaringClass();
+        HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(typeTag, HaxeMethodDeclaration.class);
+        if (methodDeclaration != null) {
+          List<HaxeGenericParamModel> methodParams = methodDeclaration.getModel().getGenericParams();
+          List<HaxeComponentName> methodTypeParameter = findTypeParameterPsi(reference, methodParams);
+          if (methodTypeParameter != null) {
+            return methodTypeParameter;
+          }
+          HaxeClassModel declaringClass = methodDeclaration.getModel().getDeclaringClass();
           if (declaringClass != null) {
             List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
             return findTypeParameterPsi(reference, params);
           }
         }
-      }
 
-       HaxeMethodDeclaration methodDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeMethodDeclaration.class);
-      if (methodDeclaration != null) {
-        List<HaxeGenericParamModel> methodParams = methodDeclaration.getModel().getGenericParams();
-        List<HaxeComponentName> methodTypeParameter = findTypeParameterPsi(reference, methodParams);
-        if (methodTypeParameter != null) {
-          return methodTypeParameter;
+        HaxeConstructorDeclaration constructorDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(typeTag, HaxeConstructorDeclaration.class);
+        if (constructorDeclaration != null) {
+          // reference is a type tag in constructor, we should check  owning class type parameters
+          // so we won't resolve this to a type outside the class if its a type parameter
+          HaxeClassModel declaringClass = constructorDeclaration.getModel().getDeclaringClass();
+          if (declaringClass != null) {
+            List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+            return findTypeParameterPsi(reference, params);
+          }
         }
-        HaxeClassModel declaringClass = methodDeclaration.getModel().getDeclaringClass();
-        if (declaringClass != null) {
-          List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
-          return findTypeParameterPsi(reference, params);
-        }
-      }
-
-      HaxeConstructorDeclaration constructorDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeConstructorDeclaration.class);
-      if (constructorDeclaration != null) {
-        // reference is a type tag in constructor, we should check  owning class type parameters
-        // so we won't resolve this to a type outside the class if its a type parameter
-        HaxeClassModel declaringClass = constructorDeclaration.getModel().getDeclaringClass();
-        if (declaringClass != null) {
-          List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
-          return findTypeParameterPsi(reference, params);
-        }
-
-      }
-      HaxeEnumValueDeclaration enumDeclaration = PsiTreeUtil.getParentOfType(typeTag, HaxeEnumValueDeclaration.class);
-      if (enumDeclaration != null) {
-        // EnumValueDeclarations does not define TypeParameters, only the parent EnumType can have these.
-        HaxeClassModel declaringClass = ((HaxeEnumValueModel)enumDeclaration.getModel()).getDeclaringEnum();
-        if (declaringClass != null) {
-          List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
-          return findTypeParameterPsi(reference, params);
+        HaxeEnumValueDeclaration enumDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(typeTag, HaxeEnumValueDeclaration.class);
+        if (enumDeclaration != null) {
+          // EnumValueDeclarations does not define TypeParameters, only the parent EnumType can have these.
+          HaxeClassModel declaringClass = ((HaxeEnumValueModel)enumDeclaration.getModel()).getDeclaringEnum();
+          if (declaringClass != null) {
+            List<HaxeGenericParamModel> params = declaringClass.getGenericParams();
+            return findTypeParameterPsi(reference, params);
+          }
         }
       }
     }
@@ -2378,11 +2381,20 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if(!parentResolve.isEmpty()) {
       PsiElement first = parentResolve.getFirst();
+      String rightHandText = reference.getLastChild().getText();
       if(first instanceof HaxeModule module && module.getModel() instanceof HaxeModuleModel model) {
-        HaxeBaseMemberModel member = model.getMember(reference.getLastChild().getText(), null);
-        if(member != null) {
-          LogResolution(reference, "via simple chain against module members.");
-          return List.of(member.getNamedComponentPsi());
+        List<PsiElement> member = resolveModuleMemberOrClass(reference, model, rightHandText);
+        if (member != null) return member;
+      }
+      // check if resolved class is main class in module, and if so, check if our references could be a module member and not a class member
+      if(first instanceof HaxeClass haxeClass){
+        HaxeModule module = haxeClass.getModule();
+        if(module.getModel() instanceof HaxeModuleModel model) {
+          HaxeClassModel aClass = model.getMainClass();
+          if(aClass != null && aClass.haxeClass == haxeClass) {
+            List<PsiElement> member = resolveModuleMemberOrClass(reference, model, rightHandText);
+            if (member != null) return member;
+          }
         }
       }
     }
@@ -2578,6 +2590,22 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if(type != null) return resolveByClassAndSymbol(type, null, reference);
     return  List.of();
+  }
+
+  private static @Nullable List<PsiElement> resolveModuleMemberOrClass(HaxeReference reference,
+                                                                       HaxeModuleModel model,
+                                                                       String name) {
+    HaxeBaseMemberModel member = model.getMember(name, null);
+    if (member != null) {
+      LogResolution(reference, "via simple chain against module members.");
+      return List.of(member.getNamedComponentPsi());
+    }
+    HaxeClassModel aClass = model.getClass(name);
+    if (aClass != null) {
+      HaxeComponentName componentName = aClass.haxeClass.getComponentName();
+      if (componentName != null) return List.of(componentName);
+    }
+    return null;
   }
 
   private static void clearFakePsi(HaxeReference reference) {
