@@ -49,7 +49,7 @@ public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCas
     List<String> includeLines = new ArrayList<String>();
     for (String line : text.split("\n")) {
       line = line.trim();
-      if (line.length() > 0) {
+      if (!line.isEmpty()) {
         includeLines.add(line);
       }
     }
@@ -57,13 +57,14 @@ public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCas
   }
 
   protected void checkSymbols(List<String> list) {
-    final GlobalSearchScope scope = GlobalSearchScope.projectScope(myFixture.getProject());
     final Set<String> symbolSet = new LinkedHashSet<>();
-    symbolSet.addAll(StubIndex.getInstance().getAllKeys(HaxeClassNameStubIndex.KEY, myFixture.getProject()));
-    for (String name : StubIndex.getInstance().getAllKeys(HaxeMethodNameStubIndex.KEY, myFixture.getProject())) {
+    StubIndex stubIndex = StubIndex.getInstance();
+
+    symbolSet.addAll(stubIndex.getAllKeys(HaxeClassNameStubIndex.KEY, myFixture.getProject()));
+    for (String name : stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, myFixture.getProject())) {
       if (!"new".equals(name)) symbolSet.add(name);
     }
-    symbolSet.addAll(StubIndex.getInstance().getAllKeys(HaxeFieldNameStubIndex.KEY, myFixture.getProject()));
+    symbolSet.addAll(stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, myFixture.getProject()));
     String[] symbols = ArrayUtil.toStringArray(symbolSet);
     list.removeAll(Arrays.asList(symbols));
     if (!list.isEmpty()) {
