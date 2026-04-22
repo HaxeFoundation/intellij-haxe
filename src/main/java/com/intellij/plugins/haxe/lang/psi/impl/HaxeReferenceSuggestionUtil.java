@@ -183,9 +183,12 @@ public class HaxeReferenceSuggestionUtil {
 
 
     private static void addLocalMembersSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {
-        final Set<HaxeComponentName> localMembers = new HashSet<>();
-        PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(localMembers), targetReference, null, new ResolveState());
+        Set<HaxeComponentName> localMembers = new HashSet<>();
+        //avoid walking the entire file, addClassMemberSuggestions and addModuleMemberSuggestions should cover these
+        HaxeMethod parentMethod = PsiTreeUtil.getParentOfType(targetReference, HaxeMethodDeclaration.class);
+        PsiTreeUtil.treeWalkUp(new ComponentNameScopeProcessor(localMembers), targetReference, parentMethod, new ResolveState());
         HaxeClass containingClass = findContainingClass(targetReference);
+        localMembers = deduplicateLocalMembers(localMembers);
         if(containingClass != null) {
             SpecificHaxeClassReference instanceReference = containingClass.getModel().getInstanceReference();
             HaxeGenericResolver genericResolver = instanceReference.getGenericResolver();
@@ -195,6 +198,15 @@ public class HaxeReferenceSuggestionUtil {
             variants.addAll(HaxeMemberLookupElement.createLocalMembers(null, new HaxeGenericResolver(), localMembers));
         }
     }
+
+    // we don't want to show duplicates when local variables and functions shadows other local members
+  private static Set<HaxeComponentName> deduplicateLocalMembers(Set<HaxeComponentName> members) {
+      HashMap<String, HaxeComponentName> dedupeMap = new HashMap<>(members.size());
+      for (HaxeComponentName member : members) {
+          dedupeMap.put(member.getName(), member);
+      }
+      return Set.copyOf(dedupeMap.values());
+  }
 
     private static void addClassMemberSuggestions( List<HaxeLookupElement> variants, ResultHolder resolvedType, HaxeReference targetReference) {
         if(resolvedType.isClassType()) {

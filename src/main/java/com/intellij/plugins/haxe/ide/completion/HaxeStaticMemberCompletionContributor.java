@@ -53,6 +53,7 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
 
     methodKeys.forEach(name -> {
       stubIndex.processElements(HaxeStaticMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class, (method -> {
+        // TODO might want to do a propper evaluation visibility (@:noCompletion etc)
           if (method.isStatic() && method.isPublic()) {
             addMemberElement(resultSet, method, filterText);
           }
@@ -67,6 +68,7 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
 
     fieldKeys.forEach(name ->
       stubIndex.processElements(HaxeStaticFieldNameStubIndex.KEY, name, project, scope, HaxePsiField.class, (field -> {
+        // TODO might want to do a propper evaluation visibility (@:noCompletion etc)
         if (field.isStatic() && field.isPublic()) {
           addMemberElement(resultSet, field, filterText);
         }

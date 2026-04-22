@@ -54,6 +54,7 @@ public class HaxeControllingCompletionContributor extends CompletionContributor 
                                            ProcessingContext context,
                                            @NotNull CompletionResultSet result) {
                LinkedHashSet<CompletionResult> unfilteredCompletions = result.runRemainingContributors(parameters, true);
+               // TODO, we only need to filter duplicates from compiler result, might want to  drop this eventually and do  only one or the other
                filterDuplicates(parameters, unfilteredCompletions);
 
                result.stopHere();

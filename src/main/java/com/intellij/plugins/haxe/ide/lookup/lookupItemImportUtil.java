@@ -22,7 +22,7 @@ public class lookupItemImportUtil {
       if(needImport) {
         HaxeAddImportHelper.addImport(qname, context.getFile());
       }else {
-        if(!isCorrectClass(resolve.get(0), qname)) {
+        if(!isCorrectClass(resolve.getFirst(), qname)) {
           // replace class with fully qualified path to avoid conflicts
           HaxeReference fullyQualifiedReference = HaxeElementGenerator.createReferenceFromText(element.getProject(), qname);
           if (fullyQualifiedReference!= null) {

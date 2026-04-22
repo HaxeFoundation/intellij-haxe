@@ -77,7 +77,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            @NotNull CompletionResultSet result) {
                final PsiFile file = parameters.getOriginalFile();
 
-               addVariantsFromIndex(result, file, null, CLASS_INSERT_HANDLER);
+               addVariantsFromIndex(result, file, null, null);
                addVariantsFromImports(result, file);
              }
            });
@@ -91,7 +91,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                                            @NotNull CompletionResultSet result) {
                final PsiFile file = parameters.getOriginalFile();
 
-               addVariantsFromIndex(result, file, null, CLASS_INSERT_HANDLER);
+               addVariantsFromIndex(result, file, null, null);
                addVariantsFromImports(result, file);
              }
            });
@@ -106,8 +106,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                HaxeReference leftReference =
                  HaxeResolveUtil.getLeftReference(PsiTreeUtil.getParentOfType(parameters.getPosition(), HaxeReference.class));
                PsiElement leftTarget = leftReference != null ? leftReference.resolve() : null;
-               if (leftTarget instanceof PsiPackage) {
-                 addVariantsFromIndex(result, parameters.getOriginalFile(), ((PsiPackage)leftTarget).getQualifiedName(), null);
+               if (leftTarget instanceof PsiPackage aPackage) {
+                 addVariantsFromIndex(result, parameters.getOriginalFile(), aPackage.getQualifiedName(), null);
                }
              }
            });
@@ -116,7 +116,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   private static void addVariantsFromIndex(final CompletionResultSet resultSet,
                                            final PsiFile targetFile,
                                            @Nullable String prefixPackage,
-                                           @Nullable final InsertHandler<LookupElement> insertHandler) {
+                                           @Nullable final InsertHandler<HaxeIndexedClassElement> insertHandler) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
     final PrefixMatcher matcher = resultSet.getPrefixMatcher();
@@ -140,7 +140,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         String path = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
         if (prefixPackage == null || prefixPackage.equalsIgnoreCase(path)) {
           HaxeClassModel model = haxeClass.getModel();
-          resultSet.addElement(new HaxeIndexedClassElement(model));
+          resultSet.addElement(new HaxeIndexedClassElement(model, insertHandler));
         }
         return true;
       });
@@ -171,30 +171,13 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   }
 
 
-  private static final InsertHandler<LookupElement> CLASS_INSERT_HANDLER =
-    (context, item) -> addImportForLookupElement(context, item, context.getTailOffset() - 1);
+  private static final InsertHandler<HaxeIndexedClassElement> FULL_PATH_INSERT_HANDLER = HaxeClassNameCompletionContributor::replaceElementToFullPath;
 
-  private static void addImportForLookupElement(final InsertionContext context, final LookupElement item, final int tailOffset) {
-    final PsiReference ref = context.getFile().findReferenceAt(tailOffset);
-    if (ref == null || ref.resolve() != null) {
-      // no import statement needed
-      return;
-    }
+  private static void replaceElementToFullPath(final InsertionContext context, final HaxeIndexedClassElement item) {
     WriteCommandAction.writeCommandAction(context.getProject(), context.getFile()).run(() -> {
-        final String importPath = (String)item.getObject();
-        HaxeAddImportHelper.addImport(importPath, context.getFile());
-      });
-  }
-
-  /**
-   * Full path insert handler
-   **/
-  private static final InsertHandler<LookupElement> FULL_PATH_INSERT_HANDLER =
-    (context, item) -> replaceElementToFullPath(context, item, context.getTailOffset() - 1);
-
-  private static void replaceElementToFullPath(final InsertionContext context, final LookupElement item, final int tailOffset) {
-    WriteCommandAction.writeCommandAction(context.getProject(), context.getFile()).run(() -> {
-        final String importPath = (String)item.getObject();
+      FullyQualifiedInfo qualifiedInfo = item.getModel().getQualifiedInfo();
+      if (qualifiedInfo != null) {
+        String importPath = qualifiedInfo.toShortendImportReferenceString();
         final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
         if (currentReference != null && currentReference.getElement() != null) {
           final PsiElement currentElement = currentReference.getElement();
@@ -203,7 +186,8 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
             currentElement.replace(fullPathReference);
           }
         }
-      });
+      }
+    });
   }
 
 }

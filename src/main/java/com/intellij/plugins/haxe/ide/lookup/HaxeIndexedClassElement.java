@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.lookup;
 
+import com.intellij.codeInsight.completion.InsertHandler;
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
@@ -30,13 +31,15 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
   private final boolean bold = false;
 
 
-  private final HaxeClassModel model;
+  @Getter private final HaxeClassModel model;
+  private final InsertHandler<HaxeIndexedClassElement> myInsertHandler;
 
-  public HaxeIndexedClassElement(HaxeClassModel model) {
+  public HaxeIndexedClassElement(HaxeClassModel model, InsertHandler<HaxeIndexedClassElement> insertHandler) {
     this.model = model;
     this.name = model.getName();
     this.type = model.haxeClass.getComponentType();
     this.icon = this.type != null ? type.getCompletionIcon() : null;
+    this.myInsertHandler = insertHandler;
 
     FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
     String qualifiedName = qualifiedInfo != null ? qualifiedInfo.getQualifiedName(false) : "";
@@ -46,12 +49,16 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
 
   @Override
   public void handleInsert(InsertionContext context) {
-    PsiFile file = context.getFile();
-    PsiElement element = file.findElementAt(context.getStartOffset());
+    if(myInsertHandler != null) {
+      myInsertHandler.handleInsert(context, this);
+    }else {
+      PsiFile file = context.getFile();
+      PsiElement element = file.findElementAt(context.getStartOffset());
 
-    FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
-    if (qualifiedInfo != null) {
-      addImportIfNecessary(context, element, qualifiedInfo.toShortendImportReferenceString());
+      FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+      if (qualifiedInfo != null) {
+        addImportIfNecessary(context, element, qualifiedInfo.toShortendImportReferenceString());
+      }
     }
   }
 

@@ -88,14 +88,12 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<Haxe
     for (int j = 0; j < startOffsets.length; j++) {
       final int startOffset = startOffsets[j];
       for (final PsiElement element : CollectHighlightsUtil.getElementsInRange(file, startOffset, endOffsets[j])) {
-        if (element instanceof HaxeReferenceExpression) {
-          HaxeReferenceExpression referenceExpression = (HaxeReferenceExpression)element;
-
+        if (element instanceof HaxeReferenceExpression referenceExpression) {
           if (referenceExpression.resolve() == null) {
             final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(referenceExpression);
             final Collection<HaxeClass> components =
               HaxeClassNameStubIndex.getByName(referenceExpression.getText(), project, scope);
-            if (!components.isEmpty() && components.size() == 1) {
+            if (components.size() == 1) {
               qualifiedName = components.iterator().next().getQualifiedName();
               if (!haxeClassList.contains(qualifiedName)) {
                 haxeClassList.add(qualifiedName);

@@ -165,9 +165,4 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     return results;
   }
 
-  private static class AnnotatorTracker extends Key<HighlightSeverity> {
-    public AnnotatorTracker(@NonNls @NotNull String name) {
-      super(name);
-    }
-  }
 }
