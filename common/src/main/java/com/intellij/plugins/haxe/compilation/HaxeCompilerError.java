@@ -156,6 +156,17 @@ public class HaxeCompilerError {
           }
 
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
+          // File-less compiler warnings (no source location) fall through to
+          // this generic-error branch.  The Haxe compiler emits them in a
+          // couple of shapes, e.g.:
+          //   ((unknown)) Warning : (WDeprecatedDefine) The flash target ...
+          //   (unknown) : Warning : (WDeprecatedDefine) The flash target ...
+          // Both forms contain a "Warning :" token, so detect that and report
+          // them as warnings instead of misclassifying them as errors.
+          if (pFilelessWarning.matcher(trimmed).matches()) {
+            return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+                                         msg, null, -1, -1);
+          }
           return new HaxeCompilerError(CompilerMessageCategory.ERROR,
                                        msg, null, -1, -1);
         }
@@ -241,6 +252,11 @@ public class HaxeCompilerError {
     // a useful "Warning" or "Error" prefix.  However, the common error output (main.ml)
     // uses the pattern "%s : %s".
     static Pattern pGenericError = Pattern.compile("(.+?) : (.+)");
+    // Matches lines that contain a "Warning :" marker from the Haxe compiler.
+    // Used to identify file-less warnings which would otherwise fall through
+    // to the generic-error branch and be misclassified as errors.  Handles
+    // both shapes: "((unknown)) Warning : ..." and "(unknown) : Warning : ...".
+    static Pattern pFilelessWarning = Pattern.compile(".*\\bWarning\\s*:.*");
 
     // These are a few well-known informational patterns that should NOT be marked
     // as errors.  Keeping this up to date will always be an arms race.
