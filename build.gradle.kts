@@ -1,11 +1,11 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
-import org.jetbrains.grammarkit.tasks.GenerateLexerTask
-import org.jetbrains.grammarkit.tasks.GenerateParserTask
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtension
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
+import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
@@ -13,10 +13,10 @@ plugins {
 
     alias(libs.plugins.kotlin) // Kotlin support
     alias(libs.plugins.intelliJPlatform) // IntelliJ Platform Gradle Plugin
+    alias(libs.plugins.intelliJPlatformGrammarKit) // generate parser and lexer
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
-    alias(libs.plugins.grammarkit) // generate parser and lexer
     alias(libs.plugins.testLogger) // console output for tests
 }
 
@@ -24,7 +24,7 @@ group = providers.gradleProperty("pluginGroup").get()
 version = providers.gradleProperty("pluginVersion").get()
 
 kotlin {
-    jvmToolchain(25)
+    jvmToolchain(21)
 }
 
 java {
@@ -97,6 +97,9 @@ dependencies {
         pluginVerifier()
         intellijIdea(providers.gradleProperty("platformVersion"))
 
+        jflex ("1.9.2")
+        grammarKit("2023.3.1")
+
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
         bundledModules(providers.gradleProperty("platformBundledModules").map { it.split(',') })
@@ -136,12 +139,6 @@ intellijPlatform {
             recommended()
         }
     })
-}
-
-
-
-grammarKit {
-    jflexRelease.set("1.9.1")
 }
 
 
@@ -313,7 +310,7 @@ tasks.register<GenerateParserTask>("generateMetadataParser") {
 tasks.register<GenerateLexerTask>("generateMetadataLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
-    targetOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/"))
+    targetRootOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/"))
 }
 
 
@@ -328,6 +325,6 @@ tasks.register<GenerateParserTask>("generateHxmlParser") {
 tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/lexer/hxml.flex"))
-    targetOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/hxml/lexer"))
+    targetRootOutputDir.set(File("src/main/gen/com/intellij/plugins/haxe/hxml/lexer"))
 }
 
