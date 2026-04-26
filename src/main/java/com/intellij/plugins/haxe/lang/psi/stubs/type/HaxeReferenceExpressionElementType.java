@@ -32,7 +32,9 @@ public class HaxeReferenceExpressionElementType extends IStubElementType<HaxeRef
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.field." + getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.reference." + this;
   }
 
   @Override

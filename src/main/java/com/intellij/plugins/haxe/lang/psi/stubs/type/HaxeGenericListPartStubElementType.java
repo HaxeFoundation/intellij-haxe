@@ -29,7 +29,9 @@ public class HaxeGenericListPartStubElementType extends IStubElementType<HaxeGen
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.type.GENERIC_LIST_PART";
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.type." + this;
   }
 
   @Override

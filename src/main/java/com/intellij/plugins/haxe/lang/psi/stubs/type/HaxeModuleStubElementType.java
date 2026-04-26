@@ -4,10 +4,13 @@ import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
 import com.intellij.psi.stubs.*;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
-public class HaxeModuleStubElementType extends IStubElementType<HaxeModuleStub, HaxeModule> {
+public class HaxeModuleStubElementType
+  extends IStubElementType<HaxeModuleStub, HaxeModule>
+  implements EmptyStubSerializer<HaxeModuleStub> {
 
   public HaxeModuleStubElementType() {
     super("MODULE", com.intellij.plugins.haxe.HaxeLanguage.INSTANCE);
@@ -31,14 +34,8 @@ public class HaxeModuleStubElementType extends IStubElementType<HaxeModuleStub, 
   }
 
   @Override
-  public void serialize(@NotNull HaxeModuleStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-    // No data to serialize
-  }
-
-  @NotNull
-  @Override
-  public HaxeModuleStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-    return new HaxeModuleStub(parentStub, this);
+  public @NonNull HaxeModuleStub instantiate(StubElement<?> element) {
+    return new HaxeModuleStub(element, this);
   }
 
   @Override

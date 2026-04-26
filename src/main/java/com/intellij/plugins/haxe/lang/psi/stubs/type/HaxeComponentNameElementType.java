@@ -25,7 +25,9 @@ public class HaxeComponentNameElementType extends IStubElementType<HaxeComponent
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.componentName." + getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.componentName." + this;
   }
 
   @Override

@@ -36,7 +36,9 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.class." + super.getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.class." + this;
   }
 
   @Override

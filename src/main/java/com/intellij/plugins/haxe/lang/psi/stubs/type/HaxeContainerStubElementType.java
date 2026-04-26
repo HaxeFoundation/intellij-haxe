@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.*;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.util.function.BiFunction;
@@ -14,7 +15,10 @@ import java.util.function.BiFunction;
  *
  * @param <P> the concrete PSI element interface
  */
-public class HaxeContainerStubElementType<P extends PsiElement> extends IStubElementType<HaxeEmptyContainerStub<P>, P> {
+public class HaxeContainerStubElementType<P extends PsiElement>
+  extends IStubElementType<HaxeEmptyContainerStub<P>, P>
+  implements EmptyStubSerializer<HaxeEmptyContainerStub<P>>
+{
 
   private final BiFunction<HaxeEmptyContainerStub<P>, HaxeContainerStubElementType<P>, P> psiFactory;
 
@@ -27,7 +31,9 @@ public class HaxeContainerStubElementType<P extends PsiElement> extends IStubEle
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.container." + getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.container." + this;
   }
 
   @Override
@@ -42,15 +48,8 @@ public class HaxeContainerStubElementType<P extends PsiElement> extends IStubEle
   }
 
   @Override
-  public void serialize(@NotNull HaxeEmptyContainerStub<P> stub, @NotNull StubOutputStream dataStream) throws IOException {
-    // Container stubs hold no data — nothing to serialize.
-  }
-
-  @NotNull
-  @Override
-  @SuppressWarnings("rawtypes")
-  public HaxeEmptyContainerStub<P> deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-    return new HaxeEmptyContainerStub<>(parentStub, this);
+  public @NonNull HaxeEmptyContainerStub<P> instantiate(StubElement<?> element) {
+    return new HaxeEmptyContainerStub<>(element, this);
   }
 
   @Override

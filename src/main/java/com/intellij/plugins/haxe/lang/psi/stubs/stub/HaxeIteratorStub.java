@@ -7,7 +7,9 @@ import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Made into a stub just so we don't have to have 2 different AbstractHaxeNamedComponent variants (one for stubbed PSI and one for none stubbed)
+ * MLO: comment:
+ * Made iterator into a stub just so we don't need to have and maintain 2 different AbstractHaxeNamedComponent variants
+ * (one for stubbed PSI and one for none stubbed)
  */
 public class HaxeIteratorStub extends StubBase<HaxeIterator> {
 

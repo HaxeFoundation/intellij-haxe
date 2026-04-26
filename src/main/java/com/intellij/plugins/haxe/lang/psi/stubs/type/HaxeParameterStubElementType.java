@@ -27,7 +27,9 @@ public class HaxeParameterStubElementType extends IStubElementType<HaxeParameter
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.parameter." + getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.parameter." + this;
   }
 
   @Override
