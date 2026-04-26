@@ -5,6 +5,7 @@ on:
     branches:
       - 'master'
       - 'develop'
+      - 'dev/*'
       - 'feature/*'
   pull_request:
     branches:
@@ -30,7 +31,7 @@ jobs:
           sudo rm -rf /usr/local/lib/android
           sudo rm -rf /opt/ghc
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
@@ -47,23 +48,33 @@ jobs:
       - name: Test haxe
         run: haxe -version
 
-
-      - name: Cache intelliJ downloads
-        uses: actions/cache@v4
-        with:
-          path: $GITHUB_WORKSPACE/idea
-          key: ${{ matrix.IDEA_VERSION }}-idea
-          restore-keys: ${{ matrix.IDEA_VERSION }}-idea
-
-
       - name: Build with Gradle (windows)
         timeout-minutes: 30
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat clean test buildPlugin verifyPlugin
+        run: .\gradlew.bat build
 
       - name: Build with Gradle (linux/mac)
         timeout-minutes: 30
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew clean test buildPlugin verifyPlugin
+        run: ./gradlew clean build
 
+  verify:
+    name: "Run verifyPlugin (ubuntu-latest)"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Maximize Build Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
 
+      - uses: actions/checkout@v6
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: 'gradle'
+
+      - name: verify plugin
+        run: ./gradlew verifyPlugin
