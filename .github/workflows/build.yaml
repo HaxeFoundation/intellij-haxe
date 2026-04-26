@@ -59,11 +59,21 @@ jobs:
       - name: Build with Gradle (windows)
         timeout-minutes: 30
         if: ${{ matrix.os == 'windows-latest'}}
-        run: .\gradlew.bat clean test buildPlugin verifyPlugin
+        run: .\gradlew.bat build
 
       - name: Build with Gradle (linux/mac)
         timeout-minutes: 30
         if: ${{ matrix.os != 'windows-latest'}}
-        run: ./gradlew clean test buildPlugin verifyPlugin
+        run: ./gradlew clean build
 
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Maximize Build Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /opt/ghc
 
+      - name: verify plugin
+        run: ./gradlew verifyPlugin
