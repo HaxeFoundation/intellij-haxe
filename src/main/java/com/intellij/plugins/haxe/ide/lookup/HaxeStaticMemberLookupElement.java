@@ -6,6 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.psi.*;
 import icons.HaxeIcons;
 import lombok.CustomLog;
@@ -32,7 +33,7 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
   @Getter private String className;
   @Getter private String memberName;
 
-  @Getter private String typeValue = ""; // TODO remove
+  private String _typeValue;
 
   private boolean presentationCalculated = false;
   private Icon icon;
@@ -43,6 +44,7 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
     type = HaxeComponentType.typeOf(memberModel.getNamedComponentPsi());
     icon = type.getCompletionIcon();
     this.memberModel = memberModel;
+
   }
 
   @NotNull
@@ -124,4 +126,17 @@ public class HaxeStaticMemberLookupElement extends LookupElement implements Haxe
       return "Error";
     }
   }
+
+  public String getTypeValue() {
+    if (_typeValue == null) {
+      ResultHolder resultType = memberModel.getResultType();
+      if (resultType == null || resultType.isUnknown()) {
+        _typeValue = "";
+      } else {
+        _typeValue = resultType.getType().toPresentationString();
+      }
+    }
+    return _typeValue;
+  }
+
 }

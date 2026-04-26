@@ -100,7 +100,7 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
       // The stub index keys are the unresolved reference text from source (simple names in most cases).
       // Look up by both the simple name (covers "extends Foo") and the full name if it contains dots
       // (covers "extends com.example.Foo" written literally in source).
-      // MLO: AFAIK the extends expressions must be either fully qualified or simple names
+      // MLO comment: AFAIK the extends expressions must be either fully qualified or simple names
       // stuff like "Module.ClassName" will not compile so we dont need to handle these
       boolean isFQN = name.contains(".");
       final String simpleName = getSimpleName(name);

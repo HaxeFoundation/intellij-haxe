@@ -103,8 +103,6 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     if(!isPartOfChain(context)){
       addImportIfNecessary(context, haxeClass, haxeClass.getQualifiedName());
     }
-    //TODO verify we do not need this anymore (test with module member classes)
-    //JavaCompletionUtil.insertClassReference(haxeClass, context.getFile(), context.getStartOffset());
   }
 
   private static boolean isPartOfChain(InsertionContext context) {
