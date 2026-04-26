@@ -22,15 +22,13 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.helper.HaxeProcessDeclarationsHelper;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
-import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataListOwnerImpl;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiModifier;
@@ -38,7 +36,6 @@ import com.intellij.psi.ResolveState;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -59,11 +56,9 @@ import java.util.*;
 
 public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements HaxePsiCompositeElement, HaxeModifierListOwner,
                                                                                  HaxeMetadataListOwner {
-  private HaxeMetadataListOwner metaImpl;
 
   public HaxePsiCompositeElementImpl(@NotNull ASTNode node) {
     super(node);
-    metaImpl = new HaxeMetadataListOwnerImpl(node);
   }
 
   public IElementType getTokenType() {
@@ -112,221 +107,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
                                      PsiElement lastParent,
                                      @NotNull PsiElement place) {
 
-    // makes  sure we resolve the local function if referenced from inside
-    if (lastParent instanceof  HaxeLocalFunctionDeclaration) {
-      if (!processor.execute(lastParent, state)) {
-        return false;
-      }
-    }
-
-    for (PsiElement element : getDeclarationElementToProcess(lastParent)) {
-      if (!processor.execute(element, state)) {
-        return false;
-      }
-    }
-    return super.processDeclarations(processor, state, lastParent, place);
-  }
-
-  private Set<PsiElement> getDeclarationElementToProcess(PsiElement lastParent) {
-    final boolean isBlock = this instanceof HaxeBlockStatement || this instanceof HaxeSwitchCaseBlock;
-    final PsiElement stopper = isBlock ? lastParent : null;
-    final Set<PsiElement> result = new LinkedHashSet<>();// note using linkedHashSet because order is important here
-    //addVarDeclarations(result, PsiTreeUtil.getChildrenOfType(this, HaxeFieldDeclaration.class));
-
-    // method members
-    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalVarDeclarationList.class, stopper));
-    addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeLocalFunctionDeclaration.class, stopper));
-    addFunctionLiteralsWithName(result, UsefulPsiTreeUtil.getChildrenOfType(this, HaxeFunctionLiteral.class, stopper));
-
-    // scopes inside methods (switch expression members)
-    if(this instanceof HaxeSwitchCase switchCase) {
-      List<HaxeSwitchCaseExpr> list = switchCase.getSwitchCaseExprList();
-      for (HaxeSwitchCaseExpr expr : list) {
-        addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeEnumExtractedValueReference.class));
-        addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeSwitchCaseCapture.class));
-        addDeclarations(result, PsiTreeUtil.findChildrenOfType(expr, HaxeExtractorMatchAssignExpression.class));
-        addDeclarations(result, getObjectLiteralReferences(expr));
-        addDeclarations(result, getArrayLiteralReferences(expr));
-        addCaptureVariableDeclarations(expr, result);
-      }
-    }
-
-    if (this instanceof HaxeForStatement forStatement) {
-      HaxeKeyValueIterator keyValueIterator = forStatement.getKeyValueIterator();
-      HaxeValueIterator valueIterator = forStatement.getValueIterator();
-      // any reference in HaxeIterable is always defined outside its current loop  (avoid problems like var x:Array<String>; for (x in x))
-      if (!(lastParent instanceof HaxeIterable)) {
-        if (keyValueIterator != null && keyValueIterator != lastParent) {
-          result.add(keyValueIterator.getIteratorkey());
-          result.add(keyValueIterator.getIteratorValue());
-        }
-        else if (valueIterator != null && valueIterator != lastParent) {
-          result.add(valueIterator);
-        }
-      }
-    }
-
-    // TODO mlo - looks related to the one above, might want to merge
-    if (this instanceof HaxeSwitchCase switchCase) {
-      for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
-        HaxeSwitchCaseCaptureVar captureVar = expr.getSwitchCaseCaptureVar();
-        if (captureVar!= null) {
-          result.add(captureVar.getComponentName());
-        }
-        Collection<HaxeEnumArgumentExtractor> extractors = PsiTreeUtil.findChildrenOfType(expr, HaxeEnumArgumentExtractor.class);
-        for (HaxeEnumArgumentExtractor extractor : extractors) {
-          Collection<HaxeEnumExtractedValueReference> extractedValues = PsiTreeUtil.findChildrenOfType(extractor, HaxeEnumExtractedValueReference.class);
-
-          List<HaxeComponentName> list = extractedValues.stream()
-            .map(HaxeEnumExtractedValueReference::getComponentName)
-            .toList();
-          result.addAll(list);
-          Collection<HaxeExtractorMatchExpression> matchExpressions = PsiTreeUtil.findChildrenOfType(extractor, HaxeExtractorMatchExpression.class);
-          for (HaxeExtractorMatchExpression match : matchExpressions) {
-            if(match.getMatch().getExpression() instanceof  HaxeReferenceExpression expression) {
-              result.add(expression);
-            }
-          }
-
-        }
-      }
-    }
-    if (this instanceof HaxeSwitchCaseCaptureVar captureVar) {
-      HaxeComponentName componentName = captureVar.getComponentName();
-      result.add(componentName);
-    }
-    if (this instanceof HaxeEnumExtractedValueReference extractedValue) {
-      HaxeComponentName componentName = extractedValue.getComponentName();
-      result.add(componentName);
-    }
-
-    if (this instanceof HaxeCatchStatement) {
-      final HaxeParameter catchParameter = PsiTreeUtil.getChildOfType(this, HaxeParameter.class);
-      if (catchParameter != null) {
-        result.add(catchParameter);
-      }
-    }
-
-
-    // Method declaration members / parameters
-    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this, HaxeParameterList.class);
-    if (parameterList != null) {
-      result.addAll(parameterList.getParameterList());
-    }
-    final HaxeOpenParameterList openParameterList = PsiTreeUtil.getChildOfType(this, HaxeOpenParameterList.class);
-    if (openParameterList != null) {
-      result.add(openParameterList);
-    }
-
-
-    // class & other module members
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeFieldDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeMethodDeclaration.class));
-
-    // classes
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeClass.class));
-
-    // Enum declarations
-    HaxeEnumDeclaration[] enumDeclarations = PsiTreeUtil.getChildrenOfType(this, HaxeEnumDeclaration.class);
-    addEnumMembers(enumDeclarations, result);
-
-    final HaxeGenericParam genericParam = PsiTreeUtil.getStubChildOfType(this, HaxeGenericParam.class);
-    if (genericParam != null) {
-      result.addAll(genericParam.getGenericListPartList());
-    }
-
-
-    return result;
-  }
-
-  private void addFunctionLiteralsWithName(Set<PsiElement> result, @Nullable HaxeFunctionLiteral[] childrenOfType) {
-    if(childrenOfType == null) return;
-    for (HaxeFunctionLiteral haxeFunctionLiteral : childrenOfType) {
-      HaxeComponentName componentName = haxeFunctionLiteral.getComponentName();
-      if(componentName != null) {
-        result.add(componentName);
-      }
-    }
-  }
-
-  private static void addEnumMembers(HaxeEnumDeclaration[] enumDeclarations, Set<PsiElement> result) {
-    if(enumDeclarations != null) {
-      for (HaxeEnumDeclaration haxeEnumDeclaration : enumDeclarations) {
-        List<HaxeNamedComponent> list = haxeEnumDeclaration.getModel()
-                .getMembers(null).stream()
-                .map(m -> m.getNamedComponentPsi())
-                .filter(Objects::nonNull)
-                .toList();
-        result.addAll(list);
-      }
-    }
-  }
-
-  private static void addCaptureVariableDeclarations(HaxeSwitchCaseExpr expr, Set<PsiElement> result) {
-      List<PsiElement> captureVars = new ArrayList<>();
-      for (HaxeReferenceExpression referenceExpression : PsiTreeUtil.findChildrenOfType(expr, HaxeReferenceExpression.class)) {
-          if (HaxeReferenceUtil.isCaptureVar(referenceExpression)) {
-              captureVars.add(referenceExpression);
-          }
-      }
-      addDeclarations(result, captureVars);
-  }
-
-
-  private static @NotNull Collection<PsiElement> getObjectLiteralReferences(HaxeSwitchCaseExpr expr) {
-    Collection<HaxeEnumObjectLiteralElement> objectLiterals = PsiTreeUtil.findChildrenOfType(expr, HaxeEnumObjectLiteralElement.class);
-    return objectLiterals.stream()
-      .map(HaxeEnumObjectLiteralElement::getExpression)
-      .filter(HaxeReferenceExpression.class::isInstance)
-      // check casing to prevent issues separating variables without "var" and types
-      // Compiler message when Uppercase:  "Val, pattern variables must be lower-case or with `var ` prefix"
-      .filter(haxeExpression -> Character.isLowerCase(haxeExpression.getText().charAt(0)))
-      .map(HaxeReferenceExpression.class::cast)
-      .filter(expression -> expression.getChildren().length == 1)
-      .map(PsiElement.class::cast)
-      .toList();
-  }
-  private static @NotNull Collection<PsiElement> getArrayLiteralReferences(HaxeSwitchCaseExpr expr) {
-    Collection<HaxeEnumExtractArrayLiteral> arrayLiterals = PsiTreeUtil.findChildrenOfType(expr, HaxeEnumExtractArrayLiteral.class);
-    return arrayLiterals.stream()
-      .flatMap(literal-> literal.getExpressionList().stream())
-      .filter(HaxeReferenceExpression.class::isInstance)
-      .map(HaxeReferenceExpression.class::cast)
-      .filter(expression -> expression.getChildren().length == 1)
-      .map(PsiElement.class::cast)
-      .toList();
-  }
-
-  private static void addLocalVarDeclarations(@NotNull Set<PsiElement> result,
-                                              @Nullable HaxeLocalVarDeclarationList[] items) {
-    if (items == null) {
-      return;
-    }
-    // reversed to correctly resolve variable shadowing
-    // (declarations after element are not included, see getDeclarationElementToProcess and "stoppers")
-    List<HaxeLocalVarDeclarationList> declarationLists = Arrays.asList(items);
-    Collections.reverse(declarationLists);
-
-    declarationLists.forEach(list -> result.addAll(list.getLocalVarDeclarationList()));
-  }
-
-  private static void addVarDeclarations(@NotNull Set<PsiElement> result, @Nullable HaxeFieldDeclaration[] items) {
-    if (items == null) {
-      return;
-    }
-
-    result.addAll(Arrays.asList(items));
-  }
-
-  private static void addDeclarations(@NotNull Set<PsiElement> result, @Nullable PsiElement[] items) {
-    if (items != null) {
-      result.addAll(Arrays.asList(items));
-    }
-  }
-  private static void addDeclarations(@NotNull Set<PsiElement> result, @Nullable Collection<PsiElement> items) {
-    if (items != null) {
-      result.addAll(items);
-    }
+    return HaxeProcessDeclarationsHelper.processDeclarations(this, processor, state,lastParent,place);
   }
 
 

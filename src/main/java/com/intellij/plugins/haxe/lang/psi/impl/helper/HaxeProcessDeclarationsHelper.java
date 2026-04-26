@@ -41,6 +41,7 @@ public final class HaxeProcessDeclarationsHelper {
   private static Set<PsiElement> getDeclarationElementToProcess(@NotNull PsiElement self, PsiElement lastParent) {
     final boolean isBlock = self instanceof HaxeBlockStatement || self instanceof HaxeSwitchCaseBlock;
     final PsiElement stopper = isBlock ? lastParent : null;
+    // note using linkedHashSet because order is important here
     final Set<PsiElement> result = new LinkedHashSet<>();
 
     addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeFieldDeclaration.class));
@@ -53,8 +54,10 @@ public final class HaxeProcessDeclarationsHelper {
     addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeExternClassDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeInterfaceDeclaration.class));
     addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeTypedefDeclaration.class));
+
     List<PsiElement> enumDeclarations = PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeEnumDeclaration.class);
     addDeclarations(result, enumDeclarations);
+
     List<HaxeEnumDeclaration> enumDeclarationsMapped = enumDeclarations.stream().map(HaxeEnumDeclaration.class::cast).toList();
     addEnumMembers(enumDeclarationsMapped, result);
 
@@ -98,6 +101,7 @@ public final class HaxeProcessDeclarationsHelper {
         }
       }
     }
+    // TODO mlo - looks related to the one above, might want to merge
     if (self instanceof HaxeSwitchCase switchCase) {
       for (HaxeSwitchCaseExpr expr : switchCase.getSwitchCaseExprList()) {
         HaxeSwitchCaseCaptureVar captureVar = expr.getSwitchCaseCaptureVar();
