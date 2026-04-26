@@ -46,14 +46,7 @@ public class HaxeModifiersModel {
     PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxePsiModifier.class, modifier);
 
     if (result == null && baseElement instanceof HaxeMetadataListOwner) {
-      // Fast path:
-      // read metadata flags from stub to avoid expensive sibling PSI traversal.
-      // When PSI is stub-backed (library files, not open in editor), getStub() is non-null
-      // and we can answer the metadata question entirely from pre-computed stub data.
-      // NOTE: We return `baseElement` as a non-null sentinel — this is safe for all
-      // read-only callers (hasModifier, hasAnyModifier, etc.).  Editing callers
-      // (removeModifier) only run on files open in the editor where stubs are null,
-      // so they always fall through to the slow path below.
+      // Fast path: read metadata flags from stub to avoid expensive sibling PSI traversal.
       Boolean fromStub = getMetaModifierFromStub(modifier);
       if (fromStub != null) {
         return fromStub ? baseElement : null;
@@ -90,11 +83,6 @@ public class HaxeModifiersModel {
     return null;
   }
 
-  public PsiElement getModifierPsiOrBase(@ModifierConstant String modifier) {
-    PsiElement psi = getModifierPsi(modifier);
-    if (psi == null) psi = this.baseElement;
-    return psi;
-  }
 
   public void replaceVisibility(@ModifierConstant String modifier) {
     PsiElement psi = getVisibilityPsi();
@@ -112,9 +100,6 @@ public class HaxeModifiersModel {
     }
   }
 
-  public void sortModifiers() {
-    // @TODO implement this!
-  }
 
   private HaxeDocumentModel _document = null;
 

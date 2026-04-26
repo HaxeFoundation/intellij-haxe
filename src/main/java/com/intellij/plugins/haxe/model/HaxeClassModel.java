@@ -517,11 +517,14 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
       HaxeClassStub greenStub = psiClass.getGreenStub();
       if(greenStub != null) {
-        return greenStub.getChildrenStubs().stream()
-          .map(StubElement::getPsi)
-          .map(HaxeBaseMemberModel::fromPsi)
-          .filter(Objects::nonNull)
-          .toList();
+        List<HaxeBaseMemberModel> list = new ArrayList<>();
+        for (StubElement<?> element : greenStub.getChildrenStubs()) {
+          HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(element.getPsi());
+          if (model != null) {
+            list.add(model);
+          }
+        }
+        return list;
       }
     }
 
@@ -542,10 +545,12 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @Nullable
   public HaxeBaseMemberModel getMemberSelf(String name, @Nullable HaxeGenericResolver resolver) {
-    return getMembersSelf().stream()
-      .filter(model -> name.equals(model.getName()))
-      .findFirst()
-      .orElse(null);
+    for (HaxeBaseMemberModel model : getMembersSelf()) {
+      if (name.equals(model.getName())) {
+        return model;
+      }
+    }
+    return null;
   }
 
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {

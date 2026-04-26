@@ -184,12 +184,10 @@ public class HaxeFileModel implements HaxeExposableModel {
   public String getPackageName() {
     StubElement<?> stub = file.getStub();
     if(stub != null) {
-      Optional<HaxePackageStub> packageStub = stub.getChildrenStubs().stream()
-        .filter(HaxePackageStub.class::isInstance)
-        .map(HaxePackageStub.class::cast)
-        .findFirst();
-      if(packageStub.isPresent()){
-        return packageStub.get().getPackageName();
+      for (StubElement<?> element : stub.getChildrenStubs()) {
+        if (element instanceof HaxePackageStub haxePackageStub) {
+          return haxePackageStub.getPackageName();
+        }
       }
     }
     HaxePackageStatement value = getPackagePsi();
@@ -275,10 +273,11 @@ public class HaxeFileModel implements HaxeExposableModel {
   private @NotNull List<PsiElement> getChildrenFromStubOrPsi() {
     StubElement<?> stub = file.getStub();
     if(stub != null) {
-      return stub.getChildrenStubs().stream()
-        .map(StubElement::getPsi)
-        .map(PsiElement.class::cast)
-        .toList();
+      List<PsiElement> list = new ArrayList<>();
+      for (StubElement<?> element : stub.getChildrenStubs()) {
+        list.add(element.getPsi());
+      }
+      return list;
     }
     return getChildren();
   }

@@ -294,8 +294,6 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
     return new FullyQualifiedInfo(getQualifiedName());
   }
 
-
-
   @Nullable
   public String getQualifiedName() {
     HaxeMethodModel declaringMethod = getDeclaringMethod();

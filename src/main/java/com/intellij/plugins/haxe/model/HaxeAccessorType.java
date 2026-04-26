@@ -39,13 +39,9 @@ public enum HaxeAccessorType {
     this.text = text;
   }
 
-  /** Creates an {@code HaxeAccessorType} from a stub-stored text value. Returns {@link #INVALID} for {@code null}. */
+
   public static HaxeAccessorType from(@Nullable String text) {
     if (text == null) return INVALID;
-    return fromString(text);
-  }
-
-  private static HaxeAccessorType fromString(String text) {
     for (HaxeAccessorType type : HaxeAccessorType.values()) {
       if (type.text.equals(text)) {
         return type;
@@ -70,7 +66,7 @@ public enum HaxeAccessorType {
     if(psi instanceof HaxePropertyAccessor propertyAccessor) {
       String rawText = propertyAccessor.getText();
       String maxOneWhitespace = rawText.replaceAll("\\s+", " ");
-      return fromString(maxOneWhitespace);
+      return from(maxOneWhitespace);
     }
     return INVALID;
   }

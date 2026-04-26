@@ -18,6 +18,7 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -81,20 +82,28 @@ public class HaxeNamedSubComponentUtil {
     public static  List<HaxeNamedComponent> getNamedComponentsInModule(@NotNull HaxeModule haxeModule) {
         HaxeModuleStub stub = haxeModule.getStub();
         if(stub != null) {
-            return stub.getChildrenStubs().stream()
-              .map(StubElement::getPsi)
-              .filter(HaxeNamedComponent.class::isInstance)
-              .map(HaxeNamedComponent.class::cast)
-              .toList();
+            return getComponentsFromStub(stub);
         }
 
-        return  CachedValuesManager.getCachedValue(haxeModule, () -> {
+        return CachedValuesManager.getCachedValue(haxeModule, () -> {
             final HaxeNamedComponent[] namedComponents = PsiTreeUtil.getChildrenOfType(haxeModule, HaxeNamedComponent.class);
             List<HaxeNamedComponent> result = new ArrayList<>();
             if (namedComponents != null) result.addAll(Arrays.asList(namedComponents));
             return new CachedValueProvider.Result<>(result, haxeModule);
         });
     }
+
+    private static @NonNull List<HaxeNamedComponent> getComponentsFromStub(HaxeModuleStub stub) {
+        List<HaxeNamedComponent> list = new ArrayList<>();
+        for (StubElement<?> element : stub.getChildrenStubs()) {
+          PsiElement psi = element.getPsi();
+          if (psi instanceof HaxeNamedComponent component) {
+            list.add(component);
+          }
+        }
+        return list;
+    }
+
     @NotNull
     public static List<HaxeNamedComponent> getNamedSubComponentsInOrder(HaxeClass haxeClass) {
         final List<HaxeNamedComponent> result = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
@@ -243,7 +252,6 @@ public class HaxeNamedSubComponentUtil {
         boolean usingStubData = false;
         List<HaxeNamedComponent> primaryMembers  = new ArrayList<>();
         if(classType instanceof HaxeStubBasedNamedComponent<?> classStub) {
-            String name = classStub.getName(); // TODO remove: for debug purposes
             StubElement<?> stub = classStub.getGreenStub();
             if(stub != null) {
                 usingStubData = true;
