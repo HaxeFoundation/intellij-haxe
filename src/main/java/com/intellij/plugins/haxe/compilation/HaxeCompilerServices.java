@@ -422,14 +422,14 @@ public class HaxeCompilerServices {
 
             // Could be a syntax warning.
             String projectPath = project.getBaseDir().getPath();
-            HaxeCompilerError compilerError = HaxeCompilerError.create(projectPath, error);
+            HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(projectPath, error);
             if (null != compilerError) {
                 if (compilerError.isErrorMessage()) {
                     msg.append(" error");                   // TODO: Externalize and don't build the string.
                 }
                 msg.append(": ");
 
-                msg.append(compilerError.getErrorMessage());
+                msg.append(compilerError.getMessage());
                 msg.append(" @ ");
 
                 // XXX: We can make a link show up in the tooltip by enabling this, but

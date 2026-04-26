@@ -20,7 +20,6 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
-import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
@@ -170,7 +169,7 @@ public class HaxeCompilerUtil
             context.putUserData(messageWindowAutoOpened, "yes");
         }
 
-        final HaxeCompilerError compilerError = HaxeCompilerError.create
+        final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create
             (errorRoot,
              error,
              !ApplicationManager.getApplication().isUnitTestMode());
@@ -180,7 +179,7 @@ public class HaxeCompilerUtil
             String path = compilerError.getPath();
             context.addMessage
                 (compilerError.getCategory(),
-                 compilerError.getErrorMessage(),
+                 compilerError.getMessage(),
                  path == null ? null : VfsUtilCore.pathToUrl(compilerError.getPath()),
                  compilerError.getLine(),
                  compilerError.getColumn());

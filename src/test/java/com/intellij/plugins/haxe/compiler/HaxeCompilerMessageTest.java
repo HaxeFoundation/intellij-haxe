@@ -16,19 +16,19 @@
 package com.intellij.plugins.haxe.compiler;
 
 import com.intellij.openapi.compiler.CompilerMessageCategory;
-import com.intellij.plugins.haxe.compilation.HaxeCompilerError;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
 import com.intellij.testFramework.UsefulTestCase;
 import org.junit.Test;
 
 /**
  * Created by ebishton on 10/29/16.
  */
-public class HaxeCompilerErrorTest extends UsefulTestCase {
+public class HaxeCompilerMessageTest extends UsefulTestCase {
 
   private void doTest(String output, CompilerMessageCategory cat, String msg, String path, int line, int col) throws Throwable {
-    HaxeCompilerError e = HaxeCompilerError.create("", output);
+    HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);
     assertEquals(cat, e.getCategory());
-    assertEquals(msg, e.getErrorMessage());
+    assertEquals(msg, e.getMessage());
     assertEquals(path, e.getPath());
     assertEquals(line, e.getLine());
     assertEquals(col, e.getColumn());

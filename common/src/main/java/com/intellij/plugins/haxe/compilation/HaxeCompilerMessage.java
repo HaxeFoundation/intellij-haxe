@@ -37,16 +37,16 @@ import java.util.regex.Pattern;
 /**
  * @author: Fedor.Korotkov
  */
-public class HaxeCompilerError {
+public class HaxeCompilerMessage {
   private final CompilerMessageCategory category;
-  private final String errorMessage;
+  private final String message;
   private final String path;
   private final int line;
   private final int column;
 
-  public HaxeCompilerError(CompilerMessageCategory category, String errorMessage, String path, int line, int column) {
+  public HaxeCompilerMessage(CompilerMessageCategory category, String errorMessage, String path, int line, int column) {
     this.category = category;
-    this.errorMessage = errorMessage;
+    this.message = errorMessage;
     this.path = path;
     this.line = line;
     this.column = column;
@@ -56,8 +56,8 @@ public class HaxeCompilerError {
     return category;
   }
 
-  public String getErrorMessage() {
-    return errorMessage;
+  public String getMessage() {
+    return message;
   }
 
   public String getPath() {
@@ -98,14 +98,14 @@ public class HaxeCompilerError {
   }
 
   @Nullable
-  public static HaxeCompilerError create(@NotNull String rootPath, final String message) {
+  public static HaxeCompilerMessage create(@NotNull String rootPath, final String message) {
     return create(rootPath, message, true);
   }
 
     @Nullable
-    public static HaxeCompilerError create(@NotNull String rootPath,
-                                           final String message,
-                                           boolean checkExistence)
+    public static HaxeCompilerMessage create(@NotNull String rootPath,
+                                             final String message,
+                                             boolean checkExistence)
     {
         Matcher m;
 
@@ -114,7 +114,7 @@ public class HaxeCompilerError {
 
         // Library (\S+) (is not installed.*)
         if ((m = pLibraryNotInstalled.matcher(trimmed)).matches()) {
-            return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+            return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
                                          "Library " + m.group(1).trim() +
                                          " " +
                                          m.group(2).trim(), null, -1, -1);
@@ -139,7 +139,7 @@ public class HaxeCompilerError {
         // ([^:]*)Error:(.*)
         else if ((m = pBareError.matcher(trimmed)).matches()) {
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
-          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
                                        msg, null, -1, -1);
         }
         // ([^:]+) : (.+)  Keep this pattern *last* because it's the most generic
@@ -151,7 +151,7 @@ public class HaxeCompilerError {
           String error = m.group(1).trim();
           if (matchesInformationalPattern(error)) {
             // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
-            return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
+            return new HaxeCompilerMessage(CompilerMessageCategory.INFORMATION,
                                          message, null, -1, -1);
           }
 
@@ -164,17 +164,17 @@ public class HaxeCompilerError {
           // Both forms contain a "Warning :" token, so detect that and report
           // them as warnings instead of misclassifying them as errors.
           if (pFilelessWarning.matcher(trimmed).matches()) {
-            return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+            return new HaxeCompilerMessage(CompilerMessageCategory.WARNING,
                                          msg, null, -1, -1);
           }
-          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
                                        msg, null, -1, -1);
         }
 
         // Anything that doesn't match error patterns is purely informational
         else {
           // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
-          return new HaxeCompilerError(CompilerMessageCategory.INFORMATION,
+          return new HaxeCompilerMessage(CompilerMessageCategory.INFORMATION,
                                          message, null, -1, -1);
         }
 
@@ -213,11 +213,11 @@ public class HaxeCompilerError {
           if (0 == text.indexOf(colonChar)) {
             text = text.substring(colonChar.length()).trim();
           }
-          return new HaxeCompilerError(CompilerMessageCategory.WARNING,
+          return new HaxeCompilerMessage(CompilerMessageCategory.WARNING,
                                        text, filePath, line, column);
         }
         else {
-          return new HaxeCompilerError(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
                                        text, filePath, line, column);
         }
     }
