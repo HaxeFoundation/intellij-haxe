@@ -37,7 +37,7 @@ public class HaxeGotoClassContributor implements ChooseByNameContributor {
   @Override
   public NavigationItem[] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
     final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
-    final Collection<HaxeClass> result = HaxeClassNameStubIndex.getByName(name, project, scope);
+    final Collection<HaxeClass> result = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
     return result.toArray(new NavigationItem[0]);
   }
 

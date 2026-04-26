@@ -58,7 +58,7 @@ public class HaxeGotoSymbolContributor implements ChooseByNameContributor {
     final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
 
     final List<HaxeComponentName> result = new ArrayList<>();
-    Collection<HaxeClass> haxeClasses = HaxeClassNameStubIndex.getByName(name, project, scope);
+    Collection<HaxeClass> haxeClasses = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
     for (HaxeClass cls : haxeClasses) {
       HaxeComponentName cn = cls.getComponentName();
       if (cn != null) result.add(cn);

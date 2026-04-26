@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs.type;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeConstructorStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticMethodNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
@@ -31,7 +32,9 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
   @NotNull
   @Override
   public String getExternalId() {
-    return "haxe.method." + getDebugName();
+    //want to use getDebugName here instead of "this", but it's marked as internal;
+    // however, toString returns the value from getDebugName so "+ this" gives us the same result.
+    return "haxe.method." + this;
   }
 
   @Override
@@ -116,12 +119,12 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
       sink.occurrence(HaxeConstructorStubIndex.KEY, name);
     }else if(stub.isStatic()) {
       sink.occurrence(HaxeStaticMethodNameStubIndex.KEY, name);
-      //TODO mlo: get Qname (test if separation between class FQN and static members FQN index gains  performance)
-//    sink.occurrence(com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex.KEY, qualifiedName);
+      //TODO mlo: get method Qname (test if separation between class FQN and static members FQN index improves performance)
+//    sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedName);
     }
 
     if (name != null) {
-      sink.occurrence(com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex.KEY, name);
+      sink.occurrence(HaxeMethodNameStubIndex.KEY, name);
     }
   }
 }

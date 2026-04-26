@@ -15,6 +15,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Specialized index with only constructor methods used for Completion after "new" keywords
+ */
 public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMethod> {
 
     public static final StubIndexKey<String, HaxeMethod> KEY = StubIndexKey.createIndexKey("haxe.constructors.name");

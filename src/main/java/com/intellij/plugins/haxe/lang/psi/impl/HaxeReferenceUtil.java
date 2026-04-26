@@ -160,7 +160,6 @@ public class HaxeReferenceUtil {
     }
 
     public static boolean canBeQname(@NotNull HaxeReference reference) {
-
             PsiElement firstChild = reference.getFirstChild();
             // before attempting a Qname lookup, make sure reference does not contain callExpression, parenthesizedExpression
             // or other stuff that is not part of a Qname (it should only contain  reference, identifier or token)

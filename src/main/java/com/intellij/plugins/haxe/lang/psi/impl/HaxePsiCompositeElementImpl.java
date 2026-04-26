@@ -145,7 +145,7 @@ public class HaxePsiCompositeElementImpl extends ASTWrapperPsiElement implements
 
     List<PsiElement> result = null;
     while (psiChild != null) {
-      // we want to include comments when listing children as its usefull in a lot of places
+      // we want to include comments when listing children as its useful in a lot of places
       // we could get children with comments by using custom code looping getNextSibling manually, but its more convenient
       // to just override this method and solve the need everywhere, and if we dont want Comments we can always filter the results later.
       // (including Comments here will for instance allow us to use Comments in Pattern matching for autocompletion)

@@ -14,6 +14,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 
+/**
+ * Specialized used to find inheritance faster. (see HaxeInheritanceDefinitionsSearcher)
+ */
 public class HaxeSuperClassStubIndex extends StringStubIndexExtension<HaxeClass> {
 
   public static final StubIndexKey<String, HaxeClass> KEY = StubIndexKey.createIndexKey("haxe.class.superclass");

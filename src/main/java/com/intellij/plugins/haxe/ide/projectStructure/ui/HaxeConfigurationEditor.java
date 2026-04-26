@@ -138,7 +138,7 @@ public class HaxeConfigurationEditor {
         String mainClass = HaxeModuleSettings.getInstance(myModule).getMainClass();
         HaxeClass haxeClass = null;
         if (!mainClass.isEmpty()) {
-          for (HaxeClass component : HaxeClassNameStubIndex.getByName(mainClass, project, myModule.getModuleScope())) {
+          for (HaxeClass component : HaxeClassNameStubIndex.getByNameFiltered(mainClass, project, myModule.getModuleScope())) {
             if (component instanceof HaxeClass) {
               haxeClass = component;
             }

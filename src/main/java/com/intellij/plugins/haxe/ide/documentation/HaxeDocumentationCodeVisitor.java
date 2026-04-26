@@ -131,7 +131,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private HaxeClass findUniqueClassFromIndex(String literal) {
-        Collection<HaxeClass> itemsByName = HaxeClassNameStubIndex.getByName(literal, project, GlobalSearchScope.allScope(project));
+        Collection<HaxeClass> itemsByName = HaxeClassNameStubIndex.getByNameFiltered(literal, project, GlobalSearchScope.allScope(project));
         if (itemsByName.size() == 1) {
             return itemsByName.iterator().next();
         }

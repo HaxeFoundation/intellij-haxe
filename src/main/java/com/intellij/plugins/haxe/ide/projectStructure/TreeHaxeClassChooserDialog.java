@@ -22,19 +22,10 @@ import com.intellij.ide.util.TreeClassChooser;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Condition;
-import com.intellij.openapi.util.Conditions;
-import com.intellij.plugins.haxe.ide.index.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeClassResolveCache;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.psi.search.searches.ClassInheritorsSearch;
-import com.intellij.util.Query;
-import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -116,7 +107,7 @@ public class TreeHaxeClassChooserDialog extends AbstractTreeClassChooserDialog<P
                                             final boolean checkBoxState,
                                             final String pattern,
                                             final GlobalSearchScope searchScope) {
-    List<HaxeClass> components = new ArrayList<>(HaxeClassNameStubIndex.getByName(name, getProject(), searchScope));
+    List<HaxeClass> components = new ArrayList<>(HaxeClassNameStubIndex.getByNameFiltered(name, getProject(), searchScope));
     List<PsiClass> classes = new ArrayList<PsiClass>();
 
     for (HaxeClass component : components) {

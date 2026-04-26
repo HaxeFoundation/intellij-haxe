@@ -42,10 +42,12 @@ public class HaxeClassNameStubIndex extends StringStubIndexExtension<HaxeClass> 
     return StubIndex.getElements(KEY, name, project, searchScope, HaxeClass.class);
   }
 
+  // removing platform-specific classes from the result as we don't want to show "String" for every platform we can target.
+  // TODO Maybe we should make a custom index instead of filtering every time ?
   @NotNull
   public static Collection<HaxeClass> getByNameFiltered(@NotNull String name,
-                                                 @NotNull Project project,
-                                                 @Nullable GlobalSearchScope scope) {
+                                                        @NotNull Project project,
+                                                        @Nullable GlobalSearchScope scope) {
     if (DumbService.isDumb(project)) return Collections.emptyList();
     GlobalSearchScope searchScope = scope != null ? scope : GlobalSearchScope.allScope(project);
     return StubIndex.getElements(KEY, name, project, searchScope, HaxeClass.class).stream()

@@ -54,37 +54,4 @@ public class HaxeTypePsiMixinImpl extends HaxeContainerStubPsiElementBase implem
     return (this instanceof HaxeType) ? new HaxePsiTypeAdapter((HaxeType)this) : null;
   }
 
-  //@Override
-  //public boolean hasTypeParameters() {
-  //  return getTypeParameters().length != 0;
-  //}
-  //
-  //@Nullable
-  //@Override
-  //public PsiTypeParameterList getTypeParameterList() {
-  //  return (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
-  //}
-  //
-  //@NotNull
-  //@Override
-  //public PsiTypeParameter[] getTypeParameters() {
-  //  return PsiImplUtil.getTypeParameters(this);
-  //}
-  //
-  //@Nullable
-  //@Override
-  //public PsiClass getContainingClass() {
-  //  PsiElement parent = getParent();
-  //  while (parent != null) {
-  //    if (parent instanceof HaxeFile) {
-  //      // If we get to the file node, we've gone too far.
-  //      return null;
-  //    }
-  //    if (parent instanceof HaxeClass) {
-  //      return (HaxeClass)parent;
-  //    }
-  //    parent = parent.getParent();
-  //  }
-  //  return null;
-  //}
 }

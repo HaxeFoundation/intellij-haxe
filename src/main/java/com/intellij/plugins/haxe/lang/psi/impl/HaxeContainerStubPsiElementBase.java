@@ -6,7 +6,6 @@ import com.intellij.psi.stubs.IStubElementType;
 
 /**
  * Base class for stub-aware PSI elements that are container-only (no serialized data).
- * Extends HaxeStubBasedPsiElementBase with the generic HaxeContainerStub type.
  */
 public class HaxeContainerStubPsiElementBase extends HaxeStubBasedPsiElementBase<HaxeEmptyContainerStub<?>> {
 

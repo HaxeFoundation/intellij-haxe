@@ -8,12 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Stub-aware mixin for genericListPart PSI elements.
- * Extends HaxeTypeParameterDeclarationPsiMixinImpl (which extends AbstractHaxePsiClass)
- * to inherit all HaxeClass method implementations.
- * HaxeGenericListPartStub extends HaxeClassStub so the stub constructor chain works cleanly.
- * getStub() is overridden with a covariant return type to satisfy the generated
- * HaxeGenericListPart interface which is typed StubBasedPsiElement&lt;HaxeGenericListPartStub&gt;.
+ * Note: this is a Stub mixin as GenericListPart is treated as a class/Type
+ * (HaxeTypeParameterDeclarationPsiMixinImpl -> AbstractHaxePsiClass -> HaxeStubBasedNamedComponent)
  */
 public abstract class HaxeGenericListPartPsiMixinImpl extends HaxeTypeParameterDeclarationPsiMixinImpl {
 

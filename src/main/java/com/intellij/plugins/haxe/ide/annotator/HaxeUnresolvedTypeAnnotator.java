@@ -22,10 +22,8 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.actions.HaxeStaticMemberAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
@@ -42,11 +40,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.util.PsiTreeUtil;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -95,7 +91,7 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
   private void tryCreateAnnotation(HaxeReferenceExpression expression) {
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(expression);
     List<HaxeMemberModel> members = new ArrayList<>();
-    List<HaxeComponent> classes = new ArrayList<>(HaxeClassNameStubIndex.getByName(expression.getText(), expression.getProject(), scope));
+    List<HaxeComponent> classes = new ArrayList<>(HaxeClassNameStubIndex.getByNameFiltered(expression.getText(), expression.getProject(), scope));
     if (expression.getParent() instanceof HaxeCallExpression) {
       members.addAll(findStaticMembers(expression.getText(), expression.getProject(), scope, true, false));
     } else {
