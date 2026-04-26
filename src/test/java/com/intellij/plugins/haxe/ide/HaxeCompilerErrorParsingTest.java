@@ -113,4 +113,27 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     TestCase.assertEquals(18, compilerError.getLine());
     TestCase.assertEquals(-1, compilerError.getColumn());
   }
+
+  @Test
+  public void testFileLessWarningDoubleParens() {
+    // Haxe emits global warnings without a file location, e.g. the deprecated
+    // flash target notice.  These must be reported as warnings, not errors.
+    final String error = "((unknown)) Warning : (WDeprecatedDefine) The flash target will be removed for Haxe 5";
+    final String rootPath = "/trees/test";
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
+
+    TestCase.assertNotNull(compilerError);
+    TestCase.assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+  }
+
+  @Test
+  public void testFileLessWarningSingleParens() {
+    // Alternative shape emitted by newer Haxe versions: "(unknown) : Warning : ...".
+    final String error = "(unknown) : Warning : (WDeprecatedDefine) The flash target will be removed for Haxe 5";
+    final String rootPath = "/trees/test";
+    final HaxeCompilerError compilerError = HaxeCompilerError.create(rootPath, error, false);
+
+    TestCase.assertNotNull(compilerError);
+    TestCase.assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+  }
 }
