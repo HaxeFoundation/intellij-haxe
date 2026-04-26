@@ -61,7 +61,9 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
   private boolean presentationCalculated = false;
 
 
-  // TODO add private/visability to filter (needs to be able to access private when same class/module)
+  // TODO create visibility "evaluator" to filter members
+  //  we should be shown private members from the same class/module
+  //  and it should consider @:Allow / @:access / @PrivateAccess  annotations (see HaxeAccessAnnotator)
   public static Set<HaxeComponentName> filterCompletable(Set<HaxeComponentName> componentNames) {
 
     return componentNames.stream().filter(componentName -> {
@@ -134,17 +136,14 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
         if(model instanceof HaxeBaseMemberModel memberModel) {
           if( memberModel instanceof HaxeMethodModel) {
             if(addFunctionReference) {
-              HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, true);// TODO
-              lookupElements.add(element2);
+              lookupElements.add(new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, true));
             }
             if(addFunctionCallExpression) {
-              HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false);// TODO
-              lookupElements.add(element2);
+              lookupElements.add(new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false));
             }
           }
           else { //HaxeLocalVarModel ++
-            HaxeMemberLookupElement element2 = new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false);// TODO
-            lookupElements.add(element2);
+            lookupElements.add(new HaxeMemberLookupElement(memberModel, resolver, context, leftReference, false));
           }
         }
       }

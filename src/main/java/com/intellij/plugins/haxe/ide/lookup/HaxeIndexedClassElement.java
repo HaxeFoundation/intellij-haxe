@@ -82,7 +82,8 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
     if (qualifiedInfo != null) {
       return qualifiedInfo.toString();
     }
-    return "*Error*"; //ideally this shouldn't really happen, but currently it might due to some anonymous types
+    //ideally this shouldn't really happen, but currently it might due to some anonymous types
+    return "*Error*";
   }
 
   @Override

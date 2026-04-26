@@ -417,7 +417,11 @@ moduleFieldDeclaration ::= moduleMemberModifier* mutabilityModifier componentNam
   stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub"
 }
 
-macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody{extends=classDeclaration stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"}
+macroClassDeclaration ::= classModifierList? 'class' componentName? genericParam? inheritList? classBody
+{
+  extends=classDeclaration
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub"
+}
 classDeclaration ::= classModifierList? 'class' componentName genericParam? inheritList? classBody
 {
   pin=3
@@ -614,18 +618,37 @@ private arrowFunctionDeclaration ::=  arrowFunctionParameterList '->' lambdaBody
 
 varInit ::= (!';') '=' expression {pin=2}
 parameter ::= optionalMark? componentName typeTag? varInit?
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterPsiMixinImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterPsiMixin"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"
+}
+
 restParameter ::= ('...'componentName typeTag?)
-{extends= parameter stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
+{
+  extends= parameter
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"
+}
 
 
 // An open parameter can't have all of the type and init info.  Plus, it makes the parser *very* *very* slow in some circumstances.
 untypedParameter ::= componentName {extends=parameter stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub"}
 openParameterList ::= untypedParameter
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
 
 private parenthesizedParameterList ::= '(' parameterList ')'
-parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)? {recoverWhile="parameterListRecovery" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"}
+parameterList ::= (parameter ((',' parameter)* (',' restParameter)?)? | restParameter)?
+{
+  recoverWhile="parameterListRecovery"
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeParameterListPsiMixinImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeParameterListPsiMixin"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
+
 private parameterListRecovery ::= !('(' | ')')  // Open parens are allowable in arrow function arguments.
 
 private arrowFunctionLiteral ::= arrowFunctionDeclaration
@@ -1226,16 +1249,31 @@ safeCastExpression ::= 'cast' (('(' expression ',' typeWrapper ')'))
 //{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeClassReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 inheritList ::= inherit (','? inherit)*
-{mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiInheritListImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
+{
+  mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiInheritListImpl"
+  implements="com.intellij.plugins.haxe.lang.psi.HaxePsiInheritList"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+  pin=1
+}
 
 private inherit ::= extendsDeclaration | implementsDeclaration
 {pin=1 recoverWhile="inherit_recover"}
 private inherit_recover ::= !(',' | '{' | 'extends' | 'implements')
 
 extendsDeclaration ::= 'extends' type
-{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
+{
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration"
+  extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+  pin=1
+}
 implementsDeclaration ::= 'implements' type
-{implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration" extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase" stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub" pin=1}
+{
+  implements="com.intellij.plugins.haxe.lang.psi.HaxeInheritDeclaration"
+  extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+  stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+  pin=1
+}
 
 
 // typedefs can "merge" anonymous structures ( not classes, interfaces etc)
