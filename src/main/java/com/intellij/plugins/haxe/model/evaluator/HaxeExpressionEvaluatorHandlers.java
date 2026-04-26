@@ -410,7 +410,7 @@ public class HaxeExpressionEvaluatorHandlers {
             localResolver.addAll(resolver);
 
             if(model != null) {
-              HaxeClass referenceClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+              HaxeClass referenceClass = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
               HaxeClassModel classModel = model.getDeclaringClass();
               if(referenceClass != null && classModel != null && classModel.haxeClass != null) {
                 localResolver = resolver.translateFromTo(referenceClass, classModel.haxeClass);

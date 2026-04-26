@@ -829,7 +829,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       _isTypeDefOfClass = false;
       if(isTypeDef()) {
         if(getHaxeClass() instanceof AbstractHaxeTypeDefImpl typeDefOfClass) {
-          //TODO mlo: if possible add this as stub info ?
           _isTypeDefOfClass = typeDefOfClass.getTypeOrAnonymous() != null;
           return _isTypeDefOfClass;
         }
@@ -843,7 +842,6 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
       _isTypeDefOfFunction = false;
       if (isTypeDef()) {
         if (getHaxeClass() instanceof AbstractHaxeTypeDefImpl typeDefOfClass) {
-          //TODO mlo: if possible add this as stub info ?
           _isTypeDefOfFunction = typeDefOfClass.getFunctionType() != null;
           return _isTypeDefOfFunction;
         }
