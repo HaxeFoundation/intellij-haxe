@@ -66,12 +66,6 @@ public class HaxeSynteticLookupElement extends LookupElement  implements HaxeLoo
       }
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
-
 
   @NotNull
   @Override

@@ -213,7 +213,7 @@ public enum HaxeComponentType {
     }
     if (element instanceof HaxeLocalVarDeclaration ||
         element instanceof HaxeForStatement ||
-        element instanceof HaxeEnumExtractedValue ||
+        element instanceof HaxeEnumExtractedValueReference ||
         element instanceof HaxeValueIterator || // default iterator
         element instanceof HaxeIteratorkey || // keyValueIterator
         element instanceof HaxeIteratorValue // keyValueIterator

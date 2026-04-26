@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
 
@@ -31,5 +32,15 @@ public class HaxeCompletionUtil {
     CodeStyleManager styleManager = CodeStyleManager.getInstance(project);
     styleManager.reformatRange(file, range.getStartOffset(), range.getEndOffset());
     styleManager.adjustLineIndent(file, editor.getCaretModel().getOffset());
+  }
+
+  public static boolean isPreviousTextHash(PsiElement position) {
+    TextRange range = position.getTextRange();
+    Document document = position.getContainingFile().getFileDocument();
+    int offset = range.getStartOffset();
+    if(offset == 0) return false;
+    TextRange previousCharRange = new TextRange(offset - 1, offset);
+    String previousChar = document.getText(previousCharRange);
+    return previousChar.equals("#");
   }
 }

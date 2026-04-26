@@ -1,9 +1,7 @@
 package com.intellij.plugins.haxe.ide.completion;
 
+import com.intellij.codeInsight.completion.CompletionLocation;
 import com.intellij.codeInsight.completion.CompletionParameters;
-import com.intellij.codeInsight.completion.CompletionResult;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -19,41 +17,29 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
 import static com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData.*;
 
 public class HaxeCompletionPriorityUtil {
 
-  public static Set<CompletionResult> calculatePriority(Set<CompletionResult> completions, CompletionParameters parameters) {
-    // ignore any completion that does not implement boost
-    List<HaxeLookupElement> lookupList =
-      completions.stream().filter(result -> result.getLookupElement() instanceof HaxeLookupElement)
-        .map(result -> (HaxeLookupElement)result.getLookupElement())
-        .toList();
 
-    PsiElement position = parameters.getPosition();
-    if (identifierInNewExpression.accepts(position)) {
-      return prioritizeConstructorsRemoveOtherMembers(completions);
-    }
-    // is argument (get parameter type)
+  public static void calculatePriority(HaxeLookupElement haxeLookupElement, @NotNull CompletionLocation location) {
+    HaxeCompletionPriorityData priority = haxeLookupElement.getPriority();
+    if(priority.done) return;
+    CompletionParameters parameters = location.getCompletionParameters();
+    PsiElement position = parameters.getOriginalPosition();
+
+
+    List<HaxeLookupElement> element = List.of(haxeLookupElement);
     boolean sorted = false;
-    if (!sorted) sorted = trySortForExtends(position, lookupList);
-    if (!sorted) sorted = trySortForArgument(position, lookupList); // NOTE TO SELF: function keyword if parameter is function typ
-    if (!sorted) sorted = trySortForAssign(position, lookupList);
-    if (!sorted) sorted = trySortForLoops(position, lookupList);
-    if (!sorted) sorted = trySortForIf(position, lookupList);
-    if (!sorted) sorted = trySortForBlock(position, lookupList);
+    if (!sorted) sorted = trySortForExtends(position, element);
+    if (!sorted) sorted = trySortForArgument(position, element); // NOTE TO SELF: function keyword if parameter is function typ
+    if (!sorted) sorted = trySortForAssign(position, element);
+    if (!sorted) sorted = trySortForLoops(position, element);
+    if (!sorted) sorted = trySortForIf(position, element);
+    if (!sorted) sorted = trySortForBlock(position, element);
 
-    //TODO WiP
-    //TODO support functionType reference ?
-    // is IF (prioritize bool)
-    // is switch block (find expression type, prioritize type)
-    //  - if enumvalue  compare  declaring class with type
-
-    return completions;
+    priority.done = true;
   }
 
   private static boolean trySortForAssign(PsiElement position, List<HaxeLookupElement> list) {
@@ -196,7 +182,7 @@ public class HaxeCompletionPriorityUtil {
   private static boolean trySortForExtends(PsiElement position, List<HaxeLookupElement> list) {
     HaxeInheritList inheritList = PsiTreeUtil.getParentOfType(position, HaxeInheritList.class);
     if (inheritList != null) {
-      HaxeClassDeclaration classDeclaration = PsiTreeUtil.getParentOfType(inheritList, HaxeClassDeclaration.class);
+      HaxeClassDeclaration classDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(inheritList, HaxeClassDeclaration.class);
       if (classDeclaration != null) {
         HaxeExtendsDeclaration extendsDeclaration = PsiTreeUtil.getParentOfType(position, HaxeExtendsDeclaration.class);
         if (extendsDeclaration != null) {
@@ -222,13 +208,6 @@ public class HaxeCompletionPriorityUtil {
     return false;
   }
 
-  private static Set<CompletionResult> prioritizeConstructorsRemoveOtherMembers(Set<CompletionResult> completions) {
-    Stream<CompletionResult>  constructors =  completions.stream()
-      .filter(result -> result.getLookupElement() instanceof HaxeConstructorLookupElement)
-      .peek(result -> ((HaxeConstructorLookupElement)result.getLookupElement()).getPriority().type += 1);
-    Stream<CompletionResult> others =  completions.stream().filter(result -> !(result.getLookupElement() instanceof HaxeLookupElement));
-    return Stream.concat(constructors, others).collect(Collectors.toSet());
-  }
 
   private static boolean trySortForArgument(PsiElement position, List<HaxeLookupElement> lookupElements) {
     HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(position, HaxeCallExpression.class, true, HaxeNewExpression.class);
@@ -320,8 +299,6 @@ public class HaxeCompletionPriorityUtil {
     HaxeBaseMemberModel model = element.getModel();
     if (model == null) return;
 
-    ResultHolder lookupType = model.getResultType(null);
-
     if(model instanceof HaxeLocalVarModel || model instanceof  HaxeParameterModel) {
       element.getPriority().type += LOCAL_VAR;
     }
@@ -330,11 +307,13 @@ public class HaxeCompletionPriorityUtil {
       element.getPriority().type += FIELD;
     }
 
+    ResultHolder lookupType = model.getResultType(element.getResolver());
+
     if (model instanceof HaxeMethodModel methodModel) {
       element.getPriority().type += METHOD;
-      // update lookupType with  functionType instead of return type
+      // update lookupType with functionType instead of return type
       if (element.isFunctionType()) {
-        lookupType = methodModel.getFunctionType(null).createHolder();
+        lookupType = methodModel.getFunctionType(element.getResolver()).createHolder();
       }
     }
 
@@ -394,23 +373,4 @@ public class HaxeCompletionPriorityUtil {
     unique.addAll(words);
     return expectedWords.size() + words.size() - unique.size();
   }
-
-
-  private static @NotNull CompletionResult boost(CompletionResult result, double finalBoost) {
-    LookupElement element = result.getLookupElement();
-    if (element instanceof HaxeMemberLookupElement lookupElement) {
-      if (lookupElement.getModel() instanceof HaxeFieldModel) {
-        return result.withLookupElement(PrioritizedLookupElement.withPriority(element, finalBoost));
-      }
-    }
-    return result;
-  }
-
-  public static CompletionResult convertToPrioritized(CompletionResult result) {
-    if (result.getLookupElement() instanceof HaxeLookupElement element) {
-      return CompletionResult.wrap(element.toPrioritized(), result.getPrefixMatcher(), result.getSorter());
-    }
-    return result;
-  }
-
 }

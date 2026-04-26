@@ -40,7 +40,7 @@ public class HaxeIntroduceUtil {
             }
         }
         // if no success on any of the above, append as last item in the module
-        HaxeModule module = PsiTreeUtil.getParentOfType(startElement, HaxeModule.class);
+        HaxeModule module = PsiTreeUtil.getStubOrPsiParentOfType(startElement, HaxeModule.class);
         return module.getLastChild();
     }
 

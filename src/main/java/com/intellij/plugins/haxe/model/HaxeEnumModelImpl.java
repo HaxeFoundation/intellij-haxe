@@ -17,9 +17,14 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeEnumBodyImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.util.HaxeEnumValueUtil;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.util.SmartList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -175,13 +180,30 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   public Stream<HaxeEnumValueModel> getValuesStream() {
     return getValueDeclarationsStream()
       .map(HaxeModelTarget::getModel)
-      .filter( model ->  model instanceof  HaxeEnumValueModel)
+      .filter(HaxeEnumValueModel.class::isInstance)
       .map(HaxeEnumValueModel.class::cast);
   }
 
   private Stream<HaxeEnumValueDeclaration> getValueDeclarationsStream() {
+    if (haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeClassStub greenStub = psiClass.getGreenStub();
+      if (greenStub != null) {
+        return getValueDeclarationsFromStub(greenStub).stream();
+      }
+    }
     HaxeEnumBodyImpl body = getEnumBodyPsi();
     return body != null ? body.getEnumValueDeclarationList().stream() : Stream.empty();
+  }
+
+  private static List<HaxeEnumValueDeclaration> getValueDeclarationsFromStub(HaxeClassStub greenStub) {
+    List<HaxeEnumValueDeclaration> list = new ArrayList<>();
+    for (StubElement<?> element : greenStub.getChildrenStubs()) {
+      PsiElement psi = element.getPsi();
+      if (psi instanceof HaxeEnumValueDeclaration declaration) {
+        list.add(declaration);
+      }
+    }
+    return list;
   }
 
   @Nullable

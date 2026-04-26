@@ -50,7 +50,7 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
       return method.getModel();
     }
 
-    HaxeClass type = PsiTreeUtil.getParentOfType(part, HaxeClass.class);
+    HaxeClass type = PsiTreeUtil.getStubOrPsiParentOfType(part, HaxeClass.class);
     if (type != null) {
       return type.getModel();
     }
@@ -121,7 +121,7 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
 //TODO plural and list, we can replace tp in  multiple interfaces
   //TODO recurison guard ?
   public HaxeClass getReplacedTypeParameter() {
-    HaxeClass parentClass = PsiTreeUtil.getParentOfType(part, HaxeClass.class);
+    HaxeClass parentClass = PsiTreeUtil.getStubOrPsiParentOfType(part, HaxeClass.class);
     if(parentClass != null) {
       if (parentClass instanceof  HaxeTypedefDeclaration typedefDeclaration) {
         HaxeTypeOrAnonymous anonymous = typedefDeclaration.getTypeOrAnonymous();

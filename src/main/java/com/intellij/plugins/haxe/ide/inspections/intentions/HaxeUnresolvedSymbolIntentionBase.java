@@ -55,7 +55,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
     @NotNull PsiElement[] children = expression.getChildren();
 
     if(children.length == 1) {
-      return PsiTreeUtil.getParentOfType(expression, HaxeClass.class);
+      return PsiTreeUtil.getStubOrPsiParentOfType(expression, HaxeClass.class);
     }else if (children[0] instanceof HaxeReference refChild) {
       HaxeExpressionEvaluatorContext evaluate = HaxeExpressionEvaluator.evaluate(refChild, null);
       ResultHolder result = evaluate.result;
@@ -183,7 +183,7 @@ public abstract class HaxeUnresolvedSymbolIntentionBase<T extends PsiElement> ex
          if(!result.isUnknown() && classType != null) {
            HaxeClass haxeClass = classType.getHaxeClass();
            if(haxeClass != null) {
-             HaxeClass currentClass = PsiTreeUtil.getParentOfType(expression, HaxeClass.class);
+             HaxeClass currentClass = PsiTreeUtil.getStubOrPsiParentOfType(expression, HaxeClass.class);
              return currentClass != haxeClass;
            }
          }

@@ -284,7 +284,7 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
   }
 
   private void addRenameFile(@NotNull Map<PsiElement, String> allRenames, HaxeModule haxeModule, @NotNull String newName) {
-    HaxeFile parentOfType = PsiTreeUtil.getParentOfType(haxeModule, HaxeFile.class);
+    HaxeFile parentOfType = PsiTreeUtil.getStubOrPsiParentOfType(haxeModule, HaxeFile.class);
     String name = parentOfType.getName();
     int end = name.lastIndexOf(".");
     String fileExtension = name.substring(end);

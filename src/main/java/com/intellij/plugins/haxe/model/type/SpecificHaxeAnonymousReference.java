@@ -27,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.isMacroMethod;
 
 @CustomLog
 @EqualsAndHashCode

@@ -22,11 +22,13 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
@@ -43,7 +45,7 @@ import java.util.List;
  * Created by ebishton on 10/22/14.
  */
 @CustomLog
-public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypeListPartPsiMixin {
+public class HaxeTypeListPartPsiMixinImpl extends HaxeContainerStubPsiElementBase implements HaxeTypeListPartPsiMixin {
 
   // XXX: TypeListPart might be better just being a private entry in the BNF.  I'm not sure.
   //
@@ -71,6 +73,10 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxePsiCompositeElementImpl im
 
   HaxeTypeListPartPsiMixinImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeTypeListPartPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   @NotNull

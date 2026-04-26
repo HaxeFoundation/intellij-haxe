@@ -53,10 +53,16 @@ public class HaxeExpressionUsageUtil {
     return result;
   }
 
+  record PsiPair(PsiElement ref, PsiElement callExpression){}
+  private static RecursionGuard<PsiPair> findUsageAsParameterInFunctionCallRecursionGuard = RecursionManager.createGuard("findUsageAsParameterInFunctionCallRecursionGuard");
+
   public static @Nullable ResultHolder findUsageAsParameterInFunctionCall(HaxeExpression referenceExpression,
                                                                           HaxeCallExpression callExpression,
                                                                           HaxeCallExpressionList list,
                                                                           PsiElement resolved) {
+    PsiPair key = new PsiPair(referenceExpression, callExpression);
+    return findUsageAsParameterInFunctionCallRecursionGuard.computePreventingRecursion(key, false, () -> {
+
     int index = -1;
     if (list != null) index = list.getExpressionList().indexOf(referenceExpression);
     if (index == -1) return null;
@@ -70,6 +76,7 @@ public class HaxeExpressionUsageUtil {
       }
     }
     return null;
+    });
   }
 
   public static @Nullable ResultHolder findUsageAsParameterInConstructorCall(HaxeExpression referenceExpression,

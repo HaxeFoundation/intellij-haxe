@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
+import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isPreviousTextHash;
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionPatterns.*;
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionUtil.*;
 import static com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionUtil.addKeywords;
@@ -100,8 +101,13 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
 
     boolean isPPExpression = psiElement().withElementType(PPEXPRESSION).accepts(position);
+    boolean newExpression = identifierInNewExpression.accepts(position);
 
-    if (!isPPExpression) {
+
+    if (!isPPExpression && !newExpression) {
+
+      if(isPreviousTextHash(position)) return;
+
       if (dotFromIterator.accepts(completionElementAsComment)) {
         addKeywords(lookupElements, Set.of(keywordOnly(OTRIPLE_DOT)));
         return;
@@ -154,12 +160,6 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
       if (insideSwitchCase.accepts(completionElementAsComment)) {
         addKeywords(lookupElements, SWITCH_BODY_KEYWORDS);
         addEnumValuesIfSourceIsEnum(completionElementAsComment, lookupElements);
-
-        HaxeSwitchCase type = PsiTreeUtil.getPrevSiblingOfType(completionElementAsComment, HaxeSwitchCase.class);
-        if (type != null) {
-          // TODO, solve this using getVariants and walkTree
-          addSwitchVars(type, lookupElements);
-        }
       }
 
       if (isAfterIfStatement.accepts(completionElementAsComment)) {
@@ -188,7 +188,6 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
         addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
       }
 
-      addKeywords(lookupElements, PP_KEYWORDS, -0.2f);
       addKeywords(lookupElements, MISC_KEYWORDS, -0.1f);
 
     }

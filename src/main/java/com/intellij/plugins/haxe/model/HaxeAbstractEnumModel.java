@@ -18,7 +18,12 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractBody;
 import com.intellij.plugins.haxe.lang.psi.HaxeAbstractTypeDeclaration;
 import com.intellij.plugins.haxe.lang.psi.HaxeFieldDeclaration;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
+import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -55,6 +60,18 @@ public class HaxeAbstractEnumModel extends HaxeAbstractClassModel implements Hax
   }
 
   private Stream<HaxeFieldDeclaration> getValueDeclarationsStream() {
+    if( haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeClassStub greenStub = psiClass.getGreenStub();
+      if(greenStub != null) {
+        List<StubElement<?>> stubs = greenStub.getChildrenStubs();
+        return stubs.stream()
+          .filter(HaxeFieldStub.class::isInstance)
+          .map(StubElement::getPsi)
+          .filter(HaxeFieldDeclaration.class::isInstance)
+          .map(HaxeFieldDeclaration.class::cast);
+      }
+    }
+
     final HaxeAbstractBody body = getAbstractClassBody();
 
     return body != null ? body.getFieldDeclarationList().stream() : Stream.empty();

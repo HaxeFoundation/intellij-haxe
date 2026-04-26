@@ -22,6 +22,8 @@ package com.intellij.plugins.haxe.model.type;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -81,7 +83,7 @@ public class HaxeClassReference {
 
 
   private String getClassName(HaxeClassModel clazz) {
-    if(clazz!= null && clazz.getPsi().getParent() != null) {
+    if(clazz.getPsi().getParent() != null) {
       return CachedValuesManager.getProjectPsiDependentCache(clazz.getPsi(), HaxeClassReference::getNameCached);
     }else {
       return getClassNameInternal(clazz.getPsi().getModel());
@@ -97,6 +99,7 @@ public class HaxeClassReference {
       HaxeNamedComponent namedComponent = HaxeResolveUtil.findTypeParameterContributor(clazz.getBasePsi());
       if (namedComponent instanceof HaxeTypedefDeclaration typedefDeclaration) {
         // make sure we only replace the text with typedef name if its an exact match ( we dont want to replace anonymous structures in typeParameters etc)
+        // TODO if possible; use stub & string compare instead of PsiElement text match (might cause parsing ?)
         if (clazz.haxeClass.textMatches(typedefDeclaration.getTypeOrAnonymous())) {
           final HaxeComponentName name = namedComponent.getComponentName();
           if (name != null) {

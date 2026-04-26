@@ -19,22 +19,23 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.ide.index.HaxeSymbolIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
+import com.intellij.util.ArrayUtil;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
-public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
+public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
   @Override
   protected String getBasePath() {
     return "/indexers/symbols/";
   }
 
-  public HaxeSymbolContributorTest() {
+  public HaxeGotoSymbolContributorTest() {
   }
 
   protected void doTest(String... extraFiles) throws Throwable {
@@ -48,7 +49,7 @@ public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
     List<String> includeLines = new ArrayList<String>();
     for (String line : text.split("\n")) {
       line = line.trim();
-      if (line.length() > 0) {
+      if (!line.isEmpty()) {
         includeLines.add(line);
       }
     }
@@ -56,7 +57,15 @@ public class HaxeSymbolContributorTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   protected void checkSymbols(List<String> list) {
-    String[] symbols = HaxeSymbolIndex.getAllSymbols(GlobalSearchScope.projectScope(myFixture.getProject()));
+    final Set<String> symbolSet = new LinkedHashSet<>();
+    StubIndex stubIndex = StubIndex.getInstance();
+
+    symbolSet.addAll(stubIndex.getAllKeys(HaxeClassNameStubIndex.KEY, myFixture.getProject()));
+    for (String name : stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, myFixture.getProject())) {
+      if (!"new".equals(name)) symbolSet.add(name);
+    }
+    symbolSet.addAll(stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, myFixture.getProject()));
+    String[] symbols = ArrayUtil.toStringArray(symbolSet);
     list.removeAll(Arrays.asList(symbols));
     if (!list.isEmpty()) {
       System.out.println("Symbols list:");

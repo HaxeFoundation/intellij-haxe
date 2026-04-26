@@ -24,6 +24,7 @@ import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -32,6 +33,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.NotImplementedException;
@@ -58,9 +60,9 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // TODO: Anonymous structures can extend several structs.  Need to be able to find/check/use all of them.
     List<HaxeType> list = getExtendsList();
     if (!list.isEmpty()) {
-      PsiElement haxeClass = list.get(0).getReferenceExpression().resolve();
-      if (haxeClass instanceof HaxeClass) {
-        return ((HaxeClass)haxeClass).getModel();
+      PsiElement haxeClass = list.getFirst().getReferenceExpression().resolve();
+      if (haxeClass instanceof HaxeClass parentClass) {
+        return parentClass.getModel();
       }
     }
     return null;
@@ -180,16 +182,17 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     // https://haxe.org/manual/macro-generic-build.html
     // https://gist.github.com/nadako/b086569b9fffb759a1b5
     public boolean isGenericBuildWithRestTypeParam() {
-      if(reference == null) return false;
+      if(reference != null) {
         HaxeClassModel haxeClassModel = reference.getHaxeClassModel();
-        if(haxeClassModel != null && haxeClassModel.isGenericBuild()) {
-            List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
-            if (!genericParams.isEmpty()) {
-                HaxeGenericParamModel last = genericParams.getLast();
-                String name = last.haxeClass.getName();
-                return name != null && name.equals("Rest");
-            }
+        if (haxeClassModel != null && haxeClassModel.isGenericBuild()) {
+          List<HaxeGenericParamModel> genericParams = haxeClassModel.getGenericParams();
+          if (!genericParams.isEmpty()) {
+            HaxeGenericParamModel last = genericParams.getLast();
+            String name = last.haxeClass.getName();
+            return name != null && name.equals("Rest");
+          }
         }
+      }
         return false;
     }
 
@@ -511,6 +514,20 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @NotNull
   public List<HaxeBaseMemberModel> getMembersSelf() {
+    if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeClassStub greenStub = psiClass.getGreenStub();
+      if(greenStub != null) {
+        List<HaxeBaseMemberModel> list = new ArrayList<>();
+        for (StubElement<?> element : greenStub.getChildrenStubs()) {
+          HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(element.getPsi());
+          if (model != null) {
+            list.add(model);
+          }
+        }
+        return list;
+      }
+    }
+
     final List<HaxeBaseMemberModel> members = new ArrayList<>();
     HaxePsiCompositeElement body = getBodyPsi();
     if (body != null) {
@@ -528,7 +545,12 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
   @Nullable
   public HaxeBaseMemberModel getMemberSelf(String name, @Nullable HaxeGenericResolver resolver) {
-    return getMembersSelf().stream().filter(model -> model.getNamePsi().getIdentifier().textMatches(name)).findFirst().orElse(null);
+    for (HaxeBaseMemberModel model : getMembersSelf()) {
+      if (name.equals(model.getName())) {
+        return model;
+      }
+    }
+    return null;
   }
 
   public HaxeFieldModel getField(String name, @Nullable HaxeGenericResolver resolver) {
@@ -654,6 +676,11 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
         }
       }
     return null;
+  }
+
+  @Override
+  public boolean isValid() {
+    return haxeClass.isValid();
   }
 
   public void addMethodsFromPrototype(List<HaxeMethodModel> methods) {
@@ -782,7 +809,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
    * only intended for typedefs with anonymous structures
    */
   private static HaxeGenericParam getGenericParamFromParent(HaxeClass haxeClass) {
-    HaxeTypedefDeclaration type = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
+    HaxeTypedefDeclaration type = PsiTreeUtil.getStubOrPsiParentOfType(haxeClass, HaxeTypedefDeclaration.class);
     if (type == null) return null;
     return type.getGenericParam();
   }
@@ -958,7 +985,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
 
     HaxeClass haxeClass = element instanceof HaxeClass
                           ? (HaxeClass) element
-                          : PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+                          : PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
 
     if (haxeClass != null) {
       return haxeClass.getModel();

@@ -20,11 +20,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import com.intellij.openapi.util.Key;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.psi.stubs.IStubElementType;
 
 /**
  * This is effectively an alias for the mixin class, except with a more
@@ -35,6 +32,10 @@ import com.intellij.openapi.util.Key;
 public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements HaxeMethod {
   protected HaxeMethodImpl(ASTNode node) {
     super(node);
+  }
+
+  protected HaxeMethodImpl(HaxeMethodStub stub, IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
 }

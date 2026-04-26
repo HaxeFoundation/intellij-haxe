@@ -25,4 +25,7 @@ package com.intellij.plugins.haxe.lang.psi;
  */
 public interface HaxeMethod extends HaxeMethodPsiMixin{
 
+    boolean isAbstract();
+
+    boolean isMacro();
 }

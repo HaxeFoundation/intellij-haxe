@@ -60,7 +60,7 @@ public class HaxeQualifiedNameProvider implements QualifiedNameProvider {
     final HaxeComponentType componentType = HaxeComponentType.typeOf(element);
     if (componentType == HaxeComponentType.METHOD || componentType == HaxeComponentType.FIELD) {
       final String name = ((PsiNamedElement)element).getName();
-      final HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class, true);
+      final HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
       if (name != null && haxeClass != null) {
         return haxeClass.getQualifiedName() + "#" + name;
       }

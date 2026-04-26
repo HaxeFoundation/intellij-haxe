@@ -21,21 +21,21 @@ package com.intellij.plugins.haxe.ide.index;
 import com.intellij.openapi.application.QueryExecutorBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
-import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
-import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Processor;
-import com.intellij.util.indexing.FileBasedIndex;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+
+import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getSimpleName;
 
 public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiElement, DefinitionsScopedSearch.SearchParameters> {
 
@@ -71,7 +71,7 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
         final String nameToFind = haxeNamedComponent.getName();
         if (nameToFind == null) return;
 
-        HaxeClass haxeClass = PsiTreeUtil.getParentOfType(haxeNamedComponent, HaxeClass.class);
+        HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(haxeNamedComponent, HaxeClass.class);
         assert haxeClass != null;
 
         processInheritors(haxeClass.getQualifiedName(), queryParameterElement, element -> {
@@ -87,30 +87,94 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
   }
 
   static private void processInheritors(final String qName, final PsiElement context, final Processor<? super PsiElement> consumer) {
-    final Set<String> namesSet = new HashSet<String>();
-    final LinkedList<String> namesQueue = new LinkedList<String>();
+    final Set<String> namesSet = new HashSet<>();
+    final LinkedList<String> namesQueue = new LinkedList<>();
     namesQueue.add(qName);
     final Project project = context.getProject();
     final GlobalSearchScope scope = GlobalSearchScope.allScope(project);
+
     while (!namesQueue.isEmpty()) {
       final String name = namesQueue.pollFirst();
-      if (!namesSet.add(name)) {
-        continue;
+      if (!namesSet.add(name)) continue;
+
+      // The stub index keys are the unresolved reference text from source (simple names in most cases).
+      // Look up by both the simple name (covers "extends Foo") and the full name if it contains dots
+      // (covers "extends com.example.Foo" written literally in source).
+      // MLO comment: AFAIK the extends expressions must be either fully qualified or simple names
+      // stuff like "Module.ClassName" will not compile so we dont need to handle these
+      boolean isFQN = name.contains(".");
+      final String simpleName = getSimpleName(name);
+      final Set<HaxeClass> candidates = new LinkedHashSet<>();
+
+      candidates.addAll(HaxeSuperClassStubIndex.getBySuper(simpleName, project, scope));
+
+      for (HaxeClass subClass : candidates) {
+        if (subClass == null) continue;
+        // Post-filter: confirm this class actually directly extends/implements the type we queried.
+        // Necessary because the stub index uses simple names as keys, which can produce false positives
+        // when multiple types in different packages share the same simple name.
+        if (!directlyInheritsFrom(subClass, name, simpleName)) continue;
+        if (!consumer.process(subClass)) return;
+        final String subQName = subClass.getQualifiedName();
+        if (subQName != null) namesQueue.add(subQName);
       }
-      List<List<HaxeClassInfo>> files = FileBasedIndex.getInstance().getValues(HaxeInheritanceIndex.HAXE_INHERITANCE_INDEX, name, scope);
-      files.addAll(FileBasedIndex.getInstance().getValues(HaxeTypeDefInheritanceIndex.HAXE_TYPEDEF_INHERITANCE_INDEX, name, scope));
-      for (List<HaxeClassInfo> subClassInfoList : files) {
-        for (HaxeClassInfo subClassInfo : subClassInfoList) {
-          String qname = lookupItemImportUtil.createQname(subClassInfo.getName(), subClassInfo.getPath());
-          final HaxeClass subClass = HaxeResolveUtil.findClassByQName( qname , context.getManager(), scope);
-          if (subClass != null) {
-            if (!consumer.process(subClass)) {
-              return;
-            }
-            namesQueue.add(subClass.getQualifiedName());
-          }
+
+      if (isFQN) {
+        // Also look up by fully-qualified name for source that uses qualified extends references
+        // should not be any need to resolve / verify with directlyInheritsFrom as these are Fully qualified
+        Collection<HaxeClass> fqnSupers = HaxeSuperClassStubIndex.getBySuper(name, project, scope);
+        for (HaxeClass subClass : fqnSupers) {
+          if (!consumer.process(subClass)) return;
+          final String subQName = subClass.getQualifiedName();
+          if (subQName != null) namesQueue.add(subQName);
         }
       }
     }
+  }
+
+
+  private static boolean directlyInheritsFrom(@NotNull HaxeClass subClass, @NotNull String targetQName, String targetSimpleName) {
+
+    for (HaxeType type : subClass.getHaxeExtendsList()) {
+      HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
+      HaxeReferenceExpressionStub stub = referenceExpression.getStub();
+      if (stub != null) {
+        String refText = stub.getText();
+        if(targetQName.equals(refText)) return true;
+        if(targetSimpleName.equals(refText)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+      }else {
+        if (referenceExpression.textMatches(targetQName)) return true;
+        if (referenceExpression.textMatches(targetSimpleName)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+      }
+    }
+    for (HaxeType type : subClass.getHaxeImplementsList()) {
+      HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
+      HaxeReferenceExpressionStub stub = referenceExpression.getStub();
+      if (stub != null) {
+        String refText = stub.getText();
+        if (targetQName.equals(refText)) return true;
+        if (targetSimpleName.equals(refText)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+      } else {
+        if (referenceExpression.textMatches(targetQName)) return true;
+        if (referenceExpression.textMatches(targetSimpleName)) {
+          PsiElement resolve = referenceExpression.resolve();
+          String resolvedQname = resolve instanceof HaxeClass haxeClass ? haxeClass.getQualifiedName() : null;
+          if (targetQName.equals(resolvedQname)) return true;
+        }
+      }
+    }
+    return false;
   }
 }

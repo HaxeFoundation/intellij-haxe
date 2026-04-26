@@ -13,10 +13,9 @@ import java.util.List;
 public class HaxeMacroUtil {
 
   public static boolean isMacroMethod(HaxeNamedComponent method) {
-    if(method instanceof  HaxeMethodDeclaration methodDeclaration) {
-      // todo make a better solution to check if macro
-      return methodDeclaration.getMethodModifierList().stream().anyMatch(modifier -> modifier.getText().trim().equals("macro"));
-      }
+    if (method instanceof HaxeMethodDeclaration methodDeclaration) {
+      return methodDeclaration.getModel().isMacro();
+    }
     return false;
   }
   public static boolean isInMacroExpression(PsiElement element) {

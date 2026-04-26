@@ -23,7 +23,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.stubs.IStubElementType;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +33,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by ebishton on 10/9/14.
  */
 @CustomLog
-public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypePsiMixin {
+public class HaxeTypePsiMixinImpl extends HaxeContainerStubPsiElementBase implements HaxeTypePsiMixin {
 
   static {
     log.setLevel(LogLevel.DEBUG);
@@ -41,6 +43,10 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
     super(node);
   }
 
+  public HaxeTypePsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+    super(stub, type);
+  }
+
 
   @Nullable
   @Override
@@ -48,37 +54,4 @@ public class HaxeTypePsiMixinImpl extends HaxePsiCompositeElementImpl implements
     return (this instanceof HaxeType) ? new HaxePsiTypeAdapter((HaxeType)this) : null;
   }
 
-  //@Override
-  //public boolean hasTypeParameters() {
-  //  return getTypeParameters().length != 0;
-  //}
-  //
-  //@Nullable
-  //@Override
-  //public PsiTypeParameterList getTypeParameterList() {
-  //  return (HaxeTypeParam) findChildByType(HaxeTokenTypes.TYPE_PARAM);
-  //}
-  //
-  //@NotNull
-  //@Override
-  //public PsiTypeParameter[] getTypeParameters() {
-  //  return PsiImplUtil.getTypeParameters(this);
-  //}
-  //
-  //@Nullable
-  //@Override
-  //public PsiClass getContainingClass() {
-  //  PsiElement parent = getParent();
-  //  while (parent != null) {
-  //    if (parent instanceof HaxeFile) {
-  //      // If we get to the file node, we've gone too far.
-  //      return null;
-  //    }
-  //    if (parent instanceof HaxeClass) {
-  //      return (HaxeClass)parent;
-  //    }
-  //    parent = parent.getParent();
-  //  }
-  //  return null;
-  //}
 }

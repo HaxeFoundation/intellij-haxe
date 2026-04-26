@@ -89,7 +89,7 @@ public class HaxeLineMarkerUtil {
     }
 
     private static @NotNull String overrideTooltipProvider(PsiElement psiElement, String componentName, boolean overrides) {
-        final HaxeClass superHaxeClass = PsiTreeUtil.getParentOfType(psiElement, HaxeClass.class);
+        final HaxeClass superHaxeClass = PsiTreeUtil.getStubOrPsiParentOfType(psiElement, HaxeClass.class);
         if (superHaxeClass == null) return "null";
         if (overrides) {
             return HaxeBundle.message("overrides.method.in", componentName, superHaxeClass.getQualifiedName());

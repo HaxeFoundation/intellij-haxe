@@ -11,6 +11,8 @@ public class HaxeCompletionPriorityData {
   public double assignable;
   public double accessor;
 
+  public boolean done = false;
+
   public double calculate() {
     return name + type + assignable + accessor + accessor + assignable;
   }

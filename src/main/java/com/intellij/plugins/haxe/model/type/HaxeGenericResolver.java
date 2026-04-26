@@ -630,26 +630,6 @@ public class HaxeGenericResolver {
     return resolver;
   }
 
-  //TODO remove
-  //TODO probably should not rely on this
-  public HaxeClass resolversClass() {
-    for (ResolverEntry resolver : resolvers) {
-      if(resolver.scope() == HaxeTypeParameterScope.CLASS) {
-        if(resolver.typeParameter().getOwner() instanceof  HaxeClass haxeClass) {
-          return haxeClass;
-        }
-      }
-    }
-    for (ResolverEntry resolver : constaints) {
-      if(resolver.scope() == HaxeTypeParameterScope.CLASS) {
-        if(resolver.typeParameter().getOwner() instanceof  HaxeClass haxeClass) {
-          return haxeClass;
-        }
-      }
-    }
-    return null;
-  }
-
 
   @NotNull
   public HaxeGenericResolver translateFromTo(@Nullable HaxeClass source, @Nullable HaxeClass target) {

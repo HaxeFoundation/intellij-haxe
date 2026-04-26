@@ -1,30 +1,14 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2015 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- * Copyright 2020 Eric Bishton
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.ModifierConstant;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.StubWithModifiers;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataListOwner;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.StubBasedPsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,6 +20,14 @@ public class HaxeModifiersModel {
   }
 
   public boolean hasModifier(@ModifierConstant String modifier) {
+    if (baseElement instanceof StubBasedPsiElement<?> element) {
+      if( element.getStub() instanceof StubWithModifiers stub) {
+        Boolean result = stub.hasKeywordModifier(modifier);
+        if (result != null) return result;
+        result = stub.hasMetaModifier(modifier);
+        if (result != null) return result;
+      }
+    }
     return getModifierPsi(modifier) != null;
   }
 
@@ -54,6 +46,13 @@ public class HaxeModifiersModel {
     PsiElement result = UsefulPsiTreeUtil.getChildWithText(baseElement, HaxePsiModifier.class, modifier);
 
     if (result == null && baseElement instanceof HaxeMetadataListOwner) {
+      // Fast path: read metadata flags from stub to avoid expensive sibling PSI traversal.
+      Boolean fromStub = getMetaModifierFromStub(modifier);
+      if (fromStub != null) {
+        return fromStub ? baseElement : null;
+      }
+
+      // Slow path: walk preceding siblings to find metadata annotations.
       HaxeMetadataList metas = ((HaxeMetadataListOwner)baseElement).getMetadataList(HaxeMeta.COMPILE_TIME);
       for (HaxeMeta meta : metas) {
         if (meta.isType(modifier)) {
@@ -66,11 +65,24 @@ public class HaxeModifiersModel {
     return result;
   }
 
-  public PsiElement getModifierPsiOrBase(@ModifierConstant String modifier) {
-    PsiElement psi = getModifierPsi(modifier);
-    if (psi == null) psi = this.baseElement;
-    return psi;
+  /**
+   * Checks whether the given modifier is present as a compile-time metadata annotation
+   * using stub data, without touching the PSI tree.
+   *
+   * @return {@code true}/{@code false} if the stub has definitive info,
+   *         {@code null} if no stub is available or the modifier is not tracked.
+   */
+  @Nullable
+  private Boolean getMetaModifierFromStub(@ModifierConstant String modifier) {
+    if (baseElement instanceof StubBasedPsiElement<?> element) {
+      if( element.getStub() instanceof StubWithModifiers stub) {
+        Boolean result = stub.hasMetaModifier(modifier);
+        if (result != null) return result;
+      }
+    }
+    return null;
   }
+
 
   public void replaceVisibility(@ModifierConstant String modifier) {
     PsiElement psi = getVisibilityPsi();
@@ -88,9 +100,6 @@ public class HaxeModifiersModel {
     }
   }
 
-  public void sortModifiers() {
-    // @TODO implement this!
-  }
 
   private HaxeDocumentModel _document = null;
 

@@ -119,7 +119,7 @@ public class HaxeStdPackageModel extends HaxePackageModel {
 
   @NotNull
   public List<HaxeGlobalUsingModel> getGlobalUsings() {
-    if (null == globalUsingModels) {
+    if (null == globalUsingModels || containsInvalidModel()) {
       List<HaxeGlobalUsingModel> modelList = new ArrayList<>();
       for (FullyQualifiedInfo[] infoAry : globalUsings.values()) {
         for (FullyQualifiedInfo info : infoAry) {
@@ -132,5 +132,9 @@ public class HaxeStdPackageModel extends HaxePackageModel {
       globalUsingModels = modelList;
     }
     return globalUsingModels;
+  }
+
+  private boolean containsInvalidModel() {
+    return globalUsingModels.stream().anyMatch(m -> !m.isValid());
   }
 }

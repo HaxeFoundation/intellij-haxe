@@ -17,16 +17,21 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeStatementPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.plugins.haxe.lang.psi.HaxeVisitor;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeUsingStub;
 import com.intellij.plugins.haxe.model.HaxeUsingModel;
 import com.intellij.psi.PsiElementVisitor;
+import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class HaxeUsingStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxeUsingStatement {
+public class HaxeUsingStatementPsiMixinImpl extends HaxeStubBasedPsiElementBase<HaxeUsingStub>
+  implements HaxeUsingStatement, HaxeStatementPsiMixin {
+
 
   private final AtomicReference<HaxeUsingModel> haxeUsingModel = new AtomicReference<>();
 
@@ -34,11 +39,15 @@ public class HaxeUsingStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl im
     super(node);
   }
 
+  public HaxeUsingStatementPsiMixinImpl(HaxeUsingStub stub, IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
+  }
+
   @NotNull
   @Override
   public HaxeUsingModel getModel() {
     HaxeUsingModel model = haxeUsingModel.get();
-    if (model != null) {
+    if (model != null && model.isValid()) {
       return model;
     }
     HaxeUsingModel newValue = new HaxeUsingModel(this);

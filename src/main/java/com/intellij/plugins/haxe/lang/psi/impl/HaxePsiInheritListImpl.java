@@ -20,7 +20,9 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
@@ -39,7 +41,7 @@ import java.util.List;
  *  and thus does not really have a Role
  */
 @CustomLog
-public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl implements HaxePsiInheritList {
+public abstract class HaxePsiInheritListImpl extends HaxeContainerStubPsiElementBase implements HaxePsiInheritList {
 
   //static {
   //  // Turn on all local messages.
@@ -62,6 +64,10 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
 
   public HaxePsiInheritListImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxePsiInheritListImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
 
@@ -142,7 +148,7 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
   }
   private @NonNull List<HaxeType> getExtendsTypes() {
     List<HaxeType> typeList = new ArrayList<>();
-    List<HaxeExtendsDeclaration> declarations = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeExtendsDeclaration.class);
+    List<HaxeExtendsDeclaration> declarations = PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeExtendsDeclaration.class);
 
     for (HaxeExtendsDeclaration declaration : declarations) {
       HaxeType type = declaration.getType();
@@ -154,7 +160,7 @@ public abstract class HaxePsiInheritListImpl extends HaxePsiCompositeElementImpl
 
   private @NonNull List<HaxeType> getImplementTypes() {
     List<HaxeType> typeList = new ArrayList<>();
-    List<HaxeImplementsDeclaration> declarations = PsiTreeUtil.getChildrenOfTypeAsList(this, HaxeImplementsDeclaration.class);
+    List<HaxeImplementsDeclaration> declarations = PsiTreeUtil.getStubChildrenOfTypeAsList(this, HaxeImplementsDeclaration.class);
 
     for (HaxeImplementsDeclaration declaration : declarations) {
       HaxeType type = declaration.getType();

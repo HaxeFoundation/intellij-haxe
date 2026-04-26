@@ -81,7 +81,7 @@ class HaxeFunctionDescriptionBuilder {
 
     HaxeParameterDescription[] parameterDescriptions = null;
 
-    final HaxeParameterList parameterList = PsiTreeUtil.getChildOfType(method, HaxeParameterList.class);
+    final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(method, HaxeParameterList.class);
     if (parameterList != null) {
       List<HaxeParameter> list = parameterList.getParameterList();
       if (skipFirstParameter) {

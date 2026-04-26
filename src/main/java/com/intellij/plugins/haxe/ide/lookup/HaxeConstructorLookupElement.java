@@ -13,25 +13,19 @@ import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.codeInsight.lookup.LookupItem;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeReference;
-import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeMemberModel;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtilCore;
-import icons.HaxeIcons;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.List;
 
 import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.*;
 
@@ -46,20 +40,22 @@ public class HaxeConstructorLookupElement extends LookupElement implements HaxeP
 
   private final Icon icon;
   private final String presentableText;
+  private HaxeMethod construtor;
 
 
-  // we need a psi element  when resolving qname (making sure we get data from the right project etc)
-  private PsiElement helperPsi;
-
-
-  public HaxeConstructorLookupElement(String className, String packageName, boolean hasParameters, HaxeComponentType type, PsiElement helperPsi) {
+  public HaxeConstructorLookupElement(HaxeMethod constructor,
+                                      String className,
+                                      String packageName,
+                                      boolean hasParameters,
+                                      HaxeComponentType type)
+  {
     this.presentableText = className + "()";
     this.className = className;
     this.packageName = packageName;
     this.hasParameters = hasParameters;
     this.type = type;
     this.icon = type.getIcon();
-    this.helperPsi = helperPsi;
+    this.construtor = constructor;
     this.qname = createQname(className, packageName);
   }
 
@@ -67,6 +63,13 @@ public class HaxeConstructorLookupElement extends LookupElement implements HaxeP
   @Override
   public String getLookupString() {
     return className;
+  }
+
+  /** Returns the fully-qualified class name for use as the dedup key. */
+  @NotNull
+  @Override
+  public String deduplicateKey() {
+    return qname;
   }
 
   @Override
@@ -88,22 +91,8 @@ public class HaxeConstructorLookupElement extends LookupElement implements HaxeP
 
   @Override
   public @Nullable PsiElement getPsiElement() {
-    HaxeClass haxeClass = HaxeResolveUtil.findClassByQName(qname, helperPsi);
-    if (haxeClass == null) return null;
-    HaxeMemberModel member = haxeClass.getModel().getConstructor(null);
-    if (member == null) return null;
-    return member.getNameOrBasePsi();
+    return construtor;
   }
-
-
-
-
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
-
 
 
   static PsiElement insertParentheses(@NotNull InsertionContext context,

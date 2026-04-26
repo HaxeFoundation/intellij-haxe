@@ -25,10 +25,8 @@ import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
-import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiMember;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
 import lombok.CustomLog;
@@ -57,8 +55,8 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   public boolean isPublic() {
     HaxeClassModel declaringClass = getDeclaringClass();
     if(declaringClass == null) {
-      log.warn("unable to find declaringClass for " + getName());
-      return true;
+      // Module member
+      return !hasModifier(PRIVATE);
     }else {
       return hasModifier(PUBLIC)
              // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
@@ -69,7 +67,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
 
   public boolean isFinal() {
-    return hasModifier(FINAL);
+    return hasModifier(FINAL)|| hasModifier(FINAL_META);
   }
   public boolean isOverload() {
     return hasModifier(OVERLOAD);
@@ -134,23 +132,20 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Override
   @Nullable
   public HaxeClassModel getDeclaringClass() {
-    return  CachedValuesManager.getProjectPsiDependentCache(getMemberPsi(), HaxeMemberModel::_getDeclaringClass);
-  }
-
-  public HaxeModuleModel getDeclaringModule() {
-    HaxeModuleImpl module = PsiTreeUtil.getParentOfType(getMemberPsi(), HaxeModuleImpl.class);
-    if (module == null) return null;
-    return module.getModel();
-  }
-
-  private static HaxeClassModel _getDeclaringClass(PsiMember member) {
-    PsiClass containingClass = member.getContainingClass();
+    HaxeClass containingClass = PsiTreeUtil.getStubOrPsiParentOfType(getMemberPsi(), HaxeClass.class);
     if (containingClass instanceof HaxeClass haxeClass) {
       return haxeClass.getModel();
     }else {
       return null;
     }
   }
+
+  public HaxeModuleModel getDeclaringModule() {
+    HaxeModuleImpl module = PsiTreeUtil.getStubOrPsiParentOfType(getMemberPsi(), HaxeModuleImpl.class);
+    if (module == null) return null;
+    return module.getModel();
+  }
+
 
   public boolean isInInterface() {
     HaxeClassModel declaringClass = getDeclaringClass();
@@ -166,12 +161,13 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   }
 
   public boolean isExtern() {
-    return hasModifier(HaxePsiModifier.EXTERN);
+    return hasModifier(EXTERN) || hasModifier(EXTERN_META);
   }
 
   public boolean isInline() {
-    return hasModifier(INLINE);
+    return hasModifier(INLINE) || hasModifier(INLINE_META);
   }
+
   public boolean isModuleMember() {
     return basePsi instanceof HaxeModuleFieldDeclaration
             || basePsi instanceof HaxeModuleMethodDeclaration;

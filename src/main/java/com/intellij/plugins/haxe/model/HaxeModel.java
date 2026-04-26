@@ -32,4 +32,6 @@ public interface HaxeModel {
   @Nullable
   FullyQualifiedInfo getQualifiedInfo();
 
+  boolean isValid();
+
 }

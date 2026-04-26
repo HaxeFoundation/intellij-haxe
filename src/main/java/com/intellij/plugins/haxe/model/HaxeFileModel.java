@@ -18,13 +18,14 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiIdentifier;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -76,6 +77,11 @@ public class HaxeFileModel implements HaxeExposableModel {
     return null;
   }
 
+  @Override
+  public boolean isValid() {
+    return file.isValid();
+  }
+
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
@@ -115,32 +121,21 @@ public class HaxeFileModel implements HaxeExposableModel {
     HaxeModule module = getModuleBody();
 
     if (module != null) {
-      HaxeClass haxeClass = (HaxeClass)Arrays.stream(module.getChildren())
-        .filter(element -> {
-          if (element instanceof HaxeClass hxClass) {
-            PsiIdentifier identifier = hxClass.getNameIdentifier();
-            return identifier != null && identifier.textMatches(name);
-          }
-          return false;
-        })
-        .findFirst()
-        .orElse(null);
-
-      return haxeClass != null ? haxeClass.getModel() : null;
-
+      List<HaxeClass> list = PsiTreeUtil.getStubChildrenOfTypeAsList(module, HaxeClass.class);
+      for (HaxeClass aClass : list) {
+        if (Objects.equals(aClass.getName(), name)) {
+          return aClass.getModel();
+        }
+      }
     }
     return null;
   }
 
   @Nullable
   public HaxeModule getModuleBody() {
-    for (PsiElement element : getChildren()) {
-      if ((element instanceof HaxeModule module)) {
-        return module;
-      }
-    }
-    return null;
+    return file.getModule();
   }
+
   @NotNull
   private  List<PsiElement> getChildren() {
     return getChildren(file);
@@ -182,11 +177,19 @@ public class HaxeFileModel implements HaxeExposableModel {
 
   @Nullable
   public HaxePackageStatement getPackagePsi() {
-    return UsefulPsiTreeUtil.getChild(file, HaxePackageStatement.class);
+    return PsiTreeUtil.getStubChildOfType(file, HaxePackageStatement.class);
   }
 
   @Nullable
   public String getPackageName() {
+    StubElement<?> stub = file.getStub();
+    if(stub != null) {
+      for (StubElement<?> element : stub.getChildrenStubs()) {
+        if (element instanceof HaxePackageStub haxePackageStub) {
+          return haxePackageStub.getPackageName();
+        }
+      }
+    }
     HaxePackageStatement value = getPackagePsi();
     if (value != null) {
       String name = value.getPackageName();
@@ -246,24 +249,37 @@ public class HaxeFileModel implements HaxeExposableModel {
   public List<HaxeUsingModel> getUsingModels() {
     return getChildren().stream()
       .filter(element -> element instanceof HaxeUsingStatement)
-      .map(element -> ((HaxeUsingStatement)element).getModel())
+       .map(HaxeUsingStatement.class::cast)
+      .map(element -> element.getModel())
       .collect(Collectors.toList());
   }
   @NotNull
   public List<HaxeImportableModel> getOrderedImportAndUsingModels() {
-    List<PsiElement> children = getChildren();
-    List<HaxeImportableModel>  result = new ArrayList<>();
-    for(PsiElement child : children) {
+    List<HaxeImportableModel> result = new ArrayList<>();
+    List<PsiElement> children = getChildrenFromStubOrPsi();
+    for (PsiElement child : children) {
 
-       if(child instanceof HaxeImportStatement importStatement) {
+      if (child instanceof HaxeImportStatement importStatement) {
         result.add(importStatement.getModel());
       }
-      else if(child instanceof HaxeUsingStatement usingStatement) {
+      else if (child instanceof HaxeUsingStatement usingStatement) {
         result.add(usingStatement.getModel());
       }
-
     }
-    return result ;
+
+    return result;
+  }
+
+  private @NotNull List<PsiElement> getChildrenFromStubOrPsi() {
+    StubElement<?> stub = file.getStub();
+    if(stub != null) {
+      List<PsiElement> list = new ArrayList<>();
+      for (StubElement<?> element : stub.getChildrenStubs()) {
+        list.add(element.getPsi());
+      }
+      return list;
+    }
+    return getChildren();
   }
 
   public HaxePackageModel getPackageModel() {

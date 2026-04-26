@@ -182,7 +182,7 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
   private static void checkIfExpectedTypeIsFunctionAndCreateQuickfixes(List<LocalQuickFix> list, HaxeReferenceExpression reference, HaxeClass targetClass) {
     // methods should not be generated inside Object literal, find parent class;
     while (targetClass instanceof HaxeObjectLiteral) {
-      targetClass = PsiTreeUtil.getParentOfType(targetClass, HaxeClass.class);
+      targetClass = PsiTreeUtil.getStubOrPsiParentOfType(targetClass, HaxeClass.class);
     }
     if(targetClass == null) return;
     if(reference == null) return;

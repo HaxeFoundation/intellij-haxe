@@ -21,12 +21,18 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
+import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.*;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Arrays;
 
@@ -34,19 +40,16 @@ import java.util.Arrays;
  * @author: Srikanth.Ganapavarapu
  */
 @CustomLog
-public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedComponent implements HaxeParameterPsiMixin {
+public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedComponent<HaxeParameterStub> implements HaxeParameterPsiMixin, HaxeParameter {
 
+  private HaxeParameterModel _model;
 
-  public HaxeParameterPsiMixinImpl(ASTNode node) {
+  public HaxeParameterPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
   }
 
-  public HaxeParameterPsiMixinImpl(PsiParameter parameter) {
-    super(parameter.getNode());
-  }
-
-  public HaxeParameterPsiMixinImpl(HaxeParameter parameter) {
-    super(parameter.getNode());
+  public HaxeParameterPsiMixinImpl(@NotNull HaxeParameterStub stub, @NotNull IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   @Override
@@ -161,17 +164,24 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
   @NotNull
   @Override
   public HaxeModifierList getModifierList() {
+    HaxeParameterStub stub = getGreenStub();
+    if (stub != null) {
+      return createStubBackedModifierList();
+    } else {
+      return createASTBackedModifierList();
+    }
+  }
+
+  private @NonNull HaxeModifierList createASTBackedModifierList() {
     HaxeModifierList haxePsiModifierList = new HaxeModifierListImpl(this.getNode());
 
     // Triplicated code! HaxeMethodPsiMixinImpl + HaxeParameterPsiMixinImpl + HaxePsiFieldImpl
     if (isStatic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.STATIC, true);
     }
-
     if (isInline()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.INLINE, true);
     }
-
     if (isPublic()) {
       haxePsiModifierList.setModifierProperty(HaxePsiModifier.PUBLIC, true);
     }
@@ -186,9 +196,33 @@ public abstract class HaxeParameterPsiMixinImpl extends AbstractHaxeNamedCompone
     return haxePsiModifierList;
   }
 
+  private @NonNull HaxeModifierListFromStub createStubBackedModifierList() {
+    HaxeModifierListFromStub list = new HaxeModifierListFromStub(this);
+    if (isStatic()) {
+      list.addModifier(HaxePsiModifier.STATIC);
+    }
+    if (isInline()) {
+      list.addModifier(HaxePsiModifier.INLINE);
+    }
+    if (isPublic()) {
+      list.addModifier(HaxePsiModifier.PUBLIC);
+    }
+    else {
+      list.addModifier(HaxePsiModifier.PRIVATE);
+    }
+    return list;
+  }
+
   @Override
   public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
     return getModifierList().hasModifierProperty(name);
   }
 
+  @Override
+  public HaxeModel getModel() {
+    if (_model == null || !_model.isValid()) {
+      _model = new HaxeParameterModel(this);
+    }
+    return _model;
+  }
 }

@@ -150,10 +150,10 @@ public class HaxeUnaryExpressionAnnotator implements Annotator {
     }
 
     private static boolean isInsideSameClassOrFile(HaxeReferenceExpression referenceExpression, HaxeFieldDeclaration declaration) {
-        HaxeClass haxeClass = PsiTreeUtil.getParentOfType(referenceExpression, HaxeClass.class);
+        HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(referenceExpression, HaxeClass.class);
         if (haxeClass != null) return haxeClass == declaration.getContainingClass();
 
-        HaxeModule haxeModule = PsiTreeUtil.getParentOfType(referenceExpression, HaxeModule.class);
+        HaxeModule haxeModule = PsiTreeUtil.getStubOrPsiParentOfType(referenceExpression, HaxeModule.class);
         if (haxeModule != null) return haxeModule.getContainingFile() == declaration.getContainingFile();
 
         return false;

@@ -91,7 +91,7 @@ public class HaxeIntroduceEnumValueIntention extends HaxeUnresolvedSymbolIntenti
 
 
   private @NotNull InsertInfo findInsertInfo(@NotNull HaxeReferenceExpression expression, boolean readOnly) {
-    HaxeModule myModule = PsiTreeUtil.getParentOfType(expression, HaxeModule.class);
+    HaxeModule myModule = PsiTreeUtil.getStubOrPsiParentOfType(expression, HaxeModule.class);
     HaxeClass myClass = myPsiTargetPointer.getElement();
     if (myClass != null) {
       if (readOnly) myClass = copyFileAndReturnClonedPsiElement(myClass);

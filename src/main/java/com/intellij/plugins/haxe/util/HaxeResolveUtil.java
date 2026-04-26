@@ -26,6 +26,7 @@ import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.util.NlsSafe;
 import com.intellij.openapi.util.Pair;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
@@ -35,6 +36,9 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
@@ -50,6 +54,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -116,10 +121,14 @@ public class HaxeResolveUtil {
   @NotNull
   public static Pair<String, String> splitQName(@NotNull String qName) {
     final int dotIndex = qName.lastIndexOf('.');
-    final String packageName = dotIndex == -1 ? "" : qName.substring(0, dotIndex);
-    final String className = dotIndex == -1 ? qName : qName.substring(dotIndex + 1);
+      final String packageName = dotIndex == -1 ? "" : qName.substring(0, dotIndex);
+      final String className = dotIndex == -1 ? qName : qName.substring(dotIndex + 1);
 
-    return Pair.create(packageName, className);
+      return Pair.create(packageName, className);
+    }
+
+  public static String getSimpleName(@NotNull String qName) {
+    return qName.contains(".") ? qName.substring(qName.lastIndexOf('.') + 1) : qName;
   }
 
   @NotNull
@@ -140,7 +149,7 @@ public class HaxeResolveUtil {
   @NotNull
   @NonNls
   public static String getPackageName(@Nullable final PsiFile file) {
-    final HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(file, HaxePackageStatement.class);
+    final HaxePackageStatement packageStatement = PsiTreeUtil.getStubChildOfType(file, HaxePackageStatement.class);
     return getPackageName(packageStatement);
   }
 
@@ -185,6 +194,13 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static HaxeClass findClassByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
+    // Fast path: try the stub index first — avoids file-system traversal via HaxeProjectModel.
+    Collection<HaxeClass> stubResults = HaxeFullyQualifiedNameStubIndex.getByFqn(qName, psiManager.getProject(), scope);
+    if (!stubResults.isEmpty()) {
+      return stubResults.iterator().next();
+    }
+
+    // Fallback: model-based traversal (handles dumb mode, partially built indexes, and edge cases).
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
@@ -201,6 +217,13 @@ public class HaxeResolveUtil {
   }
   @Nullable
   public static PsiElement findClassOrMemberByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
+    // Fast path: try the stub index first for class lookups.
+    Collection<HaxeClass> stubResults = HaxeFullyQualifiedNameStubIndex.getByFqn(qName, psiManager.getProject(), scope);
+    if (!stubResults.isEmpty()) {
+      return stubResults.iterator().next();
+    }
+
+    // Fallback: model-based traversal (handles packages, members, dumb mode, and edge cases).
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
@@ -342,12 +365,12 @@ public class HaxeResolveUtil {
                                                              @Nullable HaxeGenericSpecialization contextSpecialization) {
     if (null == element || null == context) return HaxeResolveResult.EMPTY;
 
-    HaxeClass contextClass= UsefulPsiTreeUtil.getParentOfType(context, HaxeClass.class);// getHaxeClassResolveResult(context, contextSpecialization);
+    HaxeClass contextClass= PsiTreeUtil.getStubOrPsiParentOfType(context, HaxeClass.class);// getHaxeClassResolveResult(context, contextSpecialization);
     if (null == contextClass) {
       return HaxeResolveResult.EMPTY;
     }
 
-    HaxeClass elementClass= UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    HaxeClass elementClass= PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
     if (null == elementClass) {
       return HaxeResolveResult.EMPTY;
     }
@@ -802,7 +825,7 @@ public class HaxeResolveUtil {
   @NotNull
   public static HaxeResolveResult tryResolveClassByTypeTag(PsiElement element,
                                                            HaxeGenericSpecialization specialization) {
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(element, HaxeTypeTag.class);
+    final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(element, HaxeTypeTag.class);
     final HaxeTypeOrAnonymous typeOrAnonymous = (typeTag != null) ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = (typeOrAnonymous != null) ? typeOrAnonymous.getType() :
                           ((element instanceof HaxeType) ? (HaxeType)element : null);
@@ -950,7 +973,7 @@ public class HaxeResolveUtil {
 
   @Nullable
   private static HaxeClass findClassByQNameInSuperPackages(PsiElement type) {
-    HaxePackageStatement packageStatement = PsiTreeUtil.getChildOfType(type.getContainingFile(), HaxePackageStatement.class);
+    HaxePackageStatement packageStatement = PsiTreeUtil.getStubChildOfType(type.getContainingFile(), HaxePackageStatement.class);
     String packageName = getPackageName(packageStatement);
     String[] packages = packageName.split("\\.");
     String typeName = (type instanceof HaxeType ? ((HaxeType)type).getReferenceExpression() : type).getText();
@@ -974,13 +997,13 @@ public class HaxeResolveUtil {
 
   @Nullable
   private static String getQNameFromImportStatement(@NotNull PsiElement type) {
-    HaxeImportStatement importStatement = PsiTreeUtil.getParentOfType(type, HaxeImportStatement.class, false);
+    HaxeImportStatement importStatement = StubPsiTreeUtil.getStubOrPsiParentOfType(type, HaxeImportStatement.class, false);
     if (importStatement != null) {
       HaxeReferenceExpression referenceExpression = importStatement.getReferenceExpression();
       return referenceExpression == null ? null : referenceExpression.getText();
     }
 
-    HaxeUsingStatement usingStatement = PsiTreeUtil.getParentOfType(type, HaxeUsingStatement.class, false);
+    HaxeUsingStatement usingStatement = StubPsiTreeUtil.getStubOrPsiParentOfType(type, HaxeUsingStatement.class, false);
     if (usingStatement != null) {
       HaxeReferenceExpression expression = usingStatement.getReferenceExpression();
       return expression == null ? null : expression.getText();
@@ -1002,13 +1025,16 @@ public class HaxeResolveUtil {
       return null;
     }
 
-    String className = type.getText();
+    String className = type instanceof HaxeReference haxeReference
+                       ? getReferenceTextFromStubOrPsi(haxeReference)
+                       : type.getText();
+
     PsiElement result = null;
 
     if (className != null && className.indexOf('.') == -1) {
       final HaxeFileModel fileModel = HaxeFileModel.fromElement(type);
       if (fileModel != null) {
-        boolean isType =  type.getParent() instanceof HaxeType ||  PsiTreeUtil.getParentOfType(type, HaxeTypeTag.class) != null;
+        boolean isType =  type.getParent() instanceof HaxeType ||  PsiTreeUtil.getStubOrPsiParentOfType(type, HaxeTypeTag.class) != null;
         result = searchInSameFile(fileModel, className, isType);
         if (result == null) {
           List<PsiElement> matchesInImport = searchInImports(fileModel, className);
@@ -1254,7 +1280,7 @@ public class HaxeResolveUtil {
   @Nullable
   public static String getQName(PsiFile file, final String name, boolean searchInSamePackage, boolean searchParentPackages, HaxeType targetReference) {
     if (file instanceof HaxeFile haxeFile) {
-      HaxeModule module = PsiTreeUtil.getChildOfType(file, HaxeModule.class);
+      HaxeModule module = PsiTreeUtil.getStubChildOfType(file, HaxeModule.class);
       if (module != null) {
         @NotNull PsiElement[] moduleChildren = module.getChildren();
         HaxeClass classForType = null;
@@ -1552,5 +1578,16 @@ public class HaxeResolveUtil {
       }
     }
     return null;
+  }
+
+
+  public static @NlsSafe String getReferenceTextFromStubOrPsi(@NonNull HaxeReference reference) {
+    if(reference instanceof HaxeReferenceImpl haxeReference) {
+      HaxeReferenceExpressionStub stub = haxeReference.getStub();
+      if(stub != null) {
+        return stub.getText();
+      }
+    }
+    return reference.getText();
   }
 }

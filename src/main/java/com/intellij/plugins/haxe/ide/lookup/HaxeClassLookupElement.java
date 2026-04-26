@@ -2,15 +2,20 @@ package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.completion.JavaCompletionUtil;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import icons.HaxeIcons;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -20,18 +25,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.addImportIfNecessary;
+
 public class HaxeClassLookupElement extends LookupElement implements HaxePsiLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
   private final HaxeComponentName myComponentName;
   private final HaxeClass haxeClass;
   @Getter private HaxeClassModel model;
-  @Getter private HaxeComponentType type;
+  @Getter private final HaxeComponentType type;
 
 
   private String presentableText;
   private String tailText;
   private boolean strikeout = false;
   private boolean bold = false;
+  private boolean presentationCalculated = false;
   private Icon icon = null;
 
   @NotNull
@@ -49,17 +57,20 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     this.myComponentName = name;
     this.haxeClass = haxeClass;
     this.type = haxeClass.getComponentType();
-    calculatePresentation();
   }
 
   @NotNull
   @Override
   public String getLookupString() {
-    return myComponentName.getIdentifier().getText();
+    return haxeClass.getName();
   }
 
   @Override
   public void renderElement(LookupElementPresentation presentation) {
+    if (!presentationCalculated) {
+      calculatePresentation();
+      presentationCalculated = true;
+    }
     presentation.setItemText(presentableText);
     presentation.setStrikeout(strikeout);
     presentation.setItemTextBold(bold);
@@ -89,9 +100,23 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
 
   @Override
   public void handleInsert(InsertionContext context) {
-    JavaCompletionUtil.insertClassReference(haxeClass, context.getFile(), context.getStartOffset());
+    if(!isPartOfChain(context)){
+      addImportIfNecessary(context, haxeClass, haxeClass.getQualifiedName());
+    }
   }
 
+  private static boolean isPartOfChain(InsertionContext context) {
+    PsiFile file = context.getFile();
+    PsiElement element = file.findElementAt(context.getStartOffset());
+    if(element == null) return false;
+    return PsiTreeUtil.getParentOfType(element, HaxeReferenceExpression.class) != null;
+  }
+
+  @NotNull
+  @Override
+  public String deduplicateKey() {
+    return haxeClass.getQualifiedName();
+  }
 
   @NotNull
   @Override
@@ -112,8 +137,4 @@ public class HaxeClassLookupElement extends LookupElement implements HaxePsiLook
     return myComponentName.hashCode();
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this,priority.calculate());
-  }
 }

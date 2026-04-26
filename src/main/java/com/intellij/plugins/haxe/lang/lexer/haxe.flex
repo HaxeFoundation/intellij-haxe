@@ -436,6 +436,8 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "#elseif"                                 { return processConditional(PPELSEIF); }
 "#else"                                   { return processConditional(PPELSE); }
 "#if"                                     { return processConditional(PPIF); }
+// avoid BAD_CHARACTER for conditional expressions (#...)
+"#"                                       { return processConditional(PPHASH); }
 // avoid BAD_CHARACTER for reification (${...})
 "$"                                      { return emitToken( DOLLAR); }
 } // <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY>

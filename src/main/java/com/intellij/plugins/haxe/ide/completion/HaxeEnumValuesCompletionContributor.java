@@ -47,7 +47,7 @@ public class HaxeEnumValuesCompletionContributor extends CompletionContributor {
     if (!(targetFile instanceof HaxeFile)) return;
 
     final HaxeFileModel fileModel = ((HaxeFile)targetFile).getModel();
-    final HaxeClass contextClass = PsiTreeUtil.getParentOfType(contextElement, HaxeClass.class);
+    final HaxeClass contextClass = PsiTreeUtil.getStubOrPsiParentOfType(contextElement, HaxeClass.class);
     fileModel.getClassModelsStream()
       .filter(model -> model.haxeClass != contextClass)
       .filter(HaxeClassModel::isEnum)

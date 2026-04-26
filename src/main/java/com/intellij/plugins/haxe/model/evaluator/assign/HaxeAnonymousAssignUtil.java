@@ -3,7 +3,6 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
-import com.intellij.plugins.haxe.lang.psi.HaxePropertyAccessor;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
@@ -137,8 +136,8 @@ public class HaxeAnonymousAssignUtil {
             boolean propertyValueMatch = comparePropertyValues(toFieldModel, fromFieldModel);
             if (!propertyValueMatch) {
               context.explanations.addWrongTypeMember(
-                      Optional.ofNullable(fromFieldModel.getPropertyDeclarationPsi()).map(PsiElement::getText).orElse("(default, default)"),
-                      Optional.ofNullable(toFieldModel.getPropertyDeclarationPsi()).map(PsiElement::getText).orElse("(default, default)")
+                      Optional.ofNullable(fromFieldModel.getPropertyDeclarationText()).orElse("(default, default)"),
+                      Optional.ofNullable(toFieldModel.getPropertyDeclarationText()).orElse("(default, default)")
                       , memberBasePsi);
               allMembersMatches = false;
             }
@@ -190,40 +189,30 @@ public class HaxeAnonymousAssignUtil {
   }
 
   private static boolean comparePropertyValues(HaxeFieldModel toFieldModel, HaxeFieldModel fromFieldModel) {
-    HaxePropertyAccessor fromGetterPsi = fromFieldModel.getGetterPsi();
-    HaxePropertyAccessor fromSetterPsi = fromFieldModel.getSetterPsi();
+    String fromGetter = fromFieldModel.getGetterText();
+    String fromSetter = fromFieldModel.getSetterText();
 
-    HaxePropertyAccessor toGetterPsi = toFieldModel.getGetterPsi();
-    HaxePropertyAccessor toSetterPsi = toFieldModel.getSetterPsi();
+    String toGetter = toFieldModel.getGetterText();
+    String toSetter = toFieldModel.getSetterText();
 
     boolean getterMatch;
-    if(fromGetterPsi == null && toGetterPsi == null) {
+    if (fromGetter == null && toGetter == null) {
       getterMatch = true;
-    }else if (fromGetterPsi == null ^ toGetterPsi == null){
-      if(fromGetterPsi != null && fromGetterPsi.textMatches("default")) {
-        getterMatch = true;
-      }else if(toGetterPsi != null && toGetterPsi.textMatches("default")) {
-        getterMatch = true;
-      }else {
-        getterMatch = false;
-      }
-    }else {
-      getterMatch = fromGetterPsi.textMatches(toGetterPsi);
+    } else if (fromGetter == null ^ toGetter == null) {
+      getterMatch = "default".equals(fromGetter) || "default".equals(toGetter);
+    } else {
+      getterMatch = fromGetter.equals(toGetter);
     }
+
     boolean setterMatch;
-    if(fromSetterPsi == null && toSetterPsi == null) {
+    if (fromSetter == null && toSetter == null) {
       setterMatch = true;
-    }else if (fromSetterPsi == null ^ toSetterPsi == null){
-      if(fromSetterPsi != null && fromSetterPsi.textMatches("default")) {
-        setterMatch = true;
-      }else if(toSetterPsi != null && toSetterPsi.textMatches("default")) {
-        setterMatch = true;
-      }else {
-        setterMatch = false;
-      }
-    }else {
-      setterMatch = fromSetterPsi.textMatches(toSetterPsi);
+    } else if (fromSetter == null ^ toSetter == null) {
+      setterMatch = "default".equals(fromSetter) || "default".equals(toSetter);
+    } else {
+      setterMatch = fromSetter.equals(toSetter);
     }
+
     return setterMatch && getterMatch;
   }
 

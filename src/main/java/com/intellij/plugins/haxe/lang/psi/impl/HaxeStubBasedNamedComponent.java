@@ -1,22 +1,3 @@
-/*
- * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- * Copyright 2017-2020 Eric Bishton
- * Copyright 2017-2018 Ilya Malanin
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
@@ -24,11 +5,15 @@ import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.util.Computable;
-import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.StubWithName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.util.HaxeDebugUtil;
@@ -41,6 +26,8 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
+import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -51,26 +38,35 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
- * @author: Fedor.Korotkov
+ * Stub-aware equivalent of AbstractHaxeNamedComponent.
  */
-abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElementImpl
+public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> extends HaxeStubBasedPsiElementBase<T>
   implements HaxeNamedComponent, PsiNamedElement {
-
 
   private HaxeComponentType componentType = null;
 
-  public AbstractHaxeNamedComponent(@NotNull ASTNode node) {
+  public HaxeStubBasedNamedComponent(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public HaxeStubBasedNamedComponent(@NotNull T stub, @NotNull IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
   @Override
   public HaxeComponentType getComponentType() {
-    if(componentType == null) {
-      componentType = HaxeComponentType.typeOf(this);;
+    if (componentType == null) {
+      // Try stub data first
+      T stub = getGreenStub();
+      if (stub instanceof HaxeClassStub classStub) {
+        componentType = classStub.getComponentType();
+      }
+      if (componentType == null) {
+        componentType = HaxeComponentType.typeOf(this);
+      }
     }
     return componentType;
   }
@@ -79,20 +75,23 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   @Nullable
   @NonNls
   public String getName() {
-    return getCachedName(this);
+    // Try to get name from stub first — avoids PSI tree traversal
+    T stub = getGreenStub();
+    if (stub instanceof StubWithName stubWithName) {
+      return stubWithName.getName();
+    }
+    return getName(this);
   }
+
   public boolean isMacroName() {
-    return (this.getComponentName() != null && this.getComponentName().getIdentifier() instanceof  HaxeMacroIdentifier);
+    return (this.getComponentName() != null && this.getComponentName().getIdentifier() instanceof HaxeMacroIdentifier);
   }
 
-  private static String getCachedName(AbstractHaxeNamedComponent namedComponent) {
-    return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-      HaxeComponentName componentName = CachedValuesManager.getCachedValue(namedComponent, () -> new CachedValueProvider.Result<>(namedComponent.getComponentName(), namedComponent));
-      if (componentName == null) return null;
-      return CachedValuesManager.getCachedValue(componentName, () -> new CachedValueProvider.Result<>(componentName.getText(), componentName));
-    });
+  private static String getName(HaxeStubBasedNamedComponent<?> namedComponent) {
+    HaxeComponentName componentName = namedComponent.getComponentName();
+    if (componentName == null) return null;
+    return componentName.getText();
   }
-
 
   @Override
   public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
@@ -116,11 +115,12 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
       @Override
       public String getPresentableText() {
         final StringBuilder result = new StringBuilder();
-        HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(AbstractHaxeNamedComponent.this);
+        HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(HaxeStubBasedNamedComponent.this);
 
         if (model == null) {
-          result.append(AbstractHaxeNamedComponent.this.getName());
-        } else {
+          result.append(HaxeStubBasedNamedComponent.this.getName());
+        }
+        else {
           if (isFindUsageRequest()) {
             HaxeClassModel klass = model.getDeclaringClass();
             if (null != klass) {
@@ -140,16 +140,17 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             result.append("(").append(parameterList).append(")");
           }
 
-          final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(AbstractHaxeNamedComponent.this, HaxeTypeTag.class);
+          final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(HaxeStubBasedNamedComponent.this, HaxeTypeTag.class);
           if (null != typeTag) {
-            final String typeName = HaxePresentableUtil.buildTypeText(AbstractHaxeNamedComponent.this, typeTag);
+            final String typeName = HaxePresentableUtil.buildTypeText(HaxeStubBasedNamedComponent.this, typeTag);
             if (!typeName.isEmpty()) {
               result.append(':');
               result.append(typeName);
             }
-          } else if (model instanceof HaxeObjectLiteralMemberModel objectLiteralMemberModel) {
+          }
+          else if (model instanceof HaxeObjectLiteralMemberModel objectLiteralMemberModel) {
             ResultHolder type = objectLiteralMemberModel.getResultType(null);
-            if(type != null && !type.isUnknown()) {
+            if (type != null && !type.isUnknown()) {
               result.append(':');
               result.append(type.getType().withoutConstantValue().toPresentationString());
             }
@@ -161,9 +162,9 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
       @Override
       public String getLocationString() {
-        HaxeClass haxeClass = AbstractHaxeNamedComponent.this instanceof HaxeClass
-                              ? (HaxeClass)AbstractHaxeNamedComponent.this
-                              : PsiTreeUtil.getParentOfType(AbstractHaxeNamedComponent.this, HaxeClass.class);
+        HaxeClass haxeClass = HaxeStubBasedNamedComponent.this instanceof HaxeClass
+                              ? (HaxeClass)HaxeStubBasedNamedComponent.this
+                              : PsiTreeUtil.getStubOrPsiParentOfType(HaxeStubBasedNamedComponent.this, HaxeClass.class);
         String path = "";
         if (haxeClass instanceof HaxeAnonymousType) {
           HaxeAnonymousTypeField field = PsiTreeUtil.getParentOfType(haxeClass, HaxeAnonymousTypeField.class);
@@ -172,7 +173,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
             path = field.getName() + (addDelimiter ? "." : "") + path;
             field = PsiTreeUtil.getParentOfType(field, HaxeAnonymousTypeField.class);
           }
-          final HaxeTypedefDeclaration typedefDeclaration = PsiTreeUtil.getParentOfType(haxeClass, HaxeTypedefDeclaration.class);
+          final HaxeTypedefDeclaration typedefDeclaration = PsiTreeUtil.getStubOrPsiParentOfType(haxeClass, HaxeTypedefDeclaration.class);
           if (typedefDeclaration != null) {
             haxeClass = typedefDeclaration;
           }
@@ -183,12 +184,12 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
         }
 
         String qualifiedName = haxeClass.getQualifiedName();
-        if(qualifiedName == null) {
+        if (qualifiedName == null) {
           return "";
         }
 
         final Pair<String, String> qName = HaxeResolveUtil.splitQName(qualifiedName);
-        if (haxeClass == AbstractHaxeNamedComponent.this) {
+        if (haxeClass == HaxeStubBasedNamedComponent.this) {
           return qName.getFirst();
         }
         return qualifiedName + (path.isEmpty() ? "" : "." + path);
@@ -196,15 +197,10 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
       @Override
       public Icon getIcon(boolean open) {
-        return AbstractHaxeNamedComponent.this.getIcon(0);
+        return HaxeStubBasedNamedComponent.this.getIcon(0);
       }
 
-
       private boolean isFindUsageRequest() {
-        // HACK: Checking the stack is a bad answer for this, but we don't have a good way to
-        // determine whether this particular request is from findUsages because all FindUsages queries
-        // run on background threads, and they could be running at the same time as another access.
-        // (AND, we can't change IDEA's shipping products on which this must run...)
         return HaxeDebugUtil.appearsOnStack(PsiElement2UsageTargetAdapter.class);
       }
     };
@@ -212,7 +208,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public HaxeNamedComponent getTypeComponent() {
-    final HaxeTypeTag typeTag = PsiTreeUtil.getChildOfType(getParent(), HaxeTypeTag.class);
+    final HaxeTypeTag typeTag = PsiTreeUtil.getStubChildOfType(getParent(), HaxeTypeTag.class);
     final HaxeTypeOrAnonymous typeOrAnonymous = typeTag != null ? typeTag.getTypeOrAnonymous() : null;
     final HaxeType type = typeOrAnonymous != null ? typeOrAnonymous.getType() : null;
     final PsiReference reference = type != null ? type.getReference() : null;
@@ -227,75 +223,111 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
 
   @Override
   public boolean isPublic() {
-    if (PsiTreeUtil.getParentOfType(this, HaxeExternClassDeclaration.class) != null) {
+    // Try stub data first — avoids PSI tree traversal for modifier keywords
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isPublic();
+    }
+    if (stub instanceof HaxeFieldStub fieldStub) {
+      return fieldStub.isPublic();
+    }
+    // For classes, isPublic is handled in AbstractHaxePsiClass override
+    // Fall back to PSI-based logic for non-stubbed elements
+    PsiElement parentClass = StubPsiTreeUtil.getStubOrPsiParentOfType(this,
+            HaxeExternClassDeclaration.class,
+            HaxeInterfaceDeclaration.class,
+            HaxeEnumDeclaration.class,
+            HaxeAnonymousType.class
+    );
+    if (parentClass != null) {
       return true;
     }
-    if (PsiTreeUtil.getParentOfType(this, HaxeInterfaceDeclaration.class, HaxeEnumDeclaration.class) != null) {
-      return true;
-    }
-    if (PsiTreeUtil.getParentOfType(this, HaxeAnonymousType.class) != null) {
-      return true;
-    }
+
     final PsiElement parent = getParent();
-    return hasPublicAccessor(this) || (parent instanceof HaxePsiCompositeElement && hasPublicAccessor((HaxePsiCompositeElement)parent));
+    return hasPublicAccessor(this) || (parent instanceof HaxePsiCompositeElement compositeParent && hasPublicAccessor(compositeParent));
   }
 
   private static boolean hasPublicAccessor(HaxePsiCompositeElement element) {
-    // do not change the order of these if-statements
     if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPRIVATE) != null) {
-      return false; // private
+      return false;
     }
     if (UsefulPsiTreeUtil.getChildOfType(element, HaxeTokenTypes.KPUBLIC) != null) {
-      return true; // public
+      return true;
     }
 
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
     if (declarationAttributeList != null) {
-      final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes((declarationAttributeList));
-      // do not change the order of these if-statements
+      final Set<IElementType> declarationTypes = HaxeResolveUtil.getDeclarationTypes(declarationAttributeList);
       if (declarationTypes.contains(HaxeTokenTypes.KPRIVATE)) {
-        return false; // private
+        return false;
       }
       if (declarationTypes.contains(HaxeTokenTypes.KPUBLIC)) {
-        return true; // public
+        return true;
       }
     }
 
-    return false; // <default>: private
+    return false;
   }
 
   @Override
   public boolean isStatic() {
-    AbstractHaxeNamedComponent element = this;
-
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(element, HaxePsiModifier.class);
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isStatic();
+    }
+    if (stub instanceof HaxeFieldStub fieldStub) {
+      return fieldStub.isStatic();
+    }
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
   }
 
   @Override
   public boolean isOverride() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isOverride();
+    }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
   }
 
   @Override
   public boolean isOverload() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isOverload();
+    }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERLOAD);
   }
 
   @Override
   public boolean isInline() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isInline();
+    }
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
   }
+  @Override
+  public boolean isDynamic() {
+    T stub = getGreenStub();
+    if (stub instanceof HaxeMethodStub methodStub) {
+      return methodStub.isDynamic();
+    }
+    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KDYNAMIC);
+  }
+
   @Nullable
   @Override
   public PsiElement getModiferPsi(IElementType tokenType) {
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
     if (declarationAttributeList != null) {
       for (HaxePsiModifier modifier : declarationAttributeList) {
-        if(modifier.getFirstChild() instanceof LeafPsiElement psiElement) {
+        if (modifier.getFirstChild() instanceof LeafPsiElement psiElement) {
           if (psiElement.getElementType() == tokenType) return psiElement;
         }
       }
@@ -308,8 +340,8 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (this instanceof HaxeClass haxeClass) {
       return haxeClass.getQualifiedName();
     }
-    HaxeClass haxeClass = PsiTreeUtil.getParentOfType(this, HaxeClass.class);
-    if(haxeClass != null) {
+    HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
+    if (haxeClass != null) {
       return haxeClass.getQualifiedName() + this.getText();
     }
     return getContainingFile().getName() + this.getText();
@@ -321,6 +353,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (element == null) return null;
     return SourceTreeToPsiMap.treeElementToPsi(element);
   }
+
   @Nullable
   public final PsiElement findChildByRoleAsPsiElementIn(PsiElement body, int role) {
     ASTNode element = findChildByRole(body.getFirstChild(), role);
@@ -329,26 +362,26 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
   }
 
   @Nullable
-  public ASTNode findChildByRole(PsiElement firstChild, int role) {
+  private ASTNode findChildByRole(PsiElement firstChild, int role) {
     if (firstChild == null) return null;
-
     for (ASTNode child = firstChild.getNode(); child != null; child = child.getTreeNext()) {
       if (getChildRole(child) == role) return child;
     }
     return null;
   }
+
   @Nullable
-  public ASTNode findChildByRole(int role) {
+  private ASTNode findChildByRole(int role) {
     return findChildByRole(getFirstChild(), role);
   }
 
-  public int getChildRole(ASTNode child) {
+  private int getChildRole(ASTNode child) {
     if (child.getElementType() == HaxeTokenTypes.PLCURLY) {
       return ChildRole.LBRACE;
-    } else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
+    }
+    else if (child.getElementType() == HaxeTokenTypes.PRCURLY) {
       return ChildRole.RBRACE;
     }
-
     return 0;
   }
 
@@ -356,7 +389,7 @@ abstract public class AbstractHaxeNamedComponent extends HaxePsiCompositeElement
     if (findChildByRole(roleCandidate) == child) {
       return roleCandidate;
     }
-    return 0; //ChildRole.NONE;
+    return 0;
   }
-
 }
+

@@ -19,7 +19,7 @@ import java.util.HashSet;
 
 import static com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections.*;
 import static com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil.hasMacroForCodeGeneration;
-import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.IS_VAR;
+import static com.intellij.plugins.haxe.lang.psi.HaxePsiModifier.IS_VAR_META;
 
 public class HaxeFieldAnnotator implements Annotator {
   @Override
@@ -255,7 +255,7 @@ public class HaxeFieldAnnotator implements Annotator {
     return new HaxeFixer("Add @:isVar") {
       @Override
       public void run() {
-        field.getModifiers().addModifier(IS_VAR);
+        field.getModifiers().addModifier(IS_VAR_META);
       }
     };
   }

@@ -1,6 +1,6 @@
 /*
  * Copyright 2000-2013 JetBrains s.r.o.
- * Copyright 2014-2016 AS3Boyan
+ * Copyright 2014-2014 AS3Boyan
  * Copyright 2014-2014 Elias Ku
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,29 +20,31 @@ package com.intellij.plugins.haxe.ide;
 import com.intellij.navigation.ChooseByNameContributor;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.ide.index.HaxeSymbolIndex;
-import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
+import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-public class HaxeSymbolContributor implements ChooseByNameContributor {
+/**
+ * @author: Fedor.Korotkov
+ */
+public class HaxeGotoClassContributor implements ChooseByNameContributor {
   @NotNull
   @Override
-  public String[] getNames(@NotNull final Project project, final boolean includeNonProjectItems) {
+  public NavigationItem[] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
     final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
-    return HaxeSymbolIndex.getAllSymbols(scope);
+    final Collection<HaxeClass> result = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
+    return result.toArray(new NavigationItem[0]);
   }
 
   @NotNull
   @Override
-  public NavigationItem[] getItemsByName(@NotNull final String name,
-                                         @NotNull final String pattern,
-                                         @NotNull final Project project,
-                                         final boolean includeNonProjectItems) {
-    final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
-    final Collection<HaxeComponentName> result = HaxeSymbolIndex.getItemsByName(name, project, scope);
-    return result.toArray(new NavigationItem[0]);
+  public String[] getNames(Project project, boolean includeNonProjectItems) {
+    final Collection<String> result = StubIndex.getInstance().getAllKeys(HaxeClassNameStubIndex.KEY, project);
+    return ArrayUtil.toStringArray(result);
   }
 }

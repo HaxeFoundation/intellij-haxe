@@ -29,6 +29,8 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
@@ -44,6 +46,7 @@ import com.intellij.psi.impl.PsiSuperMethodImplUtil;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -62,11 +65,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @author: Fedor.Korotkov
  */
 @CustomLog
-public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent implements HaxeClass {
-
-
-  private Boolean _isPrivate = null;
-  private Boolean _isExtern = null;
+public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<HaxeClassStub> implements HaxeClass {
 
   static {
     log.info("Loaded AbstractHaxePsiClass");
@@ -75,6 +74,10 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   public AbstractHaxePsiClass(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public AbstractHaxePsiClass(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
   @Override
@@ -94,6 +97,17 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   public String getQualifiedName(boolean alwaysIncludeModuleName) {
+
+    HaxeClassStub stub = getGreenStub();
+    if (stub != null) {
+      String name =  stub.getQualifiedName();
+      FullyQualifiedInfo fullyQualifiedInfo = new FullyQualifiedInfo(name);
+      return fullyQualifiedInfo.getQualifiedName(alwaysIncludeModuleName);
+    }
+    return getQualifiedNameFallback(alwaysIncludeModuleName);
+  }
+  public String getQualifiedNameFallback(boolean alwaysIncludeModuleName) {
+
     String name = getName();
     if (getParent() == null) {
       return name == null ? "" : name;
@@ -101,11 +115,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
     if (name == null && this instanceof HaxeAnonymousType) {
       // restore name from parent
-      final HaxeTypedefDeclaration typedefDecl = UsefulPsiTreeUtil.getParentOfType(this, HaxeTypedefDeclaration.class);
+      final HaxeTypedefDeclaration typedefDecl = PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeTypedefDeclaration.class);
       if (null != typedefDecl) {
         name = typedefDecl.getName();
       }
     }
+
+    if(name == null) return "";
 
     PsiFile file = getContainingFile();
     if (file == null) return name == null ? "" : name;
@@ -126,7 +142,7 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   public HaxeClassModel getModel() {
     HaxeClassModel model = _model.get();
-    if (model != null) {
+    if (model != null && model.isValid()) {
       return model;
     }
     HaxeClassModel newValue = createModel();
@@ -208,22 +224,25 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
     return  false;
   }
 
-
+  @Override
+  public boolean isDynamic() {
+    return false;
+  }
 
 
   @NotNull
   @Override
   public List<HaxeType> getHaxeExtendsList() {
-    return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+    return HaxeResolveUtil.findExtendsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
 
   @NotNull
   @Override
   public List<HaxeType> getHaxeImplementsList() {
-    return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getChildOfType(this, HaxeInheritList.class));
+    return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
   public @Nullable HaxeInheritList getHaxeImplementsListPsi() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
@@ -372,7 +391,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   public boolean isEnum() {
     if (getComponentType() == HaxeComponentType.ENUM) return true;
     if (isAbstractType()) {
-      return hasCompileTimeMeta(HaxeMeta.ENUM) || ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
+      HaxeClassStub greenStub = getGreenStub();
+      if(greenStub != null){
+        return greenStub.isEnum() || greenStub.hasMetaForModifier(HaxePsiModifier.ENUM_META) == Boolean.TRUE;
+      }else {
+        return hasCompileTimeMeta(HaxeMeta.ENUM) ||
+               ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
+      }
     }
     return false;
   }
@@ -431,13 +456,13 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @Override
   @Nullable
   public HaxeInheritList getExtendsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
   @Nullable
   public HaxeInheritList getImplementsList() {
-    return PsiTreeUtil.getChildOfType(this, HaxeInheritList.class);
+    return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
 
   @Override
@@ -520,8 +545,8 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   private static PsiMethod[] getMethodsCached(HaxeClass haxeClass) {
     return CachedValuesManager.getCachedValue(haxeClass, () -> {
-      final List<HaxeNamedComponent> alltypes = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
-      final List<HaxeNamedComponent> methods = HaxeNamedSubComponentUtil.filterNamedComponentsByType(alltypes, HaxeComponentType.METHOD);
+      final List<HaxeNamedComponent> allTypes = HaxeNamedSubComponentUtil.getNamedSubComponentsFromClassType(haxeClass);
+      final List<HaxeNamedComponent> methods = HaxeNamedSubComponentUtil.filterNamedComponentsByType(allTypes, HaxeComponentType.METHOD);
       PsiMethod[] array = methods.toArray(PsiMethod.EMPTY_ARRAY);
       return new CachedValueProvider.Result<>(array, haxeClass);
     });
@@ -662,61 +687,49 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   }
 
   public PsiElement getBody() {
-      if (this instanceof HaxeClassDeclaration classDeclaration) {  // concrete class
-        return classDeclaration.getClassBody();
-      } else if (this instanceof HaxeAbstractTypeDeclaration typeDeclaration) {  // abstract
-        return typeDeclaration.getAbstractBody();
-      } else if (this instanceof HaxeExternClassDeclaration externClassDeclaration) { // extern class
-        return externClassDeclaration.getExternClassDeclarationBody();
-      } else if (this instanceof HaxeTypedefDeclaration typedefDeclaration) {  // typedef
-        return typedefDeclaration.getTypeOrAnonymous();
-      } else if (this instanceof HaxeInterfaceDeclaration interfaceDeclaration) { // interface
-        return interfaceDeclaration.getInterfaceBody();
-      } else if (this instanceof HaxeEnumDeclaration enumDeclaration) { // enum
-        return enumDeclaration.getEnumBody();
-      }
-    return this;
+    return switch (this) {
+      case HaxeClassDeclaration classDeclaration -> classDeclaration.getClassBody();
+      case HaxeAbstractTypeDeclaration typeDeclaration -> typeDeclaration.getAbstractBody();
+      case HaxeExternClassDeclaration externClassDeclaration -> externClassDeclaration.getExternClassDeclarationBody();
+      case HaxeTypedefDeclaration typedefDeclaration -> typedefDeclaration.getTypeOrAnonymous();
+      case HaxeInterfaceDeclaration interfaceDeclaration -> interfaceDeclaration.getInterfaceBody();
+      case HaxeEnumDeclaration enumDeclaration -> enumDeclaration.getEnumBody();
+      default -> this;
+    };
   }
   private boolean isPrivate() {
-    if(_isPrivate == null) {
-      HaxePrivateKeyWord privateKeyWord = null;
-      if (this instanceof HaxeClassDeclaration) { // concrete class
-        privateKeyWord = getPrivateKeyWord(((HaxeClassDeclaration)this).getClassModifierList());
-      } else if (this instanceof HaxeAbstractTypeDeclaration) { // abstract class
-        privateKeyWord = ((HaxeAbstractTypeDeclaration)this).getPrivateKeyWord();
-      } else if (this instanceof HaxeExternClassDeclaration) { // extern class
-        privateKeyWord = getPrivateKeyWord(((HaxeExternClassDeclaration)this).getExternClassModifierList());
-      } else if (this instanceof HaxeTypedefDeclaration) { // typedef
-        privateKeyWord = ((HaxeTypedefDeclaration)this).getPrivateKeyWord();
-      } else if (this instanceof HaxeInterfaceDeclaration) { // interface
-        privateKeyWord = ((HaxeInterfaceDeclaration)this).getPrivateKeyWord();
-      } else if (this instanceof HaxeEnumDeclaration) { // enum
-        privateKeyWord = ((HaxeEnumDeclaration)this).getPrivateKeyWord();
-      }
-      _isPrivate =  (privateKeyWord != null);
-    }
-    return _isPrivate;
+    HaxeClassStub stub = getGreenStub();
+    return stub != null ? stub.isPrivate() : isPrivatePsi();
   }
   @Override
   public boolean isExtern() {
-    if(_isExtern == null) {
-      HaxeExternKeyWord privateKeyWord = null;
-      if (this instanceof HaxeExternClassDeclaration) { // concrete class
-        _isExtern = true;
-        return _isExtern;
-      } else if (this instanceof HaxeExternInterfaceDeclaration declaration) { // concrete class
-        privateKeyWord = declaration.getExternKeyWord();
-      } else if (this instanceof HaxeAbstractTypeDeclaration declaration) { // abstract
-        privateKeyWord = declaration.getExternKeyWord();
-      } else if (this instanceof HaxeTypedefDeclaration declaration) { // typedef
-        privateKeyWord = declaration.getExternKeyWord();
-      } else if (this instanceof HaxeEnumDeclaration declaration) { // enum
-        privateKeyWord = declaration.getExternKeyWord();
-      }
-      _isExtern =  (privateKeyWord != null);
-    }
-    return _isExtern;
+    HaxeClassStub stub = getGreenStub();
+    return stub != null ? stub.isExtern() : isExternPsi();
   }
+
+  private boolean isPrivatePsi() {
+    return switch (this) {
+      case HaxeClassDeclaration declaration ->  getPrivateKeyWord(declaration.getClassModifierList()) != null;
+      case HaxeAbstractTypeDeclaration declaration ->  declaration.getPrivateKeyWord() != null;
+      case HaxeExternClassDeclaration declaration ->  getPrivateKeyWord((declaration).getExternClassModifierList()) != null;
+      case HaxeTypedefDeclaration declaration ->  declaration.getPrivateKeyWord() != null;
+      case HaxeInterfaceDeclaration declaration ->  declaration.getPrivateKeyWord() != null;
+      case HaxeEnumDeclaration declaration ->  declaration.getPrivateKeyWord() != null;
+      default -> false;
+    };
+  }
+
+  private boolean isExternPsi() {
+    return switch (this) {
+      case HaxeExternClassDeclaration declaration ->  true;
+      case HaxeExternInterfaceDeclaration declaration ->  declaration.getExternKeyWord() != null;
+      case HaxeAbstractTypeDeclaration declaration ->  declaration.getExternKeyWord() != null;
+      case HaxeTypedefDeclaration declaration ->  declaration.getExternKeyWord() != null;
+      case HaxeEnumDeclaration declaration ->  declaration.getExternKeyWord() != null;
+      default -> false;
+    };
+  }
+
 
   private HaxePrivateKeyWord getPrivateKeyWord(HaxeClassModifierList list) {
     if (null != list) {
@@ -738,7 +751,21 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
   @NotNull
   @Override
   public HaxeModifierList getModifierList() {
+    // try with stubs first
+    HaxeClassStub stub = getGreenStub();
+    if (stub != null) {
+      HaxeModifierListFromStub list = new HaxeModifierListFromStub(this);
+      if (stub.isPrivate()) {
+        list.addModifier(HaxePsiModifier.PRIVATE);
+      }
+      if (this instanceof HaxeAbstractTypeDeclaration) {
+        list.addModifier(HaxePsiModifier.ABSTRACT);
+      }
+      log.assertTrue(!list.hasModifierProperty(HaxePsiModifier.STATIC), "Haxe classes cannot be static.");
+      return list;
+    }
 
+    // fallback if stub fails
     HaxeModifierList list = super.getModifierList();
 
     if (null == list) {
@@ -799,12 +826,12 @@ public abstract class AbstractHaxePsiClass extends AbstractHaxeNamedComponent im
 
   @Override
   public HaxeModule getModule() {
-    return PsiTreeUtil.getChildOfType(getContainingFile(), HaxeModule.class);
+    return PsiTreeUtil.getStubOrPsiParentOfType(this,HaxeModule.class);
   }
 
   @Override
   public PsiPackage getPackage() {
-    HaxePackageStatement childOfType = PsiTreeUtil.getChildOfType(getContainingFile(), HaxePackageStatement.class);
+    HaxePackageStatement childOfType = PsiTreeUtil.getStubChildOfType(getContainingFile(), HaxePackageStatement.class);
     if(childOfType!= null) {
       HaxeReferenceExpression reference = childOfType.getReferenceExpression();
       if(reference!= null && reference.resolve() instanceof PsiPackage aPackage) return aPackage;

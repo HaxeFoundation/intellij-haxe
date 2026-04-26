@@ -81,7 +81,7 @@ public class HaxeAccessAnnotator implements Annotator {
         HaxeMethodModel memberModel = declaration.getModel();
 
         if(!memberModel.isPublic()){
-          HaxeClass currentClass = PsiTreeUtil.getParentOfType(newExpression, HaxeClass.class);
+          HaxeClass currentClass = PsiTreeUtil.getStubOrPsiParentOfType(newExpression, HaxeClass.class);
           HaxeMemberModel referenceParentModel = getExpressionsParentsModel(newExpression);
           HaxeClassModel memberClassModel = memberModel.getDeclaringClass();
           HaxeClass memberClass = memberClassModel == null ? null : memberClassModel.haxeClass;
@@ -198,7 +198,7 @@ public class HaxeAccessAnnotator implements Annotator {
     return false;
   }
 
-  private  boolean isStaticAccess(HaxeReferenceExpression referenceExpression) {
+  private boolean isStaticAccess(HaxeReferenceExpression referenceExpression) {
     final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
     if (leftReference instanceof HaxeReferenceExpressionImpl callie) {
       PsiElement callieResolved = callie.resolve();
@@ -221,7 +221,7 @@ public class HaxeAccessAnnotator implements Annotator {
     // ignore anything inside metas (ex. @:build @:autoBuild etc)
     if (PsiTreeUtil.getParentOfType(referenceExpression, HaxeMeta.class)!= null) return;
 
-    HaxeClass currentClass = PsiTreeUtil.getParentOfType(referenceExpression, HaxeClass.class);
+    HaxeClass currentClass = PsiTreeUtil.getStubOrPsiParentOfType(referenceExpression, HaxeClass.class);
 
     // ignoring anonymous types for now
     if (memberClass != null) {

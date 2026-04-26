@@ -20,16 +20,24 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatementPsiMixin;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.stubs.IStubElementType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by srikanthg on 10/6/14.
  */
-abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStatementPsiMixinImpl implements HaxePackageStatementPsiMixin  {
+abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStubBasedPsiElementBase<HaxePackageStub>
+  implements HaxePackageStatementPsiMixin {
+
   public HaxePackageStatementPsiMixinImpl(@NotNull ASTNode node) {
     super(node);
+  }
+
+  public HaxePackageStatementPsiMixinImpl(@NotNull HaxePackageStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
   }
 
   @Override
@@ -39,8 +47,13 @@ abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStatementPsiM
 
   @Override
   public String getPackageName() {
+    HaxePackageStub stub = getGreenStub();
+    if (stub != null) {
+      String name = stub.getPackageName();
+      return name != null ? name : "";
+    }
     HaxeReferenceExpression ref = findChildByClass(HaxeReferenceExpression.class);
-    if (null!= ref) {
+    if (null != ref) {
       return ref.getQualifiedName();
     }
     return "";

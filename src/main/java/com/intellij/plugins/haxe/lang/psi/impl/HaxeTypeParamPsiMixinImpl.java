@@ -20,16 +20,22 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeListPart;
 import com.intellij.plugins.haxe.lang.psi.HaxeTypeParamPsiMixin;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.stubs.IStubElementType;
 
 /**
  * Created by ebishton on 10/18/14.
  */
-public class HaxeTypeParamPsiMixinImpl extends HaxePsiCompositeElementImpl implements HaxeTypeParamPsiMixin {
+public class HaxeTypeParamPsiMixinImpl extends HaxeContainerStubPsiElementBase implements HaxeTypeParamPsiMixin {
 
   public HaxeTypeParamPsiMixinImpl(ASTNode node) {
     super(node);
+  }
+
+  public HaxeTypeParamPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+    super(stub, type);
   }
 
   @Override

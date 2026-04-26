@@ -28,7 +28,6 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -108,7 +107,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   public List<HaxeParameterModel> getParameters() {
     List<HaxeParameterModel> _parameters = new ArrayList<HaxeParameterModel>();
-    HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this.haxeMethod, HaxeParameterList.class);
     if (parameterList != null) {
       for (HaxeParameter parameter : parameterList.getParameterList()) {
         _parameters.add(new HaxeParameterModel(parameter));
@@ -118,7 +117,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public int getParameterCount() {
-    HaxeParameterList parameterList = UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeParameterList.class);
+    HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(this.haxeMethod, HaxeParameterList.class);
     return null == parameterList ? 0 : parameterList.getParametersCount();
   }
 
@@ -133,7 +132,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
   @Nullable
   public HaxeTypeTag getReturnTypeTagPsi() {
-    return UsefulPsiTreeUtil.getChild(this.haxeMethod, HaxeTypeTag.class);
+    return PsiTreeUtil.getStubChildOfType(this.haxeMethod, HaxeTypeTag.class);
   }
 
   public PsiElement getReturnTypeTagOrNameOrBasePsi() {
@@ -248,7 +247,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isMacro() {
-    return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO2);
+    return hasModifier(HaxePsiModifier.MACRO) || hasModifier(HaxePsiModifier.MACRO_META);
   }
 
   @Override
@@ -277,10 +276,8 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   public List<HaxeGenericParamModel> getGenericParams() {
     final List<HaxeGenericParamModel> out = new ArrayList<>();
     if (haxeMethod.getGenericParam() != null) {
-      int index = 0;
       for (HaxeGenericListPart part : haxeMethod.getGenericParam().getGenericListPartList()) {
         out.add(part.getModel());
-        index++;
       }
     }
     return out;

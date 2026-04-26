@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxePropertyAccessor;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.Nullable;
 
 public enum HaxeAccessorType {
   DEFAULT("default"),
@@ -38,7 +39,9 @@ public enum HaxeAccessorType {
     this.text = text;
   }
 
-  private static HaxeAccessorType fromString(String text) {
+
+  public static HaxeAccessorType from(@Nullable String text) {
+    if (text == null) return INVALID;
     for (HaxeAccessorType type : HaxeAccessorType.values()) {
       if (type.text.equals(text)) {
         return type;
@@ -63,7 +66,7 @@ public enum HaxeAccessorType {
     if(psi instanceof HaxePropertyAccessor propertyAccessor) {
       String rawText = propertyAccessor.getText();
       String maxOneWhitespace = rawText.replaceAll("\\s+", " ");
-      return fromString(maxOneWhitespace);
+      return from(maxOneWhitespace);
     }
     return INVALID;
   }

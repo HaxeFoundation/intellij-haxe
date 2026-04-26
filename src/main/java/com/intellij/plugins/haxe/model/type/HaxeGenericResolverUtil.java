@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,9 +68,9 @@ public class HaxeGenericResolverUtil {
   }
 
   @Nullable static HaxeGenericResolver appendClassGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
-    HaxeClass clazz = element instanceof HaxeClass
-                      ? (HaxeClass) element
-                      : UsefulPsiTreeUtil.getParentOfType(element, HaxeClass.class);
+    HaxeClass clazz = element instanceof HaxeClass haxeClass
+                      ? haxeClass
+                      : PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
 
     HaxeClassModel classModel = HaxeClassModel.fromElement(clazz);
     if (null != classModel) {
@@ -80,7 +81,7 @@ public class HaxeGenericResolverUtil {
   }
 
   @NotNull public static HaxeGenericResolver appendMethodGenericResolver(PsiElement element, @NotNull HaxeGenericResolver resolver) {
-    HaxeMethod method = UsefulPsiTreeUtil.getParentOfType(element, HaxeMethod.class);
+    HaxeMethod method = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeMethod.class);
     if (null != method) {
       appendMethodGenericResolver(method, resolver);
 
@@ -96,7 +97,7 @@ public class HaxeGenericResolverUtil {
 
     if (element instanceof HaxeReference) {
         ResultHolder result1 =  statementRecursionGuard.doPreventingRecursion(element, true,
-                () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), null).result);
+                () -> HaxeExpressionEvaluator.evaluate(element, new HaxeExpressionEvaluatorContext(element), resolver.copy()).result);
       if (result1 != null && !result1.isUnknown() && result1.getClassType() != null) {
         SpecificHaxeClassReference result = result1.getClassType();
         resolver.addAll(result.getGenericResolver());

@@ -161,12 +161,6 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
     }
   }
 
-  @Override
-  public PrioritizedLookupElement<LookupElement> toPrioritized() {
-    return (PrioritizedLookupElement<LookupElement>)PrioritizedLookupElement.withPriority(this, priority.calculate());
-  }
-
-
 
   @NotNull
   @Override

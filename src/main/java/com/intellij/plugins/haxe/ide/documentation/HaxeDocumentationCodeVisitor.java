@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.ide.documentation;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.ReferenceCodeLink;
-import com.intellij.plugins.haxe.ide.index.HaxeComponentIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
@@ -15,6 +15,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.commonmark.node.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,7 +63,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private boolean replaceContextClassMemberReference(Code code, String member, String literal) {
-        HaxeClass parentOfType = PsiTreeUtil.getParentOfType(context, HaxeClass.class);
+        HaxeClass parentOfType = PsiTreeUtil.getStubOrPsiParentOfType(context, HaxeClass.class);
         if(parentOfType != null) {
             List<HaxeNamedComponent> members = parentOfType.findHaxeMemberByName(member, null);
             if (!members.isEmpty() &&  members.getFirst()  instanceof PsiMember psiMember) {
@@ -74,7 +75,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
             }
         }
 
-        HaxeModuleImpl haxeModule = PsiTreeUtil.getParentOfType(context, HaxeModuleImpl.class);
+        HaxeModuleImpl haxeModule = PsiTreeUtil.getStubOrPsiParentOfType(context, HaxeModuleImpl.class);
         if(haxeModule != null) {
 
             HaxeModuleModel haxeModuleModel = haxeModule.getModel();
@@ -130,12 +131,9 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private HaxeClass findUniqueClassFromIndex(String literal) {
-        List<HaxeComponent> itemsByName = HaxeComponentIndex.getItemsByName(literal, project, GlobalSearchScope.allScope(project));
+        Collection<HaxeClass> itemsByName = HaxeClassNameStubIndex.getByNameFiltered(literal, project, GlobalSearchScope.allScope(project));
         if (itemsByName.size() == 1) {
-            HaxeComponent first = itemsByName.getFirst();
-            if (first instanceof HaxeClass haxeClass) {
-                return haxeClass;
-            }
+            return itemsByName.iterator().next();
         }
         return null;
     }

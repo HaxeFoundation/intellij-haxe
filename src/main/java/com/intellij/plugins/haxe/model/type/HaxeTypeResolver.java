@@ -24,7 +24,6 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodImpl;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.model.*;
@@ -51,7 +50,7 @@ import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 @CustomLog
 public class HaxeTypeResolver {
   @NotNull
-  static public ResultHolder getFieldOrMethodReturnType(@NotNull AbstractHaxeNamedComponent comp) {
+  static public ResultHolder getFieldOrMethodReturnType(@NotNull HaxeNamedComponent comp) {
     return getFieldOrMethodReturnType(comp, null);
   }
 
@@ -450,8 +449,8 @@ public class HaxeTypeResolver {
   }
 
   @NotNull
-  static public ResultHolder getTypeFromTypeTag(AbstractHaxeNamedComponent comp, @NotNull PsiElement context) {
-    return getTypeFromTypeTag(PsiTreeUtil.getChildOfType(comp, HaxeTypeTag.class), context);
+  static public ResultHolder getTypeFromTypeTag(PsiElement comp, @NotNull PsiElement context) {
+    return getTypeFromTypeTag(PsiTreeUtil.getStubChildOfType(comp, HaxeTypeTag.class), context);
   }
 
   @NotNull
@@ -590,6 +589,7 @@ public class HaxeTypeResolver {
   }
 
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver, boolean useAssignHint) {
+    //TODO mlo : looks like we need recursion guard (typedef looping back to itself)
     if (resolver != null && !resolver.isEmpty()) {
       PsiElement resolved = type.getReferenceExpression().resolve();
       if (resolved instanceof HaxeTypeParameterDeclaration typeParameter) {
@@ -632,12 +632,8 @@ public class HaxeTypeResolver {
           if(typeOrAnonymous != null) {
             ResultHolder holder = HaxeTypeResolver.getTypeFromTypeOrAnonymous(typeOrAnonymous);
             partResult = resolver.resolve(holder, useAssignHint);
-          }else if(part.getFunctionType()  instanceof  HaxeSpecificFunction function) {
-            SpecificFunctionReference functionReference = SpecificFunctionReference.create(function);
-            SpecificFunctionReference resolved = resolver.resolve(functionReference, useAssignHint);
-            if(resolved != null) {
-              partResult = resolved.createHolder();
-            }
+          }else if(part.getFunctionType() != null) {
+            // HaxeSpecificFunction instances are never in the real PSI tree; handled below.
           }
         }
         if (null == partResult) {

@@ -40,8 +40,7 @@ public class ComponentNameScopeProcessor implements PsiScopeProcessor {
 
   @Override
   public boolean execute(@NotNull PsiElement element, ResolveState state) {
-    if (element instanceof HaxeNamedComponent) {
-      final HaxeNamedComponent haxeNamedComponent = (HaxeNamedComponent)element;
+    if (element instanceof HaxeNamedComponent haxeNamedComponent) {
       if (haxeNamedComponent.getComponentName() != null) {
         result.add(haxeNamedComponent.getComponentName());
       }

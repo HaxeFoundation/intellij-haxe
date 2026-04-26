@@ -46,7 +46,7 @@ abstract class HaxeLineMarkerTypeNavigator implements GutterIconNavigationHandle
     @Override
     public void navigate(MouseEvent event, PsiElement element) {
 
-        HaxeClass haxeClass = PsiTreeUtil.getParentOfType(element, HaxeClass.class);
+        HaxeClass haxeClass = PsiTreeUtil.getStubOrPsiParentOfType(element, HaxeClass.class);
         if (haxeClass == null) {
             log.warn("No HaxeClass for navigation");
             return;

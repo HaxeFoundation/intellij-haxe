@@ -22,6 +22,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 
@@ -31,6 +32,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
@@ -38,6 +40,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OPTIONAL;
 
@@ -45,22 +48,20 @@ import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OPTIONAL;
  * Created by srikanthg on 10/9/14.
  */
 @CustomLog
-public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implements HaxePsiField {
-
-
-  static {
-    log.info("Loaded HaxePsiFieldImpl");
-    log.setLevel(LogLevel.DEBUG);
-  }
+public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeFieldStub> implements HaxePsiField {
 
   public HaxePsiFieldImpl(ASTNode node) {
     super(node);
   }
 
+  public HaxePsiFieldImpl(HaxeFieldStub stub, IStubElementType<?, ?> nodeType) {
+    super(stub, nodeType);
+  }
+
   private HaxeBaseMemberModel _model = null;
   @Override
   public HaxeBaseMemberModel getModel() {
-    if (_model == null) {
+    if (_model == null || !_model.isValid()) {
       if (this instanceof HaxeObjectLiteralElementImpl objectLiteralElement) {
         _model = new  HaxeObjectLiteralMemberModel(objectLiteralElement);
       } else if (this instanceof HaxeEnumValueDeclarationField enumValueDeclaration) {
@@ -162,14 +163,14 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Nullable
   @Override
   public PsiClass getContainingClass() {
-    return PsiTreeUtil.getParentOfType(this, HaxeClass.class, true);
+    return PsiTreeUtil.getStubOrPsiParentOfType(this, HaxeClass.class);
   }
 
   @NotNull
   @Override
   public PsiType getType() {
     PsiType psiType = null;
-    final HaxeTypeTag tag = PsiTreeUtil.getChildOfType(this, HaxeTypeTag.class);
+    final HaxeTypeTag tag = PsiTreeUtil.getStubChildOfType(this, HaxeTypeTag.class);
     if (tag != null) {
       final HaxeTypeOrAnonymous toa = tag.getTypeOrAnonymous();
       final HaxeType type = (toa != null) ? toa.getType() : null;
@@ -233,6 +234,34 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
   @Override
   public HaxeModifierList getModifierList() {
 
+    HaxeFieldStub stub = getGreenStub();
+    if (stub != null) {
+      return createStubBackedModifierList(stub);
+    } else {
+    return createASTBackedModifierList();
+    }
+  }
+
+  @Override
+  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
+    return this.getModifierList().hasModifierProperty(name);
+  }
+
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
+    if (localVar != null) {
+      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(localVar, HaxeBlockStatement.class);
+      if (outerBlock != null) {
+        return new LocalSearchScope(outerBlock);
+      }
+    }
+    return super.getUseScope();
+  }
+
+
+  private @NonNull HaxeModifierList createASTBackedModifierList() {
     HaxeModifierList list = super.getModifierList();
 
     if (null == list) {
@@ -255,25 +284,22 @@ public abstract class HaxePsiFieldImpl extends AbstractHaxeNamedComponent implem
     } else {
       list.setModifierProperty(HaxePsiModifier.PRIVATE, true);
     }
-
     return list;
   }
 
-  @Override
-  public boolean hasModifierProperty(@HaxePsiModifier.ModifierConstant @NonNls @NotNull String name) {
-    return this.getModifierList().hasModifierProperty(name);
-  }
-
-  @NotNull
-  @Override
-  public SearchScope getUseScope() {
-    final PsiElement localVar = UsefulPsiTreeUtil.getParentOfType(this, HaxeLocalVarDeclaration.class);
-    if (localVar != null) {
-      final PsiElement outerBlock = UsefulPsiTreeUtil.getParentOfType(localVar, HaxeBlockStatement.class);
-      if (outerBlock != null) {
-        return new LocalSearchScope(outerBlock);
-      }
+  private @NonNull HaxeModifierListFromStub createStubBackedModifierList(HaxeFieldStub stub) {
+    HaxeModifierListFromStub list = new HaxeModifierListFromStub(this);
+    if (stub.isStatic()) {
+      list.addModifier(HaxePsiModifier.STATIC);
     }
-    return super.getUseScope();
+    if (stub.isPublic()) {
+      list.addModifier(HaxePsiModifier.PUBLIC);
+    } else {
+      list.addModifier(HaxePsiModifier.PRIVATE);
+    }
+    if(stub.isInline()) {
+      list.addModifier(HaxePsiModifier.INLINE);
+    }
+    return list;
   }
 }

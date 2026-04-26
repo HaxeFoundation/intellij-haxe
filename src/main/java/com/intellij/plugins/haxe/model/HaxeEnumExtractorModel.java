@@ -339,4 +339,9 @@ public class HaxeEnumExtractorModel implements HaxeModel {
   public @Nullable FullyQualifiedInfo getQualifiedInfo() {
     return null;
   }
+
+  @Override
+  public boolean isValid() {
+    return extractor.isValid();
+  }
 }
