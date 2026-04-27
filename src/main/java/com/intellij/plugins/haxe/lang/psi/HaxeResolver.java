@@ -370,16 +370,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               if(haxeClass.getModel() instanceof  HaxeEnumModel enumModel) {
                 boolean isInPatternMatcher = isInsidePatternMatcher(reference);
                 for (HaxeEnumValueModel value : enumModel.getValues()) {
-                  if(value.getNamePsi().textMatches(reference)) {
+                  if(reference.textMatches(value.getName())) {
                     if (value instanceof HaxeEnumValueConstructorModel constructorModel) {
                       // validate parameters if callExpression ignore if EnumExtractor
                       if (!(reference.getParent() instanceof HaxeEnumValueReference)) {
+                        if (isInPatternMatcher) {
+                          return List.of(constructorModel.getNamePsi());
+                        }
                         boolean isValidConstructor = testAsEnumValueConstructor(constructorModel.getEnumValuePsi(), referenceExpression);
-                        if (isValidConstructor || isInPatternMatcher) {
+                        if (isInPatternMatcher) {
                           return List.of(constructorModel.getNamePsi());
                         }
                       }
-                    } else if (isInPatternMatcher && value instanceof HaxeEnumValueFieldModel fieldModel) {
+                    } else if (value instanceof HaxeEnumValueFieldModel fieldModel) {
                       return List.of(fieldModel.getNamePsi());
                     }
                   }
