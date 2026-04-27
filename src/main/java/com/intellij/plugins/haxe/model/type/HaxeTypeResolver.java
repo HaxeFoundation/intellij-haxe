@@ -47,6 +47,8 @@ import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorH
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.tryToFindTypeFromUsage;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroTypeUtil.isRestClassType;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
+import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.getUnknown;
+
 @CustomLog
 public class HaxeTypeResolver {
   @NotNull
@@ -590,36 +592,37 @@ public class HaxeTypeResolver {
 
   static public ResultHolder getTypeFromType(@NotNull HaxeType type, @Nullable HaxeGenericResolver resolver, boolean useAssignHint) {
     //TODO mlo : looks like we need recursion guard (typedef looping back to itself)
-    if (resolver != null && !resolver.isEmpty()) {
-      PsiElement resolved = type.getReferenceExpression().resolve();
-      if (resolved instanceof HaxeTypeParameterDeclaration typeParameter) {
-        ResultHolder resolve = resolver.resolve(typeParameter);
+
+    SpecificHaxeClassReference specificHaxeClassReference = resolveTypeFromType(type);
+
+    if(specificHaxeClassReference.isTypeParameter()) {
+      if (resolver != null && !resolver.isEmpty()) {
+        ResultHolder resolve = resolver.resolve(specificHaxeClassReference.createHolder());
         if (resolve != null && !resolve.isUnknown()) {
           return resolve;
         }
       }
     }
 
-    HaxeReferenceExpression expression = type.getReferenceExpression();
-    HaxeClassReference reference;
-    ResultHolder result;
-    if(!expression.textContains('.')){
-      // Note: using caching here as the expression evaluation cache wont cache results with unknown typeParameters
-      // but this resolve resolves Type Psi with empty GenericResolver so the result should always be the same until psi changes
-    result = CachedValuesManager.getProjectPsiDependentCache(expression, HaxeTypeResolver::resolveTypeFromType);
-    }else {
-      // Note: avoid caching when references contain more than just type name, ex. ModuleName.ClassName
-      // as we have some issues with caching unknown for these references
-      result = HaxeTypeResolver.resolveTypeFromType(expression);
+    ResultHolder result = specificHaxeClassReference.createHolder();
+    // hackish way to ignore typeParameters for dynamic if not in expression
+    // if type equals "Dynamic" and not "Dynamic<...>"
+    if (specificHaxeClassReference.isDynamic()) {
+      if (type.textMatches("Dynamic")) {
+        result = SpecificHaxeClassReference.getDynamic(type).createHolder();
+      }
     }
 
 
-    final HaxeClass resolvedHaxeClass =( result != null  && !result.isUnknown() && result.isClassType()) ? result.getClassType().getHaxeClass() : null;
+    final HaxeClass resolvedHaxeClass =( !result.isUnknown() && result.isClassType()) ? result.getClassType().getHaxeClass() : null;
+
+    HaxeClassReference reference;
     if (resolvedHaxeClass == null) {
+      HaxeReferenceExpression expression = type.getReferenceExpression();
       boolean isTypeParameter = isTypeParameter(expression);
       reference = HaxeClassReference.createNoModelClassReference(expression.getText(), type, isTypeParameter);
     } else {
-      reference = new HaxeClassReference(resolvedHaxeClass.getModel(), type);
+      reference = specificHaxeClassReference.getHaxeClassReference();
     }
 
     HaxeTypeParam param = type.getTypeParam();
@@ -655,15 +658,23 @@ public class HaxeTypeResolver {
       }
     }
     else if (null != resolvedHaxeClass) {
-
       ResultHolder[] specifics = result.getClassType().getGenericResolver().getSpecificsFor(resolvedHaxeClass);
       Collections.addAll(references, specifics);
     }
+
     return SpecificHaxeClassReference.withGenerics(reference, references.toArray(ResultHolder.EMPTY)).createHolder();
   }
 
-  private static ResultHolder resolveTypeFromType(HaxeReferenceExpression expression) {
-    return  HaxeExpressionEvaluator.evaluate(expression, new HaxeGenericResolver()).result;
+  @NotNull private static SpecificHaxeClassReference resolveTypeFromType(@NotNull HaxeType type) {
+    HaxeReferenceExpression expression = type.getReferenceExpression();
+    PsiElement resolved = expression.resolve();
+    if (resolved instanceof HaxeTypeParameterDeclaration typeParameter) {
+      return typeParameter.getModel().createSpecificReference(type);
+    } else if (resolved instanceof HaxeClass haxeClass) {
+      return haxeClass.getModel().createSpecificReference(type);
+    } else {
+      return  getUnknown(type);
+    }
   }
 
   @NotNull
