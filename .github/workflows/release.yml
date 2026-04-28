@@ -1,0 +1,106 @@
+name: Release plugin
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write   # create GitHub Releases
+  pages: write      # deploy to GitHub Pages
+  id-token: write   # required by actions/deploy-pages
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build plugin
+        run: ./gradlew clean buildPlugin --no-daemon
+
+      - name: Identify built artifact
+        id: artifact
+        run: |
+          ZIP_PATH=$(ls intellij-haxe*.zip 2>/dev/null | head -1)
+          if [ -z "$ZIP_PATH" ]; then
+            echo "::error::No intellij-haxe*.zip produced at project root"
+            exit 1
+          fi
+          echo "zip_path=$ZIP_PATH"               >> "$GITHUB_OUTPUT"
+          echo "zip_name=$(basename "$ZIP_PATH")" >> "$GITHUB_OUTPUT"
+          echo "version=${GITHUB_REF_NAME#v}"     >> "$GITHUB_OUTPUT"
+
+      - name: Extract IDE compatibility from patched plugin.xml
+        id: compat
+        run: |
+          PLUGIN_XML=$(find build -name plugin.xml -type f 2>/dev/null | head -1)
+          if [ -z "$PLUGIN_XML" ]; then
+            echo "::error::plugin.xml not found in build/ — patchPluginXml may not have run"
+            exit 1
+          fi
+          SINCE=$(sed -nE 's/.*since-build="([^"]+)".*/\1/p' "$PLUGIN_XML" | head -1)
+          UNTIL=$(sed -nE 's/.*until-build="([^"]+)".*/\1/p' "$PLUGIN_XML" | head -1)
+          if [ -z "$SINCE" ] || [ -z "$UNTIL" ]; then
+            echo "::error::Could not parse since-build/until-build from $PLUGIN_XML"
+            cat "$PLUGIN_XML"
+            exit 1
+          fi
+          echo "since=$SINCE" >> "$GITHUB_OUTPUT"
+          echo "until=$UNTIL" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.artifact.outputs.zip_path }}
+          generate_release_notes: true
+
+      - name: Generate updatePlugins.xml
+        run: |
+          mkdir -p public
+          DOWNLOAD_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${{ steps.artifact.outputs.zip_name }}"
+          cat > public/updatePlugins.xml <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <plugins>
+            <plugin
+              id="com.intellij.plugins.haxe"
+              url="${DOWNLOAD_URL}"
+              version="${{ steps.artifact.outputs.version }}">
+              <idea-version since-build="${{ steps.compat.outputs.since }}" until-build="${{ steps.compat.outputs.until }}"/>
+              <name>Haxe Toolkit Support (Fork)</name>
+              <vendor>${GITHUB_REPOSITORY_OWNER}</vendor>
+              <description><![CDATA[Custom fork of the Haxe IntelliJ plugin.]]></description>
+              <change-notes><![CDATA[Built from ${GITHUB_SHA} by ${GITHUB_WORKFLOW} run #${GITHUB_RUN_NUMBER}.]]></change-notes>
+            </plugin>
+          </plugins>
+          EOF
+          echo "Generated descriptor:"
+          cat public/updatePlugins.xml
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4

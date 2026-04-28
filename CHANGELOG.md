@@ -1,4 +1,8 @@
 # Changelog
+## 1.8.1-fork.0
+* Resolve import.hx for files in haxelib Library Sources where no module Source Root exists
+* Derive walk boundary from package depth when sourceRoot is null
+
 ## 1.8.1
 * Added: Initial support for spellchecking
 * Fixed: Hierarchy view missing elements from interfaces extending more than one interface.

@@ -147,7 +147,7 @@ intellijPlatform {
 changelog {
     groups.empty()
     keepUnreleasedSection.set(false)
-    headerParserRegex.set("(\\d+\\.\\d+(\\.\\d+)*)(.*)") // old version names does not conform to standard
+    headerParserRegex.set("(\\d+\\.\\d+(\\.\\d+)*(-[\\w.]+)?)(.*)") // old version names does not conform to standard; also accepts SemVer pre-release suffixes (e.g. -fork.N)
 
 }
 
