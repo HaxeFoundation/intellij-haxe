@@ -2,6 +2,7 @@
 .idea/
 .intellijPlatform/
 .gradle/
+.claude/
 /idea/
 /build/
 */build/
@@ -10,4 +11,5 @@
 .project
 local-build-overrides.xml
 intellij-haxe*.jar
-
+intellij-haxe*.zip
+/docs/
