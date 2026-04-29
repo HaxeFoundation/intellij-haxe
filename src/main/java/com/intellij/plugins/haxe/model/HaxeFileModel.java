@@ -189,13 +189,16 @@ public class HaxeFileModel implements HaxeExposableModel {
           return haxePackageStub.getPackageName();
         }
       }
+      // if there's no package stub, then there wont be a result for getPackagePsi either
+      return detectPackageName();
+    }else {
+      HaxePackageStatement value = getPackagePsi();
+      if (value != null) {
+        String name = value.getPackageName();
+        return name == null ? "" : name;
+      }
+      return detectPackageName();
     }
-    HaxePackageStatement value = getPackagePsi();
-    if (value != null) {
-      String name = value.getPackageName();
-      return name == null ? "" : name;
-    }
-    return detectPackageName();
   }
 
   public HaxeProjectModel getProject() {

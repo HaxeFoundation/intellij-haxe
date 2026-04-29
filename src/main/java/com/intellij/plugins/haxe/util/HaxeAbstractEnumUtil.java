@@ -20,6 +20,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.type.HaxeClassReference;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -47,8 +49,13 @@ public class HaxeAbstractEnumUtil {
   @Contract("null -> false")
   public static boolean couldBeAbstractEnumField(@Nullable PsiElement element) {
     if (element != null && element instanceof HaxeFieldDeclaration decl) {
-      if (decl.getPropertyDeclaration() == null && !decl.isStatic()) {
-        return true;
+      HaxeFieldStub stub = decl.getStub();
+      if(stub != null) {
+        return stub.isProperty() && !stub.isStatic();
+      }else {
+        if (decl.getPropertyDeclaration() == null && !decl.isStatic()) {
+          return true;
+        }
       }
     }
     return false;

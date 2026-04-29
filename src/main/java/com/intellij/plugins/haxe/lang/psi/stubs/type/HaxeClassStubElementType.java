@@ -129,12 +129,16 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     var metas = HaxeMetadataUtils.getMetadataList(psi, HaxeMeta.COMPILE_TIME);
     int flags = 0;
     for (HaxeMeta meta : metas) {
-      if (meta.isType(HaxeMeta.FINAL))         flags |= HaxeClassStub.META_FINAL;
-      if (meta.isType(HaxeMeta.NATIVE))        flags |= HaxeClassStub.META_NATIVE;
-      if (meta.isType(HaxeMeta.DEPRECATED))    flags |= HaxeClassStub.META_DEPRECATED;
-      if (meta.isType(HaxeMeta.NO_COMPLETION)) flags |= HaxeClassStub.META_NO_COMPLETION;
-      if (meta.isType(HaxeMeta.KEEP))          flags |= HaxeClassStub.META_KEEP;
-      if (meta.isType(HaxePsiModifier.ABSTRACT)) flags |= HaxeClassStub.META_ABSTRACT;
+      if (meta.isType(HaxeMeta.FINAL))                  flags |= HaxeClassStub.META_FINAL;
+      if (meta.isType(HaxeMeta.NATIVE))                 flags |= HaxeClassStub.META_NATIVE;
+      if (meta.isType(HaxeMeta.DEPRECATED))             flags |= HaxeClassStub.META_DEPRECATED;
+      if (meta.isType(HaxeMeta.NO_COMPLETION))          flags |= HaxeClassStub.META_NO_COMPLETION;
+      if (meta.isType(HaxeMeta.KEEP))                   flags |= HaxeClassStub.META_KEEP;
+      if (meta.isType(HaxePsiModifier.ABSTRACT))        flags |= HaxeClassStub.META_ABSTRACT;
+      if (meta.isType(HaxePsiModifier.GENERIC_BUILD))   flags |= HaxeClassStub.META_GENERIC_BUILD;
+      if (meta.isType(HaxePsiModifier.STRUCT_INIT))     flags |= HaxeClassStub.META_STRUCT_INIT;
+      if (meta.isType(HaxePsiModifier.USING))           flags |= HaxeClassStub.META_USING;
+      if (meta.isType(HaxePsiModifier.FORWARD))         flags |= HaxeClassStub.META_FORWARD;
     }
     return flags;
   }

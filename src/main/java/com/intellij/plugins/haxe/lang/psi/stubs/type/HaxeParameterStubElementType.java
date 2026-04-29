@@ -41,8 +41,9 @@ public class HaxeParameterStubElementType extends IStubElementType<HaxeParameter
   @Override
   public HaxeParameterStub createStub(@NotNull HaxeParameter psi, StubElement<?> parentStub) {
     boolean isOptional = psi.getOptionalMark() != null;
+    boolean hasInit = psi.getVarInit() != null;
     boolean isRest = psi instanceof HaxeRestParameter;
-    return new HaxeParameterStub(parentStub, this, psi.getName(), isOptional, isRest);
+    return new HaxeParameterStub(parentStub, this, psi.getName(), isOptional, isRest, hasInit);
   }
 
   @Override

@@ -19,16 +19,20 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
 
   // Metadata-modifier flags (stored in `metaFlags`).
   // Captured at index time to avoid expensive sibling PSI traversal at runtime.
-  public static final int META_FINAL         = 0b0000001;  // @:final
-  public static final int META_NATIVE        = 0b0000010;  // @:native
-  public static final int META_DEPRECATED    = 0b0000100;  // @:deprecated
-  public static final int META_NO_COMPLETION = 0b0001000;  // @:noCompletion
-  public static final int META_KEEP          = 0b0010000;  // @:keep
+  public static final int META_FINAL         = 1 <<  0;  // @:final
+  public static final int META_NATIVE        = 1 <<  1;  // @:native
+  public static final int META_DEPRECATED    = 1 <<  2;  // @:deprecated
+  public static final int META_NO_COMPLETION = 1 <<  3;  // @:noCompletion
+  public static final int META_KEEP          = 1 <<  4;  // @:keep
 
-  public static final int META_ENUM          = 0b0100000;  // @:enum
-  public static final int META_ABSTRACT      = 0b1000000;  // @:abstract
+  public static final int META_ENUM          = 1 <<  5;  // @:enum
+  public static final int META_ABSTRACT      = 1 <<  6;  // @:abstract
 
-  // TODO metas:  GENERIC_BUILD structInit
+  public static final int META_GENERIC_BUILD = 1 <<  7;  // @:genericBuild
+  public static final int META_STRUCT_INIT   = 1 <<  8;  // @:structInit
+  public static final int META_USING         = 1 <<  9;  // @:using
+  public static final int META_FORWARD       = 1 << 11;  // @:forward
+
 
   private final String name;
 
@@ -84,6 +88,10 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
       case HaxePsiModifier.DEPRECATED     -> (metaFlags & META_DEPRECATED)    != 0;
       case HaxePsiModifier.ENUM_META      -> (metaFlags & META_ENUM)          != 0;
       case HaxePsiModifier.ABSTRACT_META  -> (metaFlags & META_ABSTRACT)      != 0;
+      case HaxePsiModifier.GENERIC_BUILD  -> (metaFlags & META_GENERIC_BUILD) != 0;
+      case HaxePsiModifier.STRUCT_INIT    -> (metaFlags & META_STRUCT_INIT)   != 0;
+      case HaxePsiModifier.USING          -> (metaFlags & META_USING)         != 0;
+      case HaxePsiModifier.FORWARD        -> (metaFlags & META_FORWARD)       != 0;
       default -> null;
     };
   }

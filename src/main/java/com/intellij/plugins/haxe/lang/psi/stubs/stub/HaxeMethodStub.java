@@ -133,6 +133,7 @@ public class HaxeMethodStub extends StubBase<HaxeMethod> implements StubWithModi
       case HaxePsiModifier.INLINE_META  -> (metaFlags & META_INLINE)        != 0;
       case HaxePsiModifier.MACRO_META   -> (metaFlags & META_MACRO)         != 0;
       case HaxePsiModifier.DEPRECATED   -> (metaFlags & META_DEPRECATED)    != 0;
+      case HaxePsiModifier.NO_USING     -> (metaFlags & META_NO_USING)      != 0;
       default -> null;
     };
   }

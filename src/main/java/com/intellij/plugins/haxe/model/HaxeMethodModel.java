@@ -22,6 +22,8 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeMethodPsiMixinImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -305,6 +307,14 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean HasNoUsingMeta() {
+    // TODO add getStubToInterface
+    if(haxeMethod instanceof HaxeMethodPsiMixinImpl mixin) {
+      HaxeMethodStub stub = mixin.getStub();
+      if(stub!= null) {
+        return stub.hasMetaModifier(HaxePsiModifier.NO_USING);
+      }
+    }
+
     return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.NO_USING);
   }
 

@@ -23,6 +23,7 @@ import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil;
@@ -75,6 +76,10 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public boolean isOptional() {
+    HaxeParameterStub stub = getParameterPsi().getStub();
+    if(stub != null) {
+      return stub.isOptional() ||stub.hasInit();
+    }
     return this.hasOptionalPsi() || this.hasInit();
   }
 

@@ -79,7 +79,7 @@ public class HaxeGenericParamModel  extends  HaxeClassModel{
   private static String getNameCached(HaxeGenericListPart part) {
     return CachedValuesManager.getCachedValue(part, () -> {
       HaxeComponentName componentName = part.getComponentName();
-      String text = componentName == null ? null : componentName.getText();
+      String text = componentName == null ? null : componentName.getName();
       return new CachedValueProvider.Result<>(text, part, componentName);
     });
   }

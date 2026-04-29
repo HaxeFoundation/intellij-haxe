@@ -17,7 +17,9 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
@@ -49,6 +51,12 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   }
 
   public boolean hasForwards() {
+    if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
+      HaxeClassStub stub = psiClass.getStub();
+      if(stub != null) {
+        return stub.hasMetaForModifier(HaxePsiModifier.FORWARD);
+      }
+    }
     return hasCompileTimeMeta(HaxeMeta.FORWARD);
   }
 

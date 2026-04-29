@@ -72,6 +72,12 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String AUTOBUILD = "@:autoBuild";
   @NonNls String DEPRECATED = "@:deprecated";
 
+  @NonNls String GENERIC_BUILD = "@:genericBuild";
+  @NonNls String STRUCT_INIT = "@:structInit";
+  @NonNls String USING = "@:using";
+  @NonNls String NO_USING = "@:noUsing";
+  @NonNls String FORWARD = "@:forward";
+
   @MagicConstant(stringValues = {
     PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, EXTERN, DYNAMIC, ABSTRACT, OVERRIDE, OVERLOAD, MACRO,
     FINAL_META,INLINE_META, KEEP_META, IS_VAR_META, COREAPI_META, BIND_META, MACRO_META, HACK_META, EXTERN_META, OVERLOAD_META,

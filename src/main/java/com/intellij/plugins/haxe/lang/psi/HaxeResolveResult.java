@@ -466,7 +466,7 @@ public class HaxeResolveResult implements Cloneable {
     for (int i = 0; i < size; i++) {
       final HaxeGenericListPart genericListPart = genericParam.getGenericListPartList().get(i);
       final HaxeComponentName genericComponentName = genericListPart != null ? genericListPart.getComponentName() : null;
-      final String genericParamName = genericComponentName != null ? genericComponentName.getText() : null;
+      final String genericParamName = genericComponentName != null ? genericComponentName.getName() : null;
 
       final PsiElement specializedType = typeList.get(i);
 

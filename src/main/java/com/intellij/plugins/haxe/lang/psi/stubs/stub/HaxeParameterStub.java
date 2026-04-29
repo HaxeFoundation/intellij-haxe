@@ -11,17 +11,21 @@ import org.jetbrains.annotations.Nullable;
  * Stub for parameter declarations (parameter, restParameter, untypedParameter).
  */
 public class HaxeParameterStub extends StubBase<HaxeParameter> implements StubWithName {
-  private static final int IS_OPTIONAL = 0b01;
-  private static final int IS_REST     = 0b10;
+  private static final int IS_OPTIONAL = 0b001;
+  private static final int IS_REST     = 0b010;
+  private static final int HAS_INIT    = 0b100;
 
   private final String name;
   private final int flags;
 
   public HaxeParameterStub(StubElement<?> parent, @NotNull IStubElementType<?, ?> elementType,
-                            @Nullable String name, boolean isOptional, boolean isRest) {
+                            @Nullable String name, boolean isOptional, boolean isRest, boolean hasInit) {
     super(parent, elementType);
     this.name = name;
-    this.flags = (isOptional ? IS_OPTIONAL : 0) | (isRest ? IS_REST : 0);
+    this.flags =
+            (isOptional ? IS_OPTIONAL : 0)
+            | (isRest ? IS_REST : 0)
+            | (hasInit ? HAS_INIT : 0);
   }
 
   public HaxeParameterStub(StubElement<?> parent, @NotNull IStubElementType<?, ?> elementType,
@@ -48,4 +52,8 @@ public class HaxeParameterStub extends StubBase<HaxeParameter> implements StubWi
   public boolean isRest() {
     return (flags & IS_REST) != 0;
   }
+
+    public boolean hasInit() {
+      return (flags & HAS_INIT) != 0;
+    }
 }
