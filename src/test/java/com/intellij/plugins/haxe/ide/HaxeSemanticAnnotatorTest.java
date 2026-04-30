@@ -59,6 +59,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testLambdaParamFromAbstractFunctionCast() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testFixPackage() throws Exception {
     doTestActions("Fix package");
   }

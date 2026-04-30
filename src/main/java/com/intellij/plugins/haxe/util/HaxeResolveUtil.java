@@ -1199,13 +1199,32 @@ public class HaxeResolveUtil {
 
     final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
     final VirtualFile sourceRoot = fileIndex.getSourceRootForFile(vfile);
-    if (null == sourceRoot) return true;
 
     boolean keepRunning = true;
-
     PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
-    final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
-    while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
+
+    if (sourceRoot != null) {
+      final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
+      while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
+        PsiFile importFile = parentDirectory.findFile("import.hx");
+        if (importFile instanceof HaxeFile) {
+          HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
+          keepRunning = processor.apply(importModel);
+        }
+        parentDirectory = parentDirectory.getParentDirectory();
+      }
+      return keepRunning;
+    }
+
+    // sourceRoot == null: typically a file inside a haxelib library registered as
+    // Library Sources rather than a module Source Root. Derive the walk boundary
+    // from the file's package: walk (package-depth + 1) directories, which mirrors
+    // the source-root behavior (file's directory, intermediate package directories,
+    // and the package root itself, but stopping before ascending out of the package root).
+    HaxePackageStatement packageStatement = PsiTreeUtil.getStubChildOfType(haxeFile, HaxePackageStatement.class);
+    String packageName = getPackageName(packageStatement);
+    int levelsToWalk = packageName.isEmpty() ? 1 : packageName.split("\\.").length + 1;
+    for (int i = 0; i < levelsToWalk && keepRunning && parentDirectory != null; i++) {
       PsiFile importFile = parentDirectory.findFile("import.hx");
       if (importFile instanceof HaxeFile) {
         HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
