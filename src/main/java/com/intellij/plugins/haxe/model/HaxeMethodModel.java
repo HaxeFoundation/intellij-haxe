@@ -311,7 +311,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     if(haxeMethod instanceof HaxeMethodPsiMixinImpl mixin) {
       HaxeMethodStub stub = mixin.getStub();
       if(stub!= null) {
-        return stub.hasMetaModifier(HaxePsiModifier.NO_USING);
+        return stub.hasMetadata(HaxeCompilerMetadata.NO_USING);
       }
     }
 

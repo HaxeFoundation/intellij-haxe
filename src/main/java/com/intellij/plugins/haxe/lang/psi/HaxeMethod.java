@@ -17,13 +17,18 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.type.HaxeStubbedElement;
+import com.intellij.psi.StubBasedPsiElement;
+import com.intellij.psi.stubs.StubElement;
+
 /**
  * Because people should not be coding to PsiMixin classes directly, this
  * is effectively an alias for that class.
  *
  * Created by ebishton on 9/28/14.
  */
-public interface HaxeMethod extends HaxeMethodPsiMixin{
+public interface HaxeMethod extends HaxeMethodPsiMixin, HaxeStubbedElement<HaxeMethodStub> {
 
     boolean isAbstract();
 

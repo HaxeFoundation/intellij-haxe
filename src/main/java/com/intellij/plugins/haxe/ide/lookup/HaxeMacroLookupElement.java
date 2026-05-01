@@ -137,7 +137,7 @@ public class HaxeMacroLookupElement extends LookupElement implements HaxeLookupE
 
 
   private void determineStriketrough() {
-    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
+    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxeCompilerMetadata.DEPRECATED)) {
           strikeout = true;
         }
   }

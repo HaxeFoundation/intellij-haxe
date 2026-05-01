@@ -25,6 +25,8 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeElementType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeExternClassDeclarationImpl;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.type.HaxeStubbedElement;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
@@ -36,6 +38,7 @@ import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.DummyHolderElement;
+import com.intellij.psi.stubs.StubElement;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +48,7 @@ import java.util.List;
 /**
  * @author: Fedor.Korotkov
  */
-public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget {
+public interface HaxeClass extends HaxeComponent, PsiClass, HaxeModelTarget, HaxeStubbedElement<HaxeClassStub> {
   HaxeClass[] EMPTY_ARRAY = new HaxeClass[0];
 
   /**

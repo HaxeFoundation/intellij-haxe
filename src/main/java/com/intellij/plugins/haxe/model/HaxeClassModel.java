@@ -168,19 +168,27 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
   }
 
   public boolean hasCompileTimeMeta(@NotNull HaxeMetadataTypeName name) {
+    HaxeClassStub stub = haxeClass.getHaxeStub();
+    if (stub != null) {
+      Boolean stubValue = stub.hasMetadata(name.asCompileTimeText());
+      if(stubValue != null) return stubValue;
+    }
     return haxeClass.hasCompileTimeMeta(name);
   }
+
   public boolean isCallable() {
+    HaxeClassStub haxeStub = haxeClass.getHaxeStub();
+    if(haxeStub != null) {
+      return haxeStub.hasMetadata(HaxeClassStub.CALLABLE);
+    }
     return haxeClass.hasCompileTimeMeta(HaxeMeta.CALLABLE);
   }
 
     public boolean isGenericBuild() {
-        if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
-          HaxeClassStub stub = psiClass.getStub();
-          if(stub != null) {
-            return stub.hasMetaForModifier(HaxePsiModifier.GENERIC_BUILD);
-          }
-        }
+      HaxeClassStub stub = haxeClass.getHaxeStub();
+      if (stub != null) {
+        return stub.hasMetadata(HaxeClassStub.GENERIC_BUILD);
+      }
         return haxeClass.hasCompileTimeMeta(HaxeMeta.GENERIC_BUILD);
     }
 
@@ -270,7 +278,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
       HaxeClassStub stub = psiClass.getStub();
       if(stub != null) {
-         return stub.hasMetaForModifier(HaxePsiModifier.USING);
+         return stub.hasMetadata(HaxeClassStub.USING);
       }
     }
     return haxeClass.getCompileTimeMeta(HaxeMeta.USING) != null;
@@ -1065,7 +1073,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
       HaxeClassStub stub = psiClass.getStub();
       if(stub != null) {
-        return stub.hasMetaForModifier(HaxePsiModifier.STRUCT_INIT);
+        return stub.hasMetadata(HaxeClassStub.STRUCT_INIT);
       }
     }
     return hasCompileTimeMeta(HaxeMeta.STRUCT_INIT);

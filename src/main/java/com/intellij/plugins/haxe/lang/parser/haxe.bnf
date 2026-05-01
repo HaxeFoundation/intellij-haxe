@@ -447,8 +447,19 @@ abstractTypeDeclaration ::= (externKeyWord|privateKeyWord)? abstractClassType co
 
 abstractClassType ::= 'enum'? 'abstract'
 underlyingType ::= '(' typeWrapper ')'
-abstractToType ::= 'to' ('(' typeWrapper ')' | typeWrapper){pin=1}
-abstractFromType ::= 'from' ('(' typeWrapper ')' | typeWrapper){pin=1}
+
+abstractToType ::= 'to' ('(' typeWrapper ')' | typeWrapper) {
+    pin=1
+    extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+    stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
+abstractFromType ::= 'from' ('(' typeWrapper ')' | typeWrapper)
+{
+    pin=1
+    extends="com.intellij.plugins.haxe.lang.psi.impl.HaxeContainerStubPsiElementBase"
+    stubClass="com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub"
+}
+
 abstractBody ::= '{' abstractBodyPart* '}' {extends="classBody"}
 private abstractBodyPart ::= fieldDeclaration | methodDeclaration | constructorDeclaration {recoverWhile="class_body_part_recover"}
 

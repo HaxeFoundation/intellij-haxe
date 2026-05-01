@@ -9,6 +9,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClass
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
+import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.psi.stubs.*;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
@@ -129,16 +130,18 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     var metas = HaxeMetadataUtils.getMetadataList(psi, HaxeMeta.COMPILE_TIME);
     int flags = 0;
     for (HaxeMeta meta : metas) {
-      if (meta.isType(HaxeMeta.FINAL))                  flags |= HaxeClassStub.META_FINAL;
-      if (meta.isType(HaxeMeta.NATIVE))                 flags |= HaxeClassStub.META_NATIVE;
-      if (meta.isType(HaxeMeta.DEPRECATED))             flags |= HaxeClassStub.META_DEPRECATED;
-      if (meta.isType(HaxeMeta.NO_COMPLETION))          flags |= HaxeClassStub.META_NO_COMPLETION;
-      if (meta.isType(HaxeMeta.KEEP))                   flags |= HaxeClassStub.META_KEEP;
-      if (meta.isType(HaxePsiModifier.ABSTRACT))        flags |= HaxeClassStub.META_ABSTRACT;
-      if (meta.isType(HaxePsiModifier.GENERIC_BUILD))   flags |= HaxeClassStub.META_GENERIC_BUILD;
-      if (meta.isType(HaxePsiModifier.STRUCT_INIT))     flags |= HaxeClassStub.META_STRUCT_INIT;
-      if (meta.isType(HaxePsiModifier.USING))           flags |= HaxeClassStub.META_USING;
-      if (meta.isType(HaxePsiModifier.FORWARD))         flags |= HaxeClassStub.META_FORWARD;
+      if (meta.isType(HaxeCompilerMetadata.FINAL))           flags |= HaxeClassStub.META_FINAL;
+      if (meta.isType(HaxeCompilerMetadata.NATIVE))          flags |= HaxeClassStub.META_NATIVE;
+      if (meta.isType(HaxeCompilerMetadata.DEPRECATED))      flags |= HaxeClassStub.META_DEPRECATED;
+      if (meta.isType(HaxeCompilerMetadata.NO_COMPLETION))   flags |= HaxeClassStub.META_NO_COMPLETION;
+      if (meta.isType(HaxeCompilerMetadata.KEEP))            flags |= HaxeClassStub.META_KEEP;
+      if (meta.isType(HaxeCompilerMetadata.ABSTRACT))        flags |= HaxeClassStub.META_ABSTRACT;
+      if (meta.isType(HaxeCompilerMetadata.GENERIC_BUILD))   flags |= HaxeClassStub.META_GENERIC_BUILD;
+      if (meta.isType(HaxeCompilerMetadata.STRUCT_INIT))     flags |= HaxeClassStub.META_STRUCT_INIT;
+      if (meta.isType(HaxeCompilerMetadata.USING))           flags |= HaxeClassStub.META_USING;
+      if (meta.isType(HaxeCompilerMetadata.FORWARD))         flags |= HaxeClassStub.META_FORWARD;
+      if (meta.isType(HaxeCompilerMetadata.CALLABLE))        flags |= HaxeClassStub.META_CALLABLE;
+      if (meta.isType(HaxeCompilerMetadata.PUBLIC_FIELDS))   flags |= HaxeClassStub.META_PUBLIC_FIELDS;
     }
     return flags;
   }

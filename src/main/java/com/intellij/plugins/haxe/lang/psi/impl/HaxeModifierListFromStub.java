@@ -68,13 +68,13 @@ public class HaxeModifierListFromStub extends LightModifierList implements HaxeM
     String modifierKey = "@:" + name.name;
 
     if (stub instanceof HaxeClassStub classStub) {
-      return classStub.hasMetaForModifier(modifierKey);
+      return classStub.hasMetadata(modifierKey);
     }
     if (stub instanceof HaxeMethodStub methodStub) {
-      return methodStub.hasMetaModifier(modifierKey);
+      return methodStub.hasMetadata(modifierKey);
     }
     if (stub instanceof HaxeFieldStub fieldStub) {
-      return fieldStub.hasMetaForModifier(modifierKey);
+      return fieldStub.hasMetadata(modifierKey);
     }
     return null;
   }

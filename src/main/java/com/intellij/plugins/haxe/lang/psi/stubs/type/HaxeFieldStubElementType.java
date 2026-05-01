@@ -84,8 +84,9 @@ public class HaxeFieldStubElementType extends IStubElementType<HaxeFieldStub, Ha
     int flags = 0;
     for (HaxeMeta meta : metas) {
       if (meta.isType(HaxeMeta.FINAL))         flags |= HaxeFieldStub.META_FINAL;
-      if (meta.isType(HaxeMeta.NATIVE))        flags |= HaxeFieldStub.META_NATIVE;
       if (meta.isType(HaxeMeta.IS_VAR))        flags |= HaxeFieldStub.META_IS_VAR;
+      if (meta.isType(HaxeMeta.INLINE))        flags |= HaxeFieldStub.META_INLINE;
+      if (meta.isType(HaxeMeta.NATIVE))        flags |= HaxeFieldStub.META_NATIVE;
       if (meta.isType(HaxeMeta.DEPRECATED))    flags |= HaxeFieldStub.META_DEPRECATED;
       if (meta.isType(HaxeMeta.NO_COMPLETION)) flags |= HaxeFieldStub.META_NO_COMPLETION;
       if (meta.isType(HaxeMeta.KEEP))          flags |= HaxeFieldStub.META_KEEP;
@@ -96,7 +97,7 @@ public class HaxeFieldStubElementType extends IStubElementType<HaxeFieldStub, Ha
   @Override
   public void serialize(@NotNull HaxeFieldStub stub, @NotNull StubOutputStream dataStream) throws IOException {
     dataStream.writeName(stub.getName());
-    dataStream.writeVarInt(stub.getFlags());
+    dataStream.writeVarInt(stub.getKeywordFlags());
     dataStream.writeVarInt(stub.getMetaFlags());
     dataStream.writeName(stub.getGetter());
     dataStream.writeName(stub.getSetter());

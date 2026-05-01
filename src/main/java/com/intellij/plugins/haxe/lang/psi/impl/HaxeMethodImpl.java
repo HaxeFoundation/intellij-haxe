@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.psi.stubs.IStubElementType;
 
@@ -38,4 +39,8 @@ public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements H
     super(stub, nodeType);
   }
 
+  @Override
+  public HaxeMethodStub getHaxeStub() {
+    return getGreenStub();
+  }
 }

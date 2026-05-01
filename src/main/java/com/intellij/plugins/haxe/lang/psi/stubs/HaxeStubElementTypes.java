@@ -145,6 +145,12 @@ public interface HaxeStubElementTypes {
   HaxeContainerStubElementType<HaxeImplementsDeclaration> IMPLEMENTS_DECLARATION =
     new HaxeContainerStubElementType<>("IMPLEMENTS_DECLARATION", (stub, type) -> new HaxeImplementsDeclarationImpl(stub, type));
 
+  // --- abstract to/from ---
+  HaxeContainerStubElementType<HaxeAbstractToType> ABSTRACT_TO_TYPE =
+    new HaxeContainerStubElementType<>("ABSTRACT_TO_TYPE", (stub, type) -> new HaxeAbstractToTypeImpl(stub, type));
+  HaxeContainerStubElementType<HaxeAbstractFromType> ABSTRACT_FROM_TYPE =
+    new HaxeContainerStubElementType<>("ABSTRACT_FROM_TYPE", (stub, type) -> new HaxeAbstractFromTypeImpl(stub, type));
+
 
 
 }

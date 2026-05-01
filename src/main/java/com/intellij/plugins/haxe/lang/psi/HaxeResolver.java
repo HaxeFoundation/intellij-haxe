@@ -1248,8 +1248,9 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private static List<HaxeComponentName> findTypeParameterPsi(HaxeReference reference, List<HaxeGenericParamModel> params) {
+    String referenceText = reference.getText();
     Optional<HaxeGenericListPart> first = params.stream()
-      .filter(p -> p.getName().equals(reference.getText()))
+      .filter(p -> p.getName().equals(referenceText))
       .map(HaxeGenericParamModel::getPsi)
       .findFirst();
     if (first.isPresent()) {
@@ -2728,12 +2729,13 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       }
       PsiElement psi = item.getBasePsi();
       if (psi instanceof  PsiPackage) return psi;
-
-      HaxeModule module = PsiTreeUtil.findChildOfType(psi, HaxeModule.class);
-      if(module != null) {
-        HaxeModuleModel model = (HaxeModuleModel) module.getModel();
-        if(model.getQName().equals(qualifiedName)) {
-          return module;
+      if(psi instanceof HaxeFile haxeFile) {
+        HaxeModule module = haxeFile.getModule();
+        if (module != null) {
+          HaxeModuleModel model = (HaxeModuleModel) module.getModel();
+          if (model.getQName().equals(qualifiedName)) {
+            return module;
+          }
         }
       }
 

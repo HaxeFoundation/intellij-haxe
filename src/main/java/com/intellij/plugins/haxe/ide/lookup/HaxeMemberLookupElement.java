@@ -283,7 +283,7 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
   }
 
   private void determineStrikethrough() {
-    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxePsiModifier.DEPRECATED)) {
+    if (model instanceof HaxeMemberModel && ((HaxeMemberModel)model).getModifiers().hasModifier(HaxeCompilerMetadata.DEPRECATED)) {
           strikeout = true;
         }
   }

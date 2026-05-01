@@ -18,6 +18,8 @@
  */
 package com.intellij.plugins.haxe.lang.psi;
 
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.type.HaxeStubbedElement;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.psi.PsiField;
@@ -35,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 //
 //                                    |||||||||||||
 //                                    vvvvvvvvvvvvv
-public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget {
+public interface HaxePsiField extends HaxeComponent, PsiField, HaxeModelTarget, HaxeStubbedElement<HaxeFieldStub> {
   @Nullable
   HaxeTypeTag getTypeTag();
 

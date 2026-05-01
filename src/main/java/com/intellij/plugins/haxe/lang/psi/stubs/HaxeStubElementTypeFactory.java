@@ -81,6 +81,9 @@ public class HaxeStubElementTypeFactory {
       case "INHERIT_LIST" -> HaxeStubElementTypes.INHERIT_LIST;
       case "EXTENDS_DECLARATION" -> HaxeStubElementTypes.EXTENDS_DECLARATION;
       case "IMPLEMENTS_DECLARATION" -> HaxeStubElementTypes.IMPLEMENTS_DECLARATION;
+      // abstract to/from
+      case "ABSTRACT_TO_TYPE" -> HaxeStubElementTypes.ABSTRACT_TO_TYPE;
+      case "ABSTRACT_FROM_TYPE" -> HaxeStubElementTypes.ABSTRACT_FROM_TYPE;
       // All other rules — plain element type
       default -> new HaxeElementType(name);
     };

@@ -54,7 +54,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     if(haxeClass instanceof AbstractHaxePsiClass psiClass) {
       HaxeClassStub stub = psiClass.getStub();
       if(stub != null) {
-        return stub.hasMetaForModifier(HaxePsiModifier.FORWARD);
+        return stub.hasMetadata(HaxeClassStub.FORWARD);
       }
     }
     return hasCompileTimeMeta(HaxeMeta.FORWARD);

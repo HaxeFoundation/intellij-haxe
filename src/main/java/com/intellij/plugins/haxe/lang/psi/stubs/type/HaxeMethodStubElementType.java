@@ -69,6 +69,7 @@ public class HaxeMethodStubElementType extends IStubElementType<HaxeMethodStub, 
       if (meta.isType(HaxeMeta.NO_COMPLETION))      flags |= HaxeMethodStub.META_NO_COMPLETION;
       if (meta.isType(HaxeMeta.KEEP))               flags |= HaxeMethodStub.META_KEEP;
       if (meta.isType(HaxeMeta.NO_USING))           flags |= HaxeMethodStub.META_NO_USING;
+      if (meta.isType(HaxeMeta.OVERLOAD))           flags |= HaxeMethodStub.META_OVERLOAD;
     }
     return flags;
   }

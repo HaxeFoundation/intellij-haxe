@@ -23,6 +23,9 @@ import com.intellij.lang.ASTNode;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 
@@ -100,6 +103,17 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
     }
     return this;
   }
+
+  @Override
+  public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
+    HaxeFieldStub stub = getStub();
+    if(stub != null) {
+      Boolean stubValue = stub.hasMetadata(metadataType.getTypeName());
+      if(stubValue != null) return stubValue;
+    }
+    return super.hasMetadata(name, metadataType);
+  }
+
 
   @Override
   @Nullable
@@ -301,5 +315,10 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
       list.addModifier(HaxePsiModifier.INLINE);
     }
     return list;
+  }
+
+  @Override
+  public HaxeFieldStub getHaxeStub() {
+    return getGreenStub();
   }
 }

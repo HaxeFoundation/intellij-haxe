@@ -43,49 +43,36 @@ public interface HaxePsiModifier extends PsiModifier, HaxePsiCompositeElement {
   @NonNls String EXTERN = "extern";
 
   @NonNls String FINAL_META = "@:final";
-  @NonNls String INLINE_META = "@:inline"; // HaxeMeta.INLINE
+  @NonNls String INLINE_META = "@:inline";
   @NonNls String IS_VAR_META = "@:isVar";
-  @NonNls String KEEP_META = "@:keep";
-  @NonNls String COREAPI_META = "@:coreApi";
-  @NonNls String BIND_META = "@:bind";
-  @NonNls String HACK_META = "@:hack";
   @NonNls String EXTERN_META = "@:extern";
   @NonNls String OVERLOAD_META = "@:overload";
 
   @NonNls String ENUM_META = "@:enum";
   @NonNls String ABSTRACT_META = "@:abstract";
-
   @NonNls String MACRO_META = "@:macro";
-  @NonNls String UNREFLECTIVE = "@:unreflective";
-
   @NonNls String NATIVE = "@:native";
-  @NonNls String JSREQUIRE = "@:jsRequire";
 
-  @NonNls String REQUIRE = "@:require";
-
-  @NonNls String NS = "@:ns";
-  @NonNls String META = "@:meta";
-  @NonNls String BITMAP = "@:bitmap";
-  @NonNls String FAKEENUM = "@:fakeEnum";
-
-  @NonNls String BUILD = "@:build";
-  @NonNls String AUTOBUILD = "@:autoBuild";
-  @NonNls String DEPRECATED = "@:deprecated";
-
-  @NonNls String GENERIC_BUILD = "@:genericBuild";
-  @NonNls String STRUCT_INIT = "@:structInit";
-  @NonNls String USING = "@:using";
-  @NonNls String NO_USING = "@:noUsing";
-  @NonNls String FORWARD = "@:forward";
 
   @MagicConstant(stringValues = {
     PUBLIC, PRIVATE, EMPTY, STATIC, FINAL, EXTERN, DYNAMIC, ABSTRACT, OVERRIDE, OVERLOAD, MACRO,
-    FINAL_META,INLINE_META, KEEP_META, IS_VAR_META, COREAPI_META, BIND_META, MACRO_META, HACK_META, EXTERN_META, OVERLOAD_META,
-    ENUM_META, ABSTRACT_META, REQUIRE, FAKEENUM, NATIVE, JSREQUIRE, BITMAP, NS, META, BUILD,
-    AUTOBUILD, UNREFLECTIVE, DEPRECATED, INLINE
+    FINAL_META,INLINE_META,  IS_VAR_META,   MACRO_META,  EXTERN_META, OVERLOAD_META,
+    ENUM_META, ABSTRACT_META,  NATIVE, INLINE
   })
   @interface ModifierConstant {
   }
+
+  @MagicConstant(stringValues = {PUBLIC, PRIVATE, ABSTRACT, EMPTY, INLINE, STATIC, DYNAMIC,
+          FINAL, VAR, OVERRIDE, OVERLOAD, MACRO, EXTERN})
+  public @interface KeywordConstant {
+
+  }
+
+  @MagicConstant(stringValues = {FINAL_META, INLINE_META, IS_VAR_META, EXTERN_META, OVERLOAD_META, ENUM_META, ABSTRACT_META, MACRO_META, NATIVE})
+  public @interface MetaConstant {
+
+  }
+
 
   static String getStringWithSpace(@ModifierConstant String modifier) {
     return (modifier.length() == 0) ? "" : (modifier + " ");

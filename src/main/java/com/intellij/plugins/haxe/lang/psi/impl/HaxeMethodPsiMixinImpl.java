@@ -25,6 +25,9 @@ import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.HaxeEnumValueConstructorModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 
@@ -100,6 +103,18 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
       }
     }
     return _model;
+  }
+
+  @Override
+  public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
+    if (metadataType == HaxeMetadataCompileTimeMeta.class) {
+      HaxeMethodStub stub = getStub();
+      if (stub != null) {
+        Boolean stubValue = stub.hasMetadata(name.asCompileTimeText());
+        if (stubValue != null) return stubValue;
+      }
+    }
+    return super.hasMetadata(name, metadataType);
   }
 
   @Nullable

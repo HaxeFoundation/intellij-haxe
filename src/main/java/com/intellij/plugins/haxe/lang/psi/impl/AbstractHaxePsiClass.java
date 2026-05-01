@@ -30,14 +30,13 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
@@ -393,13 +392,23 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     if (isAbstractType()) {
       HaxeClassStub greenStub = getGreenStub();
       if(greenStub != null){
-        return greenStub.isEnum() || greenStub.hasMetaForModifier(HaxePsiModifier.ENUM_META) == Boolean.TRUE;
+        return greenStub.isEnum() || greenStub.hasMetadata(HaxeClassStub.ENUM_META) == Boolean.TRUE;
       }else {
         return hasCompileTimeMeta(HaxeMeta.ENUM) ||
                ((HaxeAbstractTypeDeclaration)this).getAbstractClassType().getFirstChild().textMatches("enum");
       }
     }
     return false;
+  }
+
+  @Override
+  public boolean hasMetadata(HaxeMetadataTypeName name, @Nullable Class<? extends HaxeMeta> metadataType) {
+    HaxeClassStub stub = getStub();
+    if(stub != null) {
+      Boolean stubValue = stub.hasMetadata(metadataType.getTypeName());
+      if(stubValue != null) return stubValue;
+    }
+    return super.hasMetadata(name, metadataType);
   }
 
   @Override
@@ -889,5 +898,10 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     if (file != null && file.getClasses().length == 0) {
       file.delete();
     }
+  }
+
+  @Override
+  public HaxeClassStub getHaxeStub() {
+    return getGreenStub();
   }
 }
