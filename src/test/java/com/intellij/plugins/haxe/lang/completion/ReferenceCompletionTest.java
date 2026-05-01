@@ -223,6 +223,11 @@ public class ReferenceCompletionTest extends HaxeCompletionTestBase {
     doTest();
   }
 
+  @Test
+  public void testStaticPrivateMember() throws Throwable {
+    doTestInclude();
+  }
+
   //https://github.com/TiVo/intellij-haxe/issues/262
   @Test
   public void testStaticField() throws Throwable {

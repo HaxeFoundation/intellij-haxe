@@ -47,6 +47,7 @@ public class HaxeReferenceSuggestionUtil {
 
         boolean hasProcessedTypeMembers = false;
         boolean isStaticAccess = isStaticAccess(leftReference, resolvedPsi);
+        boolean isFirstInChain = isFirstInChain(haxeReference);
 
         switch (resolvedPsi) {
             case PsiPackage psiPackage -> addPackageSuggestions(variants, psiPackage);
@@ -106,6 +107,15 @@ public class HaxeReferenceSuggestionUtil {
             };
         if(!skipTypeMembers && !hasProcessedTypeMembers){
             addClassMemberSuggestions(variants, resolvedType, targetReference);
+            // suggest static members from current class if  ref is not a chain
+            if(!isStaticAccess && isFirstInChain) {
+                if(resolvedType.getType() instanceof SpecificHaxeClassReference classReference) {
+                    HaxeClass haxeClass = classReference.getHaxeClass();
+                    if(haxeClass != null) {
+                        addClassStaticMemberSuggestions(variants, haxeClass, false);
+                    }
+                }
+            }
         }
         if(leftReference!= null) {
             if(!hasProcessedTypeMembers) {
@@ -483,5 +493,8 @@ public class HaxeReferenceSuggestionUtil {
             }
         }
         return false;
+    }
+    private static boolean isFirstInChain(HaxeReference reference) {
+        return reference.getChildren().length == 1;
     }
 }
