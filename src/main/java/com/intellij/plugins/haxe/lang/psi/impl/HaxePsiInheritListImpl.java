@@ -21,11 +21,8 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
-import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
 import lombok.CustomLog;
@@ -73,26 +70,40 @@ public abstract class HaxePsiInheritListImpl extends HaxeContainerStubPsiElement
 
   public PsiClassType @NotNull [] getReferencedImplements() {
     List<HaxeType> typeList = getImplementTypes();
-    PsiJavaCodeReferenceElement[] ref = getReferenceElements(typeList);
-    PsiClassType[] types = createPsiClassTypesForCodeReference(ref);
-    return types;
+    List<HaxeClass> list = new ArrayList<>();
+    for (HaxeType haxeType : typeList) {
+      if(haxeType.getReferenceExpression().resolve() instanceof HaxeClass aClass) {
+        list.add(aClass);
+      }
+    }
 
+    return createPsiClassTypes(list.toArray(HaxeClass[]::new));
   }
-
-
 
   public PsiClassType @NotNull [] getReferencedExtends() {
     List<HaxeType> typeList = getExtendsTypes();
 
-    PsiJavaCodeReferenceElement[] ref = getReferenceElements(typeList);
-    PsiClassType[] types = createPsiClassTypesForCodeReference(ref);
+    List<HaxeClass> list = new ArrayList<>();
+    for (HaxeType haxeType : typeList) {
+      if(haxeType.getReferenceExpression().resolve() instanceof HaxeClass aClass) {
+        list.add(aClass);
+      }
+    }
 
-    return types;
+    return createPsiClassTypes(list.toArray(HaxeClass[]::new));
   }
 
 
 
   private PsiClassType @NonNull [] createPsiClassTypesForCodeReference(PsiJavaCodeReferenceElement[] ref) {
+    PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
+    PsiClassType[] types = new PsiClassType[ref.length];
+    for (int i = 0; i < ref.length; i++) {
+      types[i] = factory.createType(ref[i]);
+    }
+    return types;
+  }
+  private PsiClassType @NonNull [] createPsiClassTypes(HaxeClass[] ref) {
     PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
     PsiClassType[] types = new PsiClassType[ref.length];
     for (int i = 0; i < ref.length; i++) {
