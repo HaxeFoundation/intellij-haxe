@@ -2,12 +2,12 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFunctionType;
-import com.intellij.plugins.haxe.lang.psi.HaxeMethodDeclaration;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterScope;
 import com.intellij.plugins.haxe.model.*;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
+import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -360,6 +360,11 @@ public class HaxeAssignEvaluation {
   // checks if anonymous type contains all members (also checks  @:struct (constructor))
   public void testAnonymousAssignRules() {
     if (to instanceof SpecificHaxeClassReference toClassReference && from instanceof SpecificHaxeClassReference fromClassReference) {
+      // custom logic as we dont want to lose the typeParameter
+      if(to.isExprOf()) {
+          testExprOfAssignRules(toClassReference, fromClassReference);
+          return;
+      }
       HaxeClassModel toModel = toClassReference.getHaxeClassModel();
       if (toModel != null) {
         if(toModel.isAnonymous() || toModel.isObjectLiteral() || toModel.isStructInit() ) {
@@ -378,6 +383,70 @@ public class HaxeAssignEvaluation {
       }
     }
   }
+
+    private void testExprOfAssignRules(SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
+      if(toClassReference.fullyResolveTypeDefReference() instanceof SpecificHaxeClassReference expr) {
+        if(containsAllMembers(toClassReference, fromClassReference, this)) {
+          if(fromClassReference.isObjectLiteral()) {
+            @NotNull ResultHolder[] specifics = toClassReference.getSpecifics();
+            if(specifics.length == 1) {
+              if(checkExprType(fromClassReference, specifics[0])) {
+                return;
+              }
+            }
+          }
+          complete(true, "all members for ExprOf<T> found");
+          return;
+        }
+      }
+
+    }
+
+  private boolean checkExprType(SpecificHaxeClassReference fromClassReference, @NotNull ResultHolder specific) {
+    HaxeBaseMemberModel exprModel = fromClassReference.getHaxeClassModel().getMember("expr", null);
+    if (exprModel instanceof HaxeObjectLiteralMemberModel memberModel) {
+      ResultHolder exprFieldType = memberModel.getResultType();
+      if (exprFieldType.isEnumValueType()) {
+        // check if we try to assign to a const expression
+        if (exprFieldType.getEnumValueType().getModel().getName().equals("EConst")) {
+          //find  what kind of const
+          PsiElement valuePsi = memberModel.getValuePsi();
+          if(valuePsi instanceof HaxeCallExpression callExpression) {
+            HaxeCallExpressionList expressionList = callExpression.getExpressionList();
+            @NotNull PsiElement[] children = expressionList.getChildren();
+            if(children.length  == 1) {
+              if(children[0] instanceof HaxeCallExpression constEnumConstructorCall) {
+                if(constEnumConstructorCall.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
+                  PsiElement resolve = referenceExpression.resolve();
+                  if(resolve instanceof HaxeEnumValueDeclarationConstructor constructor) {
+                    String name = constructor.getComponentName().getName();
+
+                    SpecificTypeReference specificTypeReference = specific.getType();
+                    if(specificTypeReference.isNumeric()) {
+                      if(!name.equals("CInt") && !name.equals("CFloat")) {
+                        explanations.addWrongTypeMember(name, " numeric (CInt or CFloat)", constEnumConstructorCall);
+                        complete(false, "expected numeric type in EConst");
+                        return true;
+                      }
+                    }
+                    if(specificTypeReference.isString()) {
+                      if (!name.equals("CString")) {
+                        explanations.addWrongTypeMember(name, "CString", constEnumConstructorCall);
+                        complete(false, "expected String in EConst");
+                        return true;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   // if to target is typeParameter with constraints, extract constraint and test
   public void testTypeParameterConstraints(boolean checkDirectCasts, boolean checkImplicitCasts) {
     if (to instanceof SpecificHaxeClassReference toClassReference) {
