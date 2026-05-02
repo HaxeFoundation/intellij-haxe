@@ -42,7 +42,7 @@ public class HaxeFindUsagesHandler extends HaxeFindUsagesHandlerNS {
                                       @NotNull Processor<? super UsageInfo> processor,
                                       @NotNull FindUsagesOptions options) {
     //noinspection unchecked
-    return  ReadAction.computeCancellable(() -> {
+    return  ReadAction.computeBlocking(() -> {
       return processElementUsagesWorker(element, (Processor<UsageInfo>) processor, options);
     });
   }
