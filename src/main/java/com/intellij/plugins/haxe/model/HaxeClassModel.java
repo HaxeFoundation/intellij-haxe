@@ -25,6 +25,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeComponentNameStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -542,9 +544,11 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       if(greenStub != null) {
         List<HaxeBaseMemberModel> list = new ArrayList<>();
         for (StubElement<?> element : greenStub.getChildrenStubs()) {
-          HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(element.getPsi());
-          if (model != null) {
-            list.add(model);
+          if(!(element instanceof HaxeEmptyContainerStub)) {
+            HaxeBaseMemberModel model = HaxeBaseMemberModel.fromPsi(element.getPsi());
+            if (model != null) {
+              list.add(model);
+            }
           }
         }
         return list;

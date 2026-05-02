@@ -5,6 +5,8 @@ import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeStubBasedNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeComponentNameStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -96,10 +98,11 @@ public class HaxeNamedSubComponentUtil {
     private static @NonNull List<HaxeNamedComponent> getComponentsFromStub(HaxeModuleStub stub) {
         List<HaxeNamedComponent> list = new ArrayList<>();
         for (StubElement<?> element : stub.getChildrenStubs()) {
-          PsiElement psi = element.getPsi();
-          if (psi instanceof HaxeNamedComponent component) {
-            list.add(component);
-          }
+            if(!(element instanceof HaxeEmptyContainerStub)) {
+                if (element.getPsi() instanceof HaxeNamedComponent component) {
+                    list.add(component);
+                }
+            }
         }
         return list;
     }
@@ -257,8 +260,10 @@ public class HaxeNamedSubComponentUtil {
                 usingStubData = true;
                 List<StubElement<?>> stubs = stub.getChildrenStubs();
                 for (StubElement<?> element : stubs) {
-                    if(element.getPsi() instanceof HaxeNamedComponent component) {
-                        primaryMembers.add(component);
+                    if(!(element instanceof HaxeEmptyContainerStub)) {
+                        if (element.getPsi() instanceof HaxeNamedComponent component) {
+                            primaryMembers.add(component);
+                        }
                     }
                 }
             }
