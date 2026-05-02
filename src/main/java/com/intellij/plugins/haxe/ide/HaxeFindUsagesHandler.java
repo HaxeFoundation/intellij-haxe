@@ -17,6 +17,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.find.findUsages.FindUsagesOptions;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.psi.PsiElement;
 import com.intellij.usageView.UsageInfo;
 import com.intellij.util.Processor;
@@ -41,6 +42,8 @@ public class HaxeFindUsagesHandler extends HaxeFindUsagesHandlerNS {
                                       @NotNull Processor<? super UsageInfo> processor,
                                       @NotNull FindUsagesOptions options) {
     //noinspection unchecked
-    return processElementUsagesWorker(element, (Processor<UsageInfo>)processor, options);
+    return  ReadAction.computeCancellable(() -> {
+      return processElementUsagesWorker(element, (Processor<UsageInfo>) processor, options);
+    });
   }
 }
