@@ -135,6 +135,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
       if (meta.isType(HaxeCompilerMetadata.DEPRECATED))      flags |= HaxeClassStub.META_DEPRECATED;
       if (meta.isType(HaxeCompilerMetadata.NO_COMPLETION))   flags |= HaxeClassStub.META_NO_COMPLETION;
       if (meta.isType(HaxeCompilerMetadata.KEEP))            flags |= HaxeClassStub.META_KEEP;
+      if (meta.isType(HaxeCompilerMetadata.ENUM))            flags |= HaxeClassStub.META_ENUM;
       if (meta.isType(HaxeCompilerMetadata.ABSTRACT))        flags |= HaxeClassStub.META_ABSTRACT;
       if (meta.isType(HaxeCompilerMetadata.GENERIC_BUILD))   flags |= HaxeClassStub.META_GENERIC_BUILD;
       if (meta.isType(HaxeCompilerMetadata.STRUCT_INIT))     flags |= HaxeClassStub.META_STRUCT_INIT;

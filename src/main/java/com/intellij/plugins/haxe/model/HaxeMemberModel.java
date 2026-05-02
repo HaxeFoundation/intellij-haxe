@@ -207,4 +207,10 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     }
     return null;
   }
+
+    public boolean isEnumMember() {
+      HaxeClassModel declaringClass = getDeclaringClass();
+      // static access to enum abstract members should be allowed
+      return declaringClass != null && declaringClass.isEnum();
+    }
 }

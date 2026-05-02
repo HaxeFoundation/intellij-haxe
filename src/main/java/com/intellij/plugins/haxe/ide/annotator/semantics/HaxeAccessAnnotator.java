@@ -151,6 +151,7 @@ public class HaxeAccessAnnotator implements Annotator {
 
     // ignore if we cant find member (probably a reference to a type)
     if (memberModel != null) {
+      if(memberModel.isEnumMember()) return;
       checkStaticAccess(holder, referenceExpression, memberModel);
       // properties can have mixed access for read and write  so isPublic wont do here
       if (memberModel instanceof HaxeFieldModel fieldModel && fieldModel.isProperty() || !memberModel.isPublic()) {
@@ -177,6 +178,10 @@ public class HaxeAccessAnnotator implements Annotator {
     if(isMethodBind)  return;
     if(isModuleMember)  return;
     if (isStaticAccess && !isMemberStatic && !isConstructor) {
+
+      // static access to enum abstract members should be allowed
+      if(memberModel.isEnumMember()) return;
+
       // TODO bundle
       holder.newAnnotation(HighlightSeverity.ERROR, "Static access to instance field " + memberModel.getName() + " is not allowed ")
               .range(referenceExpression.getLastChild())

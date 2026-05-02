@@ -32,10 +32,10 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
     public static final int META_GENERIC_BUILD      = 1 << 7;  // @:genericBuild
     public static final int META_STRUCT_INIT        = 1 << 8;  // @:structInit
     public static final int META_USING              = 1 << 9;  // @:using
-    public static final int META_FORWARD            = 1 << 11;  // @:forward
+    public static final int META_FORWARD            = 1 << 10;  // @:forward
 
-    public static final int META_CALLABLE           = 1 << 12;  // @:callable
-    public static final int META_PUBLIC_FIELDS      = 1 << 13;  // @:callable
+    public static final int META_CALLABLE           = 1 << 11;  // @:callable
+    public static final int META_PUBLIC_FIELDS      = 1 << 12;  // @:callable
 
     // @formatter:on
 
