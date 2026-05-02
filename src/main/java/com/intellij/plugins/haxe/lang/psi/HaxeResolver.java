@@ -221,7 +221,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         // Remove enumValues if we are resolving typeTag as typeTags should not be EnumValues
         // We also have to remove resolved fields as abstract enums is a thing
         if (isType) {
-          matchesInImport = matchesInImport.stream().filter(this::removeNonTypeComponents).toList();
+          matchesInImport = matchesInImport.stream().filter(this::removeNonTypeComponents).toList().reversed();
         }
         if (!matchesInImport.isEmpty()) {
             // one file may contain multiple enums and have enumValues with the same name; trying to match any argument list
@@ -378,7 +378,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
                           return List.of(constructorModel.getNamePsi());
                         }
                         boolean isValidConstructor = testAsEnumValueConstructor(constructorModel.getEnumValuePsi(), referenceExpression);
-                        if (isInPatternMatcher) {
+                        if (isValidConstructor) {
                           return List.of(constructorModel.getNamePsi());
                         }
                       }
