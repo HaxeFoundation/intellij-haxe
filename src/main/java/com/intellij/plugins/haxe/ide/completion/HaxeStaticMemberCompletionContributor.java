@@ -21,10 +21,11 @@ import java.util.Collection;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
+import static com.intellij.plugins.haxe.ide.index.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 public class HaxeStaticMemberCompletionContributor extends CompletionContributor {
   public HaxeStaticMemberCompletionContributor() {
-    extend(CompletionType.BASIC, psiElement().inside(HaxeIdentifier.class),
+    extend(CompletionType.BASIC, psiElement().inside(HaxeIdentifier.class).andNot(psiElement().inside(HaxeType.class)),
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -55,7 +56,10 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
       stubIndex.processElements(HaxeStaticMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class, (method -> {
         // TODO might want to do a propper evaluation visibility (@:noCompletion etc)
           if (method.isStatic() && method.isPublic()) {
-            addMemberElement(resultSet, method, filterText);
+              PsiFile containingFile = method.getContainingFile();
+              if(!belongToPlatformNotTargeted(containingFile)) {
+                  addMemberElement(resultSet, method, filterText);
+              }
           }
           return true;
         }));

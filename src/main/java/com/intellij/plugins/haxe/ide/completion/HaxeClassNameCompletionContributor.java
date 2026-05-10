@@ -48,6 +48,7 @@ import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
+import static com.intellij.plugins.haxe.ide.index.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 /**
  * @author: Fedor.Korotkov
@@ -140,7 +141,10 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
         String path = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
         if (prefixPackage == null || prefixPackage.equalsIgnoreCase(path)) {
           HaxeClassModel model = haxeClass.getModel();
-          resultSet.addElement(new HaxeIndexedClassElement(model, insertHandler));
+            PsiFile containingFile = model.getPsi().getContainingFile();
+            if(!belongToPlatformNotTargeted(containingFile)) {
+                resultSet.addElement(new HaxeIndexedClassElement(model, insertHandler));
+            }
         }
         return true;
       });

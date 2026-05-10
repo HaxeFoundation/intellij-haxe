@@ -92,6 +92,6 @@ public class HaxeIndexedClassElement extends LookupElement implements HaxePsiLoo
     presentation.setStrikeout(strikeout);
     presentation.setItemTextBold(bold);
     presentation.setIcon(icon);
-    presentation.setTailText(tailText, true);
+    presentation.setTailText(" " + tailText, true);
   }
 }

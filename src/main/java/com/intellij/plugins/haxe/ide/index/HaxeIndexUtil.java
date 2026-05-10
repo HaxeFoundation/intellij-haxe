@@ -81,6 +81,7 @@ public class HaxeIndexUtil {
           case "lua" -> definitions.containsKey("lua");
           case "php" -> definitions.containsKey("php");
           case "python" -> definitions.containsKey("python");
+          case "neko" -> definitions.containsKey("neko");
           default-> true;
         };
       }
