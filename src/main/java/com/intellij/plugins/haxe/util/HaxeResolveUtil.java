@@ -1228,7 +1228,7 @@ public class HaxeResolveUtil {
     if (!haxeFile.isPhysical()) return false;
     final VirtualFile sourceRootForRefFile = fileIndex.getSourceRootForFile(haxeFile.getVirtualFile());
     final VirtualFile sourceRootForImportFile = fileIndex.getSourceRootForFile(importHxFile.getVirtualFile());
-    return sourceRootForRefFile.equals(sourceRootForImportFile);
+    return Objects.equals(sourceRootForRefFile, sourceRootForImportFile);
   }
 
 
