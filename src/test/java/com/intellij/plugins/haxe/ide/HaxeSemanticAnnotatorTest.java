@@ -850,6 +850,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testAssignEnumValue() throws Exception {
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testAssignExprOf() throws Exception {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testAssignEmptyCollection() throws Exception {
