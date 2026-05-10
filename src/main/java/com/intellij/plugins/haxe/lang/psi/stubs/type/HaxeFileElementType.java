@@ -1,18 +1,25 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.type;
 
 import com.intellij.lang.ASTNode;
+import com.intellij.lang.Language;
+import com.intellij.openapi.roots.ProjectFileIndex;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFileStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubVersions;
 import com.intellij.psi.*;
 import com.intellij.psi.stubs.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IStubFileElementType;
+import com.intellij.util.io.StringRef;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -36,13 +43,21 @@ public class HaxeFileElementType extends IStubFileElementType<HaxeFileStub> {
 
   @Override
   public void serialize(@NotNull HaxeFileStub stub, @NotNull StubOutputStream dataStream) throws IOException {
-    // Package name is now stored in the child HaxePackageStatementStub — nothing to serialize here.
+    dataStream.writeName(stub.getFileName());
   }
 
   @NotNull
   @Override
   public HaxeFileStub deserialize(@NotNull StubInputStream dataStream, StubElement parentStub) throws IOException {
-    return new HaxeFileStub(null);
+    StringRef stringRef = dataStream.readName();
+    return new HaxeFileStub(null, stringRef.getString());
+  }
+
+  @Override
+  public void indexStub(@NonNull HaxeFileStub stub, @NotNull IndexSink sink) {
+    if("import.hx".equals(stub.getFileName())) {
+      sink.occurrence(HaxeImportHxStubIndex.KEY, stub.getPackageName());
+    }
   }
 
   @Override
@@ -51,10 +66,12 @@ public class HaxeFileElementType extends IStubFileElementType<HaxeFileStub> {
       @NotNull
       @Override
       protected PsiFileStub<?> createStubForFile(@NotNull PsiFile file) {
+        String name = file.getName();
+
         if (file instanceof HaxeFile haxeFile) {
-          return new HaxeFileStub(haxeFile);
+          return new HaxeFileStub(haxeFile, name);
         }
-        return new HaxeFileStub(null);
+        return new HaxeFileStub(null, name);
       }
 
       /**

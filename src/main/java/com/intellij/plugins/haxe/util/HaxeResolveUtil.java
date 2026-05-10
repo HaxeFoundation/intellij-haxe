@@ -38,6 +38,8 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFileStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -1181,10 +1183,9 @@ public class HaxeResolveUtil {
    * Calls a function on all import.hx files from the current directory toward the source root.
    * @param file the starting file
    * @param processor the function to call; it returns false to stop early, true to keep going.
-   * @return the last value returned from processor; true if processor was never called.
    */
-  public static boolean walkDirectoryImports(HaxeFileModel file, @NotNull java.util.function.Function<HaxeFileModel, Boolean> processor) {
-    if (null == file) return true;
+  public static void walkDirectoryImports(HaxeFileModel file, @NotNull java.util.function.Function<HaxeFileModel, Boolean> processor) {
+    if (null == file) return;
     HaxeFile haxeFile = file.getFile();
 
     // Attempt to get physical file if possible, necessary if we are to walk directories
@@ -1195,26 +1196,60 @@ public class HaxeResolveUtil {
     }
 
     final VirtualFile vfile = haxeFile.getVirtualFile();
-    if (null == vfile) return true; // In memory files
+    if (null == vfile) return ; // In memory files
 
-    final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(file.getBasePsi().getProject()).getFileIndex();
-    final VirtualFile sourceRoot = fileIndex.getSourceRootForFile(vfile);
-    if (null == sourceRoot) return true;
+    String packageName = haxeFile.getPackageName();
 
-    boolean keepRunning = true;
+    final ProjectFileIndex fileIndex = ProjectRootManager.getInstance(haxeFile.getProject()).getFileIndex();
+    List<String> packages = getPackageHirerarchyList(packageName);
 
-    PsiDirectory parentDirectory = haxeFile.getContainingDirectory();
-    final VirtualFile stopDir = sourceRoot.getParent(); // SrcRoot is a valid place to pick up an import.hx file.
-    while (keepRunning && null != parentDirectory && !parentDirectory.getVirtualFile().equals(stopDir)) {
-      PsiFile importFile = parentDirectory.findFile("import.hx");
-      if (importFile instanceof HaxeFile) {
-        HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
-        keepRunning = processor.apply(importModel);
+    for (String aPackage : packages) {
+
+      Collection<HaxeFile> importHxForPackage = HaxeImportHxStubIndex.getImportHxForPackage(aPackage, haxeFile.getProject(), null);
+      for (HaxeFile importFile : importHxForPackage) {
+        if (importFile instanceof HaxeFile importHxFile) {
+
+          // we dont want `import.hx` from modules and libraries to bleed into eachother
+          // so we check to make sure that the code we try to resolve and the import.hx
+          // are in the same SourceTree
+          boolean inSameSourceTree = isInSameSourceTree(fileIndex, haxeFile, importHxFile);
+
+          if (inSameSourceTree) {
+            HaxeFileModel importModel = HaxeFileModel.fromElement(importFile);
+            boolean keepRunning = processor.apply(importModel);
+            if(!keepRunning) return;
+          }
+        }
       }
-      parentDirectory = parentDirectory.getParentDirectory();
     }
-    return keepRunning;
   }
+
+  private static boolean isInSameSourceTree(ProjectFileIndex fileIndex, HaxeFile haxeFile, HaxeFile importHxFile) {
+    if (!haxeFile.isPhysical()) return false;
+    final VirtualFile sourceRootForRefFile = fileIndex.getSourceRootForFile(haxeFile.getVirtualFile());
+    final VirtualFile sourceRootForImportFile = fileIndex.getSourceRootForFile(importHxFile.getVirtualFile());
+    return sourceRootForRefFile.equals(sourceRootForImportFile);
+  }
+
+
+    private static List<String> getPackageHirerarchyList(String packageName) {
+      List<String> packages = new ArrayList<>();
+      String parent = "";  // root package
+      packages.add(parent);
+
+      String[] split = packageName.split("\\.");
+      if (split.length > 0) {
+        for (String part : split) {
+          parent = parent + part;
+          packages.add(parent);
+          parent = parent + ".";
+        }
+      } else {
+        packages.add(packageName);
+      }
+
+      return packages.reversed();
+    }
 
   @Nullable
   public static PsiElement searchInSamePackage(@NotNull HaxeFileModel file, @NotNull String name, boolean checkForEnumValues, boolean expectedEnumIsConstructor) {
@@ -1356,8 +1391,7 @@ public class HaxeResolveUtil {
   public static boolean isInUsingImports(HaxeReferenceExpression referenceExpression, HaxeMethodDeclaration haxeMethod) {
     PsiFile file = referenceExpression.getContainingFile();
     if (file instanceof HaxeFile haxeFile) {
-
-      List<HaxeUsingStatement> usingStatements = haxeFile.getUsingStatements();
+      List<HaxeUsingStatement> usingStatements = new ArrayList<>(haxeFile.getUsingStatements());
       //TODO mlo: should probably find a way to cache this so we dont have to do it for all method references in a class
       // check any "import.hx" files for using statements
       walkDirectoryImports(haxeFile.getModel(), (HaxeFileModel fileModel) -> {
