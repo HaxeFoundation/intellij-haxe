@@ -156,6 +156,14 @@ public class HaxeEnumModelImpl extends HaxeClassModel implements HaxeEnumModel {
   }
 
   @NotNull
+  public List<HaxeBaseMemberModel> getMembers(String name, @Nullable HaxeGenericResolver resolver) {
+    if (name == null) return List.of();
+    return getMembers(resolver).stream()
+            .filter(memberModel -> name.equals(memberModel.getName()))
+            .collect(Collectors.toList());
+  }
+
+  @NotNull
   @Override
   public List<HaxeBaseMemberModel> getMembersSelf() {
     return getMembers(null);

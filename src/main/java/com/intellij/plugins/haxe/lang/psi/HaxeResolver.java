@@ -2555,7 +2555,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if (log.isTraceEnabled()) log.trace(traceMsg(null));
 
-    final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, identifierText);
+    final HaxeComponentName componentName = tryResolveHelperClass(lefthandExpression, reference, identifierText);
     if (componentName != null) {
       if (log.isTraceEnabled()) log.trace("Found component " + componentName.getText());
       return Collections.singletonList(componentName);
@@ -2766,7 +2766,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
    * @return the name of the found field/method/class.  null if not found.
    */
   @Nullable
-  private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference, String helperName) {
+  private HaxeComponentName tryResolveHelperClass(HaxeReference leftReference,HaxeReference identifierRef,  String helperName) {
     if (log.isTraceEnabled()) log.trace(traceMsg("leftReference=" + leftReference + " helperName=" + helperName));
     HaxeComponentName componentName = null;
     HaxeReferenceExpression referenceExpression = PsiTreeUtil.getChildOfType(leftReference, HaxeReferenceExpression.class);
@@ -2799,21 +2799,36 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           }
         }
 
-        HaxeBaseMemberModel member = model.getMember(helperName, resolveResult.getGenericResolver());
-        if (member != null) return member.getNamePsi();
+        List<HaxeBaseMemberModel> members = model.getMembers(helperName, resolveResult.getGenericResolver());
+        List<HaxeComponentName> matches = new ArrayList<>();
+        for (HaxeBaseMemberModel member : members) {
+          if (member != null){
+            matches.add(member.getNamePsi());
+            continue;
+          }
 
-        if (model.isAbstractType() && ((HaxeAbstractClassModel)model).hasForwards()) {
-          HaxeGenericResolver resolver = resolveResult.getSpecialization().toGenericResolver(leftResultClass);
-          final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
-            HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass, resolver);
-          if (forwardingHaxeNamedComponents != null) {
-            for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
-              final HaxeComponentName forwardingComponentName = namedComponent.getComponentName();
-              if (forwardingComponentName != null && forwardingComponentName.getText().equals(helperName)) {
-                componentName = forwardingComponentName;
-                break;
+          if (model.isAbstractType() && ((HaxeAbstractClassModel) model).hasForwards()) {
+            HaxeGenericResolver resolver = resolveResult.getSpecialization().toGenericResolver(leftResultClass);
+            final List<HaxeNamedComponent> forwardingHaxeNamedComponents =
+                    HaxeAbstractForwardUtil.findAbstractForwardingNamedSubComponents(leftResultClass, resolver);
+            if (forwardingHaxeNamedComponents != null) {
+              for (HaxeNamedComponent namedComponent : forwardingHaxeNamedComponents) {
+                final HaxeComponentName forwardingComponentName = namedComponent.getComponentName();
+                if (forwardingComponentName != null && forwardingComponentName.getText().equals(helperName)) {
+                  matches.add(forwardingComponentName);
+                }
               }
             }
+          }
+        }
+        if(matches.size() == 1) {
+          componentName = matches.getFirst();
+        }else if (matches.size()> 1) {
+          // probably method overloads ?
+          // best effort to get a match, if more then one we just pick one as we probably cant tell wich is the correct one.
+          List<HaxeNamedComponent> components = checkMethodOverloads(identifierRef, members);
+          if(components != null && !components.isEmpty()) {
+            return components.getFirst().getComponentName();
           }
         }
       }
