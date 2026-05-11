@@ -37,20 +37,26 @@ public class HaxeReferenceUtil {
                     PsiElement ChainBeforeMethod = referenceExpression.getChildren()[0];
                     if (ChainBeforeMethod instanceof HaxeIdentifier) return false; // not chain, got method identifier
 
-
                     // check the important part, was this reference imported with using statement (or one of the compiler included using refs)
                     if (ChainBeforeMethod instanceof HaxeReferenceExpressionImpl parentReferenceExpression) {
                         PsiElement caller = parentReferenceExpression.resolve();
+
+                        // if alias then resolve the alias reference before performing ref checks
+                        if (caller instanceof HaxeImportAlias alias) {
+                            if (alias.getParent() instanceof HaxeImportStatement importStatement) {
+                                caller = importStatement.getReferenceExpression().resolve();
+                            }
+                        }
                         if (caller == method) return false; // probably a function bind or similar
 
                         ResultHolder callerType = HaxeExpressionEvaluator.evaluateWithRecursionGuard(parentReferenceExpression).result;
 
                         SpecificHaxeClassReference classType = callerType.getClassType();
-                        if(classType != null && !classType.isUnknown()) {
+                        if (classType != null && !classType.isUnknown()) {
                             HaxeClass haxeClass = classType.getHaxeClass();
                             // checking if references starts with a class references.
                             // staticExtensions are allowed on classes (if parameter is Class<T>/Enum<T>)
-                            boolean callieIsAClass = haxeClass != null && caller == haxeClass && parentReferenceExpression.isClassReferenceOf(haxeClass);
+                            boolean callieIsAClass = haxeClass != null && caller == haxeClass && parentReferenceExpression.isClassOrAliasReferenceOf(haxeClass);
 
                             HaxeClassModel haxeClassModel = classType.getHaxeClassModel();
                             if(haxeClassModel  != null) {

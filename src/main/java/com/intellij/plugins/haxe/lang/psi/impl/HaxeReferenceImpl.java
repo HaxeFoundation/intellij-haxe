@@ -22,7 +22,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
@@ -1011,7 +1010,7 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
   }
 
 
-  public boolean isClassReferenceOf(@NotNull HaxeClass haxeClass) {
+  public boolean isClassOrAliasReferenceOf(@NotNull HaxeClass haxeClass) {
     PsiElement resolve = resolve();
     PsiElement parent = getParent();
 
@@ -1019,8 +1018,9 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
     // parent can not be of HaxeType or other reference
 
     if (resolve instanceof HaxeImportAlias importAlias) {
+      boolean isFirstPartOfRef = parent instanceof HaxeReference reference ? reference.getFirstChild() == this : true ;
       return !(parent instanceof HaxeType)
-             && !(parent instanceof HaxeReference)
+              && isFirstPartOfRef
              && importAlias.getIdentifier().textMatches(getLastChild());
     }else {
       String name = haxeClass.getName();
