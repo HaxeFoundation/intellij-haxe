@@ -69,26 +69,20 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
     return result == null ? Collections.emptyList() : result;
   }
 
-  private static List<HaxeModel> getExposedMembersCached(final HaxeImportableModel importableModel) {
-    // TODO mlo use stubs instead of cacheing ?
 
-    return CachedValuesManager.getCachedValue(importableModel.getBasePsi(), () -> {
-      List<HaxeModel> exposedMembers = importableModel.getExposedMembersInternal();
-      PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
-      int i = 0;
-      dependencies[i++] = importableModel.getBasePsi();
-      for (HaxeModel xMember : exposedMembers) {
-        dependencies[i++] = xMember.getBasePsi();
-      }
-
-      return new CachedValueProvider.Result<>(exposedMembers, (Object[]) dependencies);
-    });
-  }
 
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
-    return getExposedMembersCached(this);
+    List<HaxeModel> exposedMembers = this.getExposedMembersInternal();
+    PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
+    int i = 0;
+    dependencies[i++] = this.getBasePsi();
+    for (HaxeModel xMember : exposedMembers) {
+      dependencies[i++] = xMember.getBasePsi();
+    }
+
+    return exposedMembers;
   }
 
   @Nullable
