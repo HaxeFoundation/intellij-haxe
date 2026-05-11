@@ -118,6 +118,10 @@ public class HaxeGenericResolverCastUtil {
             }
         }
         if (fromModel instanceof HaxeAbstractClassModel abstractFromModel) {
+            if (canExplicitCast(abstractFromModel, to, path, parentResolver)) {
+                path.add(to.getModel().getInstanceReference());
+                return true;
+            }
             SpecificHaxeClassReference underlyingReference = fromModel.getUnderlyingClassReference(fromResolver);
             if (underlyingReference != null) {
                 HaxeClass underlyingClass = underlyingReference.getHaxeClass();
@@ -191,6 +195,16 @@ public class HaxeGenericResolverCastUtil {
                         return true;
                     }
                 }
+            }
+        }
+        return false;
+    }
+
+    private static boolean canExplicitCast(HaxeAbstractClassModel from, HaxeClass to, List<SpecificHaxeClassReference> path, HaxeGenericResolver parentResolver) {
+        List<SpecificTypeReference> directCastToTypes = from.getDirectCastToTypes(parentResolver);
+        for (SpecificTypeReference directCastToType : directCastToTypes) {
+            if(directCastToType.getTypePsi() == to) {
+                return true;
             }
         }
         return false;
