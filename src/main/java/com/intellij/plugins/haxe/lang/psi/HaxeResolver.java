@@ -304,6 +304,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       case HaxeEnumValueDeclaration declaration -> false;
       case HaxePsiField declaration -> false;
       case HaxeMethod declaration -> false;
+      case HaxeModule declaration -> false;
       default -> true;
     };
   }
