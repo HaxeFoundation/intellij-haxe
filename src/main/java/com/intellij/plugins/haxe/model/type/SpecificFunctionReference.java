@@ -20,16 +20,15 @@
 package com.intellij.plugins.haxe.model.type;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeTypeParameterDeclaration;
+import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.PsiElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static com.intellij.plugins.haxe.model.type.HaxeTypeResolver.getTypeFromTypeOrAnonymous;
 
@@ -204,6 +203,80 @@ public class SpecificFunctionReference extends SpecificTypeReference {
       }
     }
     return SpecificTypeReference.getUnknown(context).createHolder();
+  }
+
+  @Nullable
+  public SpecificHaxeClassReference tryCastToAbstract(SpecificHaxeClassReference targetClass, SpecificTypeReference expected) {
+    if(targetClass == null) return null;
+    HaxeClass targetHaxeClass = targetClass.getHaxeClass();
+
+    if (targetClass.getHaxeClassModel() instanceof HaxeAbstractClassModel abstractModel) {
+
+
+      Map<SpecificFunctionReference, SpecificTypeReference> castFunctionAndTypes = abstractModel.getImplicitCastFromFunctionAndTypes(this, targetClass);
+      for (Map.Entry<SpecificFunctionReference, SpecificTypeReference> entry : castFunctionAndTypes.entrySet()) {
+
+        SpecificTypeReference acceptsType = entry.getValue();
+        SpecificFunctionReference castFunction = entry.getKey();
+
+        if(this.canAssign(acceptsType) && acceptsType instanceof SpecificFunctionReference specificFunction) {
+          List<ResultHolder> typeParameters = acceptsType.getTypeParameters();
+          if(typeParameters.isEmpty()) {
+            return targetClass;
+          }else {
+            HaxeGenericResolver resolver = new HaxeGenericResolver();
+
+            List<HaxeArgument> castArgumentList = specificFunction.arguments;
+            ResultHolder castReturnType = specificFunction.returnValue;
+
+            List<HaxeArgument> ourArgumentList = arguments;
+            ResultHolder ourReturnType = returnValue;
+
+            if(castArgumentList.size() == ourArgumentList.size()) {
+              for (int i = 0; i < ourArgumentList.size(); i++) {
+                HaxeArgument castArg = castArgumentList.get(i);
+                HaxeArgument ourArg = ourArgumentList.get(i);
+                findAndMapTypeParameter(castArg.getType(), ourArg.getType(), resolver);
+              }
+
+              findAndMapTypeParameter(castReturnType, ourReturnType, resolver);
+
+              SpecificTypeReference resolve = resolver.resolve(castFunction);
+              if(resolve instanceof SpecificFunctionReference functionReference) {
+                ResultHolder returnType = functionReference.getReturnType();
+                if (returnType.getType() instanceof SpecificHaxeClassReference classReference) {
+                  // there are some cases where the cast parameter is identical but return type differs in typeParameters
+                  // we therefor check if the result can be assigned to an expected value to make sure we get the correct type
+                  if (returnType.canAssign(expected.createHolder())) {
+                    return classReference;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private void findAndMapTypeParameter(ResultHolder castType, ResultHolder ourType, HaxeGenericResolver resolver) {
+    if (castType.isTypeParameter()) {
+      if (castType.getClassType().getHaxeClass() instanceof HaxeTypeParameterDeclaration declaration) {
+        resolver.add(declaration, ourType);
+      }else {
+        if (castType.isOrContainsTypeParameters()) {
+          //TODO  we might have to try to cast if types mismatch before we iterate over typeParameters
+          List<ResultHolder> castTypeParameters = castType.getType().getTypeParameters();
+          List<ResultHolder> ourtypeParameters = ourType.getType().getTypeParameters();
+          if(castTypeParameters.size() == ourtypeParameters.size()) {
+              for (int i = 0; i < castTypeParameters.size(); i++) {
+                findAndMapTypeParameter(castTypeParameters.get(0), ourtypeParameters.get(0), resolver);
+              }
+          }
+        }
+      }
+    }
   }
 
 

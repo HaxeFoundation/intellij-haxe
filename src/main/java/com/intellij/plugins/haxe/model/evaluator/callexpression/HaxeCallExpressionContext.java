@@ -369,6 +369,19 @@ public class HaxeCallExpressionContext {
                 }
             }
             else if (parameterClassReference.createHolder().containsUnknownOrUnresolvedTypeParameters()) {
+                // Sometimes parameter types are typedefs or abstracts that can accept  functions, so to correctly
+                // update type parameters we need to cast our function to that type.
+                if(argumentType instanceof SpecificFunctionReference argumentFunctionReference) {
+                    if(parameterClassReference.isAbstractType()) {
+                        SpecificTypeReference expected = parameterResolver.resolve(parameterClassReference);
+                        SpecificHaxeClassReference downCastedType = argumentFunctionReference.tryCastToAbstract(parameterClassReference, expected);
+                        if (downCastedType != null){
+                            //TODO mlo, probably should extract stuff to methods instead of replacing argumentType variable here.
+                            argumentType = downCastedType;
+                        }
+
+                    }
+                }
                 if(argumentType instanceof  SpecificHaxeClassReference argumentClassReference) {
                     SpecificHaxeClassReference downCastedType = argumentClassReference.tryCastToClass(parameterClassReference, true);
                     if (downCastedType != null) {
