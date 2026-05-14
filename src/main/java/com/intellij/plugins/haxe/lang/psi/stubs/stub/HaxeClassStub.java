@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs.stub;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
@@ -40,11 +41,9 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
     // @formatter:on
 
 
-
+    private final FullyQualifiedInfo fullyQualifiedInfo;
     private final String name;
 
-    @Getter
-    private final String qualifiedName;
     @Getter
     private final int componentTypeKey;
     @Getter
@@ -61,7 +60,7 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
     public HaxeClassStub(StubElement parent,
                          @NotNull IStubElementType elementType,
                          @Nullable String name,
-                         @Nullable String qualifiedName,
+                         @Nullable String fullyQualifiedName,
                          int componentTypeKey,
                          boolean isPrivate,
                          boolean isExtern,
@@ -70,7 +69,7 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
                          int metaFlags) {
         super(parent, elementType);
         this.name = name;
-        this.qualifiedName = qualifiedName;
+        this.fullyQualifiedInfo = new FullyQualifiedInfo(fullyQualifiedName);
         this.componentTypeKey = componentTypeKey;
         this.isPrivate = isPrivate;
         this.isExtern = isExtern;
@@ -82,6 +81,14 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
     @Nullable
     public String getName() {
         return name;
+    }
+
+    public String getFullyQualifiedName() {
+        return getQualifiedName(true);
+    }
+
+    public String getQualifiedName(boolean alwaysIncludeModuleName) {
+        return fullyQualifiedInfo.getQualifiedName(alwaysIncludeModuleName);
     }
 
     @Nullable

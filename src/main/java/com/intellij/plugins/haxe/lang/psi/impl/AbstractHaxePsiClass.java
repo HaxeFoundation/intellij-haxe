@@ -99,9 +99,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
     HaxeClassStub stub = getGreenStub();
     if (stub != null) {
-      String name =  stub.getQualifiedName();
-      FullyQualifiedInfo fullyQualifiedInfo = new FullyQualifiedInfo(name);
-      return fullyQualifiedInfo.getQualifiedName(alwaysIncludeModuleName);
+      return stub.getQualifiedName(alwaysIncludeModuleName);
     }
     return getQualifiedNameFallback(alwaysIncludeModuleName);
   }

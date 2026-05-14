@@ -11,6 +11,7 @@ import com.intellij.psi.PsiElement;
 import lombok.CustomLog;
 
 import java.util.List;
+import java.util.Objects;
 
 import static com.intellij.plugins.haxe.model.evaluator.assign.HaxeAssignEvaluation.canAssignTypeParameters;
 
@@ -20,7 +21,10 @@ public class HaxeClassAssignUtil  {
   private static final RecursionGuard<PsiElement> hierarchyRecursionGuard = RecursionManager.createGuard("propagateRecursionGuard");
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
-    if (toClassReference.getHaxeClass() == fromClassReference.getHaxeClass()) {
+      String toQName = toClassReference.getHaxeClass().getFullyQualifiedName();
+      String fromQName = fromClassReference.getHaxeClass().getFullyQualifiedName();
+      if(toQName.isEmpty() || fromQName.isEmpty()) return false;
+      if (Objects.equals(toQName, fromQName)) {
         if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
             return true;
         } else {

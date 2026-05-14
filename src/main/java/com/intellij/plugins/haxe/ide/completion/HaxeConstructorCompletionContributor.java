@@ -75,7 +75,7 @@ public class HaxeConstructorCompletionContributor extends CompletionContributor 
         if (stub instanceof HaxeClassStub classStub) {
           className = classStub.getName();
           componentType = classStub.getComponentType();
-          String qname = classStub.getQualifiedName();
+          String qname = classStub.getFullyQualifiedName();
           if (qname != null && qname.contains(".")) {
             packageName = qname.substring(0, qname.lastIndexOf('.'));
           }

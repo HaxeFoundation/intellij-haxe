@@ -164,7 +164,7 @@ public class FullyQualifiedInfo {
       builder.append(moduleName);
     }
 
-    if (className != null && !className.isEmpty() && !className.equals(moduleName)) {
+    if (className != null && !className.isEmpty() && (includeModule || !className.equals(moduleName))) {
       builder.append(PATH_SEPARATOR);
       builder.append(className);
     }
@@ -187,10 +187,8 @@ public class FullyQualifiedInfo {
     if (obj == null) return false;
     if (obj == this) return true;
 
-    if (obj instanceof FullyQualifiedInfo) {
-      FullyQualifiedInfo equalsObject = (FullyQualifiedInfo)obj;
-
-      return getPresentableText().equals(equalsObject.getPresentableText());
+    if (obj instanceof FullyQualifiedInfo equalsObject) {
+      return getQualifiedName(false).equals(equalsObject.getQualifiedName(false));
     }
 
     return false;

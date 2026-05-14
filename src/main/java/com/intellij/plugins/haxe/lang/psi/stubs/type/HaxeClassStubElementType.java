@@ -51,13 +51,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
   @Override
   public HaxeClassStub createStub(@NotNull HaxeClass psi, StubElement parentStub) {
     String name = psi.getName();
-    //  currently using  getQualifiedName() (not getFullyQualifiedName()) so that the stored FQN matches
-    // the format that callers of findClassByQName() expect: "pkg.ClassName" for primary
-    // classes (where filename == classname), and "pkg.Module.ClassName" for ancillary ones.
-    // getFullyQualifiedName() always includes the module segment, producing
-    // "pkg.SimpleClass.SimpleClass".
-    // TODO:  consider  using getFullyQualifiedName and change resolve to always include module?
-    String qualifiedName = psi.getQualifiedName();
+    String fullyQualifiedName = psi.getFullyQualifiedName();
 
     // TODO add info about macro expression (we dont want index on macro types)
 
@@ -115,7 +109,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
     String[] superNamesArray = superNames.toArray(new String[0]);
 
     return new HaxeClassStub(parentStub, this, name,
-                             qualifiedName, componentTypeKey,
+            fullyQualifiedName, componentTypeKey,
                              isPrivate, isExtern, isEnum,
                              superNamesArray, metaFlags);
   }
@@ -157,7 +151,7 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
   @Override
   public void serialize(@NotNull HaxeClassStub stub, @NotNull StubOutputStream dataStream) throws IOException {
     dataStream.writeName(stub.getName());
-    dataStream.writeName(stub.getQualifiedName());
+    dataStream.writeName(stub.getFullyQualifiedName());
     dataStream.writeVarInt(stub.getComponentTypeKey());
     dataStream.writeBoolean(stub.isPrivate());
     dataStream.writeBoolean(stub.isExtern());
@@ -208,10 +202,18 @@ public class HaxeClassStubElementType extends IStubElementType<HaxeClassStub, Ha
 
     sink.occurrence(HaxeClassNameStubIndex.KEY, name);
 
-    String qualifiedName = stub.getQualifiedName();
-    if (qualifiedName != null) {
-      sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedName);
+    // short Qname eliminates module name if its the same as class name
+    String qualifiedNameShort = stub.getQualifiedName(false);
+    String qualifiedNameFull = stub.getQualifiedName(true);
+
+    if (qualifiedNameFull != null) {
+      sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedNameFull);
     }
+    if (qualifiedNameShort != null && !qualifiedNameShort.equals(qualifiedNameFull)) {
+      sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedNameShort);
+    }
+
+
     for (String superName : stub.getSuperTypeNames()) {
       if (superName != null && !superName.isEmpty()) {
         sink.occurrence(HaxeSuperClassStubIndex.KEY, superName);
