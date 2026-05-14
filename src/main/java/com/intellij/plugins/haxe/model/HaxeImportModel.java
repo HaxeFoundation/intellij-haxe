@@ -22,7 +22,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeImportAliasPsiMixinImpl;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeImportStub;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -72,11 +71,11 @@ public class HaxeImportModel extends HaxeImportableModel {
   }
 
   @NotNull
-  public List<HaxeModel> getExposedMembersInternal() {
+  public Set<HaxeModel> getExposedMembersInternal() {
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
     Set<HaxeModel> result =  new HashSet<>();
     if (hasWildcard()) {
-      if (qualifiedInfo.memberName != null) return Collections.emptyList();
+      if (qualifiedInfo.memberName != null) return Collections.emptySet();
 
       if (qualifiedInfo.moduleName != null && qualifiedInfo.className == null) {
         qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.moduleName, qualifiedInfo.moduleName, null);
@@ -89,7 +88,7 @@ public class HaxeImportModel extends HaxeImportableModel {
           .collect(Collectors.toSet());
       }
     } else {
-      List<HaxeModel> exposedMembers = super.getExposedMembersInternal();
+      Set<HaxeModel> exposedMembers = super.getExposedMembersInternal();
 
         HaxeModuleModel moduleModel = null;
         for (HaxeModel haxeModel : exposedMembers) {
@@ -119,20 +118,22 @@ public class HaxeImportModel extends HaxeImportableModel {
       }
     }
 
-    return exposeEnumValues(new ArrayList<>(result));
+    return exposeEnumValues((result));
   }
 
 
   @NotNull
-  private List<HaxeModel> exposeEnumValues(@NotNull List<HaxeModel> result) {
-    result.addAll(
-      result.stream()
+  private Set<HaxeModel> exposeEnumValues(@NotNull Set<HaxeModel> enumModels) {
+    HashSet<HaxeModel> models = new HashSet<>();
+    models.addAll(enumModels);
+    models.addAll(
+            enumModels.stream()
         .filter(model -> model instanceof HaxeEnumModel)
         .flatMap(model -> ((HaxeEnumModel)model).getValues().stream())
-        .collect(Collectors.toList())
+        .collect(Collectors.toSet())
     );
 
-    return result;
+    return models;
   }
 
   @Override

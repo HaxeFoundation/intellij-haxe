@@ -25,9 +25,7 @@ import com.intellij.psi.util.CachedValuesManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getReferenceTextFromStubOrPsi;
 
@@ -53,7 +51,7 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
   public abstract HaxeReferenceExpression getReferenceExpression();
 
   @NotNull
-  public List<HaxeModel> getExposedMembersInternal() {
+  public Set<HaxeModel> getExposedMembersInternal() {
     boolean isUsing = this instanceof HaxeUsingModel; // TODO should probably  do thins in a different way
     FullyQualifiedInfo qualifiedInfo = getQualifiedInfo();
     List<HaxeModel> result;
@@ -66,23 +64,38 @@ public abstract class HaxeImportableModel implements HaxeExposableModel {
             result = packageModel.getExposedMembers();
         }
     }
-    return result == null ? Collections.emptyList() : result;
+    return result == null ? Collections.emptySet() : new HashSet<>(result);
   }
 
+  private static List<HaxeModel> getExposedMembersCached(final HaxeImportableModel importableModel) {
 
+
+    return CachedValuesManager.getCachedValue(importableModel.getBasePsi(), () -> {
+      Set<HaxeModel> exposedMembers = importableModel.getExposedMembersInternal();
+      PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
+      int i = 0;
+      dependencies[i++] = importableModel.getBasePsi();
+      for (HaxeModel xMember : exposedMembers) {
+        dependencies[i++] = xMember.getBasePsi();
+      }
+      //Sorting before returing as we have had some Non-idempotent computation exceptions that might be due to the item order
+      // Note: these issues started after we started handling import.hx files per source root, so  there might be something
+      // in that code that caused the order to be non deterministic.
+      List<HaxeModel> list = exposedMembers.stream()
+              .sorted(Comparator.comparing(haxeModel -> {
+                FullyQualifiedInfo qualifiedInfo = haxeModel.getQualifiedInfo();
+                return qualifiedInfo != null ? qualifiedInfo.toString() : haxeModel.getName();
+              }))
+              .toList();
+
+      return new CachedValueProvider.Result<>(list, (Object[]) dependencies);
+    });
+  }
 
   @NotNull
   @Override
   public List<HaxeModel> getExposedMembers() {
-    List<HaxeModel> exposedMembers = this.getExposedMembersInternal();
-    PsiElement[] dependencies = new PsiElement[exposedMembers.size() + 1];
-    int i = 0;
-    dependencies[i++] = this.getBasePsi();
-    for (HaxeModel xMember : exposedMembers) {
-      dependencies[i++] = xMember.getBasePsi();
-    }
-
-    return exposedMembers;
+    return getExposedMembersCached(this);
   }
 
   @Nullable
