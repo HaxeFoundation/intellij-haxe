@@ -58,8 +58,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode.FAKE_PSI_KEY;
-import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.canBeQname;
-import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.textCanBeQname;
+import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.getArrayAccessTypeFromClass;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
@@ -140,7 +139,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   @Nullable
   private List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
     boolean traceEnabled = log.isTraceEnabled();
-    String referenceText = traceEnabled ?   getReferenceTextFromStubOrPsi(reference) : null;
+    String referenceText =   getReferenceTextFromStubOrPsi(reference);
     if (traceEnabled) {
       log.trace(traceMsg("-----------------------------------------"));
       log.trace(traceMsg("Resolving reference: " + referenceText));
@@ -159,7 +158,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
 
-  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceDebugText) {
+  private List<? extends PsiElement> doResolveInner(@NotNull HaxeReference reference, boolean incompleteCode, String referenceText) {
 
     if (reportCacheMetrics) {
       resolves.incrementAndGet();
@@ -181,7 +180,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // NOTE: always Keep checkIsType  high up, it is used a lot (ex. when resolving type for HaxeType)
     // and moving it down the stack will only result in unnecessary overhead and potential recursion problems
     if (result == null) result = checkIsType(reference); //HaxeReferenceExpression
-    if (result == null) result = checkIsChain(reference);  //HaxeReferenceExpression
+    if (result == null) result = checkIsChain(reference, referenceText);  //HaxeReferenceExpression
 
     if (result == null) result = checkIsAlias(reference);
     if (result == null) result = checkEnumMemberHints(reference);
@@ -208,8 +207,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     HaxeFileModel fileModel = HaxeFileModel.fromElement(reference);
     // search same file first (avoids incorrect resolve of common named Classes and member with same name in local file)
     if (result == null)result =  searchInSameFile(reference, fileModel, isType);
-    if (result == null) result = checkIsModuleName(reference);
-    if (result == null) result = checkIsClassName(reference);
+    if (result == null) result = checkIsModuleName(reference, referenceText);
+    if (result == null) result = checkIsClassName(reference, referenceText);
     if (result == null) result = checkCaptureVar(reference);
     if (result == null) result = checkSwitchOnEnum(reference);
     if (result == null) result = checkMemberReference(reference); // must be after resolvers that can find identifier inside a method
@@ -288,7 +287,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
 
     if (log.isTraceEnabled()) {
-      String message = "caching result for :" + referenceDebugText;
+      String message = "caching result for :" + referenceText;
       traceAs(log, HaxeDebugUtil.getCallerStackFrame(), message);
     }
 
@@ -2139,7 +2138,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
-  private List<? extends PsiElement> checkIsChain(@NotNull HaxeReference reference) {
+  private List<? extends PsiElement> checkIsChain(@NotNull HaxeReference reference, String referenceText) {
     if (reference instanceof HaxeReferenceExpression referenceExpression) {
       final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
       if (leftReference != null) {
@@ -2152,7 +2151,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
               return result;
             }
           }
-        if (canBeQname(reference)) {
+        if (canBeQname(reference) && textCanBeRefOfClassOrModule(referenceText) ) {
           PsiElement item = resolveQualifiedReference(reference);
           if (item != null) {
             LogResolution(reference, "via simple chain against package or module.");
@@ -2165,21 +2164,25 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   }
 
   @Nullable
-  private List<? extends PsiElement> checkIsModuleName(@NotNull HaxeReference reference) {
-    final PsiElement element = HaxeResolveUtil.tryResolveModuleReference(reference);
-    if (element != null) {
-      LogResolution(reference, "via module qualified name.");
-      return asList(element);
+  private List<? extends PsiElement> checkIsModuleName(@NotNull HaxeReference reference, String referenceText) {
+    if(textCanBeRefOfClassOrModule(reference.getText())) {
+      final PsiElement element = HaxeResolveUtil.tryResolveModuleReference(reference);
+      if (element != null) {
+        LogResolution(reference, "via module qualified name.");
+        return asList(element);
+      }
     }
     return null;
   }
 
   @Nullable
-  private List<? extends PsiElement> checkIsClassName(@NotNull HaxeReference reference) {
-    final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
-    if (resultClass != null) {
-      LogResolution(reference, "via class qualified name.");
-      return asList(resultClass.getComponentName());
+  private List<? extends PsiElement> checkIsClassName(@NotNull HaxeReference reference, String referenceText) {
+    if(textCanBeRefOfClassOrModule(reference.getText())) {
+      final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
+      if (resultClass != null) {
+        LogResolution(reference, "via class qualified name.");
+        return asList(resultClass.getComponentName());
+      }
     }
     return null;
   }
@@ -2275,7 +2278,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         String maybeQname = reference.getText();
         // a sanity check before we try Qname resolve
         // should be a chain and not contain any method call, array access or typeParameters
-        if(textCanBeQname(maybeQname)) {
+        if(textCanBeQname(maybeQname) && textCanBeRefOfClassOrModule(maybeQname)) {
           HaxeClass classByQName = HaxeResolveUtil.findClassByQName(maybeQname, reference);
           if(classByQName != null) {
             // if part of a longer chain, need to check if it is a module or mainclass reference
@@ -2376,7 +2379,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if(resolve != null) parentResolve.add(resolve);
     }
 
-    if (canBeQname(reference)) {
+    if (canBeQname(reference) && (textCanBeRefOfClassOrModule(reference.getText()))) {
         PsiElement item = resolveQualifiedReference(reference);
         if (item != null) {
           LogResolution(reference, "via simple chain against package or module.");

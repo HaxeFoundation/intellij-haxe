@@ -190,4 +190,17 @@ public class HaxeReferenceUtil {
         return qNamePattern.matcher(text).matches();
     }
 
+    /**
+     *  Both Types/classes and Modules must start with a capital letter, if they dont the compiler wont resovle them
+     *  We use this feature to optimize resolver performance and skip Qname lookup for references that cant be types/modules
+     * @param text
+     * @return
+     */
+    public static boolean textCanBeRefOfClassOrModule(@NotNull String text) {
+        int indexOfDot = text.lastIndexOf(".");
+        if(indexOfDot == -1) return true;
+        char firstCharOfWord = text.charAt(indexOfDot + 1);
+        return Character.isUpperCase(firstCharOfWord);
+    }
+
 }
