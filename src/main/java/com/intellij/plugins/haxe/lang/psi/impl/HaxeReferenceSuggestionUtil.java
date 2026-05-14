@@ -445,7 +445,14 @@ public class HaxeReferenceSuggestionUtil {
             }
         }
         List<HaxeNamedComponent> components = HaxeNamedSubComponentUtil.getAllNamedSubComponentsInType(haxeClass, resolver);
+        List<String>  componentNameStrings = new ArrayList<>();
         for (HaxeNamedComponent namedComponent : components) {
+            // deduplicate members by only allowing one instance per unique name
+            // Note: expects getAllNamedSubComponentsInType to return members from class hirerarchy top to bottom.
+            String name = namedComponent.getName();
+            if(componentNameStrings.contains(name)) continue;
+            componentNameStrings.add(name);
+
             final boolean needFilter = ignorePrivateMembers && !namedComponent.isPublic();
             if (isAbstractEnum && HaxeAbstractEnumUtil.couldBeAbstractEnumField(namedComponent)) {
                 continue;
