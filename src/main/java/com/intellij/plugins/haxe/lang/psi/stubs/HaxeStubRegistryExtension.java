@@ -179,9 +179,8 @@ public class HaxeStubRegistryExtension implements StubRegistryExtension {
 
         stubRegistry.registerStubSerializer(MACRO_EXTERN_INTERFACE_DECLARATION, new HaxeClassStubSerializer(MACRO_EXTERN_INTERFACE_DECLARATION));
         stubRegistry.registerStubFactory(MACRO_EXTERN_INTERFACE_DECLARATION, new HaxeClassStubFactory((HaxeElementType)MACRO_EXTERN_INTERFACE_DECLARATION, HaxeMacroExternInterfaceDeclarationImpl::new));
-//
-////TODO  skip index due to missing name ?
-//        stubRegistry.registerStubSerializer(ANONYMOUS_TYPE, new HaxeClassStubSerializer(ANONYMOUS_TYPE));
-//        stubRegistry.registerStubFactory(ANONYMOUS_TYPE, new HaxeClassStubFactory((HaxeElementType)ANONYMOUS_TYPE, HaxeAnonymousTypeImpl::new));
+
+        stubRegistry.registerStubSerializer(ANONYMOUS_TYPE, new HaxeClassStubSerializer(ANONYMOUS_TYPE));
+        stubRegistry.registerStubFactory(ANONYMOUS_TYPE, new HaxeClassStubFactory((HaxeElementType)ANONYMOUS_TYPE, HaxeAnonymousTypeImpl::new));
     }
 }

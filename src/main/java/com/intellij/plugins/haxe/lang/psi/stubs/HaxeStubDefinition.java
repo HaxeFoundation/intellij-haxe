@@ -31,7 +31,7 @@ public class HaxeStubDefinition  implements LanguageStubDefinition {
         //https://youtrack.jetbrains.com/issue/IJPL-155859/Introduce-project-scoped-view-of-app-wide-indexes
 
         //TODO  try to make our own logic for project local stubs
-        return false;
+        return true;
 
     }
 
