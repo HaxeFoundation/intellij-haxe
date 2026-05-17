@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 
 /**
  * This is effectively an alias for the mixin class, except with a more
@@ -35,7 +36,7 @@ public abstract class HaxeMethodImpl extends HaxeMethodPsiMixinImpl implements H
     super(node);
   }
 
-  protected HaxeMethodImpl(HaxeMethodStub stub, IStubElementType<?, ?> nodeType) {
+  protected HaxeMethodImpl(HaxeMethodStub stub, IElementType nodeType) {
     super(stub, nodeType);
   }
 

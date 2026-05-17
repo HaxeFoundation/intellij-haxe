@@ -46,6 +46,7 @@ import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -75,7 +76,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     super(node);
   }
 
-  public AbstractHaxePsiClass(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public AbstractHaxePsiClass(@NotNull HaxeClassStub stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

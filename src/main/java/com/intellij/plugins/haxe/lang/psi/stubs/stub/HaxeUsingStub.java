@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +17,7 @@ public class HaxeUsingStub extends StubBase<HaxeUsingStatement> {
   private final String usingPath;
 
   public HaxeUsingStub(StubElement parent,
-                        @NotNull IStubElementType elementType,
+                        @NotNull IElementType elementType,
                         @Nullable String usingPath) {
     super(parent, elementType);
     this.usingPath = usingPath;

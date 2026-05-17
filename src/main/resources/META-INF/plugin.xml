@@ -326,8 +326,9 @@
     <defaultLiveTemplates file="liveTemplates/haxe_iterations.xml"/>
     <defaultLiveTemplates file="liveTemplates/haxe_miscellaneous.xml"/>
 
+    <stubElementRegistryExtension id="haxe" implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubRegistryExtension"/>
+    <languageStubDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubDefinition"/>
 
-    <stubElementTypeHolder  class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubElementTypes" externalIdPrefix="haxe." />
 
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex"/>
 

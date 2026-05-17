@@ -52,7 +52,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     super(node);
   }
 
-  public HaxeStubBasedNamedComponent(@NotNull T stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public HaxeStubBasedNamedComponent(@NotNull T stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

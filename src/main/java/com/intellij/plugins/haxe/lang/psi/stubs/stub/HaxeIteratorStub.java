@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.impl.HaxeIterator;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
  */
 public class HaxeIteratorStub extends StubBase<HaxeIterator> {
 
-  public HaxeIteratorStub(StubElement parent, @NotNull IStubElementType elementType) {
+  public HaxeIteratorStub(StubElement parent, @NotNull IElementType elementType) {
     super(parent, elementType);
   }
 }

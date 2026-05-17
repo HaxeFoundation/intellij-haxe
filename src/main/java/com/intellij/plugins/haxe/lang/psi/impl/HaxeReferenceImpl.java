@@ -74,7 +74,7 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
     super(node);
   }
 
-  public HaxeReferenceImpl(HaxeReferenceExpressionStub stub, IStubElementType stubType) {
+  public HaxeReferenceImpl(HaxeReferenceExpressionStub stub, IElementType stubType) {
     super(stub, stubType);
   }
 

@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -41,7 +42,7 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
   @Nullable private final String setter;
 
   public HaxeFieldStub(StubElement parent,
-                        @NotNull IStubElementType elementType,
+                        @NotNull IElementType elementType,
                         @Nullable String name,
                         boolean isStatic,
                         boolean isPublic,
@@ -62,7 +63,7 @@ public class HaxeFieldStub extends StubBase<HaxePsiField> implements StubWithNam
   }
 
   public HaxeFieldStub(StubElement parent,
-                        @NotNull IStubElementType elementType,
+                        @NotNull IElementType elementType,
                         @Nullable String name,
                         int keywordFlags,
                         int metaFlags,

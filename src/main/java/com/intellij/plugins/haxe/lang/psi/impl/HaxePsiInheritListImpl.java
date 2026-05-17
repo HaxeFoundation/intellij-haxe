@@ -23,6 +23,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ArrayFactory;
 import lombok.CustomLog;
@@ -63,7 +64,7 @@ public abstract class HaxePsiInheritListImpl extends HaxeContainerStubPsiElement
     super(node);
   }
 
-  public HaxePsiInheritListImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxePsiInheritListImpl(HaxeEmptyContainerStub<?> stub, IElementType type) {
     super(stub, type);
   }
 

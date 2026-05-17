@@ -7,6 +7,7 @@ import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import lombok.Getter;
 import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
@@ -58,7 +59,7 @@ public class HaxeClassStub extends StubBase<HaxeClass> implements StubWithName {
     private final int metaFlags;
 
     public HaxeClassStub(StubElement parent,
-                         @NotNull IStubElementType elementType,
+                         @NotNull IElementType elementType,
                          @Nullable String name,
                          @Nullable String fullyQualifiedName,
                          int componentTypeKey,

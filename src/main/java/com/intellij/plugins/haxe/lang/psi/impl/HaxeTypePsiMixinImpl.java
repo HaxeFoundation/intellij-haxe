@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeTypePsiMixin;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import lombok.CustomLog;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +44,7 @@ public class HaxeTypePsiMixinImpl extends HaxeContainerStubPsiElementBase implem
     super(node);
   }
 
-  public HaxeTypePsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypePsiMixinImpl(HaxeEmptyContainerStub<?> stub, IElementType type) {
     super(stub, type);
   }
 

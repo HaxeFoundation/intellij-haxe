@@ -18,7 +18,7 @@
  */
 package com.intellij.plugins.haxe.lang.lexer;
 
-import com.intellij.plugins.haxe.lang.psi.stubs.type.HaxeFileElementType;
+import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.IFileElementType;
@@ -27,7 +27,8 @@ import com.intellij.psi.tree.TokenSet;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public interface HaxeTokenTypeSets {
-  IFileElementType HAXE_FILE = new HaxeFileElementType();
+  IFileElementType HAXE_FILE = new IFileElementType("HAXEFILE", HaxeLanguage.INSTANCE);
+
   IElementType CONDITIONAL_ERROR = new HaxeElementType("CONDITIONAL_ERROR");
 
   IElementType MSL_COMMENT = new HaxeElementType("MSL_COMMENT");

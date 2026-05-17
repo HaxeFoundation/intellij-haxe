@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +58,7 @@ public class HaxeMethodStub extends StubBase<HaxeMethod> implements StubWithMeta
 
 
   public HaxeMethodStub(StubElement parent,
-                         @NotNull IStubElementType elementType,
+                         @NotNull IElementType elementType,
                          @Nullable String name,
                          int keywordFlags,
                          int metaFlags,
