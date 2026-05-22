@@ -1156,6 +1156,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     if (isEmpty| isThis || isSuper || isAbstract) {
 
       HaxeClass type = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeClass.class);
+      // object literals are HaxeClass but have no superclass; walk past them to the real enclosing class.
+      while (type instanceof HaxeObjectLiteral) {
+        type = PsiTreeUtil.getStubOrPsiParentOfType(type, HaxeClass.class);
+      }
       if (type instanceof HaxeAbstractTypeDeclaration) {
 
         if(isAbstract || isEmpty) {
