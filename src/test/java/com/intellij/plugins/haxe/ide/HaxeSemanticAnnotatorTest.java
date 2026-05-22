@@ -832,6 +832,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testConstrainedGenericClassParam() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testAssignDynamicMethod() throws Exception {
     doTestNoFixWithWarnings();
   }

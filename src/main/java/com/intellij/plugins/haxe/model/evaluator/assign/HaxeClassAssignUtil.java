@@ -20,7 +20,7 @@ public class HaxeClassAssignUtil  {
   private static final RecursionGuard<PsiElement> hierarchyRecursionGuard = RecursionManager.createGuard("propagateRecursionGuard");
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
-    if (toClassReference.getHaxeClass() == fromClassReference.getHaxeClass()) {
+    if (sameClassDefinition(toClassReference.getHaxeClass(), fromClassReference.getHaxeClass())) {
         if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
             return true;
         } else {
@@ -40,6 +40,21 @@ public class HaxeClassAssignUtil  {
         }
     }
     return false;
+  }
+
+  // Identity check first; otherwise treat as same definition when qualified name AND source file match.
+  // Defensive against PSI snapshot duplication where the same logical type (e.g. Int, Class) is resolved
+  // to distinct HaxeClass instances by different paths (type-tag resolver vs std-package lookup).
+  // Requires a non-empty qualified name so that anonymous types (which share a null/empty qname) are
+  // not incorrectly unified.
+  private static boolean sameClassDefinition(HaxeClass a, HaxeClass b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    String qNameA = a.getQualifiedName();
+    String qNameB = b.getQualifiedName();
+    if (qNameA == null || qNameA.isEmpty()) return false;
+    if (!qNameA.equals(qNameB)) return false;
+    return HaxeTypeCompatible.sameDefinitionFile(a, b);
   }
 
 

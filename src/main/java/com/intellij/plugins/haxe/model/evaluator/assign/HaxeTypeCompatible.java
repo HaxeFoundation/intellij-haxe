@@ -3,10 +3,12 @@ package com.intellij.plugins.haxe.model.evaluator.assign;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.psi.PsiFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -246,15 +248,40 @@ public class HaxeTypeCompatible {
         if(typeA instanceof SpecificHaxeClassReference classA && !classA.isTypeParameter()){
             if(typeB instanceof SpecificHaxeClassReference classB && !classB.isTypeParameter()){
                 HaxeClass haxeClassA = classA.getHaxeClass();
-                HaxeClass HaxeClassB = classB.getHaxeClass();
-                if(haxeClassA != null && HaxeClassB != null && haxeClassA != HaxeClassB) {
+                HaxeClass haxeClassB = classB.getHaxeClass();
+                if(haxeClassA != null && haxeClassB != null && haxeClassA != haxeClassB) {
                     String qualifiedNameA = haxeClassA.getQualifiedName();
-                    String qualifiedNameB = HaxeClassB.getQualifiedName();
-                    return Objects.equals(qualifiedNameB, qualifiedNameA);
+                    String qualifiedNameB = haxeClassB.getQualifiedName();
+                    // Anonymous structures have null / empty qualified names; never treat
+                    // distinct anonymous types as shadowing each other.
+                    if (qualifiedNameA == null || qualifiedNameA.isEmpty()) return false;
+                    if (qualifiedNameA.equals(qualifiedNameB)) {
+                        // Same qualified name with different PSI is only true shadowing when the
+                        // definitions live in different source files. Same file means we are looking
+                        // at two PSI snapshots/caches of the same definition (e.g. StdTypes.hx for
+                        // built-ins like Int / Class), which must NOT be reported as shadowing.
+                        return !sameDefinitionFile(haxeClassA, haxeClassB);
+                    }
                 }
             }
         }
         return false;
+    }
+
+    /**
+     * Tells whether two HaxeClass PSI instances refer to the same source-level definition.
+     * Defensive against PSI snapshot duplication (different PSI objects produced by separate
+     * resolution paths for the same class). Returns false when at least one file is unknown,
+     * so callers preserve their conservative behaviour.
+     */
+    public static boolean sameDefinitionFile(@NotNull HaxeClass a, @NotNull HaxeClass b) {
+        PsiFile fileA = a.getContainingFile();
+        PsiFile fileB = b.getContainingFile();
+        if (fileA == null || fileB == null) return false;
+        if (fileA == fileB) return true;
+        VirtualFile vfA = fileA.getOriginalFile().getVirtualFile();
+        VirtualFile vfB = fileB.getOriginalFile().getVirtualFile();
+        return vfA != null && vfA.equals(vfB);
     }
 
 
