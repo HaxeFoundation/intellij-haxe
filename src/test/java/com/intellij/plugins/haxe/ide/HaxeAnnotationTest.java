@@ -56,6 +56,18 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.testHighlighting(true, true, true, myFixture.getFile().getVirtualFile());
   }
 
+  private void doUnresolvedSymbolWarningsOnlyTest(String... additionalPaths) throws Exception {
+    final String[] paths = ArrayUtil.append(additionalPaths, getTestName(false) + ".hx");
+    myFixture.configureByFiles(ArrayUtil.reverseArray(paths));
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    myFixture.testHighlighting(true, false, false, myFixture.getFile().getVirtualFile());
+  }
+
+  @Test
+  public void testInheritedFieldInObjectLiteral() throws Exception {
+    doUnresolvedSymbolWarningsOnlyTest();
+  }
+
   @Test
   public void testIDEA_100331() throws Throwable {
     doTest("test/TArray.hx");
