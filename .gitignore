@@ -3,6 +3,7 @@
 .intellijPlatform/
 .gradle/
 .claude/
+.serena/
 /idea/
 /build/
 */build/

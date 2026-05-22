@@ -1,4 +1,7 @@
 # Changelog
+## 1.8.1-fork.1
+* Resolve inherited fields referenced inside object literal values
+
 ## 1.8.1-fork.0
 * Resolve import.hx for files in haxelib Library Sources where no module Source Root exists
 * Derive walk boundary from package depth when sourceRoot is null
