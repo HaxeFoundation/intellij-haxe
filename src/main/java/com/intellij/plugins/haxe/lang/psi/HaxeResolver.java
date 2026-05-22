@@ -934,7 +934,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           index = 0;
         }
         if(PossibleCallExpression instanceof  HaxeCallExpression callExpression) {
-          ResultHolder result = HaxeExpressionEvaluator.evaluate(callExpression.getExpression(), new HaxeGenericResolver()).result;
+          HaxeExpression callee = callExpression.getExpression();
+          if (callee == null) {
+            // Incomplete call expression (no callee yet).
+            return null;
+          }
+          ResultHolder result = HaxeExpressionEvaluator.evaluate(callee, new HaxeGenericResolver()).result;
           SpecificFunctionReference functionType = result.getFunctionType();
           if(functionType != null) {
             List<HaxeArgument> arguments = functionType.getArguments();
@@ -1678,7 +1683,12 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           lastElement = members.isEmpty() ? null : members.getFirst();
           
         } else if(switchStatement != null){
-          ResultHolder resultHolder = HaxeExpressionEvaluator.evaluate(switchStatement.getExpression()).result;
+          HaxeExpression switchExpression = switchStatement.getExpression();
+          if (switchExpression == null) {
+            // Incomplete switch (no scrutinee yet).
+            continue;
+          }
+          ResultHolder resultHolder = HaxeExpressionEvaluator.evaluate(switchExpression).result;
           if (resultHolder != null && resultHolder.getClassType() != null) {
             HaxeClass haxeClass = resultHolder.getClassType().getHaxeClass();
             if (haxeClass != null) {
@@ -2425,14 +2435,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     // TODO mlo: clean up (separate members and extension methods)
     SpecificTypeReference type = result != null && !result.isUnknown() ? result.getType()  : null;
-    //enum values does not have a HaxeClass but we need a class for a lot of the checks below (extension methods etc),
-    // so we use the EnumValue as class as a replacement
+    // Enum values don't have a HaxeClass via ResultHolder.getClassType, but for resolving
+    // members and `@:using`/`using`-imported extension methods we need the declaring enum class
+    // (e.g. for `MyEnum.SomeValue.method()` the receiver is `MyEnum`).
     boolean fromEnumValue = false;
+    SpecificHaxeClassReference enumClassOverride = null;
     if (type instanceof SpecificEnumValueReference valueReference) {
-      type = getEnumValue(valueReference.context);
+      enumClassOverride = valueReference.getEnumClass();
+      type = enumClassOverride;
       fromEnumValue = true;
     }
-    SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
+    SpecificHaxeClassReference classType = enumClassOverride != null
+                                           ? enumClassOverride
+                                           : (result == null || result.isUnknown() ? null : result.getClassType());
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
 

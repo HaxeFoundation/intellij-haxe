@@ -68,6 +68,15 @@ public class HaxeAnnotationTest extends HaxeCodeInsightFixtureTestCase {
     doUnresolvedSymbolWarningsOnlyTest();
   }
 
+  /*
+   * When an object-literal member has no value expression HaxeObjectLiteralElement.getExpression() should not return null.
+   */
+  @Test
+  public void testIncompleteObjectLiteralMember() throws Exception {
+    myFixture.configureByFile(getTestName(false) + ".hx");
+    myFixture.doHighlighting();
+  }
+
   @Test
   public void testIDEA_100331() throws Throwable {
     doTest("test/TArray.hx");
