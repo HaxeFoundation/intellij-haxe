@@ -41,6 +41,10 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.io.LocalFileFinder;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author: Fedor.Korotkov
@@ -53,6 +57,13 @@ public class HaxeCompilerUtil
     //}
 
     public static final String ERROR = "Error: ";
+
+    /**
+     * Upper bound for a single Haxe compiler-completion query (--display file@offset).
+     * The external process is spawned on a pooled thread; this bounds how long the
+     * completion thread blocks on {@code Future.get} before giving up.
+     */
+    private static final int COMPILER_COMPLETION_TIMEOUT_MS = 10_000;
 
     private static com.intellij.openapi.util.Key messageWindowAutoOpened =
       new com.intellij.openapi.util.Key("messageWindowAutoOpened");
@@ -259,7 +270,35 @@ public class HaxeCompilerUtil
                                         /*modifies*/ List<String> stdout,
                                         /*modifies*/ List<String> stderr,
                                                      HaxeDebugTimeLog timeLog) {
-        return HaxeProcessUtil.runProcess(command, mixedOutput, dir, sdkData, stdout, stderr, timeLog, true);
+        // Spawn the external haxe process from a pooled thread so OSProcessHandler.waitFor()
+        // runs without a Read Action — that is the only thread state the platform's
+        // checkEdtAndReadAction() guard inspects. The completion thread (which DOES hold a
+        // Read Action) waits via Future.get, which the platform does not flag.
+        //
+        // We deliberately do not poll cancellation here. The completion framework's outer
+        // indicator is cancelled aggressively (every keystroke retriggers a new completion),
+        // and threading that cancellation into the wait kills the haxe process before it
+        // can return its --display output — that regression is what broke dot-completion
+        // in the earlier ProgressManager.runProcessWithProgressSynchronously attempt.
+        Future<Integer> future = ApplicationManager.getApplication().executeOnPooledThread(() ->
+            HaxeProcessUtil.runProcess(command, mixedOutput, dir, sdkData, stdout, stderr, timeLog, true));
+        try {
+            return future.get(COMPILER_COMPLETION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+        }
+        catch (TimeoutException te) {
+            future.cancel(true);
+            log.warn("Haxe compiler-completion timed out after " + COMPILER_COMPLETION_TIMEOUT_MS + " ms");
+            return 124;
+        }
+        catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            future.cancel(true);
+            return 255;
+        }
+        catch (ExecutionException ee) {
+            log.warn("Haxe compiler-completion threw", ee.getCause());
+            return 255;
+        }
     }
 
 
