@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.function.Predicate.not;
 
@@ -17,11 +18,9 @@ public class AnnotatorUtil {
   public static boolean hasMacroForCodeGeneration(@NotNull HaxeClassModel clazz) {
     if (clazz.hasCompileTimeMeta(HaxeMeta.BUILD)) return true;
 
-    List<HaxeClassModel> classModels = clazz.getExtendingTypes().stream()
-      .map(HaxeClassReferenceModel::getHaxeClassModel)
-      .filter(Objects::nonNull)
-      .collect(Collectors.toList());
-
+    // @:autoBuild on an ancestor (extended class, parent interface, or implemented interface)
+    // propagates the build macro to this class, so a missing member could still be generated.
+    List<HaxeClassModel> classModels = ancestorModels(clazz).collect(Collectors.toList());
 
     for (int i = 0; i < classModels.size(); i++) {
       HaxeClassModel model = classModels.get(i);
@@ -30,12 +29,9 @@ public class AnnotatorUtil {
         if (aClass.hasCompileTimeMeta(HaxeMeta.AUTO_BUILD)) {
           return true;
         }
-        List<HaxeClassModel> list =
-          model.getExtendingTypes().stream()
-            .map(HaxeClassReferenceModel::getHaxeClassModel)
-            .filter(not(classModels::contains))
-            .toList();
-
+        List<HaxeClassModel> list = ancestorModels(model)
+          .filter(not(classModels::contains))
+          .toList();
         classModels.addAll(list);
       }
     }
@@ -43,5 +39,10 @@ public class AnnotatorUtil {
     return false;
   }
 
+  private static Stream<HaxeClassModel> ancestorModels(HaxeClassModel model) {
+    return Stream.concat(model.getExtendingTypes().stream(), model.getImplementingInterfaces().stream())
+      .map(HaxeClassReferenceModel::getHaxeClassModel)
+      .filter(Objects::nonNull);
+  }
 
 }

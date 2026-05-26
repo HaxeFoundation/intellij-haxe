@@ -1222,4 +1222,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWeakWarnings();
  }
 
+  @Test
+  public void testAutoBuildInterfaceMethodsAreNotRequired() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWeakWarnings();
+  }
+
 }
