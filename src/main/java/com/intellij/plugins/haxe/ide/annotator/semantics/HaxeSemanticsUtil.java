@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.HaxeAbstractClassModel;
+import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.HaxeEnumModel;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
@@ -21,6 +22,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeAbstractEnumUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -44,6 +46,9 @@ public class HaxeSemanticsUtil {
       if (initType.isInvalid()) return;
         checkNullAssignForNonNullableType(holder, initExpression, tag, initType, varType);
         HaxeAssignEvaluation assignEvaluation = varType.canAssignEvaluation(initType);
+      if (!assignEvaluation.result && acceptsAsEnumAbstractMemberUnderlying(erroredElement, varType, initType)) {
+        return;
+      }
       if (!assignEvaluation.result) {
         AssignExplanation messages = assignEvaluation.explanations;
         if(messages.hasMissingMembers()) {
@@ -121,6 +126,28 @@ public class HaxeSemanticsUtil {
         }
       }
       return specificTypeReference.getConstant() != null;
+    }
+
+    // Inside an `enum abstract Foo(U) { ... }` body, a member like `final A:Foo<X> = expr` declares a
+    // constant whose runtime representation is `expr` coerced to the underlying type `U`. The Haxe
+    // compiler does NOT require an explicit `from U` on the abstract for this; the coercion is
+    // implicit for member definitions. Outside the abstract body the usual rules apply, so this
+    // fallback is gated on the field actually being an enum-abstract member of the declared type.
+    private static boolean acceptsAsEnumAbstractMemberUnderlying(PsiElement erroredElement,
+                                                                 ResultHolder varType,
+                                                                 ResultHolder initType) {
+      if (!(erroredElement instanceof HaxeFieldDeclaration field)) return false;
+      if (!HaxeAbstractEnumUtil.couldBeAbstractEnumField(field)) return false;
+      HaxeAbstractTypeDeclaration enclosing =
+        PsiTreeUtil.getStubOrPsiParentOfType(field, HaxeAbstractTypeDeclaration.class);
+      if (enclosing == null || !enclosing.isEnum()) return false;
+      SpecificHaxeClassReference declaredClass = varType.getClassType();
+      if (declaredClass == null || declaredClass.getHaxeClass() != enclosing) return false;
+      HaxeClassModel model = enclosing.getModel();
+      if (model == null) return false;
+      SpecificTypeReference underlying = model.getUnderlyingType(declaredClass.getGenericResolver());
+      if (underlying == null) return false;
+      return underlying.createHolder().canAssign(initType);
     }
 
     @NotNull

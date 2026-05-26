@@ -1142,6 +1142,36 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testIfElseUnifiesToCommonInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testMapLiteralUnifiesToCommonInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testTryExpressionUnifiesToCommonInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testLambdaReturnUnifiesToCommonInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testSwitchExprUnifiesToCommonInterface() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testEnumAbstractMemberWithTypeParam() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignFunctionType1() throws Exception {
     doTestNoFixWithWarnings();
   }
