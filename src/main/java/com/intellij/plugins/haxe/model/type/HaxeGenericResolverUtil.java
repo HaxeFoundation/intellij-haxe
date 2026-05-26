@@ -40,13 +40,26 @@ public class HaxeGenericResolverUtil {
 
   @NotNull
   public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element) {
+    return generateResolverFromScopeParents(element, null);
+  }
+
+  @NotNull
+  public static HaxeGenericResolver generateResolverFromScopeParents(PsiElement element, @Nullable ResultHolder assignHint) {
     HaxeGenericResolver resolver = new HaxeGenericResolver();
 
     appendClassGenericResolver(element, resolver);
     appendMethodGenericResolver(element, resolver);
 
     appendStatementGenericResolver(HaxeResolveUtil.getLeftReference(element), resolver);
+
+    // Scope the assign hint tightly to the call-expression pre-pinning loop. Setting it
+    // earlier would leak into appendStatementGenericResolver's left-reference evaluation
+    // (e.g. macro-stub callees infer their return type from the surrounding hint), and
+    // leaving it on the returned resolver would propagate via addAll() to call sites that
+    // previously didn't see a hint here.
+    if (assignHint != null) resolver.setAssignHint(assignHint);
     appendCallExpressionGenericResolver(element, resolver);
+    if (assignHint != null) resolver.setAssignHint(null);
 
     return resolver;
   }
@@ -130,17 +143,33 @@ public class HaxeGenericResolverUtil {
       if (null != callTarget) {
         HaxeGenericResolver methodResolver = null;
         List<HaxeParameterModel> methodParameters = null;
+        HaxeMethodModel methodModelForReturn = null;
         if (callTarget instanceof HaxeMethodDeclaration) {
           HaxeMethodModel methodModel = (HaxeMethodModel)HaxeMethodModel.fromPsi(callTarget);
           if (null != methodModel) {
             methodResolver =
               methodModel.getGenericResolver(new HaxeGenericResolver()); // Use a new resolver to capture only the method types.
             methodParameters = methodModel.getParameters();
+            methodModelForReturn = methodModel;
           }
         } //else if (callTarget instanceof HaxeLocalFunctionDeclaration) {
           // TODO: Implement a HaxeLocalFunctionModel and use it here.
           // }
         if (null != methodResolver && !methodResolver.isEmpty() && null != methodParameters && !methodParameters.isEmpty()) {
+
+          // Project the call site's assign hint through the function's declared return type to
+          // derive a per-type-parameter "preferred" concrete type. The pre-pinning loop below
+          // forwards this as the unifier's `suggestedType` so sibling subclasses sharing an
+          // interface collapse to the interface the user actually assigned to (instead of an
+          // incidental common parent class chosen by getCompatibleTypes() iteration order).
+          Map<HaxeTypeParameterDeclaration, ResultHolder> typeParameterSuggestions = new HashMap<>();
+          ResultHolder assignHint = resolver.getAssignHint();
+          if (assignHint != null && !assignHint.isUnknown() && methodModelForReturn != null) {
+            ResultHolder declaredReturnType = methodModelForReturn.getReturnType(null);
+            if (declaredReturnType != null) {
+              mapTypeParameters(typeParameterSuggestions, declaredReturnType, assignHint);
+            }
+          }
           // Loop through all of the parameters of the method and call site.  For those
           // that use a type parameter where the resolver entry doesn't have a known type,
           // grab the type from the call site and put that in the resolver.  Any resolver
@@ -174,20 +203,38 @@ public class HaxeGenericResolverUtil {
 
                 ResultHolder typeParameterType = tpEntry.getValue();
                 ResultHolder existingType = methodResolver.resolveArgument(typeParameter);
-                if (existingType == null || typeParameterType.canAssign(existingType)) {
-                  if (existingType != null) {
-                    typeParameterType = HaxeTypeUnifier.unify(existingType, typeParameterType);
+
+                if (existingType != null) {
+                  // If the existing pin already accepts the new argument, the existing pin is the
+                  // wider type; keep it as-is. Otherwise the new arg is either wider or a sibling
+                  // of the existing pin — in both cases let the unifier find the right common type.
+                  // (Without the sibling branch, `pick<T>(new A(), new B())` where A and B share an
+                  // interface would silently leave T pinned to A and produce a false-positive
+                  // "Expected: A, got: B" downstream.)
+                  if (existingType.canAssign(typeParameterType)) {
+                    continue;
                   }
-                  ResultHolder constraint = methodResolver.resolveConstraint(typeParameter);
-                  // resolve constraint if type parameter ex. (T:B, B:DisplayObject)
-                  if (constraint != null && constraint.isTypeParameter()) constraint = methodResolver.resolve(constraint);
-                  if (constraint == null || constraint.canAssign(typeParameterType)) {
-                    if(typeParameterType.isDynamic() && typeParameterType.getConstant()  instanceof HaxeNull){
-                      continue;// ignore  null arguments
-                    }
-                    methodResolver.addArgument(typeParameter, typeParameterType);
+                  ResultHolder suggestion = typeParameterSuggestions.get(typeParameter);
+                  SpecificTypeReference suggestionType = (suggestion != null && !suggestion.isUnknown()) ? suggestion.getType() : null;
+                  SpecificTypeReference existingRef = existingType.getType();
+                  SpecificTypeReference newRef = typeParameterType.getType();
+                  SpecificTypeReference unifiedRef =
+                    HaxeTypeUnifier.unify(existingRef, newRef, existingRef.context, suggestionType, UnificationRules.DEFAULT);
+                  if (unifiedRef.isUnknown()) {
+                    continue;
                   }
+                  typeParameterType = unifiedRef.createHolder();
                 }
+
+                ResultHolder constraint = methodResolver.resolveConstraint(typeParameter);
+                // resolve constraint if type parameter ex. (T:B, B:DisplayObject)
+                if (constraint != null && constraint.isTypeParameter()) constraint = methodResolver.resolve(constraint);
+                if (constraint != null && !constraint.canAssign(typeParameterType)) continue;
+
+                if (typeParameterType.isDynamic() && typeParameterType.getConstant() instanceof HaxeNull) {
+                  continue; // ignore null arguments
+                }
+                methodResolver.addArgument(typeParameter, typeParameterType);
               }
             }
         }

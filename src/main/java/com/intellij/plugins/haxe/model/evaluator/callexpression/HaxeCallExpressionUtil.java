@@ -94,7 +94,11 @@ public class HaxeCallExpressionUtil {
 
     HaxeGenericResolver genericResolver = new HaxeGenericResolver();
 
-    HaxeGenericResolver parentResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+    // Forward the assign hint so the parent resolver's type-parameter pre-pinning loop can
+    // prefer the declared assignment target over an incidental common parent class when
+    // widening T across sibling-subclass arguments.
+    ResultHolder assignHintHolder = assignHint == null ? null : assignHint.createHolder();
+    HaxeGenericResolver parentResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression, assignHintHolder);
     HaxeGenericResolver methodResolver = methodModel.getGenericResolver(parentResolver);
 
     genericResolver.addAll(parentResolver);

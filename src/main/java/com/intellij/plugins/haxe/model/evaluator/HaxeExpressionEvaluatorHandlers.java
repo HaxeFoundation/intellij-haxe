@@ -79,8 +79,37 @@ public class HaxeExpressionEvaluatorHandlers {
     HaxeExpression[] list = ternaryExpression.getExpressionList().toArray(new HaxeExpression[0]);
     SpecificTypeReference type1 = handle(list[1], context, resolver).getType();
     SpecificTypeReference type2 = handle(list[2], context, resolver).getType();
-    return HaxeTypeUnifier.unify(type1, type2, ternaryExpression, context.getScope().unificationRules)
+    UnificationRules rules = context.getScope().unificationRules;
+    SpecificTypeReference suggested = assignHintAsSuggestedType(resolver, rules);
+    return HaxeTypeUnifier.unify(type1, type2, ternaryExpression, suggested, rules)
       .createHolder();
+  }
+
+  // Without a suggested type, HaxeTypeUnifier picks the first match in getCompatibleTypes() iteration,
+  // which puts the parent class ahead of any implemented interface. Forwarding the assign hint lets
+  // siblings unify to a shared interface when that is what the declaration site expects. We skip the
+  // hint inside comprehension / function-literal scopes (IGNORE_VOID / PREFER_VOID) — there the hint
+  // describes the outer container or return type, not the if/ternary value itself.
+  private static SpecificTypeReference assignHintAsSuggestedType(HaxeGenericResolver resolver, UnificationRules rules) {
+    if (resolver == null) return null;
+    if (rules == UnificationRules.IGNORE_VOID || rules == UnificationRules.PREFER_VOID) return null;
+    ResultHolder hint = resolver.getAssignHint();
+    if (hint == null || hint.isUnknown()) return null;
+    return hint.getType();
+  }
+
+  // Specifically for lambda return-type inference: extracts the return component of a function-type hint.
+  // The generic assignHintAsSuggestedType helper deliberately skips PREFER_VOID scopes, but a function
+  // literal *is* a PREFER_VOID scope by design, so it needs its own projection from `(args) -> R` to `R`.
+  private static SpecificTypeReference functionReturnHintFor(HaxeGenericResolver resolver) {
+    if (resolver == null) return null;
+    ResultHolder hint = resolver.getAssignHint();
+    if (hint == null || hint.isUnknown()) return null;
+    if (hint.getFunctionType() instanceof SpecificFunctionReference functionRef) {
+      ResultHolder ret = functionRef.getReturnType();
+      if (ret != null && !ret.isUnknown()) return ret.getType();
+    }
+    return null;
   }
 
   static ResultHolder handleBinaryExpression(HaxeExpressionEvaluatorContext context, HaxeGenericResolver resolver,
@@ -1096,7 +1125,9 @@ public class HaxeExpressionEvaluatorHandlers {
       if (null == tFalse) tFalse = SpecificHaxeClassReference.getVoid(ifStatement);
     }
     // TODO create rule use first on unknown
-    return HaxeTypeUnifier.unify(tTrue, tFalse, ifStatement, context.getScope().unificationRules).createHolder();
+    UnificationRules rules = context.getScope().unificationRules;
+    SpecificTypeReference suggested = assignHintAsSuggestedType(resolver, rules);
+    return HaxeTypeUnifier.unify(tTrue, tFalse, ifStatement, suggested, rules).createHolder();
   }
 
   static ResultHolder handleFunctionLiteral(
@@ -1189,7 +1220,10 @@ public class HaxeExpressionEvaluatorHandlers {
             CachedValuesManager.getCachedValue(block,  () -> HaxeTypeResolver.findReturnStatementsForMethod(block));
           List<ResultHolder> returnTypes = returnStatementList.stream().map(statement -> HaxeTypeResolver.getPsiElementType(statement, blockResolver)).toList();
           if (!returnTypes.isEmpty())  {
-            returnType = HaxeTypeUnifier.unifyHolders(returnTypes, block, UnificationRules.PREFER_VOID);
+            // Project the function-type hint's return component down so sibling subclasses returned
+            // from different branches unify to the declared return type instead of their parent class.
+            SpecificTypeReference suggestedReturn = functionReturnHintFor(resolver);
+            returnType = HaxeTypeUnifier.unifyHolders(returnTypes, block, suggestedReturn, UnificationRules.PREFER_VOID);
           } else {
             // TODO cache last element
             boolean filtered = false;
@@ -1587,6 +1621,8 @@ public class HaxeExpressionEvaluatorHandlers {
     var enumValuePreferredValue = false;
 
     ResultHolder assignHint = resolver.getAssignHint();
+    SpecificTypeReference suggestedKeyType = null;
+    SpecificTypeReference suggestedValueType = null;
     if (assignHint != null) {
       SpecificHaxeClassReference hintClassType = assignHint.getClassType();
       if (hintClassType != null) {
@@ -1597,6 +1633,10 @@ public class HaxeExpressionEvaluatorHandlers {
           if (specifics.length == 2) {
               if (specifics[0].getType().isEnumValueClass()) enumValuePreferredKey = true;
               if (specifics[1].getType().isEnumValueClass()) enumValuePreferredValue = true;
+              // Mirrors handleArrayLiteral: forwarding the projected K/V as suggestedType keeps
+              // sibling classes that share an interface from collapsing to their parent class.
+              if (!specifics[0].isUnknown()) suggestedKeyType = specifics[0].getType();
+              if (!specifics[1].isUnknown()) suggestedValueType = specifics[1].getType();
           }
         }
       }
@@ -1629,8 +1669,8 @@ public class HaxeExpressionEvaluatorHandlers {
     // XXX: Maybe track and add constants to the type references, like arrays do??
     //      That has implications on how they're displayed (e.g. not as key=>value,
     //      but as separate arrays).
-    ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
-    ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
+    ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, mapLiteral, suggestedKeyType, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
+    ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, mapLiteral, suggestedValueType, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
 
     SpecificHaxeClassReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, mapLiteral);
     if (mapLiteral.getParent() instanceof HaxeVarInit ) {
@@ -1671,7 +1711,9 @@ public class HaxeExpressionEvaluatorHandlers {
 
     HaxeExpression callExpressionRef = callExpression.getExpression();
     // generateResolverFromScopeParents -  making sure we got typeParameters from arguments/parameters
-    HaxeGenericResolver localResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression);
+    // The outer resolver's assign hint is forwarded here so the type-parameter pre-pinning loop
+    // can prefer the declared assignment target when unifying sibling subclass arguments.
+    HaxeGenericResolver localResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(callExpression, resolver.getAssignHint());
     localResolver.addAll(resolver);
     if(resolver.getAssignHint() != null) {
       localResolver.setAssignHint(resolver.getAssignHint());
@@ -2423,7 +2465,8 @@ public class HaxeExpressionEvaluatorHandlers {
       blockResults.add(handle(child, context, resolver));
     }
     UnificationRules rules = context.getScope().unificationRules;
-    return HaxeTypeUnifier.unifyHolders(blockResults, tryStatement, rules);
+    SpecificTypeReference suggested = assignHintAsSuggestedType(resolver, rules);
+    return HaxeTypeUnifier.unifyHolders(blockResults, tryStatement, suggested, rules);
   }
   @NotNull
   static ResultHolder handleCatchStatement(HaxeExpressionEvaluatorContext context,
@@ -2439,7 +2482,8 @@ public class HaxeExpressionEvaluatorHandlers {
       blockResults.add(handle(child, context, resolver));
     }
     UnificationRules rules = context.getScope().unificationRules;
-    return HaxeTypeUnifier.unifyHolders(blockResults, catchStatement, rules);
+    SpecificTypeReference suggested = assignHintAsSuggestedType(resolver, rules);
+    return HaxeTypeUnifier.unifyHolders(blockResults, catchStatement, suggested, rules);
   }
 
 

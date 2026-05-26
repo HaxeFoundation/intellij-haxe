@@ -396,4 +396,9 @@ public class HaxeTypeUnifier {
     // @TODO: This should mutate unknown holders?
     return unify(ResultHolder.types(typeHolders), context, rules).createHolder();
   }
+
+  @NotNull
+  static public ResultHolder unifyHolders(List<ResultHolder> typeHolders, @NotNull PsiElement context, @Nullable SpecificTypeReference suggestedType, @NotNull UnificationRules rules) {
+    return unify(ResultHolder.types(typeHolders), context, suggestedType, rules).createHolder();
+  }
 }
