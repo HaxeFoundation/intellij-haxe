@@ -8,6 +8,7 @@ import com.intellij.codeInspection.ex.LocalInspectionToolWrapper;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.ide.annotator.HaxeSemanticAnnotatorInspections;
+import com.intellij.plugins.haxe.ide.inspections.HaxeUnresolvedSymbolInspection;
 import com.intellij.profile.codeInspection.InspectionProfileManager;
 import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.Nullable;
@@ -99,6 +100,12 @@ public class HaxeAllowAccessAnnotatorTest extends HaxeCodeInsightFixtureTestCase
     @Test
     public void testTestModuleLevel() throws Exception {
         doTest("accesscontrol/PrivateStaticMembers.hx");
+    }
+
+    @Test
+    public void testTestAllowMetaSubTypeReference() throws Exception {
+        myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+        doTest();
     }
 
 

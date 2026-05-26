@@ -317,7 +317,9 @@ public class HaxeAccessAnnotator implements Annotator {
       if (target instanceof PsiPackage aPackage) {
         qualifiedName = aPackage.getQualifiedName();
       } else if (target instanceof HaxeClass aClass) {
-        qualifiedName = aClass.getQualifiedName();
+        // Haxe rejects pkg.Module.SubType inside @:allow/@:access when targeting
+        // an ancillary sub-type, so build the package-elided form (pkg.SubType).
+        qualifiedName = buildAccessMetaTargetName(aClass);
       } else if (target instanceof HaxeMethod method) {
         FullyQualifiedInfo qualifiedInfo = method.getModel().getQualifiedInfo();
         if(qualifiedInfo != null) {
@@ -339,6 +341,16 @@ public class HaxeAccessAnnotator implements Annotator {
         }
       }
     }
+  }
+
+  private static @Nullable String buildAccessMetaTargetName(@NotNull HaxeClass target) {
+    String className = target.getName();
+    if (className == null) return null;
+    PsiFile containingFile = target.getContainingFile();
+    String packageName = containingFile != null
+            ? HaxeResolveUtil.getPackageName(containingFile)
+            : "";
+    return packageName.isEmpty() ? className : packageName + "." + className;
   }
 
   private boolean expressionHasPrivateAccessMeta(PsiElement referenceExpression) {

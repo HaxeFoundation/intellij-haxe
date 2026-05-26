@@ -48,6 +48,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.scope.PsiScopeProcessor;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ArrayListSet;
 import lombok.CustomLog;
@@ -280,6 +281,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // checking here (and not in switch var method) because we want to make sure all other type resolve has been tried
       result = checkIfNamedSwitchValue(reference);
     }
+
+    // Final fallback: @:allow / @:access accept a "module-elided" type path
+    // (e.g. pkg.SubType where SubType is an ancillary class of pkg.Other.hx)
+    // that the FQN index does not know about. Scan the package's modules for it.
+    if (result == null) result = checkIsAccessMetaSubTypeReference(reference);
 
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
@@ -2184,6 +2190,44 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       if (element != null) {
         LogResolution(reference, "via module qualified name.");
         return asList(element);
+      }
+    }
+    return null;
+  }
+
+  // @:allow / @:access target paths may use the module-elided form `pkg.SubType`
+  // (the Haxe compiler accepts this, but the FQN stub index stores the canonical
+  // `pkg.Module.SubType`). Resolve by scanning the package's Haxe files for a
+  // sub-type with the matching name. Returns null when not inside such a meta or
+  // when the structure does not look like a `package.SubType` chain.
+  @Nullable
+  private List<? extends PsiElement> checkIsAccessMetaSubTypeReference(@NotNull HaxeReference reference) {
+    if (!(reference instanceof HaxeReferenceExpression referenceExpression)) return null;
+
+    HaxeMetadataCompileTimeMeta meta = PsiTreeUtil.getParentOfType(reference, HaxeMetadataCompileTimeMeta.class);
+    if (meta == null) return null;
+    if (!meta.isType(HaxeMeta.ALLOW) && !meta.isType(HaxeMeta.ACCESS)) return null;
+
+    PsiElement firstChild = referenceExpression.getFirstChild();
+    PsiElement lastChild = referenceExpression.getLastChild();
+    if (!(firstChild instanceof HaxeReferenceExpression packageRef)) return null;
+    if (lastChild == null) return null;
+
+    PsiElement packageResolve = packageRef.resolve();
+    if (!(packageResolve instanceof PsiPackage aPackage)) return null;
+
+    String subTypeName = lastChild.getText();
+    if (subTypeName == null || subTypeName.isEmpty()) return null;
+
+    PsiFile[] packageFiles = aPackage.getFiles(GlobalSearchScope.allScope(reference.getProject()));
+    for (PsiFile packageFile : packageFiles) {
+      if (!(packageFile instanceof HaxeFile haxeFile)) continue;
+      HaxeClassModel classModel = haxeFile.getModel().getClassModel(subTypeName);
+      if (classModel == null) continue;
+      HaxeComponentName componentName = classModel.haxeClass.getComponentName();
+      if (componentName != null) {
+        LogResolution(reference, "via @:allow/@:access sub-type-in-module scan.");
+        return List.of(componentName);
       }
     }
     return null;
