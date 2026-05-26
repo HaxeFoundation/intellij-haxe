@@ -18,11 +18,16 @@ import static org.junit.Assert.assertNotSame;
  */
 public class HaxelibProjectStartActivityGateWiringTest {
 
+  // HotSpot caches non-capturing lambdas, so repeated production installs share an
+  // instance — plant a test-local sentinel and assert the install replaced *that*.
+  private static final Runnable SENTINEL_NOOP = () -> {};
+
   private Runnable original;
 
   @Before
   public void captureOriginal() {
     original = HaxeFileElementType.READINESS_GATE;
+    HaxeFileElementType.READINESS_GATE = SENTINEL_NOOP;
   }
 
   @After
@@ -35,7 +40,7 @@ public class HaxelibProjectStartActivityGateWiringTest {
   public void installHaxeFileReadinessGate_replacesDefault() {
     HaxelibProjectStartActivity.installHaxeFileReadinessGate();
     assertNotSame("Gate must be replaced with the production version",
-                  original, HaxeFileElementType.READINESS_GATE);
+                  SENTINEL_NOOP, HaxeFileElementType.READINESS_GATE);
     assertNotNull(HaxeFileElementType.READINESS_GATE);
   }
 }
