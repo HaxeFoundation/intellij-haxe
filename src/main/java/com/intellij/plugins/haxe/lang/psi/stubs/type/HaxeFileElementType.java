@@ -30,6 +30,18 @@ public class HaxeFileElementType extends IStubFileElementType<HaxeFileStub> {
     super("HAXEFILE", HaxeLanguage.INSTANCE);
   }
 
+  /**
+   * Pluggable readiness gate invoked once per stub creation. Default is a no-op;
+   * production replaces it from {@code HaxelibProjectStartActivity} with a call
+   * to {@code HaxeDefineDetectionManager.awaitReady}.
+   *
+   * <p>Static because the stub builder runs at index time with no convenient
+   * Project handle; the gate decides for itself how to look up the relevant
+   * manager. Volatile so the production replacement is visible across all
+   * indexing pool threads without a happens-before story.
+   */
+  public static volatile Runnable READINESS_GATE = () -> {};
+
   @Override
   public int getStubVersion() {
     return HaxeStubVersions.STUB_VERSION;
@@ -66,6 +78,7 @@ public class HaxeFileElementType extends IStubFileElementType<HaxeFileStub> {
       @NotNull
       @Override
       protected PsiFileStub<?> createStubForFile(@NotNull PsiFile file) {
+        READINESS_GATE.run();
         String name = file.getName();
 
         if (file instanceof HaxeFile haxeFile) {

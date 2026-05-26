@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.haxelib.definitions;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
@@ -24,6 +25,8 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static com.intellij.plugins.haxe.haxelib.definitions.HxmlDefinitionsUtil.findHxml;
 import static com.intellij.plugins.haxe.haxelib.definitions.HxmlDefinitionsUtil.processHxml;
@@ -39,13 +42,19 @@ public class HaxeDefineDetectionManager implements Disposable {
   }
 
 
-  public static final Map<Module, Map<String, String>> moduleDefinitionsMap = new HashMap<>();
+  public static final Map<Module, Map<String, String>> moduleDefinitionsMap = new java.util.concurrent.ConcurrentHashMap<>();
 
   public static HaxeDefineDetectionManager getInstance(Project project) {
     return project.getService(HaxeDefineDetectionManager.class);
   }
 
   private  Project myProject;
+  // One-shot readiness signal. Counted down by the first successful
+  // recalculateDefinitions(...) (sync or async). Stub builders and the
+  // conditional-compilation lexer can call awaitReady before consulting
+  // moduleDefinitionsMap to avoid the stub/AST mismatch race.
+  private final CountDownLatch ready = new CountDownLatch(1);
+
   public HaxeDefineDetectionManager(Project project) {
     myProject = project;
   }
@@ -101,6 +110,50 @@ public class HaxeDefineDetectionManager implements Disposable {
 
 
 
+  /**
+   * Synchronously populate {@link #moduleDefinitionsMap} for this project and
+   * release {@link #awaitReady(long)} waiters.
+   *
+   * <p>Idempotent: a second call short-circuits. Safe to invoke from a
+   * background thread that holds a read action. Must NOT be invoked from the
+   * EDT — would block UI for the duration of a full module scan.
+   *
+   * <p>Catches any exception thrown by the underlying recalculation so that
+   * stub builders waiting on the latch are never deadlocked by a transient
+   * failure (e.g. missing SDK, project not fully initialised yet).
+   */
+  public void recalculateDefinitionsSync(@NotNull Project project) {
+    if (ready.getCount() == 0) {
+      return;
+    }
+    Application app = ApplicationManager.getApplication();
+    if (app != null) {
+      app.assertIsNonDispatchThread();
+    }
+    try {
+      recalculateDefinitions(project);
+    } catch (Throwable t) {
+      log.warn("recalculateDefinitionsSync caught exception; releasing latch anyway", t);
+    } finally {
+      ready.countDown();
+    }
+  }
+
+  /**
+   * Block up to {@code timeoutMs} for {@link #recalculateDefinitionsSync} (or the
+   * async path) to complete its first run. Returns {@code true} if detection is
+   * ready, {@code false} on timeout. Idempotent and effectively zero-cost once
+   * the latch has been counted down.
+   */
+  public boolean awaitReady(long timeoutMs) {
+    try {
+      return ready.await(timeoutMs, TimeUnit.MILLISECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    }
+  }
+
   public void recalculateDefinitions(Project project) {
     Collection<Module> modules = ModuleUtil.getModulesOfType(project, HaxeModuleType.getInstance());
 
@@ -110,6 +163,11 @@ public class HaxeDefineDetectionManager implements Disposable {
         setDetectedDefinitions(module, moduleDefines);
       }
     });
+    // The async path through HaxelibProjectUpdater also signals readiness, so a
+    // late awaitReady call does not have to wait for a second sync invocation.
+    if (ready.getCount() > 0) {
+      ready.countDown();
+    }
   }
 
   private static Map<String, String> recalculateDefinitionsForModule(Module module) {
