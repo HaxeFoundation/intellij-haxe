@@ -837,6 +837,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testStaticToStringReturnsString() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
+  public void testBoolFieldInitWithTypeTag() throws Exception {
+    doTestNoFixWithWeakWarnings();
+  }
+
+  @Test
   public void testAssignDynamicMethod() throws Exception {
     doTestNoFixWithWarnings();
   }
