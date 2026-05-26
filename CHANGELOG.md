@@ -1,4 +1,7 @@
 # Changelog
+## Unreleased
+* Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe).
+
 ## 1.8.6
 * Added: initial support for inline XML markup (parsing & basic highlighting).
 * Fixed: HXML parsing failed to parse more complex HXML file inclusion references.
