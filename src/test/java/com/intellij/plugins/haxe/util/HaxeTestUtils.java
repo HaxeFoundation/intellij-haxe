@@ -44,6 +44,7 @@ public class HaxeTestUtils {
   public static final String HAXE_STDLIB_DIR = "std";
   public static final String VERSION_4_0_5 = "4.0.5";  // Path element.
   public static final String VERSION_4_3_6 = "4.3.6";  // Path element.
+  public static final String VERSION_5_0_0_PREVIEW = "5.0.0-preview";  // Path element.
   public static final String LATEST = VERSION_4_3_6;
 
   /**
