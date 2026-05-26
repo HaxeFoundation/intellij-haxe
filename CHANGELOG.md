@@ -1,4 +1,6 @@
 # Changelog
+## Unreleased
+* Fixed: Bodyless macro stubs are now typed `Dynamic` instead of having `Void` inferred from the missing body, so assignments from their calls are no longer flagged as incompatible.
 
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 

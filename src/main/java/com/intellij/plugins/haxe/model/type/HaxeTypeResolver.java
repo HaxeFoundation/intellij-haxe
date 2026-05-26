@@ -385,6 +385,14 @@ public class HaxeTypeResolver {
               .toList();
 
       if (returnTypes.isEmpty() && returnStatementList.isEmpty()) {
+        // A bodyless macro stub (e.g. `public macro function make(_);`) forwards to a
+        // sibling macro implementation that produces an Expr whose type is determined per
+        // call site (typically via Context.getExpectedType). Treat it as Dynamic to mirror
+        // how resolveMacroTypesForFunction already maps an Expr macro return type, instead
+        // of falling through to Void which causes false-positive "Void should be X" errors.
+        if (methodModel.isMacro() && methodModel.getBodyPsi() == null) {
+          return SpecificHaxeClassReference.getDynamic(psi).createHolder();
+        }
         return SpecificHaxeClassReference.getVoid(psi).createHolder();
       }
       if (returnStatementList.isEmpty()) {
