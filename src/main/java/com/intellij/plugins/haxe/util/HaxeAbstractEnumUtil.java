@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.type.HaxeClassReference;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
+import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.psi.PsiClass;
@@ -124,6 +125,16 @@ public class HaxeAbstractEnumUtil {
           ResultHolder[] specifics = resolver != null ? resolver.getSpecificsFor(enumReference) : ResultHolder.EMPTY;
           specificRef = SpecificHaxeClassReference.withGenerics(enumReference, specifics);
           return SpecificHaxeClassReference.propagateGenericsToType(specificRef.createHolder(), resolver).getClassType();
+        }
+        // For enum-abstract members with an explicit type tag (e.g. `final A:AbilityType<ComponentA>`)
+        // the type tag's specifics ARE the answer — they encode the per-member binding the user
+        // wrote. Resolving via tryResolveClassByTypeTag + getSpecificClassReference re-applies the
+        // caller's resolver, which substitutes the enum abstract's class-level T (unbound at the
+        // call site) over the type tag's explicit specifics. Read the type tag directly instead.
+        ResultHolder typeFromTag = HaxeTypeResolver.getTypeFromTypeTag(varDecl.getTypeTag(), element);
+        SpecificHaxeClassReference fromTag = typeFromTag.getClassType();
+        if (fromTag != null) {
+          return fromTag;
         }
         HaxeGenericSpecialization specialization = resolver != null ? resolver.getSpecialization(element) : HaxeGenericSpecialization.EMPTY;
         HaxeResolveResult result = HaxeResolveUtil.tryResolveClassByTypeTag(varDecl, specialization);

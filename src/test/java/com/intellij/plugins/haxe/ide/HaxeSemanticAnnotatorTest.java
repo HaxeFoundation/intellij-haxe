@@ -1187,6 +1187,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testGenericMethodInfersTypeFromEnumAbstractArg() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignFunctionType1() throws Exception {
     doTestNoFixWithWarnings();
   }
