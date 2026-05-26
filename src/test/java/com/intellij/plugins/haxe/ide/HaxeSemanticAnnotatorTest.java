@@ -1182,6 +1182,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testGenericMethodReferenceUnifiesWithExpectedType() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testAssignFunctionType1() throws Exception {
     doTestNoFixWithWarnings();
   }

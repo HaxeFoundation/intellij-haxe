@@ -316,7 +316,40 @@ public class HaxeGenericResolverUtil {
     }
   }
 
+  /**
+   * Resolve the type parameters of a generic method that was passed by reference (no call
+   * parentheses) into a position whose declared type is a concrete function type. Walks the
+   * declared (method-side) function signature against the expected (hint-side) signature
+   * pairwise, binding each method type parameter to the corresponding concrete type from the
+   * hint. Returns null when nothing could be bound, when either side is missing, or when the
+   * method reference is not backed by a {@link HaxeMethodModel}.
+   *
+   * The returned resolver contains only the inferred method-level bindings; callers typically
+   * feed it to {@link HaxeMethodModel#getFunctionType(HaxeGenericResolver)} to obtain a fully
+   * substituted function signature for the subsequent assignability check.
+   */
+  @Nullable
+  public static HaxeGenericResolver buildMethodTypeParamResolverFromHint(@Nullable SpecificFunctionReference methodReference,
+                                                                         @Nullable SpecificFunctionReference hint) {
+    if (methodReference == null || hint == null) return null;
+    if (methodReference.method == null) return null;
 
+    Map<HaxeTypeParameterDeclaration, ResultHolder> bindings = new HashMap<>();
 
+    List<HaxeArgument> methodArgs = methodReference.getArguments();
+    List<HaxeArgument> hintArgs = hint.getArguments();
+    int pairCount = Math.min(methodArgs.size(), hintArgs.size());
+    for (int i = 0; i < pairCount; i++) {
+      mapTypeParameters(bindings, methodArgs.get(i).getType(), hintArgs.get(i).getType());
+    }
+    mapTypeParameters(bindings, methodReference.getReturnType(), hint.getReturnType());
 
+    if (bindings.isEmpty()) return null;
+
+    HaxeGenericResolver resolver = new HaxeGenericResolver();
+    for (Map.Entry<HaxeTypeParameterDeclaration, ResultHolder> entry : bindings.entrySet()) {
+      resolver.add(entry.getKey(), entry.getValue());
+    }
+    return resolver;
+  }
 }

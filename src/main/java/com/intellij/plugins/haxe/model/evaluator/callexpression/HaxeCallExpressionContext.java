@@ -247,6 +247,23 @@ public class HaxeCallExpressionContext {
             parameterType = tryResolve(combinedResolver, originalParameterType, null);
             argumentType = tryResolve(argumentResolver, argumentModel.getType(), isConstructor? null : parameterType);
 
+            // If the argument is a generic method reference (passed without call parens) and the
+            // declared parameter is a concrete function type, infer the method's type parameters
+            // from the parameter shape and re-derive the argument's signature with those bindings.
+            // Without this step, `(Type<T>, String)->Null<T>` reaches the assign check verbatim and
+            // fails to unify against `(Type<Concrete>, String)->Concrete` even though the Haxe
+            // compiler accepts the call.
+            if (parameterType instanceof SpecificFunctionReference paramFn
+                && argumentType instanceof SpecificFunctionReference argFn
+                && argFn.method != null
+                && HaxeTypeUtils.containsUnknownOrUnresolvedTypeParameters(argFn)) {
+              HaxeGenericResolver methodRefResolver =
+                  HaxeGenericResolverUtil.buildMethodTypeParamResolverFromHint(argFn, paramFn);
+              if (methodRefResolver != null) {
+                argumentType = argFn.method.getFunctionType(methodRefResolver);
+              }
+            }
+
             //making final instances so we can use them in  recursion-guard lambda.
             final SpecificTypeReference finalParameterType = parameterType;
             final SpecificTypeReference finalArgumentType = argumentType;
