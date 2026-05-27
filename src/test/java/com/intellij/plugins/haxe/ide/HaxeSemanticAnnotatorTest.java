@@ -1234,4 +1234,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWeakWarnings();
   }
 
+  @Test
+  public void testMacroGeneratedStaticMembersAreResolvable() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+
 }

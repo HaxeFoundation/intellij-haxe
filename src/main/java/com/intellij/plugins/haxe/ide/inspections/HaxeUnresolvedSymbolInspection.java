@@ -21,6 +21,7 @@ import com.intellij.codeInspection.*;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeAnnotatingVisitor;
+import com.intellij.plugins.haxe.ide.annotator.semantics.AnnotatorUtil;
 import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceFieldIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -82,6 +83,10 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
       protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
         PsiElement nameIdentifier = reference.getReferenceNameElement();
         if (nameIdentifier == null) return;
+        // The plugin doesn't run @:build / @:autoBuild / @:genericBuild macros,
+        // so anything they inject into the target class is invisible here. Skip
+        // the diagnostic in that case to avoid flagging legitimate references.
+        if (AnnotatorUtil.qualifierIsMacroGenerated(reference)) return;
         if (isPartOfImportStatement(reference)) {
           result.add(manager.createProblemDescriptor(
             nameIdentifier,
