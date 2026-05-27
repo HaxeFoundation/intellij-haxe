@@ -1,4 +1,20 @@
 # Changelog
+## 1.8.1-fork.2-dev.1
+* Bugfix: Macro-generated members are no longer flagged as unresolved
+* Bugfix: `@:allow` and `@:access` metas now resolve sub-types that elide the module name
+* Bugfix: `@:autoBuild` on implemented interfaces is recognised when checking for missing members
+* Bugfix: Generic method references resolve against the expected function type
+* Bugfix: Bodyless macro stubs no longer have `Void` inferred as their return type
+* Bugfix: Enum abstract members initialised from their underlying type are no longer flagged
+* Bugfix: Avoid "Synchronous execution under ReadAction" warning during Haxe compiler completion
+* Bugfix: Implementations of abstract parent methods are no longer flagged as unused in child classes
+* Bugfix: Stub / AST mismatch on Haxe files with `#if` conditional compilation blocks
+* Bugfix: Same-file / same-qname duplicate `HaxeClass` PSI elements are treated as the same type
+* Bugfix: Stdlib PSI duplicates with divergent VFS paths are treated as the same type
+* Bugfix: Null-guard `@Nullable` PSI expressions in the evaluator, avoiding `IllegalArgumentException` during mid-edit highlighting
+* Improvement: Enum-abstract field type tags are preserved so generic method inference can pin `T`
+* Improvement: Assignment hints are forwarded to the unifier so sibling subclasses collapse to the declared interface type
+
 ## 1.8.1-fork.1
 * Resolve inherited fields referenced inside object literal values
 
