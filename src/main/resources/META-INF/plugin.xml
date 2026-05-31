@@ -375,7 +375,9 @@
 
 
     <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoClassContributor"/>
-    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoSymbolContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoClassSymbolContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoFieldSymbolContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoMethodSymbolContributor"/>
 
     <definitionsScopedSearch implementation="com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsSearcher"/>
 

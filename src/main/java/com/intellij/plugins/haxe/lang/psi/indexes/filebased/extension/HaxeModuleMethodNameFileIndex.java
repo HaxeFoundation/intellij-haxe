@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 public class HaxeModuleMethodNameFileIndex extends HaxeComponentBaseIndex {
-    public static final ID<String, HaxeComponentIndexData> INDEX = ID.create("HaxeMethodNameIndex");
+    public static final ID<String, HaxeComponentIndexData> INDEX = ID.create("HaxeModuleMethodNameIndex");
     private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION;
 
 
@@ -48,6 +48,13 @@ public class HaxeModuleMethodNameFileIndex extends HaxeComponentBaseIndex {
     public @NotNull DataIndexer<String, HaxeComponentIndexData, FileContent> getIndexer() {
         return new HaxeModuleMethodNameIndexer();
     }
+
+    public static Collection<HaxeComponentIndexData> getValues(@NotNull String name,
+                                                               @NotNull Project project,
+                                                               @Nullable GlobalSearchScope scope) {
+        return FileBasedIndex.getInstance().getValues(INDEX, name, scope);
+    }
+
 
     public static Collection<HaxeMethod> getByName(@NotNull String name,
                                                    @NotNull Project project,

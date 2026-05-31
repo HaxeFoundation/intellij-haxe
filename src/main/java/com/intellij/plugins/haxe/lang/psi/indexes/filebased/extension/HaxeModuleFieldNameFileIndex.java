@@ -46,6 +46,12 @@ public class HaxeModuleFieldNameFileIndex extends HaxeComponentBaseIndex {
         return new HaxeClassFieldNameIndexer();
     }
 
+    public static Collection<HaxeComponentIndexData> getValues(@NotNull String name,
+                                                               @NotNull Project project,
+                                                               @Nullable GlobalSearchScope scope) {
+        return FileBasedIndex.getInstance().getValues(INDEX, name, scope);
+    }
+
     public static Collection<HaxePsiField> getByName(@NotNull String name, @NotNull Project project, @Nullable GlobalSearchScope scope) {
 
         List<HaxePsiField> elements = new ArrayList<>();

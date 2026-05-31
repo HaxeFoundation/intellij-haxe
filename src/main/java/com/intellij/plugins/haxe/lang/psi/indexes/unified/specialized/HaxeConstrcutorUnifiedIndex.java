@@ -18,6 +18,8 @@ public class HaxeConstrcutorUnifiedIndex {
 
 
 
+    //TODO use HaxeComponentIndexData for  faster constructor suggestion completion
+
     public static List<HaxeMethod> getConstructors(@NotNull Project project, @Nullable GlobalSearchScope scope) {
         if (DumbService.isDumb(project)) return Collections.emptyList();
 
