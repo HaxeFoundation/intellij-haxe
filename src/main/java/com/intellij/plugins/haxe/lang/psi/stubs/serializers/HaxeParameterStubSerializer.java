@@ -1,6 +1,11 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedParameterNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeParameterStub;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -42,6 +47,14 @@ public class HaxeParameterStubSerializer implements StubSerializer<HaxeParameter
 
   @Override
   public void indexStub(@NotNull HaxeParameterStub stub, @NotNull IndexSink sink) {
-    // NOOP — no stub indexes for parameter elements.
+    if (HaxeIndexUtil.fileBelongToPlatformSpecificStd(stub)) {
+      return;
+    }
+
+    HaxeModel model = stub.getPsi().getModel();
+    if(model != null) {
+      FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+      sink.occurrence(HaxeFullyQualifiedParameterNameStubIndex.KEY, qualifiedInfo.getQualifiedName(true));
+    }
   }
 }

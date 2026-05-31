@@ -22,9 +22,9 @@ import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassFieldNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassMethodNameUnifiedIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.ArrayUtil;
@@ -33,6 +33,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class HaxeGotoSymbolContributor implements ChooseByNameContributor {
+
+  //TODO mlo: try to split into different Symbol contributors
+  // one for methods, one for fields, classes/types, enum values etc
+  // might also look into build file symbols if anything is suited
+
   @NotNull
   @Override
   public String[] getNames(@NotNull final Project project, final boolean includeNonProjectItems) {
@@ -40,11 +45,12 @@ public class HaxeGotoSymbolContributor implements ChooseByNameContributor {
     StubIndex stubIndex = StubIndex.getInstance();
 
     final Set<String> result = new LinkedHashSet<>();
-    result.addAll(stubIndex.getAllKeys(HaxeClassNameStubIndex.KEY, project));
-    for (String name : stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, project)) {
+    result.addAll(HaxeClassNameUnifiedIndex.getAllKeys(project));
+
+    for (String name : HaxeClassMethodNameUnifiedIndex.getAllKeys(project)) {
       if (!"new".equals(name)) result.add(name);
     }
-    result.addAll(stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, project));
+    result.addAll(HaxeClassFieldNameUnifiedIndex.getAllKeys(project));
     return ArrayUtil.toStringArray(result);
   }
 
@@ -58,18 +64,18 @@ public class HaxeGotoSymbolContributor implements ChooseByNameContributor {
     final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
 
     final List<HaxeComponentName> result = new ArrayList<>();
-    Collection<HaxeClass> haxeClasses = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
+    Collection<HaxeClass> haxeClasses = HaxeClassNameUnifiedIndex.getByNameFiltered(name, project, scope);
     for (HaxeClass cls : haxeClasses) {
       HaxeComponentName cn = cls.getComponentName();
       if (cn != null) result.add(cn);
     }
     if (!"new".equals(name)) {
-      for (HaxeMethod method : StubIndex.getElements(HaxeMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class)) {
+      for (HaxeMethod method : HaxeClassMethodNameUnifiedIndex.getByName(name, project, scope)) {
         HaxeComponentName cn = method.getComponentName();
         if (cn != null) result.add(cn);
       }
     }
-    for (HaxePsiField field : StubIndex.getElements(HaxeFieldNameStubIndex.KEY, name, project, scope, HaxePsiField.class)) {
+    for (HaxePsiField field : HaxeClassFieldNameUnifiedIndex.getByName( name, project, scope)) {
       HaxeComponentName cn = field.getComponentName();
       if (cn != null) result.add(cn);
     }

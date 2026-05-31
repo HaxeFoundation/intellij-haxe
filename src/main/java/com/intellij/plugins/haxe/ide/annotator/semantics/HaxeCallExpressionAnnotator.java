@@ -130,7 +130,7 @@ public class HaxeCallExpressionAnnotator implements Annotator {
     FullyQualifiedInfo info = method.getModel().getQualifiedInfo();
     if (info == null) return false;
     return "Log".equals(info.className)
-           && "haxe".equals(info.packagePath)
+           && "haxe".equals(info.packageName)
            && "trace".equals(info.memberName);
   }
 

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.roots.ProjectRootManager;
@@ -36,10 +37,11 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualifiedClassNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.fqn.HaxeFullyQualifiedMemberNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.specialized.HaxeImportHxFileUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFileStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeReferenceExpressionStub;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -196,10 +198,10 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static HaxeClass findClassByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
-    // Fast path: try the stub index first — avoids file-system traversal via HaxeProjectModel.
-    Collection<HaxeClass> stubResults = HaxeFullyQualifiedNameStubIndex.getByFqn(qName, psiManager.getProject(), scope);
-    if (!stubResults.isEmpty()) {
-      return stubResults.iterator().next();
+
+    List<HaxeClass> results = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName,psiManager.getProject(), scope);
+    if(!results.isEmpty()){
+      return results.getFirst();
     }
 
     // Fallback: model-based traversal (handles dumb mode, partially built indexes, and edge cases).
@@ -219,14 +221,23 @@ public class HaxeResolveUtil {
   }
   @Nullable
   public static PsiElement findClassOrMemberByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
-    // Fast path: try the stub index first for class lookups.
-    Collection<HaxeClass> stubResults = HaxeFullyQualifiedNameStubIndex.getByFqn(qName, psiManager.getProject(), scope);
-    if (!stubResults.isEmpty()) {
-      return stubResults.iterator().next();
+    final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
+
+    // Fast path: try the fqn index first for class lookups.
+    if (!qualifiedInfo.hasMemberName()) {
+      List<HaxeClass> classList = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
+      if (!classList.isEmpty()) {
+        return classList.getFirst();
+      }
+    } else {
+      List<PsiElement> memberList = HaxeFullyQualifiedMemberNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
+      if (!memberList.isEmpty()) {
+        return memberList.getFirst();
+      }
     }
 
-    // Fallback: model-based traversal (handles packages, members, dumb mode, and edge cases).
-    final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
+    // Fallback: model-based traversal (handles packages, dumb mode, and edge cases).
+
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);
     if (result != null && !result.isEmpty()) {
       HaxeModel item = result.getFirst();
@@ -933,6 +944,14 @@ public class HaxeResolveUtil {
     if (element == null || element.getContext() == null) {
       return null;
     }
+    // check FQN ref using Index
+    if(element.textContains('.')) {
+      if (!DumbService.isDumb(element.getProject())) {
+        HaxeClass classByFqn = findClassByQName(element.getText(), element.getContext());
+        if (classByFqn != null) return classByFqn;
+      }
+    }
+    //
     String name = getQNameFromImportStatement(element);
     PsiElement type = tryGetReferenceExpressionFromType(element);
     HaxeClass result = name == null ? tryResolveClassByQNameWhenGetQNameFail(type) : findClassByQName(name, element.getContext());
@@ -1205,7 +1224,7 @@ public class HaxeResolveUtil {
 
     for (String aPackage : packages) {
 
-      Collection<HaxeFile> importHxForPackage = HaxeImportHxStubIndex.getImportHxForPackage(aPackage, haxeFile.getProject(), null);
+      Collection<HaxeFile> importHxForPackage = HaxeImportHxFileUnifiedIndex.getImportHxForPackage(aPackage, haxeFile.getProject(), null);
       for (HaxeFile importFile : importHxForPackage) {
         if (importFile instanceof HaxeFile importHxFile) {
 

@@ -78,7 +78,7 @@ public class HaxeImportModel extends HaxeImportableModel {
       if (qualifiedInfo.memberName != null) return Collections.emptySet();
 
       if (qualifiedInfo.moduleName != null && qualifiedInfo.className == null) {
-        qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packagePath, qualifiedInfo.moduleName, qualifiedInfo.moduleName, null);
+        qualifiedInfo = new FullyQualifiedInfo(qualifiedInfo.packageName, qualifiedInfo.moduleName, qualifiedInfo.moduleName, null);
       }
       List<HaxeModel> items = HaxeProjectModel.fromElement(basePsi).resolve(qualifiedInfo, basePsi.getResolveScope());
       if (items != null && !items.isEmpty()) {

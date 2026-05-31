@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.CompletionLocation;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.*;
+import com.intellij.plugins.haxe.ide.lookup.indexed.HaxeIndexedStaticMemberLookupElement;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
@@ -255,7 +256,7 @@ public class HaxeCompletionPriorityUtil {
           element.getPriority().type += 1;
 
         }
-        if (element instanceof HaxeStaticMemberLookupElement staticMemberLookupElement) {
+        if (element instanceof HaxeIndexedStaticMemberLookupElement staticMemberLookupElement) {
           staticMemberAssignCalculation(staticMemberLookupElement, parameterTypes);
           element.getPriority().type += 0.5;
         }
@@ -279,7 +280,7 @@ public class HaxeCompletionPriorityUtil {
     return null;
   }
 
-  private static void staticMemberAssignCalculation(HaxeStaticMemberLookupElement element, Collection<ResultHolder> types) {
+  private static void staticMemberAssignCalculation(HaxeIndexedStaticMemberLookupElement element, Collection<ResultHolder> types) {
     for (ResultHolder type : types) {
       if (type.isUnknown()) continue;
       if(type.isClassType()) {

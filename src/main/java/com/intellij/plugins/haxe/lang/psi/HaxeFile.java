@@ -58,7 +58,11 @@ public class HaxeFile extends PsiFileBase
 
 
   public HaxeModule getModule() {
-    return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
+    if(HaxeStubableFileService.isStubable(this.getVirtualFile())) {
+      return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
+    }else {
+      return moduleWithAst(null);
+    }
   }
 
   private HaxeModule moduleWithStub(PsiFileStub<?> stub) {
@@ -67,7 +71,7 @@ public class HaxeFile extends PsiFileBase
   }
 
   private HaxeModule moduleWithAst(FileElement element) {
-   return PsiTreeUtil.findChildOfType(this, HaxeModule.class);
+   return PsiTreeUtil.getStubChildOfType(this, HaxeModule.class);
   }
 
 

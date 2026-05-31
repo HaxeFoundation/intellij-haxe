@@ -21,18 +21,20 @@ import static com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubFilterUtil.isElem
 
 public class HaxeStubDefinition  implements LanguageStubDefinition {
 
+    private static final Key<Boolean> CAN_CREATE_STUB_KEY =  Key.create("haxe.file.stub.create");
 
     @Override
     public boolean shouldBuildStubFor(@NonNull VirtualFile file) {
-        //TODO
-        // we have to skip anything that is part of  Conditional compilation as different projects will
-        // can get different stub trees, and intellij currently only supports shared / applicationwide indexes.
-        // there is an issue for this, but Jetbrains has stated that they wont work on this anytime soon.
+        // NOTE:
+        // We have to skip anything that is part of Conditional compilation as different projects may have
+        // different flags enabled resulting in different stub trees, and since intellij currently only supports
+        // shared / application-wide indexes this will cause problems when more than one Project is open,
+        // or a project with different CC flags is opened that results in a different stub tree in an unchanged file.
+        //
+        // There is an issue for this, but Jetbrains has stated that they wont work on this anytime soon.
         //https://youtrack.jetbrains.com/issue/IJPL-155859/Introduce-project-scoped-view-of-app-wide-indexes
 
-        //TODO  try to make our own logic for project local stubs
-        return true;
-
+        return HaxeStubableFileService.isStubable(file);
     }
 
 

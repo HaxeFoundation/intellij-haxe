@@ -40,6 +40,7 @@ import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.*;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationExtensionPoint;
@@ -138,7 +139,7 @@ public class HaxeConfigurationEditor {
         String mainClass = HaxeModuleSettings.getInstance(myModule).getMainClass();
         HaxeClass haxeClass = null;
         if (!mainClass.isEmpty()) {
-          for (HaxeClass component : HaxeClassNameStubIndex.getByNameFiltered(mainClass, project, myModule.getModuleScope())) {
+          for (HaxeClass component : HaxeClassNameUnifiedIndex.getByNameFiltered(mainClass, project, myModule.getModuleScope())) {
             if (component instanceof HaxeClass) {
               haxeClass = component;
             }

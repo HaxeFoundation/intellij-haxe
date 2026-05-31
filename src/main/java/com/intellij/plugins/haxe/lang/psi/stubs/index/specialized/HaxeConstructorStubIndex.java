@@ -20,6 +20,7 @@ import java.util.Collections;
  */
 public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMethod> {
 
+    // Key is FQN string of parent class
     public static final StubIndexKey<String, HaxeMethod> KEY = StubIndexKey.createIndexKey("haxe.constructors.name");
 
     @Override

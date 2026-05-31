@@ -2165,6 +2165,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private List<? extends PsiElement> checkIsModuleName(@NotNull HaxeReference reference, String referenceText) {
+    if(reference instanceof HaxeEnumExtractedValueReference) return null;
     if(textCanBeRefOfClassOrModule(reference.getText())) {
       final PsiElement element = HaxeResolveUtil.tryResolveModuleReference(reference);
       if (element != null) {
@@ -2177,6 +2178,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private List<? extends PsiElement> checkIsClassName(@NotNull HaxeReference reference, String referenceText) {
+    if(reference instanceof HaxeEnumExtractedValueReference) return null;
     if(textCanBeRefOfClassOrModule(reference.getText())) {
       final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
       if (resultClass != null) {

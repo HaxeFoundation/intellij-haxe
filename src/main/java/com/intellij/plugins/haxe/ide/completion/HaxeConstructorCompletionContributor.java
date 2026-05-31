@@ -25,6 +25,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.ide.lookup.HaxeConstructorLookupElement;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.specialized.HaxeConstrcutorUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeConstructorStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeMethodStub;
@@ -57,7 +58,9 @@ public class HaxeConstructorCompletionContributor extends CompletionContributor 
   private static void addVariantsFromIndex(final CompletionResultSet resultSet, final PsiFile targetFile) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-    final Collection<HaxeMethod> constructors = HaxeConstructorStubIndex.getConstructors(project, scope);
+
+
+    final Collection<HaxeMethod> constructors = HaxeConstrcutorUnifiedIndex.getConstructors(project, scope);
 
     //TODO mlo: add support for overloads
     for (HaxeMethod constructor : constructors) {

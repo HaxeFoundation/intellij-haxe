@@ -18,6 +18,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.openapi.util.Pair;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -52,8 +53,8 @@ public class HaxeTestFinder implements TestFinder {
     if(qualifiedName!= null) {
       final Pair<String, String> packageAndName = HaxeResolveUtil.splitQName(qualifiedName);
       final GlobalSearchScope searchScope = GlobalSearchScope.projectScope(element.getProject());
-      result.addAll(HaxeClassNameStubIndex.getByNameFiltered(packageAndName.getSecond() + "Test", element.getProject(), searchScope));
-      result.addAll(HaxeClassNameStubIndex.getByNameFiltered("Test" + packageAndName.getSecond(), element.getProject(), searchScope));
+      result.addAll(HaxeClassNameUnifiedIndex.getByNameFiltered(packageAndName.getSecond() + "Test", element.getProject(), searchScope));
+      result.addAll(HaxeClassNameUnifiedIndex.getByNameFiltered("Test" + packageAndName.getSecond(), element.getProject(), searchScope));
     }
     return result;
   }
@@ -73,11 +74,11 @@ public class HaxeTestFinder implements TestFinder {
       final String className = packageAndName.getSecond();
       if (className.startsWith("Test")) {
         final String name = className.substring("Test".length());
-        result.addAll(HaxeClassNameStubIndex.getByNameFiltered(name, element.getProject(), searchScope));
+        result.addAll(HaxeClassNameUnifiedIndex.getByNameFiltered(name, element.getProject(), searchScope));
       }
       if (className.endsWith("Test")) {
         final String name = className.substring(0, className.length() - "Test".length());
-        result.addAll(HaxeClassNameStubIndex.getByNameFiltered(name, element.getProject(), searchScope));
+        result.addAll(HaxeClassNameUnifiedIndex.getByNameFiltered(name, element.getProject(), searchScope));
       }
     }
     return result;

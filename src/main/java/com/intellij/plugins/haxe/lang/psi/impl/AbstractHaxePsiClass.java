@@ -191,6 +191,10 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     if (packageName.isEmpty() && fileName.equals("StdTypes")) {
       return false;
     }
+    // ignore if starts with lowercase (should also cover "unknown")
+    if(name.isEmpty() || Character.isLowerCase(name.charAt(0))) {
+      return false;
+    }
     // file contains valid type declaration
     return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }

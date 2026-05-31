@@ -1377,7 +1377,7 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
 
   @Override
   public String getQualifiedName() {
-    return JavaSourceUtil.getReferenceText(this);
+    return this.getText();
   }
 
   @Override

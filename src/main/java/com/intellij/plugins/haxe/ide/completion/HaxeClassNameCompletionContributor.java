@@ -20,16 +20,14 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Pair;
-import com.intellij.plugins.haxe.ide.lookup.HaxeIndexedClassElement;
+import com.intellij.plugins.haxe.ide.lookup.indexed.HaxeIndexedClassLookupElement;
+import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeClassLookupData;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.*;
-import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
@@ -48,7 +46,6 @@ import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.*;
-import static com.intellij.plugins.haxe.ide.index.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 /**
  * @author: Fedor.Korotkov
@@ -117,7 +114,7 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   private static void addVariantsFromIndex(final CompletionResultSet resultSet,
                                            final PsiFile targetFile,
                                            @Nullable String prefixPackage,
-                                           @Nullable final InsertHandler<HaxeIndexedClassElement> insertHandler) {
+                                           @Nullable final InsertHandler<HaxeIndexedClassLookupElement> insertHandler) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
     final PrefixMatcher matcher = resultSet.getPrefixMatcher();
@@ -127,29 +124,26 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
     StubIndex stubIndex = StubIndex.getInstance();
 
     final List<String> matchingKeys = new ArrayList<>();
-    stubIndex.processAllKeys(HaxeClassNameStubIndex.KEY, project, key -> {
-      if (matcher.prefixMatches(key)) matchingKeys.add(key);
-      return true;
-    });
-
-
-    for (String key : matchingKeys) {
-      stubIndex.processElements(HaxeClassNameStubIndex.KEY, key, project, scope, HaxeClass.class, haxeClass -> {
-        String name = haxeClass.getName();
-        if (name == null) return true;
-        String qualifiedName = haxeClass.getQualifiedName();
-        String path = qualifiedName != null ? HaxeResolveUtil.splitQName(qualifiedName).getFirst() : "";
-        if (prefixPackage == null || prefixPackage.equalsIgnoreCase(path)) {
-          HaxeClassModel model = haxeClass.getModel();
-            PsiFile containingFile = model.getPsi().getContainingFile();
-            if(!belongToPlatformNotTargeted(containingFile)) {
-                resultSet.addElement(new HaxeIndexedClassElement(model, insertHandler));
-            }
-        }
-        return true;
+      HaxeClassNameUnifiedIndex.getAllKeys(project).forEach(key -> {
+          if (matcher.prefixMatches(key)) matchingKeys.add(key);
       });
-    }
+
+
+      for (String key : matchingKeys) {
+          List<HaxeClassLookupData> lookupData = HaxeClassNameUnifiedIndex.getCompletionData(key, project, scope);
+          for (HaxeClassLookupData lookupDatum : lookupData) {
+              String packageName = lookupDatum.qualifiedInfo.getPackageName();
+              if (prefixPackage == null || prefixPackage.equalsIgnoreCase(packageName)) {
+                  resultSet.addElement(new HaxeIndexedClassLookupElement(lookupDatum, insertHandler));
+//                }
+              }
+          }
+      }
   }
+
+
+  //TODO mlo: revwite to only add alias as we get completion suggestion for most stuff through indexes, but we
+  // do not have any for import alias
 
   private static void addVariantsFromImports(final CompletionResultSet resultSet,
                                              final PsiFile targetFile) {
@@ -175,11 +169,11 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   }
 
 
-  private static final InsertHandler<HaxeIndexedClassElement> FULL_PATH_INSERT_HANDLER = HaxeClassNameCompletionContributor::replaceElementToFullPath;
+  private static final InsertHandler<HaxeIndexedClassLookupElement> FULL_PATH_INSERT_HANDLER = HaxeClassNameCompletionContributor::replaceElementToFullPath;
 
-  private static void replaceElementToFullPath(final InsertionContext context, final HaxeIndexedClassElement item) {
+  private static void replaceElementToFullPath(final InsertionContext context, final HaxeIndexedClassLookupElement item) {
     WriteCommandAction.writeCommandAction(context.getProject(), context.getFile()).run(() -> {
-      FullyQualifiedInfo qualifiedInfo = item.getModel().getQualifiedInfo();
+      FullyQualifiedInfo qualifiedInfo = item.getQualifiedInfo();
       if (qualifiedInfo != null) {
         String importPath = qualifiedInfo.toShortendImportReferenceString();
         final PsiReference currentReference = context.getFile().findReferenceAt(context.getTailOffset() - 1);
@@ -193,6 +187,5 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
       }
     });
   }
-
 }
 

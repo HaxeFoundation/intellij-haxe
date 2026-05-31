@@ -1,8 +1,14 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.*;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedMemberNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeFieldStub;
+import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.stubs.StubInputStream;
@@ -11,6 +17,7 @@ import com.intellij.psi.stubs.StubSerializer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -52,12 +59,29 @@ public class HaxeFieldStubSerializer implements StubSerializer<HaxeFieldStub> {
 
   @Override
   public void indexStub(@NotNull HaxeFieldStub stub, @NotNull IndexSink sink) {
+
+    if (HaxeIndexUtil.fileBelongToPlatformSpecificStd(stub)) {
+     return;
+    }
+
     String name = stub.getName();
     if(stub.isStatic()) {
       sink.occurrence(HaxeStaticFieldNameStubIndex.KEY, name);
+      addToFqn(sink, stub);
+    }else if (stub.getParentStub() instanceof HaxeClassStub) {
+      sink.occurrence(HaxeClassFieldNameStubIndex.KEY, name);
+      addToFqn(sink, stub);
+    }else if (stub.getParentStub() instanceof HaxeModuleStub) {
+      sink.occurrence(HaxeModuleFieldNameStubIndex.KEY, name);
+      addToFqn(sink, stub);
     }
-    if (name != null) {
-      sink.occurrence(HaxeFieldNameStubIndex.KEY, name);
+  }
+
+  private static void addToFqn(@NotNull IndexSink sink, @NonNull HaxeFieldStub stub) {
+    HaxeBaseMemberModel model = stub.getPsi().getModel();
+    if(model != null) {
+      FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+      sink.occurrence(HaxeFullyQualifiedMemberNameStubIndex.KEY, qualifiedInfo.getQualifiedName(true));
     }
   }
 }

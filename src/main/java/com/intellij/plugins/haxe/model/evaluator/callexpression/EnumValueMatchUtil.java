@@ -73,7 +73,7 @@ public class EnumValueMatchUtil {
                 && Objects.equals(info.memberName, "match")
                 && Objects.equals(info.className, "EnumValue")
                 && Objects.equals(info.moduleName, "EnumValue")
-                && Objects.equals(info.packagePath, "");
+                && Objects.equals(info.packageName, "");
     }
 
     public static HaxeCallExpressionEvaluation checkPatternMatchingOutsideMatchFunction(HaxeCallExpressionContext context, HaxeCallExpressionEvaluation evaluation, boolean trackErrors) {

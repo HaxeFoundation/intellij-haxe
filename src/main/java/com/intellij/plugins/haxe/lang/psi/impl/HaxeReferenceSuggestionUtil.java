@@ -55,6 +55,9 @@ public class HaxeReferenceSuggestionUtil {
             case HaxeModule haxeModule -> addModuleMemberSuggestions(variants, haxeModule, false);
             case HaxeClass haxeClass -> {
                 HaxeClass refClass =  findContainingClass(targetReference);
+                if(haxeClass.isTypeDef()) {
+                    haxeClass = tryResolveTypeDef(haxeClass);
+                }
                 boolean ignorePrivateMembers = haxeClass != refClass;
                 boolean hasModuleName = leftReference.textMatches(haxeClass.getName());
                 if(isStaticAccess) {
@@ -130,6 +133,15 @@ public class HaxeReferenceSuggestionUtil {
     }
 
         return variants.toArray();
+    }
+
+    private static HaxeClass tryResolveTypeDef(HaxeClass refClass) {
+        HaxeClassModel model = refClass.getModel();
+        SpecificTypeReference specificTypeReference = model.getInstanceReference().fullyResolveTypeDefAndUnwrapNullTypeReference();
+        if( specificTypeReference instanceof SpecificHaxeClassReference reference) {
+            return reference.getHaxeClass();
+        }
+        return refClass;
     }
 
 

@@ -1,6 +1,11 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedModuleNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeModuleStub;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
+import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.psi.stubs.EmptyStubSerializer;
 import com.intellij.psi.stubs.IndexSink;
 import com.intellij.psi.stubs.StubElement;
@@ -28,6 +33,15 @@ public class HaxeModuleStubSerializer implements EmptyStubSerializer<HaxeModuleS
 
   @Override
   public void indexStub(@NotNull HaxeModuleStub stub, @NotNull IndexSink sink) {
-    // Structural only — nothing to index
+    if (HaxeIndexUtil.fileBelongToPlatformSpecificStd(stub)) {
+      return;
+    }
+
+    HaxeModel model = stub.getPsi().getModel();
+    if(model != null) {
+      FullyQualifiedInfo qualifiedInfo = model.getQualifiedInfo();
+      sink.occurrence(HaxeFullyQualifiedModuleNameStubIndex.KEY, qualifiedInfo.getQualifiedName(true));
+    }
   }
+
 }

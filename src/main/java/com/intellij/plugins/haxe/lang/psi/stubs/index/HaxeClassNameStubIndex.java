@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs.index;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.ide.index.HaxeIndexUtil;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubVersions;
 import com.intellij.psi.PsiFile;

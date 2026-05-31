@@ -1,15 +1,16 @@
 package com.intellij.plugins.haxe.lang.psi.stubs.serializers;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeClassInheritanceStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeTypedefInheritanceStubIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.psi.stubs.*;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.util.io.StringRef;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 
@@ -29,6 +30,10 @@ public class HaxeClassStubSerializer implements StubSerializer<HaxeClassStub> {
 
     @Override
     public void indexStub(@NotNull HaxeClassStub stub, @NotNull IndexSink sink) {
+        if (HaxeIndexUtil.fileBelongToPlatformSpecificStd(stub)) {
+            return;
+        }
+
         String name = stub.getName();
         // TODO filter types ?
 
@@ -42,16 +47,23 @@ public class HaxeClassStubSerializer implements StubSerializer<HaxeClassStub> {
         String qualifiedNameFull = stub.getQualifiedName(true);
 
         if (qualifiedNameFull != null) {
-            sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedNameFull);
+            sink.occurrence(HaxeFullyQualifiedClassNameStubIndex.KEY, qualifiedNameFull);
         }
         if (qualifiedNameShort != null && !qualifiedNameShort.equals(qualifiedNameFull)) {
-            sink.occurrence(HaxeFullyQualifiedNameStubIndex.KEY, qualifiedNameShort);
+            sink.occurrence(HaxeFullyQualifiedClassNameStubIndex.KEY, qualifiedNameShort);
         }
 
-
-        for (String superName : stub.getSuperTypeNames()) {
-            if (superName != null && !superName.isEmpty()) {
-                sink.occurrence(HaxeSuperClassStubIndex.KEY, superName);
+        if(stub.getPsi().isTypeDef()) {
+            for (String superName : stub.getSuperTypeNames()) {
+                if (superName != null && !superName.isEmpty()) {
+                    sink.occurrence(HaxeTypedefInheritanceStubIndex.KEY, superName);
+                }
+            }
+        }else {
+            for (String superName : stub.getSuperTypeNames()) {
+                if (superName != null && !superName.isEmpty()) {
+                    sink.occurrence(HaxeClassInheritanceStubIndex.KEY, superName);
+                }
             }
         }
     }
@@ -70,9 +82,7 @@ public class HaxeClassStubSerializer implements StubSerializer<HaxeClassStub> {
             dataStream.writeName(superName);
         }
         dataStream.writeVarInt(stub.getMetaFlags());
-        if (stub.getComponentTypeKey() == HaxeComponentType.TYPEDEF.getKey()) {
-            // TODO add type ? function or  class?
-        }
+
     }
 
     @NotNull
@@ -92,9 +102,7 @@ public class HaxeClassStubSerializer implements StubSerializer<HaxeClassStub> {
         }
         int metaFlags = dataStream.readVarInt();
 
-        if (componentTypeKey == HaxeComponentType.TYPEDEF.getKey()) {
-            // TODO add type ? function or  class?
-        }
+
 
         String name = nameRef != null ? nameRef.getString() : null;
         String qualifiedName = qualifiedNameRef != null ? qualifiedNameRef.getString() : null;

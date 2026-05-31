@@ -16,7 +16,6 @@
  */
 package com.intellij.plugins.haxe.model;
 
-import com.intellij.ProjectTopics;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ModuleRootEvent;
@@ -135,7 +134,7 @@ public class HaxeProjectModel {
 
   @Nullable
   public HaxePackageModel resolvePackage(FullyQualifiedInfo info, @Nullable GlobalSearchScope scope) {
-    List<HaxeModel> result = resolve(new FullyQualifiedInfo(info.packagePath, null, null, null), scope);
+    List<HaxeModel> result = resolve(new FullyQualifiedInfo(info.packageName, null, null, null), scope);
     if (result != null && !result.isEmpty() && result.get(0) instanceof HaxePackageModel) {
       return (HaxePackageModel)result.get(0);
     }

@@ -19,10 +19,9 @@ package com.intellij.plugins.haxe.ide;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
-import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassFieldNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassMethodNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.ArrayUtil;
 import org.junit.Test;
@@ -60,11 +59,11 @@ public class HaxeGotoSymbolContributorTest extends HaxeCodeInsightFixtureTestCas
     final Set<String> symbolSet = new LinkedHashSet<>();
     StubIndex stubIndex = StubIndex.getInstance();
 
-    symbolSet.addAll(stubIndex.getAllKeys(HaxeClassNameStubIndex.KEY, myFixture.getProject()));
-    for (String name : stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, myFixture.getProject())) {
+    symbolSet.addAll(HaxeClassNameUnifiedIndex.getAllKeys(myFixture.getProject()));
+    for (String name : HaxeClassMethodNameUnifiedIndex.getAllKeys(myFixture.getProject())) {
       if (!"new".equals(name)) symbolSet.add(name);
     }
-    symbolSet.addAll(stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, myFixture.getProject()));
+    symbolSet.addAll(HaxeClassFieldNameUnifiedIndex.getAllKeys(myFixture.getProject()));
     String[] symbols = ArrayUtil.toStringArray(symbolSet);
     list.removeAll(Arrays.asList(symbols));
     if (!list.isEmpty()) {

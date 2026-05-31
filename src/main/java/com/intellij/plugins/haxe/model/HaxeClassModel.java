@@ -25,7 +25,6 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeObjectLiteralImpl;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
-import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeComponentNameStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
@@ -617,6 +616,17 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     }
     return models;
   }
+  public List<HaxeFieldModel> getFieldsSelf(@Nullable HaxeGenericResolver resolver) {
+    List<HaxeFieldModel> models = new ArrayList<>();
+    for (HaxeFieldDeclaration field : haxeClass.getFieldSelf(resolver)) {
+      if (field.getContainingClass() == this.haxeClass){
+        if(field.getModel() instanceof  HaxeFieldModel model) {
+          models.add(model);
+        }
+      }
+    }
+    return models;
+  }
 
   public List<HaxeMethodModel> getAncestorMethods(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
@@ -699,7 +709,7 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
       if (exhibitor != null) {
         FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
         if (containerInfo != null) {
-          return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, getName(), null);
+          return new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, getName(), null);
         }
       }
     return null;

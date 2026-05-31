@@ -19,7 +19,7 @@ public class HaxeIntroduceTypeUtil {
     protected static boolean requireImport(HaxeIdentifier sourceElement, String targetQname) {
         FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(targetQname); // make sure we filter out
         if(sourceElement.getContainingFile() instanceof HaxeFile haxeFile) {
-            return !haxeFile.getPackageName().equals(qualifiedInfo.packagePath);
+            return !haxeFile.getPackageName().equals(qualifiedInfo.packageName);
         }
         return true;
     }
