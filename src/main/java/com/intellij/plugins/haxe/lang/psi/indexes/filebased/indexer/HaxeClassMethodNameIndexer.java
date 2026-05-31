@@ -57,7 +57,7 @@ public class HaxeClassMethodNameIndexer implements DataIndexer<String, HaxeCompo
             List<HaxeMethodModel> classMethods = classModel.getMethodsSelf(null);
 
             for (HaxeMethodModel classMethod : classMethods) {
-                if (!classMethod.isStatic() && classMethod.isPublic()) {
+                if (!classMethod.isStatic()) {
                     FullyQualifiedInfo qualifiedInfo = classMethod.getQualifiedInfo();
                     result.put(qualifiedInfo.getMemberName(), createIndexData(classMethod));
                 }

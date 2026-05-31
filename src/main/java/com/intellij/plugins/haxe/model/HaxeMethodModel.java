@@ -127,7 +127,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     List<HaxeParameterModel> params = getParameters();
     if (context!= null && context.isExtensionMethod()) {
       params = new ArrayList<>(params);
-      params.remove(0);
+      if(!params.isEmpty()) params.remove(0);
     }
     return params;
   }

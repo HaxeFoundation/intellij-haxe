@@ -39,14 +39,14 @@ public class HaxeClassFieldNameIndexer implements DataIndexer<String, HaxeCompon
                 return Map.of();
             }
 
-            return collectStaticFields(classes);
+            return collectClassFields(classes);
 
 
         }
         return Map.of();
     }
 
-    private static @NonNull Map<String, HaxeComponentIndexData> collectStaticFields(List<HaxeClass> classes) {
+    private static @NonNull Map<String, HaxeComponentIndexData> collectClassFields(List<HaxeClass> classes) {
         final Map<String, HaxeComponentIndexData> result = new HashMap<>();
         for (HaxeClass haxeClass : classes) {
             if (haxeClass.getName() == null || haxeClass.isTypeDef() || haxeClass.isAnonymousType()) {
@@ -57,7 +57,7 @@ public class HaxeClassFieldNameIndexer implements DataIndexer<String, HaxeCompon
             List<HaxeFieldModel> classFields = classModel.getFieldsSelf(null);
 
             for (HaxeFieldModel classField : classFields) {
-                if (!classField.isStatic() && classField.isPublic()) {
+                if (!classField.isStatic()) {
                     FullyQualifiedInfo qualifiedInfo = classField.getQualifiedInfo();
                     result.put(qualifiedInfo.getMemberName(), createIndexData(classField));
                 }

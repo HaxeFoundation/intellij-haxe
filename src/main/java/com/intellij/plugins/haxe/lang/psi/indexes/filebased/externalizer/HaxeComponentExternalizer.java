@@ -21,6 +21,7 @@ public class HaxeComponentExternalizer implements DataExternalizer<HaxeComponent
         IOUtil.writeUTF(out, value.getName());
         out.writeInt(value.getType().getKey());
         IOUtil.writeStringList(out, value.getTargets());
+        out.writeBoolean(value.isPublic());
     }
 
     @Override
@@ -30,6 +31,7 @@ public class HaxeComponentExternalizer implements DataExternalizer<HaxeComponent
         data.setName(IOUtil.readUTF(in));
         data.setType(HaxeComponentType.valueOf(in.readInt()));
         data.setTargets( IOUtil.readStringList(in));
+        data.setPublic(in.readBoolean());
         return data;
     }
 }

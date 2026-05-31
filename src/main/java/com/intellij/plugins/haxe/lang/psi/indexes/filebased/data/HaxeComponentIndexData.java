@@ -13,4 +13,5 @@ public class HaxeComponentIndexData {
     String name;
     HaxeComponentType type;
     FullyQualifiedInfo fqn;
+    boolean isPublic;
 }

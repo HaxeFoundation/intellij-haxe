@@ -89,11 +89,14 @@ public class HaxeStaticMethodNameUnifiedIndex {
         Collection<HaxeComponentIndexData> values = HaxeStaticMethodNameFileIndex.getValues(name, project, searchScope);
 
         List<HaxeMemberLookupData> listA = stubResults.stream()
+                .filter(LookupUtil::isActiveTarget)
+                .filter(m -> m.isPublic())
                 .map(HaxeMethod::getModel)
                 .map(HaxeMemberLookupData::new)
                 .toList();
 
         List<HaxeMemberLookupData> listB = values.stream()
+                .filter(m ->  m.isPublic())
                 .map( indexData -> new  HaxeMemberLookupData(indexData, ()->{
                     return resolveModel(indexData.getFqn(), project, scope);
                 }))

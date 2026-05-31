@@ -67,11 +67,13 @@ public class HaxeModuleMethodNameUnifiedIndex {
 
         List<HaxeMemberLookupData> listA = stubResults.stream()
                 .filter(LookupUtil::isActiveTarget)
+                .filter(m -> m.isPublic())
                 .map(HaxeMethod::getModel)
                 .map(HaxeMemberLookupData::new)
                 .toList();
 
         List<HaxeMemberLookupData> listB = values.stream()
+                .filter(m -> m.isPublic())
                 .filter(indexData ->  LookupUtil.isActiveTarget(indexData, project))
                 .map( indexData -> new  HaxeMemberLookupData(indexData, ()->{
                     return resolveModel(indexData.getFqn(), project, scope);

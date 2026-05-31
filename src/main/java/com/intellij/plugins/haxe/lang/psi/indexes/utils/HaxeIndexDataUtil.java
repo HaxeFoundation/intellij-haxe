@@ -13,6 +13,7 @@ public class HaxeIndexDataUtil {
         data.setFqn(model.getQualifiedInfo());
         data.setName(model.getName());
         data.setType(HaxeComponentType.FIELD);
+        data.setPublic(model.isPublic());
         return data;
     }
 
@@ -21,6 +22,7 @@ public class HaxeIndexDataUtil {
         data.setFqn(model.getQualifiedInfo());
         data.setName(model.getName());
         data.setType(HaxeComponentType.METHOD);
+        data.setPublic(model.isPublic());
         return data;
     }
 
@@ -29,6 +31,7 @@ public class HaxeIndexDataUtil {
         data.setFqn(model.getQualifiedInfo());
         data.setName(model.getName());
         data.setType( HaxeComponentType.typeOf(model.getPsi()));
+        data.setPublic(model.isPublic());
         return data;
     }
 }
