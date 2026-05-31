@@ -36,6 +36,9 @@ public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMetho
 
     public static @NotNull @Unmodifiable Collection<HaxeMethod> getConstructors(@NotNull Project project, @Nullable GlobalSearchScope scope) {
         if (DumbService.isDumb(project)) return Collections.emptyList();
-        return StubIndex.getElements(HaxeConstructorStubIndex.KEY, "new", project, scope, HaxeMethod.class);
+        Collection<String> allKeys = StubIndex.getInstance().getAllKeys(KEY, project);
+        return allKeys.stream()
+                .flatMap( classFqn ->  StubIndex.getElements(KEY, classFqn, project, scope, HaxeMethod.class).stream())
+                .toList();
     }
 }

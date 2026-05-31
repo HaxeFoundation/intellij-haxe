@@ -62,9 +62,11 @@ public class HaxeConstructorFileIndex extends HaxeComponentBaseIndex {
                                 HaxeModule module = haxeFile.getModule();
                                 if (module != null && module.getModel() instanceof HaxeModuleModel model) {
                                     HaxeClassModel aClass = model.getClass(className);
-                                    List<HaxeMethodModel> constructors = aClass.getConstructors(null);
-                                    for (HaxeMethodModel constructor : constructors) {
-                                        elements.add(constructor.getMethod());
+                                    if(aClass != null) {
+                                        List<HaxeMethodModel> constructors = aClass.getConstructors(null);
+                                        for (HaxeMethodModel constructor : constructors) {
+                                            elements.add(constructor.getMethod());
+                                        }
                                     }
                                 }
                             }
