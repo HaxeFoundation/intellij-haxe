@@ -52,7 +52,9 @@ public class HaxeCallExpressionUtil {
     HaxeCallExpressionContext evaluation = new HaxeCallExpressionContext(argumentList, parameterList, returnType, resolver, methodGenericResolver);
 
     evaluation.isMacroMethod = methodModel.isMacro();
-    evaluation.isStaticMethod = methodModel.isStatic();
+    // Module-level functions have no enclosing class, so they are never instance ("member")
+    // macro methods: their first parameter is a real argument, not an implicit `this` (eThis).
+    evaluation.isStaticMethod = methodModel.isStatic() || methodModel.getDeclaringClass() == null;
     evaluation.isEnumConstructor = false;
     evaluation.callie = callie;
     return evaluation;
@@ -132,7 +134,9 @@ public class HaxeCallExpressionUtil {
     evaluation.assignHint = tryCastAssignHintToReturnType(assignHint, returnType); // casting to returnType to make sure typeParams matches.
     evaluation.isStaticExtension = isStaticExtension;
     evaluation.isMacroMethod = methodModel.isMacro();
-    evaluation.isStaticMethod = methodModel.isStatic();
+    // Module-level functions have no enclosing class, so they are never instance ("member")
+    // macro methods: their first parameter is a real argument, not an implicit `this` (eThis).
+    evaluation.isStaticMethod = methodModel.isStatic() || methodModel.getDeclaringClass() == null;
     evaluation.isBindCall = isBindCall(callExpression);
     evaluation.isInEnumValueMatchArgument = isEnumValueMatchCall(callExpression);
     evaluation.isEnumValueMatchCallExpression = isEnumValueMatchCallExpression(callExpression);

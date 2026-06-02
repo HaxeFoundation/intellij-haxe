@@ -287,6 +287,11 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     // that the FQN index does not know about. Scan the package's modules for it.
     if (result == null) result = checkIsAccessMetaSubTypeReference(reference);
 
+    // Inside a macro function the types of the haxe.macro.Expr module (Expr, ExprOf, ...) are
+    // implicitly available. The import that brings them in is almost always guarded by
+    // `#if macro`, which the IDE never treats as active, so resolve them by qualified name.
+    if (result == null) result = checkIsImplicitMacroExprType(reference, isType);
+
     if (result == null) {
       LogResolution(reference, "failed after exhausting all options.");
       return EMPTY_LIST; // empty list means cache not found
@@ -2363,6 +2368,50 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     return null;
   }
+
+  /**
+   * Inside a macro function the types exposed by the {@code haxe.macro.Expr} module
+   * (e.g. {@code Expr}, {@code ExprOf}, {@code ExprDef}, ...) are implicitly in scope. In real
+   * Haxe the {@code import haxe.macro.Expr;} that brings them in is almost always guarded by
+   * {@code #if macro}; the IDE never treats {@code #if macro} as active, so that import line is
+   * collapsed to a comment and the type cannot be found through normal import scope.
+   * <p>
+   * The {@code macro ...} reification side already resolves these types by qualified name (see
+   * {@link HaxeMacroTypeUtil}); this mirrors that for declared type tags so both sides agree and
+   * we don't emit a false "Unresolved type"/"Incompatible type" pair on e.g. {@code :ExprOf<String>}.
+   * <p>
+   * Tightly scoped: only fires as a last resort for an otherwise-unresolved, simple (non-qualified)
+   * reference in type position that sits inside a macro function and whose name is actually a
+   * member of {@code haxe.macro.Expr}.
+   */
+  @Nullable
+  private List<? extends PsiElement> checkIsImplicitMacroExprType(@NotNull HaxeReference reference, boolean isType) {
+    if (!isType) return null;
+    if (!(reference instanceof HaxeReferenceExpression)) return null;
+
+    String name = reference.getText();
+    // simple type names only; haxe.macro.Expr types are all upper-case
+    if (name == null || name.isEmpty() || name.indexOf('.') >= 0 || !Character.isUpperCase(name.charAt(0))) {
+      return null;
+    }
+
+    // only auto-expose the macro types where they are implicitly in scope: inside a macro function
+    HaxeMethod method = PsiTreeUtil.getStubOrPsiParentOfType(reference, HaxeMethod.class);
+    if (method == null) return null;
+    HaxeMethodModel model = method.getModel();
+    if (model == null || !model.isMacro()) return null;
+
+    String qName = name.equals("Expr") ? HaxeMacroTypeUtil.EXPR : HaxeMacroTypeUtil.EXPR + "." + name;
+    HaxeClass resolved = HaxeResolveUtil.findClassByQName(qName, reference);
+    if (resolved == null) return null;
+
+    HaxeComponentName componentName = resolved.getComponentName();
+    if (componentName == null) return null;
+
+    LogResolution(reference, "via implicit haxe.macro.Expr import (macro context).");
+    return List.of(componentName);
+  }
+
   @Nullable
   private List<? extends PsiElement> checkIsAlias(HaxeReference reference) {
       PsiFile file = reference.getContainingFile();

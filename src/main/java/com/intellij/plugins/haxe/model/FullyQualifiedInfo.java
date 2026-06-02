@@ -92,7 +92,11 @@ public class FullyQualifiedInfo {
       parameter = null;
     } else {
       final String classOrMemberName = i < size ? parts.get(i++) : null;
-      if (classOrMemberName != null && Character.isLowerCase(classOrMemberName.charAt(0))) {
+      // In Haxe only types start with an upper-case letter; anything else (fields, functions,
+      // and names such as `_`, which is neither upper- nor lower-case) is a member. Using
+      // !isUpperCase rather than isLowerCase is what lets `import Module._;` classify `_` as a
+      // member instead of a (non-existent) type named `_`.
+      if (classOrMemberName != null && !Character.isUpperCase(classOrMemberName.charAt(0))) {
         if (classOrMemberName.contains(PARAMETER_SEPARATOR)) {
           String[] split = classOrMemberName.split(PARAMETER_SEPARATOR);
           memberName = split[0];

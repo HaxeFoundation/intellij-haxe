@@ -405,7 +405,10 @@ externInterfaceDeclaration ::= externAndMaybePrivate? 'interface' componentName 
 }
 
 
-moduleMemberModifier::= privateKeyWord | inlineKeyWord | macroKeyword
+// Implements HaxePsiModifier so that module-level `macro` / `inline` / `private` are seen by
+// HaxeModifiersModel.hasModifier (it scans direct HaxePsiModifier children). Without this,
+// HaxeMethodModel.isMacro()/isInline()/getVisibility() are always blind to module-level members.
+moduleMemberModifier::= privateKeyWord | inlineKeyWord | macroKeyword {implements="com.intellij.plugins.haxe.lang.psi.HaxePsiModifier"}
 
 private moduleBody ::= embeddedMeta* moduleBodyPart+  {pin=2}
 private moduleBodyPart ::=  topLevelDeclaration |  moduleFieldDeclaration |  moduleMethodDeclaration  {recoverWhile="class_body_part_recover"}

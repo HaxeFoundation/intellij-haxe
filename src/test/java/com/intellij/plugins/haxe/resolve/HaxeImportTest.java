@@ -48,4 +48,16 @@ public class HaxeImportTest extends HaxeCodeInsightFixtureTestCase {
   public void testImports() {
     doTest("import.hx", "somepkg/import.hx", "somepkg/Helper.hx");
   }
+
+  // Module-level functions imported via import.hx must resolve at their call
+  // sites. The `_` function is the interesting case: `_` is neither upper- nor
+  // lower-case, so the import classifier used to treat `Helpers._` as a type
+  // import and the call `_("...")` ended up "Unresolved symbol". `wrap` is a
+  // control (a normal lower-case name) that should resolve regardless.
+  @Test
+  public void testModuleLevelFunctionImport() {
+    myFixture.configureByFiles("moduleFn/Usage.hx", "moduleFn/Helpers.hx", "moduleFn/import.hx");
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    myFixture.testHighlighting(true, false, false);
+  }
 }
