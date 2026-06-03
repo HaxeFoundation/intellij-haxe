@@ -33,7 +33,6 @@ public class HaxeConstructorNameIndexer implements DataIndexer<String, HaxeCompo
                 return Map.of();
             }
 
-
             final List<HaxeClass> classes = HaxeResolveUtil.findComponentDeclarations(haxeFile);
             if (classes.isEmpty()) {
                 return Map.of();

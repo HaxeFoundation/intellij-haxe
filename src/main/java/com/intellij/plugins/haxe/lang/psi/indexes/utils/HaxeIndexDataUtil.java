@@ -2,9 +2,7 @@ package com.intellij.plugins.haxe.lang.psi.indexes.utils;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeFieldModel;
-import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.*;
 import org.jspecify.annotations.NonNull;
 
 public class HaxeIndexDataUtil {

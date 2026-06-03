@@ -18,6 +18,7 @@ import java.util.List;
 public class lookupItemImportUtil {
 
   public static void addImportIfNecessary(InsertionContext context, PsiElement element, String qname) {
+    context.commitDocument();
     HaxeReference reference = PsiTreeUtil.getParentOfType(element, HaxeReference.class);
     if (reference != null) {
       List<? extends PsiElement> resolve = HaxeResolver.INSTANCE.resolve(reference, true);
@@ -31,6 +32,7 @@ public class lookupItemImportUtil {
           // replace class with fully qualified path to avoid conflicts
           HaxeReference fullyQualifiedReference = HaxeElementGenerator.createReferenceFromText(element.getProject(), qname);
           if (fullyQualifiedReference!= null) {
+
             element.replace(fullyQualifiedReference);
             context.commitDocument();
           }

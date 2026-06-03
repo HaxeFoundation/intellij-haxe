@@ -67,32 +67,30 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
            });
 
     extend(CompletionType.BASIC,
-           isSimpleIdentifier.andNot(inImportOrUsing),
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               final PsiFile file = parameters.getOriginalFile();
+            isSimpleIdentifier.andNot(inImportOrUsing),
+            new CompletionProvider<CompletionParameters>() {
+                @Override
+                protected void addCompletions(@NotNull CompletionParameters parameters,
+                                              ProcessingContext context,
+                                              @NotNull CompletionResultSet result) {
+                    final PsiFile file = parameters.getOriginalFile();
+                    addVariantsFromIndex(result, file, null, null);
+                    addVariantsFromImports(result, file);
+                }
+            });
 
-               addVariantsFromIndex(result, file, null, null);
-               addVariantsFromImports(result, file);
-             }
-           });
-
-    extend(CompletionType.SMART,
-           inFunctionTypeTag,
-           new CompletionProvider<CompletionParameters>() {
-             @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters,
-                                           ProcessingContext context,
-                                           @NotNull CompletionResultSet result) {
-               final PsiFile file = parameters.getOriginalFile();
-
-               addVariantsFromIndex(result, file, null, null);
-               addVariantsFromImports(result, file);
-             }
-           });
+      extend(CompletionType.SMART,
+              inFunctionTypeTag,
+              new CompletionProvider<CompletionParameters>() {
+                  @Override
+                  protected void addCompletions(@NotNull CompletionParameters parameters,
+                                                ProcessingContext context,
+                                                @NotNull CompletionResultSet result) {
+                      final PsiFile file = parameters.getOriginalFile();
+                      addVariantsFromIndex(result, file, null, null);
+                      addVariantsFromImports(result, file);
+                  }
+              });
 
     extend(CompletionType.BASIC,
            inComplexExpression.andNot(inImportOrUsing),
@@ -142,8 +140,6 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
   }
 
 
-  //TODO mlo: revwite to only add alias as we get completion suggestion for most stuff through indexes, but we
-  // do not have any for import alias
 
   private static void addVariantsFromImports(final CompletionResultSet resultSet,
                                              final PsiFile targetFile) {
@@ -151,18 +147,25 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
           @Override
           public void visitImportStatement(@NotNull HaxeImportStatement importStatement) {
               final List<HaxeModel> exposedMembers = new ArrayList<>();
+              // we want to skip HaxeClassModels here as we already got these from index.
               for (HaxeModel haxeModel : importStatement.getModel().getExposedMembers()) {
-                  if (!(haxeModel instanceof HaxeAliasModel)) {
-                      exposedMembers.add(haxeModel);
+                  if (haxeModel instanceof HaxeAliasModel aliasModel) {
+                      String alias = aliasModel.getName();
+                      HaxeModel aliasFor = aliasModel.getAliasForModel();
+                      if(alias != null &&  aliasFor != null) {
+                          LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(aliasFor, alias);
+                          resultSet.addElement(lookupElement);
+                          return;
+                      }
                   }
-              }
-
-              final String alias = importStatement.getAlias() != null ? importStatement.getAlias().getIdentifier().getText() : null;
-
-              for (HaxeModel member : exposedMembers) {
-                  LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(member, alias);
-                  if (lookupElement != null) resultSet.addElement(lookupElement);
-                  if (alias != null) return;
+                  else if(haxeModel instanceof HaxeMethodModel methodModel) {
+                      LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(methodModel);
+                      resultSet.addElement(lookupElement);
+                  }
+                  else if(haxeModel instanceof HaxeEnumValueModel enumValueModel) {
+                      LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(enumValueModel);
+                      resultSet.addElement(lookupElement);
+                  }
               }
           }
       });

@@ -290,7 +290,6 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePPKeywordCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePrecompilerContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeEnumValuesCompletionContributor"/>
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeConstructorCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeStaticMemberCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
@@ -345,7 +344,7 @@
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeStaticFieldNameFileIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeStaticMethodNameFileIndex"/>
 
-    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeConstructorFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeConstructorFileIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeImportHxFileIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeClassInheritanceFileIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeTypedefInheritanceFileIndex"/>

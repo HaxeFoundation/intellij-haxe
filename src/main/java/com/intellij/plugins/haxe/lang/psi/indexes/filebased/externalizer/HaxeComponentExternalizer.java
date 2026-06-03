@@ -27,10 +27,15 @@ public class HaxeComponentExternalizer implements DataExternalizer<HaxeComponent
     @Override
     public HaxeComponentIndexData read(@NotNull DataInput in) throws IOException {
         HaxeComponentIndexData data = new HaxeComponentIndexData();
+        read(in, data);
+        return data;
+    }
+
+    public HaxeComponentIndexData read(@NotNull DataInput in, HaxeComponentIndexData data) throws IOException {
         data.setFqn(HaxeFqnExternalizer.INSTANCE.read(in));
         data.setName(IOUtil.readUTF(in));
         data.setType(HaxeComponentType.valueOf(in.readInt()));
-        data.setTargets( IOUtil.readStringList(in));
+        data.setTargets(IOUtil.readStringList(in));
         data.setPublic(in.readBoolean());
         return data;
     }

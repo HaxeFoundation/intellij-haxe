@@ -2,8 +2,10 @@ package com.intellij.plugins.haxe.lang.psi.stubs.index.specialized;
 
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubVersions;
+import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StringStubIndexExtension;
 import com.intellij.psi.stubs.StubIndex;
@@ -23,6 +25,8 @@ public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMetho
     // Key is FQN string of parent class
     public static final StubIndexKey<String, HaxeMethod> KEY = StubIndexKey.createIndexKey("haxe.constructors.name");
 
+
+
     @Override
     public int getVersion() {
         return HaxeStubVersions.STUB_VERSION;
@@ -32,6 +36,16 @@ public class HaxeConstructorStubIndex extends StringStubIndexExtension<HaxeMetho
     @Override
     public StubIndexKey<String, HaxeMethod> getKey() {
         return KEY;
+    }
+
+    public static HaxeMethod getConstructor(FullyQualifiedInfo qualifiedInfo, Project project, @Nullable GlobalSearchScope scope) {
+        if (DumbService.isDumb(project)) return null;
+        String key = qualifiedInfo.getQualifiedName(true);
+        Collection<HaxeMethod> elements = StubIndex.getElements(KEY, key, project, scope, HaxeMethod.class);
+        if(!elements.isEmpty()) {
+            return elements.iterator().next();
+        }
+        return null;
     }
 
     public static @NotNull @Unmodifiable Collection<HaxeMethod> getConstructors(@NotNull Project project, @Nullable GlobalSearchScope scope) {

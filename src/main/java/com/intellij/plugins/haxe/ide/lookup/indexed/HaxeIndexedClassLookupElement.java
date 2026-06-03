@@ -8,17 +8,21 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.HaxeCompletionPriorityData;
 import com.intellij.plugins.haxe.ide.lookup.HaxePsiLookupElement;
 import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeClassLookupData;
+import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeConstrcutorUnifiedIndex;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.util.PsiTreeUtil;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
+import static com.intellij.plugins.haxe.ide.lookup.indexed.HaxelookupInsertUtil.insertParentheses;
 import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.*;
 
 
@@ -61,11 +65,26 @@ public class HaxeIndexedClassLookupElement extends LookupElement implements Haxe
     }else {
       PsiFile file = context.getFile();
       PsiElement element = file.findElementAt(context.getStartOffset());
+      if(isNewExpression(element)) {
+        HaxeMethod constructor = HaxeConstrcutorUnifiedIndex.getConstructor(qualifiedInfo, file.getProject(), file.getResolveScope());
+        if(constructor != null) {
+          context.commitDocument();
+          insertParentheses(context, this, constructor.hasParameters(), true);
+        }
+      }
 
       if (qualifiedInfo != null) {
         addImportIfNecessary(context, element, qualifiedInfo.toShortendImportReferenceString());
       }
     }
+  }
+
+  private boolean isNewExpression(PsiElement element) {
+    HaxeType parentOfType = PsiTreeUtil.getParentOfType(element, HaxeType.class);
+    if (parentOfType != null && parentOfType.getParent() instanceof HaxeNewExpression) {
+      return true;
+    }
+    return false;
   }
 
 

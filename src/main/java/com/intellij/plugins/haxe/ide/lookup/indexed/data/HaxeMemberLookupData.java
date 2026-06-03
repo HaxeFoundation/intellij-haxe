@@ -2,14 +2,15 @@ package com.intellij.plugins.haxe.ide.lookup.indexed.data;
 
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
-import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
-import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
-import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.HaxeMemberModel;
+import com.intellij.plugins.haxe.model.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.util.*;
 import java.util.function.Supplier;
+
+import static com.intellij.plugins.haxe.model.HaxeMethodContext.NO_EXTENSION;
+import static com.intellij.plugins.haxe.util.HaxePresentableUtil.buildTypeText;
 
 public class HaxeMemberLookupData {
 

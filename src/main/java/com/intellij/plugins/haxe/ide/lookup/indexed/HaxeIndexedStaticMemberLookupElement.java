@@ -33,7 +33,7 @@ public class HaxeIndexedStaticMemberLookupElement extends LookupElement implemen
 
   @Getter private final HaxeComponentType type;
 
-  private HaxeMemberModel memberModel;
+  private HaxeBaseMemberModel memberModel;
 
   @Getter private String packageName;
   @Getter private String moduleName;
@@ -103,7 +103,10 @@ public class HaxeIndexedStaticMemberLookupElement extends LookupElement implemen
 
 
   public @Nullable HaxeBaseMemberModel getModel() {
-    return lookupData.getModel();
+    if(memberModel == null) {
+      memberModel = lookupData.getModel();
+    }
+    return memberModel;
   }
 
   @Override

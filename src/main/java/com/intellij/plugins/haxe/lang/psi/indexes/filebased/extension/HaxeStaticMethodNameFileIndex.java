@@ -53,31 +53,6 @@ public class HaxeStaticMethodNameFileIndex extends HaxeComponentBaseIndex {
                                                    @NotNull Project project,
                                                    @Nullable GlobalSearchScope scope) {
 
-//        List<HaxeMethod> elements = new ArrayList<>();
-//        PsiManager instance = PsiManager.getInstance(project);
-//        List<HaxeComponentIndexData> values = FileBasedIndex.getInstance().getValues(INDEX, name, scope);
-//
-//        FileBasedIndex.getInstance().getFilesWithKey(INDEX, Set.of(name),
-//                new Processor<VirtualFile>() {
-//                    @Override
-//                    public boolean process(VirtualFile virtualFile) {
-//                        PsiFile file = PsiManager.getInstance(project).findFile(virtualFile);
-//                        HaxeComponentIndexData data = FileBasedIndex.getInstance().getFileData(INDEX, virtualFile, project).get(name);
-//                        String className = data.getFqn().getClassName();
-//                        if (file instanceof HaxeFile haxeFile) {
-//                            HaxeModule module = haxeFile.getModule();
-//                            if (module != null && module.getModel() instanceof HaxeModuleModel model) {
-//                                HaxeClassModel aClass = model.getClass(className);
-//                                HaxeMethodModel member = aClass.getMethodSelf(name);
-//                                if (member != null) {
-//                                    elements.add(member.getMethod());
-//                                }
-//                            }
-//
-//                        }
-//                        return false;
-//                    }
-//                }, scope);
 
         List<HaxeMethod> elements = new ArrayList<>();
         PsiManager instance = PsiManager.getInstance(project);

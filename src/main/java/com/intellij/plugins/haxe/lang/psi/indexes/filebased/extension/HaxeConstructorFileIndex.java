@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized;
+package com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -6,7 +6,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
-import com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeComponentBaseIndex;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.indexer.HaxeConstructorNameIndexer;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
@@ -17,7 +16,9 @@ import com.intellij.psi.PsiManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.util.Processor;
 import com.intellij.util.indexing.*;
+import com.intellij.util.io.DataExternalizer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,6 +30,7 @@ public class HaxeConstructorFileIndex extends HaxeComponentBaseIndex {
     // Key is FQN string of parent class
     private static final ID<String, HaxeComponentIndexData> INDEX = ID.create("HaxeConstructorIndex");
     private static final int INDEX_VERSION = HaxeIndexUtil.BASE_INDEX_VERSION;
+
 
 
     @Override
@@ -45,6 +47,15 @@ public class HaxeConstructorFileIndex extends HaxeComponentBaseIndex {
     public @NotNull DataIndexer<String, HaxeComponentIndexData, FileContent> getIndexer() {
         return new HaxeConstructorNameIndexer();
     }
+
+
+    public static Collection<HaxeComponentIndexData> getAllValues(@NotNull Project project, @Nullable GlobalSearchScope scope) {
+        FileBasedIndex instance = FileBasedIndex.getInstance();
+        return instance.getAllKeys(INDEX, project).stream()
+                .flatMap(key -> instance.getValues(INDEX, key, scope).stream())
+                .toList();
+    }
+
 
     public static Collection<HaxeMethod> getConstructors(@NotNull Project project, GlobalSearchScope searchScope) {
         List<HaxeMethod> elements = new ArrayList<>();
