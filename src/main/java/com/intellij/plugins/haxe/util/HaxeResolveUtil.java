@@ -632,7 +632,7 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if (specialization.containsKey(null, element.getText())) {
+    if (element != null && specialization.containsKey(null, element.getText())) {
       return specialization.get(null, element.getText());
     }
     if (element instanceof  HaxePsiField psiField) {
