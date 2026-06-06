@@ -71,7 +71,7 @@ public class HaxeFile extends PsiFileBase
   }
 
   private HaxeModule moduleWithAst(FileElement element) {
-   return PsiTreeUtil.getStubChildOfType(this, HaxeModule.class);
+   return PsiTreeUtil.getChildOfType(this, HaxeModule.class);
   }
 
 

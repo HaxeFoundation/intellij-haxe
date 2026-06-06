@@ -87,13 +87,17 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
   @Override
   public String getQualifiedName() {
-    return getQualifiedName(false);
+    return CachedValuesManager.getCachedValue(this, () -> {
+      return new CachedValueProvider.Result<>(getQualifiedName(false), this);
+    });
   }
 
   // includes both module name and class name even if they are the same
   @Override
   public String getFullyQualifiedName() {
-    return getQualifiedName(true);
+    return CachedValuesManager.getCachedValue(this, () -> {
+      return new CachedValueProvider.Result<>(getQualifiedName(true), this);
+    });
   }
 
   public String getQualifiedName(boolean alwaysIncludeModuleName) {
