@@ -17,8 +17,10 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import lombok.Getter;
 import lombok.With;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -28,25 +30,42 @@ public class FullyQualifiedInfo {
   public static final char PATH_SEPARATOR = '.';
   public static final String PARAMETER_SEPARATOR = "#";
 
-  final public String packagePath;
-  @Nullable final public String moduleName;
-  @Nullable final public String className;
-  @Nullable final public String memberName;
-  @Nullable final public String parameter;
+  @Getter @NotNull final public String packageName;
+  @Getter @Nullable final public String moduleName;
+  @Getter @Nullable final public String className;
+  @Getter @Nullable final public String memberName;
+  @Getter @Nullable final public String parameterName;
 
-  public FullyQualifiedInfo(String packagePath, @Nullable String moduleName, @Nullable String className, @Nullable String memberName) {
-    this.packagePath = packagePath;
-    this.moduleName = moduleName;
-    this.className = className;
-    this.memberName = memberName;
-    this.parameter = null;
+
+  public boolean hasModuleName() {
+    return moduleName!= null;
   }
-  public FullyQualifiedInfo(String packagePath, @Nullable String moduleName, @Nullable String className, @Nullable String memberName, @Nullable String parameter) {
-    this.packagePath = packagePath;
+
+  public boolean hasClassName() {
+    return className!= null;
+  }
+
+  public boolean hasMemberName() {
+    return memberName!= null;
+  }
+
+  public boolean hasParameterName() {
+    return parameterName != null;
+  }
+
+  public FullyQualifiedInfo(String packageName, @Nullable String moduleName, @Nullable String className, @Nullable String memberName) {
+    this.packageName = packageName;
     this.moduleName = moduleName;
     this.className = className;
     this.memberName = memberName;
-    this.parameter = parameter;
+    this.parameterName = null;
+  }
+  public FullyQualifiedInfo(String packageName, @Nullable String moduleName, @Nullable String className, @Nullable String memberName, @Nullable String parameterName) {
+    this.packageName = packageName;
+    this.moduleName = moduleName;
+    this.className = className;
+    this.memberName = memberName;
+    this.parameterName = parameterName;
   }
 
   public FullyQualifiedInfo(@Nullable String fullyQualifiedIdentifier) {
@@ -67,11 +86,11 @@ public class FullyQualifiedInfo {
      while (i < size) {
       String identifier = parts.get(i);
       if (identifier == null) {
-        packagePath = null;
+        packageName = null;
         moduleName = null;
         className = null;
         memberName = null;
-        parameter = null;
+        parameterName = null;
         return;
       }
       if (Character.isUpperCase(identifier.charAt(0))) {
@@ -83,23 +102,23 @@ public class FullyQualifiedInfo {
       i++;
     }
 
-    packagePath = packagePathBuilder.toString();
+    packageName = packagePathBuilder.toString();
     moduleName = i < size ? parts.get(i++) : null;
 
     if (moduleName == null) {
       className = null;
       memberName = null;
-      parameter = null;
+      parameterName = null;
     } else {
       final String classOrMemberName = i < size ? parts.get(i++) : null;
       if (classOrMemberName != null && Character.isLowerCase(classOrMemberName.charAt(0))) {
         if (classOrMemberName.contains(PARAMETER_SEPARATOR)) {
           String[] split = classOrMemberName.split(PARAMETER_SEPARATOR);
           memberName = split[0];
-          parameter = split[1];
+          parameterName = split[1];
         } else {
           memberName = classOrMemberName;
-          parameter = null;
+          parameterName = null;
         }
         className = moduleName;
       } else {
@@ -107,14 +126,14 @@ public class FullyQualifiedInfo {
         String possibleMember = i < size ? parts.get(i) : null;
         if (possibleMember == null) {
           memberName = null;
-          parameter = null;
+          parameterName = null;
         } else if (possibleMember.contains(PARAMETER_SEPARATOR)) {
           String[] split = possibleMember.split(PARAMETER_SEPARATOR);
           memberName = split[0];
-          parameter = split[1];
+          parameterName = split[1];
         } else {
           memberName = possibleMember;
-          parameter = null;
+          parameterName = null;
         }
       }
     }
@@ -123,8 +142,8 @@ public class FullyQualifiedInfo {
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder();
-    if (packagePath != null && !packagePath.isEmpty()) {
-      builder.append(packagePath);
+    if (packageName != null && !packageName.isEmpty()) {
+      builder.append(packageName);
     }
 
     if (moduleName == null || moduleName.isEmpty()) return builder.toString();
@@ -140,9 +159,9 @@ public class FullyQualifiedInfo {
       builder.append(PATH_SEPARATOR);
       builder.append(memberName);
     }
-    if (parameter != null && !parameter.isEmpty()) {
+    if (parameterName != null && !parameterName.isEmpty()) {
       builder.append(PARAMETER_SEPARATOR);
-      builder.append(parameter);
+      builder.append(parameterName);
     }
 
     return builder.toString();
@@ -153,8 +172,8 @@ public class FullyQualifiedInfo {
   }
   public String getQualifiedName(boolean includeModule) {
     StringBuilder builder = new StringBuilder();
-    if (packagePath != null && !packagePath.isEmpty()) {
-      builder.append(packagePath);
+    if (packageName != null && !packageName.isEmpty()) {
+      builder.append(packageName);
     }
 
     if (moduleName == null || moduleName.isEmpty()) {
@@ -164,7 +183,7 @@ public class FullyQualifiedInfo {
       builder.append(moduleName);
     }
 
-    if (className != null && !className.isEmpty() && !className.equals(moduleName)) {
+    if (className != null && !className.isEmpty() && (includeModule || !className.equals(moduleName))) {
       builder.append(PATH_SEPARATOR);
       builder.append(className);
     }
@@ -174,9 +193,9 @@ public class FullyQualifiedInfo {
       builder.append(memberName);
     }
 
-    if (parameter != null && !parameter.isEmpty()) {
+    if (parameterName != null && !parameterName.isEmpty()) {
       builder.append(PARAMETER_SEPARATOR);
-      builder.append(parameter);
+      builder.append(parameterName);
     }
 
     return builder.toString();
@@ -187,10 +206,8 @@ public class FullyQualifiedInfo {
     if (obj == null) return false;
     if (obj == this) return true;
 
-    if (obj instanceof FullyQualifiedInfo) {
-      FullyQualifiedInfo equalsObject = (FullyQualifiedInfo)obj;
-
-      return getPresentableText().equals(equalsObject.getPresentableText());
+    if (obj instanceof FullyQualifiedInfo equalsObject) {
+      return getQualifiedName(false).equals(equalsObject.getQualifiedName(false));
     }
 
     return false;
@@ -198,7 +215,7 @@ public class FullyQualifiedInfo {
 
   @Override
   public int hashCode() {
-    return Objects.hash(packagePath, moduleName, className, memberName);
+    return Objects.hash(packageName, moduleName, className, memberName);
   }
 
   public String getClassPath() {
@@ -206,7 +223,7 @@ public class FullyQualifiedInfo {
   }
 
   public String getFilePath() {
-    String result = packagePath;
+    String result = packageName;
 
     if (result.isEmpty()) {
       result = moduleName;
@@ -218,12 +235,12 @@ public class FullyQualifiedInfo {
   }
 
   public FullyQualifiedInfo toPackageQualifiedName() {
-    return new FullyQualifiedInfo(this.packagePath, null, null, null);
+    return new FullyQualifiedInfo(this.packageName, null, null, null);
   }
   // avoiding full path to class (MyPackage.MyClass.Myclass, where Myclass is both module name and classname)
   public String toShortendImportReferenceString() {
     if (moduleName.equals(className)) {
-      return new FullyQualifiedInfo(packagePath, moduleName, null, memberName).toString();
+      return new FullyQualifiedInfo(packageName, moduleName, null, memberName).toString();
     }
     return toString();
   }
@@ -243,4 +260,8 @@ public class FullyQualifiedInfo {
   private boolean equalsToFileName(String name) {
     return className == null && moduleName != null && moduleName.equals(name);
   }
+
+    public FullyQualifiedInfo toClassQualifiedName() {
+        return this.withMemberName(null).withParameterName(null);
+    }
 }

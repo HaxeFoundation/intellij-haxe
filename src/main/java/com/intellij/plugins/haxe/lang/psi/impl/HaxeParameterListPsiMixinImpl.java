@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -39,7 +40,7 @@ public class HaxeParameterListPsiMixinImpl extends HaxeContainerStubPsiElementBa
     super(node);
   }
 
-  public HaxeParameterListPsiMixinImpl(@NotNull HaxeEmptyContainerStub<?> stub, @NotNull IStubElementType<?, ?> type) {
+  public HaxeParameterListPsiMixinImpl(@NotNull HaxeEmptyContainerStub<?> stub, @NotNull IElementType type) {
     super(stub, type);
   }
 

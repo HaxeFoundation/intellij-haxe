@@ -34,7 +34,7 @@ public abstract class HaxeStubBasedPsiElementBase<T extends StubElement<?>> exte
     super(node);
   }
 
-  public HaxeStubBasedPsiElementBase(@NotNull T stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public HaxeStubBasedPsiElementBase(@NotNull T stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

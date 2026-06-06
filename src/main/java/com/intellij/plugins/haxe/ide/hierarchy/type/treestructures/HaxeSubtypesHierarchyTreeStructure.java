@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-import static com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly;
+import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly;
 
 /**
  * Created by srikanthg on 10/23/14.

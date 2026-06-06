@@ -2169,6 +2169,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private List<? extends PsiElement> checkIsModuleName(@NotNull HaxeReference reference, String referenceText) {
+    if(reference instanceof HaxeEnumExtractedValueReference) return null;
     if(textCanBeRefOfClassOrModule(reference.getText())) {
       final PsiElement element = HaxeResolveUtil.tryResolveModuleReference(reference);
       if (element != null) {
@@ -2181,6 +2182,7 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
   @Nullable
   private List<? extends PsiElement> checkIsClassName(@NotNull HaxeReference reference, String referenceText) {
+    if(reference instanceof HaxeEnumExtractedValueReference) return null;
     if(textCanBeRefOfClassOrModule(reference.getText())) {
       final HaxeClass resultClass = HaxeResolveUtil.tryResolveClassByQName(reference);
       if (resultClass != null) {
@@ -2389,6 +2391,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
           LogResolution(reference, "via simple chain against package or module.");
           return List.of(item);
         }
+    }
+    if (resolve instanceof PsiPackage aPackage) {
+      String lastChildText = reference.getLastChild().getText();
+      char firstCharOfWord = lastChildText.charAt(0);
+      if (Character.isLowerCase(firstCharOfWord)) {
+        // Note:
+        // Module names/files should start with upper-case just like classes
+        // but since we want to be able to annotate imports that uses lowercase named modules
+        // we make an attempt to resolve them here.
+        HaxeModule module = searchForIncorrectlyNamedModule(aPackage, lastChildText);
+        if(module != null) return List.of(module);
+      }
     }
 
     if(!parentResolve.isEmpty()) {
@@ -2602,6 +2616,19 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
 
     if(type != null) return resolveByClassAndSymbol(type, null, reference);
     return  List.of();
+  }
+
+  private static HaxeModule searchForIncorrectlyNamedModule(PsiPackage aPackage, String lastChildText) {
+    PsiDirectory[] directories = aPackage.getDirectories();
+    for (PsiDirectory directory : directories) {
+      PsiFile[] files = directory.getFiles();
+      for (PsiFile file : files) {
+        if(file.getName().equals(lastChildText +".hx")) {
+          return PsiTreeUtil.findChildOfType(file, HaxeModule.class);
+        }
+      }
+    }
+    return null;
   }
 
   private static @Nullable List<PsiElement> resolveModuleMemberOrClass(HaxeReference reference,

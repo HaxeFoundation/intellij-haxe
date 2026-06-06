@@ -9,9 +9,13 @@ import com.intellij.codeInsight.lookup.impl.LookupImpl;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.ONEW;
 
 /**
  * More or less a copy of CompletionAutoPopupHandler but allows "$" (macros) and "#" (preprocessor).
@@ -37,6 +41,13 @@ public class HaxeCompletionAutoPopupHandler extends CompletionAutoPopupHandler {
         lookup.performGuardedChange(() -> EditorModificationUtil.deleteSelectedText(editor));
       }
       return Result.STOP;
+    }
+    if(Character.isSpaceChar(charTyped)) {
+      int offset = editor.getCaretModel().getOffset();
+      if(StringUtil.endsWith(editor.getDocument().getImmutableCharSequence(), 0, offset, ONEW.toString())) {
+          AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
+          return Result.STOP;
+      }
     }
 
     if (Character.isLetterOrDigit(charTyped) || charTyped == '_'|| charTyped == '$' || charTyped == '#') {

@@ -29,6 +29,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +45,7 @@ public abstract class AnonymousHaxeTypeImpl extends AbstractHaxePsiClass impleme
     super(node);
   }
 
-  public AnonymousHaxeTypeImpl(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public AnonymousHaxeTypeImpl(@NotNull HaxeClassStub stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

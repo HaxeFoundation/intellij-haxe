@@ -30,6 +30,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
@@ -49,7 +50,7 @@ public abstract class HaxeNamedElementImpl extends HaxeStubBasedPsiElementBase<H
     super(node);
   }
 
-  public HaxeNamedElementImpl(@NotNull HaxeComponentNameStub stub, @NotNull IStubElementType<?, ?> stubType) {
+  public HaxeNamedElementImpl(@NotNull HaxeComponentNameStub stub, @NotNull IElementType stubType) {
     super(stub, stubType);
   }
 

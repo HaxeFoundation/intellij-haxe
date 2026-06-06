@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.model.HaxeGenericParamModel;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
@@ -18,7 +19,7 @@ public abstract class HaxeTypeParameterDeclarationPsiMixinImpl extends AbstractH
     super(node);
   }
 
-  public HaxeTypeParameterDeclarationPsiMixinImpl(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> type) {
+  public HaxeTypeParameterDeclarationPsiMixinImpl(@NotNull HaxeClassStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 

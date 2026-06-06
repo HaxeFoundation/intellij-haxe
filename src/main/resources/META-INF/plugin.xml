@@ -290,7 +290,6 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePPKeywordCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePrecompilerContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeEnumValuesCompletionContributor"/>
-    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeConstructorCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeStaticMemberCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeClassNameCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
@@ -326,26 +325,60 @@
     <defaultLiveTemplates file="liveTemplates/haxe_iterations.xml"/>
     <defaultLiveTemplates file="liveTemplates/haxe_miscellaneous.xml"/>
 
+    <stubElementRegistryExtension id="haxe" implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubRegistryExtension"/>
+    <languageStubDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubDefinition"/>
 
-    <stubElementTypeHolder  class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubElementTypes" externalIdPrefix="haxe." />
+    <!-- FILEBASED INDEXES-->
 
-    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn.HaxeFullyQualifiedClassNameIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn.HaxeFullyQualifiedModuleNameIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.fqn.HaxeFullyQualifiedMemberNameIndex"/>
+
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeClassNameFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeClassFieldNameFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeClassMethodNameFileIndex"/>
+
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeModuleFieldNameFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeModuleMethodNameFileIndex"/>
+
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeStaticFieldNameFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeStaticMethodNameFileIndex"/>
+
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.HaxeConstructorFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeImportHxFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeClassInheritanceFileIndex"/>
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeTypedefInheritanceFileIndex"/>
+
+<!-- STUB INDEXES-->
+
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedModuleNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedMemberNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedParameterNameStubIndex"/>
 
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex"/>
-    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex"/>
-    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassMethodNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassFieldNameStubIndex"/>
+
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeModuleMethodNameStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeModuleFieldNameStubIndex"/>
 
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticMethodNameStubIndex"/>
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex"/>
 
-    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeTypedefInheritanceStubIndex"/>
+    <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeClassInheritanceStubIndex"/>
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeConstructorStubIndex"/>
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeImportHxStubIndex"/>
 
-    <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoClassContributor"/>
-    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoSymbolContributor"/>
 
-    <definitionsScopedSearch implementation="com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsSearcher"/>
+
+    <gotoClassContributor implementation="com.intellij.plugins.haxe.ide.HaxeGotoClassContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoClassSymbolContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoFieldSymbolContributor"/>
+    <gotoSymbolContributor implementation="com.intellij.plugins.haxe.ide.symbols.HaxeGotoMethodSymbolContributor"/>
+
+    <definitionsScopedSearch implementation="com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsSearcher"/>
 
     <projectService serviceImplementation="com.intellij.plugins.haxe.haxelib.definitions.HaxeDefineDetectionManager"/>
     <projectService serviceImplementation="com.intellij.plugins.haxe.config.HaxeProjectSettings"/>
@@ -557,6 +590,8 @@
 
     <notificationGroup id="haxe.haxelib.warning" displayType="BALLOON" bundle="messages.HaxeBundle" key="haxe.haxelib.library.dependencies"/>
 
+
+    <vfs.asyncListener implementation="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"/>
   </extensions>
 
   <applicationListeners>
@@ -564,13 +599,19 @@
               topic="com.intellij.openapi.project.ProjectManagerListener"/>
     <listener class="com.intellij.plugins.haxe.haxelib.HaxelibModuleManagerService"
               topic="com.intellij.openapi.project.ModuleListener"/>
-
   </applicationListeners>
 
   <projectListeners>
     <listener class="com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorCacheChangeListener"
               topic="com.intellij.psi.util.PsiModificationTracker$Listener"/>
+<!--    <listener class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"-->
+<!--              topic="com.intellij.openapi.vfs.VirtualFileListener"/>-->
+<!--    <listener class="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService"-->
+<!--              topic="com.intellij.psi.PsiTreeChangeListener"/>-->
+
   </projectListeners>
+
+
 
   <actions>
     <action id="Haxe.NewHaxeClass" class="com.intellij.plugins.haxe.ide.actions.CreateClassAction"

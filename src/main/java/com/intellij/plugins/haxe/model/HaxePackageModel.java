@@ -68,13 +68,13 @@ public class HaxePackageModel implements HaxeExposableModel {
   }
 
   public HaxeModel resolve(FullyQualifiedInfo info) {
-    if (info.packagePath.equals(this.path)) {
+    if (info.packageName.equals(this.path)) {
       if (info.moduleName == null && info.className == null) return this;
       HaxeFileModel file = getFileModel(info.moduleName);
       if (file != null) return file.resolve(info);
       return null;
-    } else if (info.packagePath.indexOf(path) == 0 || path.isEmpty()) {
-      String searchName = path.isEmpty() ? info.packagePath : info.packagePath.substring(path.length() + 1);
+    } else if (info.packageName.indexOf(path) == 0 || path.isEmpty()) {
+      String searchName = path.isEmpty() ? info.packageName : info.packageName.substring(path.length() + 1);
       HaxePackageModel child = getChild(searchName);
       if (child != null) {
         return child.resolve(info);

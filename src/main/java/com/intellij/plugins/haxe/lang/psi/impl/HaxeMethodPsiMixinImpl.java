@@ -41,6 +41,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.MethodSignature;
 import com.intellij.psi.util.MethodSignatureBackedByPsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -70,7 +71,7 @@ public abstract class HaxeMethodPsiMixinImpl extends HaxeStubBasedNamedComponent
     super(node);
   }
 
-  protected HaxeMethodPsiMixinImpl(HaxeMethodStub stub, IStubElementType<?, ?> nodeType) {
+  protected HaxeMethodPsiMixinImpl(HaxeMethodStub stub, IElementType nodeType) {
     super(stub, nodeType);
   }
 

@@ -22,4 +22,11 @@ class Child extends Base {
       b: data.flagB
     };
   }
+  public function shouldFail():Spec {
+    // verifying that unresolved and wrong type refs are still annotated
+    return {
+      a: data.<warning descr="Unresolved symbol">DoesNotExist</warning>, // Not found
+      <error descr="have 'b:Data' wants 'b:Bool'">b: data</error> // wrong type
+    };
+  }
 }

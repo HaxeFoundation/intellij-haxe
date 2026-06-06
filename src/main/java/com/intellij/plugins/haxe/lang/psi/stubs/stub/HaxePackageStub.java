@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -16,7 +17,7 @@ public class HaxePackageStub extends StubBase<HaxePackageStatement> {
   private final String packageName;
 
   public HaxePackageStub(StubElement parent,
-                         @NotNull IStubElementType elementType,
+                         @NotNull IElementType elementType,
                          @Nullable String packageName) {
     super(parent, elementType);
     this.packageName = packageName;

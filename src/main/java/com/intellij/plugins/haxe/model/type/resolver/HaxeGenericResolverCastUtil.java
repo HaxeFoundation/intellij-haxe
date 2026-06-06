@@ -56,7 +56,8 @@ public class HaxeGenericResolverCastUtil {
         if (source instanceof HaxeAbstractTypeDeclarationImpl abstractTypeDeclaration) {
             // if abstract check if target is underlying HaxeClass
             HaxeClass underlyingHaxeClass = findUnderlyingHaxeClass(abstractTypeDeclaration);
-            if (underlyingHaxeClass == target) {
+//            if (underlyingHaxeClass == target) {
+            if (underlyingHaxeClass != null && Objects.equals(underlyingHaxeClass.getQualifiedName(), target.getQualifiedName())) {
                 return translateAbstractToUnderlying(resolver, source);
             }
         }
@@ -228,7 +229,8 @@ public class HaxeGenericResolverCastUtil {
                     SpecificTypeReference resolvedTypeDef = reference.resolveTypeDefOfClassOrTypeParam();
                     if (resolvedTypeDef  instanceof  SpecificHaxeClassReference classReference) {
                         HaxeClass childClass = classReference.getHaxeClass();
-                        if (childClass == to) {
+//                        if (childClass == to) {
+                        if (to.getQualifiedName().equals(childClass.getQualifiedName())) {
                             path.add(reference);
                             return true;
                         }
@@ -237,7 +239,8 @@ public class HaxeGenericResolverCastUtil {
                         }
                     } else {
                         HaxeClass underlyingClass = reference.getHaxeClass();
-                        if (underlyingClass == to) {
+//                        if (underlyingClass == to) {
+                        if (to.getQualifiedName().equals(underlyingClass.getQualifiedName())) {
                             path.add(reference);
                             return true;
                         } else if (findClassHierarchy(underlyingClass, to, path, reference.getGenericResolver())) {
@@ -256,7 +259,8 @@ public class HaxeGenericResolverCastUtil {
                         HaxeClassModel classModel = constraintClassReference.getHaxeClassModel();
                         if (classModel != null) {
                             HaxeClass childClass = classModel.haxeClass;
-                            if (childClass == to) {
+//                            if (childClass == to) {
+                            if (to.getQualifiedName().equals(childClass.getQualifiedName())) {
                                 return path.add(constraintClassReference);
                             } else {
                                 if (findClassHierarchy(childClass, to, path, constraintClassReference.getGenericResolver())) {
@@ -275,7 +279,8 @@ public class HaxeGenericResolverCastUtil {
                 for (ResultHolder compositeType : compositeTypes) {
                     if (compositeType.getType() instanceof SpecificHaxeClassReference reference) {
                         HaxeClass haxeClass = reference.getHaxeClass();
-                        if (haxeClass == to) {
+//                        if (haxeClass == to) {
+                        if (to.getQualifiedName().equals(haxeClass.getQualifiedName())) {
                             return path.add(reference);
                         } else {
                             if (findClassHierarchy(haxeClass, to, path, reference.getGenericResolver())) {
@@ -294,7 +299,8 @@ public class HaxeGenericResolverCastUtil {
                 if (classModel != null) {
                     HaxeClass childClass = classModel.haxeClass;
                     SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
-                    if (childClass == to) {
+//                    if (childClass == to) {
+                    if (to.getQualifiedName().equals(childClass.getQualifiedName())) {
                         return path.add(classReference);
                     } else {
                         if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
@@ -311,7 +317,8 @@ public class HaxeGenericResolverCastUtil {
                 if (classModel != null) {
                     HaxeClass childClass = classModel.haxeClass;
                     SpecificHaxeClassReference classReference = model.getSpecificHaxeClassReference();
-                    if (childClass == to) {
+                    if (to.getQualifiedName().equals(childClass.getQualifiedName())) {
+//                    if (childClass == to) {
                         return path.add(classReference);
                     } else {
                         if (findClassHierarchy(childClass, to, path, classReference.getGenericResolver())) {
@@ -331,7 +338,8 @@ public class HaxeGenericResolverCastUtil {
                         SpecificHaxeClassReference constraintClassType = constraint.getClassType();
                         if (constraintClassType != null) {
                             HaxeClass haxeClass = constraintClassType.getHaxeClass();
-                            if (from == haxeClass) {
+//                            if (from == haxeClass) {
+                            if (from.getQualifiedName().equals(haxeClass.getQualifiedName())) {
                                 return true;
                             }
                         }

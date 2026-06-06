@@ -64,17 +64,9 @@ public class HaxeFileModel implements HaxeExposableModel {
     return getPackageModel();
   }
 
-  @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    HaxeExposableModel container = getExhibitor();
-    if (container != null) {
-      FullyQualifiedInfo qualifiedInfo = container.getQualifiedInfo();
-      if (qualifiedInfo != null) {
-        return new FullyQualifiedInfo(qualifiedInfo.packagePath, getName(), null, null);
-      }
-    }
-    return null;
+    return new FullyQualifiedInfo(getPackageName(), getName(), null, null);
   }
 
   @Override
@@ -327,9 +319,9 @@ public class HaxeFileModel implements HaxeExposableModel {
           member = findModuleMember(memberName);
         }
       }
-      if (member != null && info.parameter != null) {
+      if (member != null && info.parameterName != null) {
         if (member instanceof HaxeMethodModel methodModel) {
-          return methodModel.getParameterWithName(info.parameter);
+          return methodModel.getParameterWithName(info.parameterName);
         } else {
           return null;
         }

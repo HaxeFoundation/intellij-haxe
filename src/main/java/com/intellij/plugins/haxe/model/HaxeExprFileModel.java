@@ -12,7 +12,7 @@ public class HaxeExprFileModel extends HaxeFileModel {
 
   @Override
   protected boolean isReferencingCurrentFile(FullyQualifiedInfo info) {
-    return (info.packagePath == null || info.packagePath.isEmpty()) && (info.moduleName == null || info.moduleName.isEmpty());
+    return (info.packageName == null || info.packageName.isEmpty()) && (info.moduleName == null || info.moduleName.isEmpty());
   }
 
   public static HaxeExprFileModel fromFile(@NotNull HaxeFile file) {

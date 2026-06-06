@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeParameter;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +19,7 @@ public class HaxeParameterStub extends StubBase<HaxeParameter> implements StubWi
   private final String name;
   private final int flags;
 
-  public HaxeParameterStub(StubElement<?> parent, @NotNull IStubElementType<?, ?> elementType,
+  public HaxeParameterStub(StubElement<?> parent, @NotNull IElementType elementType,
                             @Nullable String name, boolean isOptional, boolean isRest, boolean hasInit) {
     super(parent, elementType);
     this.name = name;
@@ -28,7 +29,7 @@ public class HaxeParameterStub extends StubBase<HaxeParameter> implements StubWi
             | (hasInit ? HAS_INIT : 0);
   }
 
-  public HaxeParameterStub(StubElement<?> parent, @NotNull IStubElementType<?, ?> elementType,
+  public HaxeParameterStub(StubElement<?> parent, @NotNull IElementType elementType,
                             @Nullable String name, int flags) {
     super(parent, elementType);
     this.name = name;

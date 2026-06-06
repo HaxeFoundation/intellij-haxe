@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeUsingStub;
 import com.intellij.plugins.haxe.model.HaxeUsingModel;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public class HaxeUsingStatementPsiMixinImpl extends HaxeStubBasedPsiElementBase<
     super(node);
   }
 
-  public HaxeUsingStatementPsiMixinImpl(HaxeUsingStub stub, IStubElementType<?, ?> nodeType) {
+  public HaxeUsingStatementPsiMixinImpl(HaxeUsingStub stub, IElementType nodeType) {
     super(stub, nodeType);
   }
 

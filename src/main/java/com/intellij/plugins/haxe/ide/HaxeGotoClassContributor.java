@@ -21,6 +21,7 @@ import com.intellij.navigation.ChooseByNameContributor;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
@@ -37,14 +38,14 @@ public class HaxeGotoClassContributor implements ChooseByNameContributor {
   @Override
   public NavigationItem[] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
     final GlobalSearchScope scope = includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project);
-    final Collection<HaxeClass> result = HaxeClassNameStubIndex.getByNameFiltered(name, project, scope);
+    final Collection<HaxeClass> result = HaxeClassNameUnifiedIndex.getByNameFiltered(name, project, scope);
     return result.toArray(new NavigationItem[0]);
   }
 
   @NotNull
   @Override
   public String[] getNames(Project project, boolean includeNonProjectItems) {
-    final Collection<String> result = StubIndex.getInstance().getAllKeys(HaxeClassNameStubIndex.KEY, project);
+    Collection<String> result = HaxeClassNameUnifiedIndex.getAllKeys(project);
     return ArrayUtil.toStringArray(result);
   }
 }
