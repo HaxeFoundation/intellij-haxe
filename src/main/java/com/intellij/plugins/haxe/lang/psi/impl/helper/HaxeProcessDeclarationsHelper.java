@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static com.intellij.plugins.haxe.lang.psi.stubs.StubPsiTreeUtil.getStubChildrenOfAnyType;
+
 
 public final class HaxeProcessDeclarationsHelper {
 
@@ -44,22 +46,22 @@ public final class HaxeProcessDeclarationsHelper {
     // note using linkedHashSet because order is important here
     final Set<PsiElement> result = new LinkedHashSet<>();
 
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeFieldDeclaration.class));
-    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(self, HaxeLocalVarDeclarationList.class, stopper));
 
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeMethodDeclaration.class));
+    addDeclarations(result, getStubChildrenOfAnyType(self, HaxeFieldDeclaration.class, HaxeMethodDeclaration.class));
+
+    addLocalVarDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(self, HaxeLocalVarDeclarationList.class, stopper));
     addDeclarations(result, UsefulPsiTreeUtil.getChildrenOfType(self, HaxeLocalFunctionDeclaration.class, stopper));
 
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeClassDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeExternClassDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeInterfaceDeclaration.class));
-    addDeclarations(result, PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeTypedefDeclaration.class));
 
-    List<PsiElement> enumDeclarations = PsiTreeUtil.getStubChildrenOfTypeAsList(self, HaxeEnumDeclaration.class);
-    addDeclarations(result, enumDeclarations);
-
-    List<HaxeEnumDeclaration> enumDeclarationsMapped = enumDeclarations.stream().map(HaxeEnumDeclaration.class::cast).toList();
-    addEnumMembers(enumDeclarationsMapped, result);
+    List<PsiElement> topLevelDeclarations = getStubChildrenOfAnyType(self,
+            HaxeClassDeclaration.class,
+            HaxeExternClassDeclaration.class,
+            HaxeInterfaceDeclaration.class,
+            HaxeTypedefDeclaration.class,
+            HaxeEnumDeclaration.class
+    );
+    addDeclarations(result, topLevelDeclarations);
+    addEnumMembers(result, topLevelDeclarations);
 
     addFunctionLiteralsWithName(result, UsefulPsiTreeUtil.getChildrenOfType(self, HaxeFunctionLiteral.class, stopper));
 
@@ -155,14 +157,14 @@ public final class HaxeProcessDeclarationsHelper {
     }
   }
 
-  private static void addEnumMembers(List<HaxeEnumDeclaration> enumDeclarations, Set<PsiElement> result) {
-    if (enumDeclarations != null) {
-      for (HaxeEnumDeclaration decl : enumDeclarations) {
-        List<HaxeNamedComponent> list = decl.getModel()
-          .getMembers(null).stream()
-          .map(m -> m.getNamedComponentPsi())
-          .filter(Objects::nonNull)
-          .toList();
+  private static void addEnumMembers(Set<PsiElement> result, List<PsiElement> declarations) {
+    for (PsiElement decl : declarations) {
+      if (decl instanceof HaxeEnumDeclaration enumDeclaration) {
+        List<HaxeNamedComponent> list = enumDeclaration.getModel()
+                .getMembers(null).stream()
+                .map(m -> m.getNamedComponentPsi())
+                .filter(Objects::nonNull)
+                .toList();
         result.addAll(list);
       }
     }

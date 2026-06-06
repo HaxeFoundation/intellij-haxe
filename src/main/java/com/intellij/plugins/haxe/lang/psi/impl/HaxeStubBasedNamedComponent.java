@@ -3,8 +3,6 @@ package com.intellij.plugins.haxe.lang.psi.impl;
 import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter;
 import com.intellij.lang.ASTNode;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Pair;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
@@ -26,11 +24,8 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.impl.source.SourceTreeToPsiMap;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
 import com.intellij.psi.tree.IElementType;
-import com.intellij.psi.util.CachedValueProvider;
-import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import org.jetbrains.annotations.NonNls;
@@ -278,8 +273,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     if (stub instanceof HaxeFieldStub fieldStub) {
       return fieldStub.isStatic();
     }
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KSTATIC);
+    return containsModifier(HaxeTokenTypes.KSTATIC);
   }
 
   @Override
@@ -288,8 +282,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     if (stub instanceof HaxeMethodStub methodStub) {
       return methodStub.isOverride();
     }
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERRIDE);
+    return containsModifier(HaxeTokenTypes.KOVERRIDE);
   }
 
   @Override
@@ -298,8 +291,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     if (stub instanceof HaxeMethodStub methodStub) {
       return methodStub.isOverload();
     }
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KOVERLOAD);
+    return containsModifier(HaxeTokenTypes.KOVERLOAD);
   }
 
   @Override
@@ -308,8 +300,7 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     if (stub instanceof HaxeMethodStub methodStub) {
       return methodStub.isInline();
     }
-    final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KINLINE);
+    return containsModifier(HaxeTokenTypes.KINLINE);
   }
   @Override
   public boolean isDynamic() {
@@ -317,8 +308,12 @@ public abstract class HaxeStubBasedNamedComponent<T extends StubElement<?>> exte
     if (stub instanceof HaxeMethodStub methodStub) {
       return methodStub.isDynamic();
     }
+    return containsModifier(HaxeTokenTypes.KDYNAMIC);
+  }
+
+  private boolean containsModifier(IElementType modifier) {
     final HaxePsiModifier[] declarationAttributeList = PsiTreeUtil.getChildrenOfType(this, HaxePsiModifier.class);
-    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(HaxeTokenTypes.KDYNAMIC);
+    return HaxeResolveUtil.getDeclarationTypes(declarationAttributeList).contains(modifier);
   }
 
   @Nullable

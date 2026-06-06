@@ -243,6 +243,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
+
   public @Nullable HaxeInheritList getHaxeImplementsListPsi() {
     return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }
