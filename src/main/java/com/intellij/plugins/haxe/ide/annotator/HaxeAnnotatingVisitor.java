@@ -49,8 +49,15 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
 
     checkDeprecatedVarCall(reference);
 
-    if (reference.resolve() == null) {
+    PsiElement resolve = reference.resolve();
+    if (resolve == null) {
       handleUnresolvedReference(reference);
+    }
+    if(resolve instanceof HaxeModule module) {
+      String name = module.getName();
+      if(Character.isLowerCase(name.charAt(0))) {
+        handleInncorrectModuleName(reference);
+      }
     }
 
     super.visitReferenceExpression(reference);
@@ -107,6 +114,9 @@ public abstract class HaxeAnnotatingVisitor extends HaxeVisitor {
   }
 
   protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
+  }
+
+  protected void handleInncorrectModuleName(HaxeReferenceExpression reference) {
   }
 
   protected void handleDeprecatedFunctionDeclaration(HaxeMethodDeclaration functionDeclaration) {
