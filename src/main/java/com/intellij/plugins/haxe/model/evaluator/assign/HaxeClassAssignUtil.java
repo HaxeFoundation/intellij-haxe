@@ -21,8 +21,19 @@ public class HaxeClassAssignUtil  {
   private static final RecursionGuard<PsiElement> hierarchyRecursionGuard = RecursionManager.createGuard("propagateRecursionGuard");
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
-      String toQName = toClassReference.getHaxeClass().getFullyQualifiedName();
-      String fromQName = fromClassReference.getHaxeClass().getFullyQualifiedName();
+      HaxeClass toCaxeClass = toClassReference.getHaxeClass();
+      HaxeClass fromHaxeClass = fromClassReference.getHaxeClass();
+
+      // In cases where a Type/TypeTag does not resolve to an element we create a ClassReference with the `Type` as context
+      // this means there is no HaxeClass, and thus no way to get Qname, so to avoid issues we return false unless its the same object.
+      if(toCaxeClass == null && fromHaxeClass == null) {
+          return toClassReference.context == fromClassReference.context;
+      } else if(toCaxeClass == null || fromHaxeClass == null) {
+          return false;
+      }
+
+      String toQName = toCaxeClass.getFullyQualifiedName();
+      String fromQName = fromHaxeClass.getFullyQualifiedName();
       if(toQName.isEmpty() || fromQName.isEmpty()) return false;
       if (Objects.equals(toQName, fromQName)) {
         if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
