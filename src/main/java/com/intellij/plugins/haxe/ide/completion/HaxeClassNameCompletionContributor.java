@@ -158,6 +158,10 @@ public class HaxeClassNameCompletionContributor extends CompletionContributor {
                           return;
                       }
                   }
+                  else if(haxeModel instanceof HaxeModuleModel moduleModel) {
+                      LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(moduleModel);
+                      resultSet.addElement(lookupElement);
+                  }
                   else if(haxeModel instanceof HaxeMethodModel methodModel) {
                       LookupElementBuilder lookupElement = HaxeLookupElementFactory.create(methodModel);
                       resultSet.addElement(lookupElement);
