@@ -3,10 +3,11 @@
 * Added: Initial support for spellchecking
 * Fixed: Hierarchy view missing elements from interfaces extending more than one interface.
 * Fixed: Some compiler warnings would incorrectly show as errors in build Output (fixed by barisyild - #1238)
-* Fixed: Issue determining type of implicit typed members in imported library code when code relied on `import.hx` files.
-* Internal plugin changes:
- - Completion suggestions reworked to clean up code and use stub indexes 
- - PSI structure and indexes reworked to use stubs
+* Fixed: Inherited fields referenced inside object literal values did not resolve correctly (fixed by Tobbse - #1243)
+* Fixed: Issue determining type of implicit typed members in imported library code when code relied on `import.hx` files. (CaroStobbe - #1242)
+* Changed: Now using FQN for  type comparison to better support shaddowing. 
+* Changed: Completion suggestions has been reworked
+* Changed: Psi elements now use stub-trees and stub-indexes when possible for better performance.
 
 ## 1.8.0
 * Support for intellij 2026.1 (Release Candidate) 
