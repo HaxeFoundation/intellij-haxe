@@ -160,7 +160,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public boolean isArrayAccessor() {
-    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS);
+    return HaxeMetadataUtils.hasMeta(getBasePsi(), HaxeMeta.ARRAY_ACCESS) || isArrayAccessOperator();
   }
 
   @Override

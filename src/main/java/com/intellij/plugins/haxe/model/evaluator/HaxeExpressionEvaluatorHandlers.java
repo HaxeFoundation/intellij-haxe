@@ -1323,33 +1323,125 @@ public class HaxeExpressionEvaluatorHandlers {
       }
       //if not native array, look up ArrayAccessGetter method and use result
       if(left instanceof SpecificHaxeClassReference classReference) {
-
-        HaxeClass haxeClass = classReference.getHaxeClass();
-        if (haxeClass != null) {
-          HaxeNamedComponent getter = haxeClass.findArrayAccessGetter(resolver);
-          if (getter instanceof HaxeMethodDeclaration methodDeclaration) {
-            HaxeMethodModel methodModel = methodDeclaration.getModel();
-            HaxeGenericResolver localResolver = classReference.getGenericResolver();
-            HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
-            localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
-            ResultHolder returnType = methodModel.getReturnType(localResolver);
-            return returnType;
-          }
-          // TODO make better solution
-          // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access
-          else if (getter instanceof HaxeExternInterfaceDeclaration interfaceDeclaration) {
-            HaxeGenericResolver classResolver = classReference.getGenericResolver();
-            HaxeGenericResolver interfaceResolver = classResolver.translateFromTo(classReference.getHaxeClass(), interfaceDeclaration);
-            ResultHolder interfaceType = interfaceResolver.resolve(interfaceDeclaration.getModel().getInstanceType());
-            if(interfaceType != null) {
-              @NotNull ResultHolder[] specifics = interfaceType.getClassType().getSpecifics();
-              if (specifics.length == 1) return specifics[0];
-            }
-          }
+        // Pick the @:op([]) getter overload that fits the index argument and infer the
+        // getter's own type parameters from it (e.g. getTyped<T>(Id<T>):T  with  a[Id<Foo>]  ->  Foo).
+        ResultHolder getterReturnType = resolveArrayAccessGetterReturnType(classReference, right.createHolder());
+        if (getterReturnType != null) {
+          return getterReturnType;
+        }
+        // no getter declared on the class itself: the legacy lookup also covers inherited __get
+        // getters and the extern ArrayAccess marker interface
+        ResultHolder legacyType = getArrayAccessTypeFromClass(classReference);
+        if (legacyType != null) {
+          return legacyType;
         }
       }
     }
     return createUnknown(arrayAccessExpression);
+  }
+
+  /**
+   * Resolves the return type of an abstract / class array-access getter (@:op([]) or old-style __get).
+   *
+   * <p>An abstract may declare several overloaded array-access getters, for example a typed one and a
+   * plain String one:
+   * <pre>
+   *   @:op([]) function getTyped&lt;T&gt;(id:Id&lt;T&gt;):T;
+   *   @:op([]) function get(id:String):Value;
+   * </pre>
+   * Given the type of the actual index argument this picks the matching overload (preferring a direct
+   * match over one that only works through an abstract implicit cast) and infers the getter's own type
+   * parameters from the argument, so {@code container[Id<Foo>]} resolves to {@code Foo} rather than to
+   * an unresolved {@code T} or to the wrong overload.
+   *
+   * <p>When {@code indexType} is null (callers that have no concrete index expression) this falls back
+   * to the first declared getter and its declared return type, matching the previous behaviour.
+   *
+   * @return the getter's return type, or null if the class declares no array-access getter method.
+   */
+  @Nullable
+  private static ResultHolder resolveArrayAccessGetterReturnType(@NotNull SpecificHaxeClassReference classReference,
+                                                                 @Nullable ResultHolder indexType) {
+    HaxeClass haxeClass = classReference.getHaxeClass();
+    if (haxeClass == null) return null;
+
+    HaxeGenericResolver classResolver = classReference.getGenericResolver();
+
+    List<HaxeMethodModel> getters = new ArrayList<>();
+    List<HaxeMethodModel> legacyGetters = new ArrayList<>();
+    for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(classResolver)) {
+      HaxeMethodModel model = method.getModel();
+      if (model == null || model.getParameterCount() != 1) continue;
+      if (model.isArrayAccessor()) {
+        getters.add(model);
+      }
+      else if ("__get".equals(model.getName())) {
+        legacyGetters.add(model);
+      }
+    }
+    // old-style __get getters count only when no @:arrayAccess / @:op([]) getter is declared
+    if (getters.isEmpty()) getters = legacyGetters;
+    if (getters.isEmpty()) return null;
+
+    HaxeMethodModel chosen = getters.getFirst();
+    HaxeCallExpressionEvaluation chosenEvaluation = null;
+    if (indexType != null && !indexType.isUnknown()) {
+      int bestScore = Integer.MIN_VALUE;
+      for (HaxeMethodModel getter : getters) {
+        HaxeCallExpressionEvaluation evaluation =
+          HaxeCallExpressionUtil.createContextForMethodCall(List.of(indexType.getType()), getter, classResolver).evaluate();
+        // an invalid evaluation ranks below every real score (0..2), so one is kept only as a last resort
+        int score = evaluation.isValid() ? scoreArrayAccessGetterMatch(getter, indexType, classResolver) : -1;
+        if (score > bestScore) {
+          bestScore = score;
+          chosen = getter;
+          chosenEvaluation = evaluation;
+        }
+      }
+    }
+
+    if (chosenEvaluation != null) {
+      ResultHolder returnType = chosenEvaluation.getReturnType();
+      if (returnType != null && !returnType.isUnknown()) {
+        return returnType;
+      }
+    }
+
+    // fall back to the declared return type resolved with the class + method type parameters
+    return resolveDeclaredReturnType(chosen, classResolver);
+  }
+
+  /**
+   * Scores how well an array-access getter parameter matches the index argument, so that a direct match
+   * (same underlying type, or a type parameter) is preferred over one that only works via an abstract
+   * implicit cast. Higher is better.
+   */
+  private static int scoreArrayAccessGetterMatch(@NotNull HaxeMethodModel getter,
+                                                 @NotNull ResultHolder indexType,
+                                                 @Nullable HaxeGenericResolver classResolver) {
+    List<HaxeParameterModel> parameters = getter.getParameters();
+    if (parameters.isEmpty()) return 0;
+    ResultHolder paramType = parameters.getFirst().getType(classResolver);
+    SpecificTypeReference paramRef = paramType == null ? null : paramType.getType();
+    SpecificTypeReference argRef = indexType.getType();
+    if (paramRef == null) return 0;
+    // a type parameter accepts the argument directly (its own constraints are checked elsewhere)
+    if (paramRef.isTypeParameter()) return 1;
+    HaxeClass paramClass = paramRef instanceof SpecificHaxeClassReference p ? p.getHaxeClass() : null;
+    HaxeClass argClass = argRef instanceof SpecificHaxeClassReference a ? a.getHaxeClass() : null;
+    // same underlying type means no implicit cast was needed (e.g. Id<T> vs Id<Foo>)
+    if (paramClass != null && paramClass == argClass) return 2;
+    // matched only through an abstract to/from conversion
+    return 0;
+  }
+
+  /**
+   * Declared return type of an array-access getter, resolved with the class type parameters plus the
+   * getter's own constraints. Mutates the passed resolver.
+   */
+  private static ResultHolder resolveDeclaredReturnType(@NotNull HaxeMethodModel method, @NotNull HaxeGenericResolver classResolver) {
+    classResolver.addAll(method.getGenericResolver(classResolver));// apply constraints from methodSignature (if any)
+    return method.getReturnType(classResolver);
   }
 
   public static ResultHolder getArrayAccessTypeFromClass(SpecificHaxeClassReference classReference) {
@@ -1368,12 +1460,7 @@ public class HaxeExpressionEvaluatorHandlers {
     if (haxeClass != null) {
       HaxeNamedComponent getter = haxeClass.findArrayAccessGetter(classReference.getGenericResolver());
       if (getter instanceof HaxeMethodDeclaration methodDeclaration) {
-        HaxeMethodModel methodModel = methodDeclaration.getModel();
-        HaxeGenericResolver localResolver = classReference.getGenericResolver();
-        HaxeGenericResolver methodResolver = methodModel.getGenericResolver(localResolver);
-        localResolver.addAll(methodResolver);// apply constraints from methodSignature (if any)
-        ResultHolder returnType = methodModel.getReturnType(localResolver);
-        return returnType;
+        return resolveDeclaredReturnType(methodDeclaration.getModel(), classReference.getGenericResolver());
       }
       // TODO make better solution
       // hack to work around external ArrayAccess interface, interface that has no methods but tells compiler that implementing class has array access

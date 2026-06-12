@@ -146,6 +146,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
+  public void testAbstractArrayAccessGenericOverload() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testAbstractOperatorOverload() throws Exception {
     doTestNoFixWithWarnings();
   }

@@ -92,6 +92,22 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
 
   }
 
+  /**
+   * Whether this member is declared with the {@code @:op([])} array-access operator. Haxe accepts both
+   * {@code @:arrayAccess} and {@code @:op([])} to declare array access on an abstract (1 parameter for the
+   * getter, 2 for the setter); the {@code @:op([])} form is detected here.
+   */
+  public boolean isArrayAccessOperator() {
+    HaxeMetadataList list = getNamedComponentPsi().getMetadataList(HaxeMetadataCompileTimeMeta.class);
+    return list.getCompileTimeMeta().stream()
+      .filter(meta -> meta.isType(OP))
+      .anyMatch(meta -> {
+        // an empty array literal is the PSI shape of @:op([])
+        HaxeArrayLiteral arrayLiteral = PsiTreeUtil.findChildOfType(meta.getContent(), HaxeArrayLiteral.class);
+        return arrayLiteral != null && arrayLiteral.getExpressionList() == null;
+      });
+  }
+
   private boolean hasOperatorMeta(HaxeMetadataContent content, HaxeOperator operator) {
     if(operator.getParent() instanceof HaxePostfixExpression) {
       HaxePostfixExpression postfixExpression = PsiTreeUtil.findChildOfType(content, HaxePostfixExpression.class);

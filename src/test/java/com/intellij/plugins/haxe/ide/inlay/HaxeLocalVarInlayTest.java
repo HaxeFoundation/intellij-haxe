@@ -64,4 +64,9 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
+  @Test
+  public void testAbstractArrayAccessGenericOverload() throws Exception {
+    doTest(hintsProvider);
+  }
+
 }
