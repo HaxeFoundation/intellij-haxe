@@ -110,6 +110,7 @@ public class HaxeCallExpressionContext {
         evaluation.callExpressionResolver.addAll(callExpressionScopeResolver);
 
         boolean firstArgIsThisReference = isStaticExtension || isMacroMemberMethod();
+        evaluation.setImplicitCallieArgument(firstArgIsThisReference);
         boolean hasRestParam = hasRestParameter(parameters);
 
         List<CallExpressionArgumentModel> argumentsList = new ArrayList<>(arguments); // making a copy since we add callie for extension methods
@@ -438,6 +439,22 @@ public class HaxeCallExpressionContext {
 
                                     if(newMiss != null) {
                                         mismatch = newMiss;
+                                    }
+                                }
+                            }
+                        } else {
+                            // no nominal relation between the classes; typedef-of-anonymous parameters
+                            // like Iterable<T> still need their type parameters bound from the argument
+                            // (ex. an Array<String> receiver of a static extension binds T := String)
+                            Map<HaxeTypeParameterDeclaration, ResultHolder> bindings =
+                                HaxeGenericResolverUtil.buildTypeParamBindingsFromTypes(
+                                    parameterClassReference.createHolder(), argumentClassReference.createHolder());
+                            for (Map.Entry<HaxeTypeParameterDeclaration, ResultHolder> entry : bindings.entrySet()) {
+                                HaxeTypeParameterDeclaration typeParameter = entry.getKey();
+                                if (parameterResolver.containsConstraint(typeParameter)) {
+                                    ResultHolder resolve = parameterResolver.resolve(typeParameter);
+                                    if (resolve == null || resolve.isUnknown() || resolve.isTypeParameter()) {
+                                        parameterResolver.add(typeParameter, entry.getValue());
                                     }
                                 }
                             }

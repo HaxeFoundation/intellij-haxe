@@ -317,6 +317,21 @@ public class HaxeGenericResolverUtil {
   }
 
   /**
+   * Collects type-parameter bindings by walking a declared parameter type against a concrete
+   * argument type (resolving typedefs and descending into specifics and function shapes).
+   * Used as a structural fallback when nominal casting cannot relate the two classes, ex. an
+   * Array<String> argument passed to an Iterable<T> parameter binds T := String even though
+   * Array has no nominal relation to the Iterable typedef.
+   */
+  @NotNull
+  public static Map<HaxeTypeParameterDeclaration, ResultHolder> buildTypeParamBindingsFromTypes(@Nullable ResultHolder parameter,
+                                                                                                @Nullable ResultHolder argument) {
+    Map<HaxeTypeParameterDeclaration, ResultHolder> bindings = new HashMap<>();
+    mapTypeParameters(bindings, parameter, argument);
+    return bindings;
+  }
+
+  /**
    * Resolve the type parameters of a generic method that was passed by reference (no call
    * parentheses) into a position whose declared type is a concrete function type. Walks the
    * declared (method-side) function signature against the expected (hint-side) signature

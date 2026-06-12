@@ -941,7 +941,10 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         PsiElement PossibleCallExpression = referenceParent;
         if (PossibleCallExpression instanceof  HaxeCallExpressionList callExpressionList) {
           PossibleCallExpression = callExpressionList.getParent();
-          index = callExpressionList.getExpressionList().indexOf(reference);
+          // when the reference is the callee of an enum-constructor call argument (ex. `Boxed("x")`)
+          // the argument list contains that call expression, not the reference itself
+          PsiElement argumentExpression = isMethodOrConstructor ? reference.getParent() : reference;
+          index = callExpressionList.getExpressionList().indexOf(argumentExpression);
         }else {
           index = 0;
         }
@@ -1011,6 +1014,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
             if (argumentIndex > -1) {
               HaxeCallExpressionEvaluation validation = cachedHaxeCallExpressionEvaluation(haxeMethod, methodCallCall);
               if(validation != null) {
+                // the mapping counts the implicit receiver of extension/macro-member calls as argument 0
+                if (validation.isImplicitCallieArgument()) argumentIndex++;
                 int parameterIndex = validation.getParameterForArgument(argumentIndex);
                 ResultHolder parameterType = validation.getParameterType(parameterIndex);
                 if (parameterType != null) {

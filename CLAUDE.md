@@ -15,6 +15,10 @@ HXML / OpenFL build integration, haxelib management, and an hxcpp debugger for I
 4. Use plain, natural language. Be concise and easily understandable, no buzzwords.
 5. Run only the test(s) relevant to your change. Run the full suite only as a final verification.
 6. Do not commit anything yourself. When you are done, list exactly which files you have edited or created. Make sure you don't list the diff but actually list only the files you've touched - other agents may have made changes at the same time. Then give the dev a very short, non-ai sounding natural language commit message without buzzwords, high level.
+7. The developer sometimes pastes Haxe code from other (closed-source) projects to explain or
+   reproduce a bug. Never copy that code, its type names, field names, or domain wording into
+   this repository. Reduce it to the language feature being tested and write tests and fixtures
+   with completely generic names.
 
 ## Common commands
 

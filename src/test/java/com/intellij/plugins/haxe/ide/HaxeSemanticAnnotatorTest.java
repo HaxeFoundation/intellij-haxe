@@ -336,6 +336,18 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testLambdaFindExtensionMethod() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings("extensions/FindTools.hx");
+  }
+
+  @Test
+  public void testEnumArgumentInExtensionMethod() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings("extensions/TextTools.hx", "extensions/Sides.hx", "extensions/Wrappers.hx");
+  }
+
+  @Test
   public void testFieldInitializerCheck() throws Exception {
     doTestNoFixWithWarnings();
   }

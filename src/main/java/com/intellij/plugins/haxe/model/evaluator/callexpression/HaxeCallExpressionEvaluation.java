@@ -26,6 +26,11 @@ public class HaxeCallExpressionEvaluation {
     @Getter
     @Setter
     private boolean completed = false;
+    // static extensions and macro member methods get the receiver prepended as argument 0,
+    // so PSI argument indices are shifted by one in the argument-to-parameter mapping
+    @Getter
+    @Setter
+    private boolean implicitCallieArgument = false;
     @Getter
     @Setter
     private boolean valid = true;

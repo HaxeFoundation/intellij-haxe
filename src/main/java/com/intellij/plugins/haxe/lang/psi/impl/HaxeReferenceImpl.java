@@ -969,6 +969,8 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
           if(callie != null && callie.isUnknown()) return null;
 
           int callExpressionIndex = expressionList.indexOf(literal);
+          // the mapping counts the implicit receiver of extension/macro-member calls as argument 0
+          if (validation.isImplicitCallieArgument()) callExpressionIndex++;
           int parameterIndex = validation.getParameterForArgument(callExpressionIndex);
           ResultHolder type = validation.getParameterType(parameterIndex);
           if(type != null) {
