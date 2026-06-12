@@ -1,4 +1,8 @@
 # Changelog
+## 1.8.1-fork.2-dev.3
+* Bugfix: Bare class references in object literal fields are typed as `Class<T>`, so literals unify with typedefs that have `Class`-typed members
+* Bugfix: The parser no longer keeps operator-merge state in a shared static, which could corrupt parse trees when several files are parsed at once
+
 ## 1.8.1-fork.2-dev.2
 * Bugfix: Module-level macro functions resolve `Expr`/`ExprOf` in their signatures when `haxe.macro.Expr` is imported behind `#if macro`
 * Bugfix: `import Module.function` resolves module-level functions properly
