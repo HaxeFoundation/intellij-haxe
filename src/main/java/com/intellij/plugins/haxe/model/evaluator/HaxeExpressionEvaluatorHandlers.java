@@ -1492,7 +1492,7 @@ public class HaxeExpressionEvaluatorHandlers {
           HaxeTypeLiteralsUtils.getIntValue(right.getConstant())
         );
       }
-      return SpecificHaxeClassReference.getIterator(SpecificHaxeClassReference.getInt(iteratorExpression)).withConstantValue(constant)
+      return SpecificHaxeClassReference.getIntIterator(iteratorExpression).withConstantValue(constant)
         .createHolder();
     }
     return createUnknown(iteratorExpression);
