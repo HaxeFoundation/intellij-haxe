@@ -2,7 +2,7 @@ package ;
 
 @:autoBuild(<warning descr="Unresolved symbol">AutoBuiltMacro</warning>.<warning descr="Unresolved symbol">build</warning>())
 interface AutoBuilt {
-  function __construct():Void;
+  function generatedSetup():Void;
 }
 
 interface PlainInterface {
@@ -10,9 +10,9 @@ interface PlainInterface {
 }
 
 // Interface carries @:autoBuild, so the macro is expected to inject
-// __construct at compile time. The plugin should downgrade the missing
+// generatedSetup at compile time. The plugin should downgrade the missing
 // method to a weak warning, not flag it as a hard error.
-class DirectImpl implements <weak_warning descr="Method implementations might be missing: __construct(compile-time macros used)">AutoBuilt</weak_warning> {
+class DirectImpl implements <weak_warning descr="Method implementations might be missing: generatedSetup(compile-time macros used)">AutoBuilt</weak_warning> {
   public function new() {}
 }
 

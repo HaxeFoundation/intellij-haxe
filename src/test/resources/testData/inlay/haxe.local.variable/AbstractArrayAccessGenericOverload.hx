@@ -1,47 +1,47 @@
-// Phantom-typed id abstract with an implicit cast to String, so a plain
+// Phantom-typed key abstract with an implicit cast to String, so a plain
 // String array-access overload would also accept it.
-abstract LibId<T>(String) to String {
+abstract TypedKey<T>(String) to String {
   public inline function new(s:String) {
     this = s;
   }
 }
 
-class ImageLib {
+class PictureSet {
   public function new() {}
-  public function getImage(name:String):Int return 0;
+  public function getPicture(name:String):Int return 0;
 }
 
-// Mirrors LegendsAssets: an abstract over the base lib, self-typed, with the
-// id declared with NO type annotation, inferred from new LibId<Assets>(...).
-abstract Assets(ImageLib) from ImageLib to ImageLib {
-  public inline function legends_prison_cagebackground():Int return this.getImage("x");
-  public static inline final ID = new LibId<Assets>("assets");
+// An abstract over the base set, self-typed, with the key declared with NO type
+// annotation, inferred from new TypedKey<Icons>(...).
+abstract Icons(PictureSet) from PictureSet to PictureSet {
+  public inline function starIcon():Int return this.getPicture("x");
+  public static inline final KEY = new TypedKey<Icons>("icons");
 }
 
-// Two overloaded @:op([]) getters. Indexing with a LibId<T> must pick getTyped
-// (returns T inferred from the argument), not get (returns ImageLib).
-abstract Libs(Map<String, ImageLib>) {
-  public inline function new(m:Map<String, ImageLib>) {
+// Two overloaded @:op([]) getters. Indexing with a TypedKey<T> must pick getTyped
+// (returns T inferred from the argument), not get (returns PictureSet).
+abstract Sets(Map<String, PictureSet>) {
+  public inline function new(m:Map<String, PictureSet>) {
     this = m;
   }
 
-  @:op([]) inline function getTyped<T>(id:LibId<T>):T {
+  @:op([]) inline function getTyped<T>(id:TypedKey<T>):T {
     return cast get(id);
   }
 
-  @:op([]) inline function get(id:String):ImageLib {
+  @:op([]) inline function get(id:String):PictureSet {
     return this[id];
   }
 }
 
 class Test {
   public function new() {
-    var libs:Libs = new Libs(new Map<String, ImageLib>());
+    var sets:Sets = new Sets(new Map<String, PictureSet>());
 
-    // typed overload: index is LibId<Assets> -> result must be Assets
-    var typed/*<# :|Assets #>*/ = libs[Assets.ID];
+    // typed overload: index is TypedKey<Icons> -> result must be Icons
+    var typed/*<# :|Icons #>*/ = sets[Icons.KEY];
 
-    // string overload: plain String index -> result is ImageLib
-    var viaString/*<# :|ImageLib #>*/ = libs["plain"];
+    // string overload: plain String index -> result is PictureSet
+    var viaString/*<# :|PictureSet #>*/ = sets["plain"];
   }
 }

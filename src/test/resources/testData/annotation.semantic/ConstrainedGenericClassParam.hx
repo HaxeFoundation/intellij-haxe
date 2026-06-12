@@ -2,11 +2,11 @@ package ;
 
 class ConstrainedGenericClassParam {
 
-    var items:Array<AbstractBaseVO> = [];
+    var items:Array<BaseNode> = [];
 
     public function new() {}
 
-    public function findByClass<T:AbstractBaseVO>(itemClass:Class<T>):Null<T> {
+    public function findByClass<T:BaseNode>(itemClass:Class<T>):Null<T> {
         for (item in items) {
             if (Std.isOfType(item, itemClass)) {
                 return cast item;
@@ -16,43 +16,37 @@ class ConstrainedGenericClassParam {
     }
 
     public function test() {
-        // Should NOT report any error - SpecificVO is a subtype of AbstractBaseVO,
-        // and Class<SpecificVO> can be assigned to Class<T:AbstractBaseVO>
-        var specific = findByClass(SpecificVO);
+        // Should NOT report any error - LeafNode is a subtype of BaseNode,
+        // and Class<LeafNode> can be assigned to Class<T:BaseNode>
+        var specific = findByClass(LeafNode);
 
         // var with type Int = 0 should not error
         var simpleInt:Int = 0;
 
-        // Std.downcast should accept Class<SpecificVO>
+        // Std.downcast should accept Class<LeafNode>
         var item:Dynamic = null;
-        var downcast = Std.downcast(item, SpecificVO);
+        var downcast = Std.downcast(item, LeafNode);
     }
 }
 
-abstract class AbstractBaseVO extends AbstractVO {
+abstract class BaseNode extends RootNode {
     public static inline final TYPE = "";
 
-    function _getClassName():String {
-        return "AbstractBase";
+    function name():String {
+        return "base";
     }
 }
 
-abstract class AbstractVO {
+abstract class RootNode {
     public function new() {}
 
-    abstract function _getClassName():String;
-
-    public function toJSONObject():Dynamic {
-        return {__class__: _getClassName()};
-    }
-
-    public function fromJSONObject(raw:Dynamic):Void {}
+    abstract function name():String;
 }
 
-class SpecificVO extends AbstractBaseVO {
+class LeafNode extends BaseNode {
     public function new() { super(); }
 
-    override function _getClassName():String {
-        return "Specific";
+    override function name():String {
+        return "leaf";
     }
 }

@@ -12,18 +12,18 @@ class SimpleOverloads {
     }
 }
 
-abstract ReadOnlyMap<K, V>(Map<K, V>) from Map<K, V> {
+abstract FrozenMap<K, V>(Map<K, V>) from Map<K, V> {
     public inline function get(k:K):Null<V> {
         return this.get(k);
     }
 }
 
 class MapToolsX {
-    public static extern inline overload function getOrZero<K>(map:ReadOnlyMap<K, Float>, key:K):Float {
+    public static extern inline overload function pickValue<K>(map:FrozenMap<K, Float>, key:K):Float {
         return 0.0;
     }
 
-    public static extern inline overload function getOrZero<K>(map:ReadOnlyMap<K, Int>, key:K):Int {
+    public static extern inline overload function pickValue<K>(map:FrozenMap<K, Int>, key:K):Int {
         return 0;
     }
 }
@@ -33,8 +33,8 @@ class OverloadStaticCallHints {
         var fromIntArg/*<# :|Int #>*/ = SimpleOverloads.pick(1);
         var fromFloatArg/*<# :|Float #>*/ = SimpleOverloads.pick(1.5);
 
-        var fromIntMap/*<# :|Int #>*/ = MapToolsX.getOrZero(intMap, "k");
-        var fromFloatMap/*<# :|Float #>*/ = MapToolsX.getOrZero(floatMap, "k");
-        var fromNestedAccess/*<# :|Int #>*/ = MapToolsX.getOrZero(nested.get("terrains"), "forest");
+        var fromIntMap/*<# :|Int #>*/ = MapToolsX.pickValue(intMap, "k");
+        var fromFloatMap/*<# :|Float #>*/ = MapToolsX.pickValue(floatMap, "k");
+        var fromNestedAccess/*<# :|Int #>*/ = MapToolsX.pickValue(nested.get("outer"), "inner");
     }
 }

@@ -1,30 +1,30 @@
 package;
 
-class BaseAbility {
+class BaseTrait {
   public function new() {}
 }
 
-class AutoRefillAbility extends BaseAbility {
+class RepeatTrait extends BaseTrait {
   public function new() { super(); }
 }
 
-enum abstract AbilityType<T:BaseAbility>(String) {
-  final AutoRefill:AbilityType<AutoRefillAbility> = "autoRefill";
+enum abstract TraitKind<T:BaseTrait>(String) {
+  final Repeat:TraitKind<RepeatTrait> = "repeat";
 }
 
 class Bag {
-  public function new(lookup:(AbilityType<AutoRefillAbility>, String) -> AutoRefillAbility) {}
+  public function new(lookup:(TraitKind<RepeatTrait>, String) -> RepeatTrait) {}
 }
 
 class Holder {
   public function new() {}
 
-  public function getAbility<T:BaseAbility>(id:AbilityType<T>, name:String):Null<T> {
+  public function getTrait<T:BaseTrait>(id:TraitKind<T>, name:String):Null<T> {
     return null;
   }
 
   public function build():Bag {
-    return new Bag(getAbility);
+    return new Bag(getTrait);
   }
 }
 

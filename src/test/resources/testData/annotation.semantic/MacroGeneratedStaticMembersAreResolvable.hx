@@ -1,14 +1,14 @@
 package ;
 
 // @:autoBuild on a parent class. The macro adds static helpers
-// (event, map, EVENT_TYPE) to every subclass; the plugin can't run the macro,
+// (register, describe, KIND) to every subclass; the plugin can't run the macro,
 // so it cannot see those members. It must NOT flag their usage as
 // "Unresolved symbol".
-@:autoBuild(<warning descr="Unresolved symbol">EzCommandMacro</warning>.<warning descr="Unresolved symbol">build</warning>())
-class EzCommand {
+@:autoBuild(<warning descr="Unresolved symbol">AutoBuildMacro</warning>.<warning descr="Unresolved symbol">build</warning>())
+class BuiltBase {
 }
 
-class PickupProductionCommand extends EzCommand {
+class ChildOfBuilt extends BuiltBase {
 }
 
 // @:build directly on the class — same rule applies, since the macro
@@ -24,9 +24,9 @@ class Plain {
 class Caller {
     static function main() {
         // Macro-injected via @:autoBuild on the parent.
-        PickupProductionCommand.event(5);
-        PickupProductionCommand.map();
-        var t = PickupProductionCommand.EVENT_TYPE;
+        ChildOfBuilt.register(5);
+        ChildOfBuilt.describe();
+        var t = ChildOfBuilt.KIND;
 
         // Macro-injected via @:build on the class itself.
         DirectlyBuilt.synthesised();
