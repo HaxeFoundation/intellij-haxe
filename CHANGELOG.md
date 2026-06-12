@@ -1,4 +1,6 @@
 # Changelog
+## Unreleased
+* Fixed: Bare class references in object literal fields are now typed as `Class<T>`, so such literals unify with typedefs that have Class-typed members.
 
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 
