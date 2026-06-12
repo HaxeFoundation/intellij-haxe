@@ -24,6 +24,7 @@ import static com.intellij.plugins.haxe.ide.inspections.HaxeUnusedDeclarationsFi
 import static com.intellij.plugins.haxe.ide.inspections.HaxeUnusedDeclarationsFixes.createRemoveMethodFix;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.KEEP;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.OP;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.POST_CONSTRUCT;
 
 public class HaxeUnusedMethodInspection extends LocalInspectionTool {
     @NotNull
@@ -58,6 +59,8 @@ public class HaxeUnusedMethodInspection extends LocalInspectionTool {
                 if (implementsAbstractParentMethod(methodDeclaration)) return;
                 if (methodDeclaration.hasMetadata(OP, HaxeMetadataCompileTimeMeta.class)) return;
                 if (methodDeclaration.hasMetadata(KEEP, HaxeMetadataCompileTimeMeta.class)) return;
+                // DI frameworks invoke @:postConstruct / @postConstruct methods reflectively, so no references exist
+                if (methodDeclaration.hasMetadata(POST_CONSTRUCT, null)) return;
                 if (isGetterOrSetter(methodDeclaration)) return;
                 Collection<PsiReference> references;
                 //  if constructor also check new expressions

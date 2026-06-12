@@ -110,6 +110,7 @@ public interface HaxeMeta extends HaxePsiCompositeElement {
   HaxeMetadataTypeName OVERLOAD = new HaxeMetadataTypeName("overload");
   HaxeMetadataTypeName PERSISTENT = new HaxeMetadataTypeName("persistent");
   HaxeMetadataTypeName POS = new HaxeMetadataTypeName("pos"); // <Position>
+  HaxeMetadataTypeName POST_CONSTRUCT = new HaxeMetadataTypeName("postConstruct"); // DI framework convention, not a compiler meta
   HaxeMetadataTypeName PRIVATE = new HaxeMetadataTypeName("private");
   HaxeMetadataTypeName PRIVATE_ACCESS = new HaxeMetadataTypeName("privateAccess");
   HaxeMetadataTypeName PROTECTED = new HaxeMetadataTypeName("protected");
