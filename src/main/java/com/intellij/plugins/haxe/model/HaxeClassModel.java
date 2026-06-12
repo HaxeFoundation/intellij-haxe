@@ -618,6 +618,20 @@ public class HaxeClassModel implements HaxeCommonMembersModel {
     return models;
   }
 
+  /**
+   * All methods of this class with the given name (several when the method is overloaded).
+   * Filters by name before creating models, so non-matches stay cheap.
+   */
+  public List<HaxeMethodModel> getMethodsSelfByName(@NotNull String name) {
+    List<HaxeMethodModel> models = new ArrayList<>();
+    for (HaxeMethod method : haxeClass.getHaxeMethodsSelf(null)) {
+      if (name.equals(method.getName()) && method.getContainingClass() == this.haxeClass) {
+        models.add(method.getModel());
+      }
+    }
+    return models;
+  }
+
   public List<HaxeMethodModel> getAncestorMethods(@Nullable HaxeGenericResolver resolver) {
     List<HaxeMethodModel> models = new ArrayList<HaxeMethodModel>();
     for (HaxeMethod method : haxeClass.getHaxeMethodsAncestor(true)) {

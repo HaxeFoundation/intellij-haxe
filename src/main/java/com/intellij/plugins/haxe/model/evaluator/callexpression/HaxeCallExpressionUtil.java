@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.*;
@@ -16,12 +17,142 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.wrapTypeInClassOrEnum;
 import static java.util.function.Predicate.not;
 
 public class HaxeCallExpressionUtil {
 
+  /**
+   * Picks the extension-method overload whose first parameter fits the receiver type best
+   * (ex. a Map&lt;String, Int&gt; receiver prefers ReadOnlyMap&lt;K, Int&gt; over ReadOnlyMap&lt;K, Float&gt;).
+   * Ties keep the earliest declared candidate.
+   */
+  public static HaxeMethodModel pickBestExtensionOverload(@NotNull List<HaxeMethodModel> candidates,
+                                                          @NotNull SpecificTypeReference receiverType) {
+    ResultHolder receiver = receiverType.createHolder();
+    HaxeMethodModel best = candidates.getFirst();
+    int bestScore = -1;
+    for (HaxeMethodModel candidate : candidates) {
+      List<HaxeParameterModel> parameters = candidate.getParameters();
+      if (parameters.isEmpty()) continue;
+      int score = argumentFitScore(parameters.getFirst().getType(null), receiver);
+      if (score > bestScore) {
+        best = candidate;
+        bestScore = score;
+      }
+    }
+    return best;
+  }
+
+  /**
+   * Scores how well a call evaluation's arguments fit the method's parameters, for choosing
+   * between overloads the way the compiler does: an exact (deep) type match beats a parameter
+   * that merely accepts the argument through widening (ex. an Int argument prefers an Int
+   * parameter over a Float one). Callers comparing candidates keep the earliest declared one
+   * on ties.
+   */
+  public static int evaluationFitScore(@NotNull HaxeCallExpressionEvaluation evaluation) {
+    int score = 0;
+    for (Map.Entry<Integer, Integer> entry : evaluation.getArgumentToParameterMapping().entrySet()) {
+      ResultHolder argumentType = evaluation.getArgumentType(entry.getKey());
+      ResultHolder parameterType = evaluation.getParameterType(entry.getValue());
+      score += argumentFitScore(parameterType, argumentType);
+    }
+    return score;
+  }
+
+  // how well an argument fits a parameter: 2 = exact deep match, 1 = assignable through widening, 0 = no fit
+  private static int argumentFitScore(@Nullable ResultHolder parameterType, @Nullable ResultHolder argumentType) {
+    if (parameterType == null || argumentType == null) return 0;
+    if (typesMatchDeep(parameterType.getType(), argumentType.getType(), 0)) return 2;
+    return parameterType.canAssign(argumentType) ? 1 : 0;
+  }
+
+  // compares types structurally, descending into type parameters and unwrapping abstracts and
+  // typedefs so that ex. ReadOnlyMap<K, Int> matches Map<String, Int> but not Map<String, Float>;
+  // unresolved slots and free type parameters are treated as matching anything
+  private static boolean typesMatchDeep(@Nullable SpecificTypeReference parameterType,
+                                        @Nullable SpecificTypeReference argumentType,
+                                        int depth) {
+    if (depth > 8) return true;
+    if (parameterType == null || argumentType == null) return false;
+    parameterType = unwrapNullWrapper(parameterType);
+    argumentType = unwrapNullWrapper(argumentType);
+    if (parameterType.isUnknown() || argumentType.isUnknown()) return true;
+    if (parameterType.isTypeParameter() || argumentType.isTypeParameter()) return true;
+
+    if (!(parameterType instanceof SpecificHaxeClassReference) || !(argumentType instanceof SpecificHaxeClassReference)) {
+      // function types etc: require mutual assignability for an exact match
+      ResultHolder param = parameterType.createHolder();
+      ResultHolder arg = argumentType.createHolder();
+      return param.canAssign(arg) && arg.canAssign(param);
+    }
+
+    SpecificHaxeClassReference param = (SpecificHaxeClassReference)parameterType;
+    SpecificHaxeClassReference arg = (SpecificHaxeClassReference)argumentType;
+
+    // align both sides on the same class by unwrapping abstract underlying types and typedefs
+    for (int i = 0; i < 4 && !referencesSameClass(param, arg); i++) {
+      SpecificHaxeClassReference unwrappedParam = unwrapToUnderlying(param);
+      if (unwrappedParam != null) {
+        param = unwrappedParam;
+        continue;
+      }
+      SpecificHaxeClassReference unwrappedArg = unwrapToUnderlying(arg);
+      if (unwrappedArg != null) {
+        arg = unwrappedArg;
+        continue;
+      }
+      break;
+    }
+    if (!referencesSameClass(param, arg)) return false;
+
+    ResultHolder[] paramSpecifics = param.getSpecifics();
+    ResultHolder[] argSpecifics = arg.getSpecifics();
+    // raw usage on either side leaves the type parameters unconstrained
+    if (paramSpecifics.length != argSpecifics.length) return paramSpecifics.length == 0 || argSpecifics.length == 0;
+    for (int i = 0; i < paramSpecifics.length; i++) {
+      if (!typesMatchDeep(paramSpecifics[i].getType(), argSpecifics[i].getType(), depth + 1)) return false;
+    }
+    return true;
+  }
+
+  // Null<T> is transparent for matching purposes (a Map.get result is Null<V> but unifies with V)
+  private static SpecificTypeReference unwrapNullWrapper(SpecificTypeReference type) {
+    int guard = 0;
+    while (type instanceof SpecificHaxeClassReference classReference
+           && classReference.isNullType()
+           && classReference.getSpecifics().length == 1
+           && guard++ < 4) {
+      type = classReference.getSpecifics()[0].getType();
+    }
+    return type;
+  }
+
+  @Nullable
+  private static SpecificHaxeClassReference unwrapToUnderlying(SpecificHaxeClassReference reference) {
+    HaxeClassModel model = reference.getHaxeClassModel();
+    if (model == null) return null;
+    if (!model.isAbstractType() && !model.isTypedef()) return null;
+    SpecificTypeReference underlying = model.getUnderlyingType(reference.getGenericResolver());
+    if (underlying instanceof SpecificHaxeClassReference underlyingReference && underlyingReference != reference) {
+      return underlyingReference;
+    }
+    return null;
+  }
+
+  private static boolean referencesSameClass(SpecificHaxeClassReference a, SpecificHaxeClassReference b) {
+    if (a.isSameType(b)) return true;
+    // unresolved references have no model for isSameType to compare by qualified name,
+    // so fall back to the short name
+    if (a.getHaxeClassModel() == null || b.getHaxeClassModel() == null) {
+      String nameA = a.getHaxeClassReference().getName();
+      return nameA != null && nameA.equals(b.getHaxeClassReference().getName());
+    }
+    return false;
+  }
 
   public static HaxeCallExpressionContext createContextForMethodCall(@NotNull List<SpecificTypeReference> arguments,
                                                                      @NotNull HaxeMethodModel methodModel,

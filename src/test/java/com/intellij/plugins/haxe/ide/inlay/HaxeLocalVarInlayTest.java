@@ -69,4 +69,14 @@ public class HaxeLocalVarInlayTest extends HaxeInlayTestBase {
     doTest(hintsProvider);
   }
 
+  @Test
+  public void testNumericInferenceHints() throws Exception {
+    doTest(hintsProvider);
+  }
+
+  @Test
+  public void testOverloadStaticCallHints() throws Exception {
+    doTest(hintsProvider);
+  }
+
 }

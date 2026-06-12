@@ -19,6 +19,7 @@ package com.intellij.plugins.haxe.model;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -85,7 +86,11 @@ public class HaxeUsingModel extends HaxeImportableModel {
   @Nullable
   public HaxeMethodModel findExtensionMethod(String name, SpecificTypeReference applyTo) {
     List<HaxeMethodModel> result = getExtensionMethods(applyTo, name);
-    return result.isEmpty() ? null : result.getFirst();
+    if (result.isEmpty()) return null;
+    if (result.size() == 1) return result.getFirst();
+    // overloaded extension methods: several overloads may accept the receiver,
+    // prefer the one fitting the receiver best like the compiler does
+    return HaxeCallExpressionUtil.pickBestExtensionOverload(result, applyTo);
   }
 
   @NotNull
@@ -123,8 +128,9 @@ public class HaxeUsingModel extends HaxeImportableModel {
             continue;
           }
         }
-        HaxeMethodModel method = classModel.getMethodSelf(name);
-        if (method != null) methods = Collections.singletonList(method);
+        // collect all same-name methods so that overloads become candidates too
+        List<HaxeMethodModel> named = classModel.getMethodsSelfByName(name);
+        if (!named.isEmpty()) methods = named;
       }
       else {
         methods = classModel.getMethods(resolver);

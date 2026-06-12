@@ -39,6 +39,7 @@ import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContextContainer;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionEvaluation;
+import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.model.type.HaxeArgument;
 import com.intellij.plugins.haxe.util.HaxeAbstractForwardUtil;
@@ -2737,14 +2738,36 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   private static @Nullable List<HaxeNamedComponent> checkMethodOverloads(HaxeReference reference, List<HaxeBaseMemberModel> members) {
     // this is probably far from the best solution for method overloads but it seems to work for method calls
     // it wont work for function type assign, but might attempt to add that later if its necessary (mlo).
+    if (reference.getParent() instanceof HaxeCallExpression callExpression) {
+      // several overloads may accept the arguments (ex. Int args fit a Float overload), so prefer
+      // the candidate fitting the arguments best like the compiler does; scoring is deferred until
+      // a second valid candidate shows up because most calls resolve to a single method
+      HaxeMethodModel best = null;
+      HaxeCallExpressionEvaluation bestEvaluation = null;
+      int bestScore = -1;
+      for (HaxeBaseMemberModel member : members) {
+        if (member instanceof HaxeMethodModel methodModel) {
+          HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(methodModel.getMethod(), callExpression);
+          if (evaluate == null || !evaluate.isValid()) continue;
+          if (best == null) {
+            best = methodModel;
+            bestEvaluation = evaluate;
+          }
+          else {
+            if (bestScore < 0) bestScore = HaxeCallExpressionUtil.evaluationFitScore(bestEvaluation);
+            int score = HaxeCallExpressionUtil.evaluationFitScore(evaluate);
+            if (score > bestScore) {
+              best = methodModel;
+              bestScore = score;
+            }
+          }
+        }
+      }
+      return best != null ? Collections.singletonList(best.getNamedComponentPsi()) : null;
+    }
     for (HaxeBaseMemberModel member : members) {
       if (member instanceof HaxeMethodModel methodModel) {
-        if (reference.getParent() instanceof HaxeCallExpression callExpression) {
-          HaxeCallExpressionEvaluation evaluate = cachedHaxeCallExpressionEvaluation(methodModel.getMethod(), callExpression);
-          if (evaluate != null && evaluate.isValid()) {
-            return Collections.singletonList(member.getNamedComponentPsi());
-          }
-        } else if (reference.getParent() instanceof HaxeCallExpressionList argumentList) {
+        if (reference.getParent() instanceof HaxeCallExpressionList argumentList) {
           int argIndex = argumentList.getExpressionList().indexOf(reference);
           if (argumentList.getParent() instanceof HaxeCallExpression callExpression) {
             if (callExpression.getExpression() instanceof HaxeReferenceExpression referenceExpression) {
