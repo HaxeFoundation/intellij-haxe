@@ -1,4 +1,19 @@
 # Changelog
+## 1.8.1-fork.2-dev.2
+* Bugfix: Module-level macro functions resolve `Expr`/`ExprOf` in their signatures when `haxe.macro.Expr` is imported behind `#if macro`
+* Bugfix: `import Module.function` resolves module-level functions properly
+* Bugfix: Calling a module-level macro function no longer treats its first parameter as an implicit `this`
+* Bugfix: Unused-method inspection no longer crashes on module-level functions
+* Bugfix: Abstracts declaring array access with `@:op([])` are recognised, and the right getter overload is picked by index type
+* Bugfix: Range expressions are typed as `IntIterator` (as the compiler does), so members and extension methods on ranges resolve
+* Bugfix: Overloaded methods (including `using` extension methods) resolve to the best-fitting overload like the compiler does, instead of the first declared
+* Bugfix: Parenthesised types are parsed everywhere a type is allowed, so function types with parenthesised return types like `()->(()->Void)` no longer break parsing of the rest of the file
+* Bugfix: Lambda parameters in `using` extension-method calls (ex. `array.find(item -> item.field)` with `using Lambda`) get their type inferred, so member access on them no longer shows as unresolved
+* Bugfix: Structural typedef parameters like `Iterable<T>` bind their type parameters from the argument class (ex. an `Array<String>` receiver binds `T := String`), the way the compiler unifies them
+* Bugfix: Bare enum constructors with arguments (ex. `text.wrap(Boxed("x"))`) resolve through the expected parameter type in call arguments, like the compiler does
+* Bugfix: Methods marked `@:postConstruct` are no longer flagged as unused — DI frameworks call them reflectively
+* Improvement: Module-level `macro`/`inline`/`private` modifiers are visible to the model
+
 ## 1.8.1-fork.2-dev.1
 * Bugfix: Macro-generated members are no longer flagged as unresolved
 * Bugfix: `@:allow` and `@:access` metas now resolve sub-types that elide the module name
