@@ -31,24 +31,24 @@ import java.util.regex.Pattern;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
 
 public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
-  private static boolean whiteSpaceSkipped = false;
 
   public static final Pattern StringIdentifier = Pattern.compile("[a-zA-Z_][a-zA-Z_0-9]*");
 
   private static boolean parseOperator(PsiBuilder builder_, IElementType operator, IElementType... tokens) {
     final PsiBuilder.Marker marker_ = builder_.mark();
 
-    whiteSpaceSkipped = false;
+    // per-parse state: files are parsed concurrently, so this must not be shared between threads
+    final boolean[] whiteSpaceSkipped = {false};
 
     builder_.setWhitespaceSkippedCallback(new WhitespaceSkippedCallback() {
       @Override
       public void onSkip(IElementType type, int i, int i1) {
-        whiteSpaceSkipped = true;
+        whiteSpaceSkipped[0] = true;
       }
     });
 
     for (IElementType token : tokens) {
-      if (!consumeTokenFast(builder_, token) || whiteSpaceSkipped) {
+      if (!consumeTokenFast(builder_, token) || whiteSpaceSkipped[0]) {
         marker_.rollbackTo();
         builder_.setWhitespaceSkippedCallback(null);
         return false;
