@@ -690,7 +690,9 @@ functionReturnType ::= typeWrapper
 // normal types have type parameters that can be nested so its best to check types before function types/function signatures
 // as functions are not nested and checking them first will cause a wasted function type check on every nested type in normal types
 // to avoid normal types from consume tokens from function type we add should not end with function type check ( !'->')
-private typeWrapper ::=  typeOrAnonymous !'->' | functionType
+// parenthesized types ("(" type ")") are checked last so that function types keep claiming "(args) -> ret";
+// this is what makes parenthesized return types like "()->(()->Void)" parse.
+private typeWrapper ::=  typeOrAnonymous !'->' | functionType | '(' typeWrapper ')'
 
 private newFunctionType ::= '(' functionArgumentsList ')' '->' functionReturnType {pin=4}
 private functionArgumentsList ::= [!')' functionArgument (',' functionArgument)*]

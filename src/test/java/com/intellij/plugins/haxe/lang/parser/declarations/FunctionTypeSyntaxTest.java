@@ -33,4 +33,9 @@ public class FunctionTypeSyntaxTest extends DeclarationTestBase {
     doTest(true);
   }
 
+  @Test
+  public void testParenthesizedFunctionTypeSyntax() throws Throwable {
+    doTest(true);
+  }
+
 }
