@@ -50,6 +50,7 @@ import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionUsageUtil.
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.isBindCall;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.tryGetCallieType;
 import static com.intellij.plugins.haxe.model.type.HaxeMacroUtil.resolveMacroTypesForFunction;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeLiteralsUtils.translateHaxeStringToJavaString;
 import static com.intellij.plugins.haxe.model.type.ResultHolder.nullOrUnknown;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.*;
@@ -221,9 +222,15 @@ public class HaxeExpressionEvaluatorHandlers {
       PsiElement child = children[n];
       SpecificTypeReference typeReference = typeHolder.getType();
       if (typeReference.isString() && typeReference.isConstant() && child.textMatches("code")) {
-        String str = (String)typeReference.getConstant();
-        typeHolder = SpecificTypeReference.getInt(element, (str != null && !str.isEmpty()) ? str.charAt(0) : -1).createHolder();
-        if (str == null || str.length() != 1) {
+        if(typeReference.getConstant() instanceof  String strValue) {
+          // make sure we handle escapes like '\n'.code etc
+          String translated = translateHaxeStringToJavaString(strValue);
+          if(translated.length() == 1) {
+            typeHolder = SpecificTypeReference.getInt(element, translated.charAt(0)).createHolder();
+          }else {
+            context.addError(element, "String must be a single UTF8 char");
+          }
+        }else {
           context.addError(element, "String must be a single UTF8 char");
         }
       } else {
@@ -613,9 +620,9 @@ public class HaxeExpressionEvaluatorHandlers {
     return createUnknown(regexLiteral);
   }
 
-  static ResultHolder handleStringLiteralExpression(PsiElement element) {
+  static ResultHolder handleStringLiteralExpression(HaxeStringLiteralExpression element) {
     // @TODO: check if it has string interpolation inside, in that case text is not constant
-    String constant = HaxeStringUtil.unescapeString(element.getText());
+    String constant = HaxeTypeLiteralsUtils.translateHaxeStringToJavaString(element.getText());
     return SpecificHaxeClassReference.primitive("String", element, constant).createHolder();
   }
 

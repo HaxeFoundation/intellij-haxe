@@ -65,6 +65,7 @@ import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValue
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isPatternMatcher;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForConstructorCall;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil.createContextForMethodCall;
+import static com.intellij.plugins.haxe.model.type.HaxeTypeLiteralsUtils.translateHaxeStringToJavaString;
 import static com.intellij.plugins.haxe.model.type.SpecificTypeReference.*;
 import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 import static com.intellij.plugins.haxe.util.HaxeResolveUtil.getReferenceTextFromStubOrPsi;
@@ -2479,7 +2480,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
         // making sure it's a string literal and only 1 char long
         if (identifierText.equals("code") && lefthandExpression instanceof HaxeStringLiteralExpression literalExpression) {
           if (identifier instanceof HaxeIdentifier haxeIdentifier) {
-            if (literalExpression.getTextLength() == 3) { // quotes + char = 3
+            // important using translateEscapes to escape strings  to get accurate length
+            if (translateHaxeStringToJavaString(literalExpression.getText()).length() == 3) { // quotes + char = 3
               synchronized (reference) {
                 HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
                 if (fakePsi != null) {

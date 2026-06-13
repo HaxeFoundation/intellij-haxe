@@ -290,8 +290,8 @@ public class HaxeExpressionEvaluator {
         return handleRegularExpressionLiteral(regexLiteral);
       }
 
-      if (element instanceof HaxeStringLiteralExpression) {
-        return handleStringLiteralExpression(element);
+      if (element instanceof HaxeStringLiteralExpression literalExpression) {
+        return handleStringLiteralExpression(literalExpression);
       }
 
       if (element instanceof HaxeTypeCheckExpr expr) {
