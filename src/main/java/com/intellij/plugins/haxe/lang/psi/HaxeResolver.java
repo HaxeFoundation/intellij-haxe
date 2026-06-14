@@ -20,8 +20,10 @@
 package com.intellij.plugins.haxe.lang.psi;
 
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.components.Service;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Key;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
@@ -76,7 +78,9 @@ import static com.intellij.plugins.haxe.util.HaxeStringUtil.elide;
  * @author: Fedor.Korotkov
  */
 @CustomLog
-public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
+@Service(Service.Level.PROJECT)
+public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference, List<? extends PsiElement>> {
+  public static final List<? extends PsiElement> EMPTY_LIST = Collections.emptyList();
   public static final int MAX_DEBUG_MESSAGE_LENGTH = 200;
 
   //static {  // Remove when finished debugging.
@@ -84,17 +88,17 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
   //  LOG.debug(" ========= Starting up debug logger for HaxeResolver. ==========");
   //}
 
-  public static final HaxeResolver INSTANCE = new HaxeResolver();
-
-  private static boolean reportCacheMetrics = false;   // Should always be false when checked in.
-  private static final AtomicInteger dumbRequests = new AtomicInteger(0);
-  private static final AtomicInteger requests = new AtomicInteger(0);
-  private static final AtomicInteger resolves = new AtomicInteger(0);
-  private final static int REPORT_FREQUENCY = 100;
-
-  public static final List<? extends PsiElement> EMPTY_LIST = Collections.emptyList();
+  private boolean reportCacheMetrics = false;   // Should always be false when checked in.
+  private final AtomicInteger dumbRequests = new AtomicInteger(0);
+  private final AtomicInteger requests = new AtomicInteger(0);
+  private final AtomicInteger resolves = new AtomicInteger(0);
+  private final int REPORT_FREQUENCY = 100;
 
   private final RecursionGuard<PsiElement> resolveInnerRecursionGuard = RecursionManager.createGuard("resolveInnerRecursionGuard");
+
+  public static @NotNull HaxeResolver getInstance(@NotNull Project project) {
+    return project.getService(HaxeResolver.class);
+  }
 
   @Override
   public List<? extends PsiElement> resolve(@NotNull HaxeReference reference, boolean incompleteCode) {
@@ -2253,8 +2257,18 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
       // only check one "level up", if we go multiple parents up we might get a different reference's value
       // if we are resolving  a.b  in  a.b.c.Type we want to resolve the package "b" and not Type in package "c".
       if (referenceExpression.getParent() instanceof HaxeType type) {
-          final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
+        //NOTE: EXPERIMENTAL CACHING
+        // the theory is that aa Type texts that are idientical will resolve to the same type in the same file
+        // the only exception beeing TypeParameters, this experimental feature is caching non TypeParameter results
+        HaxeFileTypeResolverCacheService cacheService = HaxeFileTypeResolverCacheService.getInstance(type.getProject());
+        HaxeClass cahcedResolvedType = cacheService.getCachedResolvedType(type);
+        if(cahcedResolvedType != null) {
+          return List.of(cahcedResolvedType.getComponentName());
+        }
+
+        final HaxeClass haxeClassInType = HaxeResolveUtil.tryResolveClassByQName(type);
           if (haxeClassInType != null) {
+            cacheService.putResolvedType(type, haxeClassInType);
             LogResolution(reference, "via parent type name.");
             return asList(haxeClassInType.getComponentName());
           }
@@ -2312,6 +2326,8 @@ public class HaxeResolver implements ResolveCache.AbstractResolver<HaxeReference
     }
     return null;
   }
+
+
   @Nullable
   private List<? extends PsiElement> checkIsAlias(HaxeReference reference) {
       PsiFile file = reference.getContainingFile();

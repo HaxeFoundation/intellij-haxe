@@ -254,7 +254,7 @@ abstract public class HaxeReferenceImpl extends HaxeStubBasedPsiElementBase<Haxe
   }
 
   protected List<? extends PsiElement> doResolve(@NotNull HaxeReference reference, boolean incompleteCode) {
-    return (HaxeResolver.INSTANCE).resolve(reference, incompleteCode);
+    return HaxeResolver.getInstance(reference.getProject()).resolve(reference, incompleteCode);
   }
 
   /**

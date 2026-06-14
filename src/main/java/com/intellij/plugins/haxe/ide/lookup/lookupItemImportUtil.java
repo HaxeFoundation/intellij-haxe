@@ -21,7 +21,8 @@ public class lookupItemImportUtil {
     context.commitDocument();
     HaxeReference reference = PsiTreeUtil.getParentOfType(element, HaxeReference.class);
     if (reference != null) {
-      List<? extends PsiElement> resolve = HaxeResolver.INSTANCE.resolve(reference, true);
+
+      List<? extends PsiElement> resolve = HaxeResolver.getInstance(reference.getProject()).resolve(reference, true);
       boolean needImport = resolve.isEmpty();
       if(needImport) {
         HaxeAddImportHelper.addImport(qname, context.getFile());
