@@ -46,6 +46,7 @@ import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.StubBuildCachedValuesManager;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
@@ -95,6 +96,9 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   // includes both module name and class name even if they are the same
   @Override
   public String getFullyQualifiedName() {
+    if(StubBuildCachedValuesManager.isBuildingStubs()) {
+      return  getQualifiedName(true);
+    }
     return CachedValuesManager.getCachedValue(this, () -> {
       return new CachedValueProvider.Result<>(getQualifiedName(true), this);
     });

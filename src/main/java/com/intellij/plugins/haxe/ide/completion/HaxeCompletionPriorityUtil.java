@@ -14,6 +14,7 @@ import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressi
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -220,8 +221,9 @@ public class HaxeCompletionPriorityUtil {
 
     int argumentIndex = 0;
     HaxeCallExpressionEvaluation validation = null;
-    if (callExpression != null) {
-      validation = getValidationForMethod(callExpression);
+    if (callExpressionList != null) {
+      // caching as this callExpression is likely going to be used by multiple different HaxeLookupElement items.
+      validation = CachedValuesManager.getProjectPsiDependentCache(callExpression, (e) -> getValidationForMethod(e));
       HaxeCallExpressionList type = PsiTreeUtil.getParentOfType(position, HaxeCallExpressionList.class);
       if (type != null) {
         HaxeReferenceExpression ref = PsiTreeUtil.getParentOfType(position, HaxeReferenceExpression.class);
