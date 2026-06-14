@@ -6,6 +6,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
+import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeClassLookupData;
 import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeMemberLookupData;
 import com.intellij.plugins.haxe.lang.psi.*;
@@ -15,6 +16,7 @@ import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeStaticFieldNameUni
 import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeStaticMethodNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
@@ -30,8 +32,18 @@ import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPatte
 import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 public class HaxeStaticMemberCompletionContributor extends CompletionContributor {
-  public HaxeStaticMemberCompletionContributor() {
-    extend(CompletionType.BASIC, psiElement().inside(HaxeIdentifier.class).andNot(psiElement().inside(HaxeType.class)),
+
+    private static final PsiElementPattern.Capture<PsiElement> ELEMENT_CAPTURE = psiElement()
+            .inside(HaxeIdentifier.class)
+            .andNot(psiElement().inside(HaxeType.class))
+            // - avoid chained refs (MyClass.startComplet.. / myVar.startComplet... should not show static suggestions)
+            // level 0: HaxeIdentifier
+            // level 1: HaxeReference
+            // level 2: should not be a refrence
+            .andNot(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
+
+    public HaxeStaticMemberCompletionContributor() {
+    extend(CompletionType.BASIC, ELEMENT_CAPTURE,
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
