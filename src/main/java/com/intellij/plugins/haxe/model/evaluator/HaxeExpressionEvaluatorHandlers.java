@@ -623,6 +623,7 @@ public class HaxeExpressionEvaluatorHandlers {
   static ResultHolder handleStringLiteralExpression(HaxeStringLiteralExpression element) {
     // @TODO: check if it has string interpolation inside, in that case text is not constant
     String constant = HaxeTypeLiteralsUtils.translateHaxeStringToJavaString(element.getText());
+    constant = constant.substring(1, constant.length()-1); //drop the quotes wrapping the string
     return SpecificHaxeClassReference.primitive("String", element, constant).createHolder();
   }
 
