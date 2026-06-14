@@ -142,7 +142,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private boolean replaceFullyQualifiedClass(Code code, String literal) {
-        if(HaxeReferenceUtil.textCanBeQname(literal)) return false;
+        if(!HaxeReferenceUtil.textCanBeQname(literal)) return false;
         HaxeClass classByQName = HaxeResolveUtil.findClassByQName(literal, context);
         if (classByQName != null) {
             replaceCodeWithReferenceCodeLink(code, literal, literal);
