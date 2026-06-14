@@ -59,7 +59,10 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     PsiFile containingFile = module.getContainingFile();
     String fileName = containingFile.getName();
     if(fileName.endsWith(".hx")) {
-      fileName = fileName.substring(0, fileName.length() -3);
+      // Note that we trim to the first instance if '.'
+      // this is because haxe allow target name as part of
+      // file name, ex. "myModule.swf.hx"
+      fileName = fileName.substring(0, fileName.indexOf('.'));
     }
     return fileName;
   }
