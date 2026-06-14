@@ -5,6 +5,7 @@
 * Fixed: Some compiler warnings would incorrectly show as errors in build Output (fixed by barisyild - #1238)
 * Fixed: Inherited fields referenced inside object literal values did not resolve correctly (fixed by Tobbse - #1243)
 * Fixed: Issue determining type of implicit typed members in imported library code when code relied on `import.hx` files. (CaroStobbe - #1242)
+* Fixed: Fixed issue where `.code` would show as unresolved for single character strings with escaped character (#1245). 
 * Changed: Now using FQN for  type comparison to better support shaddowing. 
 * Changed: Completion suggestions has been reworked
 * Changed: Psi elements now use stub-trees and stub-indexes when possible for better performance.
