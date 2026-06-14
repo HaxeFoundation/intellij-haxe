@@ -945,7 +945,7 @@ public class HaxeResolveUtil {
       return null;
     }
     // check FQN ref using Index
-    if(element.textContains('.')) {
+    if(element.textContains('.') && !element.textContains('<')) {
       if (!DumbService.isDumb(element.getProject())) {
         HaxeClass classByFqn = findClassByQName(element.getText(), element.getContext());
         if (classByFqn != null) return classByFqn;

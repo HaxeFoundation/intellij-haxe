@@ -211,10 +211,12 @@ public class HaxeCompletionPriorityUtil {
 
 
   private static boolean trySortForArgument(PsiElement position, List<HaxeLookupElement> lookupElements) {
-    HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(position, HaxeCallExpression.class, true, HaxeNewExpression.class);
+    // important: we need to make sure we are inside the expression list and not in the ref chain
+    HaxeCallExpressionList callExpressionList = PsiTreeUtil.getParentOfType(position, HaxeCallExpressionList.class, true, HaxeNewExpression.class);
+    HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(callExpressionList, HaxeCallExpression.class);
     HaxeNewExpression newExpression = PsiTreeUtil.getParentOfType(position, HaxeNewExpression.class, true, HaxeCallExpression.class);
 
-    if (newExpression == null &&  callExpression == null) return false;
+    if (newExpression == null &&  callExpressionList == null) return false;
 
     int argumentIndex = 0;
     HaxeCallExpressionEvaluation validation = null;
@@ -252,6 +254,7 @@ public class HaxeCompletionPriorityUtil {
 
         if (element instanceof HaxePackageLookupElement lookupElement) lookupElement.getPriority().type -= 0.1;
         if (element instanceof HaxeMemberLookupElement memberLookupElement) {
+          //NOTE mlo - slows down completion
           memberCalculation(memberLookupElement, names, parameterTypes, argumentIndex);
           element.getPriority().type += 1;
 
