@@ -53,6 +53,7 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
+import com.intellij.util.PathUtil;
 import com.intellij.util.containers.ContainerUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
@@ -75,7 +76,6 @@ import static com.intellij.plugins.haxe.util.HaxeDebugLogUtil.traceAs;
 public class HaxeResolveUtil {
 
   private static final RecursionGuard<PsiElement> typeDefRecursionGuard = RecursionManager.createGuard("typeDefRecursionGuard");
-  private final static Pattern NoIllegalSybmolsInNamePattern = Pattern.compile("[^:<>{}()/]+");
 
   static {
     log.setLevel(LogLevel.INFO);
@@ -997,8 +997,8 @@ public class HaxeResolveUtil {
     HaxePackageStatement packageStatement = PsiTreeUtil.getStubChildOfType(type.getContainingFile(), HaxePackageStatement.class);
     String packageName = getPackageName(packageStatement);
     String[] packages = packageName.split("\\.");
-    String typeName = (type instanceof HaxeType ? ((HaxeType)type).getReferenceExpression() : type).getText();
-    if (NoIllegalSybmolsInNamePattern.matcher(typeName).matches()) {
+    String typeName = (type instanceof HaxeType ? ((HaxeType) type).getReferenceExpression() : type).getText();
+    if (PathUtil.isValidFileName(typeName)) {
       for (int i = packages.length - 1; i >= 0; --i) {
         StringBuilder qNameBuilder = new StringBuilder();
         for (int j = 0; j <= i; ++j) {
