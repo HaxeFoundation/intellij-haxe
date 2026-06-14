@@ -17,12 +17,11 @@ class CharDotCode {
         var x = "\u{00005C}".code;
 
 
-        // BAD
+        // Wrong
         var x = "".<warning descr="Unresolved symbol">code</warning>; // NOT single char
         var x = "AB".<warning descr="Unresolved symbol">code</warning>; // NOT single char
-        var x = "\957".<warning descr="Unresolved symbol">code</warning>; // NOT octal
-        //TODO mlo  make sure incorrect  values are handled as expected
-        var x = "\xXX".code; // NOT  hex values
-        var x = "\u{000005C}".<warning descr="Unresolved symbol">code</warning> ; // Too many hex digits (but seems to work in JS)
+        var x = "<error descr="Illegal escape character in string literal">\9</error>57".<warning descr="Unresolved symbol">code</warning>; // NOT octal
+        var x = "<error descr="Illegal escape character in string literal">\x</error>XX".code; // NOT  hex values
+        var x = "<error descr="Illegal escape character in string literal">\u</error>{000005C}".<warning descr="Unresolved symbol">code</warning> ; // Too many hex digits (but seems to work in JS)
     }
 }

@@ -69,6 +69,10 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey("HAXE_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
   public static final TextAttributesKey STRING =
     createTextAttributesKey("HAXE_STRING", DefaultLanguageHighlighterColors.STRING);
+  public static final TextAttributesKey STRING_ESCAPE =
+    createTextAttributesKey("STRING_ESCAPE", DefaultLanguageHighlighterColors.VALID_STRING_ESCAPE);
+  public static final TextAttributesKey INVALID_STRING_ESCAPE =
+    createTextAttributesKey("INVALID_STRING_ESCAPE", DefaultLanguageHighlighterColors.INVALID_STRING_ESCAPE);
   public static final TextAttributesKey OPERATION_SIGN =
     createTextAttributesKey("HAXE_OPERATION_SIGN", DefaultLanguageHighlighterColors.OPERATION_SIGN);
   public static final TextAttributesKey PARENTHS =
@@ -96,9 +100,9 @@ public class HaxeSyntaxHighlighterColors {
 
   public static final TextAttributesKey INTERFACE =
     createTextAttributesKey(HAXE_INTERFACE, DefaultLanguageHighlighterColors.INTERFACE_NAME);
-  public static final TextAttributesKey STATIC_MEMBER_FUNCTION =
+  public static final TextAttributesKey STATIC_MEMBER_METHOD =
     createTextAttributesKey(HAXE_STATIC_MEMBER_FUNCTION, DefaultLanguageHighlighterColors.STATIC_METHOD);
-  public static final TextAttributesKey INSTANCE_MEMBER_FUNCTION =
+  public static final TextAttributesKey INSTANCE_MEMBER_METHOD =
     createTextAttributesKey(HAXE_INSTANCE_MEMBER_FUNCTION, DefaultLanguageHighlighterColors.INSTANCE_METHOD);
   public static final TextAttributesKey INSTANCE_MEMBER_VARIABLE =
     createTextAttributesKey(HAXE_INSTANCE_MEMBER_VARIABLE, DefaultLanguageHighlighterColors.INSTANCE_FIELD);

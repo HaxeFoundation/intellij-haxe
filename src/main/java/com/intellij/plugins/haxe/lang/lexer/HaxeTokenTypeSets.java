@@ -104,7 +104,9 @@ public interface HaxeTokenTypeSets {
   TokenSet STRINGS = TokenSet.create(
     OPEN_QUOTE,
     CLOSING_QUOTE,
-    REGULAR_STRING_PART
+    REGULAR_STRING_PART,
+    ESCAPED_STRING_PART,
+    STRING_INVALID_ESCAPE
   );
 
   TokenSet KEYWORD_CONSTANTS = TokenSet.create(

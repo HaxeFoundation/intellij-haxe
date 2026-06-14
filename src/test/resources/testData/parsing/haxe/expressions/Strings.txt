@@ -128,7 +128,7 @@ Haxe File
                       HaxePsiToken:CLOSING_QUOTE('"')
                   HaxePsiToken:)(')')
                 HaxePsiToken:LONG_TEMPLATE_ENTRY_END('}')
-              HaxePsiToken:REGULAR_STRING_PART('\'')
+              HaxePsiToken:ESCAPED_STRING_PART('\'')
               HaxePsiToken:CLOSING_QUOTE(''')
             HaxePsiToken:;(';')
             STRING_LITERAL_EXPRESSION
@@ -139,6 +139,96 @@ Haxe File
               HaxePsiToken:CLOSING_QUOTE(''')
             HaxePsiToken:;(';')
             PsiComment(MSL_COMMENT)('// Issue 303.')
+            PsiComment(MSL_COMMENT)('//valid escape sequences')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\t')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\n')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\r')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\"')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\'')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE(''')
+              HaxePsiToken:ESCAPED_STRING_PART('\'')
+              HaxePsiToken:CLOSING_QUOTE(''')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\\')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\057')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\x5C')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\u005C')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\u{5C}')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\u{005C}')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:ESCAPED_STRING_PART('\u{00005C}')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            PsiComment(MSL_COMMENT)('// invalid escape sequences')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:STRING_INVALID_ESCAPE('\T')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:STRING_INVALID_ESCAPE('\9')
+              HaxePsiToken:REGULAR_STRING_PART('57')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:STRING_INVALID_ESCAPE('\x')
+              HaxePsiToken:REGULAR_STRING_PART('XX')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
+            STRING_LITERAL_EXPRESSION
+              HaxePsiToken:OPEN_QUOTE('"')
+              HaxePsiToken:STRING_INVALID_ESCAPE('\u')
+              HaxePsiToken:REGULAR_STRING_PART('{000005C}')
+              HaxePsiToken:CLOSING_QUOTE('"')
+            HaxePsiToken:;(';')
             HaxePsiToken:}('}')
         METHOD_DECLARATION
           METHOD_MODIFIER

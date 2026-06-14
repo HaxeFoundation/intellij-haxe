@@ -59,6 +59,8 @@ public class HaxeSyntaxHighlighter extends SyntaxHighlighterBase {
     ATTRIBUTES.put(OPEN_QUOTE, HaxeSyntaxHighlighterColors.STRING);
     ATTRIBUTES.put(CLOSING_QUOTE, HaxeSyntaxHighlighterColors.STRING);
     ATTRIBUTES.put(REGULAR_STRING_PART, HaxeSyntaxHighlighterColors.STRING);
+    ATTRIBUTES.put(ESCAPED_STRING_PART, HaxeSyntaxHighlighterColors.STRING_ESCAPE);
+    ATTRIBUTES.put(STRING_INVALID_ESCAPE, HaxeSyntaxHighlighterColors.INVALID_STRING_ESCAPE);
 
     ATTRIBUTES.put(PLPAREN, HaxeSyntaxHighlighterColors.PARENTHS);
     ATTRIBUTES.put(PRPAREN, HaxeSyntaxHighlighterColors.PARENTHS);
