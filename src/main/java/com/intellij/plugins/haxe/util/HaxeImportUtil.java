@@ -144,12 +144,17 @@ public class HaxeImportUtil {
           }
         }
         if (workElement instanceof HaxeReference reference) {
+          // ignore String literals, these refrences only makes sense in ObjectLiterals
+         if(reference instanceof HaxeStringLiteralExpression) {
+           return;
+         }
 
-          PsiElement referencedElement = reference.resolve();
           // makes sure that even if we have a fully qualified a.b.SomeClass added to the list
           // that any reference of just the class name (SomeClass) without package structure is also added as  reference
           String qualifiedName = reference.getQualifiedName();
           if (!names.contains(qualifiedName)) {
+
+            PsiElement referencedElement = reference.resolve();
 
             boolean qualified = reference.isQualified();
             if (!(qualified || referencedElement instanceof PsiPackage)){
