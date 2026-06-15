@@ -57,6 +57,7 @@
 
     <iconProvider implementation="com.intellij.plugins.haxe.ide.HaxeIconProvider"/>
     <qualifiedNameProvider implementation="com.intellij.plugins.haxe.ide.HaxeQualifiedNameProvider"/>
+    <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationHandler"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
     <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>

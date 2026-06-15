@@ -421,6 +421,18 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
   }
 
 
+  /**
+   * Determines the type that {@code expression} is expected to conform to from its surrounding
+   * context: a variable type tag, a return type, a call or constructor argument, or an enclosing
+   * array / object literal field. Nested arrays and object literals are unwrapped recursively, so
+   * e.g. the element type of {@code new Foo({items: [ {...} ]})} can be found from the inner literal.
+   * Returns {@code null} when no expected type can be determined.
+   */
+  @Nullable
+  public ResultHolder findExpectedType(@NotNull PsiElement expression) {
+    return findParentAssignType(expression, true);
+  }
+
   // Experimental
   // try to step one level up until we find a type definition and then pass that back down
   private ResultHolder findParentAssignType(@NotNull PsiElement reference) {
