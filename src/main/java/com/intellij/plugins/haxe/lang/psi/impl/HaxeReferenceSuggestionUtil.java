@@ -46,6 +46,7 @@ public class HaxeReferenceSuggestionUtil {
         }
 
         boolean hasProcessedTypeMembers = false;
+        boolean isModule = resolvedPsi instanceof HaxeModule;
         boolean isStaticAccess = isStaticAccess(leftReference, resolvedPsi);
         boolean isFirstInChain = isFirstInChain(haxeReference);
 
@@ -121,7 +122,7 @@ public class HaxeReferenceSuggestionUtil {
             }
         }
         if(leftReference!= null) {
-            if(!hasProcessedTypeMembers) {
+            if(!hasProcessedTypeMembers && !isModule) {
                 addExtensionMethodSuggestions(variants, resolvedType, targetReference);
             }
         }else {
