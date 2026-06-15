@@ -1,4 +1,10 @@
 # Changelog
+## 1.8.1-fork.2-dev.5
+* Added: Ctrl/Cmd+Click on an object literal key now jumps to the typedef field it fills — resolved through `extends`, `&` intersection, constructor arguments, and literals nested in arrays
+* Merged the latest `develop` (1.8.1) into the fork — see the 1.8.1 section below for the upstream changes (hybrid stub / file-based indexes, reworked completion, FQN-based type comparison, and the other 1.8.1 fixes)
+* Changed: Removed the fork's `#if` stub readiness gate; upstream's hybrid indexes skip stubbing conditional-compilation files, so the stub/AST mismatch it fixed can no longer occur
+* Note: Stub version bumped, so indexes rebuild once on first start after updating
+
 ## 1.8.1-fork.2-dev.3
 * Bugfix: Bare class references in object literal fields are typed as `Class<T>`, so literals unify with typedefs that have `Class`-typed members
 * Bugfix: The parser no longer keeps operator-merge state in a shared static, which could corrupt parse trees when several files are parsed at once
