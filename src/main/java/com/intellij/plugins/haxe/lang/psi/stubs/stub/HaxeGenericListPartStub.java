@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.lang.psi.stubs.stub;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
  */
 public class HaxeGenericListPartStub extends HaxeClassStub {
 
-  public HaxeGenericListPartStub(StubElement<?> parent, @NotNull IStubElementType<?, ?> elementType,
+  public HaxeGenericListPartStub(StubElement<?> parent, @NotNull IElementType elementType,
                                   @Nullable String name) {
     super(parent, elementType,
           name,

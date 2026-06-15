@@ -21,7 +21,20 @@ public class HaxeClassAssignUtil  {
   private static final RecursionGuard<PsiElement> hierarchyRecursionGuard = RecursionManager.createGuard("propagateRecursionGuard");
 
   static boolean sameTypeCheck(HaxeAssignEvaluation context, SpecificHaxeClassReference toClassReference, SpecificHaxeClassReference fromClassReference) {
-    if (sameClassDefinition(toClassReference.getHaxeClass(), fromClassReference.getHaxeClass())) {
+      HaxeClass toCaxeClass = toClassReference.getHaxeClass();
+      HaxeClass fromHaxeClass = fromClassReference.getHaxeClass();
+
+      // In cases where a Type/TypeTag does not resolve to an element we create a ClassReference with the `Type` as context
+      // this means there is no HaxeClass, and thus no way to get Qname, so to avoid issues we return false unless its the same object.
+      if(toCaxeClass == null && fromHaxeClass == null) {
+          return toClassReference.context == fromClassReference.context;
+      } else if(toCaxeClass == null || fromHaxeClass == null) {
+          return false;
+      }
+
+      // Resolved on both sides: require the same source-level definition (qname + same file),
+      // which also guards against PSI snapshot duplication unifying distinct types.
+      if (sameClassDefinition(toCaxeClass, fromHaxeClass)) {
         if (canAssignTypeParameters(context, toClassReference.getSpecifics(), fromClassReference.getSpecifics(), context.getConfig().ignoreFromConstraints(), true)) {
             return true;
         } else {

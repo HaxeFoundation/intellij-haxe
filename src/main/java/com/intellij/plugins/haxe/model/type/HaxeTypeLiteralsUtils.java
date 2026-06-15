@@ -71,4 +71,107 @@ public class HaxeTypeLiteralsUtils {
     throw new RuntimeException("Unsupporteed operator '" + operator + "'");
   }
 
+  //TODO mlo: verfify if this is implemented correctly
+  public static String translateHaxeStringToJavaString(String value) {
+    if (value.isBlank()) {
+      return value;
+    }
+    char[] chars = value.toCharArray();
+    int length = chars.length;
+    int from = 0;
+    int to = 0;
+
+    while (from < length) {
+      char ch = chars[from++];
+      if (ch == '\\') {
+        ch = from < length ? chars[from++] : '\0';
+        switch (ch) {
+          case 't':
+            ch = '\t';
+            break;
+          case 'n':
+            ch = '\n';
+            break;
+          case 'r':
+            ch = '\r';
+            break;
+          case '\'':
+          case '\"':
+          case '\\':
+            // keep as is, escaped escape char (ex. \\" -> \")
+            break;
+          // \xNN
+          case 'x':
+            char hex1 = from < length ? chars[from++] : '\0';
+            char hex2 = from < length ? chars[from++] : '\0';
+            ch = (char) ((hex(hex1) << 4) | hex(hex2));
+            break;
+          // \\uNNNN |  \\u{N...}
+          case 'u':
+            char next = from < length ? chars[from++] : '\0';
+            if (next =='{') {
+              char[]  values = new char[6];
+              int index = 0;
+              char digit = from < length ? chars[from++] : '\0';
+              while (isHex(digit) && index < 6) {
+                values[index++] = digit;
+                digit = from < length ? chars[from++] : '\0';
+                if(digit == '}' ) break;
+              }
+              // try to read "}"
+              if(isHex(digit) && index != 6) {
+                digit = from < length ? chars[from++] : '\0';
+              }
+              if (digit == '}') {
+                int sum = 0;
+                  for (int i = 0; i < index; i++) {
+                      char c = values[i];
+                      sum = (sum << 4) | hex(c);
+                  }
+                ch = (char) sum;
+              }
+            } else {
+                char x1 = next;
+                char x2 = from < length ? chars[from++] : '\0';
+                char x3 = from < length ? chars[from++] : '\0';
+                char x4 = from < length ? chars[from++] : '\0';
+              int sum = (hex(x1) << 12)
+                      | (hex(x2) << 8)
+                      | (hex(x3) << 4)
+                      | hex(x4);
+              ch = (char) sum;
+                break;
+            }
+            break;
+          //  \\NNN
+          case '0': case '1': case '2': case '3':
+          case '4': case '5': case '6': case '7':
+            int limit = Integer.min(from + (ch <= '3' ? 2 : 1), length);
+            int code = ch - '0';
+            while (from < limit) {
+              ch = chars[from];
+              if (ch < '0' || '7' < ch) {
+                break;
+              }
+              from++;
+              code = (code << 3) | (ch - '0');
+            }
+            ch = (char)code;
+            break;
+        }
+      }
+      chars[to++] = ch;
+    }
+
+    return new String(chars, 0, to);
+  }
+
+  private static int hex(char c) {
+    return Character.digit(c, 16);
+  }
+
+  static boolean isHex(char c) {
+    return Character.digit(c, 16) != -1;
+  }
+
 }

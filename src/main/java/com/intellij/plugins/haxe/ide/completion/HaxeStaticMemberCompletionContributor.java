@@ -1,31 +1,49 @@
 package com.intellij.plugins.haxe.ide.completion;
 
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
+import com.intellij.patterns.PsiElementPattern;
+import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeClassLookupData;
+import com.intellij.plugins.haxe.ide.lookup.indexed.data.HaxeMemberLookupData;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.ide.lookup.HaxeStaticMemberLookupElement;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeStaticMethodNameStubIndex;
+import com.intellij.plugins.haxe.ide.lookup.indexed.HaxeIndexedStaticMemberLookupElement;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeStaticFieldNameUnifiedIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeStaticMethodNameUnifiedIndex;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
 import com.intellij.util.ProcessingContext;
+import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
-import static com.intellij.plugins.haxe.ide.index.HaxeIndexUtil.belongToPlatformNotTargeted;
+import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 public class HaxeStaticMemberCompletionContributor extends CompletionContributor {
-  public HaxeStaticMemberCompletionContributor() {
-    extend(CompletionType.BASIC, psiElement().inside(HaxeIdentifier.class).andNot(psiElement().inside(HaxeType.class)),
+
+    private static final PsiElementPattern.Capture<PsiElement> ELEMENT_CAPTURE = psiElement()
+            .inside(HaxeIdentifier.class)
+            .andNot(psiElement().inside(HaxeType.class))
+            // - avoid chained refs (MyClass.startComplet.. / myVar.startComplet... should not show static suggestions)
+            // level 0: HaxeIdentifier
+            // level 1: HaxeReference
+            // level 2: should not be a refrence
+            .andNot(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
+
+    public HaxeStaticMemberCompletionContributor() {
+    extend(CompletionType.BASIC, ELEMENT_CAPTURE,
            new CompletionProvider<CompletionParameters>() {
              @Override
              protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -47,58 +65,64 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
                                             @NlsSafe String filterText) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
+      final PrefixMatcher matcher = resultSet.getPrefixMatcher();
+
+      //TODO mlo: move somewhere more appropreate
+      if("trace".startsWith(filterText)) {
+          addTraceMethodLookup(resultSet);
+      }
 
     // Static public methods
     StubIndex stubIndex = StubIndex.getInstance();
-    Collection<String> methodKeys = stubIndex.getAllKeys(HaxeMethodNameStubIndex.KEY, project);
+    Collection<String> methodKeys = HaxeStaticMethodNameUnifiedIndex.getAllKeys(project);
 
     methodKeys.forEach(name -> {
-      stubIndex.processElements(HaxeStaticMethodNameStubIndex.KEY, name, project, scope, HaxeMethod.class, (method -> {
-        // TODO might want to do a propper evaluation visibility (@:noCompletion etc)
-          if (method.isStatic() && method.isPublic()) {
-              PsiFile containingFile = method.getContainingFile();
-              if(!belongToPlatformNotTargeted(containingFile)) {
-                  addMemberElement(resultSet, method, filterText);
-              }
-          }
-          return true;
-        }));
+        ProgressIndicatorProvider.checkCanceled();
+        List<HaxeMemberLookupData> lookupData = HaxeStaticMethodNameUnifiedIndex.getCompletionData(name, project, scope);
+        for (HaxeMemberLookupData lookupDatum : lookupData) {
+            addMemberElement(resultSet, lookupDatum, filterText);
+        }
     });
 
     // TODO mlo: might want to split this into 2 different CompletionContributors if it means we can do this in parallel
 
     // Static public fields (includes enum value fields and regular fields)
-    Collection<String> fieldKeys = stubIndex.getAllKeys(HaxeFieldNameStubIndex.KEY, project);
+    Collection<String> fieldKeys = HaxeStaticFieldNameUnifiedIndex.getAllKeys(project);
 
-    fieldKeys.forEach(name ->
-      stubIndex.processElements(HaxeStaticFieldNameStubIndex.KEY, name, project, scope, HaxePsiField.class, (field -> {
-        // TODO might want to do a propper evaluation visibility (@:noCompletion etc)
-        if (field.isStatic() && field.isPublic()) {
-          addMemberElement(resultSet, field, filterText);
-        }
-        return true;
-      })));
-
+      fieldKeys.forEach(name -> {
+                  ProgressIndicatorProvider.checkCanceled();
+                  List<HaxeMemberLookupData> lookupData = HaxeStaticFieldNameUnifiedIndex.getCompletionData(name, project, scope);
+                  for (HaxeMemberLookupData lookupDatum : lookupData) {
+                      addMemberElement(resultSet, lookupDatum, filterText);
+                  }
+              }
+      );
   }
 
+    private static void addMemberElement(CompletionResultSet resultSet, HaxeMemberLookupData lookupData, @NlsSafe String filterText) {
+        FullyQualifiedInfo qualifiedInfo = lookupData.qualifiedInfo;
 
+        String possibleClass = qualifiedInfo.getClassName();
+        String className = possibleClass != null ? possibleClass : "";
+        if (!className.startsWith(filterText)) return;
 
-  private static void addMemberElement(CompletionResultSet resultSet, HaxeNamedComponent member, @NlsSafe String filterText) {
-    if(member instanceof HaxeModelTarget modelTarget) {
-      HaxeModel model = modelTarget.getModel();
-      if (model instanceof HaxeMemberModel memberModel) {
-
-        HaxeClassModel possibleClass = memberModel.getDeclaringClass();
-        String className = possibleClass != null ? possibleClass.getName() : "";
-        if (!className.startsWith(filterText))  return;
-
-        HaxeModule module = memberModel.getModule();
-        String moduleName = module != null ? module.getName() : "";
+        String moduleName = qualifiedInfo.getModuleName();
         if (moduleName == null || !moduleName.startsWith(filterText)) return;
 
-
-        resultSet.addElement(new HaxeStaticMemberLookupElement(memberModel));
-      }
+        resultSet.addElement(new HaxeIndexedStaticMemberLookupElement(lookupData));
     }
-  }
+
+    private static void addTraceMethodLookup(CompletionResultSet resultSet) {
+        LookupElementBuilder trace = LookupElementBuilder.create("trace")
+                .appendTailText("()", true)
+                .withInsertHandler(HaxeStaticMemberCompletionContributor::traceInsertHandler)
+                .withIcon(HaxeIcons.Method);
+        resultSet.addElement(trace);
+    }
+
+    private static void traceInsertHandler(@NotNull InsertionContext insertionContext, LookupElement lookupElement) {
+        JavaCompletionUtil.insertParentheses(insertionContext, lookupElement, false, true);
+    }
+
+
 }

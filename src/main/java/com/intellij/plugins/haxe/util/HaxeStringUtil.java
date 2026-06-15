@@ -60,47 +60,6 @@ public class HaxeStringUtil {
     return res;
   }
 
-  static public String unescapeString(String str) {
-    if (str.startsWith("'") || str.startsWith("\"")) {
-      return _unescapeString(str.substring(1, str.length() - 1));
-    } else {
-      return _unescapeString(str);
-    }
-  }
-
-  static private String _unescapeString(String str) {
-    StringBuilder out = new StringBuilder();
-      char[] chars = str.toCharArray();
-      for (int n = 0; n < chars.length;) {
-        char c = chars[n++];
-        if (c == '\\') {
-          char c2 = chars[n++];
-          switch (c2) {
-            case '0' -> out.append('\0');
-            case 'n' -> out.append('\n');
-            case 'r' -> out.append('\r');
-            case 't' -> out.append('\t');
-            case 'b' -> out.append('\b');
-            case 'x' -> {
-              String hex = str.substring(n, n + 2);
-              n += 2;
-              out.append((char)Integer.parseInt(hex, 16));
-            }
-            case 'u' -> {
-              String hex = str.substring(n, n + 4);
-              n += 4;
-              out.append((char)Integer.parseInt(hex, 16));
-            }
-            default -> {
-            }
-          }
-        }
-        else {
-          out.append(c);
-        }
-      }
-    return out.toString();
-  }
 
   public static String join(String separator, CharSequence... elements) {
     // TODO: Replace this function with String.joinHaxeLib when we no longer support Java6/7.

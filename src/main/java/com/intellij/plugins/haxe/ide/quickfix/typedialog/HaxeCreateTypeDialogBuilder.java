@@ -176,7 +176,7 @@ public class HaxeCreateTypeDialogBuilder {
 
     private boolean validatePackage(String newElementName) {
         FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(newElementName);
-        String packageName = qualifiedInfo.packagePath;
+        String packageName = qualifiedInfo.packageName;
 
         PsiManager psiManager = PsiManager.getInstance(myProject);
         GlobalSearchScope scope = GlobalSearchScope.moduleScope(myModule);

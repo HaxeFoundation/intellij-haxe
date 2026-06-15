@@ -10,9 +10,12 @@
     psiPackage="com.intellij.plugins.haxe.lang.psi"
     psiImplPackage="com.intellij.plugins.haxe.lang.psi.impl"
 
-    elementTypeHolderClass="com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes"
-    elementTypeFactory="com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubElementTypeFactory.createElement"
     tokenTypeFactory="com.intellij.plugins.haxe.lang.lexer.HaxeElementType.createToken"
+
+    elementTypeClass="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
+    elementTypeHolderClass="com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes"
+
+    fallbackStubElementType="com.intellij.plugins.haxe.lang.lexer.HaxeElementType"
 
 
     tokens = [

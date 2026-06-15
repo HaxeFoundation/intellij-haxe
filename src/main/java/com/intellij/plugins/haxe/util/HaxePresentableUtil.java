@@ -316,4 +316,15 @@ public class HaxePresentableUtil {
     String s = substring.substring(0, substring.length() - 2).stripIndent();
     return s;
   }
+
+
+    public static String buildTypeTextNoResolve(@NotNull HaxeTypeTag typeTag) {
+      HaxeFunctionType functionType = typeTag.getFunctionType();
+      if(functionType != null) return buildTypeText(functionType, HaxeGenericSpecialization.EMPTY);
+      HaxeTypeOrAnonymous typeOrAnonymous = typeTag.getTypeOrAnonymous();
+      HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+      if(anonymousType != null) return anonymousType.getText();
+      HaxeType type = typeOrAnonymous.getType();
+      return buildTypeText(null, type, HaxeGenericSpecialization.EMPTY);
+    }
 }

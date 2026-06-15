@@ -317,7 +317,7 @@ public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel
   }
 
   public HaxeMethodModel getDeclaringMethod() {
-    HaxeMethod parentOfType = PsiTreeUtil.getParentOfType(getBasePsi(), HaxeMethod.class);
+    HaxeMethod parentOfType = PsiTreeUtil.getStubOrPsiParentOfType(getBasePsi(), HaxeMethod.class);
     if(parentOfType!= null) {
       return parentOfType.getModel();
     }

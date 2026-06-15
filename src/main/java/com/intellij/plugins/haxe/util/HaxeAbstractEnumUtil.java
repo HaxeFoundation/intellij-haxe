@@ -52,7 +52,7 @@ public class HaxeAbstractEnumUtil {
     if (element != null && element instanceof HaxeFieldDeclaration decl) {
       HaxeFieldStub stub = decl.getStub();
       if(stub != null) {
-        return stub.isProperty() && !stub.isStatic();
+        return !stub.isProperty() && !stub.isStatic();
       }else {
         if (decl.getPropertyDeclaration() == null && !decl.isStatic()) {
           return true;

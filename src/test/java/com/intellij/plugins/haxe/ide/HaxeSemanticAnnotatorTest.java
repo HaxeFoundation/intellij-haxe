@@ -79,6 +79,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testCharDotCode() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testRemoveArgumentInit() throws Exception {
     doTestActions(HaxeBundle.message("haxe.quickfix.remove.initializer"));
   }

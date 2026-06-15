@@ -36,6 +36,7 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
@@ -57,7 +58,7 @@ public abstract class HaxePsiFieldImpl extends HaxeStubBasedNamedComponent<HaxeF
     super(node);
   }
 
-  public HaxePsiFieldImpl(HaxeFieldStub stub, IStubElementType<?, ?> nodeType) {
+  public HaxePsiFieldImpl(HaxeFieldStub stub, IElementType nodeType) {
     super(stub, nodeType);
   }
 

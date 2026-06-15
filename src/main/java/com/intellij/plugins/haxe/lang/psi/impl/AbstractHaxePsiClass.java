@@ -46,6 +46,8 @@ import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.stubs.StubBuildCachedValuesManager;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
 import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -75,7 +77,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     super(node);
   }
 
-  public AbstractHaxePsiClass(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public AbstractHaxePsiClass(@NotNull HaxeClassStub stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 
@@ -86,22 +88,27 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
   @Override
   public String getQualifiedName() {
-    return getQualifiedName(false);
+    return CachedValuesManager.getCachedValue(this, () -> {
+      return new CachedValueProvider.Result<>(getQualifiedName(false), this);
+    });
   }
 
   // includes both module name and class name even if they are the same
   @Override
   public String getFullyQualifiedName() {
-    return getQualifiedName(true);
+    if(StubBuildCachedValuesManager.isBuildingStubs()) {
+      return  getQualifiedName(true);
+    }
+    return CachedValuesManager.getCachedValue(this, () -> {
+      return new CachedValueProvider.Result<>(getQualifiedName(true), this);
+    });
   }
 
   public String getQualifiedName(boolean alwaysIncludeModuleName) {
 
     HaxeClassStub stub = getGreenStub();
     if (stub != null) {
-      String name =  stub.getQualifiedName();
-      FullyQualifiedInfo fullyQualifiedInfo = new FullyQualifiedInfo(name);
-      return fullyQualifiedInfo.getQualifiedName(alwaysIncludeModuleName);
+      return stub.getQualifiedName(alwaysIncludeModuleName);
     }
     return getQualifiedNameFallback(alwaysIncludeModuleName);
   }
@@ -192,6 +199,10 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
     if (packageName.isEmpty() && fileName.equals("StdTypes")) {
       return false;
     }
+    // ignore if starts with lowercase (should also cover "unknown")
+    if(name.isEmpty() || Character.isLowerCase(name.charAt(0))) {
+      return false;
+    }
     // file contains valid type declaration
     return HaxeResolveUtil.findComponentDeclaration(getContainingFile(), name) != null;
   }
@@ -240,6 +251,7 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
   public List<HaxeType> getHaxeImplementsList() {
     return HaxeResolveUtil.getImplementsList(PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class));
   }
+
   public @Nullable HaxeInheritList getHaxeImplementsListPsi() {
     return PsiTreeUtil.getStubChildOfType(this, HaxeInheritList.class);
   }

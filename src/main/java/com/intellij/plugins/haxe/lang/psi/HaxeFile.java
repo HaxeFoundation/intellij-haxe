@@ -44,6 +44,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.MODULE;
+import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.PACKAGE_STATEMENT;
+
 public class HaxeFile extends PsiFileBase
   implements HaxeModifierListOwner, PsiClassOwner {
 
@@ -55,16 +58,20 @@ public class HaxeFile extends PsiFileBase
 
 
   public HaxeModule getModule() {
-    return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
+    if(HaxeStubableFileService.isStubable(this.getVirtualFile())) {
+      return withGreenStubOrAst(this::moduleWithStub, this::moduleWithAst);
+    }else {
+      return moduleWithAst(null);
+    }
   }
 
   private HaxeModule moduleWithStub(PsiFileStub<?> stub) {
-    HaxeModuleStub moduleStub = (HaxeModuleStub)stub.findChildStubByElementType(HaxeStubElementTypes.MODULE);
+    HaxeModuleStub moduleStub = (HaxeModuleStub)stub.findChildStubByElementType(MODULE);
     return moduleStub == null ? null : moduleStub.getPsi();
   }
 
   private HaxeModule moduleWithAst(FileElement element) {
-   return PsiTreeUtil.findChildOfType(this, HaxeModule.class);
+   return PsiTreeUtil.getChildOfType(this, HaxeModule.class);
   }
 
 
@@ -116,7 +123,7 @@ public class HaxeFile extends PsiFileBase
 
   public PsiPackageStatement getPackageStatement() {
 
-    ASTNode node = calcTreeElement().findChildByType(HaxeTokenTypes.PACKAGE_STATEMENT);
+    ASTNode node = calcTreeElement().findChildByType(PACKAGE_STATEMENT);
     return node != null ? (PsiPackageStatement)node.getPsi() : null;
   }
 
@@ -127,7 +134,7 @@ public class HaxeFile extends PsiFileBase
 
   private String PackageNameWithStub(PsiFileStub<?> stub) {
     HaxePackageStub packageStatement =
-      (HaxePackageStub)stub.findChildStubByElementType(HaxeStubElementTypes.PACKAGE_STATEMENT);
+      (HaxePackageStub)stub.findChildStubByElementType(PACKAGE_STATEMENT);
     if (packageStatement != null) {
       return packageStatement.getPackageName();
     }

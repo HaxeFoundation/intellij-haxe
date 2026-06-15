@@ -2,6 +2,8 @@ package com.intellij.plugins.haxe.ide.documentation;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.ReferenceCodeLink;
+import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeModuleImpl;
@@ -39,9 +41,9 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
         if (matcher.find()) {
             if (replaceFullyQualifiedClass(code, literal)) return;
             if (replaceIndexedClassName(code, literal)) return;
-            if(replaceMethodParameter(code, literal)) return;
-            if(replaceClassMemberReference(code, literal)) return;
-            if(context != null) {
+            if (replaceMethodParameter(code, literal)) return;
+            if (replaceClassMemberReference(code, literal)) return;
+            if (context != null) {
                 replaceContextClassMemberReference(code, matcher.group(1), literal);
             }
         }
@@ -122,6 +124,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private boolean replaceIndexedClassName(Code code, String literal) {
+        if(HaxeReferenceUtil.textCanBeQname(literal)) return false;
         HaxeClass haxeClass = findUniqueClassFromIndex(literal);
         if (haxeClass != null) {
             replaceCodeWithReferenceCodeLink(code, haxeClass.getQualifiedName(), literal);
@@ -131,7 +134,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private HaxeClass findUniqueClassFromIndex(String literal) {
-        Collection<HaxeClass> itemsByName = HaxeClassNameStubIndex.getByNameFiltered(literal, project, GlobalSearchScope.allScope(project));
+        Collection<HaxeClass> itemsByName = HaxeClassNameUnifiedIndex.getByNameFiltered(literal, project, GlobalSearchScope.allScope(project));
         if (itemsByName.size() == 1) {
             return itemsByName.iterator().next();
         }
@@ -139,6 +142,7 @@ public class HaxeDocumentationCodeVisitor extends AbstractVisitor {
     }
 
     private boolean replaceFullyQualifiedClass(Code code, String literal) {
+        if(!HaxeReferenceUtil.textCanBeQname(literal)) return false;
         HaxeClass classByQName = HaxeResolveUtil.findClassByQName(literal, context);
         if (classByQName != null) {
             replaceCodeWithReferenceCodeLink(code, literal, literal);

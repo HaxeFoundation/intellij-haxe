@@ -127,7 +127,7 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
     List<HaxeParameterModel> params = getParameters();
     if (context!= null && context.isExtensionMethod()) {
       params = new ArrayList<>(params);
-      params.remove(0);
+      if(!params.isEmpty()) params.remove(0);
     }
     return params;
   }
@@ -340,6 +340,18 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
 
     public boolean isMacroMember() {
         return isMacro() && !isStatic();
+    }
+
+    public boolean hasGenericParams() {
+        return getMethod().getGenericParam() != null;
+    }
+
+    // useful for performance optmizations (tells us that we dont neeed to resolve generics)
+    public boolean canContainGenerics() {
+      boolean methodHasGenerics = hasGenericParams();
+      HaxeClassModel declaringClass = getDeclaringClass();
+      boolean parentClassHasGenerics =  declaringClass != null  && declaringClass.hasGenericParams();
+      return methodHasGenerics || (parentClassHasGenerics && isStatic());
     }
 }
 

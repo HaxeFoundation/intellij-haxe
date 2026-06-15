@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,7 +40,7 @@ public abstract class AbstractHaxeTypeDefImpl extends AbstractHaxePsiClass imple
     super(node);
   }
 
-  public AbstractHaxeTypeDefImpl(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public AbstractHaxeTypeDefImpl(@NotNull HaxeClassStub stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

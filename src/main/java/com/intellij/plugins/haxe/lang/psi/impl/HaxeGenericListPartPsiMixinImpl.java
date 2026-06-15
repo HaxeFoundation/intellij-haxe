@@ -4,6 +4,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeClassStub;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeGenericListPartStub;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +18,7 @@ public abstract class HaxeGenericListPartPsiMixinImpl extends HaxeTypeParameterD
     super(node);
   }
 
-  public HaxeGenericListPartPsiMixinImpl(@NotNull HaxeClassStub stub, @NotNull IStubElementType<?, ?> type) {
+  public HaxeGenericListPartPsiMixinImpl(@NotNull HaxeClassStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 

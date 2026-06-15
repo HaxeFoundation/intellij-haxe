@@ -75,7 +75,7 @@ public class HaxeTypeListPartPsiMixinImpl extends HaxeContainerStubPsiElementBas
     super(node);
   }
 
-  public HaxeTypeListPartPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypeListPartPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IElementType type) {
     super(stub, type);
   }
 

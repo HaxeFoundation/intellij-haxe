@@ -6,7 +6,6 @@ import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.PsiMember;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.containers.ContainerUtil;
 import org.jetbrains.annotations.NotNull;
@@ -60,7 +59,10 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
     PsiFile containingFile = module.getContainingFile();
     String fileName = containingFile.getName();
     if(fileName.endsWith(".hx")) {
-      fileName = fileName.substring(0, fileName.length() -3);
+      // Note that we trim to the first instance if '.'
+      // this is because haxe allow target name as part of
+      // file name, ex. "myModule.swf.hx"
+      fileName = fileName.substring(0, fileName.indexOf('.'));
     }
     return fileName;
   }
@@ -94,7 +96,7 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
       if (exhibitor != null) {
         FullyQualifiedInfo containerInfo = exhibitor.getQualifiedInfo();
         if (containerInfo != null) {
-          myQualifiedInfo = new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, null, null);
+          myQualifiedInfo = new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, null, null);
         }
       }
     }
@@ -134,14 +136,15 @@ public class HaxeModuleModel implements HaxeCommonMembersModel {
   @Nullable
   public HaxeClassModel getClass(String name) {
     if(name == null) return null;
-    List<HaxeNamedComponent> allNamedComponents = getAllHaxeNamedComponents(HaxeComponentType.CLASS );
+    List<HaxeNamedComponent> allNamedComponents = HaxeNamedSubComponentUtil.getNamedComponentsInModule(module);
     HaxeNamedComponent match = ContainerUtil.find(allNamedComponents, component -> Objects.equals(name, component.getName()));
     if (match  instanceof HaxeClass haxeClass) return haxeClass.getModel();
     return null;
   }
   public List<HaxeClassModel> getClasses() {
       List<@NotNull HaxeClassModel> list = new ArrayList<>();
-      for (HaxeNamedComponent namedComponent : getAllHaxeNamedComponents(HaxeComponentType.CLASS)) {
+    List<HaxeNamedComponent> namedComponentsInModule = HaxeNamedSubComponentUtil.getNamedComponentsInModule(module);
+    for (HaxeNamedComponent namedComponent : namedComponentsInModule) {
           if (namedComponent instanceof HaxeClass haxeClass) {
             list.add(haxeClass.getModel());
           }

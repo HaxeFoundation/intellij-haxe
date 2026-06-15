@@ -26,9 +26,7 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.actions.HaxeStaticMemberAddImportIntentionAction;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeFieldNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeMethodNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -38,7 +36,6 @@ import com.intellij.plugins.haxe.model.HaxeMemberModel;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -91,7 +88,7 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
   private void tryCreateAnnotation(HaxeReferenceExpression expression) {
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(expression);
     List<HaxeMemberModel> members = new ArrayList<>();
-    List<HaxeComponent> classes = new ArrayList<>(HaxeClassNameStubIndex.getByNameFiltered(expression.getText(), expression.getProject(), scope));
+    List<HaxeComponent> classes = new ArrayList<>(HaxeClassNameUnifiedIndex.getByNameFiltered(expression.getText(), expression.getProject(), scope));
     if (expression.getParent() instanceof HaxeCallExpression) {
       members.addAll(findStaticMembers(expression.getText(), expression.getProject(), scope, true, false));
     } else {
@@ -131,10 +128,7 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
     return false;
   }
 
-  /**
-   * Finds static public members (methods and/or fields/enum-values) with the given name using stub indexes.
-   * No file re-parsing required — stub data is used for static/public flag checks.
-   */
+
   private static List<HaxeMemberModel> findStaticMembers(@NotNull String memberName,
                                                           @NotNull com.intellij.openapi.project.Project project,
                                                           @NotNull GlobalSearchScope scope,
@@ -142,15 +136,15 @@ public class HaxeUnresolvedTypeAnnotator extends HaxeVisitor implements Annotato
                                                           boolean includeFields) {
     List<HaxeMemberModel> results = new ArrayList<>();
     if (includeMethods) {
-      for (HaxeMethod method : StubIndex.getElements(HaxeMethodNameStubIndex.KEY, memberName, project, scope, HaxeMethod.class)) {
-        if (method.isStatic() && method.isPublic()) {
+      for (HaxeMethod method : HaxeStaticMethodNameUnifiedIndex.getByName(memberName, project, scope)) {
+        if (method.isPublic()) {
           results.add(method.getModel());
         }
       }
     }
     if (includeFields) {
-      for (HaxePsiField field : StubIndex.getElements(HaxeFieldNameStubIndex.KEY, memberName, project, scope, HaxePsiField.class)) {
-        if (field.isStatic() && field.isPublic()) {
+      for (HaxePsiField field : HaxeStaticFieldNameUnifiedIndex.getByName(memberName, project, scope)) {
+        if (field.isPublic()) {
           HaxeBaseMemberModel base = field.getModel();
           if (base instanceof HaxeMemberModel memberModel) {
             results.add(memberModel);

@@ -23,6 +23,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -107,7 +108,7 @@ public class TreeHaxeClassChooserDialog extends AbstractTreeClassChooserDialog<P
                                             final boolean checkBoxState,
                                             final String pattern,
                                             final GlobalSearchScope searchScope) {
-    List<HaxeClass> components = new ArrayList<>(HaxeClassNameStubIndex.getByNameFiltered(name, getProject(), searchScope));
+    List<HaxeClass> components = new ArrayList<>(HaxeClassNameUnifiedIndex.getByNameFiltered(name, getProject(), searchScope));
     List<PsiClass> classes = new ArrayList<PsiClass>();
 
     for (HaxeClass component : components) {

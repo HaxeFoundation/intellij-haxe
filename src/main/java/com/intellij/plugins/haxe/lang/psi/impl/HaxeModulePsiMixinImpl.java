@@ -9,8 +9,8 @@ import com.intellij.plugins.haxe.model.HaxeModelTarget;
 import com.intellij.plugins.haxe.model.HaxeModuleModel;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
-import com.intellij.psi.stubs.IStubElementType;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +25,7 @@ public abstract class HaxeModulePsiMixinImpl extends HaxeStubBasedPsiElementBase
         super(node);
     }
 
-    public HaxeModulePsiMixinImpl(@NotNull HaxeModuleStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+    public HaxeModulePsiMixinImpl(@NotNull HaxeModuleStub stub, @NotNull IElementType nodeType) {
         super(stub, nodeType);
     }
 

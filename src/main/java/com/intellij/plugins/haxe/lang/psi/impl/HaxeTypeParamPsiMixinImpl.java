@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxeEmptyContainerStub;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiTypeParameter;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 
 /**
  * Created by ebishton on 10/18/14.
@@ -34,7 +35,7 @@ public class HaxeTypeParamPsiMixinImpl extends HaxeContainerStubPsiElementBase i
     super(node);
   }
 
-  public HaxeTypeParamPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IStubElementType<?, ?> type) {
+  public HaxeTypeParamPsiMixinImpl(HaxeEmptyContainerStub<?> stub, IElementType type) {
     super(stub, type);
   }
 

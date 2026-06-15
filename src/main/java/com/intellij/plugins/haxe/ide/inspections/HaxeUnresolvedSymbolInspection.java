@@ -80,6 +80,17 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
     final List<ProblemDescriptor> result = new ArrayList<>();
     new HaxeAnnotatingVisitor() {
       @Override
+      protected void handleInncorrectModuleName(HaxeReferenceExpression reference) {
+        String referenceName = reference.getReferenceName();
+        result.add(manager.createProblemDescriptor(
+                reference,
+                reference.getRangeInElement(),
+                "Module must start by upper case",
+                ProblemHighlightType.GENERIC_ERROR,
+                isOnTheFly
+        ));
+      }
+      @Override
       protected void handleUnresolvedReference(HaxeReferenceExpression reference) {
         PsiElement nameIdentifier = reference.getReferenceNameElement();
         if (nameIdentifier == null) return;

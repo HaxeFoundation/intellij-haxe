@@ -61,8 +61,8 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
       return hasModifier(PUBLIC)
              // Fields and methods of externs and interfaces are public by default, private modifier for them should be defined explicitly
              || ((declaringClass.isInterface() || declaringClass.isExtern()) && !hasModifier(PRIVATE))
-             || isOverriddenPublicMethod()
-             || declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS);
+             || declaringClass.hasCompileTimeMeta(HaxeMeta.PUBLIC_FIELDS)
+             || isOverriddenPublicMethod();
     }
   }
 
@@ -210,7 +210,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     if (declaringClass != null) {
       FullyQualifiedInfo containerInfo = declaringClass.getQualifiedInfo();
       if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, containerInfo.className, getName());
+        return new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
       }
     }
 
@@ -218,7 +218,7 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
     if(module != null && module.getModel() instanceof  HaxeModuleModel model) {
       FullyQualifiedInfo containerInfo = model.getQualifiedInfo();
       if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packagePath, containerInfo.moduleName, containerInfo.className, getName());
+        return new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
       }
     }
     return null;

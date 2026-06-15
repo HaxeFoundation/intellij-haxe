@@ -5,10 +5,12 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiField;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.*;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedNameStubIndex;
-import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeSuperClassStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeConstructorStubIndex;
+import com.intellij.plugins.haxe.lang.psi.stubs.index.specialized.HaxeClassInheritanceStubIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.StubIndex;
+import com.intellij.psi.stubs.StubIndexKey;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -217,31 +219,34 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   // ── HaxeMethodNameStubIndex ───────────────────────────────────────────
 
   @Test
+  public void testMethodNameIndex_constructor() throws Throwable {
+    // Constructors are named "new" in Haxe
+    myFixture.configureByFiles("SimpleClass.hx");
+    Collection<HaxeMethod> methods = getMethods("com.example.SimpleClass", HaxeConstructorStubIndex.KEY);
+    assertFalse("Expected at least one constructor ('new') in index", methods.isEmpty());
+  }
+
+
+
+  @Test
   public void testMethodNameIndex_instanceMethod() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("method");
+    Collection<HaxeMethod> methods = getMethods("method", HaxeClassMethodNameStubIndex.KEY);
     assertFalse("Expected result for method named 'method'", methods.isEmpty());
   }
 
   @Test
   public void testMethodNameIndex_staticMethod() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("staticMethod");
+    Collection<HaxeMethod> methods = getMethods("staticMethod", HaxeStaticMethodNameStubIndex.KEY);
     assertFalse("Expected result for static method 'staticMethod'", methods.isEmpty());
   }
 
-  @Test
-  public void testMethodNameIndex_constructor() throws Throwable {
-    // Constructors are named "new" in Haxe
-    myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("new");
-    assertFalse("Expected at least one constructor ('new') in index", methods.isEmpty());
-  }
 
   @Test
   public void testMethodNameIndex_moduleFunction() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxeMethod> methods = getMethods("moduleFunction");
+    Collection<HaxeMethod> methods = getMethods("moduleFunction", HaxeModuleMethodNameStubIndex.KEY);
     assertFalse("Expected result for module-level function 'moduleFunction'", methods.isEmpty());
   }
 
@@ -250,21 +255,21 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   public void testFieldNameIndex_instanceField() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxePsiField> fields = getFields("field");
+    Collection<HaxePsiField> fields = getFields("field", HaxeClassFieldNameStubIndex.KEY);
     assertFalse("Expected result for field named 'field'", fields.isEmpty());
   }
 
   @Test
   public void testFieldNameIndex_staticField() throws Throwable {
     myFixture.configureByFiles("SimpleClass.hx");
-    Collection<HaxePsiField> fields = getFields("staticField");
+    Collection<HaxePsiField> fields = getFields("staticField", HaxeStaticFieldNameStubIndex.KEY);
     assertFalse("Expected result for static field 'staticField'", fields.isEmpty());
   }
 
   @Test
   public void testFieldNameIndex_moduleVar() throws Throwable {
     myFixture.configureByFiles("ModuleClass.hx");
-    Collection<HaxePsiField> fields = getFields("moduleVar");
+    Collection<HaxePsiField> fields = getFields("moduleVar", HaxeModuleFieldNameStubIndex.KEY);
     assertFalse("Expected result for module-level var 'moduleVar'", fields.isEmpty());
   }
 
@@ -310,22 +315,20 @@ public class HaxeStubIndexTest extends HaxeCodeInsightFixtureTestCase {
   }
 
   private Collection<HaxeClass> getByFqn(String fqn) {
-    return StubIndex.getElements(HaxeFullyQualifiedNameStubIndex.KEY, fqn,
+    return StubIndex.getElements(HaxeFullyQualifiedClassNameStubIndex.KEY, fqn,
                                  myFixture.getProject(), projectScope(), HaxeClass.class);
   }
 
   private Collection<HaxeClass> getBySuper(String superName) {
-    return StubIndex.getElements(HaxeSuperClassStubIndex.KEY, superName,
+    return StubIndex.getElements(HaxeClassInheritanceStubIndex.KEY, superName,
                                  myFixture.getProject(), projectScope(), HaxeClass.class);
   }
 
-  private Collection<HaxeMethod> getMethods(String name) {
-    return StubIndex.getElements(HaxeMethodNameStubIndex.KEY, name,
-                                 myFixture.getProject(), projectScope(), HaxeMethod.class);
+  private Collection<HaxeMethod> getMethods(String name, StubIndexKey<String, HaxeMethod> key) {
+    return StubIndex.getElements(key, name, myFixture.getProject(), projectScope(), HaxeMethod.class);
   }
 
-  private Collection<HaxePsiField> getFields(String name) {
-    return StubIndex.getElements(HaxeFieldNameStubIndex.KEY, name,
-                                 myFixture.getProject(), projectScope(), HaxePsiField.class);
+  private Collection<HaxePsiField> getFields(String name, StubIndexKey<String, HaxePsiField> key) {
+    return StubIndex.getElements(key, name, myFixture.getProject(), projectScope(), HaxePsiField.class);
   }
 }

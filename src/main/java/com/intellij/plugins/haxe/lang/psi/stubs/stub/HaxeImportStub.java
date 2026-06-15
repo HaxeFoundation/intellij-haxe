@@ -4,6 +4,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeImportStatement;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBase;
 import com.intellij.psi.stubs.StubElement;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +19,7 @@ public class HaxeImportStub extends StubBase<HaxeImportStatement> {
   private final String alias;
 
   public HaxeImportStub(StubElement parent,
-                         @NotNull IStubElementType elementType,
+                         @NotNull IElementType elementType,
                          @Nullable String importPath,
                          boolean hasWildcard,
                          @Nullable String alias) {

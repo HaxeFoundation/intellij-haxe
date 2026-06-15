@@ -26,6 +26,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Ref;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
@@ -92,7 +93,7 @@ public class HaxeReferenceCopyPasteProcessor extends CopyPastePostProcessor<Haxe
           if (referenceExpression.resolve() == null) {
             final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(referenceExpression);
             final Collection<HaxeClass> components =
-              HaxeClassNameStubIndex.getByNameFiltered(referenceExpression.getText(), project, scope);
+                    HaxeClassNameUnifiedIndex.getByNameFiltered(referenceExpression.getText(), project, scope);
             if (components.size() == 1) {
               qualifiedName = components.iterator().next().getQualifiedName();
               if (!haxeClassList.contains(qualifiedName)) {

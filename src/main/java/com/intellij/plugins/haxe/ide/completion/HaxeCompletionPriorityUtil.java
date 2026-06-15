@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.CompletionLocation;
 import com.intellij.codeInsight.completion.CompletionParameters;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.lookup.*;
+import com.intellij.plugins.haxe.ide.lookup.indexed.HaxeIndexedStaticMemberLookupElement;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
@@ -13,6 +14,7 @@ import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressi
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionUtil;
 import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -210,15 +212,18 @@ public class HaxeCompletionPriorityUtil {
 
 
   private static boolean trySortForArgument(PsiElement position, List<HaxeLookupElement> lookupElements) {
-    HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(position, HaxeCallExpression.class, true, HaxeNewExpression.class);
+    // important: we need to make sure we are inside the expression list and not in the ref chain
+    HaxeCallExpressionList callExpressionList = PsiTreeUtil.getParentOfType(position, HaxeCallExpressionList.class, true, HaxeNewExpression.class);
+    HaxeCallExpression callExpression = PsiTreeUtil.getParentOfType(callExpressionList, HaxeCallExpression.class);
     HaxeNewExpression newExpression = PsiTreeUtil.getParentOfType(position, HaxeNewExpression.class, true, HaxeCallExpression.class);
 
-    if (newExpression == null &&  callExpression == null) return false;
+    if (newExpression == null &&  callExpressionList == null) return false;
 
     int argumentIndex = 0;
     HaxeCallExpressionEvaluation validation = null;
-    if (callExpression != null) {
-      validation = getValidationForMethod(callExpression);
+    if (callExpressionList != null) {
+      // caching as this callExpression is likely going to be used by multiple different HaxeLookupElement items.
+      validation = CachedValuesManager.getProjectPsiDependentCache(callExpression, (e) -> getValidationForMethod(e));
       HaxeCallExpressionList type = PsiTreeUtil.getParentOfType(position, HaxeCallExpressionList.class);
       if (type != null) {
         HaxeReferenceExpression ref = PsiTreeUtil.getParentOfType(position, HaxeReferenceExpression.class);
@@ -251,11 +256,12 @@ public class HaxeCompletionPriorityUtil {
 
         if (element instanceof HaxePackageLookupElement lookupElement) lookupElement.getPriority().type -= 0.1;
         if (element instanceof HaxeMemberLookupElement memberLookupElement) {
+          //NOTE mlo - slows down completion
           memberCalculation(memberLookupElement, names, parameterTypes, argumentIndex);
           element.getPriority().type += 1;
 
         }
-        if (element instanceof HaxeStaticMemberLookupElement staticMemberLookupElement) {
+        if (element instanceof HaxeIndexedStaticMemberLookupElement staticMemberLookupElement) {
           staticMemberAssignCalculation(staticMemberLookupElement, parameterTypes);
           element.getPriority().type += 0.5;
         }
@@ -279,7 +285,7 @@ public class HaxeCompletionPriorityUtil {
     return null;
   }
 
-  private static void staticMemberAssignCalculation(HaxeStaticMemberLookupElement element, Collection<ResultHolder> types) {
+  private static void staticMemberAssignCalculation(HaxeIndexedStaticMemberLookupElement element, Collection<ResultHolder> types) {
     for (ResultHolder type : types) {
       if (type.isUnknown()) continue;
       if(type.isClassType()) {

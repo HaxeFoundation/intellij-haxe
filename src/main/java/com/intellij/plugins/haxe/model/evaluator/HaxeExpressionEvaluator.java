@@ -290,8 +290,8 @@ public class HaxeExpressionEvaluator {
         return handleRegularExpressionLiteral(regexLiteral);
       }
 
-      if (element instanceof HaxeStringLiteralExpression) {
-        return handleStringLiteralExpression(element);
+      if (element instanceof HaxeStringLiteralExpression literalExpression) {
+        return handleStringLiteralExpression(literalExpression);
       }
 
       if (element instanceof HaxeTypeCheckExpr expr) {
@@ -621,15 +621,15 @@ public class HaxeExpressionEvaluator {
   }
 
   public static List<PsiReference> referenceSearch(final HaxeComponentName componentName, @NotNull final SearchScope searchScope) {
+    ProgressManager.checkCanceled();
+
     int offset = componentName.getIdentifier().getTextRange().getEndOffset();
-    return ProgressManager.getInstance().runProcess( () -> {
-      return new ArrayList<>(ReferencesSearch.search(componentName, searchScope).findAll()).stream()
-        .sorted((r1, r2) -> {
-          int i1 = getDistance(r1, offset);
-          int i2 = getDistance(r2, offset);
-          return i1 - i2;
-        }).toList();
-    }, new EmptyProgressIndicator());
+    return new ArrayList<>(ReferencesSearch.search(componentName, searchScope).findAll()).stream()
+            .sorted((r1, r2) -> {
+              int i1 = getDistance(r1, offset);
+              int i2 = getDistance(r2, offset);
+              return i1 - i2;
+            }).toList();
   }
 
   private static final RecursionGuard<PsiElement>

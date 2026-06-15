@@ -237,9 +237,19 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
       return;
     }
     if (leftReference instanceof SpecificHaxeClassReference classReference) {
-      HaxeClass haxeClass = classReference.getHaxeClass();
+
+      if(model instanceof HaxeMethodModel methodModel) {
+        String fastReturnType = tryGetReturnTypeTextFast(methodModel);
+        if(fastReturnType != null) {
+          typeText = fastReturnType;
+          return;
+        }
+      }
+
       HaxeClassModel declaringClass = model.getDeclaringClass();
+
       if (declaringClass != null) {
+        HaxeClass haxeClass = classReference.getHaxeClass();
         HaxeGenericResolver translatedResolver = resolver.translateFromTo(haxeClass, declaringClass.haxeClass);
         ResultHolder type = model.getResultType(translatedResolver);
         // TODO mlo: figure out why this is necessary (would expect getResultType to handle this)
@@ -258,6 +268,7 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
     }
   }
 
+
   private void evaluateTailText() {
     if (model instanceof HaxeMethodModel && !isFunctionType) {
       tailText = "(" + getParameterListAsText() + ")";
@@ -265,6 +276,12 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
   }
 
   private @NotNull String getParameterListAsText() {
+    if(model instanceof HaxeMethodModel methodModel) {
+      if (!methodModel.canContainGenerics()) {
+        // make parameterlist without resolve
+        return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi());
+      }
+    }
     if (leftReference != null){
       return HaxePresentableUtil.getPresentableParameterList(model.getNamedComponentPsi(), resolver, true, false);
     }else {
@@ -304,6 +321,20 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
     }
   }
 
+
+
+
+  //tries to take some shortcuts when getting returnType text (avoid resolving if possible)
+  @Nullable
+  private static String tryGetReturnTypeTextFast(HaxeMethodModel methodModel) {
+    if(!methodModel.canContainGenerics()) {
+      HaxeTypeTag returnTypeTagPsi = methodModel.getReturnTypeTagPsi();
+      if(returnTypeTagPsi != null) {
+        return HaxePresentableUtil.buildTypeTextNoResolve(returnTypeTagPsi);
+      }
+    }
+    return null;
+  }
 
   @NotNull
   @Override

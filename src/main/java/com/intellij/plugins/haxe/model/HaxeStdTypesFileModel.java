@@ -28,7 +28,7 @@ public class HaxeStdTypesFileModel extends HaxeFileModel {
 
   @Override
   protected boolean isReferencingCurrentFile(FullyQualifiedInfo info) {
-    return (info.packagePath == null || info.packagePath.isEmpty()) && (info.moduleName == null || info.moduleName.isEmpty());
+    return (info.packageName == null || info.packageName.isEmpty()) && (info.moduleName == null || info.moduleName.isEmpty());
   }
 
   public static HaxeStdTypesFileModel fromFile(@NotNull HaxeFile file) {

@@ -24,6 +24,7 @@ import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.psi.PsiJavaCodeReferenceElement;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,7 +37,7 @@ abstract public class HaxePackageStatementPsiMixinImpl extends HaxeStubBasedPsiE
     super(node);
   }
 
-  public HaxePackageStatementPsiMixinImpl(@NotNull HaxePackageStub stub, @NotNull IStubElementType<?, ?> nodeType) {
+  public HaxePackageStatementPsiMixinImpl(@NotNull HaxePackageStub stub, @NotNull IElementType nodeType) {
     super(stub, nodeType);
   }
 

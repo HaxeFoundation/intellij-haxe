@@ -65,7 +65,7 @@ public class HaxeAccessAnnotator implements Annotator {
       // No constructors in type
       if (constructorModel == null) {
           // not a Constructible abstract
-          if (!isConstructableType(newExpression)) {
+          if (!isConstructableType(newExpression) && !isReificationReferences(newExpression.getType())) {
               HaxeClass haxeClass = findHaxeClass(newExpression);
               String message = getQualifiedName(newExpression) + " does not have a constructor";
               AnnotationBuilder annotationBuilder = holder.newAnnotation(HighlightSeverity.ERROR, message)
@@ -109,7 +109,9 @@ public class HaxeAccessAnnotator implements Annotator {
     }
   }
 
-
+    private boolean isReificationReferences(@NotNull HaxeType type) {
+      return PsiTreeUtil.findChildOfType(type, HaxeMacroIdentifier.class) != null;
+    }
 
 
   private static boolean checkIfShouldBeIgnored(HaxeReferenceExpression referenceExpression) {

@@ -27,6 +27,7 @@ import com.intellij.plugins.haxe.model.HaxeModel;
 import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.psi.*;
 import com.intellij.psi.stubs.IStubElementType;
+import com.intellij.psi.tree.IElementType;
 import com.intellij.util.IncorrectOperationException;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
@@ -48,7 +49,7 @@ public abstract class HaxeParameterPsiMixinImpl extends HaxeStubBasedNamedCompon
     super(node);
   }
 
-  public HaxeParameterPsiMixinImpl(@NotNull HaxeParameterStub stub, @NotNull IStubElementType<?, ?> type) {
+  public HaxeParameterPsiMixinImpl(@NotNull HaxeParameterStub stub, @NotNull IElementType type) {
     super(stub, type);
   }
 

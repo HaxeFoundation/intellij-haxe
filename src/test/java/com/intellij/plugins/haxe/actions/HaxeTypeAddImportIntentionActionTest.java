@@ -25,6 +25,7 @@ import com.intellij.plugins.haxe.HaxeLanguage;
 import com.intellij.plugins.haxe.ide.actions.HaxeTypeAddImportIntentionAction;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponent;
 import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.indexes.unified.HaxeClassNameUnifiedIndex;
 import com.intellij.plugins.haxe.lang.psi.stubs.index.HaxeClassNameStubIndex;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiDocumentManager;
@@ -54,7 +55,7 @@ public class HaxeTypeAddImportIntentionActionTest extends HaxeCodeInsightFixture
     final HaxeType type = PsiTreeUtil.getParentOfType(file.findElementAt(myFixture.getCaretOffset()), HaxeType.class, false);
     assertNotNull(type);
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(type);
-    new HaxeTypeAddImportIntentionAction(type, new java.util.ArrayList<HaxeComponent>(HaxeClassNameStubIndex
+    new HaxeTypeAddImportIntentionAction(type, new java.util.ArrayList<HaxeComponent>(HaxeClassNameUnifiedIndex
       .getByNameFiltered(type.getReferenceExpression().getText(), type.getProject(), scope)))
       .execute();
     FileDocumentManager.getInstance().saveAllDocuments();

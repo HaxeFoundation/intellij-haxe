@@ -6,7 +6,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.RecursionGuard;
 import com.intellij.openapi.util.RecursionManager;
 import com.intellij.plugins.haxe.HaxeComponentType;
-import com.intellij.plugins.haxe.ide.index.HaxeInheritanceDefinitionsUtil;
+import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsUtil;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
 import com.intellij.plugins.haxe.util.HaxeNamedSubComponentUtil;

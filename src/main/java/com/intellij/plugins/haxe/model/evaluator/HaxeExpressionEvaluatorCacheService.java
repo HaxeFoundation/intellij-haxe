@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.model.evaluator;
 
+import com.intellij.openapi.util.LowMemoryWatcher;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
@@ -23,6 +24,12 @@ public class HaxeExpressionEvaluatorCacheService  {
   private volatile  Map<EvaluationKey, ResultHolder> cacheMap = new ConcurrentHashMap<>();
   public static boolean skipCaching = false;// just convenience flag for debugging
 
+
+  public HaxeExpressionEvaluatorCacheService() {
+    LowMemoryWatcher.register(() -> {
+      clearCaches();
+    });
+  }
 
   public @NotNull ResultHolder handleWithResultCaching(@NotNull final PsiElement element,
                                                        @NotNull final HaxeExpressionEvaluatorContext context,
