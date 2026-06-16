@@ -175,7 +175,19 @@ WHITE_SPACE_CHAR=[\ \n\r\t\f]
 
 mLETTER = [:letter:] | "_"
 mDIGIT = [:digit:]
-ESCAPE_SEQUENCE=\\[^\r\n]
+
+// allowed escapes: https://haxe.org/manual/std-String-literals.html
+STRING_ESCAPE_SINGLE_CHAR=\\(t|n|r|\"|'|\\)
+STRING_ESCAPE_OCTETS=\\({mOCT_DIGIT}){3}
+STRING_ESCAPE_HEX=\\x({mHEX_DIGIT}){2}
+STRING_ESCAPE_UNICODE_FIXED=\\u({mHEX_DIGIT}){4}
+STRING_ESCAPE_UNICODE_VARIABLE=\\u\{({mHEX_DIGIT}){1,6}\}
+
+STRING_ESCAPE_PART= {STRING_ESCAPE_SINGLE_CHAR} | {STRING_ESCAPE_OCTETS} | {STRING_ESCAPE_HEX} | {STRING_ESCAPE_UNICODE_FIXED} | {STRING_ESCAPE_UNICODE_VARIABLE}
+STRING_INVALID_ESCAPE =\\.
+
+
+
 
 mMETA_PART = {mLETTER} ({mDIGIT} | {mLETTER})*
 META_ID =  ({mMETA_PART} ("." {mMETA_PART})*)?
@@ -208,7 +220,7 @@ mNUM_BIN = ("0b" | "0B") {mBIN_DIGIT} {mBIN_DIGIT_TAIL}*
 // TODOMLO: NOT SURE IF HAXE ACTUALLY SUPPORTS OCTAL NUMBERS
 mNUM_OCT = "0" {mOCT_DIGIT}+
 
-mREG_EXP = "~/" ([^"/"] | {ESCAPE_SEQUENCE})* "/" [igmsu]*
+mREG_EXP = "~/" ([^"/"] | {STRING_ESCAPE_PART})* "/" [igmsu]*
 
 mBFLOAT_DIGIT_TAIL =((_|{mDIGIT})*{mDIGIT})
 mFLOAT_DIGITS = {mDIGIT} {mBFLOAT_DIGIT_TAIL}*
@@ -446,8 +458,9 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 
 
 <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> \"   { pushState(QUO_STRING); return emitToken( OPEN_QUOTE); }
-<QUO_STRING> \"                 { popState(); return emitToken( CLOSING_QUOTE); }
-<QUO_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
+<QUO_STRING> \"                            { popState(); return emitToken( CLOSING_QUOTE); }
+<QUO_STRING> {STRING_ESCAPE_PART}          { return emitToken( ESCAPED_STRING_PART); }
+<QUO_STRING> {STRING_INVALID_ESCAPE}       { return emitToken( STRING_INVALID_ESCAPE); }
 
 <QUO_STRING> {DOUBLE_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 <QUO_STRING> {REGULAR_QUO_STRING_PART}     { return emitToken( REGULAR_STRING_PART); }
@@ -459,16 +472,17 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 // Support single quote strings: "'"
 
 <YYINITIAL, CC_BLOCK, LONG_TEMPLATE_ENTRY, METADATA> \'     { pushState(APOS_STRING); return emitToken( OPEN_QUOTE); }
-<APOS_STRING> \'                 { popState(); return emitToken( CLOSING_QUOTE); }
-<APOS_STRING> {ESCAPE_SEQUENCE}  { return emitToken( REGULAR_STRING_PART); }
-<APOS_STRING> {DOUBLE_DOLLAR}              { return emitToken( REGULAR_STRING_PART); }
+<APOS_STRING> \'                            { popState(); return emitToken( CLOSING_QUOTE); }
+<APOS_STRING> {STRING_ESCAPE_PART}          { return emitToken( ESCAPED_STRING_PART); }
+<APOS_STRING> {STRING_INVALID_ESCAPE}       { return emitToken( STRING_INVALID_ESCAPE); }
+<APOS_STRING> {DOUBLE_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 
 <APOS_STRING> {REGULAR_APOS_STRING_PART}    { return emitToken( REGULAR_STRING_PART); }
 <APOS_STRING> {SHORT_TEMPLATE_ENTRY}        {
-                                                                  pushState(SHORT_TEMPLATE_ENTRY);
-                                                                  yypushback(yylength() - 1);
-                                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
-                                                             }
+                                                  pushState(SHORT_TEMPLATE_ENTRY);
+                                                  yypushback(yylength() - 1);
+                                                  return emitToken( SHORT_TEMPLATE_ENTRY_START);
+                                             }
 
 <APOS_STRING> {LONELY_DOLLAR}               { return emitToken( REGULAR_STRING_PART); }
 <APOS_STRING> {LONG_TEMPLATE_ENTRY_START}   { pushState(LONG_TEMPLATE_ENTRY); return emitToken( LONG_TEMPLATE_ENTRY_START); }
@@ -527,12 +541,12 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 // Strings inside of compiler conditionals.  They can't use string interpolation/templates (e.g. $var).
 <CC_STRING> {
 \"                                        { popState(); return conditionAppend( CLOSING_QUOTE ); }
-{ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
+{STRING_ESCAPE_PART}                      { return conditionAppend( ESCAPED_STRING_PART ); }
 {REGULAR_QUO_STRING_PART}                 { return conditionAppend( REGULAR_STRING_PART ); }
 }
 <CC_APOS_STRING> {
 \'                                        { popState(); return conditionAppend( CLOSING_QUOTE ); }
-{ESCAPE_SEQUENCE}                         { return conditionAppend( REGULAR_STRING_PART ); }
+{STRING_ESCAPE_PART}                      { return conditionAppend( ESCAPED_STRING_PART ); }
 {REGULAR_APOS_STRING_PART}                { return conditionAppend( REGULAR_STRING_PART ); }
 }
 

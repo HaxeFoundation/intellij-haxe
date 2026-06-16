@@ -126,9 +126,9 @@ Haxe File
             STRING_LITERAL_EXPRESSION
               HaxePsiToken:OPEN_QUOTE('"')
               HaxePsiToken:REGULAR_STRING_PART('hello ')
-              HaxePsiToken:REGULAR_STRING_PART('\"')
+              HaxePsiToken:ESCAPED_STRING_PART('\"')
               HaxePsiToken:REGULAR_STRING_PART('world')
-              HaxePsiToken:REGULAR_STRING_PART('\"')
+              HaxePsiToken:ESCAPED_STRING_PART('\"')
               HaxePsiToken:REGULAR_STRING_PART(' !')
               HaxePsiToken:CLOSING_QUOTE('"')
           HaxePsiToken:;(';')

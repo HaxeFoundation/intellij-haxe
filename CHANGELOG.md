@@ -1,4 +1,7 @@
 # Changelog
+## 1.8.2
+* Added: Syntax highlighting for valid and invalid escape sequences in String literals.
+
 ## 1.8.1
 * Added: Initial support for spellchecking
 * Fixed: Hierarchy view missing elements from interfaces extending more than one interface.

@@ -51,6 +51,8 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.keyword"), KEYWORD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.number"), NUMBER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string"), STRING),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string.escape"), STRING_ESCAPE),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.string.invalid.escape"), INVALID_STRING_ESCAPE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.operator"), OPERATION_SIGN),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.parenths"), PARENTHS),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.brackets"), BRACKETS),
@@ -65,8 +67,8 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.interface"), INTERFACE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.type-parameter"), TYPE_PARAMETER),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.reification"), TYPE_REIFICATION),
-    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.function"), INSTANCE_MEMBER_FUNCTION),
-    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.static.member.function"), STATIC_MEMBER_FUNCTION),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.method"), INSTANCE_MEMBER_METHOD),
+    new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.static.member.method"), STATIC_MEMBER_METHOD),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.instance.member.variable"), INSTANCE_MEMBER_VARIABLE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.static.member.variable"), STATIC_MEMBER_VARIABLE),
     new AttributesDescriptor(HaxeBundle.message("haxe.color.settings.description.injected"), HAXE_INJECTED_LANGUAGE_FRAGMENT),
@@ -88,11 +90,13 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
     ourTags.put("interface", INTERFACE);
     ourTags.put("type.parameter", TYPE_PARAMETER);
     ourTags.put("reification", TYPE_REIFICATION);
-    ourTags.put("instance.member.function", INSTANCE_MEMBER_FUNCTION);
-    ourTags.put("static.member.function", STATIC_MEMBER_FUNCTION);
+    ourTags.put("instance.member.method", INSTANCE_MEMBER_METHOD);
+    ourTags.put("static.member.method", STATIC_MEMBER_METHOD);
     ourTags.put("instance.member.variable", INSTANCE_MEMBER_VARIABLE);
     ourTags.put("static.member.variable", STATIC_MEMBER_VARIABLE);
     ourTags.put("metadata", METADATA);
+    ourTags.put("string.escape", STRING_ESCAPE);
+    ourTags.put("string.invalid.escape", INVALID_STRING_ESCAPE);
   }
 
   @NotNull
@@ -148,12 +152,12 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
       class <class>SomeClass</class><<type.parameter>T</type.parameter>> implements <interface>IOther</interface> { // some comment
         private var <instance.member.variable>field</instance.member.variable> = null;
         private var <instance.member.variable>unusedField</instance.member.variable>:<class>Number</class> = 12345.67890;
-        private var <instance.member.variable>anotherString</instance.member.variable>:<class>String</class> = "Another\\nStrin\\g";
-        public static var <static.member.variable>staticField</static.member.variable>:<class>Int</class> = 0;
+        private var <instance.member.variable>anotherString</instance.member.variable>:<class>String</class> = "Another<string.escape>\\n</string.escape>String\\escape";
+        public static var <static.member.variable>staticField</static.member.variable>:<class>Array<Int></class> = [0, 1, 2, 3];
             
         public function generic<<type.parameter>K</type.parameter>:String>(arg:<type.parameter>K</type.parameter>):<type.parameter>K</type.parameter> return arg;
             
-        public static function <static.member.function>inc</static.member.function>() {
+        public static function <static.member.method>inc</static.member.method>() {
           <static.member.variable>staticField</static.member.variable>++;
         }
         
@@ -161,7 +165,7 @@ public class HaxeColorSettingsPage implements ColorSettingsPage {
             return macro <reification>$b{}</reification>a<reification>}</reification>;
         }
         
-        public function <instance.member.function>foo</instance.member.function>(<parameter>param</parameter>:<interface>AnInterface</interface>) {
+        public function <instance.member.method>foo</instance.member.method>(<parameter>param</parameter>:<interface>AnInterface</interface>) {
           trace(<instance.member.variable>anotherString</instance.member.variable> + <parameter>param</parameter>);
           var <local.variable>reassignedValue</local.variable>:<class>Int</class> = <class>SomeClass</class>.<static.member.variable>staticField</static.member.variable>;\s
           <local.variable>reassignedValue</local.variable> ++;\s

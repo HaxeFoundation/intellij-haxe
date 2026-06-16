@@ -1186,12 +1186,12 @@ constantExpression ::= LITINT | LITHEX
 {extends=literalExpression}
 
 
-stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
+stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | ESCAPED_STRING_PART | STRING_INVALID_ESCAPE |  shortTemplateEntry | longTemplateEntry)* CLOSING_QUOTE
 {pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
 longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1 recoverWhile="long_template_entry_recover"}
-private long_template_entry_recover ::= !(';' | OPEN_QUOTE| CLOSING_QUOTE | REGULAR_STRING_PART | LONG_TEMPLATE_ENTRY_START | '"' | "'")
+private long_template_entry_recover ::= !(';' | OPEN_QUOTE| CLOSING_QUOTE | REGULAR_STRING_PART | ESCAPED_STRING_PART |  STRING_INVALID_ESCAPE | LONG_TEMPLATE_ENTRY_START | '"' | "'")
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
