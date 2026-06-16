@@ -915,7 +915,9 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
           ResultHolder type = HaxeTypeResolver.getTypeFromTypeOrAnonymous(tag.getTypeOrAnonymous());
           if (type.getClassType() != null) {
             SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-            return findEnumMember(reference, typeReference);
+            List<HaxeComponentName> list = findEnumFromAssignType(reference, typeReference);
+            if(list != null) return list;
+
           }
         }
         if (init != null) {
@@ -925,7 +927,8 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
             ResultHolder type = HaxeTypeResolver.getPsiElementType(init, null);
             if (type.getClassType() != null) {
               SpecificTypeReference typeReference = type.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
-              return findEnumMember(reference, typeReference);
+              List<HaxeComponentName> list = findEnumFromAssignType(reference, typeReference);
+              if(list != null) return list;
             }
           }
         }
@@ -972,6 +975,26 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
       }
     }
     return null;
+  }
+
+  private static List<HaxeComponentName> findEnumFromAssignType(HaxeReference reference, SpecificTypeReference typeReference) {
+    if (enumUsageisInArrayLiteral(reference.getParent())) {
+      if (typeReference instanceof SpecificHaxeClassReference classReference) {
+        if (classReference.isArray()) {
+          @NotNull ResultHolder[] specifics = classReference.getGenericResolver().getSpecifics();
+          if (specifics.length == 1) {
+            return findEnumMember(reference, specifics[0].getType());
+          }
+        }
+      }
+    } else {
+      return findEnumMember(reference, typeReference);
+    }
+    return null;
+  }
+
+  private static boolean enumUsageisInArrayLiteral(PsiElement referenceParent) {
+    return referenceParent instanceof HaxeExpressionList expressionList && expressionList.getParent() instanceof HaxeArrayLiteral;
   }
 
   private static @Nullable List<HaxeComponentName> checkParameterListFromCallExpressions(HaxeReference reference, PsiElement referenceParent) {
