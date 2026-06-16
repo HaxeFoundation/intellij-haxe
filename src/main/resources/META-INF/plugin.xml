@@ -349,6 +349,8 @@
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeClassInheritanceFileIndex"/>
     <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeTypedefInheritanceFileIndex"/>
 
+    <fileBasedIndex implementation="com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeModulesInPackageIndex"/>
+
 <!-- STUB INDEXES-->
 
     <stubIndex implementation="com.intellij.plugins.haxe.lang.psi.stubs.index.fqn.HaxeFullyQualifiedClassNameStubIndex"/>

@@ -32,4 +32,12 @@ public class HaxeIndexDataUtil {
         data.setPublic(model.isPublic());
         return data;
     }
+    public static @NonNull HaxeComponentIndexData createIndexData(HaxeModuleModel model) {
+        HaxeComponentIndexData data = new HaxeComponentIndexData();
+        data.setFqn(model.getQualifiedInfo());
+        data.setName(model.getName());
+        data.setType( HaxeComponentType.MODULE);
+        data.setPublic(true);
+        return data;
+    }
 }

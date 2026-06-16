@@ -1,9 +1,12 @@
 package com.intellij.plugins.haxe.lang.psi.impl;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.lookup.*;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentStringCode;
+import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
+import com.intellij.plugins.haxe.lang.psi.indexes.filebased.extension.specialized.HaxeModulesInPackageIndex;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
@@ -17,6 +20,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiPackage;
 import com.intellij.psi.ResolveState;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -357,6 +361,14 @@ public class HaxeReferenceSuggestionUtil {
 
     private static void addPackageSuggestions(List<HaxeLookupElement> variants, PsiPackage psiPackage) {
         variants.addAll(HaxePackageLookupElement.convert(psiPackage.getSubPackages()));
+        variants.addAll(createModuleLookups(psiPackage));
+
+    }
+
+    private static List<HaxeModuleLookupElement> createModuleLookups(PsiPackage psiPackage) {
+        Project project = psiPackage.getProject();
+        Collection<HaxeComponentIndexData> moduleInfos = HaxeModulesInPackageIndex.getModulesInPackage(psiPackage.getQualifiedName(), project, GlobalSearchScope.allScope(project));
+        return HaxeModuleLookupElement.convert(moduleInfos);
     }
 
     private static void addRootPackageSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {
