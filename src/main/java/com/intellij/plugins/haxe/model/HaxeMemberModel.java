@@ -26,7 +26,10 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMember;
+import com.intellij.psi.util.CachedValueProvider;
+import com.intellij.psi.util.CachedValuesManager;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ObjectUtils;
 import lombok.CustomLog;
@@ -190,23 +193,29 @@ abstract public class HaxeMemberModel extends HaxeBaseMemberModel {
   @Nullable
   @Override
   public FullyQualifiedInfo getQualifiedInfo() {
-    HaxeClassModel declaringClass = getDeclaringClass();
-    if (declaringClass != null) {
-      FullyQualifiedInfo containerInfo = declaringClass.getQualifiedInfo();
-      if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
+    return CachedValuesManager.getManager(basePsi.getProject()).getCachedValue(basePsi, ()-> {
+      PsiFile containingFile = basePsi.getContainingFile();
+      FullyQualifiedInfo  qualifiedInfo = null;
+      HaxeClassModel declaringClass = getDeclaringClass();
+      if (declaringClass != null) {
+        FullyQualifiedInfo containerInfo = declaringClass.getQualifiedInfo();
+        if (containerInfo != null) {
+          qualifiedInfo = new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
+        }
       }
-    }
 
-    HaxeModule module = getModule();
-    if(module != null && module.getModel() instanceof  HaxeModuleModel model) {
-      FullyQualifiedInfo containerInfo = model.getQualifiedInfo();
-      if (containerInfo != null) {
-        return new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
+      HaxeModule module = getModule();
+      if(module != null && module.getModel() instanceof  HaxeModuleModel model) {
+        FullyQualifiedInfo containerInfo = model.getQualifiedInfo();
+        if (containerInfo != null) {
+          qualifiedInfo = new FullyQualifiedInfo(containerInfo.packageName, containerInfo.moduleName, containerInfo.className, getName());
+        }
       }
-    }
-    return null;
+      return new CachedValueProvider.Result<FullyQualifiedInfo>(qualifiedInfo, basePsi, containingFile);
+    });
   }
+
+
 
     public boolean isEnumMember() {
       HaxeClassModel declaringClass = getDeclaringClass();
