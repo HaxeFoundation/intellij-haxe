@@ -1597,20 +1597,16 @@ public class HaxeExpressionEvaluatorHandlers {
     ResultHolder assignHint = resolver.getAssignHint();
     if (assignHint != null) {
       SpecificHaxeClassReference hintClassType = assignHint.getClassType();
-      if (hintClassType != null) {
+      if (hintClassType != null && !assignHint.containsUnknownOrUnresolvedTypes()) {
         ResultHolder unknown = createUnknown(mapLiteral);
-        SpecificHaxeClassReference map = hintClassType.tryCastTo(createMap(unknown, unknown, mapLiteral));
+        SpecificHaxeClassReference basicMap = createMap(unknown, unknown, mapLiteral);
+        ResultHolder mapWithTypeParams = basicMap.replaceUnknownsWithTypeParameter();
+        SpecificHaxeClassReference map = hintClassType.tryCastTo(mapWithTypeParams.getClassType());
         if (map != null) {
           @NotNull ResultHolder[] specifics = hintClassType.getSpecifics();
           if (specifics.length == 2) {
-              if (specifics[0].getType().isEnumValueClass()) {
-                log.warn("DEBUG!: prefer Key to be EnumValue");
-                enumValuePreferredKey = true;
-              }
-              if (specifics[1].getType().isEnumValueClass()){
-                log.warn("DEBUG!: prefer Value to be EnumValue");
-                enumValuePreferredValue = true;
-              }
+              if (specifics[0].getType().isEnumValueClass()) enumValuePreferredKey = true;
+              if (specifics[1].getType().isEnumValueClass()) enumValuePreferredValue = true;
           }
         }
       }
@@ -1646,8 +1642,6 @@ public class HaxeExpressionEvaluatorHandlers {
     ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
     ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
 
-//    log.warn("DEBUG!: Unified Key Type:" + keyTypeHolder.toPresentationString());
-//    log.warn("DEBUG!: Unified Value Type:" + valueTypeHolder.toPresentationString());
 
     SpecificHaxeClassReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, mapLiteral);
     if (mapLiteral.getParent() instanceof HaxeVarInit ) {
@@ -1658,14 +1652,12 @@ public class HaxeExpressionEvaluatorHandlers {
             SpecificHaxeClassReference hintAsSameType = hintClassType.tryCastToClass(result);
             if (hintAsSameType != null) {
               if (hintClassType.canAssign(result)) {
-                log.warn("DEBUG!: return cast result (no cache)");
                 return hintAsSameType.createHolder().noCache();
               }
             }
           }
       }
     }
-    log.warn("DEBUG!: return default result");
     return result.createHolder();
   }
 
