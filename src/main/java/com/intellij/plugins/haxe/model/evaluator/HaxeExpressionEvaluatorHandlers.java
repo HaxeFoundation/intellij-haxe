@@ -1646,8 +1646,8 @@ public class HaxeExpressionEvaluatorHandlers {
     ResultHolder keyTypeHolder = HaxeTypeUnifier.unify(keyReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
     ResultHolder valueTypeHolder = HaxeTypeUnifier.unify(valueReferences, mapLiteral, UnificationRules.IGNORE_VOID).withoutConstantValue().createHolder();
 
-    log.warn("DEBUG!: Unified Key Type:" + keyTypeHolder.toPresentationString());
-    log.warn("DEBUG!: Unified Value Type:" + valueTypeHolder.toPresentationString());
+//    log.warn("DEBUG!: Unified Key Type:" + keyTypeHolder.toPresentationString());
+//    log.warn("DEBUG!: Unified Value Type:" + valueTypeHolder.toPresentationString());
 
     SpecificHaxeClassReference result = SpecificHaxeClassReference.createMap(keyTypeHolder, valueTypeHolder, mapLiteral);
     if (mapLiteral.getParent() instanceof HaxeVarInit ) {
@@ -1658,14 +1658,14 @@ public class HaxeExpressionEvaluatorHandlers {
             SpecificHaxeClassReference hintAsSameType = hintClassType.tryCastToClass(result);
             if (hintAsSameType != null) {
               if (hintClassType.canAssign(result)) {
-                log.warn("DEBUG!: return cast result (no cache):" + hintAsSameType.createHolder().toPresentationString());
+                log.warn("DEBUG!: return cast result (no cache)");
                 return hintAsSameType.createHolder().noCache();
               }
             }
           }
       }
     }
-    log.warn("DEBUG!: return default result:" + result.createHolder().toPresentationString());
+    log.warn("DEBUG!: return default result");
     return result.createHolder();
   }
 
