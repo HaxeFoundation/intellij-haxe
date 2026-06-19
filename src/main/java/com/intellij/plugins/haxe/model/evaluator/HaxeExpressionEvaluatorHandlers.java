@@ -1595,6 +1595,11 @@ public class HaxeExpressionEvaluatorHandlers {
     var enumValuePreferredValue = false;
 
     ResultHolder assignHint = resolver.getAssignHint();
+    // checkEnumMemberHints in HaxeResolver will try to detectType of refrences and in resolve paths it triggers
+    // handleMapLiteral without assignHint, and this can result in an EnumType when EnumValue is expected
+    if(assignHint == null && mapLiteral.getParent() instanceof HaxeVarInit init) {
+      assignHint = tryGetHintFromFieldTypeTag(init);
+    }
     if (assignHint != null) {
       SpecificHaxeClassReference hintClassType = assignHint.getClassType();
       if (hintClassType != null) {
@@ -2644,21 +2649,6 @@ public class HaxeExpressionEvaluatorHandlers {
     return null;
   }
 
-  //private static boolean containsTypeParameters(ResultHolder holder) {
-  //  if (holder.isUnknown()) return  false;
-  //  if (holder.isTypeParameter()) return true;
-  //  SpecificTypeReference type = holder.getType();
-  //  if (type instanceof  SpecificHaxeClassReference classReference) {
-  //    for (ResultHolder specific : classReference.getSpecifics()) {
-  //      if (containsTypeParameters(specific)) return  true;
-  //    }
-  //  }
-  //  if (type instanceof SpecificFunctionReference  function) {
-  //    if(!function.getTypeParameters().isEmpty()) return true;
-  //  }
-  //  return false;
-  //}
-
   static boolean isUntypedReturn(HaxeReturnStatement statement) {
     PsiElement child = statement.getFirstChild();
     while(child != null) {
@@ -2671,6 +2661,18 @@ public class HaxeExpressionEvaluatorHandlers {
   }
 
 
+
+  private static ResultHolder tryGetHintFromFieldTypeTag(HaxeVarInit init) {
+    HaxePsiField field = PsiTreeUtil.getParentOfType(init, HaxePsiField.class);
+    if(field != null){
+      HaxeTypeTag typeTag = field.getTypeTag();
+      if(typeTag != null)  {
+        ResultHolder type = HaxeTypeResolver.getTypeFromTypeTag(typeTag, field);
+        if(type != null && !type.isUnknown()) return type;
+      }
+    }
+    return null;
+  }
 
 
 }
