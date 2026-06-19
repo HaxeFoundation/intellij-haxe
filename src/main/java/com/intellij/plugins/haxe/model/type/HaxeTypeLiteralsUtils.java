@@ -64,6 +64,7 @@ public class HaxeTypeLiteralsUtils {
     if (operator.equals(">>>")) return (int)leftv >>> (int)rightv;
     if (operator.equals("&")) return (int)leftv & (int)rightv;
     if (operator.equals("|")) return (int)leftv | (int)rightv;
+    if (operator.equals("^")) return (int)leftv ^ (int)rightv;
     if ( left instanceof  Boolean leftb && right instanceof Boolean  rightb) {
       if (operator.equals("||")) return leftb || rightb;
       if (operator.equals("&&")) return leftb && rightb;
