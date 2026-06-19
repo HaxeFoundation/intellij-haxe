@@ -14,4 +14,12 @@ class NullCoalescingTest {
         testVar = stringFunction() ?? <error descr="Incompatible type: Null<String> should be Null<Bool>">boolFunction()</error>; // Incorrect: different types (can not unify)
         testVar = boolFunction() ?? <error descr="Incompatible type: Null<Bool> should be Null<String>">stringFunction()</error>; // Incorrect: different types (can not unify)
     }
+
+    public function casesWithReturn() {
+        var a = null;
+        var t = a ?? return 2; // returns 2
+        var q = return 1 ?? return 2; // returns 1
+        //TODO fix semi error
+        var r = (return 1<error descr="Missing semicolon.">)</error> ?? (return 2<error descr="Missing semicolon.">)</error>; //  returns 1
+    }
 }

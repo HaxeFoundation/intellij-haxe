@@ -1155,6 +1155,12 @@ private value ::= ('untyped' expression)
                 | objectLiteral
                 | valueReference
                 | localVarDeclarationWithInit
+                // Note: returnStatement is needed to support some coalescing expressions
+                // ex.  "var b = a ?? return 2"
+                // ex.  "var b = return 1 ?? return 2" // while it does not make much sense its legal syntax
+                // "var x = return 1;" is also legal syntax (type if "x" is just unknown)
+                // TODO ignore semicolon requirements for expressions like "v"ar b = (return 1) ?? (return 2);"
+                | returnStatement
 {pin=1 }
 private valueReference ::= ( macroExpressionReification | callOrArrayTail) (qualifiedReferenceTail | CallArrayOrReferenceExpression* qualifiedReferenceTail*)?;
 // optimization (we want to avoid parsing complex structures multiple times, ex. functionLiteral with immediate call, vs just the functionLiteral)
