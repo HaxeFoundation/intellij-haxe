@@ -42,5 +42,16 @@ class FunctionBindTest1 {
         var bind = varargs.bind(1, <error descr="Type mismatch (Expected: 'haxe.Rest<Float>' got: 'String')">"string"</error>); // String should be haxe.Rest<Float>
         var bind = varargs.bind(<error descr="Too many arguments (expected 2 but got 3)\"">1, _, _</error> ); // Too many callback arguments
 
+        // verify that type info from references with "_" as name  does not interfer with function bind
+        var _:Array<String> = [];
+        var bind = normal.bind(_, 1.0);
+
+        switch ex {
+            case Test(_):
+                var bind = normal.bind(_, 1.0);
+        }
     }
+}
+enum EnumForTest {
+    Test(name:String);
 }

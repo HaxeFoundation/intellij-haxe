@@ -291,11 +291,15 @@ public class HaxeCallExpressionContext {
                     if (assignEvaluation.explanations.hasMissingModel()) {
                         addMissingModelWarning(assignEvaluation, evaluation, argumentModel);
                     } else {
-                        addTypeMismatchError(evaluation,
-                                argumentType,
-                                parameterType,
-                                assignEvaluation.explanations,
-                                argumentModel.psiElement, false);
+                        // do not add type errors for "ignored"  arguments (named "_") in  bindCall callExpressions
+                        // while its not common to have references that resolves to types,  they do occur in some switch expresisons
+                        if (!isBindIgnoreArgument(argumentModel)) {
+                            addTypeMismatchError(evaluation,
+                                    argumentType,
+                                    parameterType,
+                                    assignEvaluation.explanations,
+                                    argumentModel.psiElement, false);
+                        }
                     }
                 }
                 evaluation.validationFailed();
@@ -309,9 +313,9 @@ public class HaxeCallExpressionContext {
         return evaluation;
     }
 
-
-
-
+    private boolean isBindIgnoreArgument(CallExpressionArgumentModel argumentModel) {
+        return isBindCall && argumentModel.getPsiElement().textMatches("_");
+    }
 
 
     private static void addMissingModelWarning(HaxeAssignEvaluation assignEvaluation,
