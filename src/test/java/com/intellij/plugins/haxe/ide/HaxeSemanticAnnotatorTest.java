@@ -902,6 +902,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   public void testCallExpression() throws Throwable {
     doTestNoFixWithWarnings();
   }
+
+  @Test
+  public void testCallExpressionRests() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
   @Test
   public void testNewExpression() throws Throwable {
     doTestNoFixWithWarnings();

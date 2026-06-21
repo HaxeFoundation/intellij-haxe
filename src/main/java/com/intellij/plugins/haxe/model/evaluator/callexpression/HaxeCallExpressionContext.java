@@ -214,13 +214,16 @@ public class HaxeCallExpressionContext {
                 if (parameters.size() > parameterCounter) {
                     parameterModel = parameters.get(parameterCounter++);
                     if (parameterModel.isRest()){
-                        // sanity check for MacroVarArgOrRest, aka Array<Expr>
+                        // sanity check for MacroVarArgOrRest, aka Array<Expr> / Rest<>
                         // if argument is array then this might be a normal parameter and not a rest-parameter
                         SpecificTypeReference typeFromModel = parameterModel.getType();
                         if (HaxeMacroTypeUtil.isMacroVarArgOrRestType(typeFromModel)) {
                             // strict check here as we want to test if we are dealing with an Array type or type that can be assigned to Array.
                             // non-strict check would allow Unknown, Dynamic and Expr  to assign and  thus prevent us from setting reachedRestParameter
                             if (!HaxeTypeCompatible.canAssignToFromReference(typeFromModel, argumentModel.getType(), true)) {
+                                reachedRestParameter = true;
+                            }
+                            if(argumentModel.getType().isTypeParameter()) {
                                 reachedRestParameter = true;
                             }
                         }else {
