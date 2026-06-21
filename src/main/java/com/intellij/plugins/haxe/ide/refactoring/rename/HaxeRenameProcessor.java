@@ -173,15 +173,17 @@ public class HaxeRenameProcessor extends RenamePsiElementProcessor {
     }
     else  if(element instanceof HaxeFile haxeFile) {
       HaxeModule module = findModule(haxeFile);
-      addRenameModule(allRenames, module, newName);
-      HaxeClass mainClass = findMainClass(module);
-      if(mainClass != null) {
-        int response = askRenameMain(mainClass, "file");
-        if (response == MessageConstants.YES) {
-          addRenameMain(allRenames, mainClass, dropFileExtension(newName));
-        } else if (response == MessageConstants.CANCEL) {
-          allRenames.clear();
-          return;
+      if(module != null) {
+        addRenameModule(allRenames, module, newName);
+        HaxeClass mainClass = findMainClass(module);
+        if (mainClass != null) {
+          int response = askRenameMain(mainClass, "file");
+          if (response == MessageConstants.YES) {
+            addRenameMain(allRenames, mainClass, dropFileExtension(newName));
+          } else if (response == MessageConstants.CANCEL) {
+            allRenames.clear();
+            return;
+          }
         }
       }
     } else if (element instanceof HaxeClass haxeClass) {
