@@ -624,7 +624,7 @@ public class HaxeExpressionEvaluatorHandlers {
     // @TODO: check if it has string interpolation inside, in that case text is not constant
     String constant = HaxeTypeLiteralsUtils.translateHaxeStringToJavaString(element.getText());
     constant = constant.substring(1, constant.length()-1); //drop the quotes wrapping the string
-    return SpecificHaxeClassReference.primitive("String", element, constant).createHolder();
+    return SpecificHaxeClassReference.getString(element, constant).createHolder();
   }
 
   static ResultHolder handleSwitchCaseCaptureVar(HaxeGenericResolver resolver, HaxeSwitchCaseCaptureVar captureVar) {

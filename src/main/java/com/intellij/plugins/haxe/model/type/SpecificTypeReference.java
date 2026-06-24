@@ -195,6 +195,10 @@ public abstract class SpecificTypeReference {
     HaxeClassReference ref = getStdClassReference(STRING, context);
     return SpecificHaxeClassReference.withoutGenerics(ref);
   }
+  public static SpecificHaxeClassReference getString(@NotNull PsiElement context, String value) {
+    return primitive(SpecificTypeReference.STRING, context, value);
+  }
+
 
   public static SpecificHaxeClassReference getEnumValue(@NotNull PsiElement context) {
     HaxeClassReference ref = getStdClassReference(ENUM_VALUE, context);

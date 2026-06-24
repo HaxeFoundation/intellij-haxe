@@ -61,6 +61,13 @@ public class HaxeOperatorResolver {
     boolean canAssignLeftToBool = HaxeTypeCompatible.canAssignToFromReference(boolRef, left);
     boolean canAssignRightToBool = HaxeTypeCompatible.canAssignToFromReference(boolRef, right);
 
+    if(left.isDynamic() || right.isDynamic()) {
+      //Dynamic does not have any implicit or direct casts but the compiler has a set of rules  that determine the type
+      // https://github.com/HaxeFoundation/haxe/blob/56b69a96d91011311d9965a1737d55b8789ff6f3/src/typing/operators.ml#L194
+      return handleOperatorForDynamic(left, right, operator,  elementContext);
+    }
+
+
     if (left.isNumeric() || right.isNumeric()) {
       if (operator.equals("+")
           || operator.equals("-")
@@ -94,19 +101,19 @@ public class HaxeOperatorResolver {
 
     if (operator.equals("+")) {
       if (left.toStringWithoutConstant().equals("String") || right.toStringWithoutConstant().equals("String")) {
-        return SpecificHaxeClassReference.primitive("String", elementContext);
+        return SpecificHaxeClassReference.getString(elementContext);
       }
     }
 
     if (operator.equals("==") || operator.equals("!=")) {
-        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+        result =  SpecificHaxeClassReference.getBool(elementContext);
     }
 
     if (operator.equals("<") || operator.equals("<=") ||
       operator.equals(">") || operator.equals(">=")) {
       if ((left.isNumeric() && right.isNumeric() )
           || left.isString() && right.isString()) {
-        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+        result = SpecificHaxeClassReference.getBool(elementContext);
       }else {
         result = SpecificHaxeClassReference.getUnknown(elementContext);
       }
@@ -114,7 +121,7 @@ public class HaxeOperatorResolver {
 
     if (operator.equals("&&") || operator.equals("||")) {
       if (canAssignLeftToBool && canAssignRightToBool) {
-        result = SpecificHaxeClassReference.primitive("Bool", elementContext, null);
+        result = SpecificHaxeClassReference.getBool(elementContext);
       }else {
         result = SpecificHaxeClassReference.getUnknown(elementContext);
       }
@@ -148,6 +155,8 @@ public class HaxeOperatorResolver {
 
     return result != null ? result : SpecificHaxeClassReference.getUnknown(elementContext);
   }
+
+
 
   private static boolean isInEnumValueMatchCallExpression(PsiElement root) {
     if(root.getParent() instanceof HaxeCallExpressionList list) {
@@ -239,5 +248,28 @@ public class HaxeOperatorResolver {
         return 0;
       }
     };
+  }
+
+  ///  Result Type | When
+  ///  -- | --
+  ///  Dynamic | + with Dynamic (except string concatenation)
+  ///  String | + where either side is String
+  ///  Float | -, *, /, % involving Dynamic
+  ///  Int | Bitwise operators involving Dynamic
+  ///  Bool | Comparisons and boolean operators
+  private static SpecificTypeReference handleOperatorForDynamic(SpecificTypeReference left, SpecificTypeReference right, String operator, PsiElement elementContext) {
+    if(operator.equals("+")) {
+      if (left.isString() || right.isString()) return SpecificHaxeClassReference.getString(elementContext);
+      return SpecificHaxeClassReference.getDynamic(elementContext);
+    }
+    if (operator.equals("-") || operator.equals("*") || operator.equals("/") || operator.equals("%")) {
+      return SpecificHaxeClassReference.getFloat(elementContext);
+    }
+    if (operator.equals("&") || operator.equals("|") || operator.equals("^") ||
+        operator.equals("<<") || operator.equals(">>") || operator.equals(">>>")
+    ) {
+      return SpecificHaxeClassReference.getInt(elementContext);
+    }
+    return SpecificHaxeClassReference.getBool(elementContext);
   }
 }

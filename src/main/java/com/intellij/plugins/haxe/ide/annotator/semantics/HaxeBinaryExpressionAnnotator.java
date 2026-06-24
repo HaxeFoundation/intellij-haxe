@@ -42,26 +42,34 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
     PsiElement[] children = binaryExpression.getChildren();
     if (children.length == 3) {
       // skip Null Coalescing here, it's handled in "HaxeNullCoalescingAnnotator"
-      if(children[1].textMatches("??")) return;
+      if (children[1].textMatches("??")) return;
+
+
+      PsiElement leftChild = children[0];
+      PsiElement rightChild = children[2];
+
+      HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(leftChild);
+      HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rightChild);
+
+      ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(leftChild, binaryExpression, lhsResolver);
+      ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
+
+      ResultHolder nonNullLhsType = lhsType.tryUnwrapNullType();
+      ResultHolder nonNullRhsType = lhsType.tryUnwrapNullType();
+
+      if (nonNullLhsType.isDynamic() || nonNullRhsType.isDynamic()) {
+        String operatorText = children[1].getText();
+        String error = "Applying " + operatorText + " operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation";
+        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, error)
+                .range(binaryExpression)
+                .create();
+      }
 
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(binaryExpression);
       HaxeExpressionEvaluator.evaluate(binaryExpression, context, null);
-
       ResultHolder result = context.result;
 
       if (result.isUnknown()) {
-
-
-        PsiElement leftChild = children[0];
-        PsiElement rightChild = children[2];
-
-        HaxeGenericResolver lhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(leftChild);
-        HaxeGenericResolver rhsResolver = HaxeGenericResolverUtil.generateResolverFromScopeParents(rightChild);
-
-        ResultHolder lhsType = HaxeTypeResolver.getPsiElementType(leftChild, binaryExpression, lhsResolver);
-        ResultHolder rhsType = HaxeTypeResolver.getPsiElementType(rightChild, binaryExpression, rhsResolver);
-
-
 
         // ignoring macro values as we dont always know the type
         boolean containsMacroExpression = HaxeMacroUtil.isMacroType(lhsType) | HaxeMacroUtil.isMacroType(rhsType);
@@ -74,22 +82,11 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
           return;
         }
 
-        ResultHolder nonNullLhsType = lhsType.tryUnwrapNullType();
-        ResultHolder nonNullRhsType = lhsType.tryUnwrapNullType();
-
-        if (nonNullLhsType.isDynamic() || nonNullRhsType.isDynamic()) {
-          String operatorText = children[1].getText();
-          String error = "Applying "+operatorText+" operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation";
-          holder.newAnnotation(HighlightSeverity.WEAK_WARNING, error)
-                  .range(binaryExpression)
-                  .create();
-        } else {
-          String operatorText = children[1].getText();
-          String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
-          holder.newAnnotation(HighlightSeverity.ERROR, error)
-                  .range(binaryExpression)
-                  .create();
-        }
+        String operatorText = children[1].getText();
+        String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
+        holder.newAnnotation(HighlightSeverity.ERROR, error)
+                .range(binaryExpression)
+                .create();
       }
     }
   }
