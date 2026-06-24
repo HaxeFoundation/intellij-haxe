@@ -1,5 +1,6 @@
 # Changelog
 ## 1.8.2
+* Fixed: In some cases operator expressions would evaluate to the wrong type when Dynamic was involved(#1252)
 * Fixed: Function bind operations would incorrctly evalute type match if fields with name `_` where present (#1250)
 * Fixed: Return expressions would cause parser error in null coalescing (#1249)
 * Fixed: Xor operation on int literals would fail to evaluate and show error (#1248).
