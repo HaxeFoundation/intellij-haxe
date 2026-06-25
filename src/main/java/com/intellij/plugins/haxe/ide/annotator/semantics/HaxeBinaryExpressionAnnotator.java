@@ -12,8 +12,6 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
-import static com.intellij.plugins.haxe.model.type.HaxeOperatorResolver.ARITHMETIC_OPERATORS;
-import static com.intellij.plugins.haxe.model.type.HaxeOperatorResolver.BITWISE_OPERATORS;
 
 public class HaxeBinaryExpressionAnnotator implements Annotator {
   @Override
