@@ -12,6 +12,8 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
+import static com.intellij.plugins.haxe.model.type.HaxeOperatorResolver.ARITHMETIC_OPERATORS;
+import static com.intellij.plugins.haxe.model.type.HaxeOperatorResolver.BITWISE_OPERATORS;
 
 public class HaxeBinaryExpressionAnnotator implements Annotator {
   @Override
@@ -42,7 +44,8 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
     PsiElement[] children = binaryExpression.getChildren();
     if (children.length == 3) {
       // skip Null Coalescing here, it's handled in "HaxeNullCoalescingAnnotator"
-      if (children[1].textMatches("??")) return;
+      PsiElement operator = children[1];
+      if (operator.textMatches("??")) return;
 
 
       PsiElement leftChild = children[0];
@@ -56,13 +59,16 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
 
       ResultHolder nonNullLhsType = lhsType.tryUnwrapNullType();
       ResultHolder nonNullRhsType = lhsType.tryUnwrapNullType();
+      String operatorText = operator.getText();
 
-      if (nonNullLhsType.isDynamic() || nonNullRhsType.isDynamic()) {
-        String operatorText = children[1].getText();
-        String error = "Applying " + operatorText + " operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation";
-        holder.newAnnotation(HighlightSeverity.WEAK_WARNING, error)
-                .range(binaryExpression)
-                .create();
+      // warning for operators on dynamic that are not simple equals expresions
+      if (!operatorText.equals("==") && !operatorText.equals("!=")) {
+        if (nonNullLhsType.isDynamic() || nonNullRhsType.isDynamic()) {
+          String error = "Applying " + operatorText + " operator to a Dynamic value may cause Runtime exceptions on static targets if the value does not support the operation";
+          holder.newAnnotation(HighlightSeverity.WEAK_WARNING, error)
+                  .range(binaryExpression)
+                  .create();
+        }
       }
 
       HaxeExpressionEvaluatorContext context = new HaxeExpressionEvaluatorContext(binaryExpression);
@@ -82,7 +88,7 @@ public class HaxeBinaryExpressionAnnotator implements Annotator {
           return;
         }
 
-        String operatorText = children[1].getText();
+
         String error = "Unable to apply operator " + operatorText + " for types " + lhsType.getType() + " and " + rhsType.getType();
         holder.newAnnotation(HighlightSeverity.ERROR, error)
                 .range(binaryExpression)
