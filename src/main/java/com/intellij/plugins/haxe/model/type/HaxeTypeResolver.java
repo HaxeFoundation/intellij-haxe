@@ -700,7 +700,7 @@ public class HaxeTypeResolver {
       HaxeNamedComponent contributor = HaxeResolveUtil.findTypeParameterContributor(anonymousType);
       if (null != contributor ) {
         HaxeClassModel contributorModel = HaxeClassModel.fromElement(contributor);
-        if (contributorModel.hasGenericParams()) {
+        if (contributorModel != null && contributorModel.hasGenericParams()) {
           HaxeGenericResolver localResolver = new HaxeGenericResolver();
           // attempt at avoiding recursion issues
           // for "function X<T:{}>();" contributor would be function X and T would be the anonymous type
