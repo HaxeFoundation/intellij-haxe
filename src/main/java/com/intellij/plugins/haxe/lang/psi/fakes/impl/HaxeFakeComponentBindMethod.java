@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.lang.psi.fakes;
+package com.intellij.plugins.haxe.lang.psi.fakes.impl;
 
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.NlsSafe;
@@ -6,6 +6,7 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
 import com.intellij.plugins.haxe.lang.psi.HaxeNamedComponent;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeNamedComponent;
 import com.intellij.psi.PsiElement;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,7 @@ import javax.swing.*;
 public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
 
 
+    public static final String NAME = "bind";
     private final HaxeNamedComponent boundMethodOrFunction;
     private final HaxeIdentifier parent;
 
@@ -25,7 +27,7 @@ public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
     }
 
     @Override
-    public String getDocs() {
+    public String getDocsText() {
         return """
                *Language feature*
                
@@ -57,12 +59,17 @@ public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
                """;
     }
 
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
     public HaxeNamedComponent  getOriginalMethodOrFunction() {
         return  boundMethodOrFunction;
     }
 
     @Override
-    public HaxeComponentType componentType() {
+    public HaxeComponentType getComponentType() {
         return HaxeComponentType.METHOD;
     }
 

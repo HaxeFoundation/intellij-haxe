@@ -3,8 +3,10 @@ package com.intellij.plugins.haxe.ide.hint.parameters;
 import com.intellij.codeInsight.hints.InlayInfo;
 import com.intellij.codeInsight.hints.InlayParameterHintsProvider;
 import com.intellij.codeInsight.hints.Option;
+import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.HaxeHintBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeNamedComponent;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
 import com.intellij.plugins.haxe.model.evaluator.callexpression.HaxeCallExpressionContext;
@@ -192,9 +194,14 @@ public class HaxeInlayParameterHintsProvider implements InlayParameterHintsProvi
         final PsiElement target = reference.resolve();
         if (target instanceof HaxeMethod method) {
           return method.getModel();
+        }else if(target instanceof HaxeFakeNamedComponent fakeNamedComponent) {
+          if( fakeNamedComponent.getComponentType() == HaxeComponentType.METHOD) {
+              return fakeNamedComponent.getModel();
+          }
         }
       }
     }
+
     if (expression instanceof HaxeNewExpression newExpression) {
       HaxeType type = newExpression.getType();
       if (type != null) {

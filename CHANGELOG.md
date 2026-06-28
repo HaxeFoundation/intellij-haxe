@@ -1,7 +1,11 @@
 # Changelog
+## 1.8.4
+* Added: Completion for Target-specific Syntax
+* Changed: misc internal changes to how language features like trace and bind are resolved and shown.
+
 ## 1.8.3
 * Fixed: Regression for operator warning annotation on expresions with `Dynamic` type
-* 
+
 ## 1.8.2
 * Fixed: In some cases operator expressions would evaluate to the wrong type when Dynamic was involved(#1252)
 * Fixed: Function bind operations would incorrctly evalute type match if fields with name `_` where present (#1250)

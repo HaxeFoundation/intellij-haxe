@@ -28,6 +28,7 @@ import com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationRenderer;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
+import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeTargetSpecificSyntax;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
@@ -123,10 +124,14 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
     HaxeDocumentationRenderer renderer = element.getProject().getService(HaxeDocumentationRenderer.class);
 
     if(namedComponent instanceof HaxeFakePsiElement fakePsiElement) {
-      String docs = fakePsiElement.getDocs();
+      if(fakePsiElement.getDocsPsi() == null) {
+      String docs = fakePsiElement.getDocsText();
       String render = renderer.parseAndRender(docs);
       mainBuilder.appendRaw(render);
       return mainBuilder.toString();
+      }else {
+        namedComponent = fakePsiElement.getDocsPsi();
+      }
     }
 
     final HaxeComponentType type = namedComponent.getComponentType();
@@ -339,9 +344,11 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
 
   private void processMethod(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
+    if(component instanceof HaxeFakeTargetSpecificSyntax fakeNamedComponent) {
+      component = fakeNamedComponent.resolved;
+    }
 
-
-    if (component instanceof HaxeMethodDeclaration methodDeclaration) {
+    if (component instanceof HaxeMethod methodDeclaration) {
       appendClassOrModuleReference(builder, methodDeclaration);
 
       HaxeMethodModel methodModel = methodDeclaration.getModel();

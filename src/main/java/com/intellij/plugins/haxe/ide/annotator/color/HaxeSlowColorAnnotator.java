@@ -62,17 +62,18 @@ public class HaxeSlowColorAnnotator implements Annotator {
         // skipping all reference-types that would not result in a highlight, no need waste time  resolving etc.
         return;
       }
+
       PsiElement resolved = reference.resolve();
 
-      // TODO consider custom style for fake/non-exsisting elements
       if (resolved instanceof HaxeFakeNamedComponent fakeNamedComponent) {
-        if(fakeNamedComponent.getComponentName() != null) {
-          TextAttributesKey attribute = getAttributeByType(fakeNamedComponent.componentType(), false);
-          if(attribute != null) {
-            holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(fakeNamedComponent.getParent()).textAttributes(attribute).create();
-          }
+        TextAttributesKey attribute = getAttributeByType(fakeNamedComponent.getComponentType(), fakeNamedComponent.isStatic());
+        if (attribute != null) {
+          holder.newSilentAnnotation(HighlightSeverity.INFORMATION).range(fakeNamedComponent.getParent()).textAttributes(attribute).create();
         }
-      } else if (resolved instanceof HaxeNamedComponent namedComponent) {
+        return;
+      }
+
+      if (resolved instanceof HaxeNamedComponent namedComponent) {
         HaxeComponentName componentName = namedComponent.getComponentName();
         if (componentName != null) {
           final boolean isStatic = PsiTreeUtil.getParentOfType(element, HaxeImportStatement.class) == null && checkStatic(componentName.getParent());

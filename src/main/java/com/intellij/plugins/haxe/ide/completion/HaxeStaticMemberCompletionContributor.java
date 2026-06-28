@@ -37,10 +37,11 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
             .inside(HaxeIdentifier.class)
             .andNot(psiElement().inside(HaxeType.class))
             // - avoid chained refs (MyClass.startComplet.. / myVar.startComplet... should not show static suggestions)
-            // level 0: HaxeIdentifier
-            // level 1: HaxeReference
-            // level 2: should not be a refrence
-            .andNot(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
+            // current = ID token
+            // parent 1: HaxeIdentifier
+            // parent 2: HaxeReference
+            // parent 3: should not be a refrence as that would be a chain
+            .andNot(psiElement().withSuperParent(3, HaxeReferenceExpression.class));
 
     public HaxeStaticMemberCompletionContributor() {
     extend(CompletionType.BASIC, ELEMENT_CAPTURE,
@@ -65,12 +66,8 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
                                             @NlsSafe String filterText) {
     final Project project = targetFile.getProject();
     final GlobalSearchScope scope = HaxeResolveUtil.getScopeForElement(targetFile);
-      final PrefixMatcher matcher = resultSet.getPrefixMatcher();
+    final PrefixMatcher matcher = resultSet.getPrefixMatcher();
 
-      //TODO mlo: move somewhere more appropreate
-      if("trace".startsWith(filterText)) {
-          addTraceMethodLookup(resultSet);
-      }
 
     // Static public methods
     StubIndex stubIndex = StubIndex.getInstance();
@@ -111,18 +108,5 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
 
         resultSet.addElement(new HaxeIndexedStaticMemberLookupElement(lookupData));
     }
-
-    private static void addTraceMethodLookup(CompletionResultSet resultSet) {
-        LookupElementBuilder trace = LookupElementBuilder.create("trace")
-                .appendTailText("()", true)
-                .withInsertHandler(HaxeStaticMemberCompletionContributor::traceInsertHandler)
-                .withIcon(HaxeIcons.Method);
-        resultSet.addElement(trace);
-    }
-
-    private static void traceInsertHandler(@NotNull InsertionContext insertionContext, LookupElement lookupElement) {
-        JavaCompletionUtil.insertParentheses(insertionContext, lookupElement, false, true);
-    }
-
 
 }

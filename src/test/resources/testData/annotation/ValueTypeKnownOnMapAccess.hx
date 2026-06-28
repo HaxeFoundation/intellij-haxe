@@ -11,6 +11,6 @@ class <info descr="null">Test</info> {
     <info descr="null">a</info>["ONE"] = "one";
     <info descr="null">a</info>.<info descr="null">set</info>("TWO", "two");
 
-    trace(<info descr="null">a</info>["ONE"].<info descr="null">length</info>);
+    <info descr="null">trace</info>(<info descr="null">a</info>["ONE"].<info descr="null">length</info>);
   }
 }

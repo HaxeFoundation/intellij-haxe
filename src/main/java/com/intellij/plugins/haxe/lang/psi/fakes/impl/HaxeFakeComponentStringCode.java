@@ -1,10 +1,12 @@
-package com.intellij.plugins.haxe.lang.psi.fakes;
+package com.intellij.plugins.haxe.lang.psi.fakes.impl;
 
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
 import com.intellij.plugins.haxe.lang.psi.HaxeIdentifier;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeComponentName;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeNamedComponent;
 import com.intellij.psi.PsiElement;
 import icons.HaxeIcons;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +17,7 @@ import javax.swing.*;
 public class HaxeFakeComponentStringCode extends HaxeFakeNamedComponent {
 
 
+    public static final String NAME = "code";
     private final HaxeFakeComponentName componentName;
     private final HaxeIdentifier parent;
 
@@ -24,7 +27,7 @@ public class HaxeFakeComponentStringCode extends HaxeFakeNamedComponent {
     }
 
     @Override
-    public String getDocs() {
+    public String getDocsText() {
         return """
                *Language feature*
                
@@ -38,7 +41,12 @@ public class HaxeFakeComponentStringCode extends HaxeFakeNamedComponent {
     }
 
     @Override
-    public HaxeComponentType componentType() {
+    public String getName() {
+        return NAME;
+    }
+
+    @Override
+    public HaxeComponentType getComponentType() {
         return HaxeComponentType.FIELD;
     }
 

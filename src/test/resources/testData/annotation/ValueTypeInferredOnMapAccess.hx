@@ -9,7 +9,7 @@ import <info descr="null">haxe.ds.StringMap</info>;
 class <info descr="null">Test</info> {
   function <info descr="null">Test</info>() {
     var <info descr="null">a</info> = ["ONE" => "one", "TWO" => "two"];
-    trace(<info descr="null">a</info>["ONE"].<info descr="null">length</info>);
+    <info descr="null">trace</info>(<info descr="null">a</info>["ONE"].<info descr="null">length</info>);
 
     var <info descr="null">b</info> : <info descr="null">StringMap</info><<info descr="null">String</info>> = <info descr="null">a</info>;
   }
