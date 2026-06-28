@@ -56,6 +56,7 @@ public class HaxeParameterDescriptionBuilder {
     String initialValue = null;
 
     boolean optional = model.hasOptionalPsi();
+    boolean rest = model.isRest();
 
     HaxeTypeTag typeTag = model.getTypeTagPsi();
     HaxeVarInit varInit = model.getVarInitPsi();
@@ -89,6 +90,6 @@ public class HaxeParameterDescriptionBuilder {
       }
     }
 
-    return new HaxeParameterDescription(name, type, initialValue, optional, resultHolder);
+    return new HaxeParameterDescription(name, type, initialValue, optional, rest, resultHolder);
   }
 }

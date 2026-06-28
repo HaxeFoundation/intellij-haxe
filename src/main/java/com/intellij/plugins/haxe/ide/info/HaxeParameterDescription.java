@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class HaxeParameterDescription {
   private final boolean isOptional;
+  private final boolean isRest;
   private final boolean hasInitialValue;
 
   private final String description;
@@ -34,9 +35,11 @@ public class HaxeParameterDescription {
                            String type,
                            String initialValue,
                            boolean isOptional,
+                           boolean isRest,
                            ResultHolder resultHolder) {
 
     this.isOptional = isOptional;
+    this.isRest = isRest;
     this.hasInitialValue = initialValue != null;
 
     this.description = compilePresentableDescription(name, type, initialValue);
@@ -56,6 +59,10 @@ public class HaxeParameterDescription {
     return isOptional;
   }
 
+  public boolean isRest() {
+    return isRest;
+  }
+
   public boolean hasInitialValue() {
     return hasInitialValue;
   }
@@ -73,7 +80,10 @@ public class HaxeParameterDescription {
     if (isOptional) {
       result.append("?");
     }
-    
+    if (isRest) {
+      result.append("...");
+    }
+
     result.append(name);
     result.append(":");
     if (hasType) {

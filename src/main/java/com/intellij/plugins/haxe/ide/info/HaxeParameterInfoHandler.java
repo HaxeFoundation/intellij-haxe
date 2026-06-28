@@ -116,7 +116,13 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       argumentIndex = getArgumentIndexUnderCaret(place, argumentsList);
     }
 
-    if (argumentIndex > functionParametersCount) return -1;
+    if (argumentIndex > functionParametersCount){
+      if(functionParameters[functionParametersCount-1].isRest()) {
+        return functionParametersCount-1;
+      }else {
+        return -1;
+      }
+    }
 
     return interpolateArgumentIndexToParameterIndex(argumentsList, functionParameters, argumentIndex);
   }
