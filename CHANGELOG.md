@@ -1,5 +1,6 @@
 # Changelog
 ## 1.8.4
+* Fixed: Parameter info was not correctly showing and handling rest parameters.
 * Added: Completion for Target-specific Syntax
 * Changed: misc internal changes to how language features like trace and bind are resolved and shown.
 

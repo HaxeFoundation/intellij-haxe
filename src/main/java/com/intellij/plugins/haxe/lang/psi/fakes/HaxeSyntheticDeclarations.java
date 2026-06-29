@@ -20,6 +20,11 @@ public class HaxeSyntheticDeclarations {
     @Language("haxe")
     private static final String TRACE_DECLARATION = """
             package;
+            /**
+               This file / class does not exist.
+               Its a virtual file containing definitions mimicking language features
+               that the compiler handles but that does not exist in the standard library.
+            **/
             extern class LanguageFeature {
                 /**
                     *Language feature*
