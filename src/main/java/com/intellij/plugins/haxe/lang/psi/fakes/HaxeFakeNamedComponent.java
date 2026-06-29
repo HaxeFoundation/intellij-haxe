@@ -7,9 +7,14 @@ import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.model.HaxeMethodModel;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.meta.PsiMetaData;
 import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.Nls;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import javax.swing.*;
 
 public abstract class HaxeFakeNamedComponent  extends HaxeFakePsiElement implements HaxeNamedComponent {
 
@@ -61,9 +66,8 @@ public abstract class HaxeFakeNamedComponent  extends HaxeFakePsiElement impleme
     }
 
     @Override
-    public HaxeComponentType getComponentType() {
-        return null;
-    }
+    @NotNull
+    public abstract HaxeComponentType getComponentType();
 
     @Override
     public IElementType getTokenType() {
@@ -83,6 +87,7 @@ public abstract class HaxeFakeNamedComponent  extends HaxeFakePsiElement impleme
     @Override
     public abstract String getName();
 
+
     @Override
     public @NotNull HaxeMetadataList getMetadataList(@Nullable Class<? extends HaxeMeta> metadataType) {
         return EMPTY_META;
@@ -97,4 +102,6 @@ public abstract class HaxeFakeNamedComponent  extends HaxeFakePsiElement impleme
     public HaxeMethodModel getModel() {
         return null;
     }
+
+    public abstract String getQuickNavigateInfo();
 }

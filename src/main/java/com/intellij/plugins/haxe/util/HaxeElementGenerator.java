@@ -180,13 +180,18 @@ public class HaxeElementGenerator {
 
 
   public static HaxeFile createDummyFile(Project myProject, String text) {
+    return createFile(myProject, "Dummy", text);
+  }
+
+  public static HaxeFile createFile(Project myProject, String name, String content) {
     final PsiFileFactory factory = PsiFileFactory.getInstance(myProject);
-    final String name = "dummy." + HaxeFileType.INSTANCE.getDefaultExtension();
-    final LightVirtualFile virtualFile = new LightVirtualFile(name, HaxeFileType.INSTANCE, text);
+    final String fileName = name + "." + HaxeFileType.INSTANCE.getDefaultExtension();
+    final LightVirtualFile virtualFile = new LightVirtualFile(fileName, HaxeFileType.INSTANCE, content);
     final HaxeFile psiFile = (HaxeFile)((PsiFileFactoryImpl)factory).trySetupPsiForFile(virtualFile, HaxeLanguage.INSTANCE, false, true);
     assert psiFile != null;
     return psiFile;
   }
+
   public static PsiElement createDummyComment(Project myProject, int length) {
     StringBuilder  builder = new StringBuilder();
     builder.append("/*");

@@ -46,6 +46,11 @@ public class HaxeFakeComponentStringCode extends HaxeFakeNamedComponent {
     }
 
     @Override
+    public String getQuickNavigateInfo() {
+        return "code";
+    }
+
+    @Override
     public HaxeComponentType getComponentType() {
         return HaxeComponentType.FIELD;
     }

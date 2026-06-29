@@ -29,8 +29,6 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
 import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentStringCode;
-import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentTrace;
-import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeTargetSpecificSyntax;
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
@@ -309,13 +307,13 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     private List<? extends PsiElement> checkIsFakeReference(@NotNull HaxeReference reference, String referenceText) {
       return switch (referenceText) {
           // currently as of 4.3.7  only some of these has a `Syntax.code` implementation
-          case "__js__" ->  getOrCreateFakeForSyntax(referenceText, "js.Syntax.code", reference);
-          case "__php__" ->  getOrCreateFakeForSyntax(referenceText, "php.Syntax.code", reference);
-          case "__python__" ->  getOrCreateFakeForSyntax(referenceText, "python.Syntax.code", reference);
-          case "__cpp__" ->  getOrCreateFakeForSyntax(referenceText, "cpp.Syntax.code", reference);
-          case "__cs__" ->  getOrCreateFakeForSyntax(referenceText, "cs.Syntax.code", reference);
-          case "__java__" ->  getOrCreateFakeForSyntax(referenceText, "java.Syntax.code", reference);
-          case "__lua__" ->  getOrCreateFakeForSyntax(referenceText, "lua.Syntax.code", reference);
+          case "__js__" ->  createSynteticForSyntax(referenceText, "js.Syntax.code", reference);
+          case "__php__" ->  createSynteticForSyntax(referenceText, "php.Syntax.code", reference);
+          case "__python__" ->  createSynteticForSyntax(referenceText, "python.Syntax.code", reference);
+          case "__cpp__" ->  createSynteticForSyntax(referenceText, "cpp.Syntax.code", reference);
+          case "__cs__" ->  createSynteticForSyntax(referenceText, "cs.Syntax.code", reference);
+          case "__java__" ->  createSynteticForSyntax(referenceText, "java.Syntax.code", reference);
+          case "__lua__" ->  createSynteticForSyntax(referenceText, "lua.Syntax.code", reference);
           case null, default -> null;
         };
 
@@ -1128,11 +1126,8 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
   }
 
   private List<? extends PsiElement> checkGlobalAlias(HaxeReference reference, String referenceText) {
-    if (HaxeFakeComponentTrace.NAME.equals(referenceText)) {
-      HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(reference, HaxeIdentifier.class);
-      if (identifier != null) {
-        return getOrCreateFakeForTrace(reference, identifier);
-      }
+    if ("trace".equals(referenceText)) {
+      return getOrCreateSynteticForTrace(reference);
     }
     return null;
   }
@@ -3117,19 +3112,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     return HaxeDebugUtil.traceThreadMessage(msg, 120);
   }
 
-  private static @NonNull List<HaxeFakePsiElement> getOrCreateFakeForSyntax(String name, String qname, HaxeReference reference) {
-    synchronized (reference) {
-      HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
-      if (fakePsi != null) {
-        return Collections.singletonList(fakePsi);
-      } else {
-        HaxeMethod member = findClassOrMemberByQName(qname, reference) instanceof HaxeMethod method ? method : null;
-        HaxeFakeTargetSpecificSyntax fakeElement = HaxeFakePsiUtil.createFakeForSyntax(name, qname, reference);
-        reference.putUserData(FAKE_PSI_KEY, fakeElement);
-        return Collections.singletonList(fakeElement);
-      }
-    }
-  }
+
 
   private static @NonNull List<HaxeFakePsiElement> getOrCreateFakeForBind(HaxeReference reference, HaxeIdentifier haxeIdentifier, HaxeNamedComponent namedComponent) {
     synchronized (reference) {
@@ -3137,24 +3120,19 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
       if (fakePsi != null) {
         return Collections.singletonList(fakePsi);
       } else {
-        fakePsi = HaxeFakePsiUtil.createFakeForBind(haxeIdentifier, namedComponent);
+        fakePsi = HaxeSynteticPsiUtil.createFakeForBind(haxeIdentifier, namedComponent);
         reference.putUserData(FAKE_PSI_KEY, fakePsi);
         return Collections.singletonList(fakePsi);
       }
     }
   }
 
-  private static @NonNull List<HaxeFakePsiElement> getOrCreateFakeForTrace(HaxeReference reference, HaxeIdentifier haxeIdentifier) {
-    synchronized (reference) {
-      HaxeFakePsiElement fakePsi = reference.getUserData(FAKE_PSI_KEY);
-      if (fakePsi != null) {
-        return Collections.singletonList(fakePsi);
-      } else {
-        fakePsi = HaxeFakePsiUtil.createFakeForTrace(haxeIdentifier);
-        reference.putUserData(FAKE_PSI_KEY, fakePsi);
-        return Collections.singletonList(fakePsi);
-      }
-    }
+  private static @NonNull List<PsiElement> createSynteticForSyntax(String name, String qname, HaxeReference reference) {
+    return List.of(HaxeSynteticPsiUtil.createSynteticForTargetSpecificSyntax(name, qname, reference));
+  }
+
+  private static @NonNull List<PsiElement> getOrCreateSynteticForTrace(HaxeReference reference) {
+    return List.of(HaxeSynteticPsiUtil.createSynteticForTrace(reference.getProject()));
   }
 
 }

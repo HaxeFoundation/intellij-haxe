@@ -27,8 +27,8 @@ import com.intellij.plugins.haxe.HaxeComponentType;
 import com.intellij.plugins.haxe.ide.documentation.HaxeDocumentationRenderer;
 import com.intellij.plugins.haxe.lang.parser.HaxePsiDocCommentImpl;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakeNamedComponent;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
-import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeTargetSpecificSyntax;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataContent;
@@ -81,6 +81,13 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
         case VARIABLE -> processVariable(mainBuilder, namedComponent, renderer);
         case PARAMETER -> processParameter(mainBuilder, namedComponent, renderer);
         case TYPE_PARAMETER -> processTypeParameter(mainBuilder, namedComponent, renderer);
+      }
+      // if fake and no docs has been added, then fall back to fake components info
+      if(mainBuilder.isEmpty() && namedComponent instanceof HaxeFakeNamedComponent component) {
+        String info = component.getQuickNavigateInfo();
+        if(info != null) {
+          mainBuilder.appendRaw(info);
+        }
       }
     }
     // convert to one liner
@@ -344,10 +351,6 @@ public class HaxeDocumentationProvider implements DocumentationProvider {
 
 
   private void processMethod(HtmlBuilder builder, HaxeNamedComponent component, HaxeDocumentationRenderer renderer) {
-    if(component instanceof HaxeFakeTargetSpecificSyntax fakeNamedComponent) {
-      component = fakeNamedComponent.resolved;
-    }
-
     if (component instanceof HaxeMethod methodDeclaration) {
       appendClassOrModuleReference(builder, methodDeclaration);
 

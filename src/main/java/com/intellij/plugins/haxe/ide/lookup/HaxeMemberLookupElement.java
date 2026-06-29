@@ -119,6 +119,11 @@ public class HaxeMemberLookupElement extends LookupElement implements HaxeLookup
     return create(leftReference, resolver, componentNames, HaxeMethodContext.EXTENSION, false, true);
   }
 
+  public static List<HaxeMemberLookupElement> createSynteticMember(HaxeComponentName componentNames) {
+    return create(null, new HaxeGenericResolver(), Set.of(componentNames), HaxeMethodContext.NO_EXTENSION, false,true);
+  }
+
+
   public static List<HaxeMemberLookupElement> create(SpecificTypeReference leftReference,
                                                      HaxeGenericResolver resolver,
                                                      Set<HaxeComponentName> componentNames,

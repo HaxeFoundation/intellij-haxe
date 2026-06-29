@@ -64,6 +64,11 @@ public class HaxeFakeComponentBindMethod extends HaxeFakeNamedComponent {
         return NAME;
     }
 
+    @Override
+    public String getQuickNavigateInfo() {
+        return "bind";
+    }
+
     public HaxeNamedComponent  getOriginalMethodOrFunction() {
         return  boundMethodOrFunction;
     }

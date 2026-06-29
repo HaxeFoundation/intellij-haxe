@@ -274,7 +274,7 @@ public class HaxeReferenceSuggestionUtil {
         if(stringLiteral.getTextLength() == 3) { // 2x quotes + single char
             HaxeIdentifier identifier = PsiTreeUtil.getChildOfType(haxeReference, HaxeIdentifier.class);
             HaxeFakeComponentStringCode bind = new HaxeFakeComponentStringCode(identifier);
-            variants.add(HaxeSynteticLookupElements.code(bind));
+            variants.add(HaxeSyntheticLookupElements.code(bind));
         }
     }
 
@@ -282,7 +282,7 @@ public class HaxeReferenceSuggestionUtil {
             HaxeComponentName componentName = method.getComponentName();
             HaxeIdentifier identifier = componentName.getIdentifier();
             HaxeFakeComponentBindMethod bind = new HaxeFakeComponentBindMethod(identifier, method);
-            variants.add(HaxeSynteticLookupElements.bind(bind));
+            variants.add(HaxeSyntheticLookupElements.bind(bind));
     }
     private static void addFunctionBindSuggestion(List<HaxeLookupElement> variants, HaxePsiField haxeField, @NotNull SpecificFunctionReference functionReference, HaxeReferenceImpl haxeReference) {
 
@@ -291,11 +291,11 @@ public class HaxeReferenceSuggestionUtil {
             HaxeComponentName componentName = method.getComponentName();
             HaxeIdentifier identifier = componentName.getIdentifier();
             HaxeFakeComponentBindMethod bind = new HaxeFakeComponentBindMethod(identifier, method);
-            variants.add(HaxeSynteticLookupElements.bind(bind));
+            variants.add(HaxeSyntheticLookupElements.bind(bind));
         } else {
             HaxeIdentifier identifier = haxeField.getComponentName().getIdentifier();
             HaxeFakeComponentBindMethod bind = new HaxeFakeComponentBindMethod(identifier, haxeField);
-            variants.add(HaxeSynteticLookupElements.bind(bind));
+            variants.add(HaxeSyntheticLookupElements.bind(bind));
         }
     }
 

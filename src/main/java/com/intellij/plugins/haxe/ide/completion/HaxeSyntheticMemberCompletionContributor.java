@@ -4,11 +4,7 @@ import com.intellij.codeInsight.completion.*;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.patterns.PsiElementPattern;
-import com.intellij.plugins.haxe.ide.lookup.HaxeSynteticLookupElement;
-import com.intellij.plugins.haxe.ide.lookup.HaxeSynteticLookupElements;
 import com.intellij.plugins.haxe.lang.psi.*;
-import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentTrace;
-import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeTargetSpecificSyntax;
 import com.intellij.plugins.haxe.util.HaxeResolveUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -21,8 +17,9 @@ import java.util.Map;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
+import static com.intellij.plugins.haxe.ide.lookup.HaxeMemberLookupElement.createSynteticMember;
 
-public class HaxeSynteticMemberCompletionContributor extends CompletionContributor {
+public class HaxeSyntheticMemberCompletionContributor extends CompletionContributor {
 
     private static Map<String, String>   targetSpecificSyntaxData = Map.of(
             "__js__", "js.Syntax.code",
@@ -44,7 +41,7 @@ public class HaxeSynteticMemberCompletionContributor extends CompletionContribut
             // parent 3: should not be a refrence as that would be a chain
             .andNot(psiElement().withSuperParent(3, HaxeReferenceExpression.class));
 
-    public HaxeSynteticMemberCompletionContributor() {
+    public HaxeSyntheticMemberCompletionContributor() {
     extend(CompletionType.BASIC, ELEMENT_CAPTURE,
            new CompletionProvider<CompletionParameters>() {
              @Override
@@ -71,24 +68,27 @@ public class HaxeSynteticMemberCompletionContributor extends CompletionContribut
     final PrefixMatcher matcher = resultSet.getPrefixMatcher();
 
 
+      addTrace(resultSet, position, project);
 
-      if("trace".startsWith(filterText)) {
-          HaxeIdentifier identifier = PsiTreeUtil.getParentOfType(position, HaxeIdentifier.class);
-          HaxeFakeComponentTrace fake = new HaxeFakeComponentTrace(identifier);
-          HaxeSynteticLookupElement trace = HaxeSynteticLookupElements.trace(fake);
-          resultSet.addElement(trace);
-      }
-
-      HaxeReference reference = position instanceof HaxeReference haxeReference
-              ? haxeReference
-              : PsiTreeUtil.getParentOfType(position, HaxeReference.class);
-
-      if (reference != null) {
-          for (Map.Entry<String, String> data : targetSpecificSyntaxData.entrySet()) {
-              HaxeFakeTargetSpecificSyntax fake = HaxeFakePsiUtil.createFakeForSyntax(data.getKey(), data.getValue(), reference);
-              HaxeSynteticLookupElement lookupElement = HaxeSynteticLookupElements.targetSpecificSyntax(fake);
-              resultSet.addElement(lookupElement);
-          }
-      }
+      addTargetSpecificSyntax(resultSet, position);
   }
+
+    private static void addTargetSpecificSyntax(CompletionResultSet resultSet, PsiElement position) {
+        HaxeReference reference = position instanceof HaxeReference haxeReference
+                ? haxeReference
+                : PsiTreeUtil.getParentOfType(position, HaxeReference.class);
+
+        if (reference != null) {
+            for (Map.Entry<String, String> data : targetSpecificSyntaxData.entrySet()) {
+                HaxeMethod method = HaxeSynteticPsiUtil.createSynteticForTargetSpecificSyntax(data.getKey(), data.getValue(), reference);
+                resultSet.addAllElements(createSynteticMember(method.getComponentName()));
+            }
+        }
+    }
+
+    private static void addTrace(CompletionResultSet resultSet, PsiElement position, Project project) {
+        HaxeIdentifier identifier = PsiTreeUtil.getParentOfType(position, HaxeIdentifier.class);
+        HaxeMethod method = HaxeSynteticPsiUtil.createSynteticForTrace(project);
+        resultSet.addAllElements(createSynteticMember(method.getComponentName()));
+    }
 }

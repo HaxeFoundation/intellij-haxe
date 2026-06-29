@@ -2,18 +2,15 @@ package com.intellij.plugins.haxe.ide.lookup;
 
 import com.intellij.codeInsight.completion.InsertionContext;
 import com.intellij.codeInsight.completion.JavaCompletionUtil;
-import com.intellij.codeInsight.completion.PrioritizedLookupElement;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementPresentation;
-import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.HaxeFakePsiElement;
-import com.intellij.plugins.haxe.model.*;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 
-public class HaxeSynteticLookupElement extends LookupElement  implements HaxeLookupElement {
+public class HaxeSyntheticLookupElement extends LookupElement  implements HaxeLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
 
   private HaxeFakePsiElement psiElement;
@@ -29,7 +26,7 @@ public class HaxeSynteticLookupElement extends LookupElement  implements HaxeLoo
 
 
 
-  public HaxeSynteticLookupElement(HaxeFakePsiElement psiElement, String presentableText, String tailText, String typeText, Icon icon, boolean insertParentheses) {
+  public HaxeSyntheticLookupElement(HaxeFakePsiElement psiElement, String presentableText, String tailText, String typeText, Icon icon, boolean insertParentheses) {
     this.psiElement = psiElement;
 
     this.insertParentheses = insertParentheses;
@@ -76,7 +73,7 @@ public class HaxeSynteticLookupElement extends LookupElement  implements HaxeLoo
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o instanceof HaxeSynteticLookupElement lookupElement) {
+    if (o instanceof HaxeSyntheticLookupElement lookupElement) {
       return psiElement.equals(lookupElement.psiElement);
     }else {
       return false;
