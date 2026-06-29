@@ -19,6 +19,8 @@
 package com.intellij.plugins.haxe.util;
 
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.model.HaxeModel;
+import com.intellij.plugins.haxe.model.HaxeParameterModel;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.HaxeTypeResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -52,10 +54,11 @@ public class HaxePresentableUtil {
 
   @NotNull
   public static String getPresentableParameterList(HaxeNamedComponent element) {
-    return getPresentableParameterList(element, new HaxeGenericSpecialization(), true, false);
+    return getPresentableParameterList(element, new HaxeGenericResolver(), true, false);
   }
 
   @NotNull
+  @Deprecated(forRemoval = true) //"Use overload with HaxeGenericResolver"
   public static String getPresentableParameterList(HaxeNamedComponent element, HaxeGenericSpecialization specialization, boolean addTypes, boolean addOptionalAndDefaults) {
     final StringBuilder result = new StringBuilder();
     final HaxeParameterList parameterList = PsiTreeUtil.getStubChildOfType(element, HaxeParameterList.class);
@@ -65,17 +68,23 @@ public class HaxePresentableUtil {
     final List<HaxeParameter> list = parameterList.getParameterList();
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
-      if(addOptionalAndDefaults && parameter.getOptionalMark() != null){
+      HaxeParameterModel parameterModel = (HaxeParameterModel)parameter.getModel();
+      if(addOptionalAndDefaults && parameterModel.hasOptionalPsi()){
         result.append("?");
       }
-      result.append(parameter.getName());
+      else if(parameterModel.isRest()){
+        result.append("...");
+      }
 
-      if (addTypes && parameter.getTypeTag() != null) {
+      result.append(parameterModel.getName());
+
+      HaxeTypeTag typeTagPsi = parameterModel.getTypeTagPsi();
+      if (addTypes && typeTagPsi != null) {
         result.append(":");
         result.append(buildTypeText(parameter, parameter.getTypeTag(), specialization));
       }
-      if(addOptionalAndDefaults && parameter.getVarInit() != null) {
-        result.append(parameter.getVarInit().getText());
+      if(addOptionalAndDefaults && parameterModel.hasInit()) {
+        result.append(parameterModel.getVarInitPsi().getText());
       }
 
       if (i < size - 1) {
@@ -95,17 +104,23 @@ public class HaxePresentableUtil {
     final List<HaxeParameter> list = parameterList.getParameterList();
     for (int i = 0, size = list.size(); i < size; i++) {
       HaxeParameter parameter = list.get(i);
-      if(addOptionalAndDefaults && parameter.getOptionalMark() != null){
+      HaxeParameterModel parameterModel = (HaxeParameterModel)parameter.getModel();
+      if(addOptionalAndDefaults && parameterModel.hasOptionalPsi()){
         result.append("?");
       }
-      result.append(parameter.getName());
-
-      if (addTypes && parameter.getTypeTag() != null) {
-        result.append(":");
-        result.append(buildTypeText(parameter.getTypeTag(), resolver));
+      else if(parameterModel.isRest()){
+        result.append("...");
       }
-      if(addOptionalAndDefaults && parameter.getVarInit() != null) {
-        result.append(parameter.getVarInit().getText());
+
+      result.append(parameterModel.getName());
+
+      HaxeTypeTag typeTagPsi = parameterModel.getTypeTagPsi();
+      if (addTypes && typeTagPsi != null) {
+        result.append(":");
+        result.append(buildTypeText(typeTagPsi, resolver));
+      }
+      if(addOptionalAndDefaults && parameterModel.hasInit()) {
+        result.append(parameterModel.getVarInitPsi().getText());
       }
 
       if (i < size - 1) {

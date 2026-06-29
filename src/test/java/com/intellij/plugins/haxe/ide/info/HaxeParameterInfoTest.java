@@ -107,7 +107,7 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
 
   @Test
   public void testParamInfo4() throws Throwable {
-    doTest("x:Int, y:Int", 1);
+    doTest("x:Int, y:Int", 0);
   }
 
   @Test
@@ -139,6 +139,18 @@ public class HaxeParameterInfoTest extends HaxeCodeInsightFixtureTestCase {
   @Test
   public void testParamInfo10() throws Throwable {
     doTest("a:Int, b:Bool = false, ?c:Float = null, ?d:T = null", 3);
+  }
+  @Test
+  public void testParamInfo11() throws Throwable {
+    doTest("a:String, ...rest:String", 1);
+  }
+  @Test
+  public void testParamInfo12() throws Throwable {
+    doTest("a:String, ...rest:String", 1);
+  }
+  @Test
+  public void testParamInfo13() throws Throwable {
+    doTest("a:String, ...rest:String", 1);
   }
 
   @Test
