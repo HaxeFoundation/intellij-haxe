@@ -31,8 +31,11 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.List;
+
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.isWhitespaceOrComment;
 
 /**
  * @author: Fedor.Korotkov
@@ -52,7 +55,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
 
   @Override
   public PsiElement findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
-    final PsiElement selectedElement = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    final PsiElement selectedElement = findArgumentClosestToCaret(context);
     final HaxeReference method = PsiTreeUtil.getParentOfType(selectedElement, HaxeCallExpression.class, HaxeNewExpression.class);
     if (selectedElement != null && method != null) {
       int parameterIndex = getArgumentIndex(method, selectedElement);
@@ -60,6 +63,25 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       return method;
     }
     return null;
+  }
+
+  private static @org.jspecify.annotations.Nullable PsiElement findArgumentClosestToCaret(@NonNull UpdateParameterInfoContext context) {
+    PsiElement caretElement = context.getFile().findElementAt(context.getEditor().getCaretModel().getOffset());
+    if(caretElement.textMatches(",")){
+      return UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(caretElement);
+    }
+    if (isWhitespaceOrComment(caretElement)) {
+      PsiElement right = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(caretElement);
+      if (!right.textMatches(",")) {
+        return right;
+      } else {
+        PsiElement left = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(caretElement);
+        if (!left.textMatches(",")) {
+          return left;
+        }
+      }
+    }
+    return caretElement;
   }
 
   @Override
@@ -116,7 +138,7 @@ public class HaxeParameterInfoHandler implements ParameterInfoHandler<PsiElement
       argumentIndex = getArgumentIndexUnderCaret(place, argumentsList);
     }
 
-    if (argumentIndex > functionParametersCount){
+    if (argumentIndex >= functionParametersCount){
       if(functionParameters[functionParametersCount-1].isRest()) {
         return functionParametersCount-1;
       }else {
