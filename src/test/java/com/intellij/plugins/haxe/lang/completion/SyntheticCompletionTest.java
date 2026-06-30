@@ -2,8 +2,8 @@ package com.intellij.plugins.haxe.lang.completion;
 
 import org.junit.Test;
 
-public class SynteticCompletionTest extends HaxeCompletionTestBase {
-  public SynteticCompletionTest() {
+public class SyntheticCompletionTest extends HaxeCompletionTestBase {
+  public SyntheticCompletionTest() {
     super("completion", "synthetic");
   }
 

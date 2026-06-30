@@ -50,6 +50,7 @@ import com.intellij.plugins.haxe.model.type.*;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.Function;
@@ -198,10 +199,12 @@ public class HaxeResolveUtil {
 
   @Nullable
   public static HaxeClass findClassByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
-
-    List<HaxeClass> results = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName,psiManager.getProject(), scope);
-    if(!results.isEmpty()){
-      return results.getFirst();
+    // avoid using indexes while indexing
+    if (!DumbService.isDumb(scope.getProject())) {
+      List<HaxeClass> results = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
+      if (!results.isEmpty()) {
+        return results.getFirst();
+      }
     }
 
     // Fallback: model-based traversal (handles dumb mode, partially built indexes, and edge cases).
@@ -223,19 +226,20 @@ public class HaxeResolveUtil {
   public static PsiElement findClassOrMemberByQName(String qName, PsiManager psiManager, GlobalSearchScope scope) {
     final FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(qName);
 
-    // Fast path: try the fqn index first for class lookups.
-    if (!qualifiedInfo.hasMemberName()) {
-      List<HaxeClass> classList = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
-      if (!classList.isEmpty()) {
-        return classList.getFirst();
-      }
-    } else {
-      List<PsiElement> memberList = HaxeFullyQualifiedMemberNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
-      if (!memberList.isEmpty()) {
-        return memberList.getFirst();
+    // avoid using indexes while indexing
+    if (!DumbService.isDumb(scope.getProject())) {
+      if (!qualifiedInfo.hasMemberName()) {
+        List<HaxeClass> classList = HaxeFullyQualifiedClassNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
+        if (!classList.isEmpty()) {
+          return classList.getFirst();
+        }
+      } else {
+        List<PsiElement> memberList = HaxeFullyQualifiedMemberNameUnifiedIndex.getByFqn(qName, psiManager.getProject(), scope);
+        if (!memberList.isEmpty()) {
+          return memberList.getFirst();
+        }
       }
     }
-
     // Fallback: model-based traversal (handles packages, dumb mode, and edge cases).
 
     List<HaxeModel> result = HaxeProjectModel.fromProject(psiManager.getProject()).resolve(qualifiedInfo, scope);

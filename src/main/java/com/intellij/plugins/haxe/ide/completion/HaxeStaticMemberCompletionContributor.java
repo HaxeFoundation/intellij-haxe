@@ -29,6 +29,7 @@ import java.util.List;
 
 import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.plugins.haxe.ide.completion.HaxeCommonCompletionPattern.identifierInNewExpression;
+import static com.intellij.plugins.haxe.ide.completion.HaxeCompletionUtil.isInReferenceChain;
 import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil.belongToPlatformNotTargeted;
 
 public class HaxeStaticMemberCompletionContributor extends CompletionContributor {
@@ -36,12 +37,10 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
     private static final PsiElementPattern.Capture<PsiElement> ELEMENT_CAPTURE = psiElement()
             .inside(HaxeIdentifier.class)
             .andNot(psiElement().inside(HaxeType.class))
-            // - avoid chained refs (MyClass.startComplet.. / myVar.startComplet... should not show static suggestions)
             // current = ID token
             // parent 1: HaxeIdentifier
             // parent 2: HaxeReference
-            // parent 3: should not be a refrence as that would be a chain
-            .andNot(psiElement().withSuperParent(3, HaxeReferenceExpression.class));
+            .and(psiElement().withSuperParent(2, HaxeReferenceExpression.class));
 
     public HaxeStaticMemberCompletionContributor() {
     extend(CompletionType.BASIC, ELEMENT_CAPTURE,
@@ -53,7 +52,8 @@ public class HaxeStaticMemberCompletionContributor extends CompletionContributor
                final PsiFile file = parameters.getOriginalFile();
                var position = parameters.getOriginalPosition();
                boolean newExpression = identifierInNewExpression.accepts(position);
-               if(!newExpression) {
+               boolean inChain = isInReferenceChain(parameters.getPosition());
+               if(!newExpression && !inChain) {
                  position = position != null ? position : parameters.getPosition();
                  addVariantsFromIndex(result, file, position.getText());
                }

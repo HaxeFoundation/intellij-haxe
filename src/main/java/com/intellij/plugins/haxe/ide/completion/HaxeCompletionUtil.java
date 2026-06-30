@@ -5,10 +5,13 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.lang.psi.HaxeReference;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.codeStyle.CodeStyleManager;
+import com.intellij.psi.util.PsiTreeUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class HaxeCompletionUtil {
   public static void flushChanges(Project project, Document document) {
@@ -42,5 +45,13 @@ public class HaxeCompletionUtil {
     TextRange previousCharRange = new TextRange(offset - 1, offset);
     String previousChar = document.getText(previousCharRange);
     return previousChar.equals("#");
+  }
+
+  public static boolean isInReferenceChain(@NotNull PsiElement position) {
+    HaxeReference reference = PsiTreeUtil.getParentOfType(position, HaxeReference.class);
+    if(reference != null) {
+      return reference.getChildren().length > 1;
+    }
+    return false;
   }
 }
