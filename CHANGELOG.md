@@ -1,7 +1,9 @@
 # Changelog
 ## 1.8.4
+* Fixed: Assign evaluation was missing to / from for anonymous types. (#78)
 * Fixed: Parameter info was not correctly showing and handling rest parameters.
-* Added: Completion for Target-specific Syntax
+* Added: Completion for Target-specific Syntax.
+* Added: Completion for NullSafety metadata argument. (1251)
 * Changed: misc internal changes to how language features like trace and bind are resolved and shown.
 
 ## 1.8.3

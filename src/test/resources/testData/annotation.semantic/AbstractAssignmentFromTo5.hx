@@ -1,6 +1,6 @@
 package ;
 
-class AbstractAssignmentFromTo1 {
+class AbstractAssignmentFromTo5 {
   var my:MyArray<Int> = [10];
   var arr:Array<Int> = <error descr="Incompatible type: MyArray<Int> should be Array<Int>">my</error>;
 }

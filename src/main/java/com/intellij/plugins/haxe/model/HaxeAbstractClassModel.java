@@ -135,6 +135,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   public List<SpecificTypeReference> getDirectCastToTypes(@NotNull HaxeGenericResolver resolver) {
     List<HaxeFunctionType> functionTypes = getDirectCastToPsiFunctionTypes();
     List<HaxeType> classTypes = getDirectCastToPsiTypes();
+    List<HaxeClass> anonymousTypes = getDirectCastToPsiAnonymousType();
 
     List<SpecificTypeReference> typeList = new ArrayList<>();
 
@@ -150,6 +151,12 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
       typeList.add(resultHolderType);
     }
 
+    for (HaxeClass haxeClass : anonymousTypes) {
+      ResultHolder resolve = resolver.resolve(haxeClass);
+      SpecificTypeReference resultHolderType = resolve.getType();
+      typeList.add(resultHolderType);
+    }
+
     return typeList;
 
   }
@@ -157,6 +164,7 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
   public List<SpecificTypeReference> getDirectCastFromTypes(@NotNull HaxeGenericResolver resolver) {
     List<HaxeFunctionType> functionTypes = getDirectCastFromPsiFunctionTypes();
     List<HaxeType> classTypes = getDirectCastFromPsiTypes();
+    List<HaxeClass> anonymousTypes = getDirectCastFromPsiAnonymousType();
 
     List<SpecificTypeReference> typeList = new ArrayList<>();
 
@@ -169,6 +177,12 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     for (HaxeType type : classTypes) {
       ResultHolder typeFromType = HaxeTypeResolver.getTypeFromType(type, resolver);
       SpecificTypeReference resultHolderType = typeFromType.getType();
+      typeList.add(resultHolderType);
+    }
+
+    for (HaxeClass haxeClass : anonymousTypes) {
+      ResultHolder resolve = resolver.resolve(haxeClass);
+      SpecificTypeReference resultHolderType = resolve.getType();
       typeList.add(resultHolderType);
     }
 
@@ -325,6 +339,20 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
     }
     return types;
   }
+  private @NotNull List<HaxeClass> getDirectCastToPsiAnonymousType() {
+    //TODO cache
+    List<HaxeClass> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractToType> list = abstractClass.getAbstractToTypeList();
+      for (HaxeAbstractToType toType : list) {
+        HaxeTypeOrAnonymous typeOrAnonymous = toType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null && typeOrAnonymous.getAnonymousType() != null) {
+          types.add(typeOrAnonymous.getAnonymousType());
+        }
+      }
+    }
+    return types;
+  }
   private @NotNull List<HaxeFunctionType> getDirectCastToPsiFunctionTypes() {
     //TODO cache
     List<HaxeFunctionType> types = new LinkedList<>();
@@ -347,6 +375,22 @@ public class HaxeAbstractClassModel extends HaxeClassModel {
         HaxeTypeOrAnonymous typeOrAnonymous = fromType.getTypeOrAnonymous();
         if (typeOrAnonymous != null && typeOrAnonymous.getType() != null) {
           types.add(typeOrAnonymous.getType());
+        }
+      }
+    }
+    return types;
+  }
+  private @NotNull List<HaxeClass> getDirectCastFromPsiAnonymousType() {
+    //TODO mlo: cache
+    List<HaxeClass> types = new LinkedList<>();
+    if (haxeClass instanceof HaxeAbstractTypeDeclaration abstractClass) {
+      List<HaxeAbstractFromType> list = abstractClass.getAbstractFromTypeList();
+      for (HaxeAbstractFromType fromType : list) {
+        HaxeTypeOrAnonymous typeOrAnonymous = fromType.getTypeOrAnonymous();
+        if (typeOrAnonymous != null) {
+          if (typeOrAnonymous.getAnonymousType() != null) {
+            types.add(typeOrAnonymous.getAnonymousType());
+          }
         }
       }
     }

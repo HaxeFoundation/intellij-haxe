@@ -1,6 +1,6 @@
 package ;
 
-class AbstractAssignmentFromTo1 {
+class AbstractAssignmentFromTo6 {
   public static function test():Void {
     var val:MyArray2<Int> = [10];
   }
