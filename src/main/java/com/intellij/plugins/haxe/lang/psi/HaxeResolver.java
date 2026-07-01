@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentStringCode
 import com.intellij.plugins.haxe.lang.psi.impl.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
+import com.intellij.plugins.haxe.metadata.psi.impl.HaxeMetadataTypeName;
 import com.intellij.plugins.haxe.metadata.util.HaxeMetadataUtils;
 import com.intellij.plugins.haxe.model.*;
 import com.intellij.plugins.haxe.model.evaluator.HaxeCallExpressionEvaluatorCacheService;
@@ -59,6 +60,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentStringCode.FAKE_PSI_KEY;
 import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.*;
+import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NULL_SAFETY;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator.findObjectLiteralType;
 import static com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorHandlers.getArrayAccessTypeFromClass;
 import static com.intellij.plugins.haxe.model.evaluator.callexpression.EnumValueMatchUtil.isInsidePatternMatcher;
@@ -277,6 +279,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     if (result == null) result = checkIsForwardedName(reference);
     if (result == null) result = checkGlobalAlias(reference, referenceText);
     if (result == null) result = checkIsLocalModule(reference);
+    if (result == null) result = checkIsMetadataSpecial(reference);
 
     if(result == null) {
       // check if this can be a switch extract variable,
@@ -297,6 +300,23 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     return result;
 
   }
+
+    private List<? extends PsiElement> checkIsMetadataSpecial(@NotNull HaxeReference reference) {
+      HaxeMetadataCompileTimeMeta parentMeta = PsiTreeUtil.getParentOfType(reference, HaxeMetadataCompileTimeMeta.class);
+      if(parentMeta != null){
+        // nullSafety enum expects an Enum but import is not required
+        //haxe.macro.Compiler.NullSafetyMode
+        if(parentMeta.isType(NULL_SAFETY)) {
+          HaxeClass NullSafetyMode = findClassByQName("haxe.macro.Compiler.NullSafetyMode", reference);
+          if(NullSafetyMode != null) {
+            HaxeBaseMemberModel member = NullSafetyMode.getModel().getMember(reference.getText(), null);
+            if(member != null) return List.of(member.getBasePsi());
+          }
+        }
+      }
+
+        return null;
+    }
 
   /**
    * Checks if reference is to a method or field that does not exist in the std but that the compiler accepts

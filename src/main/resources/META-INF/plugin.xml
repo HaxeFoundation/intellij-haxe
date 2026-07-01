@@ -286,6 +286,7 @@
     <completion.contributor id="ControllingCompletion" language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeControllingCompletionContributor" order="FIRST"/>
     <completion.contributor language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetaTagsCompletionContributor" order="FIRST"/>
 
+    <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMetadataCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeKeywordCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePPKeywordCompletionContributor" order="after ControllingCompletion"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxePrecompilerContributor"/>
