@@ -1,0 +1,5 @@
+:INCLUDE
+Loose
+Off
+Strict
+StrictThreaded

@@ -1,0 +1,4 @@
+@:nullSafety(<caret>)
+class NullSafetyTest {
+
+}
