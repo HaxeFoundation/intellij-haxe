@@ -144,4 +144,8 @@ public class FunctionDeclarationTest extends DeclarationTestBase {
   public void testAnonymousLocalFunctionAsValue() throws Throwable {
     doTest(true);
   }
+  @Test
+  public void testBlockBodyWithSemi() throws Throwable {
+    doTest(true, true);
+  }
 }
