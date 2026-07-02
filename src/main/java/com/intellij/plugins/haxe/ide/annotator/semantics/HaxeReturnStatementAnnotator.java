@@ -9,7 +9,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.annotator.HaxeStandardAnnotation;
 import com.intellij.plugins.haxe.lang.psi.*;
+import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
+import com.intellij.plugins.haxe.model.HaxeCompilerMetadata;
 import com.intellij.plugins.haxe.model.HaxeDocumentModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
 import com.intellij.plugins.haxe.model.evaluator.assign.AssignExplanation;
@@ -28,6 +30,7 @@ import java.util.List;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.CONDITIONAL_ERROR;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.MSL_COMMENT;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.NOT_NULL;
+import static com.intellij.plugins.haxe.model.HaxeCompilerMetadata.OVERLOAD;
 import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getTypeTagForMethodOrFunction;
 
 public class HaxeReturnStatementAnnotator implements Annotator {
@@ -53,6 +56,9 @@ public class HaxeReturnStatementAnnotator implements Annotator {
         ResultHolder typeTagType = HaxeTypeResolver.getTypeFromTypeTag(typeTag, method);
         if(typeTagType.isVoid()) return;
 
+        // @:overload(function(..):xxx {}) expectes empty body and anything inside the boddy is considdered wrong.
+        if(isInOverloadMetadata(method)) return;
+
         @NotNull PsiElement[] children = method.getBody().getChildren();
         boolean hasAllPathsCovered = hasReturnPathsCovered(children);
 
@@ -64,6 +70,13 @@ public class HaxeReturnStatementAnnotator implements Annotator {
 
     }
 
+    private boolean isInOverloadMetadata(HaxeMethod method) {
+        if(method.getParent() instanceof HaxeCompiletimeMetaArg metaArg) {
+            HaxeMeta haxeMeta = PsiTreeUtil.getParentOfType(method, HaxeMeta.class);
+            return haxeMeta != null && haxeMeta.isType(OVERLOAD);
+        }
+        return false;
+    }
 
 
     private void checkReturnStatement(HaxeReturnStatement returnStatement, @NotNull AnnotationHolder holder) {

@@ -22,8 +22,8 @@ class TestingOverloads {
 
     }
     // ignore the "Missing return statement", not a real error, should probably be ignored
-    @:overload(function<T>(b:T):T {<error descr="Missing return statement">}</error>)
-    @:overload(function(b:Bool):Int {<error descr="Missing return statement">}</error>)
+    @:overload(function<T>(b:T):T {})
+    @:overload(function(b:Bool):Int {})
     function testReturnValue(s:String):String;
 
 }
