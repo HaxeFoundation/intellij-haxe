@@ -565,7 +565,7 @@ propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | ('private'? 'get') | ('private'? 'set') | referenceExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
-private functionCommonBody ::= blockStatement
+private functionCommonBody ::= blockStatement ';'?
                              | returnStatement
                              | throwStatement
                              | ifStatement
