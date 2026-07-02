@@ -34,7 +34,6 @@ import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
 import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
-import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.tree.TreeUtil;
 import com.intellij.psi.tree.IElementType;
@@ -56,6 +55,8 @@ import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.key
 import static com.intellij.plugins.haxe.ide.completion.KeywordCompletionData.keywordWithSpace;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.*;
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.*;
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments;
+import static com.intellij.plugins.haxe.util.UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments;
 import static java.util.function.Predicate.not;
 
 /**
@@ -179,7 +180,12 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
         result.stopHere();
         lookupElements.clear();
         addKeywords(lookupElements, PROPERTY_KEYWORDS, 1.1f);
-        addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
+        // check if we got an incomplete property where "set" is expected ( var x(,<caret>))
+        if(isIncompletePropertyAcessorAfterComma(propertyAccessor)){
+          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_SET)), 1.2f);
+        }else {
+          addKeywords(lookupElements, Set.of(keywordOnly(PROPERTY_GET)), 1.2f);
+        }
       }
       if (isPropertySetterValue.accepts(propertyAccessor)) {
         result.stopHere();
@@ -192,12 +198,21 @@ public class HaxeKeywordCompletionContributor extends CompletionContributor {
 
     }
     // Remove keyword if if previous sibling is the same keyword (ex. "new new" or "switch switch" does not make sense)
-    PsiElement prevSibling = UsefulPsiTreeUtil.getPrevSiblingSkipWhiteSpacesAndComments(completionElementAsComment, false);
+    PsiElement prevSibling = getPrevSiblingSkipWhiteSpacesAndComments(completionElementAsComment, false);
     if (prevSibling!= null) {
       lookupElements.removeIf(element -> prevSibling.textMatches(element.getObject().toString()));
     }
 
     result.addAllElements(lookupElements);
+  }
+
+  private static boolean isIncompletePropertyAcessorAfterComma(HaxePropertyAccessor propertyAccessor) {
+    PsiElement prev = getPrevSiblingSkipWhiteSpacesAndComments(propertyAccessor);
+    if(prev.textMatches(",")) {
+      prev = getPrevSiblingSkipWhiteSpacesAndComments(prev);
+      return prev instanceof PsiErrorElement e && e.getErrorDescription().contains("<property accessor>");
+    }
+    return false;
   }
 
   private static void addSwitchVars(HaxeSwitchCase type, List<LookupElement> lookupElements) {

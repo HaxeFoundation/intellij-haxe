@@ -104,7 +104,7 @@ public class HaxeFieldModel extends HaxeMemberModel {
   public HaxePropertyAccessor getAccessorPsi(int index) {
     if (getPropertyDeclarationPsi() == null) return null;
     List<HaxePropertyAccessor> list = getPropertyDeclarationPsi().getPropertyAccessorList();
-    return (list.size() >= index) ? list.get(index) : null;
+    return (list.size() > index) ? list.get(index) : null;
   }
 
   @NotNull

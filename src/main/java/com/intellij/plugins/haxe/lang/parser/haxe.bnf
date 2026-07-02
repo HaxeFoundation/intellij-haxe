@@ -560,7 +560,7 @@ localVarDeclaration ::= 'static'? componentName typeTag? varInit?
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
 private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | REG_EXP | ppToken)
 
-propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')'
+propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')' {pin=1}
 
 propertyAccessor ::= 'null' | 'default' | 'dynamic' | 'never' | ('private'? 'get') | ('private'? 'set') | referenceExpression
 {mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
