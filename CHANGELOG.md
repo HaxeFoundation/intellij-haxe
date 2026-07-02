@@ -1,7 +1,8 @@
 # Changelog
 ## 1.8.5
 * Fixed: Broken Regex parsing (regression from string escape highlighting).
-* Fixed: Removed incorrect "unnessesary escape" warning in regex expressions. 
+* Fixed: Removed incorrect "unnessesary escape" warning in regex expressions.
+* Fixed: incorrect Missing return statment annotation in `@:overload` meta
 
 ## 1.8.4
 * Fixed: Assign evaluation was missing to / from for anonymous types. (#78)
