@@ -89,7 +89,7 @@ public class HaxeRegularExpressionImpl extends HaxeReferenceImpl implements Haxe
 
   @Override
   public boolean characterNeedsEscaping(char c, boolean isInClass) {
-    return false;
+    return c == '/';
   }
 
   @Override
