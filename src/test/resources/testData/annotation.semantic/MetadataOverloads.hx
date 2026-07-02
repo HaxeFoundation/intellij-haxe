@@ -24,6 +24,7 @@ class TestingOverloads {
     // ignore the "Missing return statement", not a real error, should probably be ignored
     @:overload(function<T>(b:T):T {})
     @:overload(function(b:Bool):Int {})
+    @:overload(function(b:Bool):String <error descr="Overload must only declare an empty method body {}">{return "";}</error>)
     function testReturnValue(s:String):String;
 
 }
