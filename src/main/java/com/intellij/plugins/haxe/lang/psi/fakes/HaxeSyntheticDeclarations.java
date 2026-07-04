@@ -31,10 +31,10 @@ public class HaxeSyntheticDeclarations {
             
                     Convenience method that redirects input to `haxe.Log.trace`
             
-                    The code `trace("hello", "warning", 123);` will be transformed to call `haxe.Log.trace`s
+                    The code `trace("hello", "warning", 123);` will be transformed to call `haxe.Log.trace`
                     with position information and custom parameters.
             
-                    If this call was made in a file and class called `Test` in a method named `Main` on line 6s
+                    If this call was made in a file and class called `Test` in a method named `Main` on line 6
                     it would be compiled to something like this:
             
                     ```haxe
