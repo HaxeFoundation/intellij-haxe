@@ -636,8 +636,10 @@ public class HaxeResolveUtil {
       return result;
     }
 
-    if (element != null && specialization.containsKey(null, element.getText())) {
-      return specialization.get(null, element.getText());
+    if (element != null && element.getText() != null) {
+      if (specialization.containsKey(null, element.getText())) {
+        return specialization.get(null, element.getText());
+      }
     }
     if (element instanceof  HaxePsiField psiField) {
       // if we dont have a type search references
