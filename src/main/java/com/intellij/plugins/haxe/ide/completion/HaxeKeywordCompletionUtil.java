@@ -23,15 +23,19 @@ public class HaxeKeywordCompletionUtil {
 
 
   public static final Set<KeywordCompletionData> PACKAGE_KEYWORD = Set.of(keywordWithSpace(KPACKAGE));
+
   public static final Set<KeywordCompletionData> TOP_LEVEL_KEYWORDS = Set.of(keywordWithSpace(KIMPORT),
                                                                              keywordWithSpace((KUSING)));
+
   public static final Set<KeywordCompletionData> VISIBILITY_KEYWORDS = Set.of(keywordWithSpace(KPRIVATE),
                                                                               keywordWithSpace(KPUBLIC));
+
   public static final Set<KeywordCompletionData> ACCESSIBILITY_KEYWORDS = Set.of(keywordWithSpace(KFINAL),
                                                                                  keywordWithSpace(KABSTRACT),
                                                                                  keywordWithSpace(KINLINE),
                                                                                  keywordWithSpace(KEXTERN),
                                                                                  keywordWithSpace(KDYNAMIC));
+
   public static final Set<KeywordCompletionData> MODULE_STRUCTURES_KEYWORDS = Set.of(keywordWithSpace(KCLASS),
                                                                                      keywordWithSpace(KABSTRACT),
                                                                                      keywordWithSpace(KINTERFACE),
@@ -40,20 +44,28 @@ public class HaxeKeywordCompletionUtil {
                                                                                      keywordWithSpace(KTYPEDEF),
                                                                                      keywordWithSpace(KVAR),
                                                                                      keywordWithSpace(KFUNCTION),
+                                                                                     keywordWithSpace(KINLINE),
                                                                                      keywordWithSpace(KPRIVATE)
   );
 
   public static final Set<KeywordCompletionData> CLASS_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KEXTENDS),
                                                                                     keywordWithSpace(KIMPLEMENTS));
   public static final Set<KeywordCompletionData> INTERFACE_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KEXTENDS));
+
   public static final Set<KeywordCompletionData> INTERFACE_BODY_KEYWORDS = Set.of(keywordWithSpace(KFUNCTION),
                                                                                   keywordWithSpace(KVAR));
+
   public static final Set<KeywordCompletionData> ABSTRACT_DEFINITION_KEYWORDS = Set.of(keywordWithSpace(KTO),
                                                                                        keywordWithSpace(KFROM));
+
   public static final Set<KeywordCompletionData> CLASS_BODY_KEYWORDS = Set.of(keywordWithSpace(KVAR),
                                                                               keywordWithSpace(KFUNCTION),
+                                                                              keywordWithSpace(KSTATIC),
+                                                                              keywordWithSpace(KFINAL),
+                                                                              keywordWithSpace(KINLINE),
                                                                               keywordWithSpace(KOVERLOAD),
                                                                               keywordWithSpace(KOVERRIDE));
+
   public static final Set<KeywordCompletionData> METHOD_BODY_KEYWORDS =
     Set.of(keywordWithSpace(IS_KEYWORD),
            keywordWithSpace(ONEW),
@@ -74,6 +86,7 @@ public class HaxeKeywordCompletionUtil {
            keywordWithSpace(KRETURN),
            keywordWithSpace(KSTATIC),
            keywordWithSpace(KCAST));
+
   public static final Set<KeywordCompletionData> VALUE_KEYWORDS =
     Set.of(keywordOnly(KNULL),
            keywordOnly(KTRUE),
