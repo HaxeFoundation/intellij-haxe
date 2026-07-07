@@ -318,5 +318,43 @@ public interface HaxeTokenTypeSets {
     EXTERN_CLASS_DECLARATION,
     INTERFACE_DECLARATION
   );
+
+  // List of tokens that once lexed, means the next token is not at an expression start-position.
+  // Used by the lexer but stored here for convinience.  its used to decide whether a bare '<' should
+  // be treated as the start of inline XML/markup literal or not.
+  // For more details and why this exsists see explanation in  "haxe.flex".
+  TokenSet VALUE_COMPLETING_TOKENS = TokenSet.create(
+    ID,
+    MACRO_ID,
+    META_ID,
+    KTHIS,
+    KSUPER,
+    KABSTRACT,
+    KNULL,
+    KTRUE,
+    KFALSE,
+    KFROM,
+    KTO,
+    KNEVER,
+    KFUNCTION,
+    ONEW,
+    KCLASS,
+    KINTERFACE,
+    KENUM,
+    KTYPEDEF,
+    LITINT,
+    LITHEX,
+    LITOCT,
+    LITBIN,
+    LITFLOAT,
+    REG_EXP,
+    CLOSING_QUOTE,
+    LONG_TEMPLATE_ENTRY_END,
+    PRPAREN,
+    PRBRACK,
+    PRCURLY,
+    OPLUS_PLUS,
+    OMINUS_MINUS
+  );
 }
 

@@ -25,6 +25,8 @@ import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
@@ -111,6 +113,29 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     return false;
   }
 
+  public static boolean consumeXmlTextIfQuote(PsiBuilder builder_, int level_) {
+    return xmlTextIs(builder_, level_, "\"", true);
+  }
+  public static boolean consumeXmlTextIsMoreThan(PsiBuilder builder_, int level_) {
+    return xmlTextIs(builder_, level_, ">", true);
+  }
+  public static boolean checkXmlTextIsMoreThan(PsiBuilder builder_, int level_) {
+    return xmlTextIs(builder_, level_, ">", false);
+  }
+
+
+  private static boolean xmlTextIs(PsiBuilder builder_, int level_, String value, boolean consume) {
+    IElementType elementType = builder_.rawLookup(0);
+    if (elementType == XML_TEXT) {
+      String text = builder_.getTokenText();
+         if(text != null && text.equals(value)) {
+           if(!consume) return true;
+           return consumeToken(builder_, XML_TEXT);
+         }
+    }
+    return false;
+  }
+
   /**
    * Make a semi-colon optional in the case that it's preceded by a block statement.
    *
@@ -134,8 +159,11 @@ public class HaxeGeneratedParserUtilBase extends GeneratedParserUtilBase {
     while (null != previousType && isWhitespaceOrComment(builder_, previousType)) {
       previousType = builder_.rawLookup(--i);
     }
-
-    if (previousType == HaxeTokenTypes.PRCURLY || previousType == HaxeTokenTypes.OSEMI) {
+    // ignore semicolon requrement for object literals
+    // and xml literals (the rule is that values structured as blocks does not need semicolon)
+    if (previousType == HaxeTokenTypes.PRCURLY
+            || previousType == XML_TAG_END
+            || previousType == HaxeTokenTypes.OSEMI) {
       return true;
     }
     /*

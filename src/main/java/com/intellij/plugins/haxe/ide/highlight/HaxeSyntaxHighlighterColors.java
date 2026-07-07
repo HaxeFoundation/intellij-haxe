@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.highlight;
 
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors;
 import com.intellij.openapi.editor.HighlighterColors;
+import com.intellij.openapi.editor.XmlHighlighterColors;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
 import com.intellij.openapi.editor.markup.TextAttributes;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -47,6 +48,10 @@ public class HaxeSyntaxHighlighterColors {
   public static final String HAXE_DEFINED_VAR = "HAXE_DEFINED_VAR";
   public static final String HAXE_UNDEFINED_VAR = "HAXE_UNDEFINED_VAR";
   public static final String HAXE_UNPARSEABLE_DATA = "HAXE_UNPARSEABLE_DATA";
+
+  public static final String HAXE_INLINE_XML = "HAXE_INLINE_XML";
+  public static final String HAXE_INLINE_CONTENT = "HAXE_INLINE_XML_CONTENT";
+  public static final String HAXE_XML_ATTRIBUTE_NAME = "HAXE_XML_ATTRIBUTE_NAME";
 
   public static final TextAttributesKey LINE_COMMENT =
     createTextAttributesKey("HAXE_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
@@ -112,6 +117,11 @@ public class HaxeSyntaxHighlighterColors {
     createTextAttributesKey(HAXE_LOCAL_VARIABLE, DefaultLanguageHighlighterColors.LOCAL_VARIABLE);
   public static final TextAttributesKey PARAMETER =
     createTextAttributesKey(HAXE_PARAMETER, DefaultLanguageHighlighterColors.PARAMETER);
+
+
+  public static final TextAttributesKey INLINE_XML = createTextAttributesKey(HAXE_INLINE_XML, XmlHighlighterColors.XML_TAG);
+  public static final TextAttributesKey INLINE_XML_CONTENT = createTextAttributesKey(HAXE_INLINE_CONTENT, HighlighterColors.TEXT);
+  public static final TextAttributesKey INLINE_XML_ATTRIBUTE_NAME = createTextAttributesKey(HAXE_XML_ATTRIBUTE_NAME, DefaultLanguageHighlighterColors.INSTANCE_FIELD);
 
 
   public static final TextAttributesKey HAXE_INJECTED_LANGUAGE_FRAGMENT = createInjectedLanguageFragmentKey();

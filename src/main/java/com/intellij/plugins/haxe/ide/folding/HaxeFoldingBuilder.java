@@ -32,6 +32,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeUsingStatement;
 import com.intellij.plugins.haxe.util.HaxeStringUtil;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -159,6 +160,8 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
       descriptor = buildCollectionBlockFolding(node);
     } else if (isBodyBlock(elementType)) {
       descriptor = buildBodyBlockFolding(node);
+    } else if (isXmlTag(elementType, node)) {
+      descriptor = buildXmlTagFolding(node);
     } else if (isComment(elementType, node)) {
       RegionMarker matched = matchRegion(node);
       if (null != matched) {
@@ -300,6 +303,9 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     return COLLECTION_LITERAL.contains(elementType);
   }
 
+  private static boolean isXmlTag(IElementType elementType, ASTNode node) {
+    return elementType == XML_SUB_TAG_CONTAINER_START  || elementType == XML_SUB_TAG_START || elementType == XML_TAG_START;
+  }
   private static boolean isComment(IElementType elementType, ASTNode node) {
     return ONLY_COMMENTS.contains(elementType);
   }
@@ -408,6 +414,26 @@ public class HaxeFoldingBuilder implements FoldingBuilder {
     final ASTNode closeBrace = node.getLastChildNode();
 
     return buildBlockFolding(node, openBrace, closeBrace, PLCURLY, PRCURLY );
+  }
+  private static FoldingDescriptor buildXmlTagFolding(@NotNull ASTNode node) {
+    ASTNode parent = node.getTreeParent();
+    ASTNode endNode = parent.getLastChildNode();
+    boolean isSelfClosing = endNode.getText().endsWith("/>");
+    FoldingDescriptor foldingDescriptor = new FoldingDescriptor(node, parent.getTextRange());
+    //currently root tag is provided as tokens, while sub elements have tags as composite elements
+    // we only want the  tag name and not atributes so we fetch the first child.
+    if(node instanceof CompositeElement element) {
+      node = node.getFirstChildNode();
+    }
+
+    String tagName = node.getText().replace("<", "");
+    if(isSelfClosing) {
+      foldingDescriptor.setPlaceholderText("<"+ tagName + ".../>");
+    }else {
+      foldingDescriptor.setPlaceholderText("<" + tagName + ">...</"+tagName+ ">");
+    }
+    return foldingDescriptor;
+
   }
 
   private static FoldingDescriptor buildBlockFolding(@NotNull ASTNode node, ASTNode openBrace, ASTNode closeBrace, IElementType openElementType, IElementType closeElementType) {

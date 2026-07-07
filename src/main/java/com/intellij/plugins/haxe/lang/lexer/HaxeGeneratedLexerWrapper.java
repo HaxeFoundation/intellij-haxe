@@ -34,5 +34,9 @@ public class HaxeGeneratedLexerWrapper extends _HaxeLexer {
   public void reset(CharSequence buffer, int start, int end, int initialState) {
     super.reset(buffer, start, end, initialState);
     super.ccsupport.reset(super.context);
+    super.lastSignificantToken = null;
+
+    super.states.clear();
+    super.xmlContexts.clear();
   }
 }

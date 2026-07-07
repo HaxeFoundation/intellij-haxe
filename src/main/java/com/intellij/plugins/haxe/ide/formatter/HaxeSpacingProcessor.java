@@ -350,7 +350,7 @@ public class HaxeSpacingProcessor {
         || ASSIGN_OPERATORS.contains(typeType1)
         || ASSIGN_OPERATORS.contains(typeType2)
         || type2 == VAR_INIT) {
-      if (typeType2 != null) {
+      if (typeType2 != null && !isInXmlTag(typeType2, elementType, parentType)) {
         return addSingleSpaceIf(mySettings.SPACE_AROUND_ASSIGNMENT_OPERATORS);
       }
     }
@@ -463,6 +463,12 @@ public class HaxeSpacingProcessor {
 
     return Spacing.createSpacing(0, 1, 0, true, mySettings.KEEP_BLANK_LINES_IN_CODE);
   }
+
+    private boolean isInXmlTag(IElementType typeType2, IElementType elementType, IElementType parentType) {
+      if(elementType == XML_MARKUP_ATTRIBUTE) return true;
+      if(parentType == XML_LITERAL_EXPRESSION) return true;
+      return false;
+    }
 
   @Nullable
   private IElementType getNextElementType() {

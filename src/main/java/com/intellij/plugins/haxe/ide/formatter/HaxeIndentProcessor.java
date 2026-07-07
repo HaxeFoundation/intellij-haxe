@@ -135,6 +135,8 @@ public class HaxeIndentProcessor {
     result = result || type == ABSTRACT_BODY;
     result = result || (type == ARRAY_LITERAL && elementType != PLBRACK && elementType != PRBRACK);
     result = result || type == OBJECT_LITERAL;
+    result = result || type == XML_LITERAL_EXPRESSION;
+    result = result || type == XML_MARKUP_ELEMENT;
     result = result || type == MAP_INITIALIZER_EXPRESSION;
     result = result || type == MAP_LOOP_INITIALIZER_EXPRESSION;
     result = result || type == EXTERN_CLASS_DECLARATION_BODY;

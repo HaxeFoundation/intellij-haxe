@@ -221,7 +221,7 @@ private shiftAssignOperator ::= unsignedShiftRightAssignOperator | shiftRightAss
 // TODO: Rename *.operation rules to *.operator.
 assignOperation ::= '=' | '%=' | '*=' | '/=' | '+=' | '-=' | '&=' | '|=' | '^=' | shiftAssignOperator | coalescingAssignOperator  { extends=operator }
 private gt ::= '>' !'>' // Cheaper than the predicates for all of the possible shift operators.
-compareOperation ::= '==' | '!=' | '<=' | '<' | <<gtEq>> | gt     { extends=operator }
+compareOperation ::= '==' | '!=' | '<=' | '<' !('/') | <<gtEq>> | gt     { extends=operator }
 bitOperation ::= '|' | '&' | '^'      { extends=operator }
 
 // These are private simply so that the test goldens don't all have to be updated.
@@ -558,7 +558,7 @@ localVarDeclarationList ::='static'? mutabilityModifier localVarDeclaration (','
 localVarDeclaration ::= 'static'? componentName typeTag? varInit?
   {recoverWhile="local_var_declaration_part_recover" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxePsiFieldImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxePsiField"}
 private localVarDeclarationWithInit ::= componentName typeTag? varInit {extends=localVarDeclaration}
-private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | REG_EXP | ppToken)
+private local_var_declaration_part_recover ::= !(!<<isSemicolonRuleEnabled>> | ';' |  '{' | '}' | '!'  | '(' | ')' | '++' | ',' | '-' | '--' | '[' | 'break' | 'case' | 'cast' | 'continue' | 'default' | 'do' | 'else' | 'false' | 'final' | 'for' | 'function' | 'if' | 'new' | 'null' | 'return' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | '~' | ID | MACRO_ID | OPEN_QUOTE | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | REG_EXP | XML_TAG_START | ppToken)
 
 propertyDeclaration ::= '(' propertyAccessor ',' propertyAccessor ')' {pin=1}
 
@@ -1051,7 +1051,7 @@ expressionList ::= forStatement | whileStatement | (expression (',' expression)*
 // '(' is here to prevent call expressions from consuming enum extractor expressions
 private expression_list_recover ::= !(')' | ']' |'('| fatArrowOperator)
 
-private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | LONG_TEMPLATE_ENTRY_END  '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' |  '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else'  | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~'  | '=>'| '$'  | 'override' | 'private' | 'public' | 'extern') !metaKeyWord
+private expression_recover ::= !( ';' |'.' | ID |  MACRO_ID | LITFLOAT | LITHEX | LITINT | LITOCT | LITBIN | OPEN_QUOTE | CLOSING_QUOTE | META_ID | REG_EXP | XML_TAG_START | LONG_TEMPLATE_ENTRY_END  '!' | '!=' | '%' | '%=' | '&&' | '&' | '&=' | '(' | ')' | '*' | '*=' | '+' | '++' | '+=' | ',' | '-' | '--' | '-=' | '...' | '/' | '/=' | ':' |  '<' | '<<' | '<<=' | '<=' | '=' | '==' | '>' | <<shiftRight>> | <<unsignedShiftRight>> | <<gtEq>> | <<shiftRightAssign>> | <<unsignedShiftRightAssign>> | '?' | '[' | ']' | '^' | '^=' | 'break' | 'case' | 'cast' | 'catch' | 'continue' | 'default' | 'do' | 'dynamic' | 'else'  | 'false' | 'final' | 'for' | 'function' | 'if' | 'inline' | 'new' | 'null' | 'return' | 'static' | 'super' | 'switch' | 'this' | 'throw' | 'true' | 'try' | 'untyped' | 'var' | 'while' | 'in' |'{' | '|' | '|=' | '||' | '}' | '~'  | '=>'| '$'  | 'override' | 'private' | 'public' | 'extern') !metaKeyWord
 
 // This list is in reversed operator precedence order -- lowest on top.
 // The things on top are still matched first.
@@ -1189,6 +1189,7 @@ constantExpression ::= LITINT | LITHEX
                      | 'null' | 'true' | 'false'
                      | stringLiteralExpression
                      | regularExpressionLiteral
+                     | xmlLiteralExpression
 {extends=literalExpression}
 
 
@@ -1196,8 +1197,24 @@ stringLiteralExpression ::= OPEN_QUOTE (REGULAR_STRING_PART | ESCAPED_STRING_PAR
 {pin=1 mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeStringLiteralImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeReference"}
 
 shortTemplateEntry ::= SHORT_TEMPLATE_ENTRY_START (thisExpression | referenceExpression) {pin=1}
-longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression LONG_TEMPLATE_ENTRY_END {pin=1 recoverWhile="long_template_entry_recover"}
-private long_template_entry_recover ::= !(';' | OPEN_QUOTE| CLOSING_QUOTE | REGULAR_STRING_PART | ESCAPED_STRING_PART |  STRING_INVALID_ESCAPE | LONG_TEMPLATE_ENTRY_START | '"' | "'")
+longTemplateEntry ::= LONG_TEMPLATE_ENTRY_START expression* LONG_TEMPLATE_ENTRY_END {pin=1 recoverWhile="long_template_entry_recover"}
+private long_template_entry_recover ::= !(';'
+                                        | OPEN_QUOTE
+                                        | CLOSING_QUOTE
+                                        | REGULAR_STRING_PART
+                                        | ESCAPED_STRING_PART
+                                        |  STRING_INVALID_ESCAPE
+                                        | LONG_TEMPLATE_ENTRY_START
+                                        | '"'
+                                        | "'"
+                                        | XML_TAG_START
+                                        | xmlMarkupContent
+                                        | XML_TAG_END
+                                        | XML_SUB_TAG_CONTAINER_END
+                                        | XML_SUB_TAG_EMPTY_END
+                                        | XML_SUB_TAG_START
+                                        | SHORT_TEMPLATE_ENTRY_START
+                                        )
 
 regularExpressionLiteral ::= REG_EXP
 {extends="literalExpression" mixin="com.intellij.plugins.haxe.lang.psi.impl.HaxeRegularExpressionImpl" implements="com.intellij.plugins.haxe.lang.psi.HaxeRegularExpression"}
@@ -1375,3 +1392,45 @@ objectLiteralElement ::=  (objectLiteralComponentName | objectLiteralNonComponen
 }
 
 private object_literal_part_recover ::= !(',' | '}')
+
+
+// inline XML/markup literal (very permissive parsing, must be handle by macro; is treated as a string)
+xmlLiteralExpression ::= XML_TAG_START xmlLiteralContent* XML_TAG_END
+{pin=1 extends="literalExpression"}
+
+private xmlLiteralContent ::=  shortTemplateEntry
+                            | longTemplateEntry
+                            | xmlMarkupElement
+                            | xmlMarkupAttribute
+                            | xmlMarkupContent
+                            | XML_SUB_TAG_START
+                            | XML_SUB_TAG_CONTAINER_END
+                            | XML_SUB_TAG_EMPTY_END
+
+
+// we do not have any guarantee that elements inside a xmlLiteral will be valid XML tags,
+// but it would be convinient to support some highligting and folding so we make an attempt here
+// to parse some basic structures
+
+//xmlMarkupContent ::= constantExpression | PLPAREN | PRPAREN |  XML_TEXT
+xmlMarkupElement ::= xmlMarkupContainerElement | xmlMarkupEmptyElement
+private xmlMarkupContainerElement ::= xmlSubTagContainerStart (xmlMarkupOutsideTag)* (XML_SUB_TAG_CONTAINER_END)
+private xmlMarkupEmptyElement ::= XML_SUB_TAG_START ( shortTemplateEntry | longTemplateEntry | xmlMarkupElement | xmlMarkupAttribute | xmlMarkupContent  )* (XML_SUB_TAG_EMPTY_END)
+
+xmlSubTagContainerStart ::=  XML_SUB_TAG_START xmlMarkupInsideTag* <<consumeXmlTextIsMoreThan>>
+private xmlMarkupInsideTag ::= (shortTemplateEntry | longTemplateEntry | xmlMarkupAttribute | !<<checkXmlTextIsMoreThan>> xmlMarkupContent)
+private xmlMarkupOutsideTag ::= ( shortTemplateEntry | longTemplateEntry | xmlMarkupElement |  xmlMarkupContent)
+
+private xmlMarkupContent ::= 'null' | 'true' | 'false' | LITFLOAT | LITOCT | LITHEX | LITINT | "(" | ")" | "[" | "]" | "{" | "}" | "=" | "," | "." |  XML_TEXT
+
+xmlMarkupAttribute ::= xmlMarkupAttributeName "=" xmlMarkupAttributeValue
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeXmlFragment"}
+xmlMarkupAttributeName ::= XML_TEXT
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeXmlFragment"}
+
+xmlMarkupAttributeValue ::= markupAttributeValueBlock | xmlMarkupContent
+{implements="com.intellij.plugins.haxe.lang.psi.HaxeXmlFragment"}
+private markupAttributeValueBlock ::= markupAttributeValueString | markupAttributeValueCurlyBlock
+
+markupAttributeValueString ::= <<consumeXmlTextIfQuote>> (!<<consumeXmlTextIfQuote>> xmlMarkupContent)* <<consumeXmlTextIfQuote>> {implements="com.intellij.plugins.haxe.lang.psi.HaxeXmlFragment"}
+markupAttributeValueCurlyBlock ::= "{" (!"{" (markupAttributeValueCurlyBlock | xmlMarkupContent))* "}" {implements="com.intellij.plugins.haxe.lang.psi.HaxeXmlFragment"}

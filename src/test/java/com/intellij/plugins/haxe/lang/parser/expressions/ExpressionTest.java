@@ -178,4 +178,9 @@ public class ExpressionTest extends HaxeParsingTestBase {
   public void testRegularExpressions() throws Throwable {
     doTest(true, true);
   }
+
+  @Test
+  public void testXmlLiterals() throws Throwable {
+    doTest(true);
+  }
 }

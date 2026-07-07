@@ -14,146 +14,220 @@ import com.intellij.openapi.diagnostic.LogLevel;
 %%
 %{
     static final Logger log = com.intellij.openapi.diagnostic.Logger.getInstance(_HaxeLexer.class);
-     static {      // Take this out when finished debugging.
-         log.setLevel(LogLevel.DEBUG);
-     }
+         static {      // Take this out when finished debugging.
+             log.setLevel(LogLevel.DEBUG);
+         }
 
-    private static final class State {
-        final int lBraceCount;
-        final int lParenCount;
-        final int state;
+        private static final class State {
+            final int lBraceCount;
+            final int lParenCount;
+            final int state;
 
-        public State(int state, int lBraceCount, int lParenCount) {
-            this.state = state;
-            this.lBraceCount = lBraceCount;
-            this.lParenCount = lParenCount;
+            public State(int state, int lBraceCount, int lParenCount) {
+                this.state = state;
+                this.lBraceCount = lBraceCount;
+                this.lParenCount = lParenCount;
+            }
+
+            @Override
+            public String toString() {
+                return "yystate = " + state + (lBraceCount == 0 ? "" : " lBraceCount = " + lBraceCount)
+                                            + (lParenCount == 0 ? "" : " lParenCount = " + lParenCount);
+            }
         }
 
-        @Override
-        public String toString() {
-            return "yystate = " + state + (lBraceCount == 0 ? "" : " lBraceCount = " + lBraceCount)
-                                        + (lParenCount == 0 ? "" : " lParenCount = " + lParenCount);
-        }
-    }
+        protected final Stack<State> states = new Stack<State>();
 
-    private final Stack<State> states = new Stack<State>();
-    private int lBraceCount;
-    private int lParenCount;
+        private int lBraceCount;
+        private int lParenCount;
 
-    private int commentStart;
-    private int commentDepth;
+        private int commentStart;
+        private int commentDepth;
 
-    Project context; // Required for conditional compilation support.
-    public HaxeConditionalCompilationLexerSupport ccsupport;
+        /**
+         * Tracks an in-progress  inline XML/markup literal (ex. `<xml>...</xml>` or `<xml/>`.)
+         * This is an attempt at mirroring how the Haxe compiler handles xml literals and keep track of depth
+         * and nested occurrences of the same open tag.
+         *
+         *
+         * inOpenTag tracks whether we're still positioned right after an (outer or same-name) opening tag
+         * such that a following "/>" should count as that tag self-closing.
+         *
+         * we want to keep track of depth and open state due to how permissive the haxe compiler is.
+         * Stuff like `<xml a=" </xml>` (yes theres no ">" for the open tag) is a perfectly valid xml
+         * literal when parsed by the compiler.
+         *
+         * i (m0rkeulv) have tried a few different solutions for parsing XML literals, amongst other handling this
+         * in the grammar (BNF) with some special parser function, but due to the complexity and many rollback
+         * code paths, i have concluded that its probably better and faster to handle this in the lexer with some
+         * guessing/ makeing sure we only start an XML literal when expected.
+         *
+         * see `isExpressionExpected` below.
+         *
+         */
+        private static final class XmlContext {
+            final String openTag;
+            final String closeTag;
+            int depth;
+            boolean inOpenTag;
 
-    private void pushState(int state) {
-        states.push(new State(yystate(), lBraceCount, lParenCount));
-        lBraceCount = 0;
-        lParenCount = 0;
-        yybegin(state);
-    }
+            XmlContext(String openTag, String closeTag, boolean inOpenTag) {
+                this.openTag = openTag;
+                this.closeTag = closeTag;
+                this.depth = 0;
+                this.inOpenTag = inOpenTag;
+            }
+        }
+        protected final Stack<XmlContext> xmlContexts = new Stack<XmlContext>();
 
-    private String getStateName(int state) {
-        if(state == SHORT_TEMPLATE_ENTRY) {
-          return "SHORT_TEMPLATE_ENTRY";
-        }
-        if(state == LONG_TEMPLATE_ENTRY) {
-          return "LONG_TEMPLATE_ENTRY";
-        }
-        if(state == QUO_STRING) {
-          return "QUO_STRING";
-        }
-        if(state == APOS_STRING) {
-          return "APOS_STRING";
-        }
-        if(state == COMPILER_CONDITIONAL) {
-          return "COMPILER_CONDITIONAL";
-        }
-        if(state == CC_STRING) {
-          return "CC_STRING";
-        }
-        if(state == CC_APOS_STRING) {
-          return "CC_APOS_STRING";
-        }
-        if(state == CC_BLOCK) {
-          return "CC_BLOCK";
-        }
-        if(state == METADATA) {
-          return "METADATA";
-        }
-        return null;
-    }
+        // Last non-whitespace/comment token emitted; used by isExpressionExpected() below.
+        protected IElementType lastSignificantToken;
 
-    private void popState() {
-        State state = states.pop();
-        lBraceCount = state.lBraceCount;
-        lParenCount = state.lParenCount;
-        yybegin(state.state);
-    }
-
-    /** Map output within conditional blocks to comments if the condition is false. */
-    private IElementType emitToken(IElementType tokenType) {
-        if (ccsupport.currentContextIsActive()) {
-           return tokenType;
-        } else {
-            return ccsupport.mapToken(tokenType);
-        }
-    }
-
-    /** Deal with compiler conditional block constructs (e.g. #if...#end). */
-    private IElementType processConditional(IElementType type) {
-        ccsupport.processConditional(yytext(), type);
-
-        if (PPIF.equals(type)) {
-            ccStart();
-        } else if (PPEND.equals(type)) {
-            ccEnd();
-        } else if (zzLexicalState != CC_BLOCK) {
-            // Maybe the #if is missing, but if we're not at the end, we want to be sure that we're
-            // in the conditional state.
-            log.debug("Unexpected lexical state. Missing starting #if?");
-            ccStart();
+        /**
+         * This is an best (guess) effort to only start lexing as XML literal tokens when we do not expect
+         * normal tokens (less-than, shift or generic-parameter) or conditional compilation tokens.
+         *
+         * According to AI (i dont know Ocaml enough to check this my self)
+         * The Haxe compiler parser triggers markup-literal lexing whenever it is about to parse
+         * an expression and the next token is '<' -- there is no other expression production starting
+         * with '<', so that is unambiguous once you know the parser's grammar position.
+         *
+         * Our lexer on the other hand runs ahead of and independently from our parser,
+         * so we need to approximate/guess when an an expression is expected.
+         * we do this by checking the last significant token (not whitespace or comment)
+         *
+         * if the lastSignificantToken comes after something that completes a valueExpression
+         * (identifier, literal, closing bracket, this/super/null/true/false, etc.) we treat '<' as a normal operator.
+         *
+         * if lastSignificantToken is start of file, block, after an operator, a keyword, or seperators/operators
+         * '(', ',', ';', '=', etc.) we expect it to be a xml expression.
+         * This should be compatible with existing parsing for generics and comparisons
+         * since those are always preceded by an identifier or value (e.g. "Array<Int>", "a < b").
+         *
+         * NOTE: Its is not unikely that  there are cases that i have missed and that needs to be fixed.
+         * (see `com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypeSets.VALUE_COMPLETING_TOKENS`)
+         */
+        private boolean isExpressionExpected() {
+            return lastSignificantToken == null || !VALUE_COMPLETING_TOKENS.contains(lastSignificantToken);
         }
 
-        if (PPIF.equals(type) || PPELSEIF.equals(type)) {
-            conditionStart();
-        }
-        return type;
-    }
+        Project context; // Required for conditional compilation support.
+        public HaxeConditionalCompilationLexerSupport ccsupport;
 
-    // These deal with the state of lexing the *condition* for compiler conditionals
-    private void conditionStart() { pushState(COMPILER_CONDITIONAL); ccsupport.conditionStart(); }
-    private boolean conditionIsComplete() { return ccsupport.conditionIsComplete(); }
-    private IElementType conditionAppend(IElementType type) {
-        ccsupport.conditionAppend(yytext(),type);
-        if (ccsupport.conditionIsComplete()) {
-            conditionEnd();
+        private void pushState(int state) {
+            states.push(new State(yystate(), lBraceCount, lParenCount));
+            lBraceCount = 0;
+            lParenCount = 0;
+            yybegin(state);
         }
-        return PPEXPRESSION;
-    }
-    private void conditionEnd() {
-        ccsupport.conditionEnd();
-        popState();
-    }
 
-    // We use the CC_BLOCK state to tell the highlighters, etc. that their context
-    // has to go back to the start of the conditional (even though that may be a ways).  Basically,
-    // we need to keep the state as something other than YYINITIAL.
-    private void ccStart() { pushState(CC_BLOCK); } // Until we know better
-    private void ccEnd() {
-        // When there is no #if, but there is an end, popping the state produces an EmptyStackException
-        // and messes up further processing.
-        if (zzLexicalState == CC_BLOCK) {
+        private String getStateName(int state) {
+            if(state == SHORT_TEMPLATE_ENTRY) {
+              return "SHORT_TEMPLATE_ENTRY";
+            }
+            if(state == LONG_TEMPLATE_ENTRY) {
+              return "LONG_TEMPLATE_ENTRY";
+            }
+            if(state == QUO_STRING) {
+              return "QUO_STRING";
+            }
+            if(state == APOS_STRING) {
+              return "APOS_STRING";
+            }
+            if(state == COMPILER_CONDITIONAL) {
+              return "COMPILER_CONDITIONAL";
+            }
+            if(state == CC_STRING) {
+              return "CC_STRING";
+            }
+            if(state == CC_APOS_STRING) {
+              return "CC_APOS_STRING";
+            }
+            if(state == CC_BLOCK) {
+              return "CC_BLOCK";
+            }
+            if(state == METADATA) {
+              return "METADATA";
+            }
+            if(state == XML_CONTENT) {
+              return "XML_CONTENT";
+            }
+            return null;
+        }
+
+        private void popState() {
+            State state = states.pop();
+            lBraceCount = state.lBraceCount;
+            lParenCount = state.lParenCount;
+            yybegin(state.state);
+        }
+
+        /** Map output within conditional blocks to comments if the condition is false. */
+        private IElementType emitToken(IElementType tokenType) {
+            if (ccsupport.currentContextIsActive()) {
+               if (tokenType != null && !WHITESPACES.contains(tokenType) && !COMMENTS.contains(tokenType)) {
+                   lastSignificantToken = tokenType;
+               }
+               return tokenType;
+            } else {
+                return ccsupport.mapToken(tokenType);
+            }
+        }
+
+        /** Deal with compiler conditional block constructs (e.g. #if...#end). */
+        private IElementType processConditional(IElementType type) {
+            ccsupport.processConditional(yytext(), type);
+
+            if (PPIF.equals(type)) {
+                ccStart();
+            } else if (PPEND.equals(type)) {
+                ccEnd();
+            } else if (zzLexicalState != CC_BLOCK) {
+                // Maybe the #if is missing, but if we're not at the end, we want to be sure that we're
+                // in the conditional state.
+                log.debug("Unexpected lexical state. Missing starting #if?");
+                ccStart();
+            }
+
+            if (PPIF.equals(type) || PPELSEIF.equals(type)) {
+                conditionStart();
+            }
+            return type;
+        }
+
+        // These deal with the state of lexing the *condition* for compiler conditionals
+        private void conditionStart() { pushState(COMPILER_CONDITIONAL); ccsupport.conditionStart(); }
+        private boolean conditionIsComplete() { return ccsupport.conditionIsComplete(); }
+        private IElementType conditionAppend(IElementType type) {
+            ccsupport.conditionAppend(yytext(),type);
+            if (ccsupport.conditionIsComplete()) {
+                conditionEnd();
+            }
+            return PPEXPRESSION;
+        }
+        private void conditionEnd() {
+            ccsupport.conditionEnd();
             popState();
         }
-    }
 
-    // There are two other constructors generated for us.  This is the only one that is actually used.
-    public _HaxeLexer(Project context) {
-      this((java.io.Reader)null);
-      this.context = context;
-      ccsupport = new HaxeConditionalCompilationLexerSupport(context);
-    }
+        // We use the CC_BLOCK state to tell the highlighters, etc. that their context
+        // has to go back to the start of the conditional (even though that may be a ways).  Basically,
+        // we need to keep the state as something other than YYINITIAL.
+        private void ccStart() { pushState(CC_BLOCK); } // Until we know better
+        private void ccEnd() {
+            // When there is no #if, but there is an end, popping the state produces an EmptyStackException
+            // and messes up further processing.
+            if (zzLexicalState == CC_BLOCK) {
+                popState();
+            }
+        }
+
+        // There are two other constructors generated for us.  This is the only one that is actually used.
+        public _HaxeLexer(Project context) {
+          this((java.io.Reader)null);
+          this.context = context;
+          ccsupport = new HaxeConditionalCompilationLexerSupport(context);
+        }
 
 %}
 
@@ -168,7 +242,7 @@ import com.intellij.openapi.diagnostic.LogLevel;
 %eof{
 %eof}
 
-%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK METADATA
+%xstate QUO_STRING APOS_STRING SHORT_TEMPLATE_ENTRY LONG_TEMPLATE_ENTRY COMPILER_CONDITIONAL CC_STRING CC_APOS_STRING CC_BLOCK METADATA XML_CONTENT
 
 WHITE_SPACE_CHAR=[\ \n\r\t\f]
 //WHITE_SPACE={WHITE_SPACE_CHAR}+
@@ -245,6 +319,14 @@ IDENTIFIER_PART={IDENTIFIER_START}|{mDIGIT}
 
 IDENTIFIER_NO_DOLLAR={IDENTIFIER_START}{IDENTIFIER_PART}*
 IDENTIFIER_WITH__DOLLAR="$"{IDENTIFIER_START}{IDENTIFIER_PART}*
+
+/*
+    Haxe inline XML/markup literal tag names.
+    Normal xml tag naming plus '$' (also allowed by the Haxe compiler).
+*/
+XML_NAME_START_CHAR = ({mLETTER} | [$:])
+XML_NAME_CHAR = ({XML_NAME_START_CHAR} | {mDIGIT} | [.\-])
+XML_NAME = ({XML_NAME_START_CHAR}{XML_NAME_CHAR}*)
 
 /*
     Compiler conditionals: e.g. "#if (js)...#else...#endif"
@@ -421,7 +503,25 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 "<<="                                     { return emitToken( OSHIFT_LEFT_ASSIGN); }
 "<<"                                      { return emitToken( OSHIFT_LEFT); }
 "<="                                      { return emitToken( OLESS_OR_EQUAL); }
-"<"                                       { return emitToken( OLESS); }
+
+// Haxe 4 inline XML/markup literal, e.g. <xml attr>..</xml>, <xml/>, or a fragment <>...</>.
+// Only attempted where an expression is expected (see isExpressionExpected()); this never
+// conflicts with generics/comparisons since those always follow an identifier or value.
+// Also only attempted in an *active* conditional-compilation branch: inside an inactive
+// "#if"/"#end" block this rule must stay as inert as the plain "<" it replaces -- pushing
+// lexer state from dead code would derail lexing of whatever comes after the inactive block.
+"<" {XML_NAME}?                           {
+                                              if (isExpressionExpected() && ccsupport.currentContextIsActive()) {
+                                                  String text = yytext().toString();
+                                                  String name = text.substring(1); // drops the "<"
+                                                  xmlContexts.push(new XmlContext(text, "</" + name + ">", !name.isEmpty()));
+                                                  pushState(XML_CONTENT);
+                                                  return emitToken( XML_TAG_START);
+                                              } else {
+                                                  yypushback(yylength() - 1);
+                                                  return emitToken( OLESS);
+                                              }
+                                          }
 
 "^="                                      { return emitToken( OBIT_XOR_ASSIGN); }
 "^"                                       { return emitToken( OBIT_XOR); }
@@ -494,6 +594,104 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 <SHORT_TEMPLATE_ENTRY> "this"          { popState(); return emitToken( KTHIS); }
 <SHORT_TEMPLATE_ENTRY> {IDENTIFIER_NO_DOLLAR}    { popState(); return emitToken( ID); }
 
+
+<XML_CONTENT> {
+{WHITE_SPACE_CHAR}+                       { return emitToken(com.intellij.psi.TokenType.WHITE_SPACE);}
+// space between < and tag name is not allowed so we do not have to worry about that here when creating patterns.
+// (space before a "<" in XML literals will make the compiler return Error: Unterminated markup literal)
+
+// Closing-tag-shaped text (e.g. "</xml>" or, for a fragment, "</>"). Only ends the literal when
+// it matches this context's own close tag at depth 0; otherwise it's just more content text.
+"</" {XML_NAME}? ">"                      {
+                                              XmlContext ctx = xmlContexts.peek();
+                                              String s = yytext().toString();
+                                              if (s.equals(ctx.closeTag)) {
+                                                  if (ctx.depth == 0) {
+                                                      xmlContexts.pop();
+                                                      popState();
+                                                      return emitToken(XML_TAG_END);
+                                                  }
+                                                  ctx.depth--;
+                                                  ctx.inOpenTag = false;
+                                                  return emitToken(XML_SUB_TAG_CONTAINER_END);
+                                              }
+                                              ctx.inOpenTag = false;
+                                              return emitToken(XML_SUB_TAG_CONTAINER_END);
+                                          }
+
+// Opening-tag-shaped text. Only a re-occurrence of the *same* tag name increases nesting depth.
+"<" {XML_NAME}                            {
+                                              XmlContext ctx = xmlContexts.peek();
+                                              String s = yytext().toString();
+                                              if (s.equals(ctx.openTag)) {
+                                                  ctx.depth++;
+                                                  ctx.inOpenTag = true;
+                                              } else {
+                                                  ctx.inOpenTag = false;
+                                              }
+                                              return emitToken(XML_SUB_TAG_START);
+                                          }
+
+
+// Self-close. Only counts while still positioned right after an (outer or same-name) open tag.
+"/>"                                       {
+                                              XmlContext ctx = xmlContexts.peek();
+                                              if (ctx.inOpenTag) {
+                                                  ctx.depth--;
+                                              }
+                                              ctx.inOpenTag = false;
+                                              if (ctx.depth < 0) {
+                                                  xmlContexts.pop();
+                                                  popState();
+                                                  return emitToken( XML_TAG_END);
+                                              }
+                                              return emitToken(XML_SUB_TAG_EMPTY_END);
+                                          }
+
+{DOUBLE_DOLLAR}                            { return emitToken( XML_TEXT); }
+{SHORT_TEMPLATE_ENTRY}                     {
+                                                  pushState(SHORT_TEMPLATE_ENTRY);
+                                                  yypushback(yylength() - 1);
+                                                  return emitToken(SHORT_TEMPLATE_ENTRY_START);
+                                           }
+{LONG_TEMPLATE_ENTRY_START}                {
+                                                  pushState(LONG_TEMPLATE_ENTRY);
+                                                 return emitToken(LONG_TEMPLATE_ENTRY_START);
+                                           }
+
+{LONELY_DOLLAR}                            { return emitToken( XML_TEXT); }
+
+// the following tokens have been added in an attempt to provide some highlighting inside XML blocks.
+"true"                                    { return emitToken( KTRUE ); }
+"false"                                   { return emitToken( KFALSE ); }
+
+{mNUM_FLOAT}                              { return emitToken( LITFLOAT ); }
+{mNUM_OCT}                                { return emitToken( LITOCT ); }
+{mNUM_HEX}                                { return emitToken( LITHEX ); }
+{mNUM_INT}                                { return emitToken( LITINT ); }
+
+"("                                       { return emitToken( PLPAREN ); }
+")"                                       { return emitToken( PRPAREN ); }
+
+"{"                                       { return emitToken( PLCURLY ); }
+"}"                                       { return emitToken( PRCURLY ); }
+\"                                        { return emitToken( XML_TEXT ); }
+
+"="                                       { return emitToken( OASSIGN ); }
+","                                       { return emitToken( OCOMMA); }
+"."                                       { return emitToken( ODOT); }
+
+//  must exclude  '<' / '/' / '>' to avoid consuming xml end tags.
+// (we also exclude other tags that we intend to use for highlighting)
+[^<\/>$\s=\{\}\(\)\"\,\.]+                { return emitToken( XML_TEXT ); }
+
+
+// and lone '<' / '/' / '>' that didn't form one of the patterns above.
+// (can anything inside the XML but ">" can also be part of the end of a tag)
+"<" | "/" | ">"                           { return emitToken( XML_TEXT); }
+
+}
+
 // Parses the *condition* in a compiler conditional construct (e.g. #if <condition> ...)
 <COMPILER_CONDITIONAL> {
 
@@ -550,8 +748,9 @@ CONDITIONAL_ERROR="#error"[^\r\n]*
 {REGULAR_APOS_STRING_PART}                { return conditionAppend( REGULAR_STRING_PART ); }
 }
 
-<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK, METADATA> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
-.                                                                       {
-                                                                          yybegin(YYINITIAL);
-                                                                          return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER );
-                                                                        }
+<QUO_STRING, APOS_STRING, SHORT_TEMPLATE_ENTRY, LONG_TEMPLATE_ENTRY, CC_BLOCK, METADATA, XML_CONTENT> .  { return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER ); }
+
+.                                         {
+                                            yybegin(YYINITIAL);
+                                            return emitToken( com.intellij.psi.TokenType.BAD_CHARACTER );
+                                          }

@@ -290,6 +290,10 @@ public class HaxeExpressionEvaluator {
         return handleRegularExpressionLiteral(regexLiteral);
       }
 
+      if (element instanceof HaxeXmlLiteralExpression literalExpression) {
+        return createUnknown(literalExpression);
+      }
+
       if (element instanceof HaxeStringLiteralExpression literalExpression) {
         return handleStringLiteralExpression(literalExpression);
       }
