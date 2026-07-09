@@ -16,28 +16,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion.hxml;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.patterns.PlatformPatterns;
+import com.intellij.patterns.PatternCondition;
+import com.intellij.patterns.PsiElementPattern;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLLanguage;
 import com.intellij.plugins.haxe.haxelib.HaxelibCommandUtils;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
+import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 import com.intellij.plugins.haxe.util.HaxeHelpUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
+import com.intellij.psi.PsiDocumentManager;
+import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static com.intellij.patterns.PlatformPatterns.psiElement;
 
 /**
  * Created by as3boyan on 10.08.14.
@@ -150,32 +159,58 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
     return strings;
   }
 
-  public HXMLCompilerArgumentsCompletionContributor() {
+  public static PsiElementPattern.Capture<PsiElement> emptyLinePattern() {
+    return psiElement().with(new PatternCondition<PsiElement>("emptyLine") {
+      @Override
+      public boolean accepts(@NotNull PsiElement element, ProcessingContext context) {
+        PsiDocumentManager docMgr = PsiDocumentManager.getInstance(element.getProject());
+        Document document = docMgr.getDocument(element.getContainingFile().getOriginalFile());
 
-    extend(CompletionType.BASIC, PlatformPatterns.psiElement(HXMLTypes.KEY_TOKEN).withLanguage(HXMLLanguage.INSTANCE),
+        int offset = element.getTextOffset();
+        int lineNumber = document.getLineNumber(offset);
+        int lineStart = document.getLineStartOffset(lineNumber);
+        int lineEnd = document.getLineEndOffset(lineNumber);
+
+        String lineText = document.getText(new TextRange(lineStart, lineEnd));
+        return lineText.trim().isEmpty();
+      }
+    });
+  }
+
+  public HXMLCompilerArgumentsCompletionContributor() {
+    extend(CompletionType.BASIC, psiElement()
+                    .withLanguage(HXMLLanguage.INSTANCE)
+                    .and(emptyLinePattern()),
+            new CompletionProvider<>() {
+              @Override
+              protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) {
+                fetchCompilerArgumentsIfMissing(parameters);
+
+                for (HXMLCompletionItem argument : COMPILER_ARGUMENTS2) {
+                  LookupElementBuilder element = LookupElementBuilder.create("--" +argument.name)
+                          .withTailText(" " + argument.description, true);
+                  set.addElement(element);
+                }
+
+                for (HXMLCompletionItem argument : COMPILER_ARGUMENTS) {
+                  LookupElementBuilder lookupElementBuilder = LookupElementBuilder.create("-"+argument.name)
+                          .withTailText(" " + argument.description, true);
+                  if (argument.presentableText != null) {
+                    lookupElementBuilder = lookupElementBuilder.withPresentableText("-"+argument.presentableText);
+                  }
+                  set.addElement(lookupElementBuilder);
+                }
+
+              }
+            }
+    );
+
+    extend(CompletionType.BASIC, psiElement(HXMLTypes.KEY_TOKEN).withLanguage(HXMLLanguage.INSTANCE),
            new CompletionProvider<>() {
              @Override
-             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) {
-
-
-               //String[] compilerArguments;
-
-
-               //compilerArguments = new String[]{
-               //  "lib",
-               //  "D",
-               //  "cp",
-               //  "main",
-               //  "dce
-               //};
-
-               if (COMPILER_ARGUMENTS.isEmpty()) {
-                 //VirtualFile file = parameters.getEditor().getVirtualFile();
-                 VirtualFile file = parameters.getOriginalFile().getVirtualFile();
-                 Project project = parameters.getEditor().getProject();
-                 Module module = ModuleUtil.findModuleForFile(file, project);
-                 getCompilerArguments(module);
-               }
+             protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet set) 
+             {
+               fetchCompilerArgumentsIfMissing(parameters);
 
                String text = parameters.getPosition().getText();
 
@@ -196,5 +231,14 @@ public class HXMLCompilerArgumentsCompletionContributor extends CompletionContri
              }
            }
     );
+  }
+
+  private void fetchCompilerArgumentsIfMissing(@NonNull CompletionParameters parameters) {
+    if (COMPILER_ARGUMENTS.isEmpty()) {
+      VirtualFile file = parameters.getOriginalFile().getVirtualFile();
+      Project project = parameters.getEditor().getProject();
+      Module module = ModuleUtil.findModuleForFile(file, project);
+      getCompilerArguments(module);
+    }
   }
 }

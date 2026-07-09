@@ -196,7 +196,7 @@ public class HXMLProjectModel {
     HXMLProperty[] properties = UsefulPsiTreeUtil.getChildrenOfType(psiFile, HXMLProperty.class, null);
     if (null != properties) {
       for (HXMLProperty foundProperty : properties) {
-        HXMLOption option = foundProperty.getOption();
+        HXMLKey option = foundProperty.getKey();
         if (null != option && propertyName.equals(option.getText())) {
           HXMLValue val = foundProperty.getValue();
           if (val != null) {

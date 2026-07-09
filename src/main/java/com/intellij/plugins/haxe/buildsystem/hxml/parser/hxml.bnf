@@ -12,25 +12,34 @@
   elementTypeClass="com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLElementType"
   tokenTypeClass="com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLTokenType"
 
+  parserUtilClass="com.intellij.plugins.haxe.buildsystem.hxml.parser.HxmlParserUtil"
+
   generate=[names="short"]
+
 }
 
-simpleFile ::= line_* unterminated_line_?
+simpleFile ::= singleLine* unterminated_line?
 
-hxml ::= HXML_FILE {mixin="com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlFileReferenceMixin"}
-private classname_ ::= qualifiedName
+private singleLine ::= unterminated_line? endOfLine
+private unterminated_line ::= (option | hxmlFile | qualifiedName | unknownValue)   {recoverWhile="line_recovery"}
+private line_recovery ::= !(endOfLine)
 
-qualifiedName ::= QUALIFIEDCLASSNAME {methods=[getQName]}
-option ::= KEY_TOKEN
-value ::= VALUE_TOKEN | QUALIFIEDCLASSNAME
-private eol_ ::= CRLF
+hxmlFile ::= ((DOTDOT | DOT | IDENTIFER) SLASH)* IDENTIFER (DOT  !<<eofHxmlExtension>> IDENTIFER)* DOT (HXML_EXTENSION | <<eofHxmlExtension>>)
+{mixin="com.intellij.plugins.haxe.buildsystem.hxml.psi.mixin.HxmlFileReferenceMixin"}
 
-private unterminated_line_ ::= (option_ | classname_ | hxml)   {recoverWhile="line_recovery"}
-private line_ ::= unterminated_line_? eol_
-private line_recovery ::= !(eol_)
-private option_ ::= (lib | define | classpath | main | property | COMMENT)
+qualifiedName ::= (IDENTIFER !(HXML_EXTENSION | SLASH) (DOT IDENTIFER)*) | CLASS_NAME
+{methods=[getQName]}
 
-property ::= option value? {pin=1}
+private option ::= (lib | define | classpath | main | property | COMMENT)
+
+value ::= path | qualifiedName  | VALUE_TOKEN
+private endOfLine ::= CRLF
+
+path ::= (DOTDOT | DOT | IDENTIFER | SLASH)+
+
+key ::= KEY_TOKEN
+property ::= key value? {pin=1}
+
 define ::= ('-D'|'--define') value {pin=1}
 
 lib ::= (libHx3|libHx4) value (':' value)? {pin=1}
@@ -44,3 +53,5 @@ private classpathHx4 ::= '-p'
 main ::= (mainHx3| mainHx4) qualifiedName {pin=1}
 private mainHx3 ::= '-main'
 private mainHx4 ::= '-m'| '--main'
+
+unknownValue ::= UNKNOWN+

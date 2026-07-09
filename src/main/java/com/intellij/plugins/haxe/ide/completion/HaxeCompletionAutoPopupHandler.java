@@ -11,9 +11,13 @@ import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.plugins.haxe.buildsystem.hxml.psi.HXMLFile;
+import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.psi.PsiFile;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import static com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes.ONEW;
 
@@ -26,7 +30,15 @@ public class HaxeCompletionAutoPopupHandler extends CompletionAutoPopupHandler {
   @Override
   public Result checkAutoPopup(char charTyped, @NotNull final Project project, @NotNull final Editor editor, @NotNull final PsiFile file) {
     LookupImpl lookup = (LookupImpl)LookupManager.getActiveLookup(editor);
+    if(file instanceof HaxeFile) {
+      return handleHaxeFile(charTyped, project, editor, lookup);
+    }else if(file instanceof HXMLFile) {
+      return handleHxmlFile(charTyped, project, editor, lookup);
+    }
+    return Result.CONTINUE;
+  }
 
+  private static @NotNull Result handleHxmlFile(char charTyped, @NotNull Project project, @NotNull Editor editor, LookupImpl lookup) {
     CompletionPhase phase = CompletionServiceImpl.getCompletionPhase();
 
     if (log.isDebugEnabled()) {
@@ -42,23 +54,57 @@ public class HaxeCompletionAutoPopupHandler extends CompletionAutoPopupHandler {
       }
       return Result.STOP;
     }
-    if(Character.isSpaceChar(charTyped)) {
+    if (Character.isSpaceChar(charTyped)) {
       int offset = editor.getCaretModel().getOffset();
-      if(StringUtil.endsWith(editor.getDocument().getImmutableCharSequence(), 0, offset, ONEW.toString())) {
-          AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
-          return Result.STOP;
+      if (StringUtil.endsWith(editor.getDocument().getImmutableCharSequence(), 0, offset, ONEW.toString())) {
+        AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
+        return Result.STOP;
       }
     }
 
-    if (Character.isLetterOrDigit(charTyped) || charTyped == '_'|| charTyped == '$' || charTyped == '#') {
-      if (phase instanceof CompletionPhase.EmptyAutoPopup && ((CompletionPhase.EmptyAutoPopup)phase).allowsSkippingNewAutoPopup(editor, charTyped)) {
+    if (Character.isLetterOrDigit(charTyped) || charTyped == '-') {
+      if (phase instanceof CompletionPhase.EmptyAutoPopup && ((CompletionPhase.EmptyAutoPopup) phase).allowsSkippingNewAutoPopup(editor, charTyped)) {
         return Result.CONTINUE;
       }
 
       AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
       return Result.STOP;
     }
+    return Result.CONTINUE;
+  }
 
+  private static @Nullable Result handleHaxeFile(char charTyped, @NonNull Project project, @NonNull Editor editor, LookupImpl lookup) {
+    CompletionPhase phase = CompletionServiceImpl.getCompletionPhase();
+
+    if (log.isDebugEnabled()) {
+      log.debug("checkAutoPopup: character=" + charTyped + ";");
+      log.debug("phase=" + phase);
+      log.debug("lookup=" + lookup);
+      log.debug("currentCompletion=" + CompletionServiceImpl.getCompletionService().getCurrentCompletion());
+    }
+
+    if (lookup != null) {
+      if (editor.getSelectionModel().hasSelection()) {
+        lookup.performGuardedChange(() -> EditorModificationUtil.deleteSelectedText(editor));
+      }
+      return Result.STOP;
+    }
+    if (Character.isSpaceChar(charTyped)) {
+      int offset = editor.getCaretModel().getOffset();
+      if (StringUtil.endsWith(editor.getDocument().getImmutableCharSequence(), 0, offset, ONEW.toString())) {
+        AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
+        return Result.STOP;
+      }
+    }
+
+    if (Character.isLetterOrDigit(charTyped) || charTyped == '_' || charTyped == '$' || charTyped == '#') {
+      if (phase instanceof CompletionPhase.EmptyAutoPopup && ((CompletionPhase.EmptyAutoPopup) phase).allowsSkippingNewAutoPopup(editor, charTyped)) {
+        return Result.CONTINUE;
+      }
+
+      AutoPopupController.getInstance(project).scheduleAutoPopup(editor);
+      return Result.STOP;
+    }
     return Result.CONTINUE;
   }
 

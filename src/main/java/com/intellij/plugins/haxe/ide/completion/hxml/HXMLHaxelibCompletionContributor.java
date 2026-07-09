@@ -15,10 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion.hxml;
 
 import com.intellij.codeInsight.completion.*;
+import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
+import com.intellij.codeInsight.lookup.LookupElementWeigher;
+import com.intellij.codeInsight.lookup.WeighingContext;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtil;
 import com.intellij.openapi.project.Project;
@@ -30,11 +33,17 @@ import com.intellij.plugins.haxe.hxml.psi.HXMLLib;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import static com.intellij.patterns.PlatformPatterns.psiElement;
 import static com.intellij.patterns.StandardPatterns.not;
 import static com.intellij.patterns.StandardPatterns.string;
 
@@ -46,7 +55,14 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
 
 
   public HXMLHaxelibCompletionContributor() {
-
+    // completion without any text
+    extend(CompletionType.BASIC,
+           psiElement()
+             .withSuperParent(2, HXMLValue.class)
+             .withSuperParent(3, HXMLLib.class)
+             .withLanguage(HXMLLanguage.INSTANCE),
+           getNameProvider());
+    // completion with
     extend(CompletionType.BASIC,
            PlatformPatterns.psiElement()
              .withParent(HXMLValue.class)
@@ -120,8 +136,13 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
         Module module = ModuleUtil.findModuleForFile(file, project);
         HaxelibCacheManager cacheManager = HaxelibCacheManager.getInstance(module);
 
-        Set<String> available = cacheManager.fetchAvailableVersions(libName);
-        Set<String> installed = cacheManager.getInstalledLibraries().getOrDefault(libName, Set.of());
+        List<String> available = cacheManager.fetchAvailableVersions(libName).stream()
+                .sorted(Comparator.reverseOrder())
+                .toList();
+
+        List<String> installed = cacheManager.getInstalledLibraries().getOrDefault(libName, Set.of()).stream()
+                .sorted(Comparator.reverseOrder())
+                .toList();
 
         List<LookupElementBuilder> installedSuggestions = installed.stream()
           .map(version -> LookupElementBuilder.create(libName + ":" + version).withTailText(" installed", true))
@@ -131,13 +152,25 @@ public class HXMLHaxelibCompletionContributor extends CompletionContributor {
             .map(version -> LookupElementBuilder.create(libName+":"+version).withTailText(" available at haxelib", true))
             .toList();
 
+        // reverse sorting as the latest version is usually more relevant thant the earliest
+        result = reverseSort(result);
+
         result.addAllElements(installedSuggestions);
         result.addAllElements(availableSuggestions);
-
 
 
       }
     };
   }
 
+  private static @NonNull CompletionResultSet reverseSort(@NonNull CompletionResultSet result) {
+    LookupElementWeigher lookupElementWeigher = new LookupElementWeigher("ReverseHaxelibVersionWeigher", true, false) {
+      @NotNull
+      @Override
+      public Comparable weigh(@NotNull LookupElement element) {
+        return element.getLookupString();
+      }
+    };
+    return result.withRelevanceSorter(CompletionSorter.emptySorter().weigh(lookupElementWeigher));
+  }
 }

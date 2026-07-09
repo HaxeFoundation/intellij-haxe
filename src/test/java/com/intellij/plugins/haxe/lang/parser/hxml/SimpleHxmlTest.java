@@ -30,4 +30,8 @@ public class SimpleHxmlTest extends HxmlParsingTestBase {
   public void testSimpleBuild() throws Throwable {
     doTest(true);
   }
+  @Test
+  public void testParserTest() throws Throwable {
+    doTest(true);
+  }
 }

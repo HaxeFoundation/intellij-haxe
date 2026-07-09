@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.intellij.plugins.haxe.ide;
+package com.intellij.plugins.haxe.ide.completion.hxml;
 
 import com.intellij.codeInsight.completion.*;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
@@ -27,6 +27,7 @@ import com.intellij.patterns.PlatformPatterns;
 import com.intellij.plugins.haxe.hxml.psi.HXMLDefine;
 import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
 import com.intellij.plugins.haxe.hxml.psi.HXMLValue;
+import com.intellij.plugins.haxe.ide.HXMLCompletionItem;
 import com.intellij.plugins.haxe.util.HaxeCompletionCache;
 import com.intellij.util.ProcessingContext;
 import lombok.CustomLog;

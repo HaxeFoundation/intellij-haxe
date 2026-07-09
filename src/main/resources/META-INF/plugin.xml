@@ -297,9 +297,9 @@
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.HaxeSmartCompletionContributor"/>
     <completion.contributor language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.completion.HaxeMacroCompletionContributor"/>
 
-    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLCompilerArgumentsCompletionContributor"/>
-    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLHaxelibCompletionContributor"/>
-    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.HXMLDefineCompletionContributor"/>
+    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.completion.hxml.HXMLCompilerArgumentsCompletionContributor"/>
+    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.completion.hxml.HXMLHaxelibCompletionContributor"/>
+    <completion.contributor language="HXML" implementationClass="com.intellij.plugins.haxe.ide.completion.hxml.HXMLDefineCompletionContributor"/>
 
     <completion.contributor language="XML" implementationClass="com.intellij.plugins.haxe.ide.XmlHaxelibCompletionContributor"/>
 
@@ -414,6 +414,7 @@
     <annotator language="Haxe" id="type" implementationClass="com.intellij.plugins.haxe.ide.annotator.HaxeUnresolvedTypeAnnotator" order="after slowColor"/>
     <annotator language="Haxe" id="invalidEscape" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeInvalidEscapeAnnotator" order="after fastColor"/>
 
+    <annotator language="HXML" id="hxmlFastColor" implementationClass="com.intellij.plugins.haxe.ide.annotator.color.HaxeHxmlFastColorAnnotator" order="first"/>
 
 
     <annotator language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.annotator.semantics.HaxeStringAnnotator"/>

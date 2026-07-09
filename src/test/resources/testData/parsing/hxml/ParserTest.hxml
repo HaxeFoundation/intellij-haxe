@@ -1,0 +1,360 @@
+# Class path: all three aliases
+-cp src
+--class-path lib/vendor/haxe
+-p extra/generated
+
+# Library: all three aliases, with and without version pin
+-L somelib
+--library anotherlib:1.0.0
+-lib thirdlib
+
+# Define: flag-only, flag=value, both flag aliases
+-D my_flag
+-D version=42
+--define release
+--define target=custom
+
+# Undefine
+--undefine some_flag
+
+# Verbose: both aliases
+-v
+--verbose
+
+# Debug: both aliases
+--debug
+-debug
+
+# Warning control
+-w -WDeprecated
+
+# Working directory: both aliases
+--cwd .
+-C subdir/build
+
+# Pass --global to haxelib
+--haxelib-global
+
+# Internal lib class path (parsed but not in public --help output)
+-libcp path/to/native/libs
+
+--each
+
+# ── SECTION 1: JavaScript — long flag, simple path ────────────
+--next
+
+--main Main
+--js output.js
+--dce std
+--no-output
+--times
+--prompt
+--xml types.xml
+--json types.json
+--hxb output.hxb
+--remap flash:openfl
+--custom-extension custom
+--display src/Main.hx@42@type
+--macro haxe.macro.Compiler.include('mypackage')
+--cmd echo done
+-resource assets/raw.txt
+--resource assets/data.bin@myData
+-r assets/icon.png@icon
+
+# ── SECTION 2: JavaScript — short alias, complex path ─────────
+--next
+
+-m Main
+-js bin/js/app/output.js
+--dce full
+--no-output
+-xml bin/types/output.xml
+--json bin/types/output.json
+--hxb bin/archives/app/output.hxb
+-remap flash:openfl
+--custom-extension hx2
+--macro haxe.macro.Compiler.addGlobalMetadata('', '@:keep')
+-macro trace('hello')
+-cmd node bin/js/app/output.js
+-r path/to/deep/assets/data.bin@deepAsset
+--resource path/to/deep/assets/icon.png@deepIcon
+-prompt
+
+# ── SECTION 3: JavaScript — -main alias, dce no ───────────────
+--next
+
+-main Main
+-js bin/js/release/output.js
+--dce no
+--no-output
+
+# ── SECTION 4: Neko — long flag, simple path ──────────────────
+--next
+
+--main Main
+--neko output.n
+--neko-lib-path /usr/lib/neko
+--no-output
+
+# ── SECTION 5: Neko — short alias, complex path ───────────────
+--next
+
+-m Main
+-neko bin/neko/app/output.n
+--neko-lib-path /usr/local/lib/neko
+--no-output
+
+# ── SECTION 6: HashLink .hl — long flag, simple path ──────────
+--next
+
+--main Main
+--hl output.hl
+--no-output
+
+# ── SECTION 7: HashLink .hl — short alias, complex path ───────
+--next
+
+-m Main
+-hl bin/hl/app/output.hl
+--no-output
+
+# ── SECTION 8: HashLink C (.c) — long flag, simple path ───────
+--next
+
+--main Main
+--hl output.c
+--no-output
+
+# ── SECTION 9: HashLink C (.c) — short alias, complex path ────
+--next
+
+-m Main
+-hl bin/hlc/src/output.c
+--no-output
+
+# ── SECTION 10: C++ — long flag ───────────────────────────────
+--next
+
+--main Main
+--cpp bin/cpp
+--no-output
+
+# ── SECTION 11: C++ — short alias, complex path ───────────────
+--next
+
+-m Main
+-cpp bin/cpp/release/output
+--no-output
+
+# ── SECTION 12: Python — long flag, simple path ───────────────
+--next
+
+--main Main
+--python output.py
+--no-output
+
+# ── SECTION 13: Python — short alias, complex path ────────────
+--next
+
+-m Main
+-python bin/python/app/output.py
+--no-output
+
+# ── SECTION 14: PHP — long flag ───────────────────────────────
+--next
+
+--main Main
+--php bin/php
+--no-output
+
+# ── SECTION 15: PHP — short alias, complex path ───────────────
+--next
+
+-m Main
+-php bin/php/app/output
+--no-output
+
+# ── SECTION 16: JVM — long flag, simple path ──────────────────
+--next
+
+--main Main
+--jvm output.jar
+--java-lib lib.jar
+--java-lib-extern extern.jar
+--no-output
+
+# ── SECTION 17: JVM — short alias, complex path ───────────────
+--next
+
+-m Main
+-jvm bin/jvm/app/output.jar
+-java-lib path/to/libs/other.jar
+--java-lib-extern path/to/externs/types.jar
+--no-output
+
+# ── SECTION 18: Lua — long flag, simple path ──────────────────
+--next
+
+--main Main
+--lua output.lua
+--no-output
+
+# ── SECTION 19: Lua — short alias, complex path ───────────────
+--next
+
+-m Main
+-lua bin/lua/app/output.lua
+--no-output
+
+# ── SECTION 20: Cppia — long flag, simple path ────────────────
+--next
+
+--main Main
+--cppia output.cppia
+--no-output
+
+# ── SECTION 21: Cppia — short alias, complex path ─────────────
+--next
+
+-m Main
+-cppia bin/cppia/app/output.cppia
+--no-output
+
+# ── SECTION 22: Flash/SWF — long flags, simple paths ──────────
+--next
+
+--main Main
+--swf output.swf
+--swf-version 32
+--swf-lib lib.swf
+--swf-lib-extern extern.swf
+--no-output
+
+# ── SECTION 23: Flash/SWF — short aliases, complex paths ──────
+--next
+
+-m Main
+-swf bin/swf/app/output.swf
+-swf-version 11.8
+-swf-lib path/to/assets/lib.swf
+-swf-lib-extern path/to/externs/extern.swf
+--no-output
+
+# ── SECTION 24: Interp / eval ─────────────────────────────────
+--next
+
+--main Main
+--interp
+
+# ── SECTION 25: -x shorthand (non-terminal; rest are build args)
+--next
+
+-x Main
+-D extra_flag
+
+# ── SECTION 26: --run (terminal; rest of line = class name) ───
+--next
+
+--run Main
+
+# ── SECTION 27: Custom target — long flag, with path ──────────
+--next
+
+--main Main
+--custom-target mytarget=bin/custom/output
+--no-output
+
+# ── SECTION 28: Custom target — short alias, without path ─────
+--next
+
+-m Main
+-custom mytarget
+--no-output
+
+# ── SECTION 29: HXB output — simple and complex paths ─────────
+--next
+
+--main Main
+--interp
+--hxb output.hxb
+--hxb bin/archives/app/output.hxb
+
+# ── SECTION 30: HXB library input — simple and complex paths ──
+--next
+
+--hxb-lib output.hxb
+
+-hxb-lib bin/archives/app/other.hxb
+--main Main
+--interp
+
+# ── SECTION 31: Bare class names and module includes ──────────
+--next
+
+--interp
+MyPackage.MyClass
+mypackage.mymodule
+
+# ── SECTION 32: HXML file inclusions ─────────────────────────
+# Bare .hxml paths: last dot-segment must be "hxml" with ≥1 more
+# Simple filename with platform in name
+build.js.hxml
+# With one directory level
+builds/myapp.neko.hxml
+# Deeper paths with platform in name (all supported targets)
+config/targets/project.hl.hxml
+config/targets/project.cpp.hxml
+config/targets/project.jvm.hxml
+config/targets/project.python.hxml
+config/targets/project.php.hxml
+config/targets/project.lua.hxml
+config/targets/project.swf.hxml
+config/targets/project.cppia.hxml
+config/targets/project.eval.hxml
+--interp
+
+# ── SECTION 33: -next and -each short aliases ─────────────────
+-next
+
+--main Main
+--interp
+
+-each
+
+--main Main
+--interp
+
+-next
+
+--main Main
+--interp
+
+# ── SECTION 34: Server modes ──────────────────────────────────
+-next
+
+--server-listen 6000
+--server-listen localhost:6000
+--server-listen stdio
+--wait 6000
+--wait localhost:6000
+--wait stdio
+--server-connect localhost:6000
+--connect localhost:6000
+
+# ── SECTION 35: Early-exit flags (terminate immediately) ──────
+-next
+
+--version
+-version
+--help
+-h
+-help
+--help-defines
+--help-metas
+--help-user-defines
+--help-user-metas
+
+
+-D no-opt
+-D no-inline
+-D no-traces

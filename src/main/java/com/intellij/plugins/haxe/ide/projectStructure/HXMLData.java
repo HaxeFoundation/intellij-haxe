@@ -74,8 +74,8 @@ public class HXMLData {
           current.myClassPaths.add(getPath(cwd, value.getText()));
         }
 
-      } else if(type == HXMLTypes.HXML) {
-        String anotherPath = getPath(cwd, node.getPsi(HXMLHxml.class).getText());
+      } else if(type == HXMLTypes.HXML_FILE) {
+        String anotherPath = getPath(cwd, node.getPsi(HXMLHxmlFile.class).getText());
         next = getRootNode(project, anotherPath).getFirstChildNode();
         if(next != null) {
           nodeStack.push(next);
@@ -88,7 +88,7 @@ public class HXMLData {
         }
       } else if(type == HXMLTypes.PROPERTY) {
         HXMLProperty property = node.getPsi(HXMLProperty.class);
-        switch (property.getOption().getText()) {
+        switch (property.getKey().getText()) {
           case "--each":
             each = current;
             current = each.copy();
@@ -131,7 +131,7 @@ public class HXMLData {
   }
 
   static private void readProperty(HXMLData data, HXMLProperty property, String cwd) throws HXMLDataException {
-    HXMLOption option = property.getOption();
+    HXMLKey option = property.getKey();
     HXMLValue valuePsi = property.getValue();
     String value = valuePsi == null ? null : valuePsi.getText();
     switch(option.getText()) {

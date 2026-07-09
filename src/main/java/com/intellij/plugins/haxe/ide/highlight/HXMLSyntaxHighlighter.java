@@ -64,7 +64,7 @@ public class HXMLSyntaxHighlighter extends SyntaxHighlighterBase {
     if (tokenType.equals(HXMLTypes.KEY_TOKEN)) {
       return KEY_KEYS;
     }
-    else if (tokenType.equals(HXMLTypes.QUALIFIEDCLASSNAME)) {
+    else if (tokenType.equals(HXMLTypes.CLASS_NAME)) {
       return CLASS_NAME_KEYS;
     }
     else if (tokenType.equals(HXMLTypes.VALUE_TOKEN)) {

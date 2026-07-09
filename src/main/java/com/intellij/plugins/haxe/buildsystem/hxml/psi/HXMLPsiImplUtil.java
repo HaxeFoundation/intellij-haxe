@@ -29,7 +29,7 @@ import com.intellij.plugins.haxe.hxml.psi.HXMLTypes;
  */
 public class HXMLPsiImplUtil {
   public static String getOption(HXMLProperty property) {
-    ASTNode node = property.getNode().findChildByType(HXMLTypes.OPTION);
+    ASTNode node = property.getNode().findChildByType(HXMLTypes.KEY);
 
     if (node != null) {
       return node.getText();
