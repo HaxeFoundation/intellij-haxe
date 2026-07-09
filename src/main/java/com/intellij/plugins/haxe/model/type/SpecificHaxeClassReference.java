@@ -557,6 +557,10 @@ public class SpecificHaxeClassReference extends SpecificTypeReference {
     return null;
   }
 
+    public boolean isReification() {
+      return getClassName().startsWith("$");
+    }
+
 
   public enum Compatibility {
     ASSIGNABLE_TO,   // Assignable via @:to or "to <Type>" on an abstract.
