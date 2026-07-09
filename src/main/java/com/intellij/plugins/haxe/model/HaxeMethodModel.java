@@ -44,7 +44,7 @@ import java.util.Objects;
 
 import com.intellij.openapi.util.Key;
 
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 //TODO, not really an  HaxeExposableModel ?
 public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableModel {
 

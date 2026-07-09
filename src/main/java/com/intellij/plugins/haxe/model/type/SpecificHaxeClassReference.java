@@ -45,7 +45,7 @@ import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverC
 import static com.intellij.plugins.haxe.model.type.resolver.HaxeGenericResolverCastUtil.findClassHierarchy;
 
 @CustomLog
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class SpecificHaxeClassReference extends SpecificTypeReference {
   private static final String CONSTANT_VALUE_DELIMITER = " = ";
   private static final Key<CachedValue<Set<SpecificHaxeClassReference>>> COMPATIBLE_TYPES_TO_KEY = new Key<>("HAXE_COMPATIBLE_TYPES_TO");

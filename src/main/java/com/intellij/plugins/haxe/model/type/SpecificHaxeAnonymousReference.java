@@ -29,7 +29,7 @@ import java.util.*;
 
 
 @CustomLog
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class SpecificHaxeAnonymousReference extends SpecificHaxeClassReference {
 
   // anonymous types does not have generics but can inherit from Parent, this class lets us keep parent resolver with the reference

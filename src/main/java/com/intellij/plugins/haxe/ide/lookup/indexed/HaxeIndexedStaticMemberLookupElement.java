@@ -24,7 +24,7 @@ import java.util.Set;
 import static com.intellij.plugins.haxe.ide.lookup.lookupItemImportUtil.*;
 
 @CustomLog
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class HaxeIndexedStaticMemberLookupElement extends LookupElement implements HaxePsiLookupElement {
   @Getter private final HaxeCompletionPriorityData priority = new HaxeCompletionPriorityData();
 

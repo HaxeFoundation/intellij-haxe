@@ -46,7 +46,7 @@ import static com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference.pr
 /**
  * HaxeParameterModels (parameter) appear in method and catch parameters -- not type parameters.
  */
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 public class HaxeParameterModel extends HaxeBaseMemberModel implements HaxeModel {
   private static final Key<HaxeMemberModel> PARAMETER_MEMBER_MODEL_KEY = new Key<>("HAXE_PARAMETER_MEMBER_MODEL");
 

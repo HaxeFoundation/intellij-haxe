@@ -1,10 +1,12 @@
 package com.intellij.plugins.haxe.haxelib.definitions.tags;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @Value
+@EqualsAndHashCode(callSuper = true)
 public class ProjectXmlHaxedefValue extends ProjectXmlConditionalValue {
   String name;
 
