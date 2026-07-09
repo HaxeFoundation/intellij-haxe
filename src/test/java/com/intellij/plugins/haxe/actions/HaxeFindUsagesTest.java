@@ -19,12 +19,14 @@
 package com.intellij.plugins.haxe.actions;
 
 import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.fileTypes.FileTypes;
 import com.intellij.openapi.ui.TestDialog;
 import com.intellij.openapi.ui.TestDialogManager;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.usageView.UsageInfo;
@@ -61,14 +63,11 @@ public class HaxeFindUsagesTest extends HaxeCodeInsightFixtureTestCase {
     assertEquals(size, elements.size());
   }
 
-  private Collection<UsageInfo> findUsages()
-    throws Throwable {
-    final UsageTarget[] targets = UsageTargetUtil.findUsageTargets(new DataProvider() {
-      @Override
-      public Object getData(@NonNls String dataId) {
-        return ((EditorEx)myFixture.getEditor()).getDataContext().getData(dataId);
-      }
-    });
+  private Collection<UsageInfo> findUsages() {
+    Editor editor = getFixture().getEditor();
+    PsiFile file = getFixture().getFile();
+    PsiElement elementAtCaret = getFixture().getElementAtCaret();
+    final UsageTarget[] targets = UsageTargetUtil.findUsageTargets(editor, file, elementAtCaret);
 
     assert targets != null && targets.length > 0 && targets[0] instanceof PsiElementUsageTarget;
     return myFixture.findUsages(((PsiElementUsageTarget)targets[0]).getElement());
