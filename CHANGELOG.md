@@ -1,4 +1,11 @@
 # Changelog
+## 1.8.6
+* Added: initial support for inline XML markup (parsing & basic highlighting).
+* Fixed: HXML parsing failed to parse more complex HXML file inclusion references.
+* Fixed: Added missing keywords for completion suggestions in Class body (static, final, inline).
+* Changed: HXML completion will how show suggestions for arguments and libraries without requiring you type the first character.
+* Misc: Removing and replacing deprecated API in preparation for intellij 2026.2
+
 ## 1.8.5
 * Fixed: Broken Regex parsing (regression from string escape highlighting).
 * Fixed: Removed incorrect "unnessesary escape" warning in regex expressions.
