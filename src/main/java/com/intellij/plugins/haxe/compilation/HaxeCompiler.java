@@ -72,11 +72,6 @@ public class HaxeCompiler implements FileProcessingCompiler {
     return HaxeBundle.message("haxe.compiler.description");
   }
 
-  @Override
-  public boolean validateConfiguration(CompileScope scope) {
-    return true;
-  }
-
   @NotNull
   @Override
   public ProcessingItem[] getProcessingItems(CompileContext context) {
