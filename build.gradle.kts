@@ -6,6 +6,7 @@ import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtensi
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
@@ -111,6 +112,7 @@ dependencies {
 
         pluginModule(implementation(project(":jps-plugin")))
         pluginModule(implementation(project(":common")))
+        pluginModule(implementation(project(":hashlink-debug-adapter")))
 
         pluginComposedModule(implementation(project(":hxcpp-debugger-protocol")))
         pluginComposedModule(implementation(project(":common")))
@@ -256,6 +258,16 @@ tasks {
     processResources {
         from("src") {
             include("**/*.properties")
+        }
+    }
+
+
+    // ship the DAP debug adapter bytecode inside the plugin directory (not a jar):
+    // the hl executable needs a real file path to run it
+    withType<PrepareSandboxTask> {
+        dependsOn(":hashlink-debug-adapter:buildDebugAdapter")
+        from(project(":hashlink-debug-adapter").layout.buildDirectory.file("hl/hl-debug-adapter.hl")) {
+            into(pluginName.map { "$it/adapter" })
         }
     }
 

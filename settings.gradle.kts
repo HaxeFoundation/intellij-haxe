@@ -7,4 +7,5 @@ plugins {
 include(":hxcpp-debugger-protocol")
 include(":jps-plugin")
 include(":common")
+include(":hashlink-debug-adapter")
 
