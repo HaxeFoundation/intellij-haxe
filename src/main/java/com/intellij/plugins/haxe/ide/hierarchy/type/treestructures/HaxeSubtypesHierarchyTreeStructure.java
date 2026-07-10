@@ -20,6 +20,7 @@ package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
+import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
@@ -29,6 +30,7 @@ import com.intellij.util.ArrayUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeInheritanceDefinitionsUtil.getItemsByQNameFirstLevelChildrenOnly;
 
@@ -64,7 +66,22 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
             .map(PsiClass.class::cast)
             .toList();
 
+    removeElementsAlreadyInBranch(subTypeList);
+
     return typeListToObjArray(((HaxeTypeHierarchyNodeDescriptor) descriptor), subTypeList);
+  }
+
+  // a form of recursion guard for when we get inheritance that loops back on it self
+  //class A extends C {}
+  //class B extends A {}
+  //class C extends B {}
+  private void removeElementsAlreadyInBranch(List<PsiClass> subTypeList) {
+    NodeDescriptor descriptor = this.getBaseDescriptor();
+    while(descriptor  instanceof  HaxeTypeHierarchyNodeDescriptor nodeDescriptor) {
+      HaxeClass haxeClass = nodeDescriptor.getHaxeClass();
+      if(haxeClass != null)subTypeList.remove(haxeClass);
+      descriptor = descriptor.getParentDescriptor();
+    }
   }
 
   @NotNull
