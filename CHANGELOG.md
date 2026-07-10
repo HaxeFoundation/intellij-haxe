@@ -1,4 +1,7 @@
 # Changelog
+## Unreleased
+* Misc: Disabled Gradle build cache for the parser/lexer generator tasks (their outputs overlap in src/main/gen, so a restored cache snapshot could bring back stale generated sources).
+
 ## 1.8.6
 * Added: initial support for inline XML markup (parsing & basic highlighting).
 * Fixed: HXML parsing failed to parse more complex HXML file inclusion references.
