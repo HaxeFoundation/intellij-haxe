@@ -64,7 +64,7 @@ public class HaxeSubtypesHierarchyTreeStructure extends HierarchyTreeStructure {
             // filter to match scope
             .filter( type -> isInScope(type, type, currentScopeType))
             .map(PsiClass.class::cast)
-            .toList();
+            .collect(Collectors.toList());// must be mutable
 
     removeElementsAlreadyInBranch(subTypeList);
 
