@@ -5,12 +5,12 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class LaunchRequest extends Request {
-  public static final String COMMAND = "launch";
+public class ContinueRequest extends Request {
+  public static final String COMMAND = "continue";
 
-  private LaunchRequestArguments arguments;
+  private ContinueArguments arguments;
 
-  public LaunchRequest() {
+  public ContinueRequest() {
     super(COMMAND);
   }
 }

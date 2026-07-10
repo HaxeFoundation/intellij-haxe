@@ -1,0 +1,4 @@
+-cp src
+-main Main
+-debug
+-hl ../build/hl/test-fixture.hl

@@ -1,4 +1,5 @@
 -cp src/main/haxe
 -cp src/test/haxe
+-lib format
 -main TestMain
 --interp

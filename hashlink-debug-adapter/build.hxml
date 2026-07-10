@@ -1,3 +1,4 @@
 -cp src/main/haxe
+-lib format
 -main adapter.Main
 -hl build/hl/hl-debug-adapter.hl

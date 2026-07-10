@@ -1,17 +1,24 @@
 package com.intellij.plugins.haxe.runner.debugger.dap;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.BreakpointEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ConfigurationDoneResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ContinueResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DisconnectResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ErrorResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ExitedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializeResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.LaunchResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.OutputEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ProtocolMessage;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.TerminatedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ThreadsResponse;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
@@ -61,6 +68,8 @@ public final class DapJson {
       case "configurationDone" -> ConfigurationDoneResponse.class;
       case "launch" -> LaunchResponse.class;
       case "threads" -> ThreadsResponse.class;
+      case "continue" -> ContinueResponse.class;
+      case "stackTrace" -> StackTraceResponse.class;
       case "disconnect" -> DisconnectResponse.class;
       default -> Response.class;
     };
@@ -71,6 +80,11 @@ public final class DapJson {
     String event = root.path("event").asString("");
     Class<? extends Event> target = switch (event) {
       case InitializedEvent.EVENT -> InitializedEvent.class;
+      case StoppedEvent.EVENT -> StoppedEvent.class;
+      case TerminatedEvent.EVENT -> TerminatedEvent.class;
+      case ExitedEvent.EVENT -> ExitedEvent.class;
+      case OutputEvent.EVENT -> OutputEvent.class;
+      case BreakpointEvent.EVENT -> BreakpointEvent.class;
       default -> Event.class;
     };
     return MAPPER.treeToValue(root, target);

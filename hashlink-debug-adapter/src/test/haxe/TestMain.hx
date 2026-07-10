@@ -1,5 +1,7 @@
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
+import tests.JitInfoReaderTest;
+import tests.ModuleDebugInfoTest;
 import tests.ProtocolJsonTest;
 
 /**
@@ -18,6 +20,12 @@ class TestMain {
 
 		assert.setContext("DispatcherTest");
 		DispatcherTest.run(assert);
+
+		assert.setContext("JitInfoReaderTest");
+		JitInfoReaderTest.run(assert);
+
+		assert.setContext("ModuleDebugInfoTest");
+		ModuleDebugInfoTest.run(assert);
 
 		Sys.println(assert.checks + " checks, " + assert.failures + " failures");
 		Sys.exit(assert.failures == 0 ? 0 : 1);

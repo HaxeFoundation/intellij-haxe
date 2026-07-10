@@ -1,0 +1,186 @@
+package debug;
+
+import format.hl.Data;
+import format.hl.Data.HLType;
+
+/**
+ * Reads a .hl file's embedded debug tables (via the `format` haxelib) and maps
+ * between source (file, line) and bytecode (function index, opcode).
+ *
+ * The function index used here is the position in the code's function array,
+ * which matches the per-function order of the handshake (see JitInfo), so a
+ * (fidx, op) resolved here can be handed straight to JitInfo.addressOf.
+ */
+class ModuleDebugInfo {
+	final data:Data;
+	final isWindows:Bool;
+	// findex (global) -> "Class.method" display name
+	final namesByFindex:Map<Int, String>;
+
+	public function new(hlFilePath:String) {
+		var bytes = sys.io.File.getBytes(hlFilePath);
+		data = new format.hl.Reader().read(new haxe.io.BytesInput(bytes));
+		if (!data.flags.has(HasDebug)) {
+			throw new DebugError('The program "$hlFilePath" was compiled without debug info; recompile with -debug');
+		}
+		isWindows = Sys.systemName() == "Windows";
+		namesByFindex = buildNames();
+	}
+
+	public function functionCount():Int {
+		return data.functions.length;
+	}
+
+	/** Opcode count of a function, for aligning against the handshake tables. */
+	public function opCount(fidx:Int):Int {
+		return data.functions[fidx].ops.length;
+	}
+
+	/**
+	 * Resolves a source breakpoint to bytecode locations, one per function that
+	 * has code on that line. When the exact line has no code, moves to the next
+	 * line with code in the same file (DAP allows this). Empty result = no code.
+	 */
+	public function resolveLine(file:String, line:Int):Array<{fidx:Int, op:Int, line:Int}> {
+		var fileMatches = matchingFileIndexes(file);
+		if (!fileMatches.keys().hasNext()) {
+			return [];
+		}
+
+		// collect the smallest line >= requested that has code, per the whole file
+		var effectiveLine = -1;
+		for (fidx in 0...data.functions.length) {
+			var debug = data.functions[fidx].debug;
+			var op = 0;
+			while (op < data.functions[fidx].ops.length) {
+				var f = debug[op << 1];
+				var l = debug[(op << 1) + 1];
+				if (fileMatches.exists(f) && l >= line) {
+					if (effectiveLine < 0 || l < effectiveLine) {
+						effectiveLine = l;
+					}
+				}
+				op++;
+			}
+		}
+		if (effectiveLine < 0) {
+			return [];
+		}
+
+		var result:Array<{fidx:Int, op:Int, line:Int}> = [];
+		for (fidx in 0...data.functions.length) {
+			var debug = data.functions[fidx].debug;
+			var ops = data.functions[fidx].ops.length;
+			var op = 0;
+			while (op < ops) {
+				var f = debug[op << 1];
+				var l = debug[(op << 1) + 1];
+				if (fileMatches.exists(f) && l == effectiveLine) {
+					result.push({fidx: fidx, op: op, line: effectiveLine});
+					break; // first op of this line in this function is enough
+				}
+				op++;
+			}
+		}
+		return result;
+	}
+
+	/** Reverse mapping: bytecode location -> source (file, line). */
+	public function lookup(fidx:Int, op:Int):Null<{file:String, line:Int}> {
+		if (fidx < 0 || fidx >= data.functions.length) {
+			return null;
+		}
+		var debug = data.functions[fidx].debug;
+		if (debug == null || (op << 1) + 1 >= debug.length) {
+			return null;
+		}
+		var fileIndex = debug[op << 1];
+		var line = debug[(op << 1) + 1];
+		var file = (fileIndex >= 0 && fileIndex < data.debugFiles.length) ? data.debugFiles[fileIndex] : null;
+		return {file: file, line: line};
+	}
+
+	/** Best-effort display name ("Class.method") for a stack frame, else "fn@<findex>". */
+	public function functionName(fidx:Int):String {
+		if (fidx < 0 || fidx >= data.functions.length) {
+			return "?";
+		}
+		var findex = data.functions[fidx].findex;
+		var name = namesByFindex.get(findex);
+		return name != null ? name : 'fn@$findex';
+	}
+
+	function matchingFileIndexes(requested:String):Map<Int, Bool> {
+		var normalizedRequest = normalize(requested);
+		var basename = baseName(normalizedRequest);
+		var result = new Map<Int, Bool>();
+		for (i in 0...data.debugFiles.length) {
+			var stored = normalize(data.debugFiles[i]);
+			if (baseName(stored) != basename) {
+				continue;
+			}
+			if (stored == normalizedRequest
+				|| StringTools.endsWith(normalizedRequest, "/" + stored)
+				|| StringTools.endsWith(stored, "/" + normalizedRequest)
+				|| StringTools.endsWith(normalizedRequest, stored)
+				|| StringTools.endsWith(stored, normalizedRequest)) {
+				result.set(i, true);
+			}
+		}
+		return result;
+	}
+
+	function normalize(path:String):String {
+		var p = StringTools.replace(path, "\\", "/");
+		return isWindows ? p.toLowerCase() : p;
+	}
+
+	function baseName(path:String):String {
+		var slash = path.lastIndexOf("/");
+		return slash < 0 ? path : path.substr(slash + 1);
+	}
+
+	function buildNames():Map<Int, String> {
+		var names = new Map<Int, String>();
+		for (type in data.types) {
+			switch (type) {
+				case HObj(proto) | HStruct(proto):
+					var className = displayClassName(proto.name);
+					// instance methods live in the virtual table
+					for (entry in proto.proto) {
+						if (entry.findex >= 0) {
+							names.set(entry.findex, className + "." + entry.name);
+						}
+					}
+					// static methods live as field bindings; the binding's field id is an
+					// absolute index that counts inherited fields first, so offset by the
+					// super-class field count to index into this type's own fields.
+					var inherited = fieldCount(proto.tsuper);
+					for (binding in proto.bindings) {
+						var ownIndex = binding.fid - inherited;
+						if (binding.mid >= 0 && ownIndex >= 0 && ownIndex < proto.fields.length) {
+							names.set(binding.mid, className + "." + proto.fields[ownIndex].name);
+						}
+					}
+				default:
+			}
+		}
+		return names;
+	}
+
+	// Haxe names the static container "$Main"; strip the leading $ for display.
+	function displayClassName(name:String):String {
+		return (name != null && StringTools.startsWith(name, "$")) ? name.substr(1) : name;
+	}
+
+	// Total number of fields contributed by a type's super-class chain.
+	function fieldCount(type:HLType):Int {
+		if (type == null) {
+			return 0;
+		}
+		return switch (type) {
+			case HObj(proto) | HStruct(proto): fieldCount(proto.tsuper) + proto.fields.length;
+			default: 0;
+		}
+	}
+}
