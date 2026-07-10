@@ -42,10 +42,10 @@ import com.intellij.psi.impl.InheritanceImplUtil;
 import com.intellij.psi.impl.PsiClassImplUtil;
 import com.intellij.psi.impl.PsiImplUtil;
 import com.intellij.psi.impl.PsiSuperMethodImplUtil;
+import com.intellij.psi.impl.source.PsiImmediateClassType;
 import com.intellij.psi.impl.source.tree.ChildRole;
 import com.intellij.psi.impl.source.tree.java.PsiTypeParameterListImpl;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubBuildCachedValuesManager;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.CachedValueProvider;
@@ -58,6 +58,7 @@ import lombok.CustomLog;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -498,7 +499,14 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
         HaxeType type = typeOrAnonymous.getType();
         if(type != null) {
           HaxeReferenceExpression referenceExpression = type.getReferenceExpression();
-          return new PsiClassType[]{getReferencedType(referenceExpression)};
+          return new PsiClassType[]{getReferencedClassType(referenceExpression)};
+        }else {
+          HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+          if(anonymousType != null) {
+            return Arrays.stream(anonymousType.getSupers())
+                    .map(this::getPsiImmediateClassType)
+                    .toArray(PsiClassType[]::new);
+          }
         }
       }
     }
@@ -518,9 +526,13 @@ public abstract class AbstractHaxePsiClass extends HaxeStubBasedNamedComponent<H
 
 
   @NotNull
-  private PsiClassType getReferencedType(HaxeReferenceExpression referenceExpression) {
+  private PsiClassType getReferencedClassType(HaxeReferenceExpression referenceExpression) {
     PsiElementFactory factory = JavaPsiFacade.getInstance(getProject()).getElementFactory();
     return factory.createType(referenceExpression);
+  }
+  @NonNull
+  private PsiClassType getPsiImmediateClassType(PsiClass psiClass) {
+    return new PsiImmediateClassType(psiClass, new EmptySubstitutor());
   }
 
   @Override
