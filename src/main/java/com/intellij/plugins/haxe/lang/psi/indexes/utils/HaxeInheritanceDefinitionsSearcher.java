@@ -53,8 +53,8 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
     final PsiElement queryParametersParentElement = queryParameterElement.getParent();
 
     HaxeNamedComponent haxeNamedComponent;
-    if (queryParameterElement instanceof HaxeClass) {
-      haxeNamedComponent = (HaxeClass)queryParameterElement;
+    if (queryParameterElement instanceof HaxeClass haxeClass) {
+      haxeNamedComponent = haxeClass;
     }
     else if (queryParametersParentElement instanceof HaxeNamedComponent && queryParameterElement instanceof HaxeComponentName) {
       haxeNamedComponent = (HaxeNamedComponent)queryParametersParentElement;
@@ -123,7 +123,9 @@ public class HaxeInheritanceDefinitionsSearcher extends QueryExecutorBase<PsiEle
       if (isFQN) {
         // Also look up by fully-qualified name for source that uses qualified extends references
         // should not be any need to resolve / verify with directlyInheritsFrom as these are Fully qualified
-        Collection<HaxeClass> fqnSupers = HaxeClassInheritanceUnifiedIndex.getBySuper(name, project, scope);
+        final Set<HaxeClass> fqnSupers = new LinkedHashSet<>();
+        fqnSupers.addAll(HaxeClassInheritanceUnifiedIndex.getBySuper(name, project, scope));
+        fqnSupers.addAll(HaxeTypedefInheritanceUnifiedIndex.getBySuper(name, project, scope));
         for (HaxeClass subClass : fqnSupers) {
           if (!consumer.process(subClass)) return;
           final String subQName = subClass.getQualifiedName();

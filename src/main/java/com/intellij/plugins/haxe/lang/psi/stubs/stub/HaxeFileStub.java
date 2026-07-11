@@ -44,7 +44,9 @@ public class HaxeFileStub extends PsiFileStubImpl<HaxeFile> {
     // import.hx files are based on path and not package, so the package statment is not required.
     if(getFileName().equals("import.hx")) {
       PsiFile file = getPsi();
-      return PackageIndex.getInstance(file.getProject()).getPackageName(file.getVirtualFile());
+      PackageIndex instance = PackageIndex.getInstance(file.getProject());
+      String packageName = instance.getPackageName(file.getVirtualFile());
+      if(packageName != null) return packageName;
     }
 
     return ""; // no package statment defaults to root package

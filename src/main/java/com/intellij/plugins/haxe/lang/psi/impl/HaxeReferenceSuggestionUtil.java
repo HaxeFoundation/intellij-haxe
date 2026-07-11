@@ -108,6 +108,8 @@ public class HaxeReferenceSuggestionUtil {
                 case null, default -> {
                     // handle some special cases
                     if (HaxeAbstractForwardUtil.isElementInForwardMeta(targetReference)) {
+                        //TODO mlo: move this into its own completion class and skip all other contributers
+                        // for a better user experience / less noise
                         addAbstractUnderlyingClassSuggestions(variants, targetReference);
                     }
                     yield false;
@@ -177,10 +179,7 @@ public class HaxeReferenceSuggestionUtil {
     private static void addAbstractUnderlyingClassSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {
         final HaxeMeta meta = HaxeMetadataUtils.getEnclosingMeta(targetReference);
         PsiElement element = HaxeMetadataUtils.getAssociatedElement(meta);
-        // TODO mlo : needs a fix: there's a problem with how module element and metadata is parsed some metadata is outside module.
-        if (element instanceof  HaxeModule module) {
-            element = module.getFirstChild();
-        }
+
         if(element instanceof HaxeClass haxeClass) {
             if (haxeClass == null || !haxeClass.isAbstractType()) return;
             if(haxeClass.getModel() instanceof HaxeAbstractClassModel abstractClassModel) {
