@@ -2,10 +2,13 @@ import tests.BreakpointsTest;
 import tests.CodeGraphTest;
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
+import tests.EnumLayoutTest;
 import tests.FrameLayoutTest;
 import tests.GlobalTableTest;
 import tests.LocalsResolverTest;
 import tests.ObjectLayoutTest;
+import tests.RuntimeTypesTest;
+import tests.ValueChildrenTest;
 import tests.ValueReaderTest;
 import tests.JitInfoReaderTest;
 import tests.ModuleDebugInfoTest;
@@ -56,8 +59,17 @@ class TestMain {
 		assert.setContext("GlobalTableTest");
 		GlobalTableTest.run(assert);
 
+		assert.setContext("RuntimeTypesTest");
+		RuntimeTypesTest.run(assert);
+
+		assert.setContext("EnumLayoutTest");
+		EnumLayoutTest.run(assert);
+
 		assert.setContext("ValueReaderTest");
 		ValueReaderTest.run(assert);
+
+		assert.setContext("ValueChildrenTest");
+		ValueChildrenTest.run(assert);
 
 		Sys.println(assert.checks + " checks, " + assert.failures + " failures");
 		Sys.exit(assert.failures == 0 ? 0 : 1);

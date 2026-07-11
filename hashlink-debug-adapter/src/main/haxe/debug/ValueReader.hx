@@ -15,6 +15,12 @@ class ValueReader {
 
 	// Step 2 sets this to allocate a variablesReference for an expandable value.
 	public var referenceAllocator:Null<(Pointer, HLType) -> Int> = null;
+	// Resolves runtime hl_type* headers (vdynamic payloads, actual object classes).
+	public var runtimeTypes:Null<RuntimeTypes> = null;
+	// Resolves a jitted code address to a function display name (closures).
+	public var functionNameResolver:Null<Pointer->Null<String>> = null;
+	// Constructor-param offsets, for inline enum display and expansion.
+	public var enumLayout:Null<EnumLayout> = null;
 
 	public function new(mem:MemoryReader, align:Align) {
 		this.mem = mem;
@@ -40,12 +46,113 @@ class ValueReader {
 		if (isNull(ptr)) {
 			return leaf("null", typeName(t));
 		}
+		return decodePointed(ptr, t);
+	}
+
+	// Decodes a value whose pointer has already been dereferenced (`ptr` is the
+	// object/box itself). Split from readPointerValue because a vdynamic resolves
+	// to a pointer type without another indirection.
+	function decodePointed(ptr:Pointer, t:HLType):DecodedValue {
 		return switch (t) {
 			case HObj(proto) if (proto != null && proto.name == "String"):
 				leaf(readString(ptr), "String");
+			case HObj(proto) if (proto != null && isArrayWrapper(proto.name)):
+				// hl.types.ArrayBytes_*/ArrayObj both keep `length` right after the header
+				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr)));
+			case HArray:
+				// varray: at@+ptr, size@+ptr*2
+				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr * 2)));
+			case HNull(inner):
+				// a box: the wrapped value sits right after the type header
+				read(offset(ptr, align.ptr), inner);
+			case HDyn:
+				readDynamic(ptr);
+			case HFun(_), HMethod(_):
+				readClosure(ptr);
+			case HEnum(proto) if (proto != null && enumLayout != null):
+				readEnum(ptr, t, proto);
+			case HVirtual(fields):
+				readVirtual(ptr, t, fields);
+			case HObj(_), HStruct(_):
+				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			default:
 				expandableOrRaw(ptr, t);
 		}
+	}
+
+	// venum: constructor index @ +ptr; params inline per EnumLayout. Constructors
+	// without params are leaves; with params the value previews them inline and
+	// expands into one child per param.
+	function readEnum(ptr:Pointer, t:HLType, proto:format.hl.Data.EnumPrototype):DecodedValue {
+		var index = mem.readI32(offset(ptr, align.ptr));
+		if (index < 0 || index >= proto.constructs.length) {
+			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
+		}
+		var construct = proto.constructs[index];
+		if (construct.params.length == 0) {
+			return leaf(construct.name, typeName(t));
+		}
+		var parts:Array<String> = [];
+		for (param in enumLayout.params(proto, index)) {
+			parts.push(read(offset(ptr, param.offset), param.type).value);
+		}
+		var display = construct.name + "(" + parts.join(", ") + ")";
+		var reference = referenceAllocator == null ? 0 : referenceAllocator(ptr, t);
+		return {value: display, type: typeName(t), reference: reference};
+	}
+
+	// vvirtual: header t/value/next, then one indirect field pointer per field
+	function readVirtual(ptr:Pointer, t:HLType, fields:Array<{name:String, t:HLType}>):DecodedValue {
+		var names = [for (f in fields) f.name];
+		var display = "{" + names.join(", ") + "}";
+		var reference = (referenceAllocator == null || fields.length == 0) ? 0 : referenceAllocator(ptr, t);
+		return {value: display, type: typeName(t), reference: reference};
+	}
+
+	// vdynamic: runtime type @ +0, payload @ +ptr. When the runtime type is itself
+	// a pointer kind the vdynamic address *is* the value (no extra indirection).
+	function readDynamic(ptr:Pointer):DecodedValue {
+		var resolved = runtimeTypes == null ? null : runtimeTypes.typeAt(mem.readPointer(ptr));
+		if (resolved == null) {
+			return expandableOrRaw(ptr, HDyn);
+		}
+		return switch (resolved) {
+			case HVoid, HUi8, HUi16, HI32, HI64, HF32, HF64, HBool:
+				read(offset(ptr, align.ptr), resolved);
+			case HDyn:
+				expandableOrRaw(ptr, HDyn); // avoid recursing on a dyn-of-dyn
+			default:
+				decodePointed(ptr, resolved);
+		}
+	}
+
+	// vclosure: function pointer @ +ptr (hasValue/captured value are not shown)
+	function readClosure(ptr:Pointer):DecodedValue {
+		var fun = mem.readPointer(offset(ptr, align.ptr));
+		var name = functionNameResolver == null ? null : functionNameResolver(fun);
+		return leaf(name != null ? "function " + name : "function @ " + hex(fun), "Function");
+	}
+
+	// Prefer the object's runtime class (hl_type* header @ +0) over the static
+	// type so a Base-typed slot holding a Sub shows Sub's fields.
+	function refineObjectType(ptr:Pointer, staticType:HLType):HLType {
+		if (runtimeTypes == null) {
+			return staticType;
+		}
+		var runtime = runtimeTypes.typeAt(mem.readPointer(ptr));
+		return switch (runtime) {
+			case HObj(_), HStruct(_): runtime;
+			default: staticType;
+		}
+	}
+
+	function arrayValue(ptr:Pointer, t:HLType, length:Int):DecodedValue {
+		if (length < 0 || referenceAllocator == null) {
+			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
+		}
+		var display = typeName(t) + "(" + length + ")";
+		var reference = length == 0 ? 0 : referenceAllocator(ptr, t);
+		return {value: display, type: typeName(t), reference: reference};
 	}
 
 	function expandableOrRaw(ptr:Pointer, t:HLType):DecodedValue {
@@ -85,7 +192,31 @@ class ValueReader {
 		return switch (t) {
 			case HObj(proto): proto == null || proto.name != "String";
 			case HStruct(_): true;
-			default: false; // native arrays / others render raw until a later milestone
+			case HArray: true;
+			default: false;
+		}
+	}
+
+	static inline var ARRAY_BYTES_PREFIX = "hl.types.ArrayBytes_";
+
+	/** True for the std Array wrappers (hl.types.ArrayBytes_* / ArrayObj). */
+	public static function isArrayWrapper(name:String):Bool {
+		return name != null && (name == "hl.types.ArrayObj" || StringTools.startsWith(name, ARRAY_BYTES_PREFIX));
+	}
+
+	/** Element type encoded in an hl.types.ArrayBytes_* class name, or null. */
+	public static function arrayBytesElementType(name:String):Null<HLType> {
+		if (name == null || !StringTools.startsWith(name, ARRAY_BYTES_PREFIX)) {
+			return null;
+		}
+		return switch (name.substr(ARRAY_BYTES_PREFIX.length)) {
+			case "Int": HI32;
+			case "Float": HF64;
+			case "hl_F32", "Single": HF32;
+			case "hl_UI16": HUi16;
+			case "hl_UI8": HUi8;
+			case "hl_I64": HI64;
+			default: null;
 		}
 	}
 
@@ -99,7 +230,8 @@ class ValueReader {
 			case HBytes: "Bytes";
 			case HDyn: "Dynamic";
 			case HArray: "Array";
-			case HObj(proto), HStruct(proto): proto != null ? displayName(proto.name) : "Object";
+			case HObj(proto), HStruct(proto):
+				proto == null ? "Object" : (isArrayWrapper(proto.name) ? "Array" : displayName(proto.name));
 			case HVirtual(_): "Virtual";
 			case HEnum(proto): proto != null ? proto.name : "Enum";
 			case HNull(inner): typeName(inner);

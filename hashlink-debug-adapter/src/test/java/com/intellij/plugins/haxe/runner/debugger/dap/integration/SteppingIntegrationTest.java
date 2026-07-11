@@ -74,8 +74,10 @@ public class SteppingIntegrationTest {
     Assume.assumeTrue("HashLink executable not found - skipping", hl.isPresent());
     hlExecutable = hl.get().toString();
 
-    adapterProcess = new ProcessBuilder(hlExecutable, adapter, "--port", "0")
-      .redirectErrorStream(true).start();
+    ProcessBuilder builder = new ProcessBuilder(hlExecutable, adapter, "--port", "0")
+      .redirectErrorStream(true);
+    builder.environment().put("DAP_ADAPTER_TRACE", "1");
+    adapterProcess = builder.start();
     client = DapClient.connect("127.0.0.1", awaitListeningPort(), (int)TIMEOUT);
   }
 
@@ -87,9 +89,26 @@ public class SteppingIntegrationTest {
       } catch (IOException ignored) {
       }
     }
-    if (adapterProcess != null && !adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
-      adapterProcess.destroyForcibly();
-      adapterProcess.waitFor(5, TimeUnit.SECONDS);
+    if (adapterProcess != null) {
+      drainAdapterOutput();
+      if (!adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
+        adapterProcess.destroyForcibly();
+        adapterProcess.waitFor(5, TimeUnit.SECONDS);
+      }
+    }
+  }
+
+  // Surface anything the adapter printed after the port line (nothing reads that
+  // pipe during the test, so a crash trace would otherwise be invisible).
+  private void drainAdapterOutput() {
+    try {
+      var in = adapterProcess.getInputStream();
+      int available = in.available();
+      if (available > 0) {
+        byte[] pending = in.readNBytes(available);
+        System.out.println("[adapter output] " + new String(pending, StandardCharsets.UTF_8));
+      }
+    } catch (IOException ignored) {
     }
   }
 

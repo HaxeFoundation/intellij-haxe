@@ -59,10 +59,12 @@ import org.junit.Test;
  */
 public class VariablesIntegrationTest {
   private static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
-  private static final long TIMEOUT = 8_000;
+  // generous: the first run after a rebuild can be slow (JIT warmup / AV scans)
+  private static final long TIMEOUT = 15_000;
   private static final int FIXTURE_LOOP_LINE = 18; // total = add(total, i)
   private static final int FIXTURE_INSPECT_LINE = 35; // var v = Config.version (p is in scope)
   private static final int FIXTURE_STATICS_LINE = 60; // Config.bump(): version=7, title="cfg"
+  private static final int FIXTURE_RICH_LINE = 83; // Rich.demo(): arrays/dyn/enum/anon/closure in scope
 
   private Process adapterProcess;
   private DapClient client;
@@ -84,8 +86,10 @@ public class VariablesIntegrationTest {
     Assume.assumeTrue("HashLink executable not found - skipping", hl.isPresent());
     hlExecutable = hl.get().toString();
 
-    adapterProcess = new ProcessBuilder(hlExecutable, adapter, "--port", "0")
-      .redirectErrorStream(true).start();
+    ProcessBuilder builder = new ProcessBuilder(hlExecutable, adapter, "--port", "0")
+      .redirectErrorStream(true);
+    builder.environment().put("DAP_ADAPTER_TRACE", "1");
+    adapterProcess = builder.start();
     client = DapClient.connect("127.0.0.1", awaitListeningPort(), (int)TIMEOUT);
   }
 
@@ -97,9 +101,26 @@ public class VariablesIntegrationTest {
       } catch (IOException ignored) {
       }
     }
-    if (adapterProcess != null && !adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
-      adapterProcess.destroyForcibly();
-      adapterProcess.waitFor(5, TimeUnit.SECONDS);
+    if (adapterProcess != null) {
+      drainAdapterOutput();
+      if (!adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
+        adapterProcess.destroyForcibly();
+        adapterProcess.waitFor(5, TimeUnit.SECONDS);
+      }
+    }
+  }
+
+  // Surface anything the adapter printed after the port line (nothing reads that
+  // pipe during the test, so a crash trace would otherwise be invisible).
+  private void drainAdapterOutput() {
+    try {
+      var in = adapterProcess.getInputStream();
+      int available = in.available();
+      if (available > 0) {
+        byte[] pending = in.readNBytes(available);
+        System.out.println("[adapter output] " + new String(pending, StandardCharsets.UTF_8));
+      }
+    } catch (IOException ignored) {
     }
   }
 
@@ -176,6 +197,58 @@ public class VariablesIntegrationTest {
     assertEquals("Config.title", "\"cfg\"", statics.get("title"));
     // the static method sharing the container must not leak into the scope
     assertFalse("bump() hidden from Statics", statics.containsKey("bump"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsRichValues() throws Exception {
+    initialize();
+    assertTrue(launch().isSuccess());
+    assertTrue(setBreakpoint(FIXTURE_RICH_LINE).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess());
+
+    StoppedEvent stopped = awaitStopped();
+    List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
+
+    assertEquals("n", "2", findVariable(locals, "n").getValue());
+
+    // Array<Int> -> hl.types.ArrayBytes_Int: elements straight from the bytes
+    Variable ints = findVariable(locals, "ints");
+    assertNotNull("local ints present", ints);
+    assertEquals("ints preview", "Array(3)", ints.getValue());
+    Map<String, String> intElems = variablesByName(ints.getVariablesReference());
+    assertEquals("ints[0]", "2", intElems.get("0"));
+    assertEquals("ints[1]", "5", intElems.get("1"));
+    assertEquals("ints[2]", "10", intElems.get("2"));
+
+    // Array<String> -> hl.types.ArrayObj: elements typed via the varray's runtime type
+    Variable names = findVariable(locals, "names");
+    assertEquals("names preview", "Array(2)", names.getValue());
+    Map<String, String> nameElems = variablesByName(names.getVariablesReference());
+    assertEquals("names[0]", "\"a2\"", nameElems.get("0"));
+    assertEquals("names[1]", "\"b\"", nameElems.get("1"));
+
+    // Dynamic holding an Int: unboxed via the vdynamic's runtime type
+    assertEquals("dyn unboxes via runtime type", "42", findVariable(locals, "dyn").getValue());
+
+    // enum: inline constructor preview + params as children
+    Variable shade = findVariable(locals, "shade");
+    assertEquals("enum inline preview", "Tinted(2, \"red\")", shade.getValue());
+    Map<String, String> shadeParams = variablesByName(shade.getVariablesReference());
+    assertEquals("Tinted param 0", "2", shadeParams.get("0"));
+    assertEquals("Tinted param 1", "\"red\"", shadeParams.get("1"));
+
+    // anonymous structure (virtual): fields via the indirect pointers
+    Variable anon = findVariable(locals, "anon");
+    assertTrue("anon is expandable", anon.getVariablesReference() > 0);
+    Map<String, String> anonFields = variablesByName(anon.getVariablesReference());
+    assertEquals("anon.width", "2", anonFields.get("width"));
+    assertEquals("anon.tag", "\"t2\"", anonFields.get("tag"));
+
+    Variable f = findVariable(locals, "f");
+    assertTrue("closure renders as a function (was " + f.getValue() + ")",
+               f.getValue().startsWith("function"));
 
     request(new DisconnectRequest());
   }

@@ -284,8 +284,49 @@ current op, from the debug `assigns` table (args have `position < 0`; locals hav
 - an **object** (`HObj`/`HStruct`) has a `hl_type*` header at +0, then fields laid out
   by `ObjectLayout`: start at one pointer (the header), **superclass fields first**
   (recurse `tsuper`), each field aligned to its own `typeSize`;
-- a null pointer slot reads as `null`; everything else (`HEnum`, `HVirtual`, `HFun`,
-  maps, `Dynamic`, arrays for now) falls back to `<TypeName> @ 0xADDR`, non-expandable.
+- a null pointer slot reads as `null`; anything still unknown (maps' native tables,
+  `HDynObj`, `HAbstract`, bytes) falls back to `<TypeName> @ 0xADDR`, non-expandable.
+
+### Rich values (arrays, Dynamic, enums, anon objects, closures)
+
+Most of these need the **runtime type**, not the static one. `RuntimeTypes` reads an
+`hl_type*`: kind i32 @ +0 (the format lib's HLType constructor order matches the C
+`hl_type_kind` indices exactly), kind data pointer @ +8. Primitive kinds map
+directly; HOBJ/HSTRUCT read the UCS-2 class name (`hl_type_obj` name @ data+16) and
+resolve it against the module's types by name; unresolvable kinds return null and
+the caller keeps the static type.
+
+- **Haxe arrays** are std wrappers, special-cased by class name:
+  `hl.types.ArrayBytes_<T>` (length @ +8, bytes ptr @ +16, elements packed at the
+  element type's stride — element type from the name suffix: `Int`→i32,
+  `Float`→f64, …) and `hl.types.ArrayObj` (length @ +8, native varray @ +16; only
+  `length` of the varray's pointer slots are live; the element type comes from the
+  varray's runtime `at` @ +8). A native **varray** itself: at @ +8, size @ +16,
+  elements from +24. Listing is capped at 512 elements with a trailing "…" marker
+  (no DAP paging is advertised).
+- **Dynamic** (vdynamic): runtime type @ +0, payload @ +8. If the runtime type is a
+  pointer kind, the vdynamic address *is* the value (no extra indirection) — decode
+  in place; primitives read the payload. **`Null<T>` boxes** likewise hold the value
+  at +8.
+- **Objects** prefer their runtime class (header @ +0) over the static type, so a
+  Base-typed slot holding a Sub expands with Sub's fields.
+- **Enums** (venum): constructor index i32 @ +8; param offsets from `EnumLayout` —
+  header is ptr + i32, then each param aligned with **`Align.padStruct`**, i.e. the
+  C struct alignments from the handshake's `structSizes`, *not* `typeSize`. That
+  distinction is real: an i32 first param lands at **+12**, inside the venum
+  header's tail padding. Display is `Ctor(v0, v1)` with params as children.
+- **Anonymous structures** (vvirtual): header `t`/`value`/`next` (3 pointers), then
+  one *indirect field pointer* per field (in the HVirtual type's field order); each
+  points at the field's slot. A null field pointer means the field lives on the
+  wrapped dynobj — shown as `?` rather than chased.
+- **Closures** (vclosure): function pointer @ +8, resolved to a name via the jit
+  table (`JitInfo.resolveAddress` → `functionName`); lambdas without a proto
+  binding render as `function fn@N`.
+
+**Fixture gotcha**: the Haxe analyzer constant-folds aggressively even with
+`-debug`. An array whose every read is statically known (`ints[2]`) never
+materializes — the fixture indexes with runtime values (`ints[n]`) and routes anon
+objects through `Std.string` so the locals actually exist at the breakpoint.
 
 ### Statics (the globals table)
 
@@ -319,6 +360,33 @@ invalidated.
 
 ---
 
+## 7. Disconnect teardown (intermittent detach hang)
+
+### Symptom
+Rarely — roughly every other *full* integration-suite run, never in a single test
+class — a test timed out waiting for the `disconnect` response. Always the last
+request of a test that had done several continue/step cycles; everything before it
+succeeded. Unreproducible with tracing enabled (a classic timing heisenbug).
+
+### Cause (best supported theory)
+`handleDisconnect` called `DebugActiveProcessStop` (via `api.stop`) while the
+debuggee was **suspended at an un-continued debug event** (parked at an INT3 whose
+event we never passed to `ContinueDebugEvent` — that normally happens on resume).
+Windows wants outstanding debug events continued before a detach; detaching a
+suspended debuggee occasionally hung the calling (session) thread, so the
+disconnect response was never emitted.
+
+### Workaround (`DebugSession.handleDisconnect`)
+Teardown order is now: **kill → continue the pending event → detach → close**.
+Killing first works on a suspended process and guarantees the debuggee cannot run
+into another breakpoint after we release it; the resume then just lets the
+termination complete; the detach finally runs against a process with no pending
+events. Session-side breadcrumbs (`DAP_ADAPTER_TRACE=1`, written to stderr and
+dumped by the integration tests' teardown) stay in place so a recurrence
+self-diagnoses: the last breadcrumb printed tells you which native call hung.
+
+---
+
 ## Quick reference
 
 | Concern | Rule |
@@ -335,4 +403,8 @@ invalidated.
 | Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |
 | Object fields | Header pointer first, superclass fields first, each aligned to its `typeSize` (`ObjectLayout`) |
 | Statics | Singleton is a global *of the `$Class` container type*; find its index by scanning `data.globals`, not `proto.globalValue` |
+| Runtime types | hl_type kind @ +0 == format HLType constructor index; resolve HOBJ by UCS-2 name, fall back to the static type |
+| Enum params | Align with `padStruct` (handshake structSizes), not `typeSize` — an i32 param packs at +12 |
+| Fixture locals | Index arrays with runtime values or the analyzer folds them away even with `-debug` |
+| Disconnect teardown | kill → continue pending event → detach → close; never detach a suspended debuggee |
 | variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory |

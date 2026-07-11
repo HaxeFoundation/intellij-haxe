@@ -57,6 +57,7 @@ class DebugSession {
 	var objectLayout:ObjectLayout;
 	var memory:MemoryReader;
 	var globalTable:GlobalTable;
+	var valueChildren:ValueChildren;
 	// per-stop frame cache + variablesReference registry (invalidated on resume)
 	var frameCache:Array<StackFrameLocation> = [];
 	final references:Map<Int, RefTarget> = new Map();
@@ -79,6 +80,20 @@ class DebugSession {
 		commands.add(command);
 	}
 
+	// Breadcrumbs to stderr for diagnosing hangs; enabled by DAP_ADAPTER_TRACE.
+	// The integration tests set the variable and dump the pipe on teardown.
+	static final TRACE_ENABLED = Sys.getEnv("DAP_ADAPTER_TRACE") != null;
+
+	static function dbg(message:String):Void {
+		if (!TRACE_ENABLED) {
+			return;
+		}
+		try {
+			Sys.stderr().writeString(message + "\n");
+			Sys.stderr().flush();
+		} catch (e:Dynamic) {}
+	}
+
 	function loop():Void {
 		while (alive) {
 			switch (state) {
@@ -88,6 +103,7 @@ class DebugSession {
 					handleCommand(commands.pop(true));
 			}
 		}
+		dbg("session loop ended");
 	}
 
 	function pollWhileRunning():Void {
@@ -101,6 +117,7 @@ class DebugSession {
 	}
 
 	function handleCommand(command:SessionCommand):Void {
+		dbg("cmd " + Type.enumConstructor(command));
 		switch (command) {
 			case CmdLaunch(seq, config):
 				handleLaunch(seq, config);
@@ -159,6 +176,18 @@ class DebugSession {
 			globalTable = new GlobalTable(align, module.globals());
 			valueReader = new ValueReader(memory, align);
 			valueReader.referenceAllocator = (pointer, type) -> allocReference(RefObject(pointer, type));
+			align.structSizes = jit.structSizes;
+			var runtimeTypes = new RuntimeTypes(memory, name -> module.typeByName(name));
+			var enumLayout = new EnumLayout(align);
+			valueReader.runtimeTypes = runtimeTypes;
+			valueReader.enumLayout = enumLayout;
+			valueReader.functionNameResolver = funPtr -> {
+				var location = jit.resolveAddress(funPtr);
+				location == null ? null : module.functionName(location.fidx);
+			};
+			valueChildren = new ValueChildren(memory, align, valueReader, objectLayout);
+			valueChildren.runtimeTypes = runtimeTypes;
+			valueChildren.enumLayout = enumLayout;
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -524,7 +553,7 @@ class DebugSession {
 					case RefLocals(frameId):
 						emit(EvVariables(requestSeq, readLocals(frameId)));
 					case RefObject(pointer, type):
-						emit(EvVariables(requestSeq, readObjectFields(pointer, type)));
+						emit(EvVariables(requestSeq, valueChildren.of(pointer, type)));
 					case RefStatics(pointer, proto):
 						emit(EvVariables(requestSeq, readStaticFields(pointer, proto)));
 				}
@@ -549,23 +578,6 @@ class DebugSession {
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var decoded = valueReader.read(address, slot.t);
 			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
-		}
-		return variables;
-	}
-
-	function readObjectFields(pointer:Pointer, type:format.hl.Data.HLType):Array<VariableInfo> {
-		var proto = switch (type) {
-			case HObj(p), HStruct(p): p;
-			default: null;
-		}
-		if (proto == null) {
-			return [];
-		}
-		var variables:Array<VariableInfo> = [];
-		for (field in objectLayout.fields(proto)) {
-			var address = Int64.add(pointer, Int64.ofInt(field.offset));
-			var decoded = valueReader.read(address, field.type);
-			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
 	}
@@ -644,20 +656,40 @@ class DebugSession {
 
 	function handleDisconnect(requestSeq:Int):Void {
 		if (process != null) {
+			// Order matters: kill first (works on a suspended process and stops it
+			// from reaching further breakpoints), then continue any un-continued
+			// debug event so the termination can complete, then detach —
+			// DebugActiveProcessStop wants outstanding events resolved, and
+			// detaching a suspended debuggee has produced intermittent hangs.
+			process.kill();
+			dbg("disconnect: kill done");
+			switch (state) {
+				case Stopped(threadId):
+					try {
+						api.resume(process.pid, threadId);
+					} catch (e:Dynamic) {}
+					dbg("disconnect: resumed stopped thread " + threadId);
+				default:
+			}
 			try {
 				api.stop(process.pid);
 			} catch (e:Dynamic) {}
-			process.kill();
+			dbg("disconnect: api.stop done");
 			process.close();
+			dbg("disconnect: close done");
 		}
 		closeHandshake();
 		alive = false;
 		emit(EvSessionEnded(requestSeq));
+		dbg("disconnect: response emitted");
 	}
 
 	// --- wait-event classification while running ---
 
 	function handleWaitOutcome(outcome:WaitOutcome):Void {
+		if (outcome.result != Timeout) {
+			dbg("wait outcome " + outcome.result + " tid=" + outcome.threadId);
+		}
 		switch (outcome.result) {
 			case Timeout:
 				// nothing pending

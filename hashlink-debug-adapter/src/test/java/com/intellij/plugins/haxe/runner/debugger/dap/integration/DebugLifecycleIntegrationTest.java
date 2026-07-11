@@ -92,9 +92,26 @@ public class DebugLifecycleIntegrationTest {
       } catch (IOException ignored) {
       }
     }
-    if (adapterProcess != null && !adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
-      adapterProcess.destroyForcibly();
-      adapterProcess.waitFor(5, TimeUnit.SECONDS);
+    if (adapterProcess != null) {
+      drainAdapterOutput();
+      if (!adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
+        adapterProcess.destroyForcibly();
+        adapterProcess.waitFor(5, TimeUnit.SECONDS);
+      }
+    }
+  }
+
+  // Surface anything the adapter printed after the port line (nothing reads that
+  // pipe during the test, so a crash trace would otherwise be invisible).
+  private void drainAdapterOutput() {
+    try {
+      var in = adapterProcess.getInputStream();
+      int available = in.available();
+      if (available > 0) {
+        byte[] pending = in.readNBytes(available);
+        System.out.println("[adapter output] " + new String(pending, StandardCharsets.UTF_8));
+      }
+    } catch (IOException ignored) {
     }
   }
 

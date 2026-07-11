@@ -17,7 +17,7 @@ class Main {
 		for (i in 0...count) {
 			total = add(total, i); // FIXTURE_LOOP_LINE = 18
 		}
-		inspectDemo();
+		inspectDemo(); Rich.demo(); // same line: keeps the line constants below stable
 		Sys.println("fixture-total:" + total);
 	}
 
@@ -60,5 +60,26 @@ class Config {
 		var before = version; // FIXTURE_STATICS_LINE (version=7, title="cfg" in Statics)
 		version = version + 1;
 		return before;
+	}
+}
+
+enum Shade {
+	Plain;
+	Tinted(level:Int, name:String);
+}
+
+class Rich {
+	// One local per "rich" value kind, all built from runtime values so the
+	// compiler cannot fold them away, and all used on the breakpoint line so
+	// every register is live there.
+	public static function demo():Void {
+		var n:Int = Std.parseInt("2"); // typed Int so [n, ...] is ArrayBytes_Int, not boxed ArrayObj
+		var ints = [n, n + 3, n * 5];
+		var names = ["a" + n, "b"];
+		var dyn:Dynamic = n + 40;
+		var shade = Tinted(n, "red");
+		var anon = {width: n, tag: "t" + n};
+		var f = (a:Int, b:Int) -> a + b;
+		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n)); // FIXTURE_RICH_LINE (runtime indices so the arrays/anon can't be folded away)
 	}
 }

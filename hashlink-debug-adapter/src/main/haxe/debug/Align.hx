@@ -49,6 +49,25 @@ class Align {
 		return (-v) & (size - 1); // types are power-of-two sized
 	}
 
+	// The C compiler's actual per-kind struct alignments, from the handshake
+	// (JitInfo.structSizes, indices 1..7 = HUi8..HBool, 8 = pointer). Null until a
+	// handshake is available; padStruct then falls back to padSize.
+	public var structSizes:Null<Array<Int>> = null;
+
+	/**
+	 * Padding using the C struct alignment rules — what the VM uses for enum
+	 * constructor params (hl_pad_struct), which can pack tighter than padSize
+	 * (e.g. an i32 param lands at +12, inside the venum header's tail padding).
+	 */
+	public function padStruct(v:Int, t:HLType):Int {
+		if (structSizes == null) {
+			return padSize(v, t);
+		}
+		var index = Type.enumIndex(t); // format HLType order == hl_type_kind
+		var size = (index >= 1 && index <= 7) ? structSizes[index] : structSizes[8];
+		return size <= 1 ? 0 : (-v) & (size - 1);
+	}
+
 	public function isFloat(t:HLType):Bool {
 		return switch (t) {
 			case HF32, HF64: true;

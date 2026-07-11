@@ -24,6 +24,8 @@ class ModuleDebugInfo {
 	// statics-container type name (e.g. "$Config") -> its global index (the slot in
 	// the global data block that holds the class's statics singleton pointer)
 	final globalIndexByTypeName:Map<String, Int>;
+	// type name -> module HLType, for resolving runtime hl_type names
+	final typesByName:Map<String, HLType>;
 
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
@@ -36,6 +38,12 @@ class ModuleDebugInfo {
 		functionIndexByFindex = buildFunctionIndex();
 		staticsProtoByFindex = buildStaticsIndex();
 		globalIndexByTypeName = buildGlobalTypeIndex();
+		typesByName = buildTypeNameIndex();
+	}
+
+	/** Module type by its runtime name (class, struct or enum), or null. */
+	public function typeByName(name:String):Null<HLType> {
+		return typesByName.get(name);
 	}
 
 	/** The types of the module's globals, in index order (for the globals table layout). */
@@ -324,6 +332,24 @@ class ModuleDebugInfo {
 				case HObj(proto) | HStruct(proto):
 					if (!byName.exists(proto.name)) {
 						byName.set(proto.name, g);
+					}
+				default:
+			}
+		}
+		return byName;
+	}
+
+	function buildTypeNameIndex():Map<String, HLType> {
+		var byName = new Map<String, HLType>();
+		for (type in data.types) {
+			switch (type) {
+				case HObj(proto) | HStruct(proto):
+					if (!byName.exists(proto.name)) {
+						byName.set(proto.name, type);
+					}
+				case HEnum(proto):
+					if (proto.name != null && !byName.exists(proto.name)) {
+						byName.set(proto.name, type);
 					}
 				default:
 			}

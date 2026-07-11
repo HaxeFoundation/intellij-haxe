@@ -14,6 +14,9 @@ class ValueReaderTest {
 		readsString(assert);
 		nullPointerReadsNull(assert);
 		rawFallbackForObjects(assert);
+		readsNullBox(assert);
+		readsDynamicInt(assert);
+		readsClosureName(assert);
 	}
 
 	static function addr(v:Int):Pointer {
@@ -94,5 +97,41 @@ class ValueReaderTest {
 		var decoded = reader(api).read(addr(0x900), objType);
 		assert.isTrue(StringTools.startsWith(decoded.value, "Main @ 0x"), "object shows raw type@addr (was " + decoded.value + ")");
 		assert.equals(0, decoded.reference, "raw fallback is non-expandable in step 1");
+	}
+
+	static function readsNullBox(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// slot @0x900 -> box @0x1000: type header @0, boxed i32 @+8 = 7
+		pokePtr(api, 0x900, 0x1000);
+		pokePtr(api, 0x1000, 0xBEEF);
+		pokeI32(api, 0x1008, 7);
+		var decoded = reader(api).read(addr(0x900), HNull(HI32));
+		assert.equals("7", decoded.value, "Null<Int> box decodes the payload");
+		assert.equals("Int", decoded.type, "Null<Int> reads as Int");
+	}
+
+	static function readsDynamicInt(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// slot @0x900 -> vdynamic @0x1000: runtime type @0 -> hl_type(kind=3 HI32) @0x2000, payload @+8 = 42
+		pokePtr(api, 0x900, 0x1000);
+		pokePtr(api, 0x1000, 0x2000);
+		pokeI32(api, 0x1008, 42);
+		pokeI32(api, 0x2000, 3); // kind 3 = HI32
+		var r = reader(api);
+		r.runtimeTypes = new debug.RuntimeTypes(new MemoryReader(api, 1, true), _ -> null);
+		var decoded = r.read(addr(0x900), HDyn);
+		assert.equals("42", decoded.value, "Dynamic holding an Int decodes via the runtime type");
+	}
+
+	static function readsClosureName(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// slot @0x900 -> vclosure @0x1000: type @0, fun ptr @+8 = 0x7777
+		pokePtr(api, 0x900, 0x1000);
+		pokePtr(api, 0x1008, 0x7777);
+		var r = reader(api);
+		r.functionNameResolver = fun -> Int64.toStr(fun) == Std.string(0x7777) ? "Main.add" : null;
+		var decoded = r.read(addr(0x900), HFun({args: [], ret: HVoid}));
+		assert.equals("function Main.add", decoded.value, "closure resolves its function name");
+		assert.equals("Function", decoded.type, "closure type label");
 	}
 }
