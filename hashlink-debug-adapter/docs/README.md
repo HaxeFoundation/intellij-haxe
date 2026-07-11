@@ -254,8 +254,21 @@ empirical — `VariablesIntegrationTest` stops where locals/members/statics have
 
 ### Frame layout (where a local lives)
 
-HashLink 1.15 uses the **legacy register-location** scheme (the per-instruction
-location tables only exist in HL ≥ 2, which no released HashLink ships). A local's
+No shipping HashLink transmits register locations, so we reconstruct them.
+Verified against the sources (three separate version numbers are in play here —
+don't mix them up):
+- the **runtime version** (`HL_VERSION`, sent in the handshake; 1.15 = 0x010F00),
+- the **handshake protocol digit** (the "1" in `HLD1`; hashlink master still
+  sends only HLD1, with per-function opcode→address offsets and nothing else —
+  see `send("HLD1",4)` in hashlink `src/debugger.c`),
+- the **bytecode format version** in the `.hl` file (1..5, read by the `format`
+  lib; gates things like the `assigns` debug table).
+
+The vshaxe `hld` debugger contains *forward-support* for a future handshake
+(protocol digit 2 / runtime ≥ 2.0) that would transmit a per-function variable
+location block (`varsSize` in `hld/JitInfo.hx`) — but no released or master
+HashLink sends it. Until that exists, register locations must be computed the
+way the JIT computed them. A local's
 address is `ebp + offset`, where `offset` is a *static per-function* value computed by
 `FrameLayout.registerOffsets` — a port of `hld/Module.getFunctionRegs`, itself a port
 of the `jit.c` prologue:
@@ -417,7 +430,7 @@ tests set it):
 | Test fixtures for breakpoints | Use runtime values so the compiler can't unroll/inline the target away |
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
-| Local address | `ebp + FrameLayout.offset(register)`; legacy scheme (HL 1.15); Windows all-stack args, SysV first-6-register |
+| Local address | `ebp + FrameLayout.offset(register)`, reconstructed — no shipping HashLink transmits locations; Windows all-stack args, SysV first-6-register |
 | Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |
 | Object fields | Header pointer first, superclass fields first, each aligned to its `typeSize` (`ObjectLayout`) |
 | Statics | Singleton is a global *of the `$Class` container type*; find its index by scanning `data.globals`, not `proto.globalValue` |
