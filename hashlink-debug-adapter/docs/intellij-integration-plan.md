@@ -19,8 +19,17 @@ untouched. Two deviations from the plan below, both deliberate:
 
 ## Manual test checklist (runIde)
 
+**There is NO separate "HashLink" configuration type.** Create a normal
+**Haxe Application** run configuration (Run → Edit Configurations → + →
+Haxe Application, pick the module). The HashLink runners engage automatically
+when the module's build produces HashLink bytecode — any of:
+- module compilation target set to HashLink in the module settings,
+- `-hl out.hl` in the compiler arguments field,
+- `-hl out.hl` inside the module's hxml build file (includes followed).
+`-hl out.c` (HL/C native) deliberately does NOT engage the bytecode debugger.
+
 Setup: Haxe SDK configured; SDK "HashLink executable" set (or HASHLINK_BIN env,
-or hl on PATH); a module with target HL compiled with `-debug`.
+or hl on PATH); a module whose build produces a `.hl`, compiled with `-debug`.
 
 - Plain Run executes `hl <output.hl>`, console shows program output, exit code.
 - Debug: breakpoint in a `.hx` line with code → verified icon after launch;
