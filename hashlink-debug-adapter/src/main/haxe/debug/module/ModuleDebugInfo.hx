@@ -62,6 +62,22 @@ class ModuleDebugInfo {
 		return typesByName.get(name);
 	}
 
+	// dynobj field names are stored as hl_hash values; every hashable name is
+	// somewhere in the module's string table, so hashing all strings once gives
+	// the reverse mapping (same approach as hld Module.reverseHash)
+	var reversedHashes:Null<Map<Int, String>> = null;
+
+	/** The module string with the given hl_hash, or null. */
+	public function reverseHash(hash:Int):Null<String> {
+		if (reversedHashes == null) {
+			reversedHashes = new Map();
+			for (s in data.strings) {
+				reversedHashes.set(format.hl.Tools.hash(s), s);
+			}
+		}
+		return reversedHashes.get(hash);
+	}
+
 	/** The types of the module's globals, in index order (for the globals table layout). */
 	public function globals():Array<HLType> {
 		return data.globals;

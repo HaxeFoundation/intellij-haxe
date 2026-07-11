@@ -24,6 +24,8 @@ class ValueChildren {
 	final objectLayout:ObjectLayout;
 	public var runtimeTypes:Null<RuntimeTypes> = null;
 	public var enumLayout:Null<EnumLayout> = null;
+	public var dynObjects:Null<DynObjReader> = null;
+	public var maps:Null<MapReader> = null;
 
 	public function new(mem:MemoryReader, align:Align, reader:ValueReader, objectLayout:ObjectLayout) {
 		this.mem = mem;
@@ -40,6 +42,10 @@ class ValueChildren {
 				arrayObjElements(pointer);
 			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
 				arrayDynElements(pointer, t);
+			case HObj(proto) if (proto != null && maps != null && ValueReader.mapKeyKind(proto.name) != null):
+				mapEntries(pointer, ValueReader.mapKeyKind(proto.name));
+			case HDynObj if (dynObjects != null):
+				dynObjFields(pointer);
 			case HObj(_), HStruct(_):
 				objectFields(pointer, t);
 			case HArray:
@@ -65,17 +71,58 @@ class ValueChildren {
 	}
 
 	// vvirtual: header (t, value, next), then an indirect pointer per field; a
-	// null field pointer means the field lives on the wrapped dynobj (not read)
+	// null field pointer means the field lives on the WRAPPED value (usually a
+	// dynobj) — resolve it there by name instead of giving up
 	function virtualFields(pointer:Pointer, fields:Array<{name:String, t:HLType}>):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
+		var wrapped = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		for (i in 0...fields.length) {
 			var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
 			if (Int64.eq(slot, Int64.ofInt(0))) {
-				variables.push({name: fields[i].name, value: "?", type: ValueReader.typeName(fields[i].t), reference: 0});
+				var fallback = wrappedField(wrapped, fields[i].name);
+				if (fallback != null) {
+					variables.push({name: fields[i].name, value: fallback.value, type: fallback.type, reference: fallback.reference});
+				} else {
+					variables.push({name: fields[i].name, value: "?", type: ValueReader.typeName(fields[i].t), reference: 0});
+				}
 				continue;
 			}
 			var decoded = reader.read(slot, fields[i].t);
 			variables.push({name: fields[i].name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	// A virtual field whose slot is null lives on the wrapped dynamic object.
+	function wrappedField(wrapped:Pointer, name:String):Null<DecodedValue> {
+		if (dynObjects == null || runtimeTypes == null || Int64.eq(wrapped, Int64.ofInt(0))) {
+			return null;
+		}
+		var runtime = runtimeTypes.typeAt(mem.readPointer(wrapped));
+		if (runtime == null || !runtime.match(HDynObj)) {
+			return null;
+		}
+		var field = dynObjects.fieldByName(wrapped, name);
+		return field != null ? reader.read(field.address, field.type) : null;
+	}
+
+	// runtime dynamic object: one child per lookup-table field
+	function dynObjFields(pointer:Pointer):Array<VariableInfo> {
+		var variables:Array<VariableInfo> = [];
+		for (field in dynObjects.fields(pointer)) {
+			var decoded = reader.read(field.address, field.type);
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	// native map entries: name = key display, value read as a dynamic
+	function mapEntries(pointer:Pointer, kind:MapKeyKind):Array<VariableInfo> {
+		var native = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		var variables:Array<VariableInfo> = [];
+		for (entry in maps.entries(native, kind, keyAddress -> reader.read(keyAddress, HDyn).value)) {
+			var decoded = reader.read(entry.valueAddress, HDyn);
+			variables.push({name: entry.key, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
 	}

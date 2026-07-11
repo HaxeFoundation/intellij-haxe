@@ -346,6 +346,27 @@ the caller keeps the static type.
   register, so it never appears in the `assigns` debug table — LocalsResolver
   synthesizes it for register 0 whenever the function has more arguments than
   named-argument assigns.
+- **Dynamic objects** (vdynobj — what a `Dynamic`-typed structure, Reflect
+  writes or parsed JSON become): lookup @ +ptr (sorted by field-name hash,
+  entry = hl_type* + hash i32 + packed i32 where low 17 bits = slot offset,
+  `>>> 17` = display order), raw_data @ +2·ptr (non-pointer slots), values
+  @ +3·ptr (pointer slots), nfields @ +4·ptr. Field names travel as
+  **hl_hash values** and are reversed through the module string table
+  (`ModuleDebugInfo.reverseHash`; format.hl.Tools.hash = `h = 223·h + c`,
+  `% 0x1FFFFF7B`).
+- **Virtual fallback**: a vvirtual field with a NULL indirect pointer lives on
+  the wrapped value (@ +ptr, usually a dynobj) — resolved there by name via the
+  hashed lookup instead of showing `?`.
+- **Maps** (`haxe.ds.StringMap/IntMap/ObjectMap`, HL runtime ≥ 1.13 layout):
+  the native map is the wrapper's first field. cells @ +0, nexts @ +ptr,
+  entries @ +2·ptr, values @ +3·ptr, then a freelist (ptr+8 bytes) and
+  ncells/nentries/maxEntries i32s. **Small maps (maxEntries < 128) use BYTE
+  cells/nexts with 255 as chain terminator**; larger maps use i32 arrays with
+  negative terminators. String/Object keys live beside their value in the
+  values array (stride 2·ptr, value @ +ptr); Int keys live in entries
+  (stride 4). String keys are raw UCS-2 bytes pointers, not String objects;
+  values are read as HDyn. Preview `Map(n)`, entries listed as key → value,
+  capped at 512.
 
 **Fixture gotcha / user-visible symptom**: the Haxe analyzer constant-folds and
 fuses aggressively even with `-debug`. An array whose every read is statically

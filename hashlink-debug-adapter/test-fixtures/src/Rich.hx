@@ -20,6 +20,14 @@ class Rich {
 		var f = (a:Int, b:Int) -> { captured += a; return a + b; };
 		var dynArray:Array<Dynamic> = [n, "s" + n];
 		var byRef = hl.Ref.make(n); // a genuine HRef(i32) local pointing at n's slot
-		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get()); // FIXTURE_RICH_LINE = 23
+		var dynObj:Dynamic = {}; // dynamic field writes turn it into a runtime dynobj
+		dynObj.score = n;
+		dynObj.label = "d" + n;
+		var stringMap = new Map<String, Int>(); // haxe.ds.StringMap
+		stringMap.set("a" + n, n);
+		stringMap.set("b", n * 3);
+		var intMap = new Map<Int, String>(); // haxe.ds.IntMap
+		intMap.set(n, "v" + n);
+		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n)); // FIXTURE_RICH_LINE = 31
 	}
 }

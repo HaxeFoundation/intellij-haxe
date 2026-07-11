@@ -26,6 +26,10 @@ class ValueReader {
 	public var functionNameResolver:Null<Pointer->Null<String>> = null;
 	// Constructor-param offsets, for inline enum display and expansion.
 	public var enumLayout:Null<EnumLayout> = null;
+	// Runtime dynamic-object reader (Dynamic structures, Reflect/JSON objects).
+	public var dynObjects:Null<DynObjReader> = null;
+	// Native map reader for the haxe.ds map wrappers.
+	public var maps:Null<MapReader> = null;
 
 	public function new(mem:MemoryReader, align:Align) {
 		this.mem = mem;
@@ -85,10 +89,47 @@ class ValueReader {
 				readEnum(ptr, t, proto);
 			case HVirtual(fields):
 				readVirtual(ptr, t, fields);
+			case HDynObj if (dynObjects != null):
+				readDynObj(ptr);
+			case HObj(proto) if (proto != null && maps != null && mapKeyKind(proto.name) != null):
+				readMapWrapper(ptr, t);
 			case HObj(_), HStruct(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			default:
 				expandableOrRaw(ptr, t);
+		}
+	}
+
+	// vdynobj: field names inline in the preview, children on expand
+	function readDynObj(ptr:Pointer):DecodedValue {
+		var fields = dynObjects.fields(ptr);
+		if (fields.length == 0) {
+			return leaf("{}", "Dynamic");
+		}
+		var display = "{" + [for (f in fields) f.name].join(", ") + "}";
+		var reference = referenceAllocator == null ? 0 : referenceAllocator(ptr, HDynObj);
+		return {value: display, type: "Dynamic", reference: reference};
+	}
+
+	// haxe.ds.StringMap/IntMap/ObjectMap: the native map lives in the wrapper's
+	// first field; preview shows the live entry count
+	function readMapWrapper(ptr:Pointer, t:HLType):DecodedValue {
+		var native = mem.readPointer(offset(ptr, align.ptr));
+		var count = maps.entryCount(native);
+		if (count < 0) {
+			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
+		}
+		var reference = (count == 0 || referenceAllocator == null) ? 0 : referenceAllocator(ptr, t);
+		return {value: "Map(" + count + ")", type: "Map", reference: reference};
+	}
+
+	/** The map key layout for a wrapper class name, or null when not a map. */
+	public static function mapKeyKind(name:String):Null<MapKeyKind> {
+		return switch (name) {
+			case "haxe.ds.StringMap": StringKey;
+			case "haxe.ds.IntMap": IntKey;
+			case "haxe.ds.ObjectMap": ObjectKey;
+			default: null;
 		}
 	}
 

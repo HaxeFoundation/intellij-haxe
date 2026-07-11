@@ -209,6 +209,43 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void readsDynamicObjectFields() throws Exception {
+    // a Dynamic with dynamic field writes is a runtime dynobj: fields are
+    // resolved through the hashed lookup table (typedef/anon-through-Dynamic case)
+    Variable dynObj = findVariable(richLocals(), "dynObj");
+    assertNotNull("local dynObj present", dynObj);
+    assertTrue("dynObj is expandable (was " + dynObj.getValue() + ")", dynObj.getVariablesReference() > 0);
+    Map<String, String> fields = variablesByName(dynObj.getVariablesReference());
+    assertEquals("dynObj.score", "2", fields.get("score"));
+    assertEquals("dynObj.label", "\"d2\"", fields.get("label"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsStringMapEntries() throws Exception {
+    Variable map = findVariable(richLocals(), "stringMap");
+    assertNotNull("local stringMap present", map);
+    assertEquals("stringMap preview", "Map(2)", map.getValue());
+    Map<String, String> entries = variablesByName(map.getVariablesReference());
+    assertEquals("stringMap[a2]", "2", entries.get("\"a2\""));
+    assertEquals("stringMap[b]", "6", entries.get("\"b\""));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsIntMapEntries() throws Exception {
+    Variable map = findVariable(richLocals(), "intMap");
+    assertNotNull("local intMap present", map);
+    assertEquals("intMap preview", "Map(1)", map.getValue());
+    Map<String, String> entries = variablesByName(map.getVariablesReference());
+    assertEquals("intMap[2]", "\"v2\"", entries.get("2"));
+
+    request(new DisconnectRequest());
+  }
+
   // --- instance methods ---
 
   @Test

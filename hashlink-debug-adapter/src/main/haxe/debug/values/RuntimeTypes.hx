@@ -26,6 +26,7 @@ class RuntimeTypes {
 	static inline var KARRAY = 12;
 	static inline var KTYPE = 13;
 	static inline var KREF = 14;
+	static inline var KDYNOBJ = 16;
 	static inline var KENUM = 18;
 	static inline var KNULL = 19;
 	static inline var KSTRUCT = 21;
@@ -68,6 +69,7 @@ class RuntimeTypes {
 		return switch (kind) {
 			case KARRAY: HArray;
 			case KTYPE: HType;
+			case KDYNOBJ: HDynObj;
 			case KOBJ, KSTRUCT:
 				var data = dataPtr(typePtr);
 				isNull(data) ? null : resolveName(readName(offsetName(data)));
