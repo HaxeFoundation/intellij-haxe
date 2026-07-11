@@ -6,7 +6,6 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Breakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ConfigurationDoneRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DisconnectRequest;
@@ -23,65 +22,22 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsArgu
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ThreadsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ThreadsResponse;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Starts the real adapter bytecode with the HashLink executable and drives it
- * over a TCP DAP connection. Skipped (not failed) when the adapter was not
- * built or no HashLink executable can be found — see {@link HlExecutableResolver}.
+ * Protocol-level tests against the real adapter WITHOUT a debuggee: initialize
+ * handshake, provisional breakpoints, error responses, sequence numbers, and
+ * clean shutdown. One protocol behaviour per test.
  */
-public class DebugAdapterIntegrationTest {
-  private static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
-  private static final long TIMEOUT_MILLIS = 5_000;
+public class DebugAdapterIntegrationTest extends DapIntegrationTestBase {
 
-  private Process adapterProcess;
-  private DapClient client;
-
-  @Before
-  public void startAdapter() throws IOException {
-    String adapterProperty = System.getProperty("dap.adapter.hl", "");
-    Assume.assumeTrue("adapter bytecode not built (haxe compiler unavailable?) - skipping integration test",
-                      !adapterProperty.isEmpty() && Files.isRegularFile(Path.of(adapterProperty)));
-
-    Optional<Path> hlExecutable = HlExecutableResolver.resolve();
-    Assume.assumeTrue("HashLink executable not found (set -PhashlinkBin / -Dhashlink.executable, "
-                      + "HASHLINK_BIN / HASHLINK / HASHLINKPATH, or put hl on PATH) - skipping integration test",
-                      hlExecutable.isPresent());
-
-    adapterProcess = new ProcessBuilder(hlExecutable.get().toString(), adapterProperty, "--port", "0")
-      .redirectErrorStream(true)
-      .start();
-    int port = awaitListeningPort();
-    client = DapClient.connect("127.0.0.1", port, (int)TIMEOUT_MILLIS);
-  }
-
-  @After
-  public void stopAdapter() throws Exception {
-    if (client != null) {
-      try {
-        client.close();
-      } catch (IOException ignored) {
-      }
-    }
-    if (adapterProcess != null && !adapterProcess.waitFor(2, TimeUnit.SECONDS)) {
-      adapterProcess.destroyForcibly();
-      adapterProcess.waitFor(5, TimeUnit.SECONDS);
-    }
+  @Override
+  protected boolean needsFixture() {
+    return false; // these tests never launch a program
   }
 
   @Test
@@ -93,7 +49,7 @@ public class DebugAdapterIntegrationTest {
     assertEquals("initialize", response.getCommand());
     assertEquals(Boolean.TRUE, ((InitializeResponse)response).getBody().getSupportsConfigurationDoneRequest());
 
-    Event event = client.pollEvent(TIMEOUT_MILLIS);
+    Event event = client.pollEvent(TIMEOUT);
     assertNotNull("expected an event after the initialize response", event);
     assertTrue(event instanceof InitializedEvent);
   }
@@ -114,7 +70,7 @@ public class DebugAdapterIntegrationTest {
     arguments.setBreakpoints(List.of(sourceBreakpoint(10), sourceBreakpoint(20), sourceBreakpoint(30)));
     request.setArguments(arguments);
 
-    Response response = client.sendRequest(request, TIMEOUT_MILLIS);
+    Response response = request(request);
 
     assertTrue(response instanceof SetBreakpointsResponse);
     assertTrue(response.isSuccess());
@@ -131,7 +87,7 @@ public class DebugAdapterIntegrationTest {
   @Test
   public void configurationDoneIsAcknowledged() throws Exception {
     sendInitialize();
-    Response response = client.sendRequest(new ConfigurationDoneRequest(), TIMEOUT_MILLIS);
+    Response response = request(new ConfigurationDoneRequest());
     assertTrue(response.isSuccess());
     assertEquals("configurationDone", response.getCommand());
   }
@@ -140,14 +96,14 @@ public class DebugAdapterIntegrationTest {
   public void launchWithoutProgramIsRejected() throws Exception {
     sendInitialize();
     // a launch with no 'program' argument must fail validation rather than hang
-    Response response = client.sendRequest(new LaunchRequest(), TIMEOUT_MILLIS);
+    Response response = request(new LaunchRequest());
     assertTrue("launch without a program should fail", !response.isSuccess());
   }
 
   @Test
   public void threadsReturnsStubMainThread() throws Exception {
     sendInitialize();
-    Response response = client.sendRequest(new ThreadsRequest(), TIMEOUT_MILLIS);
+    Response response = request(new ThreadsRequest());
 
     assertTrue(response instanceof ThreadsResponse);
     ThreadsResponse threadsResponse = (ThreadsResponse)response;
@@ -161,7 +117,7 @@ public class DebugAdapterIntegrationTest {
     Request request = new Request();
     request.setCommand("fooBar");
 
-    Response response = client.sendRequest(request, TIMEOUT_MILLIS);
+    Response response = request(request);
 
     assertFalse(response.isSuccess());
     assertTrue(response instanceof ErrorResponse);
@@ -173,8 +129,8 @@ public class DebugAdapterIntegrationTest {
   @Test
   public void responsesEchoRequestSeqAndAdapterSeqIsMonotonic() throws Exception {
     Response first = sendInitialize();
-    Response second = client.sendRequest(new ConfigurationDoneRequest(), TIMEOUT_MILLIS);
-    Response third = client.sendRequest(new ThreadsRequest(), TIMEOUT_MILLIS);
+    Response second = request(new ConfigurationDoneRequest());
+    Response third = request(new ThreadsRequest());
 
     assertEquals(1, first.getRequest_seq());
     assertEquals(2, second.getRequest_seq());
@@ -186,37 +142,22 @@ public class DebugAdapterIntegrationTest {
   @Test
   public void disconnectIsAcknowledgedAndAdapterExitsCleanly() throws Exception {
     sendInitialize();
-    Response response = client.sendRequest(new DisconnectRequest(), TIMEOUT_MILLIS);
+    Response response = request(new DisconnectRequest());
     assertTrue(response.isSuccess());
 
     assertTrue("adapter should exit after disconnect", adapterProcess.waitFor(5, TimeUnit.SECONDS));
     assertEquals(0, adapterProcess.exitValue());
   }
 
+  // Raw initialize without draining the initialized event — the first test
+  // asserts on that event itself. Other tests use it where the event is simply
+  // skipped by later polls.
   private Response sendInitialize() throws Exception {
     InitializeRequest request = new InitializeRequest();
     InitializeRequestArguments arguments = new InitializeRequestArguments();
     arguments.setAdapterID("intellij-haxe-test");
     arguments.setClientID("junit");
     request.setArguments(arguments);
-    return client.sendRequest(request, TIMEOUT_MILLIS);
-  }
-
-  private static SourceBreakpoint sourceBreakpoint(int line) {
-    SourceBreakpoint breakpoint = new SourceBreakpoint();
-    breakpoint.setLine(line);
-    return breakpoint;
-  }
-
-  private int awaitListeningPort() throws IOException {
-    BufferedReader stdout = new BufferedReader(
-      new InputStreamReader(adapterProcess.getInputStream(), StandardCharsets.UTF_8));
-    String line;
-    while ((line = stdout.readLine()) != null) {
-      if (line.startsWith(LISTENING_PREFIX)) {
-        return Integer.parseInt(line.substring(LISTENING_PREFIX.length()).trim());
-      }
-    }
-    throw new IOException("Adapter exited before announcing its listening port");
+    return request(request);
   }
 }
