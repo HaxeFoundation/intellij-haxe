@@ -76,7 +76,9 @@ public abstract class DapIntegrationTestBase {
   protected static final String FIXTURE_CONFIG = "Config.hx";
   protected static final int FIXTURE_STATICS_LINE = 14; // Config.bump(): version=7, title="cfg"
   protected static final String FIXTURE_RICH = "Rich.hx";
-  protected static final int FIXTURE_RICH_LINE = 19; // Rich.demo(): arrays/dyn/enum/anon/closure
+  protected static final int FIXTURE_RICH_LINE = 23; // Rich.demo(): arrays/dyn/enum/anon/closure/ref
+  protected static final String FIXTURE_POINT = "Point.hx";
+  protected static final int FIXTURE_POINT_METHOD_LINE = 22; // Point.move(): `this` in scope, x still 10
 
   protected Process adapterProcess;
   protected DapClient client;

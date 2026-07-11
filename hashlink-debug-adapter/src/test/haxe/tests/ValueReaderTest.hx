@@ -19,6 +19,7 @@ class ValueReaderTest {
 		readsNullBox(assert);
 		readsDynamicInt(assert);
 		readsClosureName(assert);
+		readsRefThroughIndirection(assert);
 	}
 
 	static function addr(v:Int):Pointer {
@@ -123,6 +124,16 @@ class ValueReaderTest {
 		r.runtimeTypes = new debug.values.RuntimeTypes(new MemoryReader(api, 1, true), _ -> null);
 		var decoded = r.read(addr(0x900), HDyn);
 		assert.equals("42", decoded.value, "Dynamic holding an Int decodes via the runtime type");
+	}
+
+	static function readsRefThroughIndirection(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// slot @0x900 -> ref @0x1000 (the address of the value slot) -> i32 20
+		pokePtr(api, 0x900, 0x1000);
+		pokeI32(api, 0x1000, 20);
+		var decoded = reader(api).read(addr(0x900), HRef(HI32));
+		assert.equals("20", decoded.value, "HRef reads the value through the indirection");
+		assert.equals("Int", decoded.type, "HRef labels as the inner type");
 	}
 
 	static function readsClosureName(assert:Assert):Void {

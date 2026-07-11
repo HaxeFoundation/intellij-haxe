@@ -33,7 +33,7 @@ class Main {
 		var p = new Point(10, 20, "origin");
 		var nums = [3, 5, 7];
 		var v = Config.version; // FIXTURE_INSPECT_LINE = 35 (p and nums are in scope)
-		Config.bump();
+		Config.bump(); p.move(1, 2); // same line: keeps the line constants stable
 		Sys.println("inspect:" + p.x + "," + nums[0] + "," + v);
 	}
 }

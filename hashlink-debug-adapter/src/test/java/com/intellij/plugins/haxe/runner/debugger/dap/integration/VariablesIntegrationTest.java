@@ -172,6 +172,60 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void readsCompilerBoxedCapturedLocal() throws Exception {
+    // a local mutated by a closure is boxed by genhl into a 1-element array;
+    // it must stay inspectable (expand to the current value), not render raw
+    Variable captured = findVariable(richLocals(), "captured");
+    assertNotNull("local captured present", captured);
+    assertEquals("capture box preview", "Array(1)", captured.getValue());
+    Map<String, String> box = variablesByName(captured.getVariablesReference());
+    assertEquals("boxed value", "20", box.get("0"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsRefLocalThroughIndirection() throws Exception {
+    // hl.Ref.make(n) yields an HRef(i32) local: the value must read through
+    // the indirection, not render as a raw pointer
+    Variable byRef = findVariable(richLocals(), "byRef");
+    assertNotNull("local byRef present", byRef);
+    assertEquals("ref-typed local reads its target", "2", byRef.getValue());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsDynamicArrayElements() throws Exception {
+    // Array<Dynamic> -> hl.types.ArrayDyn: elements via the wrapped ArrayBase
+    Variable dynArray = findVariable(richLocals(), "dynArray");
+    assertNotNull("local dynArray present", dynArray);
+    assertEquals("dynArray preview", "Array(2)", dynArray.getValue());
+    Map<String, String> elements = variablesByName(dynArray.getVariablesReference());
+    assertEquals("dynArray[0] unboxes an Int", "2", elements.get("0"));
+    assertEquals("dynArray[1] is a String", "\"s2\"", elements.get("1"));
+
+    request(new DisconnectRequest());
+  }
+
+  // --- instance methods ---
+
+  @Test
+  public void showsThisInInstanceMethod() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
+
+    // stopped inside Point.move: `this` must be listed and expand to the Point
+    Variable self = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "this");
+    assertNotNull("`this` present in an instance-method frame", self);
+    assertTrue("`this` is expandable", self.getVariablesReference() > 0);
+    Map<String, String> fields = variablesByName(self.getVariablesReference());
+    assertEquals("this.x (move not applied yet)", "10", fields.get("x"));
+    assertEquals("this.y", "20", fields.get("y"));
+
+    request(new DisconnectRequest());
+  }
+
   /** Stops at FIXTURE_RICH_LINE and returns Rich.demo's locals. */
   private List<Variable> richLocals() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);

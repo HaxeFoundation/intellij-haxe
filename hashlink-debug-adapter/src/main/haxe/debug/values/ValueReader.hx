@@ -61,12 +61,19 @@ class ValueReader {
 		return switch (t) {
 			case HObj(proto) if (proto != null && proto.name == "String"):
 				leaf(readString(ptr), "String");
+			case HObj(proto) if (proto != null && proto.name == ARRAY_DYN):
+				// hl.types.ArrayDyn wraps an ArrayBase (ptr @ +8) whose length is @ +8
+				arrayValue(ptr, t, arrayDynLength(ptr));
 			case HObj(proto) if (proto != null && isArrayWrapper(proto.name)):
 				// hl.types.ArrayBytes_*/ArrayObj both keep `length` right after the header
 				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr)));
 			case HArray:
 				// varray: at@+ptr, size@+ptr*2
 				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr * 2)));
+			case HRef(inner):
+				// a reference: the dereferenced pointer IS the address of the value
+				// (captured-and-mutated closure locals are the common case)
+				read(ptr, inner);
 			case HNull(inner):
 				// a box: the wrapped value sits right after the type header
 				read(offset(ptr, align.ptr), inner);
@@ -203,10 +210,19 @@ class ValueReader {
 	}
 
 	static inline var ARRAY_BYTES_PREFIX = "hl.types.ArrayBytes_";
+	public static inline var ARRAY_DYN = "hl.types.ArrayDyn";
 
-	/** True for the std Array wrappers (hl.types.ArrayBytes_* / ArrayObj). */
+	/** True for the std Array wrappers (hl.types.ArrayBytes_* / ArrayObj / ArrayDyn). */
 	public static function isArrayWrapper(name:String):Bool {
-		return name != null && (name == "hl.types.ArrayObj" || StringTools.startsWith(name, ARRAY_BYTES_PREFIX));
+		return name != null
+			&& (name == "hl.types.ArrayObj" || name == ARRAY_DYN || StringTools.startsWith(name, ARRAY_BYTES_PREFIX));
+	}
+
+	// ArrayDyn: inner ArrayBase pointer @ +ptr; the wrapper has no length field of
+	// its own, the inner one (@ +ptr) is authoritative. -1 when the inner is null.
+	function arrayDynLength(ptr:Pointer):Int {
+		var inner = mem.readPointer(offset(ptr, align.ptr));
+		return isNull(inner) ? -1 : mem.readI32(offset(inner, align.ptr));
 	}
 
 	/** Element type encoded in an hl.types.ArrayBytes_* class name, or null. */
@@ -240,6 +256,7 @@ class ValueReader {
 			case HVirtual(_): "Virtual";
 			case HEnum(proto): proto != null ? proto.name : "Enum";
 			case HNull(inner): typeName(inner);
+			case HRef(inner): typeName(inner);
 			case HFun(_), HMethod(_): "Function";
 			case HAbstract(name): name;
 			default: "Value";

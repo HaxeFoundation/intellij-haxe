@@ -38,6 +38,8 @@ class ValueChildren {
 				arrayBytesElements(pointer, ValueReader.arrayBytesElementType(proto.name));
 			case HObj(proto) if (proto != null && proto.name == "hl.types.ArrayObj"):
 				arrayObjElements(pointer);
+			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
+				arrayDynElements(pointer, t);
 			case HObj(_), HStruct(_):
 				objectFields(pointer, t);
 			case HArray:
@@ -93,6 +95,25 @@ class ValueChildren {
 			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
+	}
+
+	// hl.types.ArrayDyn (Array<Dynamic>): delegates to the wrapped ArrayBase
+	// (@ +ptr), whose concrete class (ArrayObj / ArrayBytes_*) comes from its
+	// runtime type header. Falls back to plain field expansion when unresolvable.
+	function arrayDynElements(pointer:Pointer, t:HLType):Array<VariableInfo> {
+		var inner = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		if (Int64.eq(inner, Int64.ofInt(0))) {
+			return [];
+		}
+		if (runtimeTypes != null) {
+			var refined = runtimeTypes.typeAt(mem.readPointer(inner));
+			switch (refined) {
+				case HObj(p) if (p != null && p.name != ValueReader.ARRAY_DYN):
+					return of(inner, refined);
+				default:
+			}
+		}
+		return objectFields(pointer, t);
 	}
 
 	// hl.types.ArrayBytes_<T>: length @ +ptr, bytes @ +ptr*2; elements packed at

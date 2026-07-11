@@ -26,6 +26,11 @@ class LocalsResolver {
 		var namedArgs = [for (a in assigns) if (a.position < 0) a];
 		var argStart = module.argCount(fidx) - namedArgs.length;
 		var result:Array<LocalVar> = [];
+		// an unnamed leading argument is the receiver: an instance method's `this`
+		// (or a closure's captured environment, which HL passes the same way)
+		if (argStart >= 1) {
+			result.push({name: "this", register: 0});
+		}
 		for (i in 0...namedArgs.length) {
 			result.push({name: module.stringAt(namedArgs[i].varName), register: argStart + i});
 		}

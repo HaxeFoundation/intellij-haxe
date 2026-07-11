@@ -335,6 +335,17 @@ the caller keeps the static type.
 - **Closures** (vclosure): function pointer @ +8, resolved to a name via the jit
   table (`JitInfo.resolveAddress` → `functionName`); lambdas without a proto
   binding render as `function fn@N`.
+- **Refs** (`HRef`, e.g. `hl.Ref.make(x)`): the dereferenced pointer IS the
+  address of the value — read the inner type there. Note that a local mutated
+  by a closure is NOT a ref: genhl boxes it into a **1-element array**
+  (`ArrayBytes_Int` etc.), which displays as `Array(1)` expanding to the value.
+- **`Array<Dynamic>`** (`hl.types.ArrayDyn`): no data of its own — the wrapped
+  ArrayBase sits @ +8; its concrete class (ArrayObj / ArrayBytes_*) comes from
+  its runtime type header, then element decoding proceeds as above.
+- **`this`**: an instance method's receiver is the *unnamed* leading argument
+  register, so it never appears in the `assigns` debug table — LocalsResolver
+  synthesizes it for register 0 whenever the function has more arguments than
+  named-argument assigns.
 
 **Fixture gotcha**: the Haxe analyzer constant-folds aggressively even with
 `-debug`. An array whose every read is statically known (`ints[2]`) never
