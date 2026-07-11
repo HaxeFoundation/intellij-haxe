@@ -158,34 +158,45 @@ class VariableInspector {
 		return {name: "Statics (" + className + ")", reference: allocReference(RefStatics(address, proto))};
 	}
 
-	// A statics container also holds its static methods as function-typed fields;
-	// only show the scope when there is at least one non-method (data) field.
+	// A statics container also holds its static methods (function-typed fields)
+	// and compiler bookkeeping like __name__/__constructs__/__meta__; only count
+	// the user's actual static variables.
 	function hasStaticData(proto:ObjPrototype):Bool {
 		for (field in proto.fields) {
-			switch (field.t) {
-				case HFun(_):
-				default:
-					return true;
+			if (isDisplayableStatic(field.name, field.t)) {
+				return true;
 			}
 		}
 		return false;
 	}
 
-	// Like object expansion but for a statics singleton: the container's function
-	// fields are its static methods (deferred), so only data fields are listed.
+	// Like object expansion but for a statics singleton: static methods and the
+	// compiler's __xx__ bookkeeping fields are hidden.
 	function readStaticFields(pointer:Pointer, proto:ObjPrototype):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (field in objectLayout.fields(proto)) {
-			switch (field.type) {
-				case HFun(_):
-					continue;
-				default:
+			if (!isDisplayableStatic(field.name, field.type)) {
+				continue;
 			}
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
 			var decoded = valueReader.read(address, field.type);
 			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
+	}
+
+	static function isDisplayableStatic(name:String, t:format.hl.Data.HLType):Bool {
+		switch (t) {
+			case HFun(_):
+				return false; // a static method sharing the container
+			default:
+		}
+		// compiler-generated metadata (__name__, __constructs__, __meta__, ...)
+		if (name != null && name.length > 4
+			&& StringTools.startsWith(name, "__") && StringTools.endsWith(name, "__")) {
+			return false;
+		}
+		return true;
 	}
 
 	function allocReference(target:RefTarget):Int {

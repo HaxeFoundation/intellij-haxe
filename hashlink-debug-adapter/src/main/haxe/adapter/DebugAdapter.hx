@@ -36,6 +36,11 @@ class DebugAdapter {
 		this.socket = socket;
 	}
 
+	static inline var CLIENT_CLOSE_TIMEOUT_MS = 2000;
+	static inline var CLIENT_CLOSE_POLL_MS = 10;
+
+	var clientEofSeen = false;
+
 	/** Serves the session; returns when the client disconnected and all output is flushed. */
 	public function run():Void {
 		Thread.create(readerLoop);
@@ -52,6 +57,7 @@ class DebugAdapter {
 				case FromSession(event):
 					dispatcher.handleSessionEvent(event);
 				case ClientEof:
+					clientEofSeen = true;
 					// client vanished: if a debuggee is running, tear it down
 					if (session != null && !dispatcher.shutdownRequested) {
 						dispatchToSession(CmdDisconnect(-1));
@@ -66,9 +72,35 @@ class DebugAdapter {
 
 		outbound.add(null);
 		writerDone.pop(true);
+		// Let the CLIENT close the connection first. Closing (or exiting) while
+		// the peer has not yet consumed the final response can degenerate into a
+		// TCP RST on Windows, and an RST DISCARDS data already buffered on the
+		// receiving side - observed as the intermittently lost disconnect
+		// response ("Connection reset" on the client while the adapter had
+		// already logged the response as sent). EOF from our reader means the
+		// client received everything and closed; the timeout covers clients
+		// that never close.
+		awaitClientClose();
 		try {
 			socket.close();
 		} catch (e:Dynamic) {}
+	}
+
+	function awaitClientClose():Void {
+		var waited = 0;
+		while (!clientEofSeen && waited < CLIENT_CLOSE_TIMEOUT_MS) {
+			var message = inbound.pop(false);
+			switch (message) {
+				case null:
+					Sys.sleep(CLIENT_CLOSE_POLL_MS / 1000);
+					waited += CLIENT_CLOSE_POLL_MS;
+				case ClientEof:
+					clientEofSeen = true;
+				default:
+					// late messages after shutdown: nothing left to serve them
+			}
+		}
+		debug.Trace.log(clientEofSeen ? "client closed; exiting" : "client did not close within timeout; exiting");
 	}
 
 	// First ~100 chars: enough to identify command/seq without flooding the pipe.

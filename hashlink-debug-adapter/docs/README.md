@@ -347,10 +347,22 @@ the caller keeps the static type.
   synthesizes it for register 0 whenever the function has more arguments than
   named-argument assigns.
 
-**Fixture gotcha**: the Haxe analyzer constant-folds aggressively even with
-`-debug`. An array whose every read is statically known (`ints[2]`) never
-materializes — the fixture indexes with runtime values (`ints[n]`) and routes anon
-objects through `Std.string` so the locals actually exist at the breakpoint.
+**Fixture gotcha / user-visible symptom**: the Haxe analyzer constant-folds and
+fuses aggressively even with `-debug`. An array whose every read is statically
+known (`ints[2]`) never materializes; a local only consumed by an `if` condition
+can be fused into the branch without ever getting a named register+assign — so
+it simply does not exist in the debug tables and cannot be listed (using it as a
+call argument forces materialization, which is why that "fixes" it). This is
+compiler behaviour, not a decoder gap; the debugging-friendly workaround is
+compiling with `-D analyzer-no-optimize` (fixtures instead index with runtime
+values so they stay realistic).
+
+**Statics scope**: shown for the class owning the stopped frame — static AND
+instance methods (instance methods are mapped to their "$Class" container by
+name, since they live in the instance type's virtual table, not the bindings).
+Static methods and the compiler's `__name__`/`__constructs__`/`__meta__`
+bookkeeping fields are hidden; a class whose only "statics" are those gets no
+scope at all.
 
 ### Statics (the globals table)
 
@@ -407,14 +419,27 @@ into another breakpoint after we release it; the resume then just lets the
 termination complete; the detach finally runs against a process with no pending
 events.
 
-### What the tracing later showed (and the instrumentation that stays)
-A later recurrence was captured with full pipeline tracing and **exonerated the
-adapter**: the failing session had received the disconnect request, torn down
-cleanly, and written the response frame to the socket — the loss was client-side.
-The one silent failure mode there was `DapClient`'s reader thread: any
-framing/decode exception killed the demultiplexer without a word, after which
-every request times out with no hint why. It now reports its own death (unless
-the close was deliberate).
+### ROOT CAUSE (finally caught with full tracing): TCP RST discards the response
+The instrumented pipeline captured a failing run red-handed. The adapter had
+received the disconnect, torn down, and written the response frame — and the
+client's reader thread died with **`SocketException: Connection reset`**. The
+adapter used to close its socket and exit immediately after flushing; on
+Windows that teardown (close/exit racing a peer that has not consumed the last
+bytes, with our own reader thread still blocked in recv) degenerates into a
+TCP **RST — and an RST discards data already sitting in the receiver's
+buffer**. Reader already drained the response → harmless reset noise (seen in
+passing runs too); RST wins the race → the response evaporates and the client
+times out. No thread was ever stuck, which is why every earlier "who is hung"
+investigation came back empty.
+
+**Fix (`DebugAdapter.run`): after flushing, wait for the CLIENT to close first**
+(EOF on our reader), with a 2s timeout for clients that never close. The client
+consumes the response before closing, so nothing can be discarded; the client
+reader then sees clean EOF instead of a reset.
+
+The `DapClient` reader-death logging that caught this stays: any
+framing/decode exception used to kill the demultiplexer silently, after which
+every request times out with no hint why.
 
 Diagnostics kept in place, all gated by `DAP_ADAPTER_TRACE=1` (the integration
 tests set it):

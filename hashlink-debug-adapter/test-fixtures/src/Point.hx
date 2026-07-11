@@ -22,4 +22,8 @@ class Point {
 		x = x + dx; // FIXTURE_POINT_METHOD_LINE = 22
 		y = y + dy;
 	}
+
+	// static data (declared after move so the line constant stays stable):
+	// the Statics scope must appear inside instance-method frames too
+	public static var axes:Int = 2;
 }

@@ -1,13 +1,18 @@
 package com.intellij.plugins.haxe.hashlink;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.ui.ColoredTextContainer;
+import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.frame.XCompositeNode;
 import com.intellij.xdebugger.frame.XStackFrame;
 import com.intellij.xdebugger.frame.XValueChildrenList;
 import java.util.List;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -15,6 +20,8 @@ import org.jetbrains.annotations.Nullable;
  * variables inline, any further scopes (e.g. "Statics (Class)") as lazy groups.
  */
 final class HashLinkStackFrame extends XStackFrame {
+  private static final Logger LOG = Logger.getInstance(HashLinkStackFrame.class);
+
   private final HashLinkDebugProcess process;
   private final StackFrame frame;
 
@@ -26,7 +33,22 @@ final class HashLinkStackFrame extends XStackFrame {
   @Override
   public @Nullable XSourcePosition getSourcePosition() {
     String path = frame.getSource() != null ? frame.getSource().getPath() : null;
-    return HashLinkSourceResolver.resolve(process.getSession().getProject(), path, frame.getLine());
+    try {
+      return HashLinkSourceResolver.resolve(process.getSession().getProject(), path, frame.getLine());
+    } catch (RuntimeException e) {
+      // one unresolvable frame must never wedge the whole Frames panel
+      LOG.warn("Cannot resolve source for frame '" + frame.getName() + "' (" + path + ")", e);
+      return null;
+    }
+  }
+
+  @Override
+  public void customizePresentation(@NotNull ColoredTextContainer component) {
+    component.append(frame.getName() != null ? frame.getName() : "<unknown>", SimpleTextAttributes.REGULAR_ATTRIBUTES);
+    String file = frame.getSource() != null ? frame.getSource().getName() : null;
+    String location = file != null ? " (" + file + ":" + frame.getLine() + ")" : " (no source)";
+    component.append(location, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+    component.setIcon(AllIcons.Debugger.Frame);
   }
 
   @Override

@@ -269,6 +269,11 @@ class ModuleDebugInfo {
 		var fileIndex = debug[op << 1];
 		var line = debug[(op << 1) + 1];
 		var file = (fileIndex >= 0 && fileIndex < data.debugFiles.length) ? data.debugFiles[fileIndex] : null;
+		// the Haxe compiler records "?" as the file for synthesized/no-position
+		// code; that is not a path, so report it as no-source
+		if (file == "?" || file == "") {
+			file = null;
+		}
 		return {file: file, line: line};
 	}
 
@@ -320,10 +325,21 @@ class ModuleDebugInfo {
 		return byFindex;
 	}
 
-	// A class's static methods are stored as bindings of its "$Class" statics
-	// container (binding.mid = the method's findex). Mapping each such findex back
-	// to that container lets a stopped frame find the class whose statics to show.
+	// Maps a function's findex to the "$Class" statics container of the class
+	// that owns it, so a stopped frame can find the statics to show:
+	//  - static methods are bindings of the container itself (binding.mid);
+	//  - instance methods live in the INSTANCE type's virtual table (proto.proto);
+	//    their container is the "$" + class-name type, resolved by name.
 	function buildStaticsIndex():Map<Int, ObjPrototype> {
+		var containersByName = new Map<String, ObjPrototype>();
+		for (type in data.types) {
+			switch (type) {
+				case HObj(proto) | HStruct(proto) if (StringTools.startsWith(proto.name, "$")):
+					containersByName.set(proto.name, proto);
+				default:
+			}
+		}
+
 		var byFindex = new Map<Int, ObjPrototype>();
 		for (type in data.types) {
 			switch (type) {
@@ -331,6 +347,16 @@ class ModuleDebugInfo {
 					for (binding in proto.bindings) {
 						if (binding.mid >= 0) {
 							byFindex.set(binding.mid, proto);
+						}
+					}
+					if (!StringTools.startsWith(proto.name, "$")) {
+						var container = containersByName.get("$" + proto.name);
+						if (container != null) {
+							for (entry in proto.proto) {
+								if (entry.findex >= 0 && !byFindex.exists(entry.findex)) {
+									byFindex.set(entry.findex, container);
+								}
+							}
 						}
 					}
 				default:

@@ -9,6 +9,7 @@ import com.intellij.psi.search.FilenameIndex;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.XSourcePosition;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Collection;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,7 @@ final class HashLinkSourceResolver {
   }
 
   private static @Nullable VirtualFile findFile(Project project, String normalized) {
-    if (Path.of(normalized).isAbsolute()) {
+    if (isAbsolute(normalized)) {
       VirtualFile absolute = LocalFileSystem.getInstance().findFileByPath(normalized);
       if (absolute != null) {
         return absolute;
@@ -44,6 +45,9 @@ final class HashLinkSourceResolver {
     // relative (or stale absolute): find candidates by file name, prefer the one
     // whose full path ends with the reported path
     String fileName = normalized.substring(normalized.lastIndexOf('/') + 1);
+    if (fileName.isBlank()) {
+      return null;
+    }
     Collection<VirtualFile> candidates =
       FilenameIndex.getVirtualFilesByName(fileName, GlobalSearchScope.allScope(project));
     VirtualFile byName = null;
@@ -56,5 +60,16 @@ final class HashLinkSourceResolver {
       }
     }
     return byName;
+  }
+
+  // Path.of throws InvalidPathException on adapter-supplied strings that are
+  // not paths at all (older adapters sent "?" for synthesized code); anything
+  // unparseable is simply not absolute.
+  private static boolean isAbsolute(String normalized) {
+    try {
+      return Path.of(normalized).isAbsolute();
+    } catch (InvalidPathException e) {
+      return false;
+    }
   }
 }

@@ -212,6 +212,23 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   // --- instance methods ---
 
   @Test
+  public void staticsScopeAppearsInInstanceMethods() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
+
+    // stopped inside Point.move (an instance method): Point's statics must show
+    int staticsRef = staticsScopeReference(topFrameId(stopped.getBody().getThreadId()));
+    Map<String, String> statics = variablesByName(staticsRef);
+    assertEquals("Point.axes", "2", statics.get("axes"));
+    // compiler bookkeeping like __name__ must be hidden
+    for (String name : statics.keySet()) {
+      assertFalse("compiler field leaked into Statics: " + name,
+                  name.startsWith("__") && name.endsWith("__"));
+    }
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   public void showsThisInInstanceMethod() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
 
