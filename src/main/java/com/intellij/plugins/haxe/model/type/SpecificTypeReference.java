@@ -55,6 +55,7 @@ public abstract class SpecificTypeReference {
   public static final String FLAT_ENUM = "haxe.Constraints.FlatEnum";
   public static final String UNKNOWN = "unknown"; // TODO: Should NOT a legal type name.
   public static final String ITERATOR = "Iterator";
+  public static final String INT_ITERATOR = "IntIterator";
   public static final String FUNCTION = "Function";
   public static final String INVALID = "@@Invalid";
   public static final String MAP = "haxe.ds.Map";
@@ -222,6 +223,19 @@ public abstract class SpecificTypeReference {
     final PsiElement context = type.getElementContext();
     final HaxeClassReference classReference = getStdClassReference(ITERATOR, context);
     return SpecificHaxeClassReference.withGenerics(classReference, new ResultHolder[]{type.createHolder()});
+  }
+
+  /**
+   * The compiler types range expressions (`min...max`) as the std class IntIterator, not as the
+   * structural Iterator&lt;Int&gt; typedef; extension methods declared for IntIterator only apply
+   * to the nominal type. Falls back to Iterator&lt;Int&gt; if the SDK std is incomplete.
+   */
+  public static SpecificHaxeClassReference getIntIterator(@NotNull PsiElement context) {
+    final HaxeClassModel model = getStdTypeModel(INT_ITERATOR, context);
+    if (model != null) {
+      return SpecificHaxeClassReference.withoutGenerics(new HaxeClassReference(model, context));
+    }
+    return getIterator(getInt(context));
   }
 
   public static SpecificHaxeClassReference getFunction(@NotNull PsiElement context) {

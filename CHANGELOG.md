@@ -1,4 +1,7 @@
 # Changelog
+## Unreleased
+* Fixed: Range expressions like `0...n` are now typed as `IntIterator` (as the compiler does), so its members and `using` extension methods on ranges resolve.
+
 ## 1.8.6
 * Added: initial support for inline XML markup (parsing & basic highlighting).
 * Fixed: HXML parsing failed to parse more complex HXML file inclusion references.
