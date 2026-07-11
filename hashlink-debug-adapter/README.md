@@ -20,6 +20,10 @@ session over DAP:
   are answered provisionally and re-verified afterwards.
 - **stop / continue** — reports `stopped` (breakpoint or exception) with the thread id;
   `continue` steps over the breakpoint (trap-flag single step, re-arm) and resumes.
+- **step over / into / out** — `next`/`stepIn`/`stepOut` plant temporary breakpoints
+  at control-flow targets computed from the bytecode and report `stopped`
+  (`reason:"step"`) at the next line, the callee, or the caller. See
+  [docs/README.md](docs/README.md) §5.
 - **stackTrace** — walks the frame-pointer chain and maps return addresses back to
   `file:line` with `Class.method` names.
 - **output** — forwards the debuggee's stdout/stderr as `output` events.

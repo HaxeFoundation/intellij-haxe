@@ -46,6 +46,10 @@ class DebugSession {
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
 	var alive:Bool = true;
+	// active step state (temporary breakpoints planted; a stop is pending)
+	var stepActive:Bool = false;
+	var stepMode:StepMode = Next;
+	var stepStartEsp:Pointer = Int64.ofInt(0);
 
 	public function new(api:DebugApi, emit:DebugEvent->Void) {
 		this.api = api;
@@ -93,6 +97,8 @@ class DebugSession {
 				handleConfigurationDone(seq);
 			case CmdContinue(seq, threadId):
 				handleContinue(seq, threadId);
+			case CmdStep(seq, threadId, mode):
+				handleStep(seq, threadId, mode);
 			case CmdStackTrace(seq, threadId):
 				handleStackTrace(seq, threadId);
 			case CmdDisconnect(seq):
@@ -339,6 +345,102 @@ class DebugSession {
 		}
 	}
 
+	// --- stepping ---
+
+	function handleStep(requestSeq:Int, threadId:Int, mode:StepMode):Void {
+		switch (state) {
+			case Stopped(_):
+				planStep(threadId, mode);
+				state = Running;
+				emit(EvStepStarted(requestSeq)); // ack now; the stopped(reason:"step") event follows
+			default:
+				emit(EvRejected(requestSeq, "Cannot step: debuggee is not stopped"));
+		}
+	}
+
+	// Plant the temporary breakpoints that mark where this step should land, then
+	// resume (stepping over the instruction we are parked on).
+	function planStep(threadId:Int, mode:StepMode):Void {
+		breakpoints.clearTemps();
+		stepMode = mode;
+		stepStartEsp = api.readRegister(process.pid, threadId, Esp);
+
+		var eip = api.readRegister(process.pid, threadId, Eip);
+		var position = jit.resolveAddress(eip);
+		if (position == null) {
+			// not in known bytecode (e.g. inside a native call): can't compute targets
+			stepActive = false;
+			stepOverAndResume(threadId);
+			return;
+		}
+		var fidx = position.fidx;
+		var startLine = module.lineOf(fidx, position.op);
+		var graph = new CodeGraph(module.opcodes(fidx));
+		var targets = graph.stepTargets(position.op, startLine, (op) -> module.lineOf(fidx, op));
+		var returnAddress = currentReturnAddress(threadId);
+
+		if (mode == StepOut) {
+			// step out: stop only when the current function returns
+			if (returnAddress != null) {
+				breakpoints.addTemp(returnAddress);
+			}
+		} else {
+			for (op in targets.lineChangeOps) {
+				breakpoints.addTemp(jit.addressOf(fidx, op));
+			}
+			if (targets.returns && returnAddress != null) {
+				breakpoints.addTemp(returnAddress);
+			}
+			if (mode == StepIn) {
+				for (op in targets.callOps) {
+					var callee = module.callTargetFunction(fidx, op);
+					if (callee >= 0) {
+						breakpoints.addTemp(jit.addressOf(callee, 0)); // callee entry = first opcode
+					}
+				}
+			}
+		}
+
+		stepActive = breakpoints.hasTemps();
+		stepOverAndResume(threadId);
+	}
+
+	function currentReturnAddress(threadId:Int):Null<Pointer> {
+		var frames = stackWalker.walk(threadId);
+		return frames.length >= 2 ? frames[1].address : null;
+	}
+
+	// The temp we hit is at a deeper (recursive) frame than the step started in:
+	// not our landing. Single-step past it, re-arm it, and keep running.
+	function stepPastTempAndResume(threadId:Int, address:Pointer):Void {
+		breakpoints.suspendTemp(address);
+		setTrapFlag(threadId);
+		api.resume(process.pid, threadId);
+		waitForSingleStep(threadId);
+		clearTrapFlag(threadId);
+		breakpoints.rearmTemp(address);
+		if (state == Exited) {
+			return;
+		}
+		api.resume(process.pid, threadId);
+	}
+
+	function finishStep():Void {
+		if (breakpoints != null) {
+			breakpoints.clearTemps();
+		}
+		stepActive = false;
+	}
+
+	// stack grows down: a shallower-or-equal frame has esp >= the step-start esp
+	function frameGuardSatisfied(threadId:Int):Bool {
+		if (stepMode == StepIn) {
+			return true; // any landing (same-frame line change or callee entry) is valid
+		}
+		var esp = api.readRegister(process.pid, threadId, Esp);
+		return Int64.compare(esp, stepStartEsp) >= 0;
+	}
+
 	function handleStackTrace(requestSeq:Int, threadId:Int):Void {
 		switch (state) {
 			case Stopped(tid):
@@ -380,6 +482,7 @@ class DebugSession {
 			case Timeout:
 				// nothing pending
 			case Exit:
+				finishStep();
 				state = Exited;
 				emit(EvExited(safeExitCode()));
 			case Breakpoint:
@@ -387,6 +490,7 @@ class DebugSession {
 			case SingleStep:
 				api.resume(process.pid, outcome.threadId);
 			case Error, StackOverflow:
+				finishStep();
 				stoppedThreadId = outcome.threadId;
 				state = Stopped(outcome.threadId);
 				currentStoppedBreakpoint = null;
@@ -399,20 +503,40 @@ class DebugSession {
 	function handleBreakpointHit(threadId:Int):Void {
 		// INT3 leaves the instruction pointer one byte past the trap
 		var eip = api.readRegister(process.pid, threadId, Eip);
-		var breakpointAddress = Int64.sub(eip, Int64.ofInt(1));
-		var bp = breakpoints != null ? breakpoints.atAddress(breakpointAddress) : null;
-		if (bp == null) {
+		var hitAddress = Int64.sub(eip, Int64.ofInt(1));
+		var userBp = breakpoints != null ? breakpoints.atAddress(hitAddress) : null;
+		var temp = breakpoints != null && breakpoints.isTemp(hitAddress);
+
+		if (userBp == null && !temp) {
 			// attach/loader breakpoint or spurious: just keep going
 			api.resume(process.pid, threadId);
 			return;
 		}
-		// rewind past the INT3 and restore the original byte so the instruction can run on continue
-		api.writeRegister(process.pid, threadId, Eip, breakpointAddress);
-		breakpoints.suspend(bp);
-		currentStoppedBreakpoint = bp;
+
+		// rewind past the INT3 so the trapped instruction can run on the next resume
+		api.writeRegister(process.pid, threadId, Eip, hitAddress);
+
+		// a real breakpoint always wins over a step landing
+		if (userBp != null) {
+			finishStep();
+			breakpoints.suspend(userBp);
+			currentStoppedBreakpoint = userBp;
+			stoppedThreadId = threadId;
+			state = Stopped(threadId);
+			emit(EvStoppedBreakpoint(threadId, [userBp.id]));
+			return;
+		}
+
+		// a temporary (step) breakpoint: honour the frame guard for step over/out
+		if (stepActive && !frameGuardSatisfied(threadId)) {
+			stepPastTempAndResume(threadId, hitAddress);
+			return;
+		}
+		finishStep();
+		currentStoppedBreakpoint = null;
 		stoppedThreadId = threadId;
 		state = Stopped(threadId);
-		emit(EvStoppedBreakpoint(threadId, [bp.id]));
+		emit(EvStoppedStep(threadId));
 	}
 
 	// --- helpers ---

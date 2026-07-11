@@ -20,6 +20,8 @@ class Breakpoints {
 	final pid:Int;
 	final byAddress:Map<String, PatchedBreakpoint> = new Map();
 	final bySource:Map<String, Array<PatchedBreakpoint>> = new Map();
+	// temporary INT3s planted for a step; `shared` = coincides with a user breakpoint
+	final temps:Map<String, {address:Pointer, originalByte:Int, shared:Bool}> = new Map();
 
 	public function new(api:DebugApi, pid:Int) {
 		this.api = api;
@@ -76,6 +78,59 @@ class Breakpoints {
 	/** Re-installs the INT3 after a step-over. */
 	public function rearm(bp:PatchedBreakpoint):Void {
 		writeByte(bp.address, INT3);
+	}
+
+	/**
+	 * Plants a temporary INT3 (for a step) at `address`. If a user breakpoint is
+	 * already installed there, nothing is written and the temp is marked `shared`
+	 * so clearTemps leaves the user breakpoint intact.
+	 */
+	public function addTemp(address:Pointer):Void {
+		var key = addressKey(address);
+		if (temps.exists(key)) {
+			return;
+		}
+		var shared = byAddress.exists(key);
+		var original = INT3;
+		if (!shared) {
+			original = readByte(address);
+			writeByte(address, INT3);
+		}
+		temps.set(key, {address: address, originalByte: original, shared: shared});
+	}
+
+	/** Removes all temporary breakpoints, restoring bytes not shared with a user breakpoint. */
+	public function clearTemps():Void {
+		for (temp in temps) {
+			if (!temp.shared) {
+				writeByte(temp.address, temp.originalByte);
+			}
+		}
+		temps.clear();
+	}
+
+	public function isTemp(address:Pointer):Bool {
+		return temps.exists(addressKey(address));
+	}
+
+	/** Restores a single temp's original byte (to single-step past it at a wrong frame). */
+	public function suspendTemp(address:Pointer):Void {
+		var temp = temps.get(addressKey(address));
+		if (temp != null && !temp.shared) {
+			writeByte(address, temp.originalByte);
+		}
+	}
+
+	/** Re-installs a single temp's INT3 after stepping past it. */
+	public function rearmTemp(address:Pointer):Void {
+		var temp = temps.get(addressKey(address));
+		if (temp != null && !temp.shared) {
+			writeByte(address, INT3);
+		}
+	}
+
+	public function hasTemps():Bool {
+		return temps.keys().hasNext();
 	}
 
 	function install(loc:{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int}):PatchedBreakpoint {

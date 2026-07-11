@@ -11,12 +11,14 @@ enum DebugEvent {
 	EvBreakpoints(requestSeq:Int, results:Array<BreakpointResult>);
 	EvConfigurationDone(requestSeq:Int);
 	EvContinued(requestSeq:Int);
+	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
 	EvRejected(requestSeq:Int, message:String);
 	EvSessionEnded(requestSeq:Int);
 	// spontaneous events
 	EvBreakpointChanged(result:BreakpointResult);
 	EvStoppedBreakpoint(threadId:Int, hitBreakpointIds:Array<Int>);
+	EvStoppedStep(threadId:Int);
 	EvStoppedException(threadId:Int, description:String);
 	EvOutput(category:String, text:String);
 	EvExited(exitCode:Int);

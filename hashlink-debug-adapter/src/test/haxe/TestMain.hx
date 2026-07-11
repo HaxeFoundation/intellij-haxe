@@ -1,4 +1,5 @@
 import tests.BreakpointsTest;
+import tests.CodeGraphTest;
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
 import tests.JitInfoReaderTest;
@@ -34,6 +35,9 @@ class TestMain {
 
 		assert.setContext("StackWalkerTest");
 		StackWalkerTest.run(assert);
+
+		assert.setContext("CodeGraphTest");
+		CodeGraphTest.run(assert);
 
 		Sys.println(assert.checks + " checks, " + assert.failures + " failures");
 		Sys.exit(assert.failures == 0 ? 0 : 1);

@@ -19,6 +19,7 @@ import debug.FrameInfo;
 import debug.LaunchConfig;
 import debug.RequestedBreakpoint;
 import debug.SessionCommand;
+import debug.StepMode;
 import haxe.Json;
 
 /**
@@ -91,6 +92,12 @@ class RequestDispatcher {
 				handleConfigurationDone(request);
 			case "continue":
 				handleContinue(request);
+			case "next":
+				handleStep(request, Next);
+			case "stepIn":
+				handleStep(request, StepIn);
+			case "stepOut":
+				handleStep(request, StepOut);
 			case "stackTrace":
 				handleStackTrace(request);
 			case "threads":
@@ -168,6 +175,17 @@ class RequestDispatcher {
 		sessionCommands(CmdContinue(request.seq, threadId));
 	}
 
+	function handleStep(request:Request, mode:StepMode):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot step: nothing is running");
+			return;
+		}
+		// next/stepIn/stepOut all carry {threadId}
+		var threadId = request.arguments != null && Reflect.hasField(request.arguments, "threadId") ? request.arguments.threadId : currentThreadId;
+		defer(request);
+		sessionCommands(CmdStep(request.seq, threadId, mode));
+	}
+
 	function handleStackTrace(request:Request):Void {
 		if (!launched) {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot get a stack trace: nothing is running");
@@ -206,6 +224,8 @@ class RequestDispatcher {
 			case EvContinued(seq):
 				var body:ContinueResponseBody = {allThreadsContinued: true};
 				completeSuccess(seq, body);
+			case EvStepStarted(seq):
+				completeSuccess(seq, null);
 			case EvStackTrace(seq, frames):
 				completeSuccess(seq, stackTraceBody(frames));
 			case EvRejected(seq, message):
@@ -218,6 +238,9 @@ class RequestDispatcher {
 			case EvStoppedBreakpoint(threadId, hitBreakpointIds):
 				currentThreadId = threadId;
 				sendEvent("stopped", {reason: "breakpoint", threadId: threadId, allThreadsStopped: true, hitBreakpointIds: hitBreakpointIds});
+			case EvStoppedStep(threadId):
+				currentThreadId = threadId;
+				sendEvent("stopped", {reason: "step", threadId: threadId, allThreadsStopped: true});
 			case EvStoppedException(threadId, description):
 				currentThreadId = threadId;
 				sendEvent("stopped", {reason: "exception", threadId: threadId, allThreadsStopped: true, description: description});

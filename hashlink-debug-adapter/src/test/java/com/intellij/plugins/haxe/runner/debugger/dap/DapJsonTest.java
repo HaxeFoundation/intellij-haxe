@@ -14,11 +14,16 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializeResponse
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.LaunchRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.LaunchRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.OutputEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ProtocolMessage;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepOutResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.TerminatedEvent;
 import java.util.List;
@@ -122,6 +127,35 @@ public class DapJsonTest {
     assertTrue(json.contains("\"program\":\"/project/out/app.hl\""));
     assertTrue(json.contains("\"args\":[\"--flag\"]"));
     assertFalse("unset cwd must be omitted", json.contains("cwd"));
+  }
+
+  @Test
+  public void nextRequestEncodesThreadId() {
+    NextRequest request = new NextRequest();
+    request.setSeq(4);
+    NextArguments arguments = new NextArguments();
+    arguments.setThreadId(7);
+    request.setArguments(arguments);
+
+    String json = DapJson.encode(request);
+    assertTrue(json.contains("\"command\":\"next\""));
+    assertTrue(json.contains("\"threadId\":7"));
+    assertFalse("unset granularity omitted", json.contains("granularity"));
+  }
+
+  @Test
+  public void decodeDiscriminatesStepResponses() {
+    ProtocolMessage next = DapJson.decode(
+      "{\"seq\":1,\"type\":\"response\",\"request_seq\":1,\"success\":true,\"command\":\"next\"}");
+    assertTrue(next instanceof NextResponse);
+
+    ProtocolMessage stepIn = DapJson.decode(
+      "{\"seq\":2,\"type\":\"response\",\"request_seq\":2,\"success\":true,\"command\":\"stepIn\"}");
+    assertTrue(stepIn instanceof StepInResponse);
+
+    ProtocolMessage stepOut = DapJson.decode(
+      "{\"seq\":3,\"type\":\"response\",\"request_seq\":3,\"success\":true,\"command\":\"stepOut\"}");
+    assertTrue(stepOut instanceof StepOutResponse);
   }
 
   @Test

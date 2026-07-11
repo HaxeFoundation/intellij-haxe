@@ -1,0 +1,88 @@
+package tests;
+
+import debug.CodeGraph;
+import format.hl.Data.Opcode;
+
+class CodeGraphTest {
+	public static function run(assert:Assert):Void {
+		successorsFollowJumpArithmetic(assert);
+		successorsForSwitchAndTerminal(assert);
+		stepTargetsFindsCallsAndLineChange(assert);
+		stepTargetsStopsAtLineChangeAndBranches(assert);
+		stepTargetsDetectsReturn(assert);
+	}
+
+	// A small synthetic function:
+	//  0 OInt   line 10   (start)
+	//  1 OCall1 line 10   (call on the start line)
+	//  2 OSub   line 11   (line change)
+	//  3 OJTrue line 11   (branch: fall to 4, or +2 to 6)
+	//  4 OMov   line 12
+	//  5 ORet   line 12
+	//  6 ORet   line 13   (branch target of 3)
+	static function fixtureOps():Array<Opcode> {
+		return [
+			OInt(0, 0),
+			OCall1(1, 5, 0),
+			OSub(0, 0, 1),
+			OJTrue(0, 2),
+			OMov(0, 1),
+			ORet(0),
+			ORet(0)
+		];
+	}
+
+	static var lines = [10, 10, 11, 11, 12, 12, 13];
+
+	static function lineOf(op:Int):Int {
+		return op >= 0 && op < lines.length ? lines[op] : 0;
+	}
+
+	static function successorsFollowJumpArithmetic(assert:Assert):Void {
+		var g = new CodeGraph(fixtureOps());
+		assert.equals("1", g.successors(0).join(","), "OInt falls through to next");
+		assert.equals("2", g.successors(1).join(","), "OCall falls through to next");
+		// OJTrue at op3: fall-through 4, jump 3+1+2 = 6
+		assert.equals("4,6", g.successors(3).join(","), "conditional jump = [next, next+offset]");
+		assert.equals("", g.successors(5).join(","), "ORet is terminal");
+	}
+
+	static function successorsForSwitchAndTerminal(assert:Assert):Void {
+		// index 0 OSwitch(reg, cases=[1,3], end=5): next=1; targets 1, 1+5=6(out of range, dropped),
+		// 1+1=2, 1+3=4. Only in-range kept.
+		var ops:Array<Opcode> = [OSwitch(0, [1, 3], 5), ONop, ONop, ONop, ONop];
+		var g = new CodeGraph(ops);
+		var succ = g.successors(0);
+		assert.isTrue(succ.indexOf(1) >= 0, "switch fall-through");
+		assert.isTrue(succ.indexOf(2) >= 0, "switch case 1 -> next+1");
+		assert.isTrue(succ.indexOf(4) >= 0, "switch case 3 -> next+3");
+		assert.isFalse(succ.indexOf(6) >= 0, "out-of-range switch target dropped");
+
+		var uncond:Array<Opcode> = [OJAlways(2), ONop, ONop, ONop];
+		assert.equals("3", new CodeGraph(uncond).successors(0).join(","), "OJAlways = [next+offset]");
+	}
+
+	static function stepTargetsFindsCallsAndLineChange(assert:Assert):Void {
+		var g = new CodeGraph(fixtureOps());
+		var t = g.stepTargets(0, 10, lineOf);
+		assert.equals("2", t.lineChangeOps.join(","), "next line target is first op of line 11");
+		assert.equals("1", t.callOps.join(","), "call on the start line is recorded");
+		assert.isFalse(t.returns, "no return reachable before the line change");
+	}
+
+	static function stepTargetsStopsAtLineChangeAndBranches(assert:Assert):Void {
+		var g = new CodeGraph(fixtureOps());
+		var t = g.stepTargets(2, 11, lineOf);
+		// from op2 (line 11) -> op3 branch -> op4 (line 12) and op6 (line 13)
+		t.lineChangeOps.sort((a, b) -> a - b);
+		assert.equals("4,6", t.lineChangeOps.join(","), "both branch line-changes found");
+		assert.isFalse(t.returns, "walk stopped at line changes before the returns");
+	}
+
+	static function stepTargetsDetectsReturn(assert:Assert):Void {
+		var g = new CodeGraph(fixtureOps());
+		var t = g.stepTargets(4, 12, lineOf);
+		assert.equals(0, t.lineChangeOps.length, "no other line reachable from the last line");
+		assert.isTrue(t.returns, "ORet on the same line marks a return");
+	}
+}

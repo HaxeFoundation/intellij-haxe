@@ -44,6 +44,34 @@ class ModuleDebugInfoTest {
 
 		// a line with no code and no later code -> unresolved
 		assert.equals(0, module.resolveLine("NoSuchFile.hx", 5).length, "unknown file unresolved");
+
+		opcodeAndCallAccessors(assert, module, loopHits[0].fidx);
+	}
+
+	// The loop line calls add(); check opcodes/lineOf/callTargetFunction resolve it.
+	static function opcodeAndCallAccessors(assert:Assert, module:ModuleDebugInfo, mainFidx:Int):Void {
+		var ops = module.opcodes(mainFidx);
+		assert.isTrue(ops.length > 0, "main function has opcodes");
+
+		var graph = new debug.CodeGraph(ops);
+		var foundCallToAdd = false;
+		var lineOfCallCorrect = false;
+		for (op in 0...ops.length) {
+			if (module.lineOf(mainFidx, op) != FIXTURE_LOOP_LINE) {
+				continue;
+			}
+			if (!graph.isCall(op)) {
+				continue;
+			}
+			var callee = module.callTargetFunction(mainFidx, op);
+			if (callee >= 0 && StringTools.endsWith(module.functionName(callee), "add")) {
+				foundCallToAdd = true;
+				lineOfCallCorrect = true;
+			}
+		}
+		assert.isTrue(foundCallToAdd, "loop line has a static call resolving to add");
+		assert.isTrue(lineOfCallCorrect, "the call opcode is on the loop line");
+		assert.equals(0, module.lineOf(mainFidx, 999999), "out-of-range opcode line is 0");
 	}
 
 	static function normalizeSlashes(p:String):String {

@@ -187,6 +187,63 @@ short read) rather than crashing us, but callers must treat that as expected:
 
 ---
 
+## 5. Source-level stepping (step over / into / out)
+
+Stepping is **temporary-breakpoint planting driven by the opcode control-flow
+graph**, not machine single-stepping. Single-stepping instruction-by-instruction
+would walk through the entire body of any function a line calls (and could run for
+a very long time in library code); planting an INT3 where the step should land and
+then just resuming is both faster and simpler.
+
+### How targets are computed
+On a step, from the current `(function, opcode, line)`:
+- `CodeGraph` walks the function's opcodes following successors. A jump's target is
+  `opIndex + 1 + offset` (conditional jumps add both the fall-through and the
+  target; `OSwitch` adds every case; `ORet`/`OThrow` are terminal). The walk is
+  guarded by a visited set so loops (back-edges) terminate.
+- **next (step over):** plant a temp INT3 at the first opcode of every reachable
+  line other than the current one, and — if a return is reachable — at the caller's
+  return address. Calls are *not* entered; the call runs and returns to the next
+  opcode, which the line scan already covers.
+- **stepIn:** the same, plus a temp at the entry (first opcode) of every statically
+  resolvable callee (`OCall0..N`). Dynamic/virtual/closure calls
+  (`OCallMethod`/`OCallThis`/`OCallClosure`) can't be resolved from the bytecode, so
+  stepIn falls back to step-over behaviour for those — a documented limitation.
+- **stepOut:** a temp only at the caller's return address (frame 1 from the stack
+  walker).
+
+Then the debuggee is resumed via the existing step-over-the-current-instruction
+dance. The pieces are all reused: opcode→line (`ModuleDebugInfo`), opcode→address
+(`JitInfo.addressOf`), the return address (`StackWalker`), INT3 patch/restore
+(`Breakpoints`, now with a separate temp set that is cleared on any stop).
+
+### The frame guard (recursion)
+A temp INT3 lives at a code address, so in a **recursive** function the same temp
+can trap at a *deeper* frame than the step started in — that is not where the step
+should land. We record the stack pointer at step start; the stack grows down, so a
+shallower-or-equal frame has `Esp >= startEsp`. For step over/out a temp hit only
+counts as the landing when `Esp >= startEsp`; otherwise we single-step past that
+temp, re-arm it, and keep running. stepIn needs no guard (its callee-entry target is
+*supposed* to be a deeper frame). This is the same class of subtlety as the
+trap-flag bug in §3 — the stepping integration test must cover a repeated/recursive
+line, not just a straight-line step.
+
+### Breakpoints always win
+If a user breakpoint and a step target trap at the same time, the user breakpoint
+wins (the stop is reported as `reason:"breakpoint"`, not `"step"`). All temporary
+breakpoints are removed on every stop (`Breakpoints.clearTemps`), and on debuggee
+exit/exception too, so a step never leaves stray INT3s behind.
+
+### Where this bites again
+- **Conditional breakpoints** and **run-to-cursor** will reuse the same temp-set +
+  frame-guard machinery.
+- If HL bytecode ops or their jump-offset convention change, `CodeGraph` is the one
+  place to update (its successor arithmetic is unit-tested with synthetic opcodes).
+- Watch the interaction between a step and the step-over-the-current-instruction
+  logic (both toggle the trap flag) — keep set/clear balanced.
+
+---
+
 ## Quick reference
 
 | Concern | Rule |
@@ -198,3 +255,4 @@ short read) rather than crashing us, but callers must treat that as expected:
 | Trap flag for single-step | Always clear what you set |
 | Test fixtures for breakpoints | Use runtime values so the compiler can't unroll/inline the target away |
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
+| Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |

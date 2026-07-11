@@ -12,6 +12,8 @@ class BreakpointsTest {
 		replacingSourceRestoresOldAndInstallsNew(assert);
 		suspendAndRearmToggleTheByte(assert);
 		duplicateAddressReusesBreakpoint(assert);
+		tempBreakpointsPatchAndRestore(assert);
+		tempSharedWithUserBreakpointNotRestored(assert);
 	}
 
 	static function addr(v:Int):Pointer {
@@ -64,6 +66,41 @@ class BreakpointsTest {
 		assert.equals(0x90, api.peek(addr(30)), "suspend restores original byte");
 		bps.rearm(bp);
 		assert.equals(INT3, api.peek(addr(30)), "rearm restores INT3");
+	}
+
+	static function tempBreakpointsPatchAndRestore(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		api.poke(addr(50), 0x42);
+		api.poke(addr(60), 0x43);
+		var bps = new Breakpoints(api, 1);
+
+		assert.isFalse(bps.hasTemps(), "no temps initially");
+		bps.addTemp(addr(50));
+		bps.addTemp(addr(60));
+		assert.equals(INT3, api.peek(addr(50)), "temp installs INT3");
+		assert.equals(INT3, api.peek(addr(60)), "second temp installs INT3");
+		assert.isTrue(bps.isTemp(addr(50)), "address reported as temp");
+		assert.isTrue(bps.hasTemps(), "hasTemps true after add");
+
+		bps.addTemp(addr(50)); // idempotent
+		bps.clearTemps();
+		assert.equals(0x42, api.peek(addr(50)), "clearTemps restores original byte");
+		assert.equals(0x43, api.peek(addr(60)), "clearTemps restores second byte");
+		assert.isFalse(bps.hasTemps(), "no temps after clear");
+	}
+
+	static function tempSharedWithUserBreakpointNotRestored(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		api.poke(addr(70), 0x55);
+		var bps = new Breakpoints(api, 1);
+		bps.setForSource("Main.hx", [loc(70, 14)]); // user bp -> INT3 at addr 70
+
+		bps.addTemp(addr(70)); // shares the user breakpoint's address
+		assert.equals(INT3, api.peek(addr(70)), "still INT3 while temp shares it");
+		bps.clearTemps();
+		// clearing the temp must NOT restore the byte the user breakpoint owns
+		assert.equals(INT3, api.peek(addr(70)), "user breakpoint survives clearTemps");
+		assert.isTrue(bps.isBreakpointAddress(addr(70)), "user breakpoint still tracked");
 	}
 
 	static function duplicateAddressReusesBreakpoint(assert:Assert):Void {

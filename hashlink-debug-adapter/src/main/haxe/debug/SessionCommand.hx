@@ -12,6 +12,7 @@ enum SessionCommand {
 	CmdSetBreakpoints(requestSeq:Int, sourceKey:String, sourcePath:String, breakpoints:Array<RequestedBreakpoint>, isReverify:Bool);
 	CmdConfigurationDone(requestSeq:Int);
 	CmdContinue(requestSeq:Int, threadId:Int);
+	CmdStep(requestSeq:Int, threadId:Int, mode:StepMode);
 	CmdStackTrace(requestSeq:Int, threadId:Int);
 	CmdDisconnect(requestSeq:Int);
 }

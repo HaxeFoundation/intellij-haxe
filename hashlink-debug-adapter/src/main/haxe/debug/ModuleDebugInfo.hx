@@ -2,6 +2,7 @@ package debug;
 
 import format.hl.Data;
 import format.hl.Data.HLType;
+import format.hl.Data.Opcode;
 
 /**
  * Reads a .hl file's embedded debug tables (via the `format` haxelib) and maps
@@ -16,6 +17,8 @@ class ModuleDebugInfo {
 	final isWindows:Bool;
 	// findex (global) -> "Class.method" display name
 	final namesByFindex:Map<Int, String>;
+	// findex (global) -> position in data.functions (the index JitInfo uses)
+	final functionIndexByFindex:Map<Int, Int>;
 
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
@@ -25,6 +28,7 @@ class ModuleDebugInfo {
 		}
 		isWindows = Sys.systemName() == "Windows";
 		namesByFindex = buildNames();
+		functionIndexByFindex = buildFunctionIndex();
 	}
 
 	public function functionCount():Int {
@@ -34,6 +38,49 @@ class ModuleDebugInfo {
 	/** Opcode count of a function, for aligning against the handshake tables. */
 	public function opCount(fidx:Int):Int {
 		return data.functions[fidx].ops.length;
+	}
+
+	/** The decoded opcodes of a function (for control-flow / stepping analysis). */
+	public function opcodes(fidx:Int):Array<Opcode> {
+		return data.functions[fidx].ops;
+	}
+
+	/** Source line of a single opcode, or 0 when unknown. */
+	public function lineOf(fidx:Int, op:Int):Int {
+		if (fidx < 0 || fidx >= data.functions.length) {
+			return 0;
+		}
+		var debug = data.functions[fidx].debug;
+		var index = (op << 1) + 1;
+		return (debug != null && index < debug.length) ? debug[index] : 0;
+	}
+
+	/**
+	 * For a static call opcode (OCall0..4 / OCallN), the callee's function index
+	 * (the same index space JitInfo uses). Returns -1 for non-calls and for
+	 * dynamic/virtual/closure calls whose target isn't statically known, in which
+	 * case step-in falls back to step-over behaviour.
+	 */
+	public function callTargetFunction(fidx:Int, op:Int):Int {
+		if (fidx < 0 || fidx >= data.functions.length) {
+			return -1;
+		}
+		var ops = data.functions[fidx].ops;
+		if (op < 0 || op >= ops.length) {
+			return -1;
+		}
+		var findex = switch (ops[op]) {
+			case OCall0(_, i), OCall1(_, i, _), OCall2(_, i, _, _), OCall3(_, i, _, _, _),
+				OCall4(_, i, _, _, _, _), OCallN(_, i, _):
+				i;
+			default:
+				-1;
+		}
+		if (findex < 0) {
+			return -1;
+		}
+		var index = functionIndexByFindex.get(findex);
+		return index != null ? index : -1;
 	}
 
 	/**
@@ -138,6 +185,14 @@ class ModuleDebugInfo {
 	function baseName(path:String):String {
 		var slash = path.lastIndexOf("/");
 		return slash < 0 ? path : path.substr(slash + 1);
+	}
+
+	function buildFunctionIndex():Map<Int, Int> {
+		var byFindex = new Map<Int, Int>();
+		for (i in 0...data.functions.length) {
+			byFindex.set(data.functions[i].findex, i);
+		}
+		return byFindex;
 	}
 
 	function buildNames():Map<Int, String> {
