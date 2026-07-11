@@ -1,9 +1,40 @@
-# SHELVED: IntelliJ XDebugger integration plan
+# IMPLEMENTED: IntelliJ XDebugger integration
 
-This is the plan for wiring IntelliJ's XDebugger to the DAP adapter. It was
-researched and then **deferred** so that adapter-side stepping could be built
-first (a debugger without step over/into/out is not worth wiring into an IDE).
-Pick this up as its own milestone once stepping lands. Nothing here is built yet.
+**Status: built (milestone 6).** The implementation lives in
+`src/main/java/com/intellij/plugins/haxe/hashlink/` — deliberately its own
+package, fully separated from the legacy Flash/hxcpp debugger code, which is
+untouched. Two deviations from the plan below, both deliberate:
+
+1. **Separate runners instead of a branch in HaxeDebugRunner.** The plan wanted
+   an HL branch inside `HaxeDebugRunner.doExecute`; the user asked for strict
+   separation of the experimental HashLink support from the existing debugger.
+   `HashLinkRunner` (plain Run) and `HashLinkDebugRunner` (Debug) are registered
+   with `order="first"` and their `canRun` claims ONLY plain Haxe application
+   configurations whose compilation target is HL (no NME/OpenFL, no custom
+   executable) — every other configuration falls through to the untouched
+   generic runners, so there is no runner race.
+2. **Real Variables view instead of the placeholder.** The plan predates the
+   scopes/variables milestones; frames now list the Locals scope inline and
+   further scopes (Statics) as lazy groups, with expandable objects/arrays/enums.
+
+## Manual test checklist (runIde)
+
+Setup: Haxe SDK configured; SDK "HashLink executable" set (or HASHLINK_BIN env,
+or hl on PATH); a module with target HL compiled with `-debug`.
+
+- Plain Run executes `hl <output.hl>`, console shows program output, exit code.
+- Debug: breakpoint in a `.hx` line with code → verified icon after launch;
+  program stops there; Frames panel shows the stack with correct source lines.
+- Variables: locals with values; expand an object/array/enum; Statics group.
+- Step over/into/out move as expected; Resume runs to the next breakpoint.
+- Program runs to completion → console output, exit code line, session ends.
+- Stop button mid-run kills debuggee + adapter (no orphan hl.exe).
+- Negatives: no hl configured → error naming the SDK field; missing/stale .hl
+  → "build the module first" error; breakpoint on a comment line → invalid icon.
+
+---
+
+The original (pre-implementation) plan follows for reference.
 
 ## Decisions already made (by the user)
 

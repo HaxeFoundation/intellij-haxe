@@ -58,6 +58,16 @@ public class JpsHaxeSdkAdditionalDataImpl extends JpsElementBase<JpsHaxeSdkAddit
   }
 
   @Override
+  public String getHlBinPath() {
+    return myAdditionalData.getHlBinPath();
+  }
+
+  @Override
+  public void setHlBinPath(String hlBinPath) {
+    myAdditionalData.setHlBinPath(hlBinPath);
+  }
+
+  @Override
   public String getHaxelibPath() {
     return myAdditionalData.getHaxelibPath();
   }

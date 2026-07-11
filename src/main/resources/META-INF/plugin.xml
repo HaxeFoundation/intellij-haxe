@@ -129,6 +129,10 @@
     <lang.ast.factory language="HaxeMetadata" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeAstFactory" />
     <!-- METADATA END -->
 
+    <!-- Experimental HashLink runners: registered first and gated to HL-target
+         configurations only, so the generic runners below stay untouched. -->
+    <programRunner implementation="com.intellij.plugins.haxe.hashlink.HashLinkRunner" order="first"/>
+    <programRunner implementation="com.intellij.plugins.haxe.hashlink.HashLinkDebugRunner" order="first"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.HaxeRunner"/>
     <programRunner implementation="com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>

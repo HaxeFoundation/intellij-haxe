@@ -54,6 +54,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
     return haxeSdkData == null ||
            !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
+           !myHaxeAdditionalConfigurablePanel.getHlBinPath().equals(haxeSdkData.getHlBinPath()) ||
            !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath()) ||
            myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag() ||
            myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag() ^ haxeSdkData.getRemoveCompletionDuplicatesFlag();
@@ -68,6 +69,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
 
     final HaxeSdkData newData = new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion());
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
+    newData.setHlBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHlBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
     newData.setUseCompilerCompletionFlag(myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag());
     newData.setRemoveCompletionDuplicatesFlag(myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag());
@@ -92,6 +94,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     if (haxeSdkData != null) {
       final String nekoBinPath = haxeSdkData.getNekoBinPath();
       myHaxeAdditionalConfigurablePanel.setNekoBinPath(FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath));
+      final String hlBinPath = haxeSdkData.getHlBinPath();
+      myHaxeAdditionalConfigurablePanel.setHlBinPath(FileUtil.toSystemDependentName(hlBinPath == null ? "" : hlBinPath));
       final String haxelibPath = haxeSdkData.getHaxelibPath();
       myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
       final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();

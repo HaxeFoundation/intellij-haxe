@@ -29,6 +29,10 @@ public interface HaxeSdkAdditionalDataBase {
 
   void setNekoBinPath(String nekoBinPath);
 
+  String getHlBinPath();
+
+  void setHlBinPath(String hlBinPath);
+
   String getHaxelibPath();
 
   void setHaxelibPath(String haxelibPath);

@@ -28,6 +28,9 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   private String nekoBinPath = "";
 
+  // HashLink executable, used by the (experimental) HashLink run/debug support
+  private String hlBinPath = "";
+
   private String haxelibPath = "";
 
   private boolean useCompilerCompletionFlag = false;
@@ -55,6 +58,14 @@ public class HaxeSdkAdditionalDataBaseImpl implements HaxeSdkAdditionalDataBase 
 
   public void setNekoBinPath(String nekoBinPath) {
     this.nekoBinPath = null == nekoBinPath ? "" : nekoBinPath;
+  }
+
+  public String getHlBinPath() {
+    return hlBinPath;
+  }
+
+  public void setHlBinPath(String hlBinPath) {
+    this.hlBinPath = null == hlBinPath ? "" : hlBinPath;
   }
 
   public String getHaxelibPath() {

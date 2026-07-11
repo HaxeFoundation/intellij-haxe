@@ -1,0 +1,386 @@
+package com.intellij.plugins.haxe.hashlink;
+
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.module.Module;
+import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
+import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerEditorsProvider;
+import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ExitedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.OutputEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.TerminatedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ScopesResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTraceResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.VariablesResponse;
+import com.intellij.xdebugger.XDebugProcess;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
+import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
+import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
+import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
+import com.intellij.xdebugger.frame.XSuspendContext;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * XDebugger process for HashLink (experimental): spawns the bundled DAP
+ * adapter, drives it as a DAP client, and bridges its events into the IDE.
+ *
+ * Threading: the IDE calls resume/step/stop on the EDT — those only submit
+ * work to a single-thread request executor. A dedicated event-pump thread is
+ * the sole {@code pollEvent} caller and issues its own follow-up requests
+ * (stackTrace on stop); DapClient correlates concurrent requests by seq.
+ */
+public class HashLinkDebugProcess extends XDebugProcess {
+  private static final Logger LOG = Logger.getInstance(HashLinkDebugProcess.class);
+  private static final long REQUEST_TIMEOUT_MILLIS = 15_000;
+  private static final long DISCONNECT_TIMEOUT_MILLIS = 3_000;
+  private static final long EVENT_POLL_MILLIS = 250;
+
+  private final Module module;
+  private final Path hlExecutable;
+  private final Path hlProgram;
+  private final AdapterProcessHandler processHandler = new AdapterProcessHandler();
+  private final HashLinkBreakpointManager breakpoints = new HashLinkBreakpointManager(this);
+  private final ExecutorService requestExecutor =
+    Executors.newSingleThreadExecutor(r -> daemon(r, "HashLink DAP requests"));
+
+  private volatile Process adapterProcess;
+  private volatile DapClient client;
+  private volatile int currentThreadId = 1;
+  private volatile boolean shuttingDown = false;
+
+  public HashLinkDebugProcess(@NotNull XDebugSession session, Module module, Path hlExecutable, Path hlProgram) {
+    super(session);
+    this.module = module;
+    this.hlExecutable = hlExecutable;
+    this.hlProgram = hlProgram;
+  }
+
+  // --- lifecycle ---
+
+  @Override
+  public void sessionInitialized() {
+    requestExecutor.execute(this::initializeSession);
+  }
+
+  private void initializeSession() {
+    try {
+      HashLinkAdapterLauncher.LaunchedAdapter launched = HashLinkAdapterLauncher.launch(hlExecutable);
+      adapterProcess = launched.process();
+      client = DapClient.connect("127.0.0.1", launched.port(), (int)REQUEST_TIMEOUT_MILLIS);
+
+      InitializeRequest initialize = new InitializeRequest();
+      InitializeRequestArguments initializeArguments = new InitializeRequestArguments();
+      initializeArguments.setAdapterID("intellij-haxe");
+      initializeArguments.setClientID("intellij");
+      initialize.setArguments(initializeArguments);
+      client.sendRequest(initialize, REQUEST_TIMEOUT_MILLIS);
+      client.pollEvent(REQUEST_TIMEOUT_MILLIS); // the initialized event
+
+      LaunchRequest launch = new LaunchRequest();
+      LaunchRequestArguments launchArguments = new LaunchRequestArguments();
+      launchArguments.setProgram(hlProgram.toString());
+      launchArguments.setHlPath(hlExecutable.toString());
+      launchArguments.setCwd(hlProgram.getParent() != null ? hlProgram.getParent().toString() : null);
+      launch.setArguments(launchArguments);
+      Response launchResponse = client.sendRequest(launch, REQUEST_TIMEOUT_MILLIS);
+      if (!launchResponse.isSuccess()) {
+        fail("Cannot launch the HashLink program: " + launchResponse.getMessage());
+        return;
+      }
+
+      breakpoints.flushAll();
+      client.sendRequest(new ConfigurationDoneRequest(), REQUEST_TIMEOUT_MILLIS);
+
+      Thread pump = daemon(this::pumpEvents, "HashLink DAP events");
+      pump.start();
+    } catch (ExecutionException | IOException e) {
+      fail("Cannot start the HashLink debug session: " + e.getMessage());
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+  }
+
+  // --- event pump (sole pollEvent caller) ---
+
+  private void pumpEvents() {
+    try {
+      while (!shuttingDown) {
+        Event event = client.pollEvent(EVENT_POLL_MILLIS);
+        switch (event) {
+          case null -> { /* poll again */ }
+          case StoppedEvent stopped -> handleStopped(stopped);
+          case OutputEvent output -> handleOutput(output);
+          case ExitedEvent exited ->
+            print("Process finished with exit code " + exited.getBody().getExitCode() + "\n", false);
+          case TerminatedEvent ignored -> {
+            terminateSession();
+            return;
+          }
+          default -> { /* breakpoint re-verification etc.: nothing to do yet */ }
+        }
+      }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } catch (RuntimeException e) {
+      LOG.warn("HashLink event pump failed", e);
+      terminateSession();
+    }
+  }
+
+  private void handleStopped(StoppedEvent stopped) {
+    currentThreadId = stopped.getBody().getThreadId();
+    StackTraceRequest request = new StackTraceRequest();
+    StackTraceArguments arguments = new StackTraceArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    Response response = sendRequest(request);
+    if (response instanceof StackTraceResponse stackTrace && response.isSuccess()) {
+      XSuspendContext context =
+        new HashLinkSuspendContext(this, stackTrace.getBody().getStackFrames());
+      getSession().positionReached(context);
+    }
+  }
+
+  private void handleOutput(OutputEvent output) {
+    String text = output.getBody().getOutput();
+    if (text != null) {
+      print(text, "stderr".equals(output.getBody().getCategory()));
+    }
+  }
+
+  private void print(String text, boolean stderr) {
+    processHandler.notifyTextAvailable(text, stderr ? ProcessOutputTypes.STDERR : ProcessOutputTypes.STDOUT);
+  }
+
+  private void fail(String message) {
+    print(message + "\n", true);
+    terminateSession();
+  }
+
+  private void terminateSession() {
+    teardown();
+    getSession().stop();
+  }
+
+  // --- XDebugProcess callbacks (EDT: only submit, never block) ---
+
+  @Override
+  public void resume(@Nullable XSuspendContext context) {
+    ContinueRequest request = new ContinueRequest();
+    ContinueArguments arguments = new ContinueArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
+  }
+
+  @Override
+  public void startStepOver(@Nullable XSuspendContext context) {
+    NextRequest request = new NextRequest();
+    NextArguments arguments = new NextArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
+  }
+
+  @Override
+  public void startStepInto(@Nullable XSuspendContext context) {
+    StepInRequest request = new StepInRequest();
+    StepInArguments arguments = new StepInArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
+  }
+
+  @Override
+  public void startStepOut(@Nullable XSuspendContext context) {
+    StepOutRequest request = new StepOutRequest();
+    StepOutArguments arguments = new StepOutArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
+  }
+
+  @Override
+  public void stop() {
+    shuttingDown = true;
+    requestExecutor.execute(() -> {
+      DapClient dapClient = client;
+      if (dapClient != null) {
+        try {
+          dapClient.sendRequest(new DisconnectRequest(), DISCONNECT_TIMEOUT_MILLIS);
+        } catch (IOException | InterruptedException e) {
+          if (e instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+          }
+        }
+      }
+      teardown();
+    });
+    requestExecutor.shutdown();
+  }
+
+  private synchronized void teardown() {
+    shuttingDown = true;
+    DapClient dapClient = client;
+    client = null;
+    if (dapClient != null) {
+      try {
+        dapClient.close();
+      } catch (IOException ignored) {
+      }
+    }
+    Process process = adapterProcess;
+    adapterProcess = null;
+    if (process != null) {
+      process.destroy();
+    }
+    if (!processHandler.isProcessTerminated()) {
+      processHandler.destroyProcess();
+    }
+  }
+
+  // --- plumbing for breakpoints/frames/values ---
+
+  /** Runs work on the single-thread DAP request executor. */
+  void onRequestThread(Runnable work) {
+    if (!requestExecutor.isShutdown()) {
+      requestExecutor.execute(work);
+    }
+  }
+
+  /** Blocking request; only call on the request executor or the event pump. */
+  @Nullable Response sendRequest(Request request) {
+    DapClient dapClient = client;
+    if (dapClient == null) {
+      return null;
+    }
+    try {
+      return dapClient.sendRequest(request, REQUEST_TIMEOUT_MILLIS);
+    } catch (IOException e) {
+      if (!shuttingDown) {
+        LOG.warn("DAP request '" + request.getCommand() + "' failed", e);
+      }
+      return null;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return null;
+    }
+  }
+
+  List<Scope> requestScopes(int frameId) {
+    ScopesRequest request = new ScopesRequest();
+    ScopesArguments arguments = new ScopesArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return sendRequest(request) instanceof ScopesResponse response && response.isSuccess()
+           ? response.getBody().getScopes() : List.of();
+  }
+
+  List<Variable> requestVariables(int variablesReference) {
+    VariablesRequest request = new VariablesRequest();
+    VariablesArguments arguments = new VariablesArguments();
+    arguments.setVariablesReference(variablesReference);
+    request.setArguments(arguments);
+    return sendRequest(request) instanceof VariablesResponse response && response.isSuccess()
+           ? response.getBody().getVariables() : List.of();
+  }
+
+  // --- XDebugProcess wiring ---
+
+  @Override
+  protected @Nullable ProcessHandler doGetProcessHandler() {
+    return processHandler;
+  }
+
+  @Override
+  public @NotNull XDebuggerEditorsProvider getEditorsProvider() {
+    return new HaxeDebuggerEditorsProvider();
+  }
+
+  @Override
+  public XBreakpointHandler<?> @NotNull [] getBreakpointHandlers() {
+    return new XBreakpointHandler<?>[]{
+      new XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>>(HaxeBreakpointType.class) {
+        @Override
+        public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint) {
+          breakpoints.register(breakpoint);
+        }
+
+        @Override
+        public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
+          breakpoints.unregister(breakpoint);
+        }
+      }
+    };
+  }
+
+  private static Thread daemon(Runnable work, String name) {
+    Thread thread = new Thread(work, name);
+    thread.setDaemon(true);
+    return thread;
+  }
+
+  /**
+   * Console/Stop surface for the session. The debuggee is a grandchild owned by
+   * the adapter, so there is no real process to attach: output arrives as DAP
+   * events (forwarded via notifyTextAvailable) and destroy just marks the
+   * handler terminated — the XDebugger framework calls {@link #stop()} for the
+   * actual teardown.
+   */
+  private static final class AdapterProcessHandler extends ProcessHandler {
+    @Override
+    protected void destroyProcessImpl() {
+      notifyProcessTerminated(0);
+    }
+
+    @Override
+    protected void detachProcessImpl() {
+      notifyProcessDetached();
+    }
+
+    @Override
+    public boolean detachIsDefault() {
+      return false;
+    }
+
+    @Override
+    public @Nullable java.io.OutputStream getProcessInput() {
+      return null;
+    }
+  }
+}
