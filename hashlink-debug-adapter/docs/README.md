@@ -309,11 +309,14 @@ Every frame gets a third DAP scope, "Registers" (`presentationHint:
 "registers"`; the IDE renders any non-Locals scope as a collapsible group):
 
 - **HL bytecode registers** `r0..rN` — every typed `ebp+offset` slot of the
-  frame, including args and unnamed temporaries, decoded like locals and
-  annotated with the local name currently bound to them (via `LocalScopes`),
-  e.g. `r7 (x)`. Registers not yet written this call hold leftovers, so each
-  decode is guarded: a failure degrades to the raw slot bits, never fails the
-  listing.
+  frame, including args and unnamed temporaries, annotated with the local name
+  currently bound to them (via `LocalScopes`), e.g. `r7 (x)`. **Only bound
+  slots (and primitives) are fully decoded.** An unbound slot holds leftovers
+  from earlier calls; decoding one as a pointer type would chase arbitrary
+  garbage — a bogus String length alone can demand a fatal multi-GB read, and
+  that is exactly what broke the Variables view after a step before this rule
+  existed. Unbound pointer-typed slots render as their raw bits, and even the
+  bound decodes are individually guarded.
 - **CPU registers** on the top frame only (they are thread state, not frame
   state): SP / BP / IP / FLAGS with decoded flag bits. Deliberately only
   `hl_debug_read_register` indexes 0–3 — the architecture-neutral subset the
@@ -582,4 +585,6 @@ tests set it):
 | Fixture locals | Index arrays with runtime values or the analyzer folds them away even with `-debug` |
 | Disconnect teardown | kill → continue pending event → detach → close; never detach a suspended debuggee |
 | Version naming | Never say "HL version" bare — say **runtime** (HL_VERSION), **handshake protocol** (the HLDn digit), or **bytecode format** (1..5 in the .hl file); mismatch errors must name the kind, the value seen and the supported value |
-| variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory |
+| variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory. Numbers are NEVER reused across stops: a stale reference must resolve to nothing, not alias the new stop's allocations |
+| Session thread | The command loop catches everything and rejects the one command — a handler exception must never kill the thread, or every later request times out and the client's views go permanently blank |
+| Unbound register slots | Never pointer-chase them: leftovers can look like any type, and a garbage String/map decode can hang or fatally OOM the adapter. Raw bits only (see Registers scope) |

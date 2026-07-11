@@ -88,11 +88,15 @@ class VariableInspector {
 		return frameCache;
 	}
 
-	/** Installs the frames walked at a stop, dropping all previous references. */
+	/**
+	 * Installs the frames walked at a stop, dropping all previous references.
+	 * Reference NUMBERS are never reused across stops: a stale reference from
+	 * before a resume must resolve to nothing, not alias whatever the new stop
+	 * happened to allocate under the same number.
+	 */
 	public function setFrames(frames:Array<StackFrameLocation>):Void {
 		frameCache = frames;
 		references.clear();
-		nextReference = REF_BASE;
 	}
 
 	/** Clears the frame cache and every reference handed out for the last stop. */
@@ -226,16 +230,33 @@ class VariableInspector {
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var bound = boundNames.get(i);
 			var name = bound == null ? "r" + i : "r" + i + " (" + bound + ")";
-			// registers not yet written this call hold leftovers: any decode
-			// failure degrades to the raw slot bits instead of failing the list
-			var decoded = try valueReader.read(address, slot.t) catch (e:Dynamic) {
-				value: ValueReader.hex(memory.readPointer(address)) + " (unreadable)",
-				type: ValueReader.typeName(slot.t),
-				reference: 0,
-			};
+			// Only slots bound to an in-scope local hold live values. Unbound
+			// slots are leftovers from earlier calls: decoding one as a
+			// pointer type would chase arbitrary garbage (a bogus String
+			// length alone can demand a fatal multi-GB read), so they render
+			// as their raw bits. Primitives are a fixed-size read of the
+			// frame's own stack and always safe.
+			var decoded = (bound != null || !chasesPointers(slot.t))
+				? (try valueReader.read(address, slot.t) catch (e:Dynamic) rawSlot(address, slot.t))
+				: rawSlot(address, slot.t);
 			variables.push({name: name, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
+	}
+
+	function rawSlot(address:Pointer, t:format.hl.Data.HLType):DecodedValue {
+		return {
+			value: ValueReader.hex(memory.readPointer(address)),
+			type: ValueReader.typeName(t),
+			reference: 0,
+		};
+	}
+
+	static function chasesPointers(t:format.hl.Data.HLType):Bool {
+		return switch (t) {
+			case HVoid, HUi8, HUi16, HI32, HI64, HF32, HF64, HBool: false;
+			default: true;
+		}
 	}
 
 	function readLocals(frameId:Int):Array<VariableInfo> {

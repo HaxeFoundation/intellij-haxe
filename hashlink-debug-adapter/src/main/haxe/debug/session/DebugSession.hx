@@ -109,7 +109,37 @@ class DebugSession {
 		}
 	}
 
+	// A handler bug must never kill the session thread: one dead thread means
+	// every subsequent request times out and the client's views go permanently
+	// blank. Errors reject the one command and the loop lives on.
 	function handleCommand(command:SessionCommand):Void {
+		try {
+			dispatchCommand(command);
+		} catch (e:DebugError) {
+			dbg("cmd " + Type.enumConstructor(command) + " failed: " + e.message);
+			emit(EvRejected(seqOf(command), e.message));
+		} catch (e:Dynamic) {
+			dbg("cmd " + Type.enumConstructor(command) + " failed: " + Std.string(e));
+			emit(EvRejected(seqOf(command), "Internal debugger error: " + Std.string(e)));
+		}
+	}
+
+	static function seqOf(command:SessionCommand):Int {
+		return switch (command) {
+			case CmdLaunch(seq, _): seq;
+			case CmdSetBreakpoints(seq, _, _, _, _): seq;
+			case CmdConfigurationDone(seq): seq;
+			case CmdContinue(seq, _): seq;
+			case CmdStep(seq, _, _): seq;
+			case CmdStackTrace(seq, _): seq;
+			case CmdScopes(seq, _): seq;
+			case CmdVariables(seq, _): seq;
+			case CmdEvaluate(seq, _, _): seq;
+			case CmdDisconnect(seq): seq;
+		}
+	}
+
+	function dispatchCommand(command:SessionCommand):Void {
 		dbg("cmd " + Type.enumConstructor(command));
 		switch (command) {
 			case CmdLaunch(seq, config):
@@ -549,16 +579,20 @@ class DebugSession {
 	function cpuRegisterRows():Array<debug.values.VariableInfo> {
 		var rows:Array<debug.values.VariableInfo> = [];
 		if (state.match(Stopped(_))) {
-			var read = (name, register) -> {
-				var value = api.readRegister(process.pid, stoppedThreadId, register);
-				rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
-				value;
-			};
-			read("SP", Esp);
-			read("BP", Ebp);
-			read("IP", Eip);
-			var flags = Int64.toInt(read("FLAGS", EFlags));
-			rows[rows.length - 1].value += flagBits(flags);
+			try {
+				var read = (name, register) -> {
+					var value = api.readRegister(process.pid, stoppedThreadId, register);
+					rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
+					value;
+				};
+				read("SP", Esp);
+				read("BP", Ebp);
+				read("IP", Eip);
+				var flags = Int64.toInt(read("FLAGS", EFlags));
+				rows[rows.length - 1].value += flagBits(flags);
+			} catch (e:Dynamic) {
+				dbg("cpu register read failed: " + Std.string(e));
+			}
 		}
 		return rows;
 	}
