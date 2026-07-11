@@ -67,13 +67,16 @@ class VariableInspector {
 		var dynObjects = new DynObjReader(memory, align, runtimeTypes, hash -> module.reverseHash(hash));
 		var maps = new MapReader(memory, align,
 			jit.hlVersionMajor > 1 || (jit.hlVersionMajor == 1 && jit.hlVersionMinor >= 13));
+		var treeMaps = new TreeMapReader(memory, align, objectLayout, runtimeTypes);
 		valueReader.dynObjects = dynObjects;
 		valueReader.maps = maps;
+		valueReader.treeMaps = treeMaps;
 		valueChildren = new ValueChildren(memory, align, valueReader, objectLayout);
 		valueChildren.runtimeTypes = runtimeTypes;
 		valueChildren.enumLayout = enumLayout;
 		valueChildren.dynObjects = dynObjects;
 		valueChildren.maps = maps;
+		valueChildren.treeMaps = treeMaps;
 	}
 
 	/** The frames of the current stop (empty after invalidate). */

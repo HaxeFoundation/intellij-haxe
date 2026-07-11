@@ -30,6 +30,8 @@ class ValueReader {
 	public var dynObjects:Null<DynObjReader> = null;
 	// Native map reader for the haxe.ds map wrappers.
 	public var maps:Null<MapReader> = null;
+	// Pure-Haxe balanced-tree map reader (EnumValueMap / BalancedTree).
+	public var treeMaps:Null<TreeMapReader> = null;
 
 	public function new(mem:MemoryReader, align:Align) {
 		this.mem = mem;
@@ -93,11 +95,36 @@ class ValueReader {
 				readDynObj(ptr);
 			case HObj(proto) if (proto != null && maps != null && mapKeyKind(proto.name) != null):
 				readMapWrapper(ptr, t);
+			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
+				readTreeMap(ptr, proto);
+			case HAbstract("hl_int64_map") if (maps != null):
+				// the abstract value IS the native map pointer (no wrapper indirection)
+				readNativeMap(ptr, Int64Key);
 			case HObj(_), HStruct(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			default:
 				expandableOrRaw(ptr, t);
 		}
+	}
+
+	// haxe.ds.EnumValueMap / BalancedTree: entry count by walking the tree
+	function readTreeMap(ptr:Pointer, proto:format.hl.Data.ObjPrototype):DecodedValue {
+		var count = treeMaps.entryCount(ptr, proto);
+		if (count < 0) {
+			return {value: displayName(proto.name) + " @ " + hex(ptr), type: displayName(proto.name), reference: 0};
+		}
+		var reference = (count == 0 || referenceAllocator == null) ? 0 : referenceAllocator(ptr, HObj(proto));
+		return {value: "Map(" + count + ")", type: "Map", reference: reference};
+	}
+
+	// a native map at `native` (the wrapper deref, or an int64-map abstract)
+	function readNativeMap(native:Pointer, kind:MapKeyKind):DecodedValue {
+		var count = maps.entryCount(native);
+		if (count < 0) {
+			return {value: "Map @ " + hex(native), type: "Map", reference: 0};
+		}
+		var reference = (count == 0 || referenceAllocator == null) ? 0 : referenceAllocator(native, HAbstract("hl_int64_map"));
+		return {value: "Map(" + count + ")", type: "Map", reference: reference};
 	}
 
 	// vdynobj: field names inline in the preview, children on expand

@@ -250,6 +250,19 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void readsEnumValueMapEntries() throws Exception {
+    // haxe.ds.EnumValueMap is a pure-Haxe balanced tree, walked in order
+    Variable map = findVariable(richLocals(), "enumMap");
+    assertNotNull("local enumMap present", map);
+    assertEquals("enumMap preview", "Map(2)", map.getValue());
+    Map<String, String> entries = variablesByName(map.getVariablesReference());
+    assertEquals("enumMap[Plain]", "2", entries.get("Plain"));
+    assertEquals("enumMap[Tinted(2, \"x\")]", "4", entries.get("Tinted(2, \"x\")"));
+
+    request(new DisconnectRequest());
+  }
+
   // --- evaluate (variable paths) ---
 
   @Test

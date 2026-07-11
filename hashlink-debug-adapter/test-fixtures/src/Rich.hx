@@ -28,6 +28,9 @@ class Rich {
 		stringMap.set("b", n * 3);
 		var intMap = new Map<Int, String>(); // haxe.ds.IntMap
 		intMap.set(n, "v" + n);
-		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n)); // FIXTURE_RICH_LINE = 31
+		var enumMap = new haxe.ds.EnumValueMap<Shade, Int>(); // pure-Haxe balanced tree
+		enumMap.set(Shade.Plain, n);
+		enumMap.set(Shade.Tinted(n, "x"), n * 2);
+		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n) + enumMap.get(Shade.Plain)); // FIXTURE_RICH_LINE = 34
 	}
 }

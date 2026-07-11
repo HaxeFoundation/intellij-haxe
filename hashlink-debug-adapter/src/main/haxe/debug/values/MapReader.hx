@@ -81,6 +81,11 @@ class MapReader {
 				valuePos = 0;
 				keyStride = 4;
 				valueStride = align.ptr;
+			case Int64Key:
+				keyInValue = false;
+				valuePos = 0;
+				keyStride = 8;
+				valueStride = align.ptr;
 			case ObjectKey:
 				keyInValue = true;
 				valuePos = align.ptr;
@@ -102,6 +107,7 @@ class MapReader {
 				var key = switch (kind) {
 					case StringKey: "\"" + readUcs2(mem.readPointer(keyAddress)) + "\"";
 					case IntKey: Std.string(mem.readI32(keyAddress));
+					case Int64Key: haxe.Int64.toStr(mem.readI64(keyAddress));
 					case ObjectKey: dynPreview(keyAddress);
 				}
 				result.push({key: key, valueAddress: valueAddress});

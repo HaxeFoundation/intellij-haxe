@@ -366,7 +366,17 @@ the caller keeps the static type.
   values array (stride 2·ptr, value @ +ptr); Int keys live in entries
   (stride 4). String keys are raw UCS-2 bytes pointers, not String objects;
   values are read as HDyn. Preview `Map(n)`, entries listed as key → value,
-  capped at 512.
+  capped at 512. `Map<haxe.Int64,V>` selects **ObjectMap** (Int64 is a
+  class-based abstract), so `hl.types.Int64Map` (i64 keys, stride 8) is only
+  reached via that abstract directly — supported (`HAbstract("hl_int64_map")`,
+  the value pointer IS the native map) but not user-constructible, so covered
+  by a fabricated-memory unit test rather than the live fixture.
+- **`EnumValueMap` / `BalancedTree`** are NOT native maps — they are pure-Haxe
+  red/black trees, so there is no C layout: the wrapper's `root` and each
+  `TreeNode`'s `left`/`right`/`key`/`value` are ordinary typed object fields
+  read through `ObjectLayout`. `TreeMapReader` walks them **in order** (sorted
+  keys), previews `Map(n)`, lists key → value (keys/values are HDyn-typed
+  generic slots), depth-guarded and capped.
 
 **Fixture gotcha / user-visible symptom**: the Haxe analyzer constant-folds and
 fuses aggressively even with `-debug`. An array whose every read is statically

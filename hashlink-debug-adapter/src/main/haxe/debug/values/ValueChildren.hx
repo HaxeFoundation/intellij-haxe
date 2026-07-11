@@ -26,6 +26,7 @@ class ValueChildren {
 	public var enumLayout:Null<EnumLayout> = null;
 	public var dynObjects:Null<DynObjReader> = null;
 	public var maps:Null<MapReader> = null;
+	public var treeMaps:Null<TreeMapReader> = null;
 
 	public function new(mem:MemoryReader, align:Align, reader:ValueReader, objectLayout:ObjectLayout) {
 		this.mem = mem;
@@ -43,7 +44,12 @@ class ValueChildren {
 			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
 				arrayDynElements(pointer, t);
 			case HObj(proto) if (proto != null && maps != null && ValueReader.mapKeyKind(proto.name) != null):
-				mapEntries(pointer, ValueReader.mapKeyKind(proto.name));
+				mapEntries(mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr))), ValueReader.mapKeyKind(proto.name));
+			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
+				treeMapEntries(pointer, proto);
+			case HAbstract("hl_int64_map") if (maps != null):
+				// an int64-map abstract: the reference pointer is the native map itself
+				mapEntries(pointer, Int64Key);
 			case HDynObj if (dynObjects != null):
 				dynObjFields(pointer);
 			case HObj(_), HStruct(_):
@@ -116,11 +122,21 @@ class ValueChildren {
 		return variables;
 	}
 
-	// native map entries: name = key display, value read as a dynamic
-	function mapEntries(pointer:Pointer, kind:MapKeyKind):Array<VariableInfo> {
-		var native = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
+	// native map entries: name = key display, value read as a dynamic.
+	// `native` is the native map pointer (already dereferenced from any wrapper).
+	function mapEntries(native:Pointer, kind:MapKeyKind):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (entry in maps.entries(native, kind, keyAddress -> reader.read(keyAddress, HDyn).value)) {
+			var decoded = reader.read(entry.valueAddress, HDyn);
+			variables.push({name: entry.key, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	// EnumValueMap / BalancedTree entries, walked in-order (sorted keys)
+	function treeMapEntries(pointer:Pointer, proto:format.hl.Data.ObjPrototype):Array<VariableInfo> {
+		var variables:Array<VariableInfo> = [];
+		for (entry in treeMaps.entries(pointer, proto, keyAddress -> reader.read(keyAddress, HDyn).value)) {
 			var decoded = reader.read(entry.valueAddress, HDyn);
 			variables.push({name: entry.key, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}

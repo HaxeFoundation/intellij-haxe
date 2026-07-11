@@ -31,6 +31,7 @@ class TestMain {
 			{name: "ValuePathTest", run: tests.ValuePathTest.run},
 			{name: "ValueReaderTest", run: tests.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.ValueChildrenTest.run},
+			{name: "MapReaderTest", run: tests.MapReaderTest.run},
 		];
 
 		var assert = new Assert();
