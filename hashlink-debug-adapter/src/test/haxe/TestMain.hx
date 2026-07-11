@@ -17,6 +17,7 @@ class TestMain {
 			{name: "JitInfoReaderTest", run: tests.JitInfoReaderTest.run},
 			{name: "ModuleDebugInfoTest", run: tests.ModuleDebugInfoTest.run},
 			{name: "CodeGraphTest", run: tests.CodeGraphTest.run},
+			{name: "LocalScopesTest", run: tests.LocalScopesTest.run},
 			{name: "LocalsResolverTest", run: tests.LocalsResolverTest.run},
 			// target control
 			{name: "BreakpointsTest", run: tests.BreakpointsTest.run},

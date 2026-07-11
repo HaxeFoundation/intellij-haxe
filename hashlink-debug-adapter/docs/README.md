@@ -285,7 +285,23 @@ of the `jit.c` prologue:
 `ebp` per frame comes from the stack walk (top frame = live `Ebp`; callers =
 `savedEbp`). `LocalsResolver` decides *which* register a source name maps to at the
 current op, from the debug `assigns` table (args have `position < 0`; locals have
-`position >= 0` with the register = the op's `dst`, latest-wins per register).
+`position >= 0` with the register = the op's `dst`).
+
+**Name binding is scope dependent — resolve it through the CFG, not per
+register.** The `assigns` table has no scope-end records, and registers are
+recycled for temporaries once a source scope closes, so "latest assign per
+register" lists a shadowed outer variable AND its shadowing twin, and keeps a
+dead `for`-loop variable row that then displays whatever unrelated code writes
+into the recycled register. `LocalScopes` (port of hld
+`CodeGraph.getLocal`/`lookupLocal`) resolves a NAME at an opcode over basic
+blocks: last assignment of that name before the op in the current block wins;
+otherwise recurse into predecessors, skipping loop back-edges (`pred.start >=
+block.start`) — that skip is what makes the name fall back to the OUTER
+binding after a shadowing loop; if incoming branches resolve the name to
+different registers (assigned in only one `if` arm), the name is out of scope
+and dropped. Visibility is deduped by name, and at the assign op itself the
+binding is not yet live (`position < op`, strictly). A local in scope shadows a
+same-named argument.
 
 ### Value layout (how a slot is decoded)
 
@@ -538,6 +554,7 @@ tests set it):
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
 | Local address | `ebp + FrameLayout.offset(register)`, reconstructed — no shipping HashLink transmits locations; Windows all-stack args, SysV first-6-register |
+| Local names | Scope dependent — resolve through the CFG (`LocalScopes`), never "latest assign per register": no scope-end records exist and registers are recycled, so shadowed names duplicate and dead loop vars track garbage |
 | Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |
 | Object fields | Header pointer first (structs: NO header, base 0), superclass fields first, aligned with `padStruct`, size padded to the largest field (`ObjectLayout`) |
 | `@:packed` fields | Inlined, not a pointer: aligned on the sub-struct's largest field, occupying its padded size — the field address IS the struct |

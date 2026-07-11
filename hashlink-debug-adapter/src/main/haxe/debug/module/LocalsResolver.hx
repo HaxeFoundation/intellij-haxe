@@ -1,5 +1,7 @@
 package debug.module;
 
+import debug.module.LocalScopes.LocalAssign;
+
 /**
  * Lists the named locals and arguments visible at a given opcode, resolving each
  * to the bytecode register it occupies, from the function's `assigns` debug table.
@@ -9,11 +11,13 @@ package debug.module;
  *    to the argument registers starting at `argCount - namedArgs` (so an instance
  *    method's unnamed `this` occupies register 0 and the named args follow).
  *  - Locals have `position >= 0`; the register is the destination of the opcode at
- *    that position. A register can be reused for different locals across disjoint
- *    ranges, so the assign with the greatest position ≤ the current opcode wins.
+ *    that position. Which register a NAME means at the current opcode is scope
+ *    dependent (shadowing, loops, register reuse) and resolved through the
+ *    control-flow graph by `LocalScopes` — one entry per visible name.
  */
 class LocalsResolver {
 	final module:ModuleDebugInfo;
+	final scopeCache:Map<Int, LocalScopes> = new Map();
 
 	public function new(module:ModuleDebugInfo) {
 		this.module = module;
@@ -25,35 +29,38 @@ class LocalsResolver {
 		// arguments: the named ones map, in order, onto the trailing argument registers
 		var namedArgs = [for (a in assigns) if (a.position < 0) a];
 		var argStart = module.argCount(fidx) - namedArgs.length;
-		var result:Array<LocalVar> = [];
+		var arguments:Array<LocalVar> = [];
 		// an unnamed leading argument is the receiver: an instance method's `this`
 		// (or a closure's captured environment, which HL passes the same way)
 		if (argStart >= 1) {
-			result.push({name: "this", register: 0});
+			arguments.push({name: "this", register: 0});
 		}
 		for (i in 0...namedArgs.length) {
-			result.push({name: module.stringAt(namedArgs[i].varName), register: argStart + i});
+			arguments.push({name: module.stringAt(namedArgs[i].varName), register: argStart + i});
 		}
 
-		// locals: latest assignment (position <= currentOp) per register wins
-		var latestByRegister = new Map<Int, {name:String, position:Int}>();
-		for (a in assigns) {
-			if (a.position < 0 || a.position > currentOp) {
-				continue;
-			}
-			var register = module.dstRegister(fidx, a.position);
-			if (register < 0) {
-				continue;
-			}
-			var existing = latestByRegister.get(register);
-			if (existing == null || a.position > existing.position) {
-				latestByRegister.set(register, {name: module.stringAt(a.varName), position: a.position});
-			}
-		}
-		for (register => info in latestByRegister) {
-			result.push({name: info.name, register: register});
-		}
+		var locals = scopesOf(fidx).visibleLocals(currentOp);
 
+		// a local shadowing an argument name wins while it is in scope
+		var localNames = [for (l in locals) l.name => true];
+		var result = [for (a in arguments) if (!localNames.exists(a.name)) a];
+		for (l in locals) {
+			result.push(l);
+		}
 		return result;
+	}
+
+	function scopesOf(fidx:Int):LocalScopes {
+		var cached = scopeCache.get(fidx);
+		if (cached != null) {
+			return cached;
+		}
+		var locals:Array<LocalAssign> = [
+			for (a in module.assignsOf(fidx))
+				if (a.position >= 0) {name: module.stringAt(a.varName), position: a.position}
+		];
+		var scopes = new LocalScopes(new CodeGraph(module.opcodes(fidx)), locals, pos -> module.dstRegister(fidx, pos));
+		scopeCache.set(fidx, scopes);
+		return scopes;
 	}
 }

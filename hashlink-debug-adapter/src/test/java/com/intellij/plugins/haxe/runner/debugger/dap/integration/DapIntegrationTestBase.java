@@ -79,6 +79,9 @@ public abstract class DapIntegrationTestBase {
   protected static final int FIXTURE_RICH_LINE = 39; // Rich.demo(): arrays/dyn/enum/anon/closure/ref/dynobj/maps/structs
   protected static final String FIXTURE_POINT = "Point.hx";
   protected static final int FIXTURE_POINT_METHOD_LINE = 22; // Point.move(): `this` in scope, x still 10
+  protected static final String FIXTURE_SHADOW = "Shadowed.hx";
+  protected static final int FIXTURE_SHADOW_LOOP_LINE = 16; // inside the loop: x is the shadowing Int
+  protected static final int FIXTURE_SHADOW_AFTER_LINE = 18; // after the loop: x is the outer String again
 
   protected Process adapterProcess;
   protected DapClient client;

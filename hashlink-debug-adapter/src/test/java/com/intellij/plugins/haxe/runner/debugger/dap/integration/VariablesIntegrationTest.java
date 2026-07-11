@@ -338,6 +338,41 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  // --- scoping (shadowed names, dead bindings) ---
+
+  @Test
+  public void shadowingLoopVariableReplacesOuterInsideLoop() throws Exception {
+    // `for (x in 0...n)` shadowing an outer String x: inside the loop there
+    // must be exactly ONE x row, and it is the loop Int
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_LOOP_LINE);
+    List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
+    assertEquals("exactly one x inside the loop", 1, countByName(locals, "x"));
+    assertEquals("the loop Int shadows the outer String", "0", findVariable(locals, "x").getValue());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void shadowingLoopVariableGoesOutOfScopeAfterLoop() throws Exception {
+    // after the loop the name must fall back to the outer String binding —
+    // no ghost row tracking the recycled loop register
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_AFTER_LINE);
+    List<Variable> locals = topFrameVariables(stopped.getBody().getThreadId());
+    assertEquals("exactly one x after the loop", 1, countByName(locals, "x"));
+    assertEquals("the outer String is back", "\"outer3\"", findVariable(locals, "x").getValue());
+    assertEquals("total accumulated across the loop", "3", findVariable(locals, "total").getValue());
+
+    request(new DisconnectRequest());
+  }
+
+  private static int countByName(List<Variable> variables, String name) {
+    int count = 0;
+    for (Variable variable : variables) {
+      if (name.equals(variable.getName())) count++;
+    }
+    return count;
+  }
+
   // --- evaluate (variable paths) ---
 
   @Test
