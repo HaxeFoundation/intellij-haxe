@@ -438,4 +438,5 @@ tests set it):
 | Enum params | Align with `padStruct` (handshake structSizes), not `typeSize` — an i32 param packs at +12 |
 | Fixture locals | Index arrays with runtime values or the analyzer folds them away even with `-debug` |
 | Disconnect teardown | kill → continue pending event → detach → close; never detach a suspended debuggee |
+| Version naming | Never say "HL version" bare — say **runtime** (HL_VERSION), **handshake protocol** (the HLDn digit), or **bytecode format** (1..5 in the .hl file); mismatch errors must name the kind, the value seen and the supported value |
 | variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory |

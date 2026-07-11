@@ -16,6 +16,8 @@ class ModuleDebugInfoTest {
 	static inline var FIXTURE_ADD_LINE = 28;
 
 	public static function run(assert:Assert):Void {
+		rejectsUnsupportedBytecodeFormatVersion(assert);
+
 		var fixture = Sys.getEnv("DAP_FIXTURE_HL");
 		if (fixture == null || !sys.FileSystem.exists(fixture)) {
 			Sys.println("SKIP ModuleDebugInfoTest (DAP_FIXTURE_HL not set or missing)");
@@ -74,6 +76,27 @@ class ModuleDebugInfoTest {
 		assert.isTrue(foundCallToAdd, "loop line has a static call resolving to add");
 		assert.isTrue(lineOfCallCorrect, "the call opcode is on the loop line");
 		assert.equals(0, module.lineOf(mainFidx, 999999), "out-of-range opcode line is 0");
+	}
+
+	// A .hl file with an unsupported BYTECODE FORMAT version must fail with an
+	// error naming that version kind (the raw format-lib error reads like a
+	// HashLink runtime problem). No fixture needed: the file is fabricated.
+	static function rejectsUnsupportedBytecodeFormatVersion(assert:Assert):Void {
+		var out = new haxe.io.BytesOutput();
+		out.writeString("HLB");
+		out.writeByte(9); // bytecode format version 9: unsupported (format lib reads 2-5)
+		var path = "build/bad-bytecode-version-test.hl";
+		sys.io.File.saveBytes(path, out.getBytes());
+		try {
+			new ModuleDebugInfo(path);
+			assert.fail("unsupported bytecode format version should throw");
+		} catch (e:debug.DebugError) {
+			assert.isTrue(StringTools.contains(e.message, "bytecode format version"),
+				"names the version kind (was: " + e.message + ")");
+			assert.isTrue(StringTools.contains(e.message, "not the HashLink runtime version"),
+				"disambiguates from the runtime version");
+		}
+		sys.FileSystem.deleteFile(path);
 	}
 
 	static function normalizeSlashes(p:String):String {

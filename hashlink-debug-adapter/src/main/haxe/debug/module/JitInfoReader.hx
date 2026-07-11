@@ -45,7 +45,12 @@ class JitInfoReader {
 		}
 		var version = head.readByte() - "0".code;
 		if (version != SUPPORTED_VERSION) {
-			throw new DebugError('Unsupported debug protocol version $version (this adapter supports version $SUPPORTED_VERSION)');
+			// Be precise about WHICH version this is: the handshake protocol digit
+			// (the "N" in the runtime's HLDN greeting) — not the HashLink runtime
+			// version and not the .hl bytecode format version.
+			throw new DebugError('Unsupported debug handshake protocol version HLD$version from the HashLink runtime; '
+				+ 'this adapter supports HLD$SUPPORTED_VERSION (emitted by HashLink 1.x). '
+				+ 'A newer HashLink has likely changed the debug wire format - the adapter needs updating.');
 		}
 
 		var flags = chunk(input, 4).readInt32();

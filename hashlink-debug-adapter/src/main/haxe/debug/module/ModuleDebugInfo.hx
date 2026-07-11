@@ -32,7 +32,20 @@ class ModuleDebugInfo {
 
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
-		data = new format.hl.Reader().read(new haxe.io.BytesInput(bytes));
+		try {
+			data = new format.hl.Reader().read(new haxe.io.BytesInput(bytes));
+		} catch (e:Dynamic) {
+			// The format lib throws raw strings like "HL Version 6 is not supported",
+			// which reads as if the HashLink RUNTIME were the problem. Name the
+			// version kind (the bytecode FORMAT version stored in the .hl file) so
+			// the error tells the user which tool to look at (the Haxe compiler).
+			var reason = Std.string(e);
+			if (StringTools.contains(reason, "Version")) {
+				reason += ' - this is the bytecode format version stored in the .hl file, not the HashLink runtime version;'
+					+ ' supported formats are 2-5, produced by Haxe 4.x';
+			}
+			throw new DebugError('Cannot parse "$hlFilePath" as HashLink bytecode: ' + reason);
+		}
 		if (!data.flags.has(HasDebug)) {
 			throw new DebugError('The program "$hlFilePath" was compiled without debug info; recompile with -debug');
 		}
