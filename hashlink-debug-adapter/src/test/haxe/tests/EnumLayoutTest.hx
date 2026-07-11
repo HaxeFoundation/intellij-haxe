@@ -1,7 +1,8 @@
 package tests;
 
-import debug.Align;
-import debug.EnumLayout;
+import debug.layout.Align;
+import debug.layout.EnumLayout;
+
 import format.hl.Data.EnumPrototype;
 import format.hl.Data.HLType;
 

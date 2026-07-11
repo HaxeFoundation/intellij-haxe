@@ -1,5 +1,15 @@
 package adapter;
 
+import debug.session.BreakpointResult;
+import debug.session.DebugEvent;
+import debug.session.FrameInfo;
+import debug.session.LaunchConfig;
+import debug.session.RequestedBreakpoint;
+import debug.values.ScopeInfo;
+import debug.session.SessionCommand;
+import debug.session.StepMode;
+import debug.values.VariableInfo;
+
 import dap.protocol.Capabilities;
 import dap.protocol.ContinueArguments;
 import dap.protocol.ContinueResponseBody;
@@ -15,15 +25,6 @@ import dap.protocol.VariablesArguments;
 import dap.protocol.SourceBreakpoint;
 import dap.protocol.StackTraceArguments;
 import dap.protocol.ThreadsResponseBody;
-import debug.BreakpointResult;
-import debug.DebugEvent;
-import debug.FrameInfo;
-import debug.LaunchConfig;
-import debug.RequestedBreakpoint;
-import debug.ScopeInfo;
-import debug.SessionCommand;
-import debug.StepMode;
-import debug.VariableInfo;
 import haxe.Json;
 
 /**

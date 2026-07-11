@@ -39,8 +39,13 @@ communicates with the rest of the adapter only through queues.
 | `src/main/haxe/adapter/` | adapter entry point, thread wiring, request dispatcher |
 | `src/main/haxe/dap/protocol/` | DAP message typedefs, one per file |
 | `src/main/haxe/dap/transport/` | Content-Length framing, frame reader/writer |
-| `src/main/haxe/debug/` | debug session, OS debug API, handshake reader, `.hl` debug info, breakpoints, stack walker |
-| `test-fixtures/` | a tiny debuggee compiled with `-debug`, used by the integration tests |
+| `src/main/haxe/debug/` | shared primitives (`Pointer`, `DebugError`) |
+| `src/main/haxe/debug/target/` | the live debuggee: `debug_*` API, process spawn/pumps, memory reads, registers, stack walker |
+| `src/main/haxe/debug/module/` | static `.hl`/jit metadata: bytecode debug tables, handshake reader, control-flow graph, locals resolver |
+| `src/main/haxe/debug/layout/` | pure memory-layout arithmetic: frame/object/enum offsets, globals table, alignment rules |
+| `src/main/haxe/debug/values/` | runtime value decoding: readers, children, runtime types, the per-stop variable inspector |
+| `src/main/haxe/debug/session/` | orchestration: the session thread/state machine, commands/events, breakpoints, stepping |
+| `test-fixtures/` | a tiny debuggee compiled with `-debug` (one class per file), used by the integration tests |
 | `src/test/haxe/` | Haxe-side tests, run with the Haxe interpreter (`haxe test.hxml`) |
 | `src/main/java/.../dap/protocol/` | DAP message classes (Lombok), one per file |
 | `src/main/java/.../dap/transport/` | framing + socket connection |

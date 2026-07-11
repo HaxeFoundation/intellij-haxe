@@ -1,8 +1,8 @@
 package tests;
 
-import debug.JitInfo;
-import debug.Pointer;
-import debug.StackWalker;
+import debug.module.JitInfo;
+import debug.target.StackWalker;
+
 import haxe.Int64;
 
 class StackWalkerTest {

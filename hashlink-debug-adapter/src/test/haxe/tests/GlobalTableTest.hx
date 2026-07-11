@@ -1,7 +1,8 @@
 package tests;
 
-import debug.Align;
-import debug.GlobalTable;
+import debug.layout.Align;
+import debug.layout.GlobalTable;
+
 import format.hl.Data.HLType;
 
 class GlobalTableTest {

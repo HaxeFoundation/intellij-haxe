@@ -112,7 +112,7 @@ tasks.named<Test>("test") {
     // (optionally) the HashLink executable through these
     systemProperty("dap.adapter.hl", adapterHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.hl", fixtureHl.get().asFile.absolutePath)
-    systemProperty("dap.fixture.src", File(projectDir, "test-fixtures/src/Main.hx").absolutePath)
+    systemProperty("dap.fixture.src.dir", File(projectDir, "test-fixtures/src").absolutePath)
     providers.gradleProperty("hashlinkBin").orNull?.let {
         systemProperty("hashlink.executable", it)
     }

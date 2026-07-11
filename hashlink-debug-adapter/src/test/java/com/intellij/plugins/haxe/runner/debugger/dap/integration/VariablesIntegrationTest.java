@@ -24,7 +24,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void readsIntLocalsAtBreakpoint() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_LOOP_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     // first iteration: i=0, count=3, total not yet updated on this line
     Map<String, String> locals = localsInTopFrame(stopped.getBody().getThreadId());
@@ -37,7 +37,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void readsStackPassedArgumentsAfterStepIn() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_LOOP_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     // step into add(total, i): its args are stack-passed on Windows x64
     assertTrue("stepIn accepted", request(stepInRequest(stopped.getBody().getThreadId())).isSuccess());
@@ -50,7 +50,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void tracksLocalValuesAcrossLoopIterations() throws Exception {
-    runToBreakpoint(FIXTURE_LOOP_LINE);
+    runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     Map<String, String> secondStop = localsInTopFrame(continueToNextStop().getBody().getThreadId());
     assertEquals("i is 1 on second iteration", "1", secondStop.get("i"));
@@ -66,7 +66,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void expandsObjectFields() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_INSPECT_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
 
     Variable p = findVariable(topFrameVariables(stopped.getBody().getThreadId()), "p");
     assertNotNull("local p present", p);
@@ -85,7 +85,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void readsStaticFields() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_STATICS_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CONFIG, FIXTURE_STATICS_LINE);
 
     // the frame is Config.bump — its Statics scope holds version=7, title="cfg"
     int staticsRef = staticsScopeReference(topFrameId(stopped.getBody().getThreadId()));
@@ -174,7 +174,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   /** Stops at FIXTURE_RICH_LINE and returns Rich.demo's locals. */
   private List<Variable> richLocals() throws Exception {
-    StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH_LINE);
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     return topFrameVariables(stopped.getBody().getThreadId());
   }
 }

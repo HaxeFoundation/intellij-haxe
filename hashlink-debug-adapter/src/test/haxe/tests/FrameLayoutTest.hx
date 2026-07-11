@@ -1,7 +1,8 @@
 package tests;
 
-import debug.Align;
-import debug.FrameLayout;
+import debug.layout.Align;
+import debug.layout.FrameLayout;
+
 import format.hl.Data.HLType;
 
 class FrameLayoutTest {

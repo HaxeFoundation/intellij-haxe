@@ -34,7 +34,7 @@ public class DebugLifecycleIntegrationTest extends DapIntegrationTestBase {
     Response launch = launch();
     assertTrue("launch succeeds: " + launch.getMessage(), launch.isSuccess());
 
-    Response setBreakpoints = setBreakpoint(FIXTURE_LOOP_LINE);
+    Response setBreakpoints = setBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertTrue("setBreakpoints succeeds", setBreakpoints.isSuccess());
     assertAllVerified(setBreakpoints);
 

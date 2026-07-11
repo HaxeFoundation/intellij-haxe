@@ -1,7 +1,8 @@
 package tests;
 
-import debug.Breakpoints;
 import debug.Pointer;
+import debug.session.Breakpoints;
+
 import haxe.Int64;
 
 class BreakpointsTest {

@@ -1,12 +1,13 @@
 package tests;
 
-import debug.Align;
-import debug.MemoryReader;
-import debug.ObjectLayout;
 import debug.Pointer;
-import debug.RuntimeTypes;
-import debug.ValueChildren;
-import debug.ValueReader;
+import debug.layout.Align;
+import debug.layout.ObjectLayout;
+import debug.target.MemoryReader;
+import debug.values.RuntimeTypes;
+import debug.values.ValueChildren;
+import debug.values.ValueReader;
+
 import format.hl.Data.HLType;
 import haxe.Int64;
 

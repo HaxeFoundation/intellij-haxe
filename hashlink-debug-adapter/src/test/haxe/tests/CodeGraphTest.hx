@@ -1,6 +1,7 @@
 package tests;
 
-import debug.CodeGraph;
+import debug.module.CodeGraph;
+
 import format.hl.Data.Opcode;
 
 class CodeGraphTest {

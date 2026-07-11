@@ -1,9 +1,10 @@
 package tests;
 
-import debug.DebugApi;
 import debug.Pointer;
-import debug.Register;
-import debug.WaitOutcome;
+import debug.target.DebugApi;
+import debug.target.Register;
+import debug.target.WaitOutcome;
+
 import haxe.Int64;
 import haxe.io.Bytes;
 

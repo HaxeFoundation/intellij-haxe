@@ -1,7 +1,9 @@
 package adapter;
 
-import debug.DebugSession;
-import debug.SessionCommand;
+import debug.session.DebugSession;
+import debug.session.SessionCommand;
+import debug.target.HlNativeDebugApi;
+
 import dap.protocol.ProtocolMessage;
 import dap.transport.MessageReader;
 import dap.transport.MessageWriter;
@@ -79,7 +81,7 @@ class DebugAdapter {
 	function createSession():DebugSession {
 		var emit = event -> inbound.add(FromSession(event));
 		#if hl
-		return new DebugSession(new debug.HlNativeDebugApi(), emit);
+		return new DebugSession(new debug.target.HlNativeDebugApi(), emit);
 		#else
 		throw "Debugging is only supported on the HashLink target";
 		#end

@@ -60,24 +60,28 @@ import org.junit.Before;
  * the adapter, fixture or HashLink executable is unavailable — see
  * {@link HlExecutableResolver}.
  *
- * The FIXTURE_* line constants are load-bearing: they mirror
- * test-fixtures/src/Main.hx and must be updated together with it.
+ * The FIXTURE_* constants are load-bearing: they mirror the marked lines in
+ * test-fixtures/src/ (Main.hx, Config.hx, Rich.hx) and must be updated
+ * together with those files.
  */
 public abstract class DapIntegrationTestBase {
   protected static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
   // generous: the first run after a rebuild can be slow (JIT warmup / AV scans)
   protected static final long TIMEOUT = 15_000;
 
+  protected static final String FIXTURE_MAIN = "Main.hx";
   protected static final int FIXTURE_LOOP_LINE = 18; // total = add(total, i)
   protected static final int FIXTURE_ADD_LINE = 28; // return current + amount
   protected static final int FIXTURE_INSPECT_LINE = 35; // var v = Config.version (p in scope)
-  protected static final int FIXTURE_STATICS_LINE = 60; // Config.bump(): version=7, title="cfg"
-  protected static final int FIXTURE_RICH_LINE = 83; // Rich.demo(): arrays/dyn/enum/anon/closure
+  protected static final String FIXTURE_CONFIG = "Config.hx";
+  protected static final int FIXTURE_STATICS_LINE = 14; // Config.bump(): version=7, title="cfg"
+  protected static final String FIXTURE_RICH = "Rich.hx";
+  protected static final int FIXTURE_RICH_LINE = 19; // Rich.demo(): arrays/dyn/enum/anon/closure
 
   protected Process adapterProcess;
   protected DapClient client;
   protected Path fixtureHl;
-  protected String fixtureSrc;
+  protected Path fixtureSrcDir;
   protected String hlExecutable;
 
   private int lastThreadId = 1;
@@ -97,7 +101,7 @@ public abstract class DapIntegrationTestBase {
       Assume.assumeTrue("debuggee fixture not built - skipping",
                         !fixtureProperty.isEmpty() && Files.isRegularFile(Path.of(fixtureProperty)));
       fixtureHl = Path.of(fixtureProperty);
-      fixtureSrc = System.getProperty("dap.fixture.src", "");
+      fixtureSrcDir = Path.of(System.getProperty("dap.fixture.src.dir", ""));
     }
     Optional<Path> hl = HlExecutableResolver.resolve();
     Assume.assumeTrue("HashLink executable not found (set -PhashlinkBin / -Dhashlink.executable, "
@@ -187,8 +191,9 @@ public abstract class DapIntegrationTestBase {
     return request(request);
   }
 
-  protected Response setBreakpoint(int line) throws Exception {
-    return setBreakpoints(fixtureSrc, line);
+  /** Sets a breakpoint in one of the fixture source files (FIXTURE_MAIN etc.). */
+  protected Response setBreakpoint(String fixtureFile, int line) throws Exception {
+    return setBreakpoints(fixtureSrcDir.resolve(fixtureFile).toString(), line);
   }
 
   protected Response setBreakpoints(String sourcePath, int... lines) throws Exception {
@@ -214,10 +219,10 @@ public abstract class DapIntegrationTestBase {
   }
 
   /** initialize + launch the fixture + one breakpoint + configurationDone + first stop. */
-  protected StoppedEvent runToBreakpoint(int line) throws Exception {
+  protected StoppedEvent runToBreakpoint(String fixtureFile, int line) throws Exception {
     initialize();
     assertTrue("launch succeeds", launch().isSuccess());
-    assertTrue("setBreakpoints succeeds", setBreakpoint(line).isSuccess());
+    assertTrue("setBreakpoints succeeds", setBreakpoint(fixtureFile, line).isSuccess());
     assertTrue("configurationDone succeeds", request(new ConfigurationDoneRequest()).isSuccess());
     return awaitStopped();
   }

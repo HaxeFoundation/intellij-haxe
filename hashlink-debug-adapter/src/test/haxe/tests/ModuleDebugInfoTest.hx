@@ -1,6 +1,8 @@
 package tests;
 
-import debug.ModuleDebugInfo;
+import debug.module.CodeGraph;
+import debug.module.ModuleDebugInfo;
+
 
 /**
  * Exercises ModuleDebugInfo against the compiled test fixture. The fixture path
@@ -53,7 +55,7 @@ class ModuleDebugInfoTest {
 		var ops = module.opcodes(mainFidx);
 		assert.isTrue(ops.length > 0, "main function has opcodes");
 
-		var graph = new debug.CodeGraph(ops);
+		var graph = new debug.module.CodeGraph(ops);
 		var foundCallToAdd = false;
 		var lineOfCallCorrect = false;
 		for (op in 0...ops.length) {

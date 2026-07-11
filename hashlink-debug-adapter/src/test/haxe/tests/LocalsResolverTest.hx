@@ -1,7 +1,9 @@
 package tests;
 
-import debug.LocalsResolver;
-import debug.ModuleDebugInfo;
+import debug.module.LocalVar;
+import debug.module.LocalsResolver;
+import debug.module.ModuleDebugInfo;
+
 
 /**
  * Exercises LocalsResolver against the compiled fixture (env DAP_FIXTURE_HL).
@@ -33,7 +35,7 @@ class LocalsResolverTest {
 		assert.equals(1, registerOf(addLocals, "amount"), "amount is arg register 1");
 	}
 
-	static function registerOf(locals:Array<debug.LocalVar>, name:String):Int {
+	static function registerOf(locals:Array<debug.module.LocalVar>, name:String):Int {
 		for (l in locals) {
 			if (l.name == name) {
 				return l.register;

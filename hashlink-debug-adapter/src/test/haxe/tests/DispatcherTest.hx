@@ -1,10 +1,10 @@
 package tests;
 
+import debug.session.BreakpointResult;
+import debug.session.FrameInfo;
+import debug.session.SessionCommand;
+
 import adapter.RequestDispatcher;
-import debug.BreakpointResult;
-import debug.DebugEvent;
-import debug.FrameInfo;
-import debug.SessionCommand;
 import dap.protocol.Event;
 import dap.protocol.ProtocolMessage;
 import dap.protocol.Response;

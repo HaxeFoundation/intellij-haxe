@@ -1,8 +1,9 @@
 package tests;
 
-import debug.MemoryReader;
 import debug.Pointer;
-import debug.RuntimeTypes;
+import debug.target.MemoryReader;
+import debug.values.RuntimeTypes;
+
 import format.hl.Data.HLType;
 import haxe.Int64;
 

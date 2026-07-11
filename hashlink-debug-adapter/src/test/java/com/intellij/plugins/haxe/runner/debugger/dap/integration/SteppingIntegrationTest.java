@@ -16,7 +16,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void stepIntoEntersCallee() throws Exception {
-    StoppedEvent atLoop = runToBreakpoint(FIXTURE_LOOP_LINE);
+    StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertEquals("breakpoint", atLoop.getBody().getReason());
     assertTrue("stopped in main", topFrameName(atLoop.getBody().getThreadId()).endsWith("main"));
 
@@ -32,7 +32,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void stepOutReturnsToCaller() throws Exception {
-    StoppedEvent atLoop = runToBreakpoint(FIXTURE_LOOP_LINE);
+    StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
     assertTrue("stepIn accepted", request(stepInRequest(atLoop.getBody().getThreadId())).isSuccess());
     StoppedEvent inAdd = awaitStopped();
 
@@ -48,7 +48,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void stepOverStaysInCaller() throws Exception {
-    StoppedEvent atLoop = runToBreakpoint(FIXTURE_LOOP_LINE);
+    StoppedEvent atLoop = runToBreakpoint(FIXTURE_MAIN, FIXTURE_LOOP_LINE);
 
     assertTrue("next accepted", request(nextRequest(atLoop.getBody().getThreadId())).isSuccess());
     StoppedEvent afterNext = awaitStopped();

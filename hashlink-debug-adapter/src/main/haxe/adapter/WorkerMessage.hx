@@ -1,6 +1,7 @@
 package adapter;
 
-import debug.DebugEvent;
+import debug.session.DebugEvent;
+
 
 /**
  * Something for the worker (dispatcher) thread to process. Client frames and
