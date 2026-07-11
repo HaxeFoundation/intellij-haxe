@@ -294,9 +294,16 @@ current op, from the debug `assigns` table (args have `position < 0`; locals hav
   f32=4, f64=8, bool=1`;
 - a **String** derefs then reads `bytes` ptr @ +8 and `length` @ +16, `length*2`
   bytes of UTF-16;
-- an **object** (`HObj`/`HStruct`) has a `hl_type*` header at +0, then fields laid out
-  by `ObjectLayout`: start at one pointer (the header), **superclass fields first**
-  (recurse `tsuper`), each field aligned to its own `typeSize`;
+- an **object** (`HObj`) has a `hl_type*` header at +0, then fields laid out by
+  `ObjectLayout` (port of hld `getObjectProto`): start at one pointer (the
+  header), **superclass fields first** (recurse `tsuper`, reclaiming the
+  parent's trailing padding), each field aligned with `padStruct`, total size
+  padded to a multiple of the largest field. A **struct** (`HStruct`,
+  `@:struct` class) is the same layout **without the header** — fields start at
+  0, and there is no runtime type to refine from;
+- a **`@:packed` field** (`HPacked`) is not a pointer slot: the sub-struct is
+  **inlined** into the instance — aligned on the sub-struct's largest field and
+  occupying its full padded size — so the field's address IS the struct;
 - a null pointer slot reads as `null`; anything still unknown (maps' native tables,
   `HDynObj`, `HAbstract`, bytes) falls back to `<TypeName> @ 0xADDR`, non-expandable.
 
@@ -334,7 +341,10 @@ the caller keeps the static type.
   wrapped dynobj — shown as `?` rather than chased.
 - **Closures** (vclosure): function pointer @ +8, resolved to a name via the jit
   table (`JitInfo.resolveAddress` → `functionName`); lambdas without a proto
-  binding render as `function fn@N`.
+  binding render as `function fn@N`. `hasValue` i32 @ +16; when it is 1 the
+  closure is **bound** and the captured value — the bound object for a method
+  closure, or the capture environment for a lambda — sits @ +24, read as a
+  dynamic and shown as a single `captured` child.
 - **Refs** (`HRef`, e.g. `hl.Ref.make(x)`): the dereferenced pointer IS the
   address of the value — read the inner type there. Note that a local mutated
   by a closure is NOT a ref: genhl boxes it into a **1-element array**
@@ -529,7 +539,8 @@ tests set it):
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
 | Local address | `ebp + FrameLayout.offset(register)`, reconstructed — no shipping HashLink transmits locations; Windows all-stack args, SysV first-6-register |
 | Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |
-| Object fields | Header pointer first, superclass fields first, each aligned to its `typeSize` (`ObjectLayout`) |
+| Object fields | Header pointer first (structs: NO header, base 0), superclass fields first, aligned with `padStruct`, size padded to the largest field (`ObjectLayout`) |
+| `@:packed` fields | Inlined, not a pointer: aligned on the sub-struct's largest field, occupying its padded size — the field address IS the struct |
 | Statics | Singleton is a global *of the `$Class` container type*; find its index by scanning `data.globals`, not `proto.globalValue` |
 | Runtime types | hl_type kind @ +0 == format HLType constructor index; resolve HOBJ by UCS-2 name, fall back to the static type |
 | Enum params | Align with `padStruct` (handshake structSizes), not `typeSize` — an i32 param packs at +12 |

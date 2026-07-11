@@ -48,6 +48,10 @@ class ValueReader {
 			case HF32: leaf(Std.string(mem.readF32(address)), "Float");
 			case HF64: leaf(Std.string(mem.readF64(address)), "Float");
 			case HBool: leaf(mem.readU8(address) != 0 ? "true" : "false", "Bool");
+			case HPacked(inner):
+				// a @:packed field: the field address IS the inline struct
+				// (there is no pointer slot to dereference)
+				expandableOrRaw(address, inner.v);
 			default: readPointerValue(address, t);
 		}
 	}
@@ -86,7 +90,7 @@ class ValueReader {
 			case HDyn:
 				readDynamic(ptr);
 			case HFun(_), HMethod(_):
-				readClosure(ptr);
+				readClosure(ptr, t);
 			case HEnum(proto) if (proto != null && enumLayout != null):
 				readEnum(ptr, t, proto);
 			case HVirtual(fields):
@@ -100,8 +104,11 @@ class ValueReader {
 			case HAbstract(name) if (maps != null && nativeMapKind(name) != null):
 				// the abstract value IS the native map pointer (no wrapper indirection)
 				readNativeMap(ptr, nativeMapKind(name), name);
-			case HObj(_), HStruct(_):
+			case HObj(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
+			case HStruct(_):
+				// structs carry no hl_type* header, so there is nothing to refine
+				expandableOrRaw(ptr, t);
 			default:
 				expandableOrRaw(ptr, t);
 		}
@@ -220,11 +227,18 @@ class ValueReader {
 		}
 	}
 
-	// vclosure: function pointer @ +ptr (hasValue/captured value are not shown)
-	function readClosure(ptr:Pointer):DecodedValue {
+	// vclosure: function pointer @ +ptr, hasValue i32 @ +ptr*2; when bound
+	// (hasValue == 1) the captured value (the bound object or the capture
+	// environment) sits @ +ptr*3 and the closure expands into it
+	function readClosure(ptr:Pointer, t:HLType):DecodedValue {
 		var fun = mem.readPointer(offset(ptr, align.ptr));
 		var name = functionNameResolver == null ? null : functionNameResolver(fun);
-		return leaf(name != null ? "function " + name : "function @ " + hex(fun), "Function");
+		var display = name != null ? "function " + name : "function @ " + hex(fun);
+		var hasValue = mem.readI32(offset(ptr, align.ptr * 2));
+		if (hasValue == 1 && referenceAllocator != null) {
+			return {value: display, type: "Function", reference: referenceAllocator(ptr, t)};
+		}
+		return leaf(display, "Function");
 	}
 
 	// Prefer the object's runtime class (hl_type* header @ +0) over the static
@@ -341,6 +355,7 @@ class ValueReader {
 			case HRef(inner): typeName(inner);
 			case HFun(_), HMethod(_): "Function";
 			case HAbstract(name): name;
+			case HPacked(inner): typeName(inner.v);
 			default: "Value";
 		}
 	}

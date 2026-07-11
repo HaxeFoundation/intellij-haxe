@@ -288,6 +288,56 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void readsPackedStructField() throws Exception {
+    // @:packed field: the Vec2 struct is inlined into the PackedHolder
+    // instance — wrong packed offsets would corrupt id/tail too
+    Variable holder = findVariable(richLocals(), "holder");
+    assertNotNull("local holder present", holder);
+    Map<String, String> fields = variablesByName(holder.getVariablesReference());
+    assertEquals("holder.id", "2", fields.get("id"));
+    assertEquals("holder.tail", "4", fields.get("tail"));
+
+    Variable pos = findVariable(variables(holder.getVariablesReference()), "pos");
+    assertNotNull("packed field present", pos);
+    assertEquals("packed field typed as the struct", "Vec2", pos.getType());
+    assertTrue("packed field is expandable", pos.getVariablesReference() > 0);
+    Map<String, String> vec = variablesByName(pos.getVariablesReference());
+    assertEquals("holder.pos.x", "1.5", vec.get("x"));
+    assertEquals("holder.pos.y", "2.5", vec.get("y"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsStructLocal() throws Exception {
+    // a @:struct class local (HStruct): fields at base 0, no hl_type* header
+    Variable vec = findVariable(richLocals(), "vec");
+    assertNotNull("local vec present", vec);
+    assertTrue("struct is expandable", vec.getVariablesReference() > 0);
+    Map<String, String> fields = variablesByName(vec.getVariablesReference());
+    assertEquals("vec.x", "3.25", fields.get("x"));
+    assertEquals("vec.y", "7", fields.get("y"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void expandsClosureCapturedValue() throws Exception {
+    // a bound closure (hasValue == 1): the capture environment is a child;
+    // here f captures one mutated local, boxed by genhl into a 1-element array
+    Variable f = findVariable(richLocals(), "f");
+    assertNotNull("local f present", f);
+    assertTrue("bound closure is expandable", f.getVariablesReference() > 0);
+    Variable captured = findVariable(variables(f.getVariablesReference()), "captured");
+    assertNotNull("captured child present", captured);
+    assertEquals("capture box preview", "Array(1)", captured.getValue());
+    Map<String, String> box = variablesByName(captured.getVariablesReference());
+    assertEquals("captured value inside the box", "20", box.get("0"));
+
+    request(new DisconnectRequest());
+  }
+
   // --- evaluate (variable paths) ---
 
   @Test
@@ -298,6 +348,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("plain local", "2", evaluate(frameId, "n").getBody().getResult());
     assertEquals("array index", "5", evaluate(frameId, "ints[1]").getBody().getResult());
     assertEquals("dynobj field path", "\"d2\"", evaluate(frameId, "dynObj.label").getBody().getResult());
+    assertEquals("packed struct path", "1.5", evaluate(frameId, "holder.pos.x").getBody().getResult());
 
     request(new DisconnectRequest());
   }

@@ -60,6 +60,8 @@ class ValueChildren {
 				enumParams(pointer, proto);
 			case HVirtual(fields):
 				virtualFields(pointer, fields);
+			case HFun(_), HMethod(_):
+				closureCapture(pointer);
 			default:
 				[];
 		}
@@ -143,6 +145,17 @@ class ValueChildren {
 		return variables;
 	}
 
+	// vclosure with a bound value (hasValue @ +ptr*2 == 1): one "captured"
+	// child — the bound object or the capture environment — read as a dynamic
+	function closureCapture(pointer:Pointer):Array<VariableInfo> {
+		var hasValue = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
+		if (hasValue != 1) {
+			return [];
+		}
+		var decoded = reader.read(Int64.add(pointer, Int64.ofInt(align.ptr * 3)), HDyn);
+		return [{name: "captured", value: decoded.value, type: decoded.type, reference: decoded.reference}];
+	}
+
 	function objectFields(pointer:Pointer, t:HLType):Array<VariableInfo> {
 		var proto = switch (t) {
 			case HObj(p), HStruct(p): p;
@@ -152,7 +165,7 @@ class ValueChildren {
 			return [];
 		}
 		var variables:Array<VariableInfo> = [];
-		for (field in objectLayout.fields(proto)) {
+		for (field in objectLayout.fields(proto, t.match(HStruct(_)))) {
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
 			var decoded = reader.read(address, field.type);
 			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});

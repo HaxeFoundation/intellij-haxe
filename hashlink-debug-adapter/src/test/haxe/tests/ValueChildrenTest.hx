@@ -16,6 +16,10 @@ class ValueChildrenTest {
 		listsArrayBytesIntElements(assert);
 		listsArrayObjStringElements(assert);
 		capsHugeArrays(assert);
+		listsStructFieldsAtZeroBase(assert);
+		listsPackedFieldAsExpandableStruct(assert);
+		listsClosureCapturedValue(assert);
+		boundlessClosureHasNoChildren(assert);
 	}
 
 	static function addr(v:Int):Pointer {
@@ -112,5 +116,66 @@ class ValueChildrenTest {
 		var vars = children(api).of(addr(0x1000), arrayBytesIntType());
 		assert.equals(513, vars.length, "512 elements + overflow marker");
 		assert.equals("…", vars[512].name, "overflow marker present");
+	}
+
+	static function pokeF64(api:FakeDebugApi, at:Int, low:Int, high:Int):Void {
+		pokeI32(api, at, low);
+		pokeI32(api, at + 4, high);
+	}
+
+	static function vec2Proto():format.hl.Data.ObjPrototype {
+		return {name: "Vec2", tsuper: null, fields: [{name: "x", t: HF64}, {name: "y", t: HF64}], proto: [], globalValue: null, bindings: []};
+	}
+
+	static function vec2Struct():HLType {
+		return HStruct(vec2Proto());
+	}
+
+	static function listsStructFieldsAtZeroBase(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// struct @0x2000 without a type header: x = 1.5 @+0, y = 2.5 @+8
+		pokeF64(api, 0x2000, 0, 0x3FF80000);
+		pokeF64(api, 0x2008, 0, 0x40040000);
+		var vars = children(api).of(addr(0x2000), vec2Struct());
+		assert.equals(2, vars.length, "two struct fields");
+		assert.equals("1.5", vars[0].value, "x read at offset 0");
+		assert.equals("2.5", vars[1].value, "y read at offset 8");
+	}
+
+	static function listsPackedFieldAsExpandableStruct(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// Holder @0x3000: header, id @8 = 7, packed Vec2 inline @16 (x=1.5, y=2.5)
+		pokeI32(api, 0x3008, 7);
+		pokeF64(api, 0x3010, 0, 0x3FF80000);
+		pokeF64(api, 0x3018, 0, 0x40040000);
+		var holder = HObj({name: "Holder", tsuper: null, fields: [
+			{name: "id", t: HI32},
+			{name: "pos", t: HPacked({v: HStruct(vec2Proto())})},
+		], proto: [], globalValue: null, bindings: []});
+		var vars = children(api).of(addr(0x3000), holder);
+		assert.equals(2, vars.length, "id + pos");
+		assert.equals("7", vars[0].value, "plain field before the packed one");
+		assert.equals("Vec2", vars[1].type, "packed field typed as the inner struct");
+		assert.isTrue(vars[1].reference != 0, "packed field is expandable");
+	}
+
+	static function listsClosureCapturedValue(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// vclosure @0x1000: fun @+8, hasValue @+16 = 1, value @+24 -> 0x5000
+		pokePtr(api, 0x1008, 0x9990);
+		pokeI32(api, 0x1010, 1);
+		pokePtr(api, 0x1018, 0x5000);
+		var vars = children(api).of(addr(0x1000), HFun({args: [], ret: HVoid}));
+		assert.equals(1, vars.length, "one captured child");
+		assert.equals("captured", vars[0].name, "child named captured");
+		assert.isTrue(StringTools.startsWith(vars[0].value, "Dynamic @ 0x5000"), "bound value read from +ptr*3 (was " + vars[0].value + ")");
+	}
+
+	static function boundlessClosureHasNoChildren(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		pokePtr(api, 0x1008, 0x9990);
+		pokeI32(api, 0x1010, 0); // hasValue = 0: a plain function pointer
+		var vars = children(api).of(addr(0x1000), HFun({args: [], ret: HVoid}));
+		assert.equals(0, vars.length, "no children without a bound value");
 	}
 }

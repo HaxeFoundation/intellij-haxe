@@ -34,6 +34,8 @@ class Rich {
 		var enumMap = new haxe.ds.EnumValueMap<Shade, Int>(); // pure-Haxe balanced tree
 		enumMap.set(Shade.Plain, n);
 		enumMap.set(Shade.Tinted(n, "x"), n * 2);
-		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n) + enumMap.get(Shade.Plain)); // FIXTURE_RICH_LINE = 37
+		var holder = new PackedHolder(n, n - 0.5, n + 0.5); // @:packed Vec2 inlined at a fixed offset
+		var vec = new Vec2(n + 1.25, n * 3.5); // a standalone @:struct local (HStruct)
+		Sys.println("rich:" + ints[n] + names[n - n] + Std.string(dyn) + Std.string(shade) + Std.string(anon) + f(n, n) + captured + dynArray[n - n] + byRef.get() + dynObj.score + stringMap.get("b") + intMap.get(n) + enumMap.get(Shade.Plain) + holder.pos.x + vec.y); // FIXTURE_RICH_LINE = 39
 	}
 }
