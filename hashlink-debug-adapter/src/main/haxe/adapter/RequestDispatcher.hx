@@ -21,6 +21,7 @@ import dap.protocol.Request;
 import dap.protocol.Response;
 import dap.protocol.requests.ScopesArguments;
 import dap.protocol.requests.SetBreakpointsArguments;
+import dap.protocol.requests.EvaluateArguments;
 import dap.protocol.requests.VariablesArguments;
 import dap.protocol.SourceBreakpoint;
 import dap.protocol.requests.StackTraceArguments;
@@ -109,6 +110,8 @@ class RequestDispatcher {
 				handleScopes(request);
 			case "variables":
 				handleVariables(request);
+			case "evaluate":
+				handleEvaluate(request);
 			case "threads":
 				sendSuccess(request.seq, request.command, threadsBody());
 			case "disconnect":
@@ -121,7 +124,7 @@ class RequestDispatcher {
 	// --- request handlers ---
 
 	function handleInitialize(request:Request):Void {
-		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true};
+		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true, supportsEvaluateForHovers: true};
 		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
 		sendEvent("initialized");
@@ -226,6 +229,20 @@ class RequestDispatcher {
 		sessionCommands(CmdVariables(request.seq, args != null ? args.variablesReference : 0));
 	}
 
+	function handleEvaluate(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot evaluate: nothing is running");
+			return;
+		}
+		var args:EvaluateArguments = request.arguments;
+		if (args == null || args.expression == null) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Missing expression");
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdEvaluate(request.seq, args.frameId != null ? args.frameId : 0, args.expression));
+	}
+
 	function handleDisconnect(request:Request):Void {
 		if (!launched) {
 			sendSuccess(request.seq, request.command, null);
@@ -261,6 +278,8 @@ class RequestDispatcher {
 				completeSuccess(seq, scopesBody(scopes));
 			case EvVariables(seq, variables):
 				completeSuccess(seq, variablesBody(variables));
+			case EvEvaluated(seq, result):
+				completeSuccess(seq, {result: result.value, type: result.type, variablesReference: result.reference});
 			case EvRejected(seq, message):
 				completeError(seq, ERROR_INVALID_REQUEST, message);
 			case EvSessionEnded(seq):

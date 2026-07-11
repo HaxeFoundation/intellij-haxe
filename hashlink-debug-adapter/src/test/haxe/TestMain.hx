@@ -28,6 +28,7 @@ class TestMain {
 			{name: "GlobalTableTest", run: tests.GlobalTableTest.run},
 			// value decoding
 			{name: "RuntimeTypesTest", run: tests.RuntimeTypesTest.run},
+			{name: "ValuePathTest", run: tests.ValuePathTest.run},
 			{name: "ValueReaderTest", run: tests.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.ValueChildrenTest.run},
 		];

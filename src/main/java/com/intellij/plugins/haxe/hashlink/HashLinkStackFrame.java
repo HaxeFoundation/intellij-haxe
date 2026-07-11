@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import com.intellij.ui.ColoredTextContainer;
 import com.intellij.ui.SimpleTextAttributes;
 import com.intellij.xdebugger.XSourcePosition;
+import com.intellij.xdebugger.evaluation.XDebuggerEvaluator;
 import com.intellij.xdebugger.frame.XCompositeNode;
 import com.intellij.xdebugger.frame.XStackFrame;
 import com.intellij.xdebugger.frame.XValueChildrenList;
@@ -28,6 +29,11 @@ final class HashLinkStackFrame extends XStackFrame {
   HashLinkStackFrame(HashLinkDebugProcess process, StackFrame frame) {
     this.process = process;
     this.frame = frame;
+  }
+
+  @Override
+  public @Nullable XDebuggerEvaluator getEvaluator() {
+    return new HashLinkDebuggerEvaluator(process, frame.getId());
   }
 
   @Override

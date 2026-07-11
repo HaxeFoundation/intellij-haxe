@@ -128,6 +128,8 @@ class DebugSession {
 				handleScopes(seq, frameId);
 			case CmdVariables(seq, reference):
 				handleVariables(seq, reference);
+			case CmdEvaluate(seq, frameId, expression):
+				handleEvaluate(seq, frameId, expression);
 			case CmdDisconnect(seq):
 				handleDisconnect(seq);
 		}
@@ -502,6 +504,22 @@ class DebugSession {
 				emit(EvScopes(requestSeq, inspector.scopesFor(frameId)));
 			default:
 				emit(EvRejected(requestSeq, "Cannot get scopes: debuggee is not stopped"));
+		}
+	}
+
+	function handleEvaluate(requestSeq:Int, frameId:Int, expression:String):Void {
+		switch (state) {
+			case Stopped(tid):
+				ensureFrames(tid);
+				try {
+					emit(EvEvaluated(requestSeq, inspector.evaluate(frameId, expression)));
+				} catch (e:DebugError) {
+					emit(EvRejected(requestSeq, e.message));
+				} catch (e:Dynamic) {
+					emit(EvRejected(requestSeq, "Cannot evaluate: " + Std.string(e)));
+				}
+			default:
+				emit(EvRejected(requestSeq, "Cannot evaluate: debuggee is not stopped"));
 		}
 	}
 

@@ -107,6 +107,72 @@ class VariableInspector {
 		return scopes;
 	}
 
+	/**
+	 * Evaluates a VARIABLE PATH (`name`, `obj.field`, `arr[3]`, ...) in a
+	 * cached frame. Root resolution order: the frame's locals, then fields of
+	 * `this`, then the owning class's statics. Throws debug.DebugError with a
+	 * user-facing message when the path cannot be resolved.
+	 */
+	public function evaluate(frameId:Int, expression:String):VariableInfo {
+		var path = ValuePath.parse(expression);
+		if (path == null) {
+			throw new debug.DebugError("Only variable paths can be evaluated (e.g. name, obj.field, arr[0])");
+		}
+		var current = resolveRoot(frameId, path.root);
+		if (current == null) {
+			throw new debug.DebugError('Unknown variable "' + path.root + '"');
+		}
+		for (accessor in path.accessors) {
+			var childName = switch (accessor) {
+				case Field(name): name;
+				case Index(index): Std.string(index);
+			}
+			if (current.reference <= 0) {
+				throw new debug.DebugError('"' + current.name + '" has no members');
+			}
+			var next = findByName(variablesFor(current.reference), childName);
+			if (next == null) {
+				var what = accessor.match(Index(_)) ? "index [" + childName + "]" : 'field "' + childName + '"';
+				throw new debug.DebugError('"' + current.name + '" has no ' + what);
+			}
+			current = next;
+		}
+		return current;
+	}
+
+	function resolveRoot(frameId:Int, name:String):Null<VariableInfo> {
+		var locals = readLocals(frameId);
+		var local = findByName(locals, name);
+		if (local != null) {
+			return local;
+		}
+		// implicit this.field
+		var self = findByName(locals, "this");
+		if (self != null && self.reference > 0) {
+			var member = findByName(variablesFor(self.reference), name);
+			if (member != null) {
+				return member;
+			}
+		}
+		// static of the class owning the frame
+		if (frameId >= 0 && frameId < frameCache.length) {
+			var statics = staticsScope(frameCache[frameId].fidx);
+			if (statics != null) {
+				return findByName(variablesFor(statics.reference), name);
+			}
+		}
+		return null;
+	}
+
+	static function findByName(variables:Array<VariableInfo>, name:String):Null<VariableInfo> {
+		for (v in variables) {
+			if (v.name == name) {
+				return v;
+			}
+		}
+		return null;
+	}
+
 	/** The children of a variablesReference ([] for an unknown/stale reference). */
 	public function variablesFor(reference:Int):Array<VariableInfo> {
 		var target = references.get(reference);

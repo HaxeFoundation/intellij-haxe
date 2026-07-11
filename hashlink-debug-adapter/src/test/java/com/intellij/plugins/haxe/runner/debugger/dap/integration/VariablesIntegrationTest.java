@@ -5,7 +5,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.EvaluateResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import java.util.List;
@@ -244,6 +248,66 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("intMap[2]", "\"v2\"", entries.get("2"));
 
     request(new DisconnectRequest());
+  }
+
+  // --- evaluate (variable paths) ---
+
+  @Test
+  public void evaluatesLocalAndPaths() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    assertEquals("plain local", "2", evaluate(frameId, "n").getBody().getResult());
+    assertEquals("array index", "5", evaluate(frameId, "ints[1]").getBody().getResult());
+    assertEquals("dynobj field path", "\"d2\"", evaluate(frameId, "dynObj.label").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void evaluatesThisFieldAndStatics() throws Exception {
+    runToBreakpoint(FIXTURE_POINT, FIXTURE_POINT_METHOD_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // implicit this.field inside Point.move
+    assertEquals("implicit this field", "10", evaluate(frameId, "x").getBody().getResult());
+    assertEquals("explicit this path", "20", evaluate(frameId, "this.y").getBody().getResult());
+    // static of the owning class
+    assertEquals("class static", "2", evaluate(frameId, "axes").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void evaluateRejectsExpressionsWithAClearMessage() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    Response rejected = evaluateRaw(frameId, "n + 1");
+    assertFalse("arithmetic must be rejected", rejected.isSuccess());
+    assertTrue("message names the limitation (was: " + rejected.getMessage() + ")",
+               rejected.getMessage().contains("variable paths"));
+
+    Response unknown = evaluateRaw(frameId, "nosuch");
+    assertFalse("unknown name must be rejected", unknown.isSuccess());
+    assertTrue("message names the variable", unknown.getMessage().contains("nosuch"));
+
+    request(new DisconnectRequest());
+  }
+
+  private EvaluateResponse evaluate(int frameId, String expression) throws Exception {
+    Response response = evaluateRaw(frameId, expression);
+    assertTrue("evaluate '" + expression + "' succeeds: " + response.getMessage(), response.isSuccess());
+    return (EvaluateResponse)response;
+  }
+
+  private Response evaluateRaw(int frameId, String expression) throws Exception {
+    EvaluateRequest request = new EvaluateRequest();
+    EvaluateArguments arguments = new EvaluateArguments();
+    arguments.setExpression(expression);
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request(request);
   }
 
   // --- instance methods ---

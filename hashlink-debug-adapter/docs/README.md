@@ -378,6 +378,15 @@ compiler behaviour, not a decoder gap; the debugging-friendly workaround is
 compiling with `-D analyzer-no-optimize` (fixtures instead index with runtime
 values so they stay realistic).
 
+**Evaluate (watches/hover)**: the adapter's `evaluate` request resolves
+**variable paths only** — `name`, `obj.field.sub`, `arr[3]` (ValuePath parser;
+anything else errors with "Only variable paths can be evaluated"). Root
+resolution order: the frame's locals → fields of `this` (implicit member
+access) → the owning class's statics. The walk reuses the per-stop
+variablesReference registry, so results expand in the watches view and die
+with the stop like every other reference. No arbitrary expression evaluation:
+that would mean interpreting Haxe inside the debuggee.
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).
