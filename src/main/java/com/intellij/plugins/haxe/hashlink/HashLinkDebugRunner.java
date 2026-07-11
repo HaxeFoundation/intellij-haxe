@@ -9,8 +9,6 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.GenericProgramRunner;
 import com.intellij.execution.ui.RunContentDescriptor;
 import com.intellij.openapi.module.Module;
-import com.intellij.plugins.haxe.HaxeBundle;
-import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugProcessStarter;
 import com.intellij.xdebugger.XDebugSession;
@@ -19,10 +17,10 @@ import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Debug runner for HashLink targets (experimental): spawns the bundled DAP
- * adapter and drives it through {@link HashLinkDebugProcess}. Registered ahead
- * of the generic HaxeDebugRunner and claims ONLY HashLink configurations, so
- * the existing Flash/hxcpp debugger paths are untouched.
+ * Debug runner for the dedicated HashLink configuration (experimental):
+ * spawns the bundled DAP adapter and drives it through
+ * {@link HashLinkDebugProcess}. Keys on {@link HashLinkRunConfiguration} only,
+ * so the legacy Flash/hxcpp debugger is never involved.
  */
 public class HashLinkDebugRunner extends GenericProgramRunner<RunnerSettings> {
   public static final String RUNNER_ID = "HashLinkDebugRunner";
@@ -35,22 +33,19 @@ public class HashLinkDebugRunner extends GenericProgramRunner<RunnerSettings> {
 
   @Override
   public boolean canRun(@NotNull String executorId, @NotNull RunProfile profile) {
-    return DefaultDebugExecutor.EXECUTOR_ID.equals(executorId)
-           && HashLinkRunConfigurations.isHashLinkConfiguration(profile);
+    return DefaultDebugExecutor.EXECUTOR_ID.equals(executorId) && profile instanceof HashLinkRunConfiguration;
   }
 
   @Override
   protected RunContentDescriptor doExecute(@NotNull RunProfileState state, @NotNull ExecutionEnvironment environment)
     throws ExecutionException {
-    HaxeApplicationConfiguration configuration = (HaxeApplicationConfiguration)environment.getRunProfile();
-    Module module = configuration.getConfigurationModule().getModule();
-    if (module == null) {
-      throw new ExecutionException(HaxeBundle.message("no.module.for.run.configuration", configuration.getName()));
-    }
+    HashLinkRunConfiguration configuration = (HashLinkRunConfiguration)environment.getRunProfile();
+    Module module = configuration.requireModule();
 
     // fail fast, before any UI is built
     Path hlExecutable = HashLinkRunConfigurations.resolveHlExecutable(module);
-    Path hlProgram = HashLinkRunConfigurations.resolveHlOutput(configuration, module);
+    Path hlProgram = configuration.resolveProgram(module);
+    Path workingDirectory = configuration.resolveWorkingDirectory(module);
 
     XDebugSession debugSession = XDebuggerManager.getInstance(environment.getProject()).startSession(
       environment,
@@ -59,7 +54,7 @@ public class HashLinkDebugRunner extends GenericProgramRunner<RunnerSettings> {
         @Override
         public XDebugProcess start(@NotNull XDebugSession session) {
           // lightweight: the adapter is spawned asynchronously in sessionInitialized()
-          return new HashLinkDebugProcess(session, module, hlExecutable, hlProgram);
+          return new HashLinkDebugProcess(session, module, hlExecutable, hlProgram, workingDirectory);
         }
       });
     return debugSession.getRunContentDescriptor();

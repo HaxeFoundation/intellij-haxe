@@ -19,14 +19,15 @@ untouched. Two deviations from the plan below, both deliberate:
 
 ## Manual test checklist (runIde)
 
-**There is NO separate "HashLink" configuration type.** Create a normal
-**Haxe Application** run configuration (Run → Edit Configurations → + →
-Haxe Application, pick the module). The HashLink runners engage automatically
-when the module's build produces HashLink bytecode — any of:
-- module compilation target set to HashLink in the module settings,
-- `-hl out.hl` in the compiler arguments field,
-- `-hl out.hl` inside the module's hxml build file (includes followed).
-`-hl out.c` (HL/C native) deliberately does NOT engage the bytecode debugger.
+**HashLink has its own configuration type**: Run → Edit Configurations → + →
+**HashLink Application**. Fields: module, compiled `.hl` file (leave empty to
+auto-detect from the build's `-hl <out>.hl` — hxml includes followed), working
+directory (empty = the program's directory). The HashLink runners key on this
+configuration class only, so the legacy Haxe runners are never involved (the
+first attempt piggybacked on the generic Haxe Application configuration; the
+old gated HaxeDebugRunner then rejected HL targets with "You can debug only
+Flash, AIR, or HXCPP targets!" — hence the dedicated type).
+`-hl out.c` (HL/C native) is not bytecode and is not auto-detected.
 
 Setup: Haxe SDK configured; SDK "HashLink executable" set (or HASHLINK_BIN env,
 or hl on PATH); a module whose build produces a `.hl`, compiled with `-debug`.

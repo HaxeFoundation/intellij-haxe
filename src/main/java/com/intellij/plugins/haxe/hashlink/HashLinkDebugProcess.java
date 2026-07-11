@@ -73,6 +73,7 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private final Module module;
   private final Path hlExecutable;
   private final Path hlProgram;
+  private final @Nullable Path workingDirectory;
   private final AdapterProcessHandler processHandler = new AdapterProcessHandler();
   private final HashLinkBreakpointManager breakpoints = new HashLinkBreakpointManager(this);
   private final ExecutorService requestExecutor =
@@ -83,11 +84,13 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private volatile int currentThreadId = 1;
   private volatile boolean shuttingDown = false;
 
-  public HashLinkDebugProcess(@NotNull XDebugSession session, Module module, Path hlExecutable, Path hlProgram) {
+  public HashLinkDebugProcess(@NotNull XDebugSession session, Module module,
+                              Path hlExecutable, Path hlProgram, @Nullable Path workingDirectory) {
     super(session);
     this.module = module;
     this.hlExecutable = hlExecutable;
     this.hlProgram = hlProgram;
+    this.workingDirectory = workingDirectory;
   }
 
   // --- lifecycle ---
@@ -115,7 +118,8 @@ public class HashLinkDebugProcess extends XDebugProcess {
       LaunchRequestArguments launchArguments = new LaunchRequestArguments();
       launchArguments.setProgram(hlProgram.toString());
       launchArguments.setHlPath(hlExecutable.toString());
-      launchArguments.setCwd(hlProgram.getParent() != null ? hlProgram.getParent().toString() : null);
+      Path cwd = workingDirectory != null ? workingDirectory : hlProgram.getParent();
+      launchArguments.setCwd(cwd != null ? cwd.toString() : null);
       launch.setArguments(launchArguments);
       Response launchResponse = client.sendRequest(launch, REQUEST_TIMEOUT_MILLIS);
       if (!launchResponse.isSuccess()) {
