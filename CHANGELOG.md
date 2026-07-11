@@ -1,8 +1,9 @@
 # Changelog
 
 ## 1.8.6
-* Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe).
-* Fixed: Range expressions like `0...n` are now typed as `IntIterator` (as the compiler does), so its members and `using` extension methods on ranges resolve.
+* Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 
+* Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe). (fixed by Tobbse - #1254)
+* Fixed: Range expressions like `0...n` are now typed as `IntIterator` (as the compiler does), so its members and `using` extension methods on ranges resolve.(fixed by Tobbse - #1255)
 * Added: initial support for inline XML markup (parsing & basic highlighting).
 * Fixed: HXML parsing failed to parse more complex HXML file inclusion references.
 * Fixed: Added missing keywords for completion suggestions in Class body (static, final, inline).
