@@ -1,4 +1,5 @@
 package debug.session;
+import dap.protocol.Breakpoint;
 
 import debug.DebugError;
 import debug.Pointer;
@@ -82,18 +83,8 @@ class DebugSession {
 		commands.add(command);
 	}
 
-	// Breadcrumbs to stderr for diagnosing hangs; enabled by DAP_ADAPTER_TRACE.
-	// The integration tests set the variable and dump the pipe on teardown.
-	static final TRACE_ENABLED = Sys.getEnv("DAP_ADAPTER_TRACE") != null;
-
-	static function dbg(message:String):Void {
-		if (!TRACE_ENABLED) {
-			return;
-		}
-		try {
-			Sys.stderr().writeString(message + "\n");
-			Sys.stderr().flush();
-		} catch (e:Dynamic) {}
+	static inline function dbg(message:String):Void {
+		debug.Trace.log(message);
 	}
 
 	function loop():Void {

@@ -11,20 +11,20 @@ import debug.session.StepMode;
 import debug.values.VariableInfo;
 
 import dap.protocol.Capabilities;
-import dap.protocol.ContinueArguments;
-import dap.protocol.ContinueResponseBody;
-import dap.protocol.ErrorResponseBody;
+import dap.protocol.requests.ContinueArguments;
+import dap.protocol.responses.ContinueResponseBody;
+import dap.protocol.responses.ErrorResponseBody;
 import dap.protocol.Event;
-import dap.protocol.LaunchRequestArguments;
+import dap.protocol.requests.LaunchRequestArguments;
 import dap.protocol.ProtocolMessage;
 import dap.protocol.Request;
 import dap.protocol.Response;
-import dap.protocol.ScopesArguments;
-import dap.protocol.SetBreakpointsArguments;
-import dap.protocol.VariablesArguments;
+import dap.protocol.requests.ScopesArguments;
+import dap.protocol.requests.SetBreakpointsArguments;
+import dap.protocol.requests.VariablesArguments;
 import dap.protocol.SourceBreakpoint;
-import dap.protocol.StackTraceArguments;
-import dap.protocol.ThreadsResponseBody;
+import dap.protocol.requests.StackTraceArguments;
+import dap.protocol.responses.ThreadsResponseBody;
 import haxe.Json;
 
 /**

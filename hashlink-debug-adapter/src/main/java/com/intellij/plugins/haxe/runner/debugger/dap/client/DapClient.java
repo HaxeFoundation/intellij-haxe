@@ -84,12 +84,21 @@ public class DapClient implements Closeable {
         }
       }
     } catch (IOException | RuntimeException e) {
-      // connection is gone; outstanding sendRequest calls will time out
+      // A framing/decode failure must not silently kill the demultiplexer —
+      // after this thread dies every later request times out with no hint why.
+      // Only a deliberate close() is an expected way for the read to end.
+      if (!closed) {
+        System.err.println("DapClient reader died: " + e);
+        e.printStackTrace();
+      }
     }
   }
 
+  private volatile boolean closed = false;
+
   @Override
   public void close() throws IOException {
+    closed = true;
     connection.close();
     try {
       readerThread.join(1000);

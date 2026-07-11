@@ -1,4 +1,5 @@
 package debug.module;
+import dap.protocol.Source;
 
 import debug.DebugError;
 

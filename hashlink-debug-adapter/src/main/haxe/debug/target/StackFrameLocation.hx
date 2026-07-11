@@ -1,4 +1,5 @@
 package debug.target;
+import dap.protocol.Source;
 
 import debug.Pointer;
 import debug.module.ModuleDebugInfo;

@@ -47,6 +47,7 @@ class DebugAdapter {
 			var message = inbound.pop(true);
 			switch (message) {
 				case ClientPayload(payload):
+					debug.Trace.log("recv " + preview(payload));
 					dispatcher.handleRawPayload(payload);
 				case FromSession(event):
 					dispatcher.handleSessionEvent(event);
@@ -68,6 +69,11 @@ class DebugAdapter {
 		try {
 			socket.close();
 		} catch (e:Dynamic) {}
+	}
+
+	// First ~100 chars: enough to identify command/seq without flooding the pipe.
+	static function preview(json:String):String {
+		return json.length <= 100 ? json : json.substr(0, 100) + "…";
 	}
 
 	function dispatchToSession(command:SessionCommand):Void {
@@ -107,8 +113,11 @@ class DebugAdapter {
 				break;
 			}
 			try {
-				writer.write(Json.stringify(message));
+				var json = Json.stringify(message);
+				writer.write(json);
+				debug.Trace.log("sent " + preview(json));
 			} catch (e:Dynamic) {
+				debug.Trace.log("writer failed: " + Std.string(e));
 				break;
 			}
 		}

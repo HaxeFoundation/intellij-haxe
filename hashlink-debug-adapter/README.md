@@ -37,7 +37,7 @@ communicates with the rest of the adapter only through queues.
 | Path | Contents |
 |---|---|
 | `src/main/haxe/adapter/` | adapter entry point, thread wiring, request dispatcher |
-| `src/main/haxe/dap/protocol/` | DAP message typedefs, one per file |
+| `src/main/haxe/dap/protocol/` | DAP base messages + shared types (Source, Breakpoint, Variable, …); `requests/`, `responses/`, `events/` hold the per-command arguments/bodies |
 | `src/main/haxe/dap/transport/` | Content-Length framing, frame reader/writer |
 | `src/main/haxe/debug/` | shared primitives (`Pointer`, `DebugError`) |
 | `src/main/haxe/debug/target/` | the live debuggee: `debug_*` API, process spawn/pumps, memory reads, registers, stack walker |
@@ -47,7 +47,7 @@ communicates with the rest of the adapter only through queues.
 | `src/main/haxe/debug/session/` | orchestration: the session thread/state machine, commands/events, breakpoints, stepping |
 | `test-fixtures/` | a tiny debuggee compiled with `-debug` (one class per file), used by the integration tests |
 | `src/test/haxe/` | Haxe-side tests, run with the Haxe interpreter (`haxe test.hxml`) |
-| `src/main/java/.../dap/protocol/` | DAP message classes (Lombok), one per file |
+| `src/main/java/.../dap/protocol/` | DAP base messages + shared types (Lombok); `requests/`, `responses/`, `events/` mirror the Haxe side |
 | `src/main/java/.../dap/transport/` | framing + socket connection |
 | `src/main/java/.../dap/client/` | `DapClient`: request/response matching, event queue |
 | `src/test/java/` | Java unit tests + integration tests against the real adapter |

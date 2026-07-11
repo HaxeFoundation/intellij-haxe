@@ -5,8 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DisconnectRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import java.util.List;
 import java.util.Map;

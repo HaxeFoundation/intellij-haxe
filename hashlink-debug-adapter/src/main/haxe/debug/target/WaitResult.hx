@@ -1,4 +1,5 @@
 package debug.target;
+import dap.protocol.Breakpoint;
 
 /**
  * Classification of a debug event returned by DebugApi.wait, mirroring the

@@ -1,4 +1,5 @@
 package debug.values;
+import dap.protocol.Variable;
 
 /**
  * A decoded value ready for a DAP `Variable`: a display string, a type label, and

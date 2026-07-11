@@ -4,38 +4,38 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ConfigurationDoneRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ContinueArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ContinueRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializeRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.InitializeRequestArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.LaunchRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.LaunchRequestArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequestArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ScopesArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ScopesRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ScopesResponse;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ScopesResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetBreakpointsArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetBreakpointsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceResponse;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepOutArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepOutRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTraceResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariablesArguments;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariablesRequest;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariablesResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.VariablesResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -85,6 +85,8 @@ public abstract class DapIntegrationTestBase {
   protected String hlExecutable;
 
   private int lastThreadId = 1;
+  private final StringBuilder adapterOutput = new StringBuilder();
+  private Thread outputGobbler;
 
   /** Override to false for tests that talk to the adapter without a debuggee. */
   protected boolean needsFixture() {
@@ -125,39 +127,60 @@ public abstract class DapIntegrationTestBase {
       }
     }
     if (adapterProcess != null) {
-      drainAdapterOutput();
       if (!adapterProcess.waitFor(3, TimeUnit.SECONDS)) {
         adapterProcess.destroyForcibly();
         adapterProcess.waitFor(5, TimeUnit.SECONDS);
       }
-    }
-  }
-
-  // Surface anything the adapter printed after the port line (nothing reads that
-  // pipe during a test, so trace breadcrumbs / crash output would otherwise be
-  // invisible).
-  private void drainAdapterOutput() {
-    try {
-      var in = adapterProcess.getInputStream();
-      int available = in.available();
-      if (available > 0) {
-        byte[] pending = in.readNBytes(available);
-        System.out.println("[adapter output] " + new String(pending, StandardCharsets.UTF_8));
+      if (outputGobbler != null) {
+        outputGobbler.join(2000);
       }
-    } catch (IOException ignored) {
+      printAdapterOutput();
     }
   }
 
+  // The trace breadcrumbs (DAP_ADAPTER_TRACE) can exceed the OS pipe buffer, so
+  // a background thread must drain the adapter's merged stdout/stderr for the
+  // whole test — otherwise the adapter would block mid-write and we would be
+  // debugging a hang we created ourselves. The captured output is printed on
+  // teardown so a failed run self-diagnoses.
+  private void printAdapterOutput() {
+    String output;
+    synchronized (adapterOutput) {
+      output = adapterOutput.toString();
+    }
+    if (!output.isEmpty()) {
+      System.out.println("[adapter output]\n" + output);
+    }
+  }
+
+  // Reads until the port line, then keeps draining into adapterOutput.
   private int awaitListeningPort() throws IOException {
     BufferedReader stdout = new BufferedReader(
       new InputStreamReader(adapterProcess.getInputStream(), StandardCharsets.UTF_8));
     String line;
     while ((line = stdout.readLine()) != null) {
       if (line.startsWith(LISTENING_PREFIX)) {
-        return Integer.parseInt(line.substring(LISTENING_PREFIX.length()).trim());
+        int port = Integer.parseInt(line.substring(LISTENING_PREFIX.length()).trim());
+        outputGobbler = new Thread(() -> gobble(stdout), "adapter-output-gobbler");
+        outputGobbler.setDaemon(true);
+        outputGobbler.start();
+        return port;
       }
     }
     throw new IOException("Adapter exited before announcing its listening port");
+  }
+
+  private void gobble(BufferedReader stdout) {
+    try {
+      String line;
+      while ((line = stdout.readLine()) != null) {
+        synchronized (adapterOutput) {
+          adapterOutput.append(line).append('\n');
+        }
+      }
+    } catch (IOException ignored) {
+      // process ended
+    }
   }
 
   // --- request plumbing ---

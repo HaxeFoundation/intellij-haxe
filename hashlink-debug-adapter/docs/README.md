@@ -381,9 +381,27 @@ Teardown order is now: **kill → continue the pending event → detach → clos
 Killing first works on a suspended process and guarantees the debuggee cannot run
 into another breakpoint after we release it; the resume then just lets the
 termination complete; the detach finally runs against a process with no pending
-events. Session-side breadcrumbs (`DAP_ADAPTER_TRACE=1`, written to stderr and
-dumped by the integration tests' teardown) stay in place so a recurrence
-self-diagnoses: the last breadcrumb printed tells you which native call hung.
+events.
+
+### What the tracing later showed (and the instrumentation that stays)
+A later recurrence was captured with full pipeline tracing and **exonerated the
+adapter**: the failing session had received the disconnect request, torn down
+cleanly, and written the response frame to the socket — the loss was client-side.
+The one silent failure mode there was `DapClient`'s reader thread: any
+framing/decode exception killed the demultiplexer without a word, after which
+every request times out with no hint why. It now reports its own death (unless
+the close was deliberate).
+
+Diagnostics kept in place, all gated by `DAP_ADAPTER_TRACE=1` (the integration
+tests set it):
+- the adapter traces every received request, every sent frame (first 100 chars),
+  every session command, non-timeout wait outcomes, and each disconnect stage;
+- `debug.Trace` serializes writes (three threads trace; unsynchronized stderr
+  writes interleave bytes into garbage);
+- the tests' base class drains the adapter's merged stdout/stderr with a
+  **background gobbler for the whole test** and prints it on teardown. The
+  gobbler is load-bearing: the trace volume can exceed the OS pipe buffer, and
+  an undrained pipe would block the adapter mid-write — a self-inflicted hang.
 
 ---
 
