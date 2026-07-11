@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.hashlink;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
+import com.intellij.execution.ui.ConsoleView;
+import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
@@ -47,6 +49,7 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.frame.XSuspendContext;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -104,6 +107,7 @@ public class HashLinkDebugProcess extends XDebugProcess {
     try {
       HashLinkAdapterLauncher.LaunchedAdapter launched = HashLinkAdapterLauncher.launch(hlExecutable);
       adapterProcess = launched.process();
+      drainAdapterOutput(launched.stdout());
       client = DapClient.connect("127.0.0.1", launched.port(), (int)REQUEST_TIMEOUT_MILLIS);
 
       InitializeRequest initialize = new InitializeRequest();
@@ -187,8 +191,44 @@ public class HashLinkDebugProcess extends XDebugProcess {
     }
   }
 
+  // The debuggee is a grandchild owned by the adapter, so its stdout/stderr
+  // arrive as DAP output events rather than through a process handler. Print
+  // straight into the session's Console view (with stdout/stderr colouring);
+  // fall back to the process handler until the console exists.
   private void print(String text, boolean stderr) {
-    processHandler.notifyTextAvailable(text, stderr ? ProcessOutputTypes.STDERR : ProcessOutputTypes.STDOUT);
+    ConsoleView console = getSession().getConsoleView();
+    if (console != null) {
+      console.print(text, stderr ? ConsoleViewContentType.ERROR_OUTPUT : ConsoleViewContentType.NORMAL_OUTPUT);
+    } else {
+      processHandler.notifyTextAvailable(text, stderr ? ProcessOutputTypes.STDERR : ProcessOutputTypes.STDOUT);
+    }
+  }
+
+  private void printSystem(String text) {
+    ConsoleView console = getSession().getConsoleView();
+    if (console != null) {
+      console.print(text, ConsoleViewContentType.SYSTEM_OUTPUT);
+    } else {
+      processHandler.notifyTextAvailable(text, ProcessOutputTypes.SYSTEM);
+    }
+  }
+
+  // Keeps the adapter's own stdout/stderr drained after the port announcement:
+  // otherwise a chatty adapter (crash traces, DAP_ADAPTER_TRACE) would fill the
+  // OS pipe and block, and its error output would be invisible. Shown as grey
+  // system output, prefixed so it cannot be mistaken for program output.
+  private void drainAdapterOutput(BufferedReader adapterStdout) {
+    Thread gobbler = daemon(() -> {
+      try (BufferedReader reader = adapterStdout) {
+        String line;
+        while ((line = reader.readLine()) != null) {
+          printSystem("[adapter] " + line + "\n");
+        }
+      } catch (IOException ignored) {
+        // adapter ended
+      }
+    }, "HashLink adapter output");
+    gobbler.start();
   }
 
   private void fail(String message) {

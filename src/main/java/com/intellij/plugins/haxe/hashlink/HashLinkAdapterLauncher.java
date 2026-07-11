@@ -25,8 +25,12 @@ public final class HashLinkAdapterLauncher {
   private static final long STARTUP_TIMEOUT_MILLIS = 15_000;
   private static final long POLL_INTERVAL_MILLIS = 20;
 
-  /** A started adapter process and the TCP port it listens on. */
-  public record LaunchedAdapter(Process process, int port) {
+  /**
+   * A started adapter process, the TCP port it listens on, and the stdout
+   * reader used during startup — keep reading from THIS reader (it may hold
+   * buffered bytes beyond the port line).
+   */
+  public record LaunchedAdapter(Process process, int port, BufferedReader stdout) {
   }
 
   private HashLinkAdapterLauncher() {
@@ -43,9 +47,11 @@ public final class HashLinkAdapterLauncher {
     } catch (IOException e) {
       throw new ExecutionException("Cannot start the HashLink debug adapter: " + e.getMessage(), e);
     }
+    BufferedReader stdout = new BufferedReader(
+      new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
     try {
-      int port = awaitListeningPort(process);
-      return new LaunchedAdapter(process, port);
+      int port = awaitListeningPort(process, stdout);
+      return new LaunchedAdapter(process, port, stdout);
     } catch (ExecutionException e) {
       process.destroyForcibly();
       throw e;
@@ -65,12 +71,10 @@ public final class HashLinkAdapterLauncher {
   // Reads stdout until the DAP-ADAPTER-LISTENING:<port> line. Polls with a
   // deadline instead of a blocking readLine so a wedged adapter cannot hang
   // the launch forever; any output before the port line is kept for the error.
-  private static int awaitListeningPort(Process process) throws ExecutionException {
+  private static int awaitListeningPort(Process process, BufferedReader stdout) throws ExecutionException {
     long deadline = System.currentTimeMillis() + STARTUP_TIMEOUT_MILLIS;
     StringBuilder seen = new StringBuilder();
     StringBuilder line = new StringBuilder();
-    BufferedReader stdout = new BufferedReader(
-      new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
     try {
       while (System.currentTimeMillis() < deadline) {
         while (stdout.ready()) {
