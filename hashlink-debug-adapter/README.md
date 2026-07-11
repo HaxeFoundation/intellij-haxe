@@ -48,6 +48,12 @@ pinned Gradle task). Reading the debuggee's memory, INT3 patching, single-steppi
 register access go through the HashLink VM's own `debug_*` natives, so no native code of
 our own is needed.
 
+> **Working on the session, launch, handshake, stepping, or threading code?**
+> Read [docs/README.md](docs/README.md) first. It explains the HashLink-specific
+> pitfalls we hit — the GC deadlock and the `hl.Gc.blocking` workaround, why the
+> handshake is drained before parsing, the buffer/timeout sizes, the trap-flag
+> single-step, and where these problems will resurface as we add features.
+
 ## Running the adapter
 
 ```
