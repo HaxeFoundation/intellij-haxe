@@ -84,8 +84,8 @@ class ValueReader {
 	public static function isExpandable(t:HLType):Bool {
 		return switch (t) {
 			case HObj(proto): proto == null || proto.name != "String";
-			case HStruct(_), HArray: true;
-			default: false;
+			case HStruct(_): true;
+			default: false; // native arrays / others render raw until a later milestone
 		}
 	}
 

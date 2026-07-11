@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.integration;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -60,6 +61,8 @@ public class VariablesIntegrationTest {
   private static final String LISTENING_PREFIX = "DAP-ADAPTER-LISTENING:";
   private static final long TIMEOUT = 8_000;
   private static final int FIXTURE_LOOP_LINE = 18; // total = add(total, i)
+  private static final int FIXTURE_INSPECT_LINE = 35; // var v = Config.version (p is in scope)
+  private static final int FIXTURE_STATICS_LINE = 60; // Config.bump(): version=7, title="cfg"
 
   private Process adapterProcess;
   private DapClient client;
@@ -131,7 +134,85 @@ public class VariablesIntegrationTest {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void expandsObjectFields() throws Exception {
+    initialize();
+    assertTrue(launch().isSuccess());
+    assertTrue(setBreakpoint(FIXTURE_INSPECT_LINE).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess());
+
+    StoppedEvent stopped = awaitStopped();
+    int thread = stopped.getBody().getThreadId();
+
+    // find the local `p` (a Point) and confirm it is expandable
+    Variable p = findVariable(topFrameVariables(thread), "p");
+    assertNotNull("local p present", p);
+    assertTrue("Point is expandable", p.getVariablesReference() > 0);
+    assertTrue("p typed as Point (was " + p.getType() + ")", "Point".equals(p.getType()));
+
+    // expand Point -> x=10, y=20, label="origin"
+    Map<String, String> fields = variablesByName(p.getVariablesReference());
+    assertEquals("Point.x", "10", fields.get("x"));
+    assertEquals("Point.y", "20", fields.get("y"));
+    assertEquals("Point.label", "\"origin\"", fields.get("label"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void readsStaticFields() throws Exception {
+    initialize();
+    assertTrue(launch().isSuccess());
+    assertTrue(setBreakpoint(FIXTURE_STATICS_LINE).isSuccess());
+    assertTrue(request(new ConfigurationDoneRequest()).isSuccess());
+
+    StoppedEvent stopped = awaitStopped();
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+
+    // the frame is Config.bump — its Statics scope holds version=7, title="cfg"
+    int staticsRef = staticsScopeReference(frameId);
+    Map<String, String> statics = variablesByName(staticsRef);
+    assertEquals("Config.version", "7", statics.get("version"));
+    assertEquals("Config.title", "\"cfg\"", statics.get("title"));
+    // the static method sharing the container must not leak into the scope
+    assertFalse("bump() hidden from Statics", statics.containsKey("bump"));
+
+    request(new DisconnectRequest());
+  }
+
   // --- helpers ---
+
+  private int staticsScopeReference(int frameId) throws Exception {
+    ScopesRequest sr = new ScopesRequest();
+    ScopesArguments a = new ScopesArguments();
+    a.setFrameId(frameId);
+    sr.setArguments(a);
+    ScopesResponse response = (ScopesResponse)request(sr);
+    for (Scope scope : response.getBody().getScopes()) {
+      if (scope.getName() != null && scope.getName().startsWith("Statics")) {
+        return scope.getVariablesReference();
+      }
+    }
+    throw new IllegalStateException("no Statics scope");
+  }
+
+  private List<Variable> topFrameVariables(int threadId) throws Exception {
+    int reference = localsScopeReference(topFrameId(threadId));
+    VariablesRequest vr = new VariablesRequest();
+    VariablesArguments a = new VariablesArguments();
+    a.setVariablesReference(reference);
+    vr.setArguments(a);
+    return ((VariablesResponse)request(vr)).getBody().getVariables();
+  }
+
+  private static Variable findVariable(List<Variable> variables, String name) {
+    for (Variable v : variables) {
+      if (name.equals(v.getName())) {
+        return v;
+      }
+    }
+    return null;
+  }
 
   private Map<String, String> localsInTopFrame(int threadId) throws Exception {
     int frameId = topFrameId(threadId);

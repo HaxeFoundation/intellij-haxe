@@ -11,7 +11,7 @@ import debug.ModuleDebugInfo;
  */
 class ModuleDebugInfoTest {
 	static inline var FIXTURE_LOOP_LINE = 18;
-	static inline var FIXTURE_ADD_LINE = 27;
+	static inline var FIXTURE_ADD_LINE = 28;
 
 	public static function run(assert:Assert):Void {
 		var fixture = Sys.getEnv("DAP_FIXTURE_HL");

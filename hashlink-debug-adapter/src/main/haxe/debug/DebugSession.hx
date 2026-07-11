@@ -54,6 +54,9 @@ class DebugSession {
 	var frameLayout:FrameLayout;
 	var localsResolver:LocalsResolver;
 	var valueReader:ValueReader;
+	var objectLayout:ObjectLayout;
+	var memory:MemoryReader;
+	var globalTable:GlobalTable;
 	// per-stop frame cache + variablesReference registry (invalidated on resume)
 	var frameCache:Array<StackFrameLocation> = [];
 	final references:Map<Int, RefTarget> = new Map();
@@ -151,7 +154,11 @@ class DebugSession {
 			var align = new Align(jit.is64, jit.boolSize4);
 			frameLayout = new FrameLayout(align, jit.winCall);
 			localsResolver = new LocalsResolver(module);
-			valueReader = new ValueReader(new MemoryReader(api, process.pid, jit.is64), align);
+			objectLayout = new ObjectLayout(align);
+			memory = new MemoryReader(api, process.pid, jit.is64);
+			globalTable = new GlobalTable(align, module.globals());
+			valueReader = new ValueReader(memory, align);
+			valueReader.referenceAllocator = (pointer, type) -> allocReference(RefObject(pointer, type));
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -493,8 +500,13 @@ class DebugSession {
 					emit(EvScopes(requestSeq, []));
 					return;
 				}
-				var reference = allocReference(RefLocals(frameId));
-				emit(EvScopes(requestSeq, [{name: "Locals", reference: reference}]));
+				var scopes:Array<{name:String, reference:Int}> = [];
+				scopes.push({name: "Locals", reference: allocReference(RefLocals(frameId))});
+				var statics = staticsScope(frameCache[frameId].fidx);
+				if (statics != null) {
+					scopes.push(statics);
+				}
+				emit(EvScopes(requestSeq, scopes));
 			default:
 				emit(EvRejected(requestSeq, "Cannot get scopes: debuggee is not stopped"));
 		}
@@ -511,6 +523,10 @@ class DebugSession {
 				switch (target) {
 					case RefLocals(frameId):
 						emit(EvVariables(requestSeq, readLocals(frameId)));
+					case RefObject(pointer, type):
+						emit(EvVariables(requestSeq, readObjectFields(pointer, type)));
+					case RefStatics(pointer, proto):
+						emit(EvVariables(requestSeq, readStaticFields(pointer, proto)));
 				}
 			default:
 				emit(EvRejected(requestSeq, "Cannot get variables: debuggee is not stopped"));
@@ -533,6 +549,75 @@ class DebugSession {
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var decoded = valueReader.read(address, slot.t);
 			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	function readObjectFields(pointer:Pointer, type:format.hl.Data.HLType):Array<VariableInfo> {
+		var proto = switch (type) {
+			case HObj(p), HStruct(p): p;
+			default: null;
+		}
+		if (proto == null) {
+			return [];
+		}
+		var variables:Array<VariableInfo> = [];
+		for (field in objectLayout.fields(proto)) {
+			var address = Int64.add(pointer, Int64.ofInt(field.offset));
+			var decoded = valueReader.read(address, field.type);
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	// A "Statics" scope for the class owning `fidx`, or null when that class has no
+	// statics container, no allocated global, or its singleton isn't live yet.
+	function staticsScope(fidx:Int):Null<{name:String, reference:Int}> {
+		var proto = module.staticsProtoForFunction(fidx);
+		if (proto == null || !hasStaticData(proto)) {
+			return null;
+		}
+		var globalIndex = module.staticsGlobalIndex(proto);
+		if (globalIndex < 0) {
+			return null;
+		}
+		var slot = Int64.add(jit.globalsPtr, Int64.ofInt(globalTable.offsetOf(globalIndex)));
+		var address = memory.readPointer(slot);
+		if (Int64.isZero(address)) {
+			return null;
+		}
+		var display = module.functionName(fidx);
+		var dot = display.indexOf(".");
+		var className = dot > 0 ? display.substr(0, dot) : display;
+		return {name: "Statics (" + className + ")", reference: allocReference(RefStatics(address, proto))};
+	}
+
+	// A statics container also holds its static methods as function-typed fields;
+	// only show the scope when there is at least one non-method (data) field.
+	function hasStaticData(proto:format.hl.Data.ObjPrototype):Bool {
+		for (field in proto.fields) {
+			switch (field.t) {
+				case HFun(_):
+				default:
+					return true;
+			}
+		}
+		return false;
+	}
+
+	// Like readObjectFields but for a statics singleton: the container's function
+	// fields are its static methods (deferred), so only data fields are listed.
+	function readStaticFields(pointer:Pointer, proto:format.hl.Data.ObjPrototype):Array<VariableInfo> {
+		var variables:Array<VariableInfo> = [];
+		for (field in objectLayout.fields(proto)) {
+			switch (field.type) {
+				case HFun(_):
+					continue;
+				default:
+			}
+			var address = Int64.add(pointer, Int64.ofInt(field.offset));
+			var decoded = valueReader.read(address, field.type);
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
 		}
 		return variables;
 	}

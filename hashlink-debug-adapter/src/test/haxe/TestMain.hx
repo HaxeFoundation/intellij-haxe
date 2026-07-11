@@ -3,7 +3,9 @@ import tests.CodeGraphTest;
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
 import tests.FrameLayoutTest;
+import tests.GlobalTableTest;
 import tests.LocalsResolverTest;
+import tests.ObjectLayoutTest;
 import tests.ValueReaderTest;
 import tests.JitInfoReaderTest;
 import tests.ModuleDebugInfoTest;
@@ -47,6 +49,12 @@ class TestMain {
 
 		assert.setContext("LocalsResolverTest");
 		LocalsResolverTest.run(assert);
+
+		assert.setContext("ObjectLayoutTest");
+		ObjectLayoutTest.run(assert);
+
+		assert.setContext("GlobalTableTest");
+		GlobalTableTest.run(assert);
 
 		assert.setContext("ValueReaderTest");
 		ValueReaderTest.run(assert);

@@ -244,6 +244,81 @@ exit/exception too, so a step never leaves stray INT3s behind.
 
 ---
 
+## 6. Reading variables (locals, object members, statics)
+
+The `scopes`/`variables` DAP requests turn a stopped frame into values. This is the
+most layout-sensitive code in the adapter: every offset is reconstructed from the
+bytecode, so a single wrong constant yields plausible-looking garbage. The defence is
+empirical — `VariablesIntegrationTest` stops where locals/members/statics have
+**known** values and asserts the adapter reads exactly those.
+
+### Frame layout (where a local lives)
+
+HashLink 1.15 uses the **legacy register-location** scheme (the per-instruction
+location tables only exist in HL ≥ 2, which no released HashLink ships). A local's
+address is `ebp + offset`, where `offset` is a *static per-function* value computed by
+`FrameLayout.registerOffsets` — a port of `hld/Module.getFunctionRegs`, itself a port
+of the `jit.c` prologue:
+
+- locals and register-passed args spilled to the stack get a **negative** offset
+  (`size += typeSize; size += pad; offset = -size`);
+- stack-passed args get a **positive** offset (`argsSize + ptr*2`, skipping the return
+  address + saved rbp), then `argsSize += stackSize`.
+- **Windows x64** passes every argument on the stack (simple). **SysV (64-bit
+  non-Windows)** passes the first 6 of each of the int/float classes in registers,
+  spilled into locals. 32-bit is all-stack. Only Windows is verified locally; the SysV
+  branch is implemented from the ABI but unverified (same posture as the handshake).
+
+`ebp` per frame comes from the stack walk (top frame = live `Ebp`; callers =
+`savedEbp`). `LocalsResolver` decides *which* register a source name maps to at the
+current op, from the debug `assigns` table (args have `position < 0`; locals have
+`position >= 0` with the register = the op's `dst`, latest-wins per register).
+
+### Value layout (how a slot is decoded)
+
+`ValueReader` reads at 64-bit offsets (port of `hld/Eval.readVal`):
+- primitives **at** the slot: `ui8=1, ui16=2, i32=4 (signed), i64=8 (hi@+4/lo@+0),
+  f32=4, f64=8, bool=1`;
+- a **String** derefs then reads `bytes` ptr @ +8 and `length` @ +16, `length*2`
+  bytes of UTF-16;
+- an **object** (`HObj`/`HStruct`) has a `hl_type*` header at +0, then fields laid out
+  by `ObjectLayout`: start at one pointer (the header), **superclass fields first**
+  (recurse `tsuper`), each field aligned to its own `typeSize`;
+- a null pointer slot reads as `null`; everything else (`HEnum`, `HVirtual`, `HFun`,
+  maps, `Dynamic`, arrays for now) falls back to `<TypeName> @ 0xADDR`, non-expandable.
+
+### Statics (the globals table)
+
+A class's static fields live in a singleton object reachable through the **global data
+block** (`globalsPtr` from the handshake). The tricky part is the indirection:
+
+- the **instance** type (`Config`) carries the `globalValue`, but the fields
+  (`version`, `title`) and static-method bindings live on the **`$Config` container**
+  type — and the singleton is itself a global *of that container type*. So we find the
+  global index by scanning `data.globals` for the container type name, not from
+  `proto.globalValue`.
+- the singleton address is `readPointer(globalsPtr + GlobalTable.offsetOf(index))`,
+  where `GlobalTable` replicates `hl_module_init`'s `globals_indexes` (index order,
+  each global aligned to its `typeSize`) — the same alignment discipline as
+  `ObjectLayout`.
+- the container also holds its static **methods** as function-typed fields; those are
+  hidden from the scope (only data fields are shown, and the scope is omitted entirely
+  when a class has no static data).
+
+The owning class for the "Statics" scope is the one owning the stopped frame's
+function: static methods map back to their `$Class` container via the container's
+`bindings` (`binding.mid` = the method's findex).
+
+### The per-stop reference registry
+
+`variablesReference`s (and the frame cache) are handed out lazily from `REF_BASE`
+(1000) and **cleared on every resume/step** (`refreshFrames`, `stepOverAndResume`). A
+reference outlives its stop only as freed/moved memory — the GC can relocate objects —
+so a stale expand must never read. Keep the clear in the same places the frame cache is
+invalidated.
+
+---
+
 ## Quick reference
 
 | Concern | Rule |
@@ -256,3 +331,8 @@ exit/exception too, so a step never leaves stray INT3s behind.
 | Test fixtures for breakpoints | Use runtime values so the compiler can't unroll/inline the target away |
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
+| Local address | `ebp + FrameLayout.offset(register)`; legacy scheme (HL 1.15); Windows all-stack args, SysV first-6-register |
+| Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |
+| Object fields | Header pointer first, superclass fields first, each aligned to its `typeSize` (`ObjectLayout`) |
+| Statics | Singleton is a global *of the `$Class` container type*; find its index by scanning `data.globals`, not `proto.globalValue` |
+| variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory |

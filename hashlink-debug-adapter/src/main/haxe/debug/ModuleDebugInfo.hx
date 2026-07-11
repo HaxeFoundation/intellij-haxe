@@ -19,6 +19,11 @@ class ModuleDebugInfo {
 	final namesByFindex:Map<Int, String>;
 	// findex (global) -> position in data.functions (the index JitInfo uses)
 	final functionIndexByFindex:Map<Int, Int>;
+	// findex (global) -> the "$Class" statics prototype whose bindings own that function
+	final staticsProtoByFindex:Map<Int, ObjPrototype>;
+	// statics-container type name (e.g. "$Config") -> its global index (the slot in
+	// the global data block that holds the class's statics singleton pointer)
+	final globalIndexByTypeName:Map<String, Int>;
 
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
@@ -29,6 +34,35 @@ class ModuleDebugInfo {
 		isWindows = Sys.systemName() == "Windows";
 		namesByFindex = buildNames();
 		functionIndexByFindex = buildFunctionIndex();
+		staticsProtoByFindex = buildStaticsIndex();
+		globalIndexByTypeName = buildGlobalTypeIndex();
+	}
+
+	/** The types of the module's globals, in index order (for the globals table layout). */
+	public function globals():Array<HLType> {
+		return data.globals;
+	}
+
+	/**
+	 * The statics container prototype ("$Class") that owns the function at `fidx`,
+	 * i.e. the class whose static fields should be shown while stopped in it, or
+	 * null when the function has no such container (rare) or `fidx` is invalid.
+	 */
+	public function staticsProtoForFunction(fidx:Int):Null<ObjPrototype> {
+		if (fidx < 0 || fidx >= data.functions.length) {
+			return null;
+		}
+		return staticsProtoByFindex.get(data.functions[fidx].findex);
+	}
+
+	/**
+	 * The global index whose slot holds the statics singleton for a "$Class"
+	 * container prototype, or -1 if none. (The singleton's own type is the
+	 * container, so it appears directly as a global of that type.)
+	 */
+	public function staticsGlobalIndex(proto:ObjPrototype):Int {
+		var index = globalIndexByTypeName.get(proto.name);
+		return index != null ? index : -1;
 	}
 
 	public function functionCount():Int {
@@ -260,6 +294,41 @@ class ModuleDebugInfo {
 			byFindex.set(data.functions[i].findex, i);
 		}
 		return byFindex;
+	}
+
+	// A class's static methods are stored as bindings of its "$Class" statics
+	// container (binding.mid = the method's findex). Mapping each such findex back
+	// to that container lets a stopped frame find the class whose statics to show.
+	function buildStaticsIndex():Map<Int, ObjPrototype> {
+		var byFindex = new Map<Int, ObjPrototype>();
+		for (type in data.types) {
+			switch (type) {
+				case HObj(proto) | HStruct(proto):
+					for (binding in proto.bindings) {
+						if (binding.mid >= 0) {
+							byFindex.set(binding.mid, proto);
+						}
+					}
+				default:
+			}
+		}
+		return byFindex;
+	}
+
+	// A statics container's singleton is itself a global whose type is that
+	// container, so scan the globals for each HObj/HStruct type name.
+	function buildGlobalTypeIndex():Map<String, Int> {
+		var byName = new Map<String, Int>();
+		for (g in 0...data.globals.length) {
+			switch (data.globals[g]) {
+				case HObj(proto) | HStruct(proto):
+					if (!byName.exists(proto.name)) {
+						byName.set(proto.name, g);
+					}
+				default:
+			}
+		}
+		return byName;
 	}
 
 	function buildNames():Map<Int, String> {
