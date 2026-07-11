@@ -27,9 +27,11 @@ class RuntimeTypes {
 	static inline var KTYPE = 13;
 	static inline var KREF = 14;
 	static inline var KDYNOBJ = 16;
+	static inline var KABSTRACT = 17;
 	static inline var KENUM = 18;
 	static inline var KNULL = 19;
 	static inline var KSTRUCT = 21;
+	static inline var KGUID = 23;
 	static inline var OBJ_NAME_OFFSET = 16; // hl_type_obj: 3 x i32 + pad
 	static inline var MAX_NAME_CHARS = 256;
 
@@ -70,6 +72,14 @@ class RuntimeTypes {
 			case KARRAY: HArray;
 			case KTYPE: HType;
 			case KDYNOBJ: HDynObj;
+			case KABSTRACT:
+				// for abstracts the hl_type's data pointer IS the uchar* name
+				var name = readName(dataPtr(typePtr));
+				name == "" ? null : HAbstract(name);
+			case KGUID:
+				// the format lib has no HGUID constructor; a GUID is stored as an
+				// i64, so display it as its raw Int64 value
+				HI64;
 			case KOBJ, KSTRUCT:
 				var data = dataPtr(typePtr);
 				isNull(data) ? null : resolveName(readName(offsetName(data)));

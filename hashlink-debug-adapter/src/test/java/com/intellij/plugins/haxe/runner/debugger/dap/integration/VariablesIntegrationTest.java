@@ -263,6 +263,31 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void readsBareNativeMapAbstract() throws Exception {
+    // a raw hl_bytes_map abstract (StringMap internals, no wrapper): the
+    // abstract pointer IS the native map and lists its entries directly
+    Variable nativeMap = findVariable(richLocals(), "nativeMap");
+    assertNotNull("local nativeMap present", nativeMap);
+    assertEquals("nativeMap preview", "Map(2)", nativeMap.getValue());
+    Map<String, String> entries = variablesByName(nativeMap.getVariablesReference());
+    assertEquals("nativeMap[a2]", "2", entries.get("\"a2\""));
+    assertEquals("nativeMap[b]", "6", entries.get("\"b\""));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void resolvesAbstractNameThroughDynamic() throws Exception {
+    // a Dynamic holding an abstract: the runtime HABSTRACT kind resolves the
+    // abstract's name, so the map decodes instead of showing "Dynamic @ 0x…"
+    Variable dynAbstract = findVariable(richLocals(), "dynAbstract");
+    assertNotNull("local dynAbstract present", dynAbstract);
+    assertEquals("dynAbstract preview", "Map(2)", dynAbstract.getValue());
+
+    request(new DisconnectRequest());
+  }
+
   // --- evaluate (variable paths) ---
 
   @Test

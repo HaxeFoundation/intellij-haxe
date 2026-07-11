@@ -47,9 +47,9 @@ class ValueChildren {
 				mapEntries(mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr))), ValueReader.mapKeyKind(proto.name));
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
 				treeMapEntries(pointer, proto);
-			case HAbstract("hl_int64_map") if (maps != null):
-				// an int64-map abstract: the reference pointer is the native map itself
-				mapEntries(pointer, Int64Key);
+			case HAbstract(name) if (maps != null && ValueReader.nativeMapKind(name) != null):
+				// a map-native abstract: the reference pointer is the native map itself
+				mapEntries(pointer, ValueReader.nativeMapKind(name));
 			case HDynObj if (dynObjects != null):
 				dynObjFields(pointer);
 			case HObj(_), HStruct(_):

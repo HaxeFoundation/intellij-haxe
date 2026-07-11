@@ -388,6 +388,27 @@ compiler behaviour, not a decoder gap; the debugging-friendly workaround is
 compiling with `-D analyzer-no-optimize` (fixtures instead index with runtime
 values so they stay realistic).
 
+- **Abstracts** (`HAbstract`, opaque native pointers): unknowns render as
+  `<name> @ 0x…` — that IS the correct ceiling, the bytecode carries no layout
+  for them. Two improvements on top: the runtime HABSTRACT kind resolves its
+  name (for abstracts the hl_type's data pointer IS the uchar* name), so a
+  `Dynamic`-held abstract shows its real name instead of `Dynamic @ 0x…`; and
+  the four map natives (`hl_bytes_map`/`hl_int_map`/`hl_obj_map`/
+  `hl_int64_map`) encountered BARE (e.g. a StringMap's internal `h` field)
+  list their entries directly — the abstract pointer is the native map, no
+  wrapper indirection.
+- **vdynamic payload rule** (bug class to respect): whether the vdynamic
+  address IS the value or the value lives in the payload slot @ +ptr follows
+  `format.hl.Tools.isDynamic` — objects/virtuals/enums/arrays/dynobjs are
+  vdynamic-compatible; primitives, ABSTRACTS, bytes, refs and structs are
+  carried in the payload. Getting this wrong reads a vdynamic header as the
+  value (symptom: an abstract map through Dynamic showed `Map(0)`).
+- **GUID** (`HGUID`, runtime kind 23 — exists in HL 1.15's hl.h): the format
+  haxelib (3.7.0) has NO HGUID constructor, so bytecode that uses GUID types
+  cannot even be parsed by `ModuleDebugInfo` — a format-lib limitation, and no
+  Haxe 4.3.7 std API produces them. A runtime kind-23 vdynamic (from native
+  code) is displayed as its raw Int64 storage.
+
 **Evaluate (watches/hover)**: the adapter's `evaluate` request resolves
 **variable paths only** — `name`, `obj.field.sub`, `arr[3]` (ValuePath parser;
 anything else errors with "Only variable paths can be evaluated"). Root

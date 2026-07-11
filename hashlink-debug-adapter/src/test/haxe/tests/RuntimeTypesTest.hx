@@ -79,11 +79,32 @@ class RuntimeTypesTest {
 
 	static function unknownReturnsNull(assert:Assert):Void {
 		var api = new FakeDebugApi();
-		pokeI32(api, 0x100, 17); // HABSTRACT: unsupported
+		pokeI32(api, 0x100, 20); // HMETHOD: unsupported
 		assert.isTrue(types(api, _ -> null).typeAt(addr(0x100)) == null, "unsupported kind yields null");
 		assert.isTrue(types(api, _ -> null).typeAt(addr(0)) == null, "null pointer yields null");
 		pokeI32(api, 0x200, 16); // HDYNOBJ
 		var dynObj = types(api, _ -> null).typeAt(addr(0x200));
 		assert.isTrue(dynObj != null && dynObj.match(HDynObj), "dynobj kind resolves to HDynObj");
+		abstractResolvesItsName(assert);
+		guidReadsAsInt64(assert);
+	}
+
+	static function abstractResolvesItsName(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		// hl_type @0x300: kind=17 (HABSTRACT); for abstracts the data pointer IS
+		// the uchar* name — @0x308 -> 0x400 "hl_bytes_map"
+		pokeI32(api, 0x300, 17);
+		pokePtr(api, 0x308, 0x400);
+		pokeUcs2(api, 0x400, "hl_bytes_map");
+		var resolved = types(api, _ -> null).typeAt(addr(0x300));
+		assert.isTrue(resolved != null && resolved.match(HAbstract("hl_bytes_map")),
+			"abstract kind resolves its name (was " + Std.string(resolved) + ")");
+	}
+
+	static function guidReadsAsInt64(assert:Assert):Void {
+		var api = new FakeDebugApi();
+		pokeI32(api, 0x500, 23); // HGUID: stored as an i64; the format lib has no HGUID
+		var resolved = types(api, _ -> null).typeAt(addr(0x500));
+		assert.isTrue(resolved != null && resolved.match(HI64), "guid kind reads as Int64");
 	}
 }

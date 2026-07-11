@@ -97,9 +97,9 @@ class ValueReader {
 				readMapWrapper(ptr, t);
 			case HObj(proto) if (proto != null && treeMaps != null && TreeMapReader.isTreeMap(proto.name)):
 				readTreeMap(ptr, proto);
-			case HAbstract("hl_int64_map") if (maps != null):
+			case HAbstract(name) if (maps != null && nativeMapKind(name) != null):
 				// the abstract value IS the native map pointer (no wrapper indirection)
-				readNativeMap(ptr, Int64Key);
+				readNativeMap(ptr, nativeMapKind(name), name);
 			case HObj(_), HStruct(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			default:
@@ -117,14 +117,25 @@ class ValueReader {
 		return {value: "Map(" + count + ")", type: "Map", reference: reference};
 	}
 
-	// a native map at `native` (the wrapper deref, or an int64-map abstract)
-	function readNativeMap(native:Pointer, kind:MapKeyKind):DecodedValue {
+	// a native map at `native` (a wrapper deref, or the abstract itself)
+	function readNativeMap(native:Pointer, kind:MapKeyKind, abstractName:String):DecodedValue {
 		var count = maps.entryCount(native);
 		if (count < 0) {
 			return {value: "Map @ " + hex(native), type: "Map", reference: 0};
 		}
-		var reference = (count == 0 || referenceAllocator == null) ? 0 : referenceAllocator(native, HAbstract("hl_int64_map"));
+		var reference = (count == 0 || referenceAllocator == null) ? 0 : referenceAllocator(native, HAbstract(abstractName));
 		return {value: "Map(" + count + ")", type: "Map", reference: reference};
+	}
+
+	/** The key layout of a native map abstract, or null when not a map native. */
+	public static function nativeMapKind(name:String):Null<MapKeyKind> {
+		return switch (name) {
+			case "hl_bytes_map": StringKey;
+			case "hl_int_map": IntKey;
+			case "hl_obj_map": ObjectKey;
+			case "hl_int64_map": Int64Key;
+			default: null;
+		}
 	}
 
 	// vdynobj: field names inline in the preview, children on expand
@@ -189,20 +200,23 @@ class ValueReader {
 		return {value: display, type: typeName(t), reference: reference};
 	}
 
-	// vdynamic: runtime type @ +0, payload @ +ptr. When the runtime type is itself
-	// a pointer kind the vdynamic address *is* the value (no extra indirection).
+	// vdynamic: runtime type @ +0, payload @ +ptr. Whether the vdynamic address
+	// *is* the value or the value lives in the payload slot follows the VM's
+	// own classification (format.hl.Tools.isDynamic): objects/virtuals/enums/
+	// arrays/dynobjs ARE vdynamic-compatible; primitives, abstracts, bytes,
+	// refs and structs are carried in the payload.
 	function readDynamic(ptr:Pointer):DecodedValue {
 		var resolved = runtimeTypes == null ? null : runtimeTypes.typeAt(mem.readPointer(ptr));
 		if (resolved == null) {
 			return expandableOrRaw(ptr, HDyn);
 		}
 		return switch (resolved) {
-			case HVoid, HUi8, HUi16, HI32, HI64, HF32, HF64, HBool:
-				read(offset(ptr, align.ptr), resolved);
 			case HDyn:
 				expandableOrRaw(ptr, HDyn); // avoid recursing on a dyn-of-dyn
 			default:
-				decodePointed(ptr, resolved);
+				format.hl.Tools.isDynamic(resolved)
+					? decodePointed(ptr, resolved)
+					: read(offset(ptr, align.ptr), resolved);
 		}
 	}
 
