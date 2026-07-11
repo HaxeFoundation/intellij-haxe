@@ -306,7 +306,12 @@ same-named argument.
 ### Registers scope
 
 Every frame gets a third DAP scope, "Registers" (`presentationHint:
-"registers"`; the IDE renders any non-Locals scope as a collapsible group):
+"registers"`). The IntelliJ side does NOT render it in the Variables view
+(HashLinkStackFrame filters on the presentation hint) — it feeds a dedicated
+"Registers" tab in the Debug tool window instead (`HashLinkRegistersPanel`,
+added via `XDebugProcess.createTabLayouter`), a flat name/value/type table
+refreshed on every stop and frame selection. Other DAP clients see it as a
+normal scope. Contents:
 
 - **HL bytecode registers** `r0..rN` — every typed `ebp+offset` slot of the
   frame, including args and unnamed temporaries, annotated with the local name

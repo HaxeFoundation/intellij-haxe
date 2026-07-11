@@ -42,6 +42,10 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.Variables
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ScopesResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTraceResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.VariablesResponse;
+import com.intellij.execution.ui.RunnerLayoutUi;
+import com.intellij.execution.ui.layout.PlaceInGrid;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
@@ -49,6 +53,7 @@ import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.frame.XSuspendContext;
+import com.intellij.xdebugger.ui.XDebugTabLayouter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -86,6 +91,7 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private volatile DapClient client;
   private volatile int currentThreadId = 1;
   private volatile boolean shuttingDown = false;
+  private volatile HashLinkRegistersPanel registersPanel;
 
   public HashLinkDebugProcess(@NotNull XDebugSession session, Module module,
                               Path hlExecutable, Path hlProgram, @Nullable Path workingDirectory) {
@@ -101,6 +107,22 @@ public class HashLinkDebugProcess extends XDebugProcess {
   @Override
   public void sessionInitialized() {
     requestExecutor.execute(this::initializeSession);
+  }
+
+  @Override
+  public @NotNull XDebugTabLayouter createTabLayouter() {
+    return new XDebugTabLayouter() {
+      @Override
+      public void registerAdditionalContent(@NotNull RunnerLayoutUi ui) {
+        HashLinkRegistersPanel panel = new HashLinkRegistersPanel(HashLinkDebugProcess.this);
+        registersPanel = panel;
+        getSession().addSessionListener(panel);
+        Content content = ui.createContent("HashLinkRegisters", panel, "Registers",
+                                           AllIcons.Debugger.Value, null);
+        content.setCloseable(false);
+        ui.addContent(content, 0, PlaceInGrid.center, false);
+      }
+    };
   }
 
   private void initializeSession() {

@@ -31,6 +31,10 @@ final class HashLinkStackFrame extends XStackFrame {
     this.frame = frame;
   }
 
+  int frameId() {
+    return frame.getId();
+  }
+
   @Override
   public @Nullable XDebuggerEvaluator getEvaluator() {
     return new HashLinkDebuggerEvaluator(process, frame.getId());
@@ -64,6 +68,9 @@ final class HashLinkStackFrame extends XStackFrame {
       XValueChildrenList children = new XValueChildrenList();
       boolean first = true;
       for (Scope scope : scopes) {
+        if ("registers".equals(scope.getPresentationHint())) {
+          continue; // shown in the dedicated Registers tab, not the Variables view
+        }
         if (first) {
           // the Locals scope: variables straight into the frame node
           for (Variable variable : process.requestVariables(scope.getVariablesReference())) {
