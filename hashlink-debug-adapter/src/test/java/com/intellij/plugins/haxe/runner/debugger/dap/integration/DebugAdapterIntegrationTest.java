@@ -99,7 +99,10 @@ public class DebugAdapterIntegrationTest {
   }
 
   @Test
-  public void setBreakpointsAreAcceptedAndVerified() throws Exception {
+  public void setBreakpointsBeforeLaunchAreProvisional() throws Exception {
+    // Without a launched program the adapter cannot resolve breakpoints yet, so
+    // it answers provisionally (unverified); they are re-verified after launch.
+    // The full verified path is covered by DebugLifecycleIntegrationTest.
     sendInitialize();
 
     SetBreakpointsRequest request = new SetBreakpointsRequest();
@@ -120,10 +123,9 @@ public class DebugAdapterIntegrationTest {
     assertEquals(Integer.valueOf(10), breakpoints.get(0).getLine());
     assertEquals(Integer.valueOf(30), breakpoints.get(2).getLine());
     for (Breakpoint breakpoint : breakpoints) {
-      assertTrue("breakpoint should be verified", breakpoint.isVerified());
+      assertTrue("breakpoint should be unverified before launch", !breakpoint.isVerified());
     }
     assertNotEquals(breakpoints.get(0).getId(), breakpoints.get(1).getId());
-    assertEquals("/project/src/Main.hx", breakpoints.get(0).getSource().getPath());
   }
 
   @Test
@@ -135,10 +137,11 @@ public class DebugAdapterIntegrationTest {
   }
 
   @Test
-  public void launchStubIsAcknowledged() throws Exception {
+  public void launchWithoutProgramIsRejected() throws Exception {
     sendInitialize();
+    // a launch with no 'program' argument must fail validation rather than hang
     Response response = client.sendRequest(new LaunchRequest(), TIMEOUT_MILLIS);
-    assertTrue(response.isSuccess());
+    assertTrue("launch without a program should fail", !response.isSuccess());
   }
 
   @Test

@@ -1,6 +1,7 @@
 package debug;
 
 import haxe.Int64;
+import haxe.io.BytesInput;
 import haxe.io.Input;
 
 /**
@@ -17,10 +18,15 @@ import haxe.io.Input;
  *   threads / globals / jitCode      pointer each (8 bytes when is64)
  *   codeSize                         int32
  *   types                            pointer
- *   structSizes[1..8]                8 × int32
+ *   structSizes[1..8]                8 x int32
  *   nfunctions                       int32
  *   per function:                    nops(int32) start(int32) large(byte)
- *                                    offsets[nops+1] × (large ? int32 : uint16)
+ *                                    offsets[nops+1] x (large ? int32 : uint16)
+ *
+ * The input is read in exact-size chunks (input.read(n)): the debuggee sends the
+ * whole handshake and then blocks, so a single over-read would hang forever.
+ * Byte-at-a-time reads over a socket are also far too slow, so each field group
+ * is pulled in one read.
  *
  * Only protocol version 1 is supported (what HashLink 1.15 emits); a different
  * version char raises DebugError rather than risk a silent misparse.
@@ -29,52 +35,57 @@ class JitInfoReader {
 	static inline var SUPPORTED_VERSION = 1;
 
 	public static function read(input:Input):JitInfo {
-		input.bigEndian = false;
-
-		var magic = String.fromCharCode(input.readByte()) + String.fromCharCode(input.readByte()) + String.fromCharCode(input.readByte());
+		var head = chunk(input, 4);
+		var magic = String.fromCharCode(head.readByte()) + String.fromCharCode(head.readByte()) + String.fromCharCode(head.readByte());
 		if (magic != "HLD") {
 			throw new DebugError('Bad debug handshake magic: "$magic" (expected "HLD")');
 		}
-		var version = input.readByte() - "0".code;
+		var version = head.readByte() - "0".code;
 		if (version != SUPPORTED_VERSION) {
 			throw new DebugError('Unsupported debug protocol version $version (this adapter supports version $SUPPORTED_VERSION)');
 		}
 
-		var flags = input.readInt32();
+		var flags = chunk(input, 4).readInt32();
 		var is64 = (flags & 1) != 0;
 		var boolSize4 = (flags & 2) != 0;
 		var threads = (flags & 4) != 0;
 		var winCall = (flags & 8) != 0;
+		var pointerSize = is64 ? 8 : 4;
 
-		var hlVersionRaw = input.readInt32();
+		var hlVersionRaw = chunk(input, 4).readInt32();
 		var major = (hlVersionRaw >> 16) & 0xFF;
 		var minor = (hlVersionRaw >> 8) & 0xFF;
 		var patch = hlVersionRaw & 0xFF;
 
-		// pid present since protocol carried it (hlVersion >= 1.07)
 		var hasPid = major > 1 || (major == 1 && minor >= 7);
-		var pid = hasPid ? input.readInt32() : 0;
+		var pid = hasPid ? chunk(input, 4).readInt32() : 0;
 
-		var threadsPtr = readPointer(input, is64);
-		var globalsPtr = readPointer(input, is64);
-		var jitCodeBase = readPointer(input, is64);
-		var codeSize = input.readInt32();
-		var typesPtr = readPointer(input, is64);
+		// threads + globals + jitCode + codeSize + types, in one read
+		var block = chunk(input, pointerSize * 3 + 4 + pointerSize);
+		var threadsPtr = readPointer(block, is64);
+		var globalsPtr = readPointer(block, is64);
+		var jitCodeBase = readPointer(block, is64);
+		var codeSize = block.readInt32();
+		var typesPtr = readPointer(block, is64);
 
+		var sizes = chunk(input, 8 * 4);
 		var structSizes = [0]; // index 0 unused, to match the 1..8 wire indices
 		for (_ in 0...8) {
-			structSizes.push(input.readInt32());
+			structSizes.push(sizes.readInt32());
 		}
 
-		var nfunctions = input.readInt32();
+		var nfunctions = chunk(input, 4).readInt32();
 		var functions:Array<JitFunction> = [];
 		for (_ in 0...nfunctions) {
-			var nops = input.readInt32();
-			var start = input.readInt32();
-			var large = input.readByte() != 0;
+			var fixed = chunk(input, 9);
+			var nops = fixed.readInt32();
+			var start = fixed.readInt32();
+			var large = fixed.readByte() != 0;
+			var elementSize = large ? 4 : 2;
+			var offsetBytes = chunk(input, (nops + 1) * elementSize);
 			var offsets = new Array<Int>();
 			for (_ in 0...(nops + 1)) {
-				offsets.push(large ? input.readInt32() : input.readUInt16());
+				offsets.push(large ? offsetBytes.readInt32() : offsetBytes.readUInt16());
 			}
 			functions.push({nops: nops, start: start, large: large, offsets: offsets});
 		}
@@ -87,7 +98,14 @@ class JitInfoReader {
 		});
 	}
 
-	static function readPointer(input:Input, is64:Bool):Pointer {
+	// Reads exactly `size` bytes and returns them as a little-endian input.
+	static function chunk(input:Input, size:Int):BytesInput {
+		var bytes = new BytesInput(input.read(size));
+		bytes.bigEndian = false;
+		return bytes;
+	}
+
+	static function readPointer(input:BytesInput, is64:Bool):Pointer {
 		if (is64) {
 			var low = input.readInt32();
 			var high = input.readInt32();

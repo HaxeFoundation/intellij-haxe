@@ -1,8 +1,10 @@
+import tests.BreakpointsTest;
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
 import tests.JitInfoReaderTest;
 import tests.ModuleDebugInfoTest;
 import tests.ProtocolJsonTest;
+import tests.StackWalkerTest;
 
 /**
  * Entry point of the Haxe-side adapter tests, run with `haxe test.hxml` (interpreter mode).
@@ -26,6 +28,12 @@ class TestMain {
 
 		assert.setContext("ModuleDebugInfoTest");
 		ModuleDebugInfoTest.run(assert);
+
+		assert.setContext("BreakpointsTest");
+		BreakpointsTest.run(assert);
+
+		assert.setContext("StackWalkerTest");
+		StackWalkerTest.run(assert);
 
 		Sys.println(assert.checks + " checks, " + assert.failures + " failures");
 		Sys.exit(assert.failures == 0 ? 0 : 1);

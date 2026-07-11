@@ -10,8 +10,8 @@ import debug.ModuleDebugInfo;
  * Line constants mirror test-fixtures/src/Main.hx.
  */
 class ModuleDebugInfoTest {
-	static inline var FIXTURE_LOOP_LINE = 14;
-	static inline var FIXTURE_ADD_LINE = 20;
+	static inline var FIXTURE_LOOP_LINE = 18;
+	static inline var FIXTURE_ADD_LINE = 27;
 
 	public static function run(assert:Assert):Void {
 		var fixture = Sys.getEnv("DAP_FIXTURE_HL");

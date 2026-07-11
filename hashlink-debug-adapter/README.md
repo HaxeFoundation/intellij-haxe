@@ -8,6 +8,26 @@ starts the adapter, connects to it over TCP, and speaks the
 The module also contains the Java-side DAP client
 (`com.intellij.plugins.haxe.runner.debugger.dap`) used by the plugin and its tests.
 
+## What it does
+
+The adapter launches a HashLink debuggee, attaches to it, and drives a real debug
+session over DAP:
+
+- **launch** — spawns `hl --debug <port> --debug-wait <program.hl>` (the `.hl` must be
+  compiled with `-debug`), reads the VM's handshake, and attaches via the OS debug API.
+- **breakpoints** — resolves `file:line` against the `.hl` debug tables, patches INT3 at
+  the machine address, and reports verified breakpoints. Breakpoints set before launch
+  are answered provisionally and re-verified afterwards.
+- **stop / continue** — reports `stopped` (breakpoint or exception) with the thread id;
+  `continue` steps over the breakpoint (trap-flag single step, re-arm) and resumes.
+- **stackTrace** — walks the frame-pointer chain and maps return addresses back to
+  `file:line` with `Class.method` names.
+- **output** — forwards the debuggee's stdout/stderr as `output` events.
+- **exit / disconnect** — emits `exited`/`terminated`; `disconnect` kills the debuggee.
+
+All `debug_*` OS calls run on one dedicated session thread (required on Windows), which
+communicates with the rest of the adapter only through queues.
+
 ## Layout
 
 | Path | Contents |
@@ -15,11 +35,18 @@ The module also contains the Java-side DAP client
 | `src/main/haxe/adapter/` | adapter entry point, thread wiring, request dispatcher |
 | `src/main/haxe/dap/protocol/` | DAP message typedefs, one per file |
 | `src/main/haxe/dap/transport/` | Content-Length framing, frame reader/writer |
+| `src/main/haxe/debug/` | debug session, OS debug API, handshake reader, `.hl` debug info, breakpoints, stack walker |
+| `test-fixtures/` | a tiny debuggee compiled with `-debug`, used by the integration tests |
 | `src/test/haxe/` | Haxe-side tests, run with the Haxe interpreter (`haxe test.hxml`) |
 | `src/main/java/.../dap/protocol/` | DAP message classes (Lombok), one per file |
 | `src/main/java/.../dap/transport/` | framing + socket connection |
 | `src/main/java/.../dap/client/` | `DapClient`: request/response matching, event queue |
 | `src/test/java/` | Java unit tests + integration tests against the real adapter |
+
+The `.hl` bytecode debug tables are read with the `format` haxelib (installed by a
+pinned Gradle task). Reading the debuggee's memory, INT3 patching, single-stepping and
+register access go through the HashLink VM's own `debug_*` natives, so no native code of
+our own is needed.
 
 ## Running the adapter
 

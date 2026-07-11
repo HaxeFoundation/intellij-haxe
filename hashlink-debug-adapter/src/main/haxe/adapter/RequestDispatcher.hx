@@ -1,39 +1,61 @@
 package adapter;
 
-import dap.protocol.Breakpoint;
 import dap.protocol.Capabilities;
+import dap.protocol.ContinueArguments;
+import dap.protocol.ContinueResponseBody;
 import dap.protocol.ErrorResponseBody;
 import dap.protocol.Event;
+import dap.protocol.LaunchRequestArguments;
 import dap.protocol.ProtocolMessage;
 import dap.protocol.Request;
 import dap.protocol.Response;
 import dap.protocol.SetBreakpointsArguments;
-import dap.protocol.SetBreakpointsResponseBody;
 import dap.protocol.SourceBreakpoint;
+import dap.protocol.StackTraceArguments;
 import dap.protocol.ThreadsResponseBody;
+import debug.BreakpointResult;
+import debug.DebugEvent;
+import debug.FrameInfo;
+import debug.LaunchConfig;
+import debug.RequestedBreakpoint;
+import debug.SessionCommand;
 import haxe.Json;
 
 /**
- * Turns incoming DAP request payloads into outgoing responses/events.
+ * Translates incoming DAP requests into session commands and outgoing DAP
+ * responses/events, and turns DebugEvents from the session back into responses
+ * and events.
  *
- * Performs no I/O: outgoing messages are handed to the `sink` callback,
- * which in production pushes onto the writer queue and in tests collects
- * into an array. Owns the adapter-side `seq` counter (one monotonic
- * counter shared by responses and events, as the DAP spec requires).
+ * Performs no I/O and owns the adapter-side `seq` counter. Requests handled on
+ * the session thread get deferred responses: the command carries the request
+ * seq, and the matching DebugEvent produces the response later (preserving
+ * total ordering because only the single worker thread calls in here).
  */
 class RequestDispatcher {
 	static inline var ERROR_UNRECOGNIZED_COMMAND = 1000;
 	static inline var ERROR_INVALID_REQUEST = 1001;
+	static inline var ERROR_LAUNCH_FAILED = 1002;
 
 	final sink:ProtocolMessage->Void;
+	final sessionCommands:SessionCommand->Void;
+
 	var nextSeq:Int = 1;
 	var nextBreakpointId:Int = 1;
+	var launched:Bool = false;
+	var currentThreadId:Int = 1;
 
-	/** Set after a "disconnect" request has been answered; the owner should shut down. */
+	// requests answered on the session thread: seq -> command, so completion
+	// events can echo the right command on the response
+	final deferredCommands:Map<Int, String> = new Map();
+	// breakpoints requested before launch, replayed for re-verification afterwards
+	final preLaunchBreakpoints:Array<{sourceKey:String, sourcePath:String, requested:Array<RequestedBreakpoint>}> = [];
+
+	/** Set once the session has ended (or disconnect handled without a session). */
 	public var shutdownRequested(default, null):Bool = false;
 
-	public function new(sink:ProtocolMessage->Void) {
+	public function new(sink:ProtocolMessage->Void, sessionCommands:SessionCommand->Void) {
 		this.sink = sink;
+		this.sessionCommands = sessionCommands;
 	}
 
 	/** Parses one frame payload and dispatches it. Never throws on bad input. */
@@ -42,7 +64,7 @@ class RequestDispatcher {
 		try {
 			parsed = Json.parse(payload);
 		} catch (e:Dynamic) {
-			sendErrorResponse(0, "", ERROR_INVALID_REQUEST, "Invalid JSON payload");
+			sendError(0, "", ERROR_INVALID_REQUEST, "Invalid JSON payload");
 			return;
 		}
 		handleRequest(parsed);
@@ -54,64 +76,191 @@ class RequestDispatcher {
 		var type = readString(message, "type");
 		var command = readString(message, "command");
 		if (type != "request" || command == null) {
-			sendErrorResponse(seq, command == null ? "" : command, ERROR_INVALID_REQUEST, "Not a valid DAP request");
+			sendError(seq, command == null ? "" : command, ERROR_INVALID_REQUEST, "Not a valid DAP request");
 			return;
 		}
 		var request:Request = message;
 		switch (command) {
 			case "initialize":
 				handleInitialize(request);
+			case "launch":
+				handleLaunch(request);
 			case "setBreakpoints":
 				handleSetBreakpoints(request);
 			case "configurationDone":
-				sendSuccess(request);
-			case "launch":
-				// milestone 1 stub: accepted, but no debuggee is started yet
-				sendSuccess(request);
+				handleConfigurationDone(request);
+			case "continue":
+				handleContinue(request);
+			case "stackTrace":
+				handleStackTrace(request);
 			case "threads":
-				var body:ThreadsResponseBody = {threads: [{id: 1, name: "main"}]};
-				sendSuccess(request, body);
+				sendSuccess(request.seq, request.command, threadsBody());
 			case "disconnect":
-				sendSuccess(request);
-				shutdownRequested = true;
+				handleDisconnect(request);
 			default:
-				sendErrorResponse(request.seq, command, ERROR_UNRECOGNIZED_COMMAND, "Unrecognized command: " + command);
+				sendError(request.seq, command, ERROR_UNRECOGNIZED_COMMAND, "Unrecognized command: " + command);
 		}
 	}
 
+	// --- request handlers ---
+
 	function handleInitialize(request:Request):Void {
 		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true};
-		sendSuccess(request, capabilities);
+		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
 		sendEvent("initialized");
 	}
 
-	function handleSetBreakpoints(request:Request):Void {
-		var args:SetBreakpointsArguments = request.arguments;
-		var requested:Array<SourceBreakpoint> = (args != null && args.breakpoints != null) ? args.breakpoints : [];
-		var accepted:Array<Breakpoint> = [];
-		for (sourceBreakpoint in requested) {
-			var breakpoint:Breakpoint = {
-				id: nextBreakpointId++,
-				verified: true,
-				line: sourceBreakpoint.line
-			};
-			if (args.source != null) {
-				breakpoint.source = args.source;
-			}
-			accepted.push(breakpoint);
+	function handleLaunch(request:Request):Void {
+		var args:LaunchRequestArguments = request.arguments;
+		if (args == null || args.program == null || args.program == "") {
+			sendError(request.seq, request.command, ERROR_LAUNCH_FAILED, "launch requires a 'program' (.hl file)");
+			return;
 		}
-		var body:SetBreakpointsResponseBody = {breakpoints: accepted};
-		sendSuccess(request, body);
+		var config:LaunchConfig = {
+			program: args.program,
+			args: args.args != null ? args.args : [],
+			cwd: args.cwd,
+			hlPath: (args.hlPath != null && args.hlPath != "") ? args.hlPath : Sys.executablePath(),
+			stopOnEntry: args.stopOnEntry == true
+		};
+		defer(request);
+		sessionCommands(CmdLaunch(request.seq, config));
 	}
 
-	function sendSuccess(request:Request, ?body:Dynamic):Void {
+	function handleSetBreakpoints(request:Request):Void {
+		var args:SetBreakpointsArguments = request.arguments;
+		var sourcePath = (args != null && args.source != null && args.source.path != null) ? args.source.path : "";
+		var sourceKey = sourcePath.toLowerCase();
+		var sourceBreakpoints:Array<SourceBreakpoint> = (args != null && args.breakpoints != null) ? args.breakpoints : [];
+		var requested:Array<RequestedBreakpoint> = [for (sb in sourceBreakpoints) {id: nextBreakpointId++, line: sb.line}];
+
+		if (!launched) {
+			// answer provisionally; re-verified after launch via breakpoint events
+			preLaunchBreakpoints.push({sourceKey: sourceKey, sourcePath: sourcePath, requested: requested});
+			var provisional:Array<BreakpointResult> = [
+				for (r in requested) {id: r.id, verified: false, line: r.line, message: "breakpoint will be resolved at launch", sourcePath: sourcePath}
+			];
+			sendSuccess(request.seq, request.command, setBreakpointsBody(provisional));
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdSetBreakpoints(request.seq, sourceKey, sourcePath, requested, false));
+	}
+
+	function handleConfigurationDone(request:Request):Void {
+		if (!launched) {
+			sendSuccess(request.seq, request.command, null);
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdConfigurationDone(request.seq));
+	}
+
+	function handleContinue(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot continue: nothing is running");
+			return;
+		}
+		var args:ContinueArguments = request.arguments;
+		var threadId = args != null ? args.threadId : currentThreadId;
+		defer(request);
+		sessionCommands(CmdContinue(request.seq, threadId));
+	}
+
+	function handleStackTrace(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot get a stack trace: nothing is running");
+			return;
+		}
+		var args:StackTraceArguments = request.arguments;
+		var threadId = args != null ? args.threadId : currentThreadId;
+		defer(request);
+		sessionCommands(CmdStackTrace(request.seq, threadId));
+	}
+
+	function handleDisconnect(request:Request):Void {
+		if (!launched) {
+			sendSuccess(request.seq, request.command, null);
+			shutdownRequested = true;
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdDisconnect(request.seq));
+	}
+
+	// --- session events -> responses/events ---
+
+	public function handleSessionEvent(event:DebugEvent):Void {
+		switch (event) {
+			case EvLaunched(seq):
+				launched = true;
+				completeSuccess(seq, null);
+				flushPreLaunchBreakpoints();
+			case EvLaunchFailed(seq, message):
+				completeError(seq, ERROR_LAUNCH_FAILED, message);
+			case EvBreakpoints(seq, results):
+				completeSuccess(seq, setBreakpointsBody(results));
+			case EvConfigurationDone(seq):
+				completeSuccess(seq, null);
+			case EvContinued(seq):
+				var body:ContinueResponseBody = {allThreadsContinued: true};
+				completeSuccess(seq, body);
+			case EvStackTrace(seq, frames):
+				completeSuccess(seq, stackTraceBody(frames));
+			case EvRejected(seq, message):
+				completeError(seq, ERROR_INVALID_REQUEST, message);
+			case EvSessionEnded(seq):
+				completeSuccess(seq, null);
+				shutdownRequested = true;
+			case EvBreakpointChanged(result):
+				sendEvent("breakpoint", {reason: "changed", breakpoint: breakpointStruct(result)});
+			case EvStoppedBreakpoint(threadId, hitBreakpointIds):
+				currentThreadId = threadId;
+				sendEvent("stopped", {reason: "breakpoint", threadId: threadId, allThreadsStopped: true, hitBreakpointIds: hitBreakpointIds});
+			case EvStoppedException(threadId, description):
+				currentThreadId = threadId;
+				sendEvent("stopped", {reason: "exception", threadId: threadId, allThreadsStopped: true, description: description});
+			case EvOutput(category, text):
+				sendEvent("output", {category: category, output: text});
+			case EvExited(exitCode):
+				sendEvent("exited", {exitCode: exitCode});
+				sendEvent("terminated");
+		}
+	}
+
+	function flushPreLaunchBreakpoints():Void {
+		for (entry in preLaunchBreakpoints) {
+			sessionCommands(CmdSetBreakpoints(-1, entry.sourceKey, entry.sourcePath, entry.requested, true));
+		}
+		preLaunchBreakpoints.resize(0);
+	}
+
+	// --- response/event helpers ---
+
+	function defer(request:Request):Void {
+		deferredCommands.set(request.seq, request.command);
+	}
+
+	function completeSuccess(requestSeq:Int, body:Dynamic):Void {
+		var command = deferredCommands.get(requestSeq);
+		deferredCommands.remove(requestSeq);
+		sendSuccess(requestSeq, command == null ? "" : command, body);
+	}
+
+	function completeError(requestSeq:Int, errorId:Int, message:String):Void {
+		var command = deferredCommands.get(requestSeq);
+		deferredCommands.remove(requestSeq);
+		sendError(requestSeq, command == null ? "" : command, errorId, message);
+	}
+
+	function sendSuccess(requestSeq:Int, command:String, body:Dynamic):Void {
 		var response:Response = {
 			seq: nextSeq++,
 			type: "response",
-			request_seq: request.seq,
+			request_seq: requestSeq,
 			success: true,
-			command: request.command
+			command: command
 		};
 		if (body != null) {
 			response.body = body;
@@ -119,7 +268,7 @@ class RequestDispatcher {
 		sink(response);
 	}
 
-	function sendErrorResponse(requestSeq:Int, command:String, errorId:Int, message:String):Void {
+	function sendError(requestSeq:Int, command:String, errorId:Int, message:String):Void {
 		var body:ErrorResponseBody = {error: {id: errorId, format: message, showUser: false}};
 		var response:Response = {
 			seq: nextSeq++,
@@ -143,6 +292,43 @@ class RequestDispatcher {
 			event.body = body;
 		}
 		sink(event);
+	}
+
+	function threadsBody():ThreadsResponseBody {
+		return {threads: [{id: currentThreadId, name: "main"}]};
+	}
+
+	function setBreakpointsBody(results:Array<BreakpointResult>):Dynamic {
+		return {breakpoints: [for (r in results) breakpointStruct(r)]};
+	}
+
+	function breakpointStruct(result:BreakpointResult):Dynamic {
+		var breakpoint:Dynamic = {id: result.id, verified: result.verified, line: result.line};
+		if (result.message != null) {
+			breakpoint.message = result.message;
+		}
+		if (result.sourcePath != null) {
+			breakpoint.source = {name: baseName(result.sourcePath), path: result.sourcePath};
+		}
+		return breakpoint;
+	}
+
+	function stackTraceBody(frames:Array<FrameInfo>):Dynamic {
+		var stackFrames:Array<Dynamic> = [];
+		for (frame in frames) {
+			var stackFrame:Dynamic = {id: frame.id, name: frame.name, line: frame.line, column: 1};
+			if (frame.file != null) {
+				stackFrame.source = {name: baseName(frame.file), path: frame.file};
+			}
+			stackFrames.push(stackFrame);
+		}
+		return {stackFrames: stackFrames, totalFrames: stackFrames.length};
+	}
+
+	static function baseName(path:String):String {
+		var normalized = StringTools.replace(path, "\\", "/");
+		var slash = normalized.lastIndexOf("/");
+		return slash < 0 ? normalized : normalized.substr(slash + 1);
 	}
 
 	static function readString(object:Dynamic, field:String):Null<String> {
