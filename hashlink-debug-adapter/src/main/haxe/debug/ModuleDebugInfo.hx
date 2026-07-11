@@ -45,6 +45,73 @@ class ModuleDebugInfo {
 		return data.functions[fidx].ops;
 	}
 
+	/** The function's type (an HFun), for reading its argument count/types. */
+	public function functionType(fidx:Int):HLType {
+		return data.functions[fidx].t;
+	}
+
+	/** The function's register types (arguments first, then locals). */
+	public function registers(fidx:Int):Array<HLType> {
+		return data.functions[fidx].regs;
+	}
+
+	/** The debug "assigns" table mapping variable names (string index) to opcode positions. */
+	public function assignsOf(fidx:Int):Array<{varName:Int, position:Int}> {
+		return data.functions[fidx].assigns;
+	}
+
+	public function stringAt(index:Int):String {
+		return (index >= 0 && index < data.strings.length) ? data.strings[index] : "?";
+	}
+
+	/** Number of arguments (including an implicit `this` for instance methods). */
+	public function argCount(fidx:Int):Int {
+		return switch (data.functions[fidx].t) {
+			case HFun(f): f.args.length;
+			default: 0;
+		}
+	}
+
+	/** The destination register written by the opcode at `op`, or -1 if it writes none. */
+	public function dstRegister(fidx:Int, op:Int):Int {
+		var ops = data.functions[fidx].ops;
+		if (op < 0 || op >= ops.length) {
+			return -1;
+		}
+		return switch (ops[op]) {
+			case OMov(d, _), OInt(d, _), OFloat(d, _), OBool(d, _), OBytes(d, _), OString(d, _), ONull(d):
+				d;
+			case OAdd(d, _, _), OSub(d, _, _), OMul(d, _, _), OSDiv(d, _, _), OUDiv(d, _, _),
+				OSMod(d, _, _), OUMod(d, _, _), OShl(d, _, _), OSShr(d, _, _), OUShr(d, _, _),
+				OAnd(d, _, _), OOr(d, _, _), OXor(d, _, _):
+				d;
+			case ONeg(d, _), ONot(d, _), OIncr(d), ODecr(d):
+				d;
+			case OCall0(d, _), OCall1(d, _, _), OCall2(d, _, _, _), OCall3(d, _, _, _, _),
+				OCall4(d, _, _, _, _, _), OCallN(d, _, _), OCallMethod(d, _, _), OCallThis(d, _, _),
+				OCallClosure(d, _, _):
+				d;
+			case OStaticClosure(d, _), OInstanceClosure(d, _, _), OVirtualClosure(d, _, _):
+				d;
+			case OGetGlobal(d, _), OField(d, _, _), OGetThis(d, _), ODynGet(d, _, _):
+				d;
+			case OToDyn(d, _), OToSFloat(d, _), OToUFloat(d, _), OToInt(d, _), OSafeCast(d, _),
+				OUnsafeCast(d, _), OToVirtual(d, _):
+				d;
+			case OGetUI8(d, _, _), OGetUI16(d, _, _), OGetMem(d, _, _), OGetArray(d, _, _):
+				d;
+			case ONew(d), OArraySize(d, _), OType(d, _), OGetType(d, _), OGetTID(d, _), ORef(d, _),
+				OUnref(d, _):
+				d;
+			case OMakeEnum(d, _, _), OEnumAlloc(d, _), OEnumIndex(d, _), OEnumField(d, _, _, _):
+				d;
+			case ORefData(d, _), ORefOffset(d, _, _):
+				d;
+			default:
+				-1;
+		}
+	}
+
 	/** Source line of a single opcode, or 0 when unknown. */
 	public function lineOf(fidx:Int, op:Int):Int {
 		if (fidx < 0 || fidx >= data.functions.length) {

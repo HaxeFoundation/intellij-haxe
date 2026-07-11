@@ -9,7 +9,9 @@ import dap.protocol.LaunchRequestArguments;
 import dap.protocol.ProtocolMessage;
 import dap.protocol.Request;
 import dap.protocol.Response;
+import dap.protocol.ScopesArguments;
 import dap.protocol.SetBreakpointsArguments;
+import dap.protocol.VariablesArguments;
 import dap.protocol.SourceBreakpoint;
 import dap.protocol.StackTraceArguments;
 import dap.protocol.ThreadsResponseBody;
@@ -18,8 +20,10 @@ import debug.DebugEvent;
 import debug.FrameInfo;
 import debug.LaunchConfig;
 import debug.RequestedBreakpoint;
+import debug.ScopeInfo;
 import debug.SessionCommand;
 import debug.StepMode;
+import debug.VariableInfo;
 import haxe.Json;
 
 /**
@@ -100,6 +104,10 @@ class RequestDispatcher {
 				handleStep(request, StepOut);
 			case "stackTrace":
 				handleStackTrace(request);
+			case "scopes":
+				handleScopes(request);
+			case "variables":
+				handleVariables(request);
 			case "threads":
 				sendSuccess(request.seq, request.command, threadsBody());
 			case "disconnect":
@@ -112,7 +120,7 @@ class RequestDispatcher {
 	// --- request handlers ---
 
 	function handleInitialize(request:Request):Void {
-		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true};
+		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true};
 		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
 		sendEvent("initialized");
@@ -197,6 +205,26 @@ class RequestDispatcher {
 		sessionCommands(CmdStackTrace(request.seq, threadId));
 	}
 
+	function handleScopes(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot get scopes: nothing is running");
+			return;
+		}
+		var args:ScopesArguments = request.arguments;
+		defer(request);
+		sessionCommands(CmdScopes(request.seq, args != null ? args.frameId : 0));
+	}
+
+	function handleVariables(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot get variables: nothing is running");
+			return;
+		}
+		var args:VariablesArguments = request.arguments;
+		defer(request);
+		sessionCommands(CmdVariables(request.seq, args != null ? args.variablesReference : 0));
+	}
+
 	function handleDisconnect(request:Request):Void {
 		if (!launched) {
 			sendSuccess(request.seq, request.command, null);
@@ -228,6 +256,10 @@ class RequestDispatcher {
 				completeSuccess(seq, null);
 			case EvStackTrace(seq, frames):
 				completeSuccess(seq, stackTraceBody(frames));
+			case EvScopes(seq, scopes):
+				completeSuccess(seq, scopesBody(scopes));
+			case EvVariables(seq, variables):
+				completeSuccess(seq, variablesBody(variables));
 			case EvRejected(seq, message):
 				completeError(seq, ERROR_INVALID_REQUEST, message);
 			case EvSessionEnded(seq):
@@ -346,6 +378,18 @@ class RequestDispatcher {
 			stackFrames.push(stackFrame);
 		}
 		return {stackFrames: stackFrames, totalFrames: stackFrames.length};
+	}
+
+	function scopesBody(scopes:Array<ScopeInfo>):Dynamic {
+		return {scopes: [for (s in scopes) {name: s.name, variablesReference: s.reference}]};
+	}
+
+	function variablesBody(variables:Array<VariableInfo>):Dynamic {
+		return {
+			variables: [
+				for (v in variables) {name: v.name, value: v.value, type: v.type, variablesReference: v.reference}
+			]
+		};
 	}
 
 	static function baseName(path:String):String {

@@ -13,6 +13,8 @@ enum DebugEvent {
 	EvContinued(requestSeq:Int);
 	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
+	EvScopes(requestSeq:Int, scopes:Array<ScopeInfo>);
+	EvVariables(requestSeq:Int, variables:Array<VariableInfo>);
 	EvRejected(requestSeq:Int, message:String);
 	EvSessionEnded(requestSeq:Int);
 	// spontaneous events

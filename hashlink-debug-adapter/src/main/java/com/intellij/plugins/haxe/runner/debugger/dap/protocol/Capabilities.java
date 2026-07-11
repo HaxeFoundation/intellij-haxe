@@ -8,4 +8,5 @@ import lombok.Data;
 @Data
 public class Capabilities {
   private Boolean supportsConfigurationDoneRequest;
+  private Boolean supportsVariableType;
 }

@@ -8,4 +8,6 @@ typedef StackFrameLocation = {
 	var fidx:Int;
 	var op:Int;
 	var address:Pointer;
+	// the frame base (ebp/rbp) of this frame, used to read its locals/arguments
+	var ebp:Pointer;
 }

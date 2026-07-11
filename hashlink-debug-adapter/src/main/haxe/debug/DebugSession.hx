@@ -50,6 +50,16 @@ class DebugSession {
 	var stepActive:Bool = false;
 	var stepMode:StepMode = Next;
 	var stepStartEsp:Pointer = Int64.ofInt(0);
+	// variable inspection (created at launch, once jit/module are available)
+	var frameLayout:FrameLayout;
+	var localsResolver:LocalsResolver;
+	var valueReader:ValueReader;
+	// per-stop frame cache + variablesReference registry (invalidated on resume)
+	var frameCache:Array<StackFrameLocation> = [];
+	final references:Map<Int, RefTarget> = new Map();
+	var nextReference:Int = REF_BASE;
+
+	static inline var REF_BASE = 1000;
 
 	public function new(api:DebugApi, emit:DebugEvent->Void) {
 		this.api = api;
@@ -101,6 +111,10 @@ class DebugSession {
 				handleStep(seq, threadId, mode);
 			case CmdStackTrace(seq, threadId):
 				handleStackTrace(seq, threadId);
+			case CmdScopes(seq, frameId):
+				handleScopes(seq, frameId);
+			case CmdVariables(seq, reference):
+				handleVariables(seq, reference);
 			case CmdDisconnect(seq):
 				handleDisconnect(seq);
 		}
@@ -134,6 +148,10 @@ class DebugSession {
 
 			breakpoints = new Breakpoints(api, process.pid);
 			stackWalker = new StackWalker(api, process.pid, jit);
+			var align = new Align(jit.is64, jit.boolSize4);
+			frameLayout = new FrameLayout(align, jit.winCall);
+			localsResolver = new LocalsResolver(module);
+			valueReader = new ValueReader(new MemoryReader(api, process.pid, jit.is64), align);
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -312,6 +330,9 @@ class DebugSession {
 	// Re-execute the original instruction under the trap flag, re-arm the INT3,
 	// then let the debuggee run.
 	function stepOverAndResume(threadId:Int):Void {
+		// resuming invalidates the stopped-frame cache and its variablesReferences
+		frameCache = [];
+		references.clear();
 		var bp = currentStoppedBreakpoint;
 		if (bp != null) {
 			setTrapFlag(threadId);
@@ -444,10 +465,10 @@ class DebugSession {
 	function handleStackTrace(requestSeq:Int, threadId:Int):Void {
 		switch (state) {
 			case Stopped(tid):
-				var locations = stackWalker.walk(tid);
+				ensureFrames(tid);
 				var frames:Array<FrameInfo> = [];
-				for (i in 0...locations.length) {
-					var location = locations[i];
+				for (i in 0...frameCache.length) {
+					var location = frameCache[i];
 					var source = module.lookup(location.fidx, location.op);
 					frames.push({
 						id: i,
@@ -460,6 +481,80 @@ class DebugSession {
 			default:
 				emit(EvRejected(requestSeq, "Cannot get stack trace: debuggee is not stopped"));
 		}
+	}
+
+	// --- variable inspection ---
+
+	function handleScopes(requestSeq:Int, frameId:Int):Void {
+		switch (state) {
+			case Stopped(tid):
+				ensureFrames(tid);
+				if (frameId < 0 || frameId >= frameCache.length) {
+					emit(EvScopes(requestSeq, []));
+					return;
+				}
+				var reference = allocReference(RefLocals(frameId));
+				emit(EvScopes(requestSeq, [{name: "Locals", reference: reference}]));
+			default:
+				emit(EvRejected(requestSeq, "Cannot get scopes: debuggee is not stopped"));
+		}
+	}
+
+	function handleVariables(requestSeq:Int, reference:Int):Void {
+		switch (state) {
+			case Stopped(_):
+				var target = references.get(reference);
+				if (target == null) {
+					emit(EvVariables(requestSeq, []));
+					return;
+				}
+				switch (target) {
+					case RefLocals(frameId):
+						emit(EvVariables(requestSeq, readLocals(frameId)));
+				}
+			default:
+				emit(EvRejected(requestSeq, "Cannot get variables: debuggee is not stopped"));
+		}
+	}
+
+	function readLocals(frameId:Int):Array<VariableInfo> {
+		if (frameId < 0 || frameId >= frameCache.length) {
+			return [];
+		}
+		var frame = frameCache[frameId];
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		var locals = localsResolver.localsAt(frame.fidx, frame.op);
+		var variables:Array<VariableInfo> = [];
+		for (local in locals) {
+			if (local.register < 0 || local.register >= offsets.length) {
+				continue;
+			}
+			var slot = offsets[local.register];
+			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
+			var decoded = valueReader.read(address, slot.t);
+			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
+	}
+
+	// (Re)walk the stack for the stopped thread, caching frames and invalidating
+	// the per-stop reference registry.
+	function refreshFrames(threadId:Int):Void {
+		frameCache = stackWalker.walk(threadId);
+		references.clear();
+		nextReference = REF_BASE;
+	}
+
+	function ensureFrames(threadId:Int):Void {
+		if (frameCache.length == 0) {
+			refreshFrames(threadId);
+		}
+	}
+
+	function allocReference(target:RefTarget):Int {
+		var reference = nextReference++;
+		references.set(reference, target);
+		return reference;
 	}
 
 	function handleDisconnect(requestSeq:Int):Void {

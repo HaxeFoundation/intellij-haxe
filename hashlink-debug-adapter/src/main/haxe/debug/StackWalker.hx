@@ -32,12 +32,12 @@ class StackWalker {
 		var frames:Array<StackFrameLocation> = [];
 
 		var eip = api.readRegister(pid, threadId, Eip);
+		var ebp = api.readRegister(pid, threadId, Ebp);
 		var top = jit.resolveAddress(eip);
 		if (top != null) {
-			frames.push({fidx: top.fidx, op: top.op, address: eip});
+			frames.push({fidx: top.fidx, op: top.op, address: eip, ebp: ebp});
 		}
 
-		var ebp = api.readRegister(pid, threadId, Ebp);
 		while (frames.length < MAX_FRAMES) {
 			if (Int64.eq(ebp, Int64.ofInt(0))) {
 				break;
@@ -52,7 +52,8 @@ class StackWalker {
 			if (resolved == null) {
 				break;
 			}
-			frames.push({fidx: resolved.fidx, op: resolved.op, address: returnAddress});
+			// the caller executes with base savedEbp
+			frames.push({fidx: resolved.fidx, op: resolved.op, address: returnAddress, ebp: savedEbp});
 
 			// caller frame must be at a higher stack address; otherwise stop to avoid loops
 			if (Int64.compare(savedEbp, ebp) <= 0) {

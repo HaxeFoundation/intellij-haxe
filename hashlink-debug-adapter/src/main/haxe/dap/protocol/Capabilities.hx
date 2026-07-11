@@ -5,4 +5,5 @@ package dap.protocol;
  */
 typedef Capabilities = {
 	@:optional var supportsConfigurationDoneRequest:Bool;
+	@:optional var supportsVariableType:Bool;
 }

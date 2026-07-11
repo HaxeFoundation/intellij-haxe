@@ -20,10 +20,12 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.NextResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.OutputEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ProtocolMessage;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ScopesResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SetBreakpointsResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackTraceResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepOutResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariablesResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.TerminatedEvent;
 import java.util.List;
@@ -156,6 +158,24 @@ public class DapJsonTest {
     ProtocolMessage stepOut = DapJson.decode(
       "{\"seq\":3,\"type\":\"response\",\"request_seq\":3,\"success\":true,\"command\":\"stepOut\"}");
     assertTrue(stepOut instanceof StepOutResponse);
+  }
+
+  @Test
+  public void decodeDiscriminatesScopesAndVariablesResponses() {
+    String scopes = "{\"seq\":1,\"type\":\"response\",\"request_seq\":1,\"success\":true,\"command\":\"scopes\","
+                    + "\"body\":{\"scopes\":[{\"name\":\"Locals\",\"variablesReference\":1000}]}}";
+    ProtocolMessage sm = DapJson.decode(scopes);
+    assertTrue(sm instanceof ScopesResponse);
+    assertEquals("Locals", ((ScopesResponse)sm).getBody().getScopes().get(0).getName());
+    assertEquals(1000, ((ScopesResponse)sm).getBody().getScopes().get(0).getVariablesReference());
+
+    String vars = "{\"seq\":2,\"type\":\"response\",\"request_seq\":2,\"success\":true,\"command\":\"variables\","
+                  + "\"body\":{\"variables\":[{\"name\":\"total\",\"value\":\"3\",\"type\":\"Int\",\"variablesReference\":0}]}}";
+    ProtocolMessage vm = DapJson.decode(vars);
+    assertTrue(vm instanceof VariablesResponse);
+    assertEquals("total", ((VariablesResponse)vm).getBody().getVariables().get(0).getName());
+    assertEquals("3", ((VariablesResponse)vm).getBody().getVariables().get(0).getValue());
+    assertEquals(0, ((VariablesResponse)vm).getBody().getVariables().get(0).getVariablesReference());
   }
 
   @Test

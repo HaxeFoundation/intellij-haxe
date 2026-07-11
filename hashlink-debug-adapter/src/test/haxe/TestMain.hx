@@ -2,6 +2,9 @@ import tests.BreakpointsTest;
 import tests.CodeGraphTest;
 import tests.DispatcherTest;
 import tests.FrameCodecTest;
+import tests.FrameLayoutTest;
+import tests.LocalsResolverTest;
+import tests.ValueReaderTest;
 import tests.JitInfoReaderTest;
 import tests.ModuleDebugInfoTest;
 import tests.ProtocolJsonTest;
@@ -38,6 +41,15 @@ class TestMain {
 
 		assert.setContext("CodeGraphTest");
 		CodeGraphTest.run(assert);
+
+		assert.setContext("FrameLayoutTest");
+		FrameLayoutTest.run(assert);
+
+		assert.setContext("LocalsResolverTest");
+		LocalsResolverTest.run(assert);
+
+		assert.setContext("ValueReaderTest");
+		ValueReaderTest.run(assert);
 
 		Sys.println(assert.checks + " checks, " + assert.failures + " failures");
 		Sys.exit(assert.failures == 0 ? 0 : 1);
