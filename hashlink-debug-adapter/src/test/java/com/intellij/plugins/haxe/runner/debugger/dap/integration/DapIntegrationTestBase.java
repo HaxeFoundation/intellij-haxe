@@ -343,6 +343,12 @@ public abstract class DapIntegrationTestBase {
   }
 
   private int scopeReference(int frameId, String namePrefix) throws Exception {
+    Scope scope = scopeByPrefix(frameId, namePrefix);
+    if (scope == null) throw new IllegalStateException("no " + namePrefix + " scope");
+    return scope.getVariablesReference();
+  }
+
+  protected Scope scopeByPrefix(int frameId, String namePrefix) throws Exception {
     ScopesRequest request = new ScopesRequest();
     ScopesArguments args = new ScopesArguments();
     args.setFrameId(frameId);
@@ -350,10 +356,10 @@ public abstract class DapIntegrationTestBase {
     ScopesResponse response = (ScopesResponse)request(request);
     for (Scope scope : response.getBody().getScopes()) {
       if (scope.getName() != null && scope.getName().startsWith(namePrefix)) {
-        return scope.getVariablesReference();
+        return scope;
       }
     }
-    throw new IllegalStateException("no " + namePrefix + " scope");
+    return null;
   }
 
   protected List<Variable> variables(int reference) throws Exception {

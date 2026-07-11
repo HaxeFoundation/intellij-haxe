@@ -401,7 +401,17 @@ class RequestDispatcher {
 	}
 
 	function scopesBody(scopes:Array<ScopeInfo>):Dynamic {
-		return {scopes: [for (s in scopes) {name: s.name, variablesReference: s.reference}]};
+		return {
+			scopes: [
+				for (s in scopes) {
+					var scope:Dynamic = {name: s.name, variablesReference: s.reference};
+					if (s.hint != null) {
+						scope.presentationHint = s.hint;
+					}
+					scope;
+				}
+			]
+		};
 	}
 
 	function variablesBody(variables:Array<VariableInfo>):Dynamic {

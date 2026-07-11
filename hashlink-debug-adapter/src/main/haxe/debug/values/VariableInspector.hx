@@ -42,6 +42,10 @@ class VariableInspector {
 	final references:Map<Int, RefTarget> = new Map();
 	var nextReference:Int = REF_BASE;
 
+	// Set by DebugSession: the stopped thread's CPU registers (the
+	// architecture-neutral SP/BP/IP/FLAGS subset), shown on the top frame.
+	public var cpuRegisters:Null<Void->Array<VariableInfo>> = null;
+
 	public function new(module:ModuleDebugInfo, jit:JitInfo, memory:MemoryReader) {
 		this.module = module;
 		this.jit = jit;
@@ -107,6 +111,7 @@ class VariableInspector {
 		if (statics != null) {
 			scopes.push(statics);
 		}
+		scopes.push({name: "Registers", reference: allocReference(RefRegisters(frameId)), hint: "registers"});
 		return scopes;
 	}
 
@@ -189,7 +194,48 @@ class VariableInspector {
 				valueChildren.of(pointer, type);
 			case RefStatics(pointer, proto):
 				readStaticFields(pointer, proto);
+			case RefRegisters(frameId):
+				readRegisters(frameId);
 		}
+	}
+
+	/**
+	 * The frame's HL bytecode registers r0..rN (every typed `ebp+offset` slot,
+	 * including args and unnamed temporaries), each annotated with the local
+	 * name currently bound to it. The stopped thread's CPU registers lead the
+	 * list on the top frame (they are thread state, not frame state).
+	 */
+	function readRegisters(frameId:Int):Array<VariableInfo> {
+		if (frameId < 0 || frameId >= frameCache.length) {
+			return [];
+		}
+		var frame = frameCache[frameId];
+		var variables:Array<VariableInfo> = [];
+		if (frameId == 0 && cpuRegisters != null) {
+			for (register in cpuRegisters()) {
+				variables.push(register);
+			}
+		}
+		var boundNames = new Map<Int, String>();
+		for (local in localsResolver.localsAt(frame.fidx, frame.op)) {
+			boundNames.set(local.register, local.name);
+		}
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		for (i in 0...offsets.length) {
+			var slot = offsets[i];
+			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
+			var bound = boundNames.get(i);
+			var name = bound == null ? "r" + i : "r" + i + " (" + bound + ")";
+			// registers not yet written this call hold leftovers: any decode
+			// failure degrades to the raw slot bits instead of failing the list
+			var decoded = try valueReader.read(address, slot.t) catch (e:Dynamic) {
+				value: ValueReader.hex(memory.readPointer(address)) + " (unreadable)",
+				type: ValueReader.typeName(slot.t),
+				reference: 0,
+			};
+			variables.push({name: name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+		}
+		return variables;
 	}
 
 	function readLocals(frameId:Int):Array<VariableInfo> {

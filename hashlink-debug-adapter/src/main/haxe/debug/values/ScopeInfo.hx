@@ -6,4 +6,6 @@ package debug.values;
 typedef ScopeInfo = {
 	var name:String;
 	var reference:Int;
+	// DAP Scope.presentationHint ("locals", "registers", ...), when meaningful
+	var ?hint:String;
 }

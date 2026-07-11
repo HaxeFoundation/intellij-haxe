@@ -15,4 +15,7 @@ enum RefTarget {
 	// A class's statics singleton; decoded like an object but function-typed fields
 	// (the static methods, which share the container) are hidden.
 	RefStatics(pointer:Pointer, proto:ObjPrototype);
+	// The frame's HL bytecode registers (r0..rN), plus the thread's CPU
+	// registers on the top frame.
+	RefRegisters(frameId:Int);
 }

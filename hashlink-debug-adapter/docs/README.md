@@ -303,6 +303,24 @@ and dropped. Visibility is deduped by name, and at the assign op itself the
 binding is not yet live (`position < op`, strictly). A local in scope shadows a
 same-named argument.
 
+### Registers scope
+
+Every frame gets a third DAP scope, "Registers" (`presentationHint:
+"registers"`; the IDE renders any non-Locals scope as a collapsible group):
+
+- **HL bytecode registers** `r0..rN` — every typed `ebp+offset` slot of the
+  frame, including args and unnamed temporaries, decoded like locals and
+  annotated with the local name currently bound to them (via `LocalScopes`),
+  e.g. `r7 (x)`. Registers not yet written this call hold leftovers, so each
+  decode is guarded: a failure degrades to the raw slot bits, never fails the
+  listing.
+- **CPU registers** on the top frame only (they are thread state, not frame
+  state): SP / BP / IP / FLAGS with decoded flag bits. Deliberately only
+  `hl_debug_read_register` indexes 0–3 — the architecture-neutral subset the
+  adapter itself relies on. Higher indexes (Rax, Dr0–7, Xmm0) are x86-specific
+  and the HL native silently returns Rax for unknown indexes on Windows (and
+  worse via ptrace), so they are not portable to e.g. ARM macs.
+
 ### Value layout (how a slot is decoded)
 
 `ValueReader` reads at 64-bit offsets (port of `hld/Eval.readVal`):

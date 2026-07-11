@@ -164,6 +164,7 @@ class DebugSession {
 			breakpoints = new Breakpoints(api, process.pid);
 			stackWalker = new StackWalker(api, process.pid, jit);
 			inspector = new VariableInspector(module, jit, new MemoryReader(api, process.pid, jit.is64));
+			inspector.cpuRegisters = cpuRegisterRows;
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -538,6 +539,40 @@ class DebugSession {
 		if (inspector.frames().length == 0) {
 			inspector.setFrames(stackWalker.walk(threadId));
 		}
+	}
+
+	// The stopped thread's CPU registers for the inspector's Registers scope.
+	// Only the architecture-neutral indexes (0..3 = SP/BP/IP/FLAGS) are read:
+	// they are the ones this adapter already relies on everywhere, and the only
+	// ones hl_debug_read_register maps on every platform (higher indexes are
+	// x86-specific and fall back to Rax on Windows).
+	function cpuRegisterRows():Array<debug.values.VariableInfo> {
+		var rows:Array<debug.values.VariableInfo> = [];
+		if (state.match(Stopped(_))) {
+			var read = (name, register) -> {
+				var value = api.readRegister(process.pid, stoppedThreadId, register);
+				rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
+				value;
+			};
+			read("SP", Esp);
+			read("BP", Ebp);
+			read("IP", Eip);
+			var flags = Int64.toInt(read("FLAGS", EFlags));
+			rows[rows.length - 1].value += flagBits(flags);
+		}
+		return rows;
+	}
+
+	static function flagBits(flags:Int):String {
+		var names = [];
+		if (flags & 0x001 != 0) names.push("CF");
+		if (flags & 0x004 != 0) names.push("PF");
+		if (flags & 0x040 != 0) names.push("ZF");
+		if (flags & 0x080 != 0) names.push("SF");
+		if (flags & 0x100 != 0) names.push("TF");
+		if (flags & 0x400 != 0) names.push("DF");
+		if (flags & 0x800 != 0) names.push("OF");
+		return names.length == 0 ? "" : " [" + names.join(" ") + "]";
 	}
 
 	function handleDisconnect(requestSeq:Int):Void {

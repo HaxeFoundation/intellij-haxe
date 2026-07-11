@@ -11,6 +11,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateA
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.EvaluateResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
 import java.util.List;
 import java.util.Map;
@@ -371,6 +372,57 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
       if (name.equals(variable.getName())) count++;
     }
     return count;
+  }
+
+  // --- registers scope ---
+
+  @Test
+  public void registersScopeListsCpuAndVmRegisters() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_SHADOW, FIXTURE_SHADOW_LOOP_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+    Scope registers = scopeByPrefix(frameId, "Registers");
+    assertNotNull("Registers scope present", registers);
+    assertEquals("DAP presentation hint", "registers", registers.getPresentationHint());
+
+    List<Variable> rows = variables(registers.getVariablesReference());
+    // the architecture-neutral CPU subset leads the top frame's list
+    Variable sp = findVariable(rows, "SP");
+    assertNotNull("SP present", sp);
+    assertTrue("SP is a hex pointer (was " + sp.getValue() + ")", sp.getValue().startsWith("0x"));
+    assertNotNull("BP present", findVariable(rows, "BP"));
+    assertNotNull("IP present", findVariable(rows, "IP"));
+    assertNotNull("FLAGS present", findVariable(rows, "FLAGS"));
+
+    // VM registers, annotated with the local currently bound to them
+    Variable loopX = findByNameSuffix(rows, "(x)");
+    assertNotNull("a VM register is annotated with the bound local x", loopX);
+    assertEquals("the loop x register holds the iteration value", "0", loopX.getValue());
+    assertNotNull("total's register annotated too", findByNameSuffix(rows, "(total)"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void registersOnCallerFramesOmitCpuState() throws Exception {
+    // CPU registers are thread state: shown on the top frame only, while every
+    // frame lists its own VM registers
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MAIN, FIXTURE_ADD_LINE);
+    int callerFrameId = stackTrace(stopped.getBody().getThreadId()).getBody().getStackFrames().get(1).getId();
+    Scope registers = scopeByPrefix(callerFrameId, "Registers");
+    assertNotNull("caller frame has a Registers scope", registers);
+
+    List<Variable> rows = variables(registers.getVariablesReference());
+    assertEquals("no thread CPU rows on a caller frame", null, findVariable(rows, "SP"));
+    assertNotNull("caller VM register bound to total", findByNameSuffix(rows, "(total)"));
+
+    request(new DisconnectRequest());
+  }
+
+  private static Variable findByNameSuffix(List<Variable> variables, String suffix) {
+    for (Variable variable : variables) {
+      if (variable.getName() != null && variable.getName().endsWith(suffix)) return variable;
+    }
+    return null;
   }
 
   // --- evaluate (variable paths) ---

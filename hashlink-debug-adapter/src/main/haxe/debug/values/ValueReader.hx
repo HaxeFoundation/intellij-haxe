@@ -364,7 +364,7 @@ class ValueReader {
 		return (name != null && StringTools.startsWith(name, "$")) ? name.substr(1) : name;
 	}
 
-	static function hex(p:Pointer):String {
+	public static function hex(p:Pointer):String {
 		var high = Int64.getHigh(p);
 		var low = Int64.getLow(p);
 		return high != 0 ? "0x" + StringTools.hex(high) + StringTools.hex(low, 8) : "0x" + StringTools.hex(low);
