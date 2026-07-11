@@ -106,12 +106,6 @@ public class HaxeReferenceSuggestionUtil {
                     yield true;
                 }
                 case null, default -> {
-                    // handle some special cases
-                    if (HaxeAbstractForwardUtil.isElementInForwardMeta(targetReference)) {
-                        //TODO mlo: move this into its own completion class and skip all other contributers
-                        // for a better user experience / less noise
-                        addAbstractUnderlyingClassSuggestions(variants, targetReference);
-                    }
                     yield false;
                 }
             };
@@ -176,7 +170,7 @@ public class HaxeReferenceSuggestionUtil {
         }
     }
 
-    private static void addAbstractUnderlyingClassSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {
+    public static void addAbstractUnderlyingClassSuggestions(List<HaxeLookupElement> variants, HaxeReference targetReference) {
         final HaxeMeta meta = HaxeMetadataUtils.getEnclosingMeta(targetReference);
         PsiElement element = HaxeMetadataUtils.getAssociatedElement(meta);
 
