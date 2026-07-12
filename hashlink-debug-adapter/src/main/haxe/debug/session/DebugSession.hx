@@ -12,7 +12,7 @@ import debug.target.DebuggeeProcess;
 import debug.target.MemoryReader;
 import debug.target.WaitOutcome;
 import debug.target.StackWalker;
-import debug.values.VariableInspector;
+import debug.inspect.VariableInspector;
 
 import haxe.Int64;
 import sys.net.Host;

@@ -1,5 +1,5 @@
 package debug.session;
-import debug.values.ScopeInfo;
+import debug.inspect.ScopeInfo;
 
 import debug.values.VariableInfo;
 

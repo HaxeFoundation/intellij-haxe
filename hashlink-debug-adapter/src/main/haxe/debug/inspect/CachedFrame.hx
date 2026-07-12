@@ -1,4 +1,4 @@
-package debug.values;
+package debug.inspect;
 
 /** A walked stack frame plus the globally-unique id the client refers to it by. */
 typedef CachedFrame = {

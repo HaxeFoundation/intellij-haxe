@@ -1,4 +1,4 @@
-package debug.values;
+package debug.inspect;
 
 /**
  * A variable scope (e.g. "Locals") the session hands back for a frame.

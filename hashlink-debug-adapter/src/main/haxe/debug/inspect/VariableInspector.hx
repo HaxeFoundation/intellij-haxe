@@ -1,4 +1,6 @@
-package debug.values;
+package debug.inspect;
+
+import debug.values.*;
 
 import debug.Pointer;
 import debug.layout.Align;

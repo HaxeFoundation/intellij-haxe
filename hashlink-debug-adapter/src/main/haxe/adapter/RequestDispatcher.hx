@@ -5,7 +5,7 @@ import debug.session.DebugEvent;
 import debug.session.FrameInfo;
 import debug.session.LaunchConfig;
 import debug.session.RequestedBreakpoint;
-import debug.values.ScopeInfo;
+import debug.inspect.ScopeInfo;
 import debug.session.SessionCommand;
 import debug.session.StepMode;
 import debug.values.VariableInfo;

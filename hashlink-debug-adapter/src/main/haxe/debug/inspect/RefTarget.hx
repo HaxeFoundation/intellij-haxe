@@ -1,4 +1,4 @@
-package debug.values;
+package debug.inspect;
 
 import debug.Pointer;
 
