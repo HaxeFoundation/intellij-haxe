@@ -228,28 +228,46 @@ temp, re-arm it, and keep running. stepIn needs no guard (its callee-entry targe
 trap-flag bug in §3 — the stepping integration test must cover a repeated/recursive
 line, not just a straight-line step.
 
-### A step that can never land (thread blocked or ended)
-A step waits for the debuggee to reach a planted temp. But the stepped code can
-run somewhere that temp is never hit: stepping over a call after which the
-thread **blocks in a native wait** (a thread runner parking for its next job, a
-`Lock.wait()`, `Deque.pop(true)`) or the **thread ends** (its exit event is
-swallowed by `hl_debug_wait`). The old behaviour waited forever → the client
-hung on the pending step, while plain *continue* worked. Two guards now prevent
-that:
-- **No landing at all:** if a step plants zero temps (e.g. the only "next" is a
-  native return the stack walk can't resolve), it is immediately downgraded to a
-  continue.
-- **Planted but never reached:** a **step watchdog** — no debug event for
-  `STEP_WATCHDOG_MS` (2s) while a step is active — gives up the step, drops the
-  temps, and downgrades to a continue. Any debug event resets the timer, so a
-  legitimately progressing (or slow-but-advancing) step is never cut short.
+### Steps and multithreading: the Handled(4) rule (THE random-freeze bug)
+`hl_debug_wait` returns **Handled (4)** for events it has **already continued
+internally** — thread create/exit/set-name, dll load. In a multithreaded
+program these arrive constantly, including in the middle of our
+step-over-the-patched-instruction dance. Treating one as "the single-step
+completed" (an early `default: return`) was the **random multithreaded
+freeze**: after a Handled event NO thread is frozen, so the early return
+cleared the trap flag on a *running* thread (SetThreadContext unreliable →
+stuck TF → single-step storm) and the final resume then targeted the wrong /
+a nonexistent pending event — ContinueDebugEvent fails, a later REAL event
+stays pending, the whole debuggee stays frozen: "nothing happens".
 
-A downgrade emits a DAP **`continued`** event (`EvResumed`), so the client stops
-waiting for a step stop and shows the program running. On the IDE side the pump
-calls `XDebugSession.sessionResumed()`. Note: sys.thread workers have a
-*bytecode* caller (the `sys.thread` pool runner), so stepping out of a worker
-lands in `Thread.hx`, not native code — the hang there comes from the runner's
-blocking job-wait, which the watchdog covers.
+The rules every wait loop must follow (`waitForSingleStep`,
+`pauseForMemoryWrite`, the eval-call `resumeUntilTrap`, `handleWaitOutcome`):
+- **Handled → do nothing and keep waiting.** Never `resume` it (that either
+  fails silently or blindly continues a real event that arrived meanwhile).
+- **A Breakpoint/Error/StackOverflow from ANOTHER thread during a dance is a
+  real pending event that now owns the process freeze.** It must be handed
+  back and processed as a normal stop — resuming past it with our thread id
+  fails and freezes everything. `trapDance`/`stepOverAndResume` return the
+  interrupting outcome; callers settle their own state (rearm, respond), then
+  feed it to `handleWaitOutcome`.
+- **Check `outcome.threadId`** on SingleStep: only our thread has the trap
+  flag, but never assume.
+
+### A step that never lands is NOT an error
+A step with planted landings **waits indefinitely** — stepping over a slow
+call (`Sys.sleep(3)`, a long computation) must land after it finishes, however
+long that takes (pinned by `stepOverALongRunningCallWaitsForTheLanding`). A
+watchdog that gives up "stuck" steps was tried and was wrong: it turned slow
+steps into resumes. If the stepped code blocks forever (a worker parking in
+the `sys.thread` runner's job wait, an unreleased lock), the session simply
+stays running with the step pending — the same behaviour as every debugger,
+and the user can pause or hit another breakpoint. The ONLY automatic
+downgrade-to-continue is when a step can plant **no landing at all** (the
+sole "next" is an unresolvable native return): then a DAP `continued` event
+(`EvResumed`) tells the client to stop waiting; the IDE pump maps it to
+`XDebugSession.sessionResumed()`. Note: sys.thread workers have a *bytecode*
+caller (the pool runner in `Thread.hx`), so stepping out of a worker lands
+there, not in native code.
 
 ### Breakpoints always win
 If a user breakpoint and a step target trap at the same time, the user breakpoint
@@ -731,6 +749,9 @@ tests set it):
 | Test fixtures for breakpoints | Use runtime values so the compiler can't unroll/inline the target away |
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
+| Handled(4) wait events | Already continued inside hl_debug_wait (thread create/exit/name, dll load) — NEVER treat as a stop, NEVER resume them; keep waiting. Violating this froze multithreaded sessions randomly |
+| Event from another thread mid-dance | A pending Breakpoint/Error owns the process freeze: hand it to handleWaitOutcome as a normal stop; resuming past it with the wrong tid freezes the debuggee forever |
+| Slow/blocked steps | A step with planted landings waits indefinitely (a slow call is not a failure — no watchdogs); only a step with NO plantable landing downgrades to continue (DAP `continued`) |
 | Local address | `ebp + FrameLayout.offset(register)`, reconstructed — no shipping HashLink transmits locations; Windows all-stack args, SysV first-6-register |
 | Local names | Scope dependent — resolve through the CFG (`LocalScopes`), never "latest assign per register": no scope-end records exist and registers are recycled, so shadowed names duplicate and dead loop vars track garbage |
 | Value decode | Verify against known values in `VariablesIntegrationTest` — wrong offsets read as plausible garbage |

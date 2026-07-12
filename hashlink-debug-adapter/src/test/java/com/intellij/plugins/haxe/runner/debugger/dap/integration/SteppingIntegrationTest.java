@@ -59,4 +59,26 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
 
     request(new DisconnectRequest());
   }
+
+  @Test
+  public void stepOverALongRunningCallWaitsForTheLanding() throws Exception {
+    // Regression: a step over a slow call (Sys.sleep(3)) produces no debug
+    // events for seconds. The step must WAIT for its landing — an earlier
+    // "step watchdog" wrongly downgraded such steps to a resume after 2s,
+    // losing the stop entirely (user-reported design flaw, verified here).
+    StoppedEvent atSleep = runToBreakpoint(FIXTURE_MAIN, FIXTURE_SLOW_LINE);
+
+    long start = System.currentTimeMillis();
+    assertTrue("next accepted", request(nextRequest(atSleep.getBody().getThreadId())).isSuccess());
+    StoppedEvent landed = awaitStopped();
+    long elapsed = System.currentTimeMillis() - start;
+
+    assertEquals("step", landed.getBody().getReason());
+    var frame = stackTrace(landed.getBody().getThreadId()).getBody().getStackFrames().get(0);
+    assertEquals("landed on the line after the sleep", FIXTURE_SLOW_AFTER_LINE, frame.getLine());
+    assertTrue("the landing took the sleep's duration (" + elapsed + "ms), not a watchdog shortcut",
+               elapsed >= 2500);
+
+    request(new DisconnectRequest());
+  }
 }

@@ -66,13 +66,13 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
-  public void stepOverACallThatBlocksTheThreadDoesNotHang() throws Exception {
-    // Regression for the reported hang: stepping over a statement after which
-    // the thread blocks (or ends) never reaches the step's planted landing, so
-    // the adapter used to wait forever. Here the worker parks on gate.wait()
-    // (never released). Stepping over it must NOT hang — the step watchdog
-    // downgrades it to a continue and the adapter emits `continued`. (Resume
-    // already worked; this makes step behave sanely too.)
+  public void stepOverABlockingCallKeepsTheSessionRunningAndResponsive() throws Exception {
+    // The worker parks on gate.wait() (never released). Stepping over it plants
+    // a landing that is never reached — CORRECT debugger semantics is to keep
+    // the session running with the step pending (exactly like stepping over an
+    // infinite loop): no hang, no fake stop, and — the regression part — no
+    // wedged adapter. Before the Handled-event fixes, stray thread-lifecycle
+    // events during the resume dance could freeze the whole debuggee.
     initialize();
     assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
     assertTrue("breakpoint set", setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess());
@@ -80,23 +80,18 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
     int threadId = awaitStopped().getBody().getThreadId(); // stopped ON gate.wait()
 
     assertTrue("stepOver accepted", request(nextRequest(threadId)).isSuccess());
-    Boolean continued = awaitContinuedOrStop();
-    assertNotNull("the step neither landed nor downgraded — it hung", continued);
-    assertTrue("the blocking step downgraded to a continue", continued);
+
+    // no stop and no downgrade within a generous window: the program runs
+    // freely (main keeps spinning) with the step pending
+    Event event = client.pollEvent(3000);
+    assertTrue("no stop/continued should arrive while the step is pending (got "
+               + (event == null ? "nothing" : event.getEvent()) + ")",
+               event == null || !(event instanceof StoppedEvent) && !(event instanceof ContinuedEvent));
+
+    // the adapter must still be fully responsive (not wedged on a pending event)
+    assertTrue("threads request still answered", request(new ThreadsRequest()).isSuccess());
 
     request(new DisconnectRequest());
-  }
-
-  // TRUE on a `continued` event, FALSE on a stop, null on timeout (the hang).
-  // The wait must outlast the adapter's step watchdog (STEP_WATCHDOG_MS = 2s).
-  private Boolean awaitContinuedOrStop() throws Exception {
-    long deadline = System.currentTimeMillis() + TIMEOUT;
-    while (System.currentTimeMillis() < deadline) {
-      Event event = client.pollEvent(TIMEOUT);
-      if (event instanceof ContinuedEvent) return Boolean.TRUE;
-      if (event instanceof StoppedEvent) return Boolean.FALSE;
-    }
-    return null;
   }
 
   private List<DapThread> threadList() throws Exception {

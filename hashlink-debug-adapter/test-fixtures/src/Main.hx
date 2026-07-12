@@ -17,7 +17,7 @@ class Main {
 		for (i in 0...count) {
 			total = add(total, i); // FIXTURE_LOOP_LINE = 18
 		}
-		inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); // same line: keeps the line constants below stable
+		inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); slowDemo(); // same line: keeps the line constants below stable
 		Sys.println("fixture-total:" + total);
 	}
 
@@ -35,5 +35,13 @@ class Main {
 		var v = Config.version; // FIXTURE_INSPECT_LINE = 35 (p and nums are in scope)
 		Config.bump(); p.move(1, 2); // same line: keeps the line constants stable
 		Sys.println("inspect:" + p.x + "," + nums[0] + "," + v);
+	}
+
+	// A call that takes noticeably long: stepping over it must WAIT for the
+	// landing however long the call runs — never give up and resume freely.
+	static function slowDemo():Void {
+		var before = Std.parseInt("7") + 0; // plain Int 7
+		Sys.sleep(3.0); // FIXTURE_SLOW_LINE = 44 — step over waits ~3s
+		Sys.println("slow-done:" + before); // FIXTURE_SLOW_AFTER_LINE = 45
 	}
 }

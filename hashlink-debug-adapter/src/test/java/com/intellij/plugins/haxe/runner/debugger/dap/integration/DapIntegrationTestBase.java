@@ -85,6 +85,8 @@ public abstract class DapIntegrationTestBase {
   protected static final String FIXTURE_MUTATE = "Mutate.hx";
   protected static final int FIXTURE_MUTATE_LINE = 21; // Mutate.demo() checkpoint: n/flag/obj/arr in scope
   protected static final int FIXTURE_CACHED_LINE = 37; // Mutate.cachedUse(): v used on this line and the previous one
+  protected static final int FIXTURE_SLOW_LINE = 44; // Main.slowDemo(): Sys.sleep(3.0)
+  protected static final int FIXTURE_SLOW_AFTER_LINE = 45; // Main.slowDemo(): the line after the sleep
   protected static final int FIXTURE_FLOAT_LINE = 44; // Mutate.floatParam(): Float arg traced on the callee's first line
   protected static final int FIXTURE_INT_ARG_LINE = 50; // Mutate.intParam(): Int arg traced on the callee's first line
   protected static final String FIXTURE_CALL = "Call.hx";

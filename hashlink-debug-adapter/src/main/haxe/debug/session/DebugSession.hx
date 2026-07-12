@@ -41,9 +41,6 @@ private enum State {
 class DebugSession {
 	static inline var TRAP_FLAG = 0x100;
 	static inline var WAIT_POLL_MS = 20;
-	// A step that produces no debug event for this long is assumed unable to land
-	// (the thread blocked in a native call or ended): give it up and run freely.
-	static inline var STEP_WATCHDOG_MS = 2000;
 	static inline var ATTACH_DRAIN_MS = 50;
 	static inline var CONNECT_RETRIES = 60;
 	static inline var CONNECT_DELAY_MS = 50;
@@ -68,7 +65,6 @@ class DebugSession {
 	var stepActive:Bool = false;
 	var stepMode:StepMode = Next;
 	var stepStartEsp:Pointer = Int64.ofInt(0);
-	var stepIdleTicks:Int = 0;
 	// variable inspection (created at launch, once jit/module are available);
 	// owns the per-stop frame cache + variablesReference registry
 	var inspector:VariableInspector;
@@ -107,35 +103,10 @@ class DebugSession {
 	function pollWhileRunning():Void {
 		var outcome = api.wait(process.pid, WAIT_POLL_MS);
 		handleWaitOutcome(outcome);
-		stepWatchdog(outcome);
 		// interleave one pending command so setBreakpoints/continue/disconnect are responsive
 		var command = commands.pop(false);
 		if (command != null) {
 			handleCommand(command);
-		}
-	}
-
-	// A step plants temporary breakpoints and waits for the thread to reach one.
-	// If the thread instead blocks in a native call (e.g. a thread runner parking
-	// for its next job) or ends, that landing never comes and we would wait
-	// forever. When a step produces no debug event for STEP_WATCHDOG_MS, give it
-	// up: drop the temps and tell the client the program is running (like a
-	// continue), rather than hanging. Any debug event resets the timer, so a
-	// legitimately progressing step is never cut short.
-	function stepWatchdog(outcome:WaitOutcome):Void {
-		if (state != Running || !stepActive) {
-			stepIdleTicks = 0;
-			return;
-		}
-		if (outcome.result != Timeout) {
-			stepIdleTicks = 0;
-			return;
-		}
-		if (++stepIdleTicks * WAIT_POLL_MS >= STEP_WATCHDOG_MS) {
-			dbg("step watchdog: no landing after " + (stepIdleTicks * WAIT_POLL_MS) + "ms; running freely");
-			finishStep();
-			stepIdleTicks = 0;
-			emit(EvResumed(stoppedThreadId));
 		}
 	}
 
@@ -373,6 +344,9 @@ class DebugSession {
 			var outcome = api.wait(process.pid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout: // keep waiting for the forced stop
+				case Handled:
+					// auto-continued lifecycle event (no thread is frozen by it):
+					// NOT the forced stop, keep waiting
 				case Exit:
 					state = Exited;
 					emit(EvExited(safeExitCode()));
@@ -464,6 +438,10 @@ class DebugSession {
 					return false; // a user breakpoint fired inside the call
 				case SingleStep:
 					api.resume(process.pid, outcome.threadId);
+				case Handled:
+					// auto-continued lifecycle event (another thread created/
+					// exited/named itself during the call): not our trap and not
+					// a failure — keep waiting
 				case Exit:
 					state = Exited;
 					return false;
@@ -494,50 +472,92 @@ class DebugSession {
 	function handleContinue(requestSeq:Int, threadId:Int):Void {
 		switch (state) {
 			case Stopped(_):
-				stepOverAndResume(threadId);
+				var interrupted = stepOverAndResume(threadId);
 				state = Running;
 				emit(EvContinued(requestSeq));
+				if (interrupted != null) {
+					// another thread stopped us during the resume dance: report
+					// that stop right after the continue response
+					handleWaitOutcome(interrupted);
+				}
 			default:
 				emit(EvRejected(requestSeq, "Cannot continue: debuggee is not stopped"));
 		}
 	}
 
 	// Re-execute the original instruction under the trap flag, re-arm the INT3,
-	// then let the debuggee run.
-	function stepOverAndResume(threadId:Int):Void {
+	// then let the debuggee run. Returns a pending debug event when one from
+	// ANOTHER thread interrupted the dance (all threads run once the pending
+	// event is continued, so e.g. a second thread can hit a breakpoint right
+	// here) — the caller must process it as a normal stop AFTER settling its
+	// own state; we must NOT resume past it or the whole process stays frozen.
+	function stepOverAndResume(threadId:Int):Null<WaitOutcome> {
 		// resuming invalidates the stopped-frame cache and its variablesReferences
 		inspector.invalidate();
 		var bp = currentStoppedBreakpoint;
 		if (bp != null) {
-			setTrapFlag(threadId);
-			api.resume(process.pid, threadId);
-			waitForSingleStep(threadId);
-			// clear the trap flag or the debuggee keeps single-stepping forever
-			clearTrapFlag(threadId);
+			var interrupted = trapDance(threadId);
 			breakpoints.rearm(bp);
 			currentStoppedBreakpoint = null;
 			if (state == Exited) {
-				return; // the debuggee exited during the single step
+				return null; // the debuggee exited during the single step
+			}
+			if (interrupted != null) {
+				return interrupted; // a pending event owns the freeze; don't resume
 			}
 		}
 		api.resume(process.pid, threadId);
+		return null;
 	}
 
-	function waitForSingleStep(threadId:Int):Void {
-		for (_ in 0...20) {
+	// The single-step-over-the-patched-instruction sequence. On return the
+	// debuggee is frozen again (either our SingleStep event or an interrupting
+	// event is pending), which is exactly when register writes are reliable.
+	function trapDance(threadId:Int):Null<WaitOutcome> {
+		setTrapFlag(threadId);
+		api.resume(process.pid, threadId);
+		var interrupted = waitForSingleStep(threadId);
+		// clear the trap flag or the debuggee keeps single-stepping forever
+		clearTrapFlag(threadId);
+		return interrupted;
+	}
+
+	// Waits for OUR thread's single-step to complete. Multithreaded reality:
+	// while the step's one instruction runs, every other thread runs too, so
+	// arbitrary events can arrive first —
+	//  - Handled(4): thread create/exit/set-name etc. that hl_debug_wait ALREADY
+	//    continued internally. Not a stop; keep waiting. (Treating these as the
+	//    step's completion was the random multithreaded freeze: the early return
+	//    cleared the trap flag while threads were RUNNING — unreliable register
+	//    writes, stuck TF — and the final resume then targeted the wrong event.)
+	//  - Breakpoint/Error/StackOverflow from any thread: a REAL pending event
+	//    that now owns the process freeze. Returned to the caller to be handled
+	//    as a normal stop; continuing it with our thread id would fail and leave
+	//    the debuggee frozen forever.
+	function waitForSingleStep(threadId:Int):Null<WaitOutcome> {
+		for (_ in 0...100) {
 			var outcome = api.wait(process.pid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case SingleStep:
-					return;
+					if (outcome.threadId == threadId) {
+						return null;
+					}
+					// another thread's leftover trap: continue it, keep waiting
+					api.resume(process.pid, outcome.threadId);
+				case Handled:
+					// already continued inside hl_debug_wait: not a stop
+				case Timeout:
+					// keep waiting: our instruction hasn't retired yet
 				case Exit:
 					state = Exited;
 					emit(EvExited(safeExitCode()));
-					return;
-				case Timeout:
-				default:
-					return;
+					return null;
+				case Breakpoint, Error, StackOverflow:
+					return outcome;
 			}
 		}
+		dbg("waitForSingleStep: no single-step event after 100 polls");
+		return null;
 	}
 
 	// --- stepping ---
@@ -545,15 +565,20 @@ class DebugSession {
 	function handleStep(requestSeq:Int, threadId:Int, mode:StepMode):Void {
 		switch (state) {
 			case Stopped(_):
-				var canLand = planStep(threadId, mode);
+				var interrupted = planStep(threadId, mode);
 				state = Running;
 				emit(EvStepStarted(requestSeq)); // ack now; the stopped(reason:"step") event follows
-				if (!canLand) {
-					// No user-code position to land on — e.g. stepping over the last
-					// statement of a thread entry function, whose only "next" is the
-					// native thread trampoline. The thread runs to its end; there is
-					// nowhere to stop, so behave like continue and tell the client we
-					// are running rather than leaving it waiting for a step stop.
+				if (interrupted != null) {
+					// another thread stopped us during the resume dance: report
+					// that stop right after the step response
+					handleWaitOutcome(interrupted);
+				} else if (!stepActive) {
+					// No landing could be planted at all (the only "next" is an
+					// unresolvable native return). Behave like continue and tell
+					// the client we are running rather than leaving it waiting
+					// for a step stop that cannot exist. NOTE: a step whose
+					// landings ARE planted waits for them however long the code
+					// runs (a slow call is not a reason to give up the step).
 					emit(EvResumed(threadId));
 				}
 			default:
@@ -562,10 +587,11 @@ class DebugSession {
 	}
 
 	// Plant the temporary breakpoints that mark where this step should land, then
-	// resume (stepping over the instruction we are parked on). Returns whether a
-	// landing was planted; false means the step has no user-code stop (the caller
-	// downgrades it to a plain continue).
-	function planStep(threadId:Int, mode:StepMode):Bool {
+	// resume (stepping over the instruction we are parked on). `stepActive`
+	// afterwards says whether any landing was planted (false = the caller
+	// downgrades the step to a plain continue). Returns a pending debug event
+	// when another thread interrupted the resume dance.
+	function planStep(threadId:Int, mode:StepMode):Null<WaitOutcome> {
 		breakpoints.clearTemps();
 		stepMode = mode;
 		stepStartEsp = api.readRegister(process.pid, threadId, Esp);
@@ -575,8 +601,7 @@ class DebugSession {
 		if (position == null) {
 			// not in known bytecode (e.g. inside a native call): can't compute targets
 			stepActive = false;
-			stepOverAndResume(threadId);
-			return false;
+			return stepOverAndResume(threadId);
 		}
 		var fidx = position.fidx;
 		var startLine = module.lineOf(fidx, position.op);
@@ -607,8 +632,7 @@ class DebugSession {
 		}
 
 		stepActive = breakpoints.hasTemps();
-		stepOverAndResume(threadId);
-		return stepActive;
+		return stepOverAndResume(threadId);
 	}
 
 	function currentReturnAddress(threadId:Int):Null<Pointer> {
@@ -620,12 +644,16 @@ class DebugSession {
 	// not our landing. Single-step past it, re-arm it, and keep running.
 	function stepPastTempAndResume(threadId:Int, address:Pointer):Void {
 		breakpoints.suspendTemp(address);
-		setTrapFlag(threadId);
-		api.resume(process.pid, threadId);
-		waitForSingleStep(threadId);
-		clearTrapFlag(threadId);
+		var interrupted = trapDance(threadId);
 		breakpoints.rearmTemp(address);
 		if (state == Exited) {
+			return;
+		}
+		if (interrupted != null) {
+			// a pending event from another thread owns the freeze: process it as
+			// a normal stop instead of resuming past it (bounded reentry — each
+			// nested call consumes one already-pending event)
+			handleWaitOutcome(interrupted);
 			return;
 		}
 		api.resume(process.pid, threadId);
@@ -827,7 +855,10 @@ class DebugSession {
 				currentStoppedBreakpoint = null;
 				emit(EvStoppedException(outcome.threadId, outcome.result == StackOverflow ? "Stack overflow" : "Unhandled exception"));
 			case Handled:
-				api.resume(process.pid, outcome.threadId);
+				// hl_debug_wait already continued this event internally (thread
+				// create/exit/set-name, dll load, ...). Continuing again is at
+				// best a silent failure and at worst blindly continues a REAL
+				// event that arrived in the meantime — do nothing.
 		}
 	}
 
