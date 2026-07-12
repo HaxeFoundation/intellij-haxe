@@ -1,6 +1,6 @@
 package tests;
 
-import debug.eval.CallEmitter;
+import debug.eval.call.CallEmitter;
 
 import haxe.Int64;
 import haxe.io.Bytes;

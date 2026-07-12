@@ -405,8 +405,8 @@ class DebugSession {
 	 * valid while stopped; a call that throws, recurses into a breakpoint, or
 	 * runs longer than CALL_TIMEOUT_MS fails with the state restored.
 	 */
-	function callInDebuggee(threadId:Int, funcAddr:Pointer, args:Array<debug.eval.CallEmitter.CallArg>, floatReturn:Bool):Pointer {
-		var asm = new debug.eval.CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
+	function callInDebuggee(threadId:Int, funcAddr:Pointer, args:Array<debug.eval.call.CallEmitter.CallArg>, floatReturn:Bool):Pointer {
+		var asm = new debug.eval.call.CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
 		var asmSize = asm.length;
 
 		var prevEax = api.readRegister(debuggeePid, threadId, Eax);

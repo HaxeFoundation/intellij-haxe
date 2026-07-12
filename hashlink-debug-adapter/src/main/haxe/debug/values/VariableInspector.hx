@@ -205,10 +205,10 @@ class VariableInspector {
 
 	// Set by DebugSession: runs a function inside the debuggee. Forwarded to the
 	// call service; null until the eval-call machinery is enabled.
-	public var functionCaller(never, set):Null<(Pointer, Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer>;
+	public var functionCaller(never, set):Null<(Pointer, Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer>;
 
-	inline function set_functionCaller(caller:Null<(Pointer, Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer>):Null<(Pointer,
-		Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> {
+	inline function set_functionCaller(caller:Null<(Pointer, Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer>):Null<(Pointer,
+		Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer> {
 		calls.functionCaller = caller;
 		return caller;
 	}
