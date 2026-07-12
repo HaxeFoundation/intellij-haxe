@@ -15,6 +15,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ContinuedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ExitedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.OutputEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
@@ -181,6 +182,10 @@ public class HashLinkDebugProcess extends XDebugProcess {
         switch (event) {
           case null -> { /* poll again */ }
           case StoppedEvent stopped -> handleStopped(stopped);
+          case ContinuedEvent ignored ->
+            // a step with no user-code landing (e.g. past a thread entry's last
+            // statement) was downgraded to a continue: reflect that we are running
+            getSession().sessionResumed();
           case OutputEvent output -> handleOutput(output);
           case ExitedEvent exited ->
             print("Process finished with exit code " + exited.getBody().getExitCode() + "\n", false);

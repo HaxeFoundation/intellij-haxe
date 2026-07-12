@@ -28,6 +28,10 @@ enum DebugEvent {
 	EvStoppedBreakpoint(threadId:Int, hitBreakpointIds:Array<Int>);
 	EvStoppedStep(threadId:Int);
 	EvStoppedException(threadId:Int, description:String);
+	// The debuggee resumed on its own after a step that had no user-code landing
+	// (e.g. stepping past a thread entry's last statement): tell the client it is
+	// running so it stops waiting for a step stop that can never arrive.
+	EvResumed(threadId:Int);
 	EvOutput(category:String, text:String);
 	EvExited(exitCode:Int);
 }

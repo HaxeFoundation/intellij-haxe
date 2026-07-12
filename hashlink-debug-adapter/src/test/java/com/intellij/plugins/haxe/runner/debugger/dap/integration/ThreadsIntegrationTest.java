@@ -5,10 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DapThread;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ThreadsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ThreadsResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ContinuedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +26,8 @@ import org.junit.Test;
  */
 public class ThreadsIntegrationTest extends DapIntegrationTestBase {
 
-  private static final int WORKER_LINE = 38; // Threads.worker(): Sys.println("worker:" + workerLocal)
+  private static final int WORKER_LINE = 39; // Threads.worker(): Sys.println("worker:" + workerLocal)
+  private static final int BLOCK_LINE = 40; // Threads.worker(): gate.wait() — never released
 
   @Before
   public void requireThreadsFixture() {
@@ -60,6 +63,40 @@ public class ThreadsIntegrationTest extends DapIntegrationTestBase {
                topFrameName(mainThreadId).endsWith("block"));
 
     request(new DisconnectRequest());
+  }
+
+  @Test
+  public void stepOverACallThatBlocksTheThreadDoesNotHang() throws Exception {
+    // Regression for the reported hang: stepping over a statement after which
+    // the thread blocks (or ends) never reaches the step's planted landing, so
+    // the adapter used to wait forever. Here the worker parks on gate.wait()
+    // (never released). Stepping over it must NOT hang — the step watchdog
+    // downgrades it to a continue and the adapter emits `continued`. (Resume
+    // already worked; this makes step behave sanely too.)
+    initialize();
+    assertTrue("launch succeeds", launch(threadsFixtureHl.toString()).isSuccess());
+    assertTrue("breakpoint set", setBreakpoint("Threads.hx", BLOCK_LINE).isSuccess());
+    assertTrue("configurationDone", request(new ConfigurationDoneRequest()).isSuccess());
+    int threadId = awaitStopped().getBody().getThreadId(); // stopped ON gate.wait()
+
+    assertTrue("stepOver accepted", request(nextRequest(threadId)).isSuccess());
+    Boolean continued = awaitContinuedOrStop();
+    assertNotNull("the step neither landed nor downgraded — it hung", continued);
+    assertTrue("the blocking step downgraded to a continue", continued);
+
+    request(new DisconnectRequest());
+  }
+
+  // TRUE on a `continued` event, FALSE on a stop, null on timeout (the hang).
+  // The wait must outlast the adapter's step watchdog (STEP_WATCHDOG_MS = 2s).
+  private Boolean awaitContinuedOrStop() throws Exception {
+    long deadline = System.currentTimeMillis() + TIMEOUT;
+    while (System.currentTimeMillis() < deadline) {
+      Event event = client.pollEvent(TIMEOUT);
+      if (event instanceof ContinuedEvent) return Boolean.TRUE;
+      if (event instanceof StoppedEvent) return Boolean.FALSE;
+    }
+    return null;
   }
 
   private List<DapThread> threadList() throws Exception {

@@ -327,6 +327,9 @@ class RequestDispatcher {
 			case EvStoppedException(threadId, description):
 				currentThreadId = threadId;
 				sendEvent("stopped", {reason: "exception", threadId: threadId, allThreadsStopped: true, description: description});
+			case EvResumed(threadId):
+				currentThreadId = threadId;
+				sendEvent("continued", {threadId: threadId, allThreadsContinued: true});
 			case EvOutput(category, text):
 				sendEvent("output", {category: category, output: text});
 			case EvExited(exitCode):

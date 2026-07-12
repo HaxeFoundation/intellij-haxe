@@ -41,6 +41,9 @@ private enum State {
 class DebugSession {
 	static inline var TRAP_FLAG = 0x100;
 	static inline var WAIT_POLL_MS = 20;
+	// A step that produces no debug event for this long is assumed unable to land
+	// (the thread blocked in a native call or ended): give it up and run freely.
+	static inline var STEP_WATCHDOG_MS = 2000;
 	static inline var ATTACH_DRAIN_MS = 50;
 	static inline var CONNECT_RETRIES = 60;
 	static inline var CONNECT_DELAY_MS = 50;
@@ -65,6 +68,7 @@ class DebugSession {
 	var stepActive:Bool = false;
 	var stepMode:StepMode = Next;
 	var stepStartEsp:Pointer = Int64.ofInt(0);
+	var stepIdleTicks:Int = 0;
 	// variable inspection (created at launch, once jit/module are available);
 	// owns the per-stop frame cache + variablesReference registry
 	var inspector:VariableInspector;
@@ -103,10 +107,35 @@ class DebugSession {
 	function pollWhileRunning():Void {
 		var outcome = api.wait(process.pid, WAIT_POLL_MS);
 		handleWaitOutcome(outcome);
+		stepWatchdog(outcome);
 		// interleave one pending command so setBreakpoints/continue/disconnect are responsive
 		var command = commands.pop(false);
 		if (command != null) {
 			handleCommand(command);
+		}
+	}
+
+	// A step plants temporary breakpoints and waits for the thread to reach one.
+	// If the thread instead blocks in a native call (e.g. a thread runner parking
+	// for its next job) or ends, that landing never comes and we would wait
+	// forever. When a step produces no debug event for STEP_WATCHDOG_MS, give it
+	// up: drop the temps and tell the client the program is running (like a
+	// continue), rather than hanging. Any debug event resets the timer, so a
+	// legitimately progressing step is never cut short.
+	function stepWatchdog(outcome:WaitOutcome):Void {
+		if (state != Running || !stepActive) {
+			stepIdleTicks = 0;
+			return;
+		}
+		if (outcome.result != Timeout) {
+			stepIdleTicks = 0;
+			return;
+		}
+		if (++stepIdleTicks * WAIT_POLL_MS >= STEP_WATCHDOG_MS) {
+			dbg("step watchdog: no landing after " + (stepIdleTicks * WAIT_POLL_MS) + "ms; running freely");
+			finishStep();
+			stepIdleTicks = 0;
+			emit(EvResumed(stoppedThreadId));
 		}
 	}
 
@@ -516,17 +545,27 @@ class DebugSession {
 	function handleStep(requestSeq:Int, threadId:Int, mode:StepMode):Void {
 		switch (state) {
 			case Stopped(_):
-				planStep(threadId, mode);
+				var canLand = planStep(threadId, mode);
 				state = Running;
 				emit(EvStepStarted(requestSeq)); // ack now; the stopped(reason:"step") event follows
+				if (!canLand) {
+					// No user-code position to land on — e.g. stepping over the last
+					// statement of a thread entry function, whose only "next" is the
+					// native thread trampoline. The thread runs to its end; there is
+					// nowhere to stop, so behave like continue and tell the client we
+					// are running rather than leaving it waiting for a step stop.
+					emit(EvResumed(threadId));
+				}
 			default:
 				emit(EvRejected(requestSeq, "Cannot step: debuggee is not stopped"));
 		}
 	}
 
 	// Plant the temporary breakpoints that mark where this step should land, then
-	// resume (stepping over the instruction we are parked on).
-	function planStep(threadId:Int, mode:StepMode):Void {
+	// resume (stepping over the instruction we are parked on). Returns whether a
+	// landing was planted; false means the step has no user-code stop (the caller
+	// downgrades it to a plain continue).
+	function planStep(threadId:Int, mode:StepMode):Bool {
 		breakpoints.clearTemps();
 		stepMode = mode;
 		stepStartEsp = api.readRegister(process.pid, threadId, Esp);
@@ -537,7 +576,7 @@ class DebugSession {
 			// not in known bytecode (e.g. inside a native call): can't compute targets
 			stepActive = false;
 			stepOverAndResume(threadId);
-			return;
+			return false;
 		}
 		var fidx = position.fidx;
 		var startLine = module.lineOf(fidx, position.op);
@@ -569,6 +608,7 @@ class DebugSession {
 
 		stepActive = breakpoints.hasTemps();
 		stepOverAndResume(threadId);
+		return stepActive;
 	}
 
 	function currentReturnAddress(threadId:Int):Null<Pointer> {

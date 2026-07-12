@@ -13,6 +13,7 @@
 class Threads {
 	static var mainReady = false;
 	static var release = false;
+	static var gate = new sys.thread.Lock(); // never released: used to park the worker
 
 	static function main():Void {
 		release = Std.parseInt("0") > 0; // runtime false — defeats constant-folding of the spin loop
@@ -35,6 +36,7 @@ class Threads {
 			Sys.sleep(0.001); // yield + force a re-read of mainReady
 		}
 		var workerLocal = Std.parseInt("222") + 0; // plain Int 222
-		Sys.println("worker:" + workerLocal); // FIXTURE_THREADS_WORKER_LINE = 38
+		Sys.println("worker:" + workerLocal); // FIXTURE_THREADS_WORKER_LINE = 39
+		gate.wait(); // FIXTURE_THREADS_BLOCK_LINE = 40 — never released; step over blocks forever
 	}
 }

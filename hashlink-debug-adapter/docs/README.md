@@ -228,6 +228,29 @@ temp, re-arm it, and keep running. stepIn needs no guard (its callee-entry targe
 trap-flag bug in §3 — the stepping integration test must cover a repeated/recursive
 line, not just a straight-line step.
 
+### A step that can never land (thread blocked or ended)
+A step waits for the debuggee to reach a planted temp. But the stepped code can
+run somewhere that temp is never hit: stepping over a call after which the
+thread **blocks in a native wait** (a thread runner parking for its next job, a
+`Lock.wait()`, `Deque.pop(true)`) or the **thread ends** (its exit event is
+swallowed by `hl_debug_wait`). The old behaviour waited forever → the client
+hung on the pending step, while plain *continue* worked. Two guards now prevent
+that:
+- **No landing at all:** if a step plants zero temps (e.g. the only "next" is a
+  native return the stack walk can't resolve), it is immediately downgraded to a
+  continue.
+- **Planted but never reached:** a **step watchdog** — no debug event for
+  `STEP_WATCHDOG_MS` (2s) while a step is active — gives up the step, drops the
+  temps, and downgrades to a continue. Any debug event resets the timer, so a
+  legitimately progressing (or slow-but-advancing) step is never cut short.
+
+A downgrade emits a DAP **`continued`** event (`EvResumed`), so the client stops
+waiting for a step stop and shows the program running. On the IDE side the pump
+calls `XDebugSession.sessionResumed()`. Note: sys.thread workers have a
+*bytecode* caller (the `sys.thread` pool runner), so stepping out of a worker
+lands in `Thread.hx`, not native code — the hang there comes from the runner's
+blocking job-wait, which the watchdog covers.
+
 ### Breakpoints always win
 If a user breakpoint and a step target trap at the same time, the user breakpoint
 wins (the stop is reported as `reason:"breakpoint"`, not `"step"`). All temporary

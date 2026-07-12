@@ -10,6 +10,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StepOutR
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.DisconnectResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ErrorResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ContinuedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ExitedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.InitializeResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.InitializedEvent;
@@ -99,6 +100,7 @@ public final class DapJson {
       case ExitedEvent.EVENT -> ExitedEvent.class;
       case OutputEvent.EVENT -> OutputEvent.class;
       case BreakpointEvent.EVENT -> BreakpointEvent.class;
+      case ContinuedEvent.EVENT -> ContinuedEvent.class;
       default -> Event.class;
     };
     return MAPPER.treeToValue(root, target);
