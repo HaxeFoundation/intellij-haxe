@@ -35,6 +35,27 @@ final class HashLinkStackFrame extends XStackFrame {
     return frame.getId();
   }
 
+  /**
+   * Identifies "the same frame" across steps so the platform
+   * ({@code XVariablesViewBase}) restores the previously expanded variable nodes
+   * and highlights values that changed — instead of collapsing the whole tree on
+   * every stop. Keyed by the function (independent of the current line, so a
+   * step within a method restores) plus its source path to disambiguate
+   * like-named functions; a step into a different function yields a different
+   * key, correctly rebuilding fresh. Null name → no stable identity, let the
+   * platform rebuild. Mirrors {@code JavaStackFrame.getEqualityObject()} keying
+   * on the method.
+   */
+  @Override
+  public @Nullable Object getEqualityObject() {
+    String name = frame.getName();
+    if (name == null) {
+      return null;
+    }
+    String path = frame.getSource() != null ? frame.getSource().getPath() : null;
+    return path != null ? name + "@" + path : name;
+  }
+
   @Override
   public @Nullable XDebuggerEvaluator getEvaluator() {
     return new HashLinkDebuggerEvaluator(process, frame.getId());
