@@ -1,0 +1,4 @@
+-cp src
+-main Threads
+-debug
+-hl ../build/hl/threads-fixture.hl

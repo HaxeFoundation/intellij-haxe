@@ -133,10 +133,12 @@ class DispatcherTest {
 		assert.equals("stopped", stopped.event, "stopped event emitted");
 		assert.equals(77, stopped.body.threadId, "stopped thread id");
 
-		// threads should now report the stopped thread id
+		// threads is deferred to the session (it must read the runtime registry)
 		c.dispatcher.handleRequest(request(2, "threads"));
+		assert.isTrue(c.cmds[c.cmds.length - 1].match(CmdThreads(2)), "threads deferred to session");
+		c.dispatcher.handleSessionEvent(EvThreads(2, [{id: 77, name: "main"}]));
 		var threadsResponse = lastResponse(c.out);
-		assert.equals(77, threadsResponse.body.threads[0].id, "threads reflects stopped thread");
+		assert.equals(77, threadsResponse.body.threads[0].id, "threads reflects the session's list");
 
 		// stackTrace is deferred to the session
 		var before = c.cmds.length;

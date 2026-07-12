@@ -93,6 +93,7 @@ public abstract class DapIntegrationTestBase {
   protected Process adapterProcess;
   protected DapClient client;
   protected Path fixtureHl;
+  protected Path threadsFixtureHl;
   protected Path fixtureSrcDir;
   protected String hlExecutable;
 
@@ -116,6 +117,10 @@ public abstract class DapIntegrationTestBase {
                         !fixtureProperty.isEmpty() && Files.isRegularFile(Path.of(fixtureProperty)));
       fixtureHl = Path.of(fixtureProperty);
       fixtureSrcDir = Path.of(System.getProperty("dap.fixture.src.dir", ""));
+      String threadsProperty = System.getProperty("dap.fixture.threads.hl", "");
+      if (!threadsProperty.isEmpty() && Files.isRegularFile(Path.of(threadsProperty))) {
+        threadsFixtureHl = Path.of(threadsProperty);
+      }
     }
     Optional<Path> hl = HlExecutableResolver.resolve();
     Assume.assumeTrue("HashLink executable not found (set -PhashlinkBin / -Dhashlink.executable, "

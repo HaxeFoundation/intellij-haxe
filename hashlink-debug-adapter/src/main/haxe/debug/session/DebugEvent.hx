@@ -15,6 +15,7 @@ enum DebugEvent {
 	EvConfigurationDone(requestSeq:Int);
 	EvContinued(requestSeq:Int);
 	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
+	EvThreads(requestSeq:Int, threads:Array<debug.target.ThreadInfo>);
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
 	EvScopes(requestSeq:Int, scopes:Array<ScopeInfo>);
 	EvVariables(requestSeq:Int, variables:Array<VariableInfo>);

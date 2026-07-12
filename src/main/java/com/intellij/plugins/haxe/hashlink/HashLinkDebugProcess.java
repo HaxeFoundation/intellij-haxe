@@ -32,7 +32,11 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextReque
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DapThread;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ThreadsRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ThreadsResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutArguments;
@@ -197,16 +201,24 @@ public class HashLinkDebugProcess extends XDebugProcess {
 
   private void handleStopped(StoppedEvent stopped) {
     currentThreadId = stopped.getBody().getThreadId();
+    // all threads are suspended at a stop; show them all, with the stopped one active
+    List<DapThread> threads = requestThreads();
+    List<StackFrame> activeFrames = requestStackTrace(currentThreadId);
+    getSession().positionReached(new HashLinkSuspendContext(this, threads, currentThreadId, activeFrames));
+  }
+
+  List<DapThread> requestThreads() {
+    return sendRequest(new ThreadsRequest()) instanceof ThreadsResponse response && response.isSuccess()
+           ? response.getBody().getThreads() : List.of();
+  }
+
+  List<StackFrame> requestStackTrace(int threadId) {
     StackTraceRequest request = new StackTraceRequest();
     StackTraceArguments arguments = new StackTraceArguments();
-    arguments.setThreadId(currentThreadId);
+    arguments.setThreadId(threadId);
     request.setArguments(arguments);
-    Response response = sendRequest(request);
-    if (response instanceof StackTraceResponse stackTrace && response.isSuccess()) {
-      XSuspendContext context =
-        new HashLinkSuspendContext(this, stackTrace.getBody().getStackFrames());
-      getSession().positionReached(context);
-    }
+    return sendRequest(request) instanceof StackTraceResponse response && response.isSuccess()
+           ? response.getBody().getStackFrames() : List.of();
   }
 
   private void handleOutput(OutputEvent output) {

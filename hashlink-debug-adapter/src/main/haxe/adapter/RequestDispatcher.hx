@@ -116,7 +116,7 @@ class RequestDispatcher {
 			case "evaluate":
 				handleEvaluate(request);
 			case "threads":
-				sendSuccess(request.seq, request.command, threadsBody());
+				handleThreads(request);
 			case "disconnect":
 				handleDisconnect(request);
 			default:
@@ -199,6 +199,16 @@ class RequestDispatcher {
 		var threadId = request.arguments != null && Reflect.hasField(request.arguments, "threadId") ? request.arguments.threadId : currentThreadId;
 		defer(request);
 		sessionCommands(CmdStep(request.seq, threadId, mode));
+	}
+
+	function handleThreads(request:Request):Void {
+		if (!launched) {
+			// pre-launch: DAP clients still poll threads; give them the placeholder
+			sendSuccess(request.seq, request.command, {threads: [{id: 1, name: "main"}]});
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdThreads(request.seq));
 	}
 
 	function handleStackTrace(request:Request):Void {
@@ -289,6 +299,8 @@ class RequestDispatcher {
 				completeSuccess(seq, body);
 			case EvStepStarted(seq):
 				completeSuccess(seq, null);
+			case EvThreads(seq, threads):
+				completeSuccess(seq, threadsBody(threads));
 			case EvStackTrace(seq, frames):
 				completeSuccess(seq, stackTraceBody(frames));
 			case EvScopes(seq, scopes):
@@ -388,8 +400,8 @@ class RequestDispatcher {
 		sink(event);
 	}
 
-	function threadsBody():ThreadsResponseBody {
-		return {threads: [{id: currentThreadId, name: "main"}]};
+	function threadsBody(threads:Array<debug.target.ThreadInfo>):ThreadsResponseBody {
+		return {threads: [for (t in threads) {id: t.id, name: t.name}]};
 	}
 
 	function setBreakpointsBody(results:Array<BreakpointResult>):Dynamic {

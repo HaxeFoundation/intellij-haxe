@@ -28,6 +28,7 @@ dependencies {
 val buildHashlinkAdapter = providers.gradleProperty("buildHashlinkAdapter").getOrElse("true").toBoolean()
 val adapterHl = layout.buildDirectory.file("hl/hl-debug-adapter.hl")
 val fixtureHl = layout.buildDirectory.file("hl/test-fixture.hl")
+val threadsFixtureHl = layout.buildDirectory.file("hl/threads-fixture.hl")
 // haxelib used to read the .hl bytecode debug tables; pinned for reproducible builds
 val formatHaxelibVersion = "3.7.0"
 
@@ -60,6 +61,18 @@ tasks.register<Exec>("buildTestFixture") {
     inputs.dir("test-fixtures/src")
     inputs.file("test-fixtures/fixture.hxml")
     outputs.file(fixtureHl)
+}
+
+tasks.register<Exec>("buildThreadsFixture") {
+    group = "hashlink"
+    description = "Compiles the multi-threaded debuggee fixture (build/hl/threads-fixture.hl)"
+    onlyIf { buildHashlinkAdapter && haxeAvailable }
+    dependsOn("installFormatHaxelib")
+    workingDir = File(projectDir, "test-fixtures")
+    commandLine = listOf("haxe", "threads.hxml")
+    inputs.dir("test-fixtures/src")
+    inputs.file("test-fixtures/threads.hxml")
+    outputs.file(threadsFixtureHl)
 }
 
 tasks.register<Exec>("buildDebugAdapter") {
@@ -107,11 +120,12 @@ tasks.named("check") {
 }
 
 tasks.named<Test>("test") {
-    dependsOn("buildDebugAdapter", "buildTestFixture")
-    // integration tests locate the built adapter, the debuggee fixture and
+    dependsOn("buildDebugAdapter", "buildTestFixture", "buildThreadsFixture")
+    // integration tests locate the built adapter, the debuggee fixtures and
     // (optionally) the HashLink executable through these
     systemProperty("dap.adapter.hl", adapterHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.hl", fixtureHl.get().asFile.absolutePath)
+    systemProperty("dap.fixture.threads.hl", threadsFixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.src.dir", File(projectDir, "test-fixtures/src").absolutePath)
     providers.gradleProperty("hashlinkBin").orNull?.let {
         systemProperty("hashlink.executable", it)

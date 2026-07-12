@@ -22,6 +22,7 @@ class TestMain {
 			// target control
 			{name: "BreakpointsTest", run: tests.BreakpointsTest.run},
 			{name: "StackWalkerTest", run: tests.StackWalkerTest.run},
+			{name: "ThreadRegistryTest", run: tests.ThreadRegistryTest.run},
 			// memory layout
 			{name: "FrameLayoutTest", run: tests.FrameLayoutTest.run},
 			{name: "ObjectLayoutTest", run: tests.ObjectLayoutTest.run},

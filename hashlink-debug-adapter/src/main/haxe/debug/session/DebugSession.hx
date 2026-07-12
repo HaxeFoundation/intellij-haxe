@@ -57,6 +57,7 @@ class DebugSession {
 	var breakpoints:Breakpoints;
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
+	var threadRegistry:debug.target.ThreadRegistry;
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
 	var alive:Bool = true;
@@ -131,6 +132,7 @@ class DebugSession {
 			case CmdConfigurationDone(seq): seq;
 			case CmdContinue(seq, _): seq;
 			case CmdStep(seq, _, _): seq;
+			case CmdThreads(seq): seq;
 			case CmdStackTrace(seq, _): seq;
 			case CmdScopes(seq, _): seq;
 			case CmdVariables(seq, _): seq;
@@ -153,6 +155,8 @@ class DebugSession {
 				handleContinue(seq, threadId);
 			case CmdStep(seq, threadId, mode):
 				handleStep(seq, threadId, mode);
+			case CmdThreads(seq):
+				handleThreads(seq);
 			case CmdStackTrace(seq, threadId):
 				handleStackTrace(seq, threadId);
 			case CmdScopes(seq, frameId):
@@ -196,8 +200,12 @@ class DebugSession {
 
 			breakpoints = new Breakpoints(api, process.pid);
 			stackWalker = new StackWalker(api, process.pid, jit);
-			inspector = new VariableInspector(module, jit, new MemoryReader(api, process.pid, jit.is64));
-			inspector.cpuRegisters = cpuRegisterRows;
+			var memReader = new MemoryReader(api, process.pid, jit.is64);
+			threadRegistry = new debug.target.ThreadRegistry(memReader,
+				new debug.layout.Align(jit.is64, jit.boolSize4), jit.hlVersionMajor, jit.hlVersionMinor);
+			inspector = new VariableInspector(module, jit, memReader);
+			inspector.frameWalker = tid -> stackWalker.walk(tid);
+			inspector.cpuRegistersFor = cpuRegisterRows;
 			inspector.enableWrites(new debug.target.MemoryWriter(api, process.pid, jit.is64));
 			inspector.xmm0Writer = value ->
 				api.writeRegister(process.pid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
@@ -599,17 +607,32 @@ class DebugSession {
 		return Int64.compare(esp, stepStartEsp) >= 0;
 	}
 
+	function handleThreads(requestSeq:Int):Void {
+		switch (state) {
+			case Stopped(_):
+				emit(EvThreads(requestSeq, threadList()));
+			default:
+				// not stopped: report the last-known trigger thread so the client
+				// always has at least one thread to attach its views to
+				emit(EvThreads(requestSeq, [{id: stoppedThreadId == 0 ? 1 : stoppedThreadId, name: "main"}]));
+		}
+	}
+
+	// The live threads (from HL's registry), version-adaptive; falls back to a
+	// single "main" thread when the program was compiled without thread support.
+	function threadList():Array<debug.target.ThreadInfo> {
+		return threadRegistry.read(jit.threadsPtr, jit.threads, stoppedThreadId);
+	}
+
 	function handleStackTrace(requestSeq:Int, threadId:Int):Void {
 		switch (state) {
-			case Stopped(tid):
-				ensureFrames(tid);
+			case Stopped(_):
 				var frames:Array<FrameInfo> = [];
-				var locations = inspector.frames();
-				for (i in 0...locations.length) {
-					var location = locations[i];
+				for (frame in inspector.framesFor(threadId)) {
+					var location = frame.location;
 					var source = module.lookup(location.fidx, location.op);
 					frames.push({
-						id: i,
+						id: frame.frameId,
 						name: module.functionName(location.fidx),
 						file: source != null ? source.file : null,
 						line: source != null ? source.line : 0
@@ -625,8 +648,7 @@ class DebugSession {
 
 	function handleScopes(requestSeq:Int, frameId:Int):Void {
 		switch (state) {
-			case Stopped(tid):
-				ensureFrames(tid);
+			case Stopped(_):
 				emit(EvScopes(requestSeq, inspector.scopesFor(frameId)));
 			default:
 				emit(EvRejected(requestSeq, "Cannot get scopes: debuggee is not stopped"));
@@ -635,8 +657,7 @@ class DebugSession {
 
 	function handleEvaluate(requestSeq:Int, frameId:Int, expression:String):Void {
 		switch (state) {
-			case Stopped(tid):
-				ensureFrames(tid);
+			case Stopped(_):
 				try {
 					emit(EvEvaluated(requestSeq, inspector.evaluate(frameId, expression)));
 				} catch (e:DebugError) {
@@ -673,25 +694,17 @@ class DebugSession {
 		}
 	}
 
-	// Walk the stack once per stop and hand the frames to the inspector, which
-	// invalidates the previous stop's variablesReferences.
-	function ensureFrames(threadId:Int):Void {
-		if (inspector.frames().length == 0) {
-			inspector.setFrames(stackWalker.walk(threadId));
-		}
-	}
-
-	// The stopped thread's CPU registers for the inspector's Registers scope.
-	// Only the architecture-neutral indexes (0..3 = SP/BP/IP/FLAGS) are read:
-	// they are the ones this adapter already relies on everywhere, and the only
+	// A thread's CPU registers for the inspector's Registers scope. Only the
+	// architecture-neutral indexes (0..3 = SP/BP/IP/FLAGS) are read: the only
 	// ones hl_debug_read_register maps on every platform (higher indexes are
-	// x86-specific and fall back to Rax on Windows).
-	function cpuRegisterRows():Array<debug.values.VariableInfo> {
+	// x86-specific and fall back to Rax on Windows). All threads are frozen at a
+	// stop, so any thread's registers are readable.
+	function cpuRegisterRows(threadId:Int):Array<debug.values.VariableInfo> {
 		var rows:Array<debug.values.VariableInfo> = [];
 		if (state.match(Stopped(_))) {
 			try {
 				var read = (name, register) -> {
-					var value = api.readRegister(process.pid, stoppedThreadId, register);
+					var value = api.readRegister(process.pid, threadId, register);
 					rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
 					value;
 				};
@@ -769,6 +782,7 @@ class DebugSession {
 			case Error, StackOverflow:
 				finishStep();
 				stoppedThreadId = outcome.threadId;
+				inspector.startStop(outcome.threadId);
 				state = Stopped(outcome.threadId);
 				currentStoppedBreakpoint = null;
 				emit(EvStoppedException(outcome.threadId, outcome.result == StackOverflow ? "Stack overflow" : "Unhandled exception"));
@@ -799,6 +813,7 @@ class DebugSession {
 			breakpoints.suspend(userBp);
 			currentStoppedBreakpoint = userBp;
 			stoppedThreadId = threadId;
+			inspector.startStop(threadId);
 			state = Stopped(threadId);
 			emit(EvStoppedBreakpoint(threadId, [userBp.id]));
 			return;
@@ -812,6 +827,7 @@ class DebugSession {
 		finishStep();
 		currentStoppedBreakpoint = null;
 		stoppedThreadId = threadId;
+		inspector.startStop(threadId);
 		state = Stopped(threadId);
 		emit(EvStoppedStep(threadId));
 	}

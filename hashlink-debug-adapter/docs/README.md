@@ -303,6 +303,39 @@ and dropped. Visibility is deduped by name, and at the assign op itself the
 binding is not yet live (`position < op`, strictly). A local in scope shadows a
 same-named argument.
 
+### Threads (suspend-all, multi-thread inspection)
+
+At a breakpoint the whole process is frozen (on Windows the kernel suspends
+every thread on any debug event — "suspend all" for free), so ALL threads are
+inspectable. The IDE shows every thread; selecting one walks its own stack and
+reads its own locals.
+
+- **Enumeration** (`ThreadRegistry`, port of hld `readThreads`): HL's runtime
+  thread registry is at the handshake `threadsPtr` — `count` i32 @ +0, then an
+  array of `hl_thread_info*` @ +ptr; per info: OS tid @ +0, a flags word @
+  `ptr*6+8` (bit 16 = invisible/internal, skipped), and a 128-byte UTF-8 name @
+  `ptr*6+16` **only on runtime ≥ 1.13** (the name offset branches on version).
+  A program compiled WITHOUT thread support (handshake `threads` flag clear) has
+  no registry — reported as one synthesized thread.
+- **"main" is the LOWEST thread id**, not the stopped thread — a stop can land
+  in any thread, so tying the name to where we stopped would be wrong. Named
+  threads keep their name; other unnamed ones show `thread-<id>`.
+- **The registry is re-read every stop** (thread create/exit events are swallowed
+  by `hl_debug_wait`'s default case, so we can't push them live — but the IDE
+  only asks for the list at a stop, when a fresh read is correct).
+- **Per-thread frames**: `VariableInspector` caches each thread's walked stack
+  lazily (all frozen, so any is walkable), and hands out globally-unique frame
+  ids (same monotonic counter as variablesReferences, never reused across stops).
+  `stackTrace`/`scopes`/`variables` resolve a frame id to its owning thread; CPU
+  registers appear on each thread's TOP frame. Writes and eval-call still run
+  only on the stopped thread.
+- **IntelliJ**: `HashLinkSuspendContext` exposes one `HashLinkExecutionStack` per
+  thread (active = stopped, its frames eager; others lazy-walk on selection).
+  `stopped` events carry `allThreadsStopped: true`.
+- **NOT supported**: suspend-single-thread (HL's debug natives expose no
+  per-thread suspend/resume), and console output thread attribution (the OS pipe
+  carries no thread identity; HL writes all threads to one shared stdout).
+
 ### Registers scope
 
 Every frame gets a third DAP scope, "Registers" (`presentationHint:
@@ -695,4 +728,6 @@ tests set it):
 | Calling by name | Use `JitInfo.functionEntry` (prologue start), NOT `addressOf(fidx,0)` (past the prologue) — the latter skips frame setup and crashes. Closure calls are safe (the vclosure pointer is the true entry) |
 | String creation buffer | Heap (`haxe.io.Bytes.alloc`), never stack-below-Esp: Windows has no red zone, so a sub-Esp buffer + the callee's stack use faults the guard page |
 | Statics container names | `Pkg.Cls` statics live on `Pkg.$Cls` — the `$` is on the last segment, not the whole name; strip it there for name lookup and display |
+| Thread enumeration | Read HL's registry at `threadsPtr` (offsets are hld's, empirically pinned; name field only ≥1.13); `hl_debug_wait` swallows thread create/exit, so re-read every stop. "main" = lowest id, not the stopped thread |
+| Per-thread inspection | All threads frozen at a stop → walk any thread's stack via `read_register(tid)`; frame ids are globally unique (shared monotonic counter with references). Suspend-single-thread and output attribution are impossible with HL's API |
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |

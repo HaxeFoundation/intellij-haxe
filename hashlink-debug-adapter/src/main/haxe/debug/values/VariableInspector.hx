@@ -50,14 +50,24 @@ class VariableInspector {
 		memWriter = out;
 	}
 
-	// per-stop state, cleared on every resume
-	var frameCache:Array<StackFrameLocation> = [];
+	// per-stop state, cleared on every resume. All threads are frozen at a stop,
+	// so any thread's stack is walked lazily on first request and cached.
+	final frameCaches:Map<Int, Array<CachedFrame>> = new Map(); // threadId -> its frames (with ids)
+	final frameHandles:Map<Int, CachedFrame> = new Map(); // frameId -> the frame it names
 	final references:Map<Int, RefTarget> = new Map();
-	var nextReference:Int = REF_BASE;
+	// Frame ids AND variablesReferences draw from ONE monotonic counter that is
+	// never reset: a stale handle from before a resume resolves to nothing, never
+	// aliases a new stop's allocation, and the two id spaces can't collide.
+	var nextHandle:Int = REF_BASE;
+	// The thread the stop landed in — writes and eval-call run only here.
+	var stoppedThreadId:Int = 0;
 
-	// Set by DebugSession: the stopped thread's CPU registers (the
-	// architecture-neutral SP/BP/IP/FLAGS subset), shown on the top frame.
-	public var cpuRegisters:Null<Void->Array<VariableInfo>> = null;
+	// Set by DebugSession: walks a thread's stack (StackWalker) on demand.
+	public var frameWalker:Null<Int->Array<StackFrameLocation>> = null;
+
+	// Set by DebugSession: a thread's CPU registers (the architecture-neutral
+	// SP/BP/IP/FLAGS subset), shown on that thread's top frame.
+	public var cpuRegistersFor:Null<Int->Array<VariableInfo>> = null;
 
 	// Set by DebugSession: writes the low half of XMM0. Register-passed float
 	// arguments ARRIVE in XMM registers; the jitted code may consume the still
@@ -107,35 +117,64 @@ class VariableInspector {
 		valueChildren.treeMaps = treeMaps;
 	}
 
-	/** The frames of the current stop (empty after invalidate). */
-	public function frames():Array<StackFrameLocation> {
-		return frameCache;
+	/**
+	 * Begins a new stop: drops all per-thread frame caches, frame handles, and
+	 * references (their NUMBERS are never reused — see nextHandle). `threadId` is
+	 * the thread the stop landed in, the only one writes/eval-call may touch.
+	 */
+	public function startStop(threadId:Int):Void {
+		frameCaches.clear();
+		frameHandles.clear();
+		references.clear();
+		stoppedThreadId = threadId;
 	}
 
-	/**
-	 * Installs the frames walked at a stop, dropping all previous references.
-	 * Reference NUMBERS are never reused across stops: a stale reference from
-	 * before a resume must resolve to nothing, not alias whatever the new stop
-	 * happened to allocate under the same number.
-	 */
-	public function setFrames(frames:Array<StackFrameLocation>):Void {
-		frameCache = frames;
+	/** Clears every per-stop cache (on resume). */
+	public function invalidate():Void {
+		frameCaches.clear();
+		frameHandles.clear();
 		references.clear();
 	}
 
-	/** Clears the frame cache and every reference handed out for the last stop. */
-	public function invalidate():Void {
-		setFrames([]);
+	/** True once a stop has produced at least one frame (any thread walked). */
+	public function hasFrames():Bool {
+		return frameCaches.iterator().hasNext();
+	}
+
+	/**
+	 * The frames of `threadId` (walked+cached on first request; all threads are
+	 * frozen at a stop). Each carries the globally-unique frame id the client
+	 * uses for scopes/variables/evaluate.
+	 */
+	public function framesFor(threadId:Int):Array<CachedFrame> {
+		var cached = frameCaches.get(threadId);
+		if (cached != null) {
+			return cached;
+		}
+		var walked = frameWalker == null ? [] : frameWalker(threadId);
+		var withIds:Array<CachedFrame> = [];
+		for (i in 0...walked.length) {
+			var frame:CachedFrame = {frameId: nextHandle++, threadId: threadId, index: i, location: walked[i]};
+			frameHandles.set(frame.frameId, frame);
+			withIds.push(frame);
+		}
+		frameCaches.set(threadId, withIds);
+		return withIds;
+	}
+
+	inline function frameAt(frameId:Int):Null<CachedFrame> {
+		return frameHandles.get(frameId);
 	}
 
 	/** The scopes of a cached frame: Locals, plus Statics when the owning class has static data. */
 	public function scopesFor(frameId:Int):Array<ScopeInfo> {
-		if (frameId < 0 || frameId >= frameCache.length) {
+		var frame = frameAt(frameId);
+		if (frame == null) {
 			return [];
 		}
 		var scopes:Array<ScopeInfo> = [];
 		scopes.push({name: "Locals", reference: allocReference(RefLocals(frameId))});
-		var statics = staticsScope(frameCache[frameId].fidx);
+		var statics = staticsScope(frame.location.fidx);
 		if (statics != null) {
 			scopes.push(statics);
 		}
@@ -412,10 +451,12 @@ class VariableInspector {
 	// register-passed argument cannot be fixed up — surface a console warning
 	// so a "didn't take" write on the current line is explainable.
 	function fixupAfterWrite(target:WriteTarget):Void {
-		if (frameCache.length == 0) {
+		// the arrival-register fixup only applies to the stopped thread's top frame
+		var stoppedFrames = frameCaches.get(stoppedThreadId);
+		if (stoppedFrames == null || stoppedFrames.length == 0) {
 			return;
 		}
-		var frame = frameCache[0];
+		var frame = stoppedFrames[0].location;
 		var argCount = module.argCount(frame.fidx);
 		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), argCount);
 		var argIndex = -1;
@@ -585,8 +626,9 @@ class VariableInspector {
 			}
 		}
 		// static of the owning class
-		if (frameId >= 0 && frameId < frameCache.length) {
-			var proto = module.staticsProtoForFunction(frameCache[frameId].fidx);
+		var frame = frameAt(frameId);
+		if (frame != null) {
+			var proto = module.staticsProtoForFunction(frame.location.fidx);
 			if (proto != null) {
 				var globalIndex = module.staticsGlobalIndex(proto);
 				if (globalIndex >= 0) {
@@ -606,10 +648,11 @@ class VariableInspector {
 
 	// A local/argument slot: ebp + FrameLayout offset, typed by the register.
 	function localTarget(frameId:Int, name:String):Null<WriteTarget> {
-		if (frameId < 0 || frameId >= frameCache.length) {
+		var handle = frameAt(frameId);
+		if (handle == null) {
 			return null;
 		}
-		var frame = frameCache[frameId];
+		var frame = handle.location;
 		var local = findLocal(localsResolver.localsAt(frame.fidx, frame.op), name);
 		if (local == null) {
 			return null;
@@ -693,8 +736,9 @@ class VariableInspector {
 			}
 		}
 		// static of the class owning the frame
-		if (frameId >= 0 && frameId < frameCache.length) {
-			var statics = staticsScope(frameCache[frameId].fidx);
+		var frame = frameAt(frameId);
+		if (frame != null) {
+			var statics = staticsScope(frame.location.fidx);
 			if (statics != null) {
 				return findByName(variablesFor(statics.reference), name);
 			}
@@ -736,13 +780,15 @@ class VariableInspector {
 	 * list on the top frame (they are thread state, not frame state).
 	 */
 	function readRegisters(frameId:Int):Array<VariableInfo> {
-		if (frameId < 0 || frameId >= frameCache.length) {
+		var handle = frameAt(frameId);
+		if (handle == null) {
 			return [];
 		}
-		var frame = frameCache[frameId];
+		var frame = handle.location;
 		var variables:Array<VariableInfo> = [];
-		if (frameId == 0 && cpuRegisters != null) {
-			for (register in cpuRegisters()) {
+		// CPU registers are thread state: shown on each thread's TOP frame.
+		if (handle.index == 0 && cpuRegistersFor != null) {
+			for (register in cpuRegistersFor(handle.threadId)) {
 				variables.push(register);
 			}
 		}
@@ -786,10 +832,11 @@ class VariableInspector {
 	}
 
 	function readLocals(frameId:Int):Array<VariableInfo> {
-		if (frameId < 0 || frameId >= frameCache.length) {
+		var handle = frameAt(frameId);
+		if (handle == null) {
 			return [];
 		}
-		var frame = frameCache[frameId];
+		var frame = handle.location;
 		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
 		var locals = localsResolver.localsAt(frame.fidx, frame.op);
 		var variables:Array<VariableInfo> = [];
@@ -869,8 +916,16 @@ class VariableInspector {
 	}
 
 	function allocReference(target:RefTarget):Int {
-		var reference = nextReference++;
+		var reference = nextHandle++;
 		references.set(reference, target);
 		return reference;
 	}
+}
+
+/** A walked stack frame plus the globally-unique id the client refers to it by. */
+typedef CachedFrame = {
+	var frameId:Int;
+	var threadId:Int;
+	var index:Int; // position in its thread's stack (0 = top)
+	var location:debug.target.StackFrameLocation;
 }

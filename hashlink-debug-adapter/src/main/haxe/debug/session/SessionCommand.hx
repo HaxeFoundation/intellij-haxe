@@ -13,6 +13,7 @@ enum SessionCommand {
 	CmdConfigurationDone(requestSeq:Int);
 	CmdContinue(requestSeq:Int, threadId:Int);
 	CmdStep(requestSeq:Int, threadId:Int, mode:StepMode);
+	CmdThreads(requestSeq:Int);
 	CmdStackTrace(requestSeq:Int, threadId:Int);
 	CmdScopes(requestSeq:Int, frameId:Int);
 	CmdVariables(requestSeq:Int, reference:Int);
