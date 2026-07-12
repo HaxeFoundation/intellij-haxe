@@ -710,6 +710,17 @@ call when the segment isn't a method. **Gaps** (clear errors, no corruption):
   is present and readable via `get`, but the `Map(n)` preview may not tick up) —
   a display quirk, the mutation itself is real.
 
+**Map `[]` access has no runtime operator — use `get`/`set`.** `Map` is a Haxe
+abstract whose `[]` is `@:arrayAccess inline` methods (`get`, `arrayWrite`→`set`
+in `haxe/ds/Map.hx`), so the Haxe compiler rewrites `map[k]` → `map.get(k)` and
+`map[k]=v` → `map.set(k,v)` at COMPILE time. By bytecode there is only an
+`OCall` to `get`/`set`, and the `@:arrayAccess` metadata is gone (HL bytecode
+carries no metadata; the format `Data` has no meta field). So the evaluator
+exposes `map.get(k)` / `map.set(k, v)` directly — `map[k]` bracket sugar, if
+ever added, would be a hardcoded rewrite to exactly those calls, nothing more.
+(Contrast arrays: `arr[i]` is a real `OGetArray`/`OSetArray` runtime index, so
+`arr[i]` and `arr[i] = x` DO work directly.)
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).
