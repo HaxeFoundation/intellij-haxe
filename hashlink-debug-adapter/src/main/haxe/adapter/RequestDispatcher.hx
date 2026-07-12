@@ -139,12 +139,18 @@ class RequestDispatcher {
 			sendError(request.seq, request.command, ERROR_LAUNCH_FAILED, "launch requires a 'program' (.hl file)");
 			return;
 		}
+		if (args.attachPid != null && (args.debugPort == null || args.debugPort <= 0)) {
+			sendError(request.seq, request.command, ERROR_LAUNCH_FAILED, "launch with 'attachPid' requires a positive 'debugPort'");
+			return;
+		}
 		var config:LaunchConfig = {
 			program: args.program,
 			args: args.args != null ? args.args : [],
 			cwd: args.cwd,
 			hlPath: (args.hlPath != null && args.hlPath != "") ? args.hlPath : Sys.executablePath(),
-			stopOnEntry: args.stopOnEntry == true
+			stopOnEntry: args.stopOnEntry == true,
+			attachPid: args.attachPid,
+			debugPort: args.debugPort
 		};
 		defer(request);
 		sessionCommands(CmdLaunch(request.seq, config));

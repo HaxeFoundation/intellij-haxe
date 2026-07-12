@@ -136,6 +136,21 @@ class Breakpoints {
 		return temps.keys().hasNext();
 	}
 
+	/**
+	 * Restores every patched byte (user breakpoints and temps). Used before
+	 * detaching in attach mode: the debuggee keeps running without a debugger,
+	 * so any leftover INT3 would crash it. Restoring a byte that was already
+	 * suspended writes the same original value again — harmless.
+	 */
+	public function removeAll():Void {
+		clearTemps();
+		for (bp in byAddress) {
+			restore(bp);
+		}
+		byAddress.clear();
+		bySource.clear();
+	}
+
 	function install(loc:{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int}):PatchedBreakpoint {
 		var key = addressKey(loc.address);
 		var existing = byAddress.get(key);

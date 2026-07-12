@@ -822,6 +822,60 @@ tests set it):
 
 ---
 
+## 8. Attach mode: why the ADAPTER must not spawn a GUI debuggee (SW_HIDE)
+
+### Symptom
+A debuggee that creates windows (SDL / heaps / DirectX) runs fine under the
+debugger — audio plays, traces print, breakpoints hit — but **its window never
+appears**. Plain Run from the IDE shows the window normally.
+
+### Cause: HL's process.c + a documented Windows quirk
+The adapter used to spawn the debuggee via Haxe `sys.io.Process`, which on the
+HL target goes through HashLink's `src/std/process.c`:
+
+```c
+sinf.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
+sinf.wShowWindow = SW_HIDE;   // inherited from Neko, meant to hide consoles
+```
+
+Windows semantics (documented under `ShowWindow`'s `nCmdShow`): when the parent
+set `STARTF_USESHOWWINDOW`, the child's **first `ShowWindow` call ignores its
+own argument** and uses the parent's `wShowWindow` instead. SDL/heaps call
+`ShowWindow` exactly once when creating the main window → the window is created
+permanently hidden. There is no flag to override from Haxe (`detached` drops
+`SW_HIDE` but also drops the stdio pipes and pops a new console).
+
+### Fix: the client spawns, the adapter attaches
+Launch args gained optional `attachPid` + `debugPort`. When present:
+
+- the CLIENT (IntelliJ / a test) spawns `hl --debug <port> --debug-wait <prog>`
+  itself — Java's `CreateProcess` sets no show-window flag, so windows appear;
+- the adapter skips `DebuggeeProcess` entirely, connects the handshake socket
+  to `debugPort`, and `hl_debug_start(attachPid)`s — `DebugActiveProcess`
+  works fine on a non-child process; everything downstream is pid-keyed anyway
+  (`DebugSession.debuggeePid`);
+- the client owns the debuggee's stdio (console output/stdin/exit code flow
+  through the IDE's ProcessHandler, not DAP output events) and its lifetime
+  (Stop kills it after the adapter's disconnect).
+
+The old spawn path remains for headless debuggees and most integration tests.
+
+### Two attach-mode rules learned the hard way
+1. **Disconnect must restore every patched INT3 before detaching**
+   (`Breakpoints.removeAll`): there is no kill in attach mode, the debuggee
+   keeps running after detach, and a leftover 0xCC with no debugger attached is
+   an instant crash. (`AttachModeIntegrationTest.disconnectDetachesAndLetsTheDebuggeeFinish`
+   guards this: detach at a breakpoint, then the fixture must finish with exit 0.)
+2. **Release the process on its exit event** (`releaseExitedProcess`):
+   `hl_debug_wait` returns `Exit` for `EXIT_PROCESS_DEBUG_EVENT` *without*
+   continuing it, and Windows keeps the dying process object alive until the
+   debugger continues that event and detaches. In launch mode nobody noticed
+   (the adapter owned the process and killed it at disconnect); in attach mode
+   the spawner's `waitFor()` hangs forever. On every `Exit` outcome:
+   `ContinueDebugEvent` (via `api.resume`) → `api.stop` → then read the exit code.
+
+---
+
 ## Quick reference
 
 | Concern | Rule |
@@ -834,6 +888,8 @@ tests set it):
 | Test fixtures for breakpoints | Use runtime values so the compiler can't unroll/inline the target away |
 | Reading debuggee memory | Assume any read can fail; validate pointers; cap depth |
 | Stepping | Plant temp INT3s at CFG-computed targets; clear them on every stop; user breakpoints win; frame-guard step over/out against recursion |
+| GUI debuggees | Never spawn from the adapter (HL process.c forces SW_HIDE on the child's first window) — the client spawns, the adapter attaches (`attachPid`/`debugPort`) |
+| Attach-mode disconnect | Restore every INT3 (`removeAll`) before detach; on `Exit` continue the event + detach (`releaseExitedProcess`) or the dying process lingers |
 | Handled(4) wait events | Already continued inside hl_debug_wait (thread create/exit/name, dll load) — NEVER treat as a stop, NEVER resume them; keep waiting. Violating this froze multithreaded sessions randomly |
 | Event from another thread mid-dance | A pending Breakpoint/Error owns the process freeze: hand it to handleWaitOutcome as a normal stop; resuming past it with the wrong tid freezes the debuggee forever |
 | Slow/blocked steps | A step with planted landings waits indefinitely (a slow call is not a failure — no watchdogs); only a step with NO plantable landing downgrades to continue (DAP `continued`) |

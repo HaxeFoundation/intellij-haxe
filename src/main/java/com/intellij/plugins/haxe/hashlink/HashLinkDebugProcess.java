@@ -75,6 +75,12 @@ import org.jetbrains.annotations.Nullable;
  * XDebugger process for HashLink (experimental): spawns the bundled DAP
  * adapter, drives it as a DAP client, and bridges its events into the IDE.
  *
+ * The debuggee itself is spawned by {@link HashLinkDebugRunner} (never by the
+ * adapter — HL's process.c would force SW_HIDE onto its first window); the
+ * adapter attaches to it by pid. Its {@link ProcessHandler} is the session's
+ * process handler, so console output, stdin and the exit code flow through
+ * the normal run machinery, and the session ends when the debuggee does.
+ *
  * Threading: the IDE calls resume/step/stop on the EDT — those only submit
  * work to a single-thread request executor. A dedicated event-pump thread is
  * the sole {@code pollEvent} caller and issues its own follow-up requests
@@ -89,8 +95,9 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private final Module module;
   private final Path hlExecutable;
   private final Path hlProgram;
-  private final @Nullable Path workingDirectory;
-  private final AdapterProcessHandler processHandler = new AdapterProcessHandler();
+  private final ProcessHandler processHandler;
+  private final int debugPort;
+  private final long debuggeePid;
   private final HashLinkBreakpointManager breakpoints = new HashLinkBreakpointManager(this);
   private final ExecutorService requestExecutor =
     Executors.newSingleThreadExecutor(r -> daemon(r, "HashLink DAP requests"));
@@ -102,12 +109,15 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private volatile HashLinkRegistersPanel registersPanel;
 
   public HashLinkDebugProcess(@NotNull XDebugSession session, Module module,
-                              Path hlExecutable, Path hlProgram, @Nullable Path workingDirectory) {
+                              Path hlExecutable, Path hlProgram,
+                              ProcessHandler debuggeeHandler, int debugPort, long debuggeePid) {
     super(session);
     this.module = module;
     this.hlExecutable = hlExecutable;
     this.hlProgram = hlProgram;
-    this.workingDirectory = workingDirectory;
+    this.processHandler = debuggeeHandler;
+    this.debugPort = debugPort;
+    this.debuggeePid = debuggeePid;
   }
 
   // --- lifecycle ---
@@ -150,10 +160,11 @@ public class HashLinkDebugProcess extends XDebugProcess {
 
       LaunchRequest launch = new LaunchRequest();
       LaunchRequestArguments launchArguments = new LaunchRequestArguments();
+      // attach mode: the runner already spawned the debuggee (program is still
+      // needed for the adapter's bytecode/debug-info parse)
       launchArguments.setProgram(hlProgram.toString());
-      launchArguments.setHlPath(hlExecutable.toString());
-      Path cwd = workingDirectory != null ? workingDirectory : hlProgram.getParent();
-      launchArguments.setCwd(cwd != null ? cwd.toString() : null);
+      launchArguments.setAttachPid((int)debuggeePid);
+      launchArguments.setDebugPort(debugPort);
       launch.setArguments(launchArguments);
       Response launchResponse = client.sendRequest(launch, REQUEST_TIMEOUT_MILLIS);
       if (!launchResponse.isSuccess()) {
@@ -187,8 +198,10 @@ public class HashLinkDebugProcess extends XDebugProcess {
             // statement) was downgraded to a continue: reflect that we are running
             getSession().sessionResumed();
           case OutputEvent output -> handleOutput(output);
-          case ExitedEvent exited ->
-            print("Process finished with exit code " + exited.getBody().getExitCode() + "\n", false);
+          case ExitedEvent ignored -> {
+            // the debuggee's own ProcessHandler reports termination (with the
+            // real exit code); the adapter's attach-mode code would be a guess
+          }
           case TerminatedEvent ignored -> {
             terminateSession();
             return;
@@ -233,10 +246,10 @@ public class HashLinkDebugProcess extends XDebugProcess {
     }
   }
 
-  // The debuggee is a grandchild owned by the adapter, so its stdout/stderr
-  // arrive as DAP output events rather than through a process handler. Print
-  // straight into the session's Console view (with stdout/stderr colouring);
-  // fall back to the process handler until the console exists.
+  // The debuggee's stdout/stderr flow through its own ProcessHandler; DAP
+  // output events only carry adapter-side messages (eval warnings, errors).
+  // Print those straight into the session's Console view (with stdout/stderr
+  // colouring); fall back to the process handler until the console exists.
   private void print(String text, boolean stderr) {
     ConsoleView console = getSession().getConsoleView();
     if (console != null) {
@@ -467,34 +480,5 @@ public class HashLinkDebugProcess extends XDebugProcess {
     Thread thread = new Thread(work, name);
     thread.setDaemon(true);
     return thread;
-  }
-
-  /**
-   * Console/Stop surface for the session. The debuggee is a grandchild owned by
-   * the adapter, so there is no real process to attach: output arrives as DAP
-   * events (forwarded via notifyTextAvailable) and destroy just marks the
-   * handler terminated — the XDebugger framework calls {@link #stop()} for the
-   * actual teardown.
-   */
-  private static final class AdapterProcessHandler extends ProcessHandler {
-    @Override
-    protected void destroyProcessImpl() {
-      notifyProcessTerminated(0);
-    }
-
-    @Override
-    protected void detachProcessImpl() {
-      notifyProcessDetached();
-    }
-
-    @Override
-    public boolean detachIsDefault() {
-      return false;
-    }
-
-    @Override
-    public @Nullable java.io.OutputStream getProcessInput() {
-      return null;
-    }
   }
 }

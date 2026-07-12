@@ -16,6 +16,13 @@ import sys.thread.Thread;
  *
  * Output is delivered through the `onOutput(category, text)` callback from two
  * dedicated pump threads; nothing here touches the debug natives.
+ *
+ * WINDOWS GOTCHA: this spawn goes through HL's process.c, which sets
+ * STARTF_USESHOWWINDOW + SW_HIDE — Windows then overrides the child's FIRST
+ * ShowWindow call with SW_HIDE, so a GUI debuggee's window is created but
+ * never shown. GUI clients must spawn the debuggee themselves and use attach
+ * mode (launch args `attachPid`/`debugPort`); this path remains for headless
+ * debuggees and the integration tests.
  */
 class DebuggeeProcess {
 	public var pid(default, null):Int;

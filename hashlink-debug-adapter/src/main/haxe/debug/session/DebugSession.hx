@@ -51,7 +51,11 @@ class DebugSession {
 	final emit:DebugEvent->Void;
 
 	var state:State = NotStarted;
+	// In launch mode the adapter spawns and owns the debuggee (`process` set);
+	// in attach mode the client spawned it and `process` stays null. All debug
+	// natives key on the pid, so everything downstream uses `debuggeePid`.
 	var process:DebuggeeProcess;
+	var debuggeePid:Int = 0;
 	var jit:JitInfo;
 	var module:ModuleDebugInfo;
 	var breakpoints:Breakpoints;
@@ -105,7 +109,7 @@ class DebugSession {
 	}
 
 	function pollWhileRunning():Void {
-		var outcome = api.wait(process.pid, WAIT_POLL_MS);
+		var outcome = api.wait(debuggeePid, WAIT_POLL_MS);
 		handleWaitOutcome(outcome);
 		// interleave one pending command so setBreakpoints/continue/disconnect are responsive
 		var command = commands.pop(false);
@@ -193,34 +197,43 @@ class DebugSession {
 			}
 			module = new ModuleDebugInfo(config.program);
 
-			var port = DebuggeeProcess.findFreePort();
-			process = new DebuggeeProcess(config.hlPath, config.program, config.args, config.cwd, port,
-				(category, text) -> emit(EvOutput(category, text)));
-			process.startOutputPumps();
-
-			handshakeSocket = connectWithRetries(port);
+			if (config.attachPid != null) {
+				// Attach mode: the client spawned `hl --debug <port> --debug-wait`
+				// itself and owns the process's stdio and lifetime. Spawning from
+				// here would go through HL's process.c, which forces SW_HIDE onto
+				// the debuggee's first window on Windows (see docs/README.md).
+				debuggeePid = config.attachPid;
+				handshakeSocket = connectWithRetries(config.debugPort);
+			} else {
+				var port = DebuggeeProcess.findFreePort();
+				process = new DebuggeeProcess(config.hlPath, config.program, config.args, config.cwd, port,
+					(category, text) -> emit(EvOutput(category, text)));
+				process.startOutputPumps();
+				debuggeePid = process.pid;
+				handshakeSocket = connectWithRetries(port);
+			}
 			// The VM sends the whole handshake then blocks on the socket; drain it
 			// fully into memory (a read timeout marks the end) and parse from there.
 			// Parsing straight off the socket deadlocks against the two HL processes'
 			// send/recv buffering, and byte-at-a-time socket reads are far too slow.
 			jit = JitInfoReader.read(new haxe.io.BytesInput(readHandshake()));
 
-			if (!api.start(process.pid)) {
+			if (!api.start(debuggeePid)) {
 				throw new DebugError("Failed to attach to the debuggee process");
 			}
 			drainAttachEvents();
 
-			breakpoints = new Breakpoints(api, process.pid);
-			stackWalker = new StackWalker(api, process.pid, jit);
-			var memReader = new MemoryReader(api, process.pid, jit.is64);
+			breakpoints = new Breakpoints(api, debuggeePid);
+			stackWalker = new StackWalker(api, debuggeePid, jit);
+			var memReader = new MemoryReader(api, debuggeePid, jit.is64);
 			threadRegistry = new debug.target.ThreadRegistry(memReader,
 				new debug.layout.Align(jit.is64, jit.boolSize4), jit.hlVersionMajor, jit.hlVersionMinor);
 			inspector = new VariableInspector(module, jit, memReader);
 			inspector.frameWalker = tid -> stackWalker.walk(tid);
 			inspector.cpuRegistersFor = cpuRegisterRows;
-			inspector.enableWrites(new debug.target.MemoryWriter(api, process.pid, jit.is64));
+			inspector.enableWrites(new debug.target.MemoryWriter(api, debuggeePid, jit.is64));
 			inspector.xmm0Writer = value ->
-				api.writeRegister(process.pid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
+				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
 			inspector.warnSink = text -> emit(EvOutput("console", text));
 			inspector.functionCaller = (funcAddr, args, floatReturn) ->
 				callInDebuggee(stoppedThreadId, funcAddr, args, floatReturn);
@@ -279,16 +292,17 @@ class DebugSession {
 	// breakpoint / module-load events) so the debuggee is back to a clean state.
 	function drainAttachEvents():Void {
 		for (_ in 0...20) {
-			var outcome = api.wait(process.pid, ATTACH_DRAIN_MS);
+			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout:
 					return;
 				case Exit:
 					state = Exited;
+					releaseExitedProcess(outcome.threadId);
 					emit(EvExited(safeExitCode()));
 					return;
 				default:
-					api.resume(process.pid, outcome.threadId);
+					api.resume(debuggeePid, outcome.threadId);
 			}
 		}
 	}
@@ -351,9 +365,9 @@ class DebugSession {
 	// Force the running debuggee to stop, so its memory can be patched, then keep
 	// running. Any breakpoint/step event that arrives here is not user-visible.
 	function pauseForMemoryWrite():Void {
-		api.forceBreak(process.pid);
+		api.forceBreak(debuggeePid);
 		for (_ in 0...20) {
-			var outcome = api.wait(process.pid, ATTACH_DRAIN_MS);
+			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout: // keep waiting for the forced stop
 				case Handled:
@@ -361,6 +375,7 @@ class DebugSession {
 					// NOT the forced stop, keep waiting
 				case Exit:
 					state = Exited;
+					releaseExitedProcess(outcome.threadId);
 					emit(EvExited(safeExitCode()));
 					return;
 				default:
@@ -371,7 +386,7 @@ class DebugSession {
 	}
 
 	function resumeAfterMemoryWrite():Void {
-		api.resume(process.pid, stoppedThreadId);
+		api.resume(debuggeePid, stoppedThreadId);
 	}
 
 	// --- eval-call (M13): run a function inside the stopped debuggee ---
@@ -393,38 +408,38 @@ class DebugSession {
 		var asm = new debug.eval.CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
 		var asmSize = asm.length;
 
-		var prevEax = api.readRegister(process.pid, threadId, Eax);
-		var prevEip = api.readRegister(process.pid, threadId, Eip);
-		var prevEsp = api.readRegister(process.pid, threadId, Esp);
+		var prevEax = api.readRegister(debuggeePid, threadId, Eax);
+		var prevEip = api.readRegister(debuggeePid, threadId, Eip);
+		var prevEsp = api.readRegister(debuggeePid, threadId, Esp);
 
 		var original = haxe.io.Bytes.alloc(asmSize);
-		if (!api.readMemory(process.pid, prevEip, original, asmSize)) {
+		if (!api.readMemory(debuggeePid, prevEip, original, asmSize)) {
 			throw new DebugError("Cannot read code to inject a call");
 		}
-		if (!api.writeMemory(process.pid, prevEip, asm, asmSize)) {
+		if (!api.writeMemory(debuggeePid, prevEip, asm, asmSize)) {
 			throw new DebugError("Cannot inject the call trampoline");
 		}
-		api.flush(process.pid, prevEip, asmSize);
+		api.flush(debuggeePid, prevEip, asmSize);
 
 		// give the call a fresh scratch stack below the current frame, aligned
 		// down to a 256-byte boundary (matches hld)
 		var stackTop = Int64.sub(prevEsp, Int64.ofInt(0xFF));
 		var lowByte = Int64.getLow(stackTop) & 0xFF;
 		stackTop = Int64.add(stackTop, Int64.ofInt((0x100 - lowByte) & 0xFF));
-		api.writeRegister(process.pid, threadId, Esp, stackTop);
+		api.writeRegister(debuggeePid, threadId, Esp, stackTop);
 
 		var trapEnd = Int64.add(prevEip, Int64.ofInt(asmSize)); // Eip AFTER the INT3
 		var completed = resumeUntilTrap(threadId, trapEnd);
 
-		api.writeMemory(process.pid, prevEip, original, asmSize);
-		api.flush(process.pid, prevEip, asmSize);
+		api.writeMemory(debuggeePid, prevEip, original, asmSize);
+		api.flush(debuggeePid, prevEip, asmSize);
 
-		var result = api.readRegister(process.pid, threadId, Eax);
-		var landedEip = api.readRegister(process.pid, threadId, Eip);
+		var result = api.readRegister(debuggeePid, threadId, Eax);
+		var landedEip = api.readRegister(debuggeePid, threadId, Eip);
 
-		api.writeRegister(process.pid, threadId, Eax, prevEax);
-		api.writeRegister(process.pid, threadId, Eip, prevEip);
-		api.writeRegister(process.pid, threadId, Esp, prevEsp);
+		api.writeRegister(debuggeePid, threadId, Eax, prevEax);
+		api.writeRegister(debuggeePid, threadId, Eip, prevEip);
+		api.writeRegister(debuggeePid, threadId, Esp, prevEsp);
 
 		if (!completed || !Int64.eq(landedEip, trapEnd)) {
 			throw new DebugError("The called function did not return normally (it threw an exception or hit a breakpoint)");
@@ -439,15 +454,15 @@ class DebugSession {
 	// as a normal stop once the eval teardown is done — resuming past it with
 	// the wrong thread id would leave the debuggee frozen forever.
 	function resumeUntilTrap(threadId:Int, trapEnd:Pointer):Bool {
-		api.resume(process.pid, threadId);
+		api.resume(debuggeePid, threadId);
 		var budget = CALL_TIMEOUT_MS;
 		while (budget > 0) {
-			var outcome = api.wait(process.pid, WAIT_POLL_MS);
+			var outcome = api.wait(debuggeePid, WAIT_POLL_MS);
 			switch (outcome.result) {
 				case Timeout:
 					budget -= WAIT_POLL_MS;
 				case Breakpoint:
-					var eip = api.readRegister(process.pid, outcome.threadId, Eip);
+					var eip = api.readRegister(debuggeePid, outcome.threadId, Eip);
 					if (outcome.threadId == threadId && Int64.eq(eip, trapEnd)) {
 						return true; // our trampoline's INT3
 					}
@@ -455,13 +470,14 @@ class DebugSession {
 					pendingForeignStop = outcome;
 					return false;
 				case SingleStep:
-					api.resume(process.pid, outcome.threadId);
+					api.resume(debuggeePid, outcome.threadId);
 				case Handled:
 					// auto-continued lifecycle event (another thread created/
 					// exited/named itself during the call): not our trap and not
 					// a failure — keep waiting
 				case Exit:
 					state = Exited;
+					releaseExitedProcess(outcome.threadId);
 					return false;
 				case Error, StackOverflow:
 					// an exception mid-call: also a pending event that must be
@@ -527,7 +543,7 @@ class DebugSession {
 				return interrupted; // a pending event owns the freeze; don't resume
 			}
 		}
-		api.resume(process.pid, threadId);
+		api.resume(debuggeePid, threadId);
 		return null;
 	}
 
@@ -536,7 +552,7 @@ class DebugSession {
 	// event is pending), which is exactly when register writes are reliable.
 	function trapDance(threadId:Int):Null<WaitOutcome> {
 		setTrapFlag(threadId);
-		api.resume(process.pid, threadId);
+		api.resume(debuggeePid, threadId);
 		var interrupted = waitForSingleStep(threadId);
 		// clear the trap flag or the debuggee keeps single-stepping forever
 		clearTrapFlag(threadId);
@@ -557,20 +573,21 @@ class DebugSession {
 	//    the debuggee frozen forever.
 	function waitForSingleStep(threadId:Int):Null<WaitOutcome> {
 		for (_ in 0...100) {
-			var outcome = api.wait(process.pid, ATTACH_DRAIN_MS);
+			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case SingleStep:
 					if (outcome.threadId == threadId) {
 						return null;
 					}
 					// another thread's leftover trap: continue it, keep waiting
-					api.resume(process.pid, outcome.threadId);
+					api.resume(debuggeePid, outcome.threadId);
 				case Handled:
 					// already continued inside hl_debug_wait: not a stop
 				case Timeout:
 					// keep waiting: our instruction hasn't retired yet
 				case Exit:
 					state = Exited;
+					releaseExitedProcess(outcome.threadId);
 					emit(EvExited(safeExitCode()));
 					return null;
 				case Breakpoint, Error, StackOverflow:
@@ -615,9 +632,9 @@ class DebugSession {
 	function planStep(threadId:Int, mode:StepMode):Null<WaitOutcome> {
 		breakpoints.clearTemps();
 		activeStep = null;
-		var startEsp = api.readRegister(process.pid, threadId, Esp);
+		var startEsp = api.readRegister(debuggeePid, threadId, Esp);
 
-		var eip = api.readRegister(process.pid, threadId, Eip);
+		var eip = api.readRegister(debuggeePid, threadId, Eip);
 		var position = jit.resolveAddress(eip);
 		if (position == null) {
 			// not in known bytecode (e.g. inside a native call): can't compute targets
@@ -678,7 +695,7 @@ class DebugSession {
 			handleWaitOutcome(interrupted);
 			return;
 		}
-		api.resume(process.pid, threadId);
+		api.resume(debuggeePid, threadId);
 	}
 
 	function finishStep():Void {
@@ -696,7 +713,7 @@ class DebugSession {
 		if (step.mode == StepIn) {
 			return true; // any landing (same-frame line change or callee entry) is valid
 		}
-		var esp = api.readRegister(process.pid, step.threadId, Esp);
+		var esp = api.readRegister(debuggeePid, step.threadId, Esp);
 		return Int64.compare(esp, step.startEsp) >= 0;
 	}
 
@@ -797,7 +814,7 @@ class DebugSession {
 		if (state.match(Stopped(_))) {
 			try {
 				var read = (name, register) -> {
-					var value = api.readRegister(process.pid, threadId, register);
+					var value = api.readRegister(debuggeePid, threadId, register);
 					rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
 					value;
 				};
@@ -826,28 +843,40 @@ class DebugSession {
 	}
 
 	function handleDisconnect(requestSeq:Int):Void {
-		if (process != null) {
+		if (debuggeePid != 0) {
 			// Order matters: kill first (works on a suspended process and stops it
 			// from reaching further breakpoints), then continue any un-continued
 			// debug event so the termination can complete, then detach —
 			// DebugActiveProcessStop wants outstanding events resolved, and
 			// detaching a suspended debuggee has produced intermittent hangs.
-			process.kill();
-			dbg("disconnect: kill done");
+			// In attach mode there is no kill (the client owns the process's
+			// lifetime), so restore every patched INT3 first: the debuggee may
+			// keep running after we detach, and a leftover trap would crash it.
+			if (process != null) {
+				process.kill();
+				dbg("disconnect: kill done");
+			} else if (breakpoints != null) {
+				try {
+					breakpoints.removeAll();
+				} catch (e:Dynamic) {}
+				dbg("disconnect: breakpoints restored");
+			}
 			switch (state) {
 				case Stopped(threadId):
 					try {
-						api.resume(process.pid, threadId);
+						api.resume(debuggeePid, threadId);
 					} catch (e:Dynamic) {}
 					dbg("disconnect: resumed stopped thread " + threadId);
 				default:
 			}
 			try {
-				api.stop(process.pid);
+				api.stop(debuggeePid);
 			} catch (e:Dynamic) {}
 			dbg("disconnect: api.stop done");
-			process.close();
-			dbg("disconnect: close done");
+			if (process != null) {
+				process.close();
+				dbg("disconnect: close done");
+			}
 		}
 		closeHandshake();
 		alive = false;
@@ -867,11 +896,12 @@ class DebugSession {
 			case Exit:
 				finishStep();
 				state = Exited;
+				releaseExitedProcess(outcome.threadId);
 				emit(EvExited(safeExitCode()));
 			case Breakpoint:
 				handleBreakpointHit(outcome.threadId);
 			case SingleStep:
-				api.resume(process.pid, outcome.threadId);
+				api.resume(debuggeePid, outcome.threadId);
 			case Error, StackOverflow:
 				finishStep();
 				stoppedThreadId = outcome.threadId;
@@ -889,19 +919,19 @@ class DebugSession {
 
 	function handleBreakpointHit(threadId:Int):Void {
 		// INT3 leaves the instruction pointer one byte past the trap
-		var eip = api.readRegister(process.pid, threadId, Eip);
+		var eip = api.readRegister(debuggeePid, threadId, Eip);
 		var hitAddress = Int64.sub(eip, Int64.ofInt(1));
 		var userBp = breakpoints != null ? breakpoints.atAddress(hitAddress) : null;
 		var temp = breakpoints != null && breakpoints.isTemp(hitAddress);
 
 		if (userBp == null && !temp) {
 			// attach/loader breakpoint or spurious: just keep going
-			api.resume(process.pid, threadId);
+			api.resume(debuggeePid, threadId);
 			return;
 		}
 
 		// rewind past the INT3 so the trapped instruction can run on the next resume
-		api.writeRegister(process.pid, threadId, Eip, hitAddress);
+		api.writeRegister(debuggeePid, threadId, Eip, hitAddress);
 
 		// a real breakpoint always wins over a step landing
 		if (userBp != null) {
@@ -939,13 +969,28 @@ class DebugSession {
 	// --- helpers ---
 
 	function setTrapFlag(threadId:Int):Void {
-		var flags = Int64.toInt(api.readRegister(process.pid, threadId, EFlags));
-		api.writeRegister(process.pid, threadId, EFlags, Int64.ofInt(flags | TRAP_FLAG));
+		var flags = Int64.toInt(api.readRegister(debuggeePid, threadId, EFlags));
+		api.writeRegister(debuggeePid, threadId, EFlags, Int64.ofInt(flags | TRAP_FLAG));
 	}
 
 	function clearTrapFlag(threadId:Int):Void {
-		var flags = Int64.toInt(api.readRegister(process.pid, threadId, EFlags));
-		api.writeRegister(process.pid, threadId, EFlags, Int64.ofInt(flags & ~TRAP_FLAG));
+		var flags = Int64.toInt(api.readRegister(debuggeePid, threadId, EFlags));
+		api.writeRegister(debuggeePid, threadId, EFlags, Int64.ofInt(flags & ~TRAP_FLAG));
+	}
+
+	// hl_debug_wait returns Exit for the OS's exit-process debug event WITHOUT
+	// continuing it, and Windows keeps the dying process alive until the
+	// debugger continues that event and detaches. Release it so whoever owns
+	// the process (the IDE/test runner in attach mode, our own Process handle
+	// in launch mode) sees it actually terminate. Call BEFORE reading the exit
+	// code: waitExitCode blocks on full termination.
+	function releaseExitedProcess(threadId:Int):Void {
+		try {
+			api.resume(debuggeePid, threadId);
+		} catch (e:Dynamic) {}
+		try {
+			api.stop(debuggeePid);
+		} catch (e:Dynamic) {}
 	}
 
 	function safeExitCode():Int {
@@ -958,11 +1003,18 @@ class DebugSession {
 
 	function cleanupAfterFailure():Void {
 		closeHandshake();
+		if (debuggeePid != 0) {
+			// detach if the attach had already happened; harmless otherwise
+			try {
+				api.stop(debuggeePid);
+			} catch (e:Dynamic) {}
+		}
 		if (process != null) {
 			process.kill();
 			process.close();
 			process = null;
 		}
+		debuggeePid = 0;
 	}
 
 	function closeHandshake():Void {
