@@ -579,8 +579,8 @@ and DAP `setVariable` (F2 in the Variables view) takes expressions too.
 **Value modification (`setVariable` + `path = value` in evaluate)**: writes a
 value into a resolved slot while the debuggee is stopped, to steer execution.
 The IDE surfaces it as F2 / "Set Value" in the Variables view (`XValueModifier`
-on each `HashLinkValue`) and as `x = 5` in the evaluate box (`evaluate` detects
-a top-level `=`, skipping `==`/`!=`/`<=`/`>=`). The target is resolved to an
+on each `HashLinkValue`) and as `x = 5` in the evaluate box (a top-level
+`EAssign` node from the M21b parser). The target is resolved to an
 `{address, type}` through the SAME layout arithmetic as reads
 (`ValueChildren.targetOf`), so a write lands exactly where the matching value
 was displayed — locals/args (`ebp+offset`), object/struct fields, array
@@ -739,15 +739,30 @@ is no runtime `[]` operator for maps: `Map` is a Haxe abstract whose `[]` is
 `@:arrayAccess inline` methods (`get`, `arrayWrite`→`set` in `haxe/ds/Map.hx`),
 which the compiler rewrites to `get`/`set` calls at COMPILE time, and HL
 bytecode carries no metadata (the format `Data` has no meta field). So the
-evaluator reproduces the sugar itself: `splitBracketTail` peels the final
-balanced `[...]`, and if the receiver resolves to a map class
-(StringMap/IntMap/ObjectMap or a BalancedTree — `mapReceiverType`) the access is
-rewritten to a `get`/`set` method call (M16), with the key/value lowered like
+evaluator reproduces the sugar itself: an `EIndex` node whose receiver resolves
+to a map class (StringMap/IntMap/ObjectMap or a BalancedTree — `mapTypeOfTarget`)
+is rewritten to a `get`/`set` method call (M16), with the key/value lowered like
 any argument (string keys materialised, primitive values boxed — M17). A write
 re-reads via `get` to return the stored value. **Arrays fall through**: a
 non-map receiver leaves `arr[i]` / `arr[i] = x` on the direct indexed-slot path
-(`arr[i]` is a real `OGetArray`/`OSetArray` index). Nested map brackets in one
-expression (`a[k1][k2]`, `map[k].field`) are not sugared — use the method calls.
+(`arr[i]` is a real `OGetArray`/`OSetArray` index). Since M21b the key is any
+expression (`map[i + 1]`), and the array index too (`arr[idx]`).
+
+**Conditional breakpoints (M22)** — a breakpoint's IDE "Condition" field is
+sent as the DAP `SourceBreakpoint.condition` and rides on `PatchedBreakpoint`.
+On every hit, `handleBreakpointHit` evaluates it against the hitting thread's
+TOP frame with the M21b interpreter (`inspector.evaluateBool`) BEFORE deciding
+to stop: a `true` result stops normally; a `false` result steps over the INT3
+and resumes WITHOUT emitting a stop — and without ending an in-flight step (its
+temps are still planted, so `next`/`step` keep progressing across a
+false-condition breakpoint). The whole process is frozen at the trap (Windows
+suspend-all), so the condition can read any thread's state and even run
+eval-calls (a getter in the condition) on the hitting thread. **Fail safe**: if
+the condition can't be evaluated — a name that isn't in scope, a non-Bool
+result, a parse error — the debuggee STOPS anyway and a console note explains
+why; a broken condition is never silently skipped. The condition uses the same
+expression grammar as evaluate, so it is Haxe-ish but not full Haxe (no ternary
+/ type checks yet).
 
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by

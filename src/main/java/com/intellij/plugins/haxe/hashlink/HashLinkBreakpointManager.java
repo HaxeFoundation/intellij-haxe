@@ -8,6 +8,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetBreakpointsArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetBreakpointsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.SetBreakpointsResponse;
+import com.intellij.xdebugger.XExpression;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import java.nio.file.Path;
@@ -85,6 +86,7 @@ final class HashLinkBreakpointManager {
     for (XLineBreakpoint<XBreakpointProperties> breakpoint : ordered) {
       SourceBreakpoint sb = new SourceBreakpoint();
       sb.setLine(breakpoint.getLine() + 1); // DAP lines are 1-based
+      sb.setCondition(conditionOf(breakpoint)); // the IDE's "Condition" field, evaluated at each hit
       requested.add(sb);
     }
     arguments.setBreakpoints(requested);
@@ -111,5 +113,16 @@ final class HashLinkBreakpointManager {
   private static String filePath(XLineBreakpoint<XBreakpointProperties> breakpoint) {
     var position = breakpoint.getSourcePosition();
     return position != null ? position.getFile().getPath() : null;
+  }
+
+  // The IDE's per-breakpoint "Condition" expression, or null when unset/blank.
+  // The adapter evaluates it at each hit and only stops when it is true.
+  private static String conditionOf(XLineBreakpoint<XBreakpointProperties> breakpoint) {
+    XExpression condition = breakpoint.getConditionExpression();
+    if (condition == null) {
+      return null;
+    }
+    String text = condition.getExpression();
+    return text != null && !text.isBlank() ? text : null;
   }
 }

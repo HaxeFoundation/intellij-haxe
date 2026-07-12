@@ -21,8 +21,8 @@ class BreakpointsTest {
 		return Int64.add(Int64.ofInt(0x400000), Int64.ofInt(v));
 	}
 
-	static function loc(a:Int, line:Int, id:Int = 1):{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int} {
-		return {id: id, address: addr(a), fidx: 0, op: 0, file: "Main.hx", line: line};
+	static function loc(a:Int, line:Int, id:Int = 1):{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>} {
+		return {id: id, address: addr(a), fidx: 0, op: 0, file: "Main.hx", line: line, condition: null};
 	}
 
 	static function installsInt3AndSavesOriginalByte(assert:Assert):Void {

@@ -36,7 +36,7 @@ class Breakpoints {
 	 * caller assigns each location's breakpoint id (so ids stay stable across
 	 * re-verification). Returns the installed breakpoints in input order.
 	 */
-	public function setForSource(sourceKey:String, locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int}>):Array<PatchedBreakpoint> {
+	public function setForSource(sourceKey:String, locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}>):Array<PatchedBreakpoint> {
 		clearSource(sourceKey);
 		var installed:Array<PatchedBreakpoint> = [];
 		for (loc in locations) {
@@ -151,11 +151,13 @@ class Breakpoints {
 		bySource.clear();
 	}
 
-	function install(loc:{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int}):PatchedBreakpoint {
+	function install(loc:{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}):PatchedBreakpoint {
 		var key = addressKey(loc.address);
 		var existing = byAddress.get(key);
 		if (existing != null) {
-			// same address already patched (e.g. two source entries collapse); reuse it
+			// same address already patched (e.g. two source entries collapse); the
+			// latest request's condition wins so an edited condition takes effect
+			existing.condition = loc.condition;
 			return existing;
 		}
 		var original = readByte(loc.address);
@@ -166,7 +168,8 @@ class Breakpoints {
 			fidx: loc.fidx,
 			op: loc.op,
 			file: loc.file,
-			line: loc.line
+			line: loc.line,
+			condition: loc.condition
 		};
 		writeByte(loc.address, INT3);
 		byAddress.set(key, bp);

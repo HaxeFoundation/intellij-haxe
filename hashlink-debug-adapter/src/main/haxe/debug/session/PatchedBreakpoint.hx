@@ -14,4 +14,7 @@ typedef PatchedBreakpoint = {
 	var op:Int;
 	var file:String;
 	var line:Int;
+	// Optional Haxe expression evaluated at each hit; the debuggee stops only
+	// when it is true (M22). Null/empty = an unconditional breakpoint.
+	var condition:Null<String>;
 }

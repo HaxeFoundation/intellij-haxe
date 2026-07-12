@@ -232,6 +232,23 @@ class VariableInspector {
 		return renderValue(expression, evalExpr(frameId, e));
 	}
 
+	/**
+	 * Evaluates a breakpoint condition to a Bool in the given frame (M22). The
+	 * expression must yield a Bool — a number/string/object condition is a user
+	 * error, surfaced with a clear message so the caller can fail safe (stop).
+	 */
+	public function evaluateBool(frameId:Int, expression:String):Bool {
+		var e = debug.eval.ExprParser.parse(StringTools.trim(expression));
+		if (e.match(EAssign(_, _))) {
+			throw new debug.DebugError("A breakpoint condition cannot be an assignment");
+		}
+		return switch (evalExpr(frameId, e)) {
+			case VBool(b): b;
+			case other: throw new debug.DebugError("A breakpoint condition must be true/false, got "
+				+ debug.eval.Operators.describe(other));
+		}
+	}
+
 	// The pre-M21b path walk: resolves the root, then follows accessors through
 	// the same variablesReference listings the Variables view uses.
 	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {

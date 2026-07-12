@@ -317,7 +317,7 @@ class DebugSession {
 			return;
 		}
 
-		var locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int}> = [];
+		var locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}> = [];
 		var results:Array<BreakpointResult> = [];
 		for (request in requested) {
 			var resolved = module.resolveLine(sourcePath, request.line);
@@ -328,7 +328,8 @@ class DebugSession {
 					locations.push({
 						id: request.id,
 						address: jit.addressOf(location.fidx, location.op),
-						fidx: location.fidx, op: location.op, file: sourcePath, line: location.line
+						fidx: location.fidx, op: location.op, file: sourcePath, line: location.line,
+						condition: request.condition
 					});
 				}
 				results.push({id: request.id, verified: true, line: resolved[0].line, sourcePath: sourcePath});
@@ -935,6 +936,25 @@ class DebugSession {
 
 		// a real breakpoint always wins over a step landing
 		if (userBp != null) {
+			// A conditional breakpoint (M22) only stops when its expression is true.
+			// Evaluate it against the hitting thread's top frame; a false result
+			// resumes without stopping (and WITHOUT ending an in-flight step — the
+			// step's temps are still planted, so it keeps progressing).
+			if (userBp.condition != null && userBp.condition != "") {
+				inspector.startStop(threadId);
+				stoppedThreadId = threadId; // the condition's eval-calls target this thread
+				if (!breakpointConditionHolds(threadId, userBp)) {
+					inspector.invalidate();
+					var interrupted = resumePastUserBreakpoint(threadId, userBp);
+					if (state == Exited) {
+						return;
+					}
+					if (interrupted != null) {
+						handleWaitOutcome(interrupted);
+					}
+					return;
+				}
+			}
 			finishStep();
 			breakpoints.suspend(userBp);
 			currentStoppedBreakpoint = userBp;
@@ -964,6 +984,50 @@ class DebugSession {
 		inspector.startStop(threadId);
 		state = Stopped(threadId);
 		emit(EvStoppedStep(threadId));
+	}
+
+	// Evaluates a conditional breakpoint against the hitting thread's top frame.
+	// FAIL SAFE: any error (bad expression, non-Bool result, no frame) stops the
+	// debuggee and reports the reason, so a broken condition is never silently
+	// skipped — the user always sees why.
+	function breakpointConditionHolds(threadId:Int, bp:PatchedBreakpoint):Bool {
+		var frames = inspector.framesFor(threadId);
+		if (frames.length == 0) {
+			emitConditionNote(bp, "no stack frame to evaluate against");
+			return true;
+		}
+		try {
+			return inspector.evaluateBool(frames[0].frameId, bp.condition);
+		} catch (e:DebugError) {
+			emitConditionNote(bp, e.message);
+			return true;
+		} catch (e:Dynamic) {
+			emitConditionNote(bp, Std.string(e));
+			return true;
+		}
+	}
+
+	function emitConditionNote(bp:PatchedBreakpoint, reason:String):Void {
+		emit(EvOutput("console", "[debugger] breakpoint condition \"" + bp.condition + "\" could not be evaluated ("
+			+ reason + "); stopping." + String.fromCharCode(10)));
+	}
+
+	// Step over a conditional breakpoint whose condition was false and keep
+	// running, WITHOUT emitting a stop and without disturbing currentStoppedBreakpoint
+	// or an in-flight step. Returns a pending event if another thread interrupted
+	// the single-step dance (the caller settles it as a normal stop).
+	function resumePastUserBreakpoint(threadId:Int, bp:PatchedBreakpoint):Null<WaitOutcome> {
+		breakpoints.suspend(bp);
+		var interrupted = trapDance(threadId);
+		breakpoints.rearm(bp);
+		if (state == Exited) {
+			return null;
+		}
+		if (interrupted != null) {
+			return interrupted; // a pending event owns the freeze; don't resume past it
+		}
+		api.resume(debuggeePid, threadId);
+		return null;
 	}
 
 	// --- helpers ---

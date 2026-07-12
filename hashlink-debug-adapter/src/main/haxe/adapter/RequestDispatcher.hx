@@ -161,7 +161,9 @@ class RequestDispatcher {
 		var sourcePath = (args != null && args.source != null && args.source.path != null) ? args.source.path : "";
 		var sourceKey = sourcePath.toLowerCase();
 		var sourceBreakpoints:Array<SourceBreakpoint> = (args != null && args.breakpoints != null) ? args.breakpoints : [];
-		var requested:Array<RequestedBreakpoint> = [for (sb in sourceBreakpoints) {id: nextBreakpointId++, line: sb.line}];
+		var requested:Array<RequestedBreakpoint> = [
+			for (sb in sourceBreakpoints) {id: nextBreakpointId++, line: sb.line, condition: sb.condition}
+		];
 
 		if (!launched) {
 			// answer provisionally; re-verified after launch via breakpoint events
