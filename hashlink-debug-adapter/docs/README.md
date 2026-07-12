@@ -621,10 +621,15 @@ injects it. The dance:
   8 bytes, so it must pop 8 (`add rsp,8`), not 16.
 - Args are literals or variable paths, lowered to each parameter's declared
   type; returns are decoded (primitives inline, pointer returns via the normal
-  value path). Not yet supported: bound closures (they need the captured
-  environment threaded in) and stack-spilled arguments beyond the register set.
+  value path). Not yet supported: stack-spilled arguments beyond the register set.
   DANGEROUS by nature — it runs arbitrary debuggee code on the session thread —
   but that is the accepted trade for steering execution.
+- **Bound closures (M20)**: a vclosure with `hasValue != 0` is called exactly as
+  the jit's `OCallClosure` does — `fun(value, args...)`, where `value` (the
+  bound receiver for `inst.method`, the capture env for a lambda) is read at
+  `closure + ptr*3` and threaded as the leading argument. The closure's visible
+  `HFun` type already excludes that implicit parameter, so the user-supplied
+  args map 1:1 onto the declared ones.
 - **Call the true entry, not opcode 0** (a sharp edge): a function resolved by
   name is called at `JitInfo.functionEntry` = `jitCodeBase + fn.start`, the
   start of the JIT prologue. `addressOf(fidx, 0)` points PAST the prologue

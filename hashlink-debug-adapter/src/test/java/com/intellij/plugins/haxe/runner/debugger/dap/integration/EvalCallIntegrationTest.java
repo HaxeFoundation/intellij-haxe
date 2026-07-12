@@ -56,7 +56,25 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // resume: the program's own output must be intact (calls didn't corrupt it)
     String output = continueToExit(stopped.getBody().getThreadId());
-    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,4"));
+    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,16,13,6"));
+  }
+
+  @Test
+  public void callsBoundClosures() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
+
+    // instance-method closure (value = the receiver): boost(n) = n + bonus(15)
+    assertEquals("boost(3) = 18", "18", evaluate(frameId, "boost(3)").getBody().getResult());
+    // capturing lambda (value = the capture env): plus(n) = n + base(10) + 2
+    assertEquals("plus(5) = 17", "17", evaluate(frameId, "plus(5)").getBody().getResult());
+    // repeatable: the captured state must be untouched by the first calls
+    assertEquals("boost(0) = 15", "15", evaluate(frameId, "boost(0)").getBody().getResult());
+
+    // the debuggee survived the bound calls: output intact through a clean exit
+    String output = continueToExit(threadId);
+    assertTrue("program output intact after bound calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,16,13,6"));
   }
 
   @Test
@@ -159,7 +177,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // the injected allocation + ctor left the debuggee intact
     String output = continueToExit(threadId);
-    assertTrue("program output intact after construction (" + output + ")", output.contains("call:11,25,true,orig10,L10,4"));
+    assertTrue("program output intact after construction (" + output + ")", output.contains("call:11,25,true,orig10,L10,16,13,6"));
   }
 
   @Test

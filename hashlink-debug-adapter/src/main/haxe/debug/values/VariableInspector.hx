@@ -431,21 +431,25 @@ class VariableInspector {
 			case HFun(f): f;
 			default: throw new debug.DebugError('"' + callee + '" is not a function');
 		};
-		// the slot holds a vclosure; its function pointer is at +ptr. A bound
-		// closure (captured environment) needs the env threaded through as a
-		// leading argument, which is out of scope for now.
+		// The slot holds a vclosure {t @0, fun @+ptr, hasValue @+ptr*2, value @+ptr*3}.
+		// When hasValue != 0 the closure is BOUND (an instance-method closure whose
+		// value is the receiver, or a lambda whose value is its capture env): the
+		// jit's OCallClosure emits `fun(value, args...)` — thread the captured value
+		// through as the leading argument (M20). The closure's visible HFun type
+		// already excludes that implicit parameter, so declared args map 1:1.
 		var closurePtr = memory.readPointer(target.address);
 		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
 			throw new debug.DebugError('"' + callee + '" is null');
 		}
-		if (memory.readI32(offset(closurePtr, align.ptr * 2)) == 1) {
-			throw new debug.DebugError("Cannot call a bound closure yet (it captures local state)");
-		}
+		var bound = memory.readI32(offset(closurePtr, align.ptr * 2)) != 0;
 		var funcAddr = memory.readPointer(offset(closurePtr, align.ptr));
 		if (argExprs.length != fn.args.length) {
 			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + argExprs.length);
 		}
 		var args:Array<debug.eval.CallEmitter.CallArg> = [];
+		if (bound) {
+			args.push({isFloat: false, bits: memory.readPointer(offset(closurePtr, align.ptr * 3))});
+		}
 		for (i in 0...argExprs.length) {
 			args.push(lowerArgument(frameId, argExprs[i], fn.args[i]));
 		}
