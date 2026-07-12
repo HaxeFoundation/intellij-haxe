@@ -61,10 +61,14 @@ class DebugSession {
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
 	var alive:Bool = true;
-	// active step state (temporary breakpoints planted; a stop is pending)
-	var stepActive:Bool = false;
-	var stepMode:StepMode = Next;
-	var stepStartEsp:Pointer = Int64.ofInt(0);
+	// The in-flight step (temps planted, landing pending), bound to its thread;
+	// null when no step is active. See ActiveStep for why this is a singleton.
+	var activeStep:Null<ActiveStep> = null;
+	// A pending debug event from another thread that interrupted an eval-call:
+	// it owns the process freeze and must be processed as a normal stop once
+	// the current command finishes (processing it mid-eval would re-enter the
+	// inspector while its caches are in use).
+	var pendingForeignStop:Null<WaitOutcome> = null;
 	// variable inspection (created at launch, once jit/module are available);
 	// owns the per-stop frame cache + variablesReference registry
 	var inspector:VariableInspector;
@@ -122,6 +126,14 @@ class DebugSession {
 		} catch (e:Dynamic) {
 			dbg("cmd " + Type.enumConstructor(command) + " failed: " + Std.string(e));
 			emit(EvRejected(seqOf(command), "Internal debugger error: " + Std.string(e)));
+		}
+		// an eval-call may have been interrupted by another thread's stop; that
+		// event owns the process freeze and is processed only now, after the
+		// command settled (never mid-eval: the inspector's caches were in use)
+		var foreign = pendingForeignStop;
+		if (foreign != null) {
+			pendingForeignStop = null;
+			handleWaitOutcome(foreign);
 		}
 	}
 
@@ -422,6 +434,10 @@ class DebugSession {
 
 	// Resume the thread and wait until it traps at exactly `trapEnd` (Eip past
 	// our injected INT3). Returns false on exit, a foreign stop, or timeout.
+	// A foreign Breakpoint/Error is a REAL pending event that owns the process
+	// freeze: it is stashed in `pendingForeignStop` for handleCommand to process
+	// as a normal stop once the eval teardown is done — resuming past it with
+	// the wrong thread id would leave the debuggee frozen forever.
 	function resumeUntilTrap(threadId:Int, trapEnd:Pointer):Bool {
 		api.resume(process.pid, threadId);
 		var budget = CALL_TIMEOUT_MS;
@@ -432,10 +448,12 @@ class DebugSession {
 					budget -= WAIT_POLL_MS;
 				case Breakpoint:
 					var eip = api.readRegister(process.pid, outcome.threadId, Eip);
-					if (Int64.eq(eip, trapEnd)) {
+					if (outcome.threadId == threadId && Int64.eq(eip, trapEnd)) {
 						return true; // our trampoline's INT3
 					}
-					return false; // a user breakpoint fired inside the call
+					// a user breakpoint fired in some thread during the call
+					pendingForeignStop = outcome;
+					return false;
 				case SingleStep:
 					api.resume(process.pid, outcome.threadId);
 				case Handled:
@@ -445,8 +463,11 @@ class DebugSession {
 				case Exit:
 					state = Exited;
 					return false;
-				default:
-					return false; // exception / stack overflow inside the call
+				case Error, StackOverflow:
+					// an exception mid-call: also a pending event that must be
+					// reported as a stop, not silently discarded
+					pendingForeignStop = outcome;
+					return false;
 			}
 		}
 		return false;
@@ -572,7 +593,7 @@ class DebugSession {
 					// another thread stopped us during the resume dance: report
 					// that stop right after the step response
 					handleWaitOutcome(interrupted);
-				} else if (!stepActive) {
+				} else if (activeStep == null) {
 					// No landing could be planted at all (the only "next" is an
 					// unresolvable native return). Behave like continue and tell
 					// the client we are running rather than leaving it waiting
@@ -587,20 +608,19 @@ class DebugSession {
 	}
 
 	// Plant the temporary breakpoints that mark where this step should land, then
-	// resume (stepping over the instruction we are parked on). `stepActive`
-	// afterwards says whether any landing was planted (false = the caller
+	// resume (stepping over the instruction we are parked on). `activeStep`
+	// afterwards says whether any landing was planted (null = the caller
 	// downgrades the step to a plain continue). Returns a pending debug event
 	// when another thread interrupted the resume dance.
 	function planStep(threadId:Int, mode:StepMode):Null<WaitOutcome> {
 		breakpoints.clearTemps();
-		stepMode = mode;
-		stepStartEsp = api.readRegister(process.pid, threadId, Esp);
+		activeStep = null;
+		var startEsp = api.readRegister(process.pid, threadId, Esp);
 
 		var eip = api.readRegister(process.pid, threadId, Eip);
 		var position = jit.resolveAddress(eip);
 		if (position == null) {
 			// not in known bytecode (e.g. inside a native call): can't compute targets
-			stepActive = false;
 			return stepOverAndResume(threadId);
 		}
 		var fidx = position.fidx;
@@ -631,7 +651,9 @@ class DebugSession {
 			}
 		}
 
-		stepActive = breakpoints.hasTemps();
+		if (breakpoints.hasTemps()) {
+			activeStep = {threadId: threadId, mode: mode, startEsp: startEsp};
+		}
 		return stepOverAndResume(threadId);
 	}
 
@@ -663,16 +685,19 @@ class DebugSession {
 		if (breakpoints != null) {
 			breakpoints.clearTemps();
 		}
-		stepActive = false;
+		activeStep = null;
 	}
 
-	// stack grows down: a shallower-or-equal frame has esp >= the step-start esp
-	function frameGuardSatisfied(threadId:Int):Bool {
-		if (stepMode == StepIn) {
+	// Stack grows down: a shallower-or-equal frame has esp >= the step-start
+	// esp. Only meaningful for the step's OWN thread — every thread has its own
+	// stack, so comparing another thread's esp against step.startEsp is noise
+	// (foreign temp hits are filtered out before this is consulted).
+	function frameGuardSatisfied(step:ActiveStep):Bool {
+		if (step.mode == StepIn) {
 			return true; // any landing (same-frame line change or callee entry) is valid
 		}
-		var esp = api.readRegister(process.pid, threadId, Esp);
-		return Int64.compare(esp, stepStartEsp) >= 0;
+		var esp = api.readRegister(process.pid, step.threadId, Esp);
+		return Int64.compare(esp, step.startEsp) >= 0;
 	}
 
 	function handleThreads(requestSeq:Int):Void {
@@ -890,8 +915,16 @@ class DebugSession {
 			return;
 		}
 
-		// a temporary (step) breakpoint: honour the frame guard for step over/out
-		if (stepActive && !frameGuardSatisfied(threadId)) {
+		// A temporary (step) breakpoint. Temps live at CODE addresses, so any
+		// thread executing that line traps: a hit by a thread that does NOT own
+		// the step is never its landing — step that thread past and keep going.
+		var step = activeStep;
+		if (step != null && threadId != step.threadId) {
+			stepPastTempAndResume(threadId, hitAddress);
+			return;
+		}
+		// the owning thread: honour the recursion frame guard for step over/out
+		if (step != null && !frameGuardSatisfied(step)) {
 			stepPastTempAndResume(threadId, hitAddress);
 			return;
 		}

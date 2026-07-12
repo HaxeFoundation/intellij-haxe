@@ -252,6 +252,19 @@ The rules every wait loop must follow (`waitForSingleStep`,
   feed it to `handleWaitOutcome`.
 - **Check `outcome.threadId`** on SingleStep: only our thread has the trap
   flag, but never assume.
+- **Thread-specific state must carry its thread id.** `DebugSession`'s
+  suspend-all singletons (`stoppedThreadId` + `currentStoppedBreakpoint`,
+  written together at each stop) are fine, but the in-flight step is bound to
+  the thread that started it: `ActiveStep {threadId, mode, startEsp}`. Temps
+  live at CODE addresses, so any thread executing that line traps on them — a
+  hit by a non-owning thread is never the landing, and comparing its Esp
+  against the owner's `startEsp` is noise (different stacks). Foreign hits are
+  single-stepped past and resumed.
+- **A foreign stop during an eval-call** (a breakpoint or exception in some
+  thread while the injected trampoline runs) is stashed
+  (`pendingForeignStop`) and processed as a normal stop AFTER the evaluate
+  command settles — never mid-eval (the inspector's caches are on the call
+  stack), and never dropped (the pending event owns the process freeze).
 
 ### A step that never lands is NOT an error
 A step with planted landings **waits indefinitely** — stepping over a slow
