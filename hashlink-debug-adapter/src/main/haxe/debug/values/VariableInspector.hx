@@ -412,9 +412,73 @@ class VariableInspector {
 					|| debug.eval.Operators.asBool(evalExpr(frameId, r), "||"));
 			case EBinop(op, l, r):
 				debug.eval.Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
+			case ETernary(cond, thenE, elseE):
+				// only the taken branch runs (a branch may call a function)
+				debug.eval.Operators.asBool(evalExpr(frameId, cond), "?:")
+					? evalExpr(frameId, thenE) : evalExpr(frameId, elseE);
+			case EIs(inner, typeName):
+				VBool(valueIsOfType(evalExpr(frameId, inner), typeName));
 			case EAssign(_, _):
 				throw new debug.DebugError("Assignment is only allowed at the top level of an expression");
 		}
+	}
+
+	// `value is Type` (Haxe Std.isOfType semantics, the subset we support):
+	// null is never an instance; Int/Float/Bool/String/Dynamic match by kind
+	// (an Int satisfies Float, as in Haxe); a class/enum/struct name matches an
+	// object whose runtime class equals it or descends from it (tsuper chain,
+	// by full or simple name). Interfaces are not resolved. A type name that
+	// names nothing is a user error (so a typo isn't a silent false).
+	function valueIsOfType(v:debug.eval.EvalValue, typeName:String):Bool {
+		if (v.match(VNull)) {
+			return false;
+		}
+		switch (typeName) {
+			case "Dynamic": return true;
+			case "Int": return v.match(VInt(_));
+			case "Float": return v.match(VFloat(_)) || v.match(VInt(_));
+			case "Bool": return v.match(VBool(_));
+			case "String": return v.match(VString(_, _));
+			default:
+		}
+		if (!module.typeNameExists(typeName)) {
+			throw new debug.DebugError('Unknown type "' + typeName + '" in an `is` check');
+		}
+		return switch (v) {
+			case VObject(ptr, type):
+				var runtime = switch (type) {
+					case HObj(_), HStruct(_): type;
+					default: runtimeTypes.typeAt(memory.readPointer(ptr));
+				}
+				classChainMatches(runtime, typeName);
+			default:
+				false; // a primitive/string against a (real) class name
+		}
+	}
+
+	// Walks an object's runtime class and its superclasses, matching each class
+	// name against `target` by full name (`pkg.Cls`) or simple name (`Cls`).
+	function classChainMatches(type:Null<HLType>, target:String):Bool {
+		var proto = switch (type) {
+			case HObj(p), HStruct(p): p;
+			default: null;
+		}
+		var seen = 0;
+		while (proto != null && seen++ < 64) {
+			if (proto.name == target || simpleClassName(proto.name) == target) {
+				return true;
+			}
+			proto = proto.tsuper == null ? null : switch (proto.tsuper) {
+				case HObj(p), HStruct(p): p;
+				default: null;
+			}
+		}
+		return false;
+	}
+
+	static inline function simpleClassName(full:String):String {
+		var dot = full.lastIndexOf(".");
+		return dot < 0 ? full : full.substr(dot + 1);
 	}
 
 	// A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath.

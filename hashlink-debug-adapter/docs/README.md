@@ -567,8 +567,18 @@ Float, `+` concatenates when either side is a String, `==` compares string
 CONTENT and object POINTERS, `&&`/`||` short-circuit (the right side's calls
 don't run). A pure-path top-level expression still walks the per-stop
 variablesReference registry, so those results expand in the watches view
-exactly like the Variables view (map entries, enum params, ...). Deferred:
-ternary `?:`, type checks (`is`), stack-spilled call args.
+exactly like the Variables view (map entries, enum params, ...).
+
+**Ternary and `is` (M23)**: `cond ? a : b` sits between `||` and `=`, is
+right-associative, and only evaluates the taken branch (so `true ? n : f()`
+never runs `f`). `value is Type` sits at the comparison level with a (dotted)
+type NAME as its right operand — Haxe `Std.isOfType` semantics for the subset
+we support: `null is X` is false; `Int`/`Float`/`Bool`/`String`/`Dynamic` match
+by kind (an Int satisfies `Float`, as in Haxe); a class/enum name matches an
+object whose runtime class equals it or descends from it (`tsuper` chain, by
+full or simple name — interfaces are not resolved). A type name that names
+nothing is a user error (`typeNameExists` guards it), so a typo is not a silent
+false. Deferred: stack-spilled call args (>4 win64 / >6 SysV int).
 
 Sinks consume evaluated values everywhere: call/ctor ARGUMENTS are full
 expressions (`lowerValue` boxes primitives into Dynamic params, materializes

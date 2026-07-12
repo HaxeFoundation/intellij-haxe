@@ -15,14 +15,15 @@ import debug.eval.ExprAst.Expr;
  *   3. + -
  *   4. << >> >>>
  *   5. & | ^                   (one tier, left-associative)
- *   6. == != < <= > >=
+ *   6. == != < <= > >=  and  `is`
  *   7. &&
  *   8. ||
- *   9. =                       (right-associative)
+ *   9. ?:                      (ternary, right-associative)
+ *  10. =                       (right-associative)
  *
  * Postfix: `.field`, `[expr]`, `(args)`. Primary: literals, identifiers,
- * parentheses, `new pkg.Cls(args)`. Ternary `?:` and type checks are
- * deliberately NOT here yet (deferred by the user).
+ * parentheses, `new pkg.Cls(args)`. `e is Type` sits at the comparison level;
+ * its right side is a (dotted) type name, not an expression.
  */
 class ExprParser {
 	/** Parses a full expression; throws DebugError with a clear message. */
@@ -46,13 +47,27 @@ class ExprParser {
 	// --- precedence levels (lowest first) ---
 
 	function parseAssign():Expr {
-		var left = parseOr();
+		var left = parseTernary();
 		skipWhitespace();
 		if (peekOp("=") && !peekOp("==")) {
 			pos++;
 			return EAssign(left, parseAssign()); // right-associative
 		}
 		return left;
+	}
+
+	function parseTernary():Expr {
+		var cond = parseOr();
+		skipWhitespace();
+		if (peekOp("?")) {
+			pos++;
+			var thenExpr = parseAssign(); // between ? and : anything is allowed
+			skipWhitespace();
+			expect(":");
+			var elseExpr = parseAssign(); // right-assoc: a?b:c?d:e = a?b:(c?d:e)
+			return ETernary(cond, thenExpr, elseExpr);
+		}
+		return cond;
 	}
 
 	function parseOr():Expr {
@@ -85,6 +100,12 @@ class ExprParser {
 		var left = parseBitwise();
 		while (true) {
 			skipWhitespace();
+			// `e is Type` — the right operand is a (dotted) type name, not an expr
+			if (peekKeyword("is")) {
+				pos += 2;
+				left = EIs(left, readTypePath());
+				continue;
+			}
 			var op = matchFirst(["==", "!=", "<=", ">=", "<", ">"]);
 			// `<` / `>` must not swallow the first char of `<<` / `>>`
 			if (op == "<" && peekOp("<<")) {
@@ -99,6 +120,31 @@ class ExprParser {
 			pos += op.length;
 			left = EBinop(op, left, parseBitwise());
 		}
+	}
+
+	// A dotted type name after `is`, `new`, etc. (`Point`, `pkg.sub.Cls`).
+	function readTypePath():String {
+		var name = readIdent("a type name");
+		while (true) {
+			skipWhitespace();
+			if (peekOp(".")) {
+				pos++;
+				skipWhitespace();
+				name += "." + readIdent("a type-name segment after '.'");
+			} else {
+				return name;
+			}
+		}
+	}
+
+	// True when the identifier `word` sits at the cursor as a whole token (so
+	// `is` matches but `isReady` does not).
+	function peekKeyword(word:String):Bool {
+		if (!peekOp(word)) {
+			return false;
+		}
+		var after = pos + word.length;
+		return after >= text.length || !isIdentPart(StringTools.fastCodeAt(text, after));
 	}
 
 	function parseBitwise():Expr {

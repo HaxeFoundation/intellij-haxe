@@ -549,6 +549,39 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  public void evaluatesTernaryAndTypeChecks() throws Exception {
+    // Mutate.demo checkpoint: n=5, flag=false, obj=Point(1,2,"p"), arr=[5,10,15], idx=1
+    runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // ternary — condition selects the branch, branches are full expressions
+    assertEquals("n > 0 ? ... : ...", "\"pos\"", evaluate(frameId, "n > 0 ? \"pos\" : \"neg\"").getBody().getResult());
+    assertEquals("false condition takes else", "2", evaluate(frameId, "flag ? 1 : 2").getBody().getResult());
+    assertEquals("branch is an expression", "10", evaluate(frameId, "n > 3 ? n * 2 : 0").getBody().getResult());
+    assertEquals("ternary right-assoc chain", "\"mid\"",
+                 evaluate(frameId, "n < 0 ? \"lo\" : n > 100 ? \"hi\" : \"mid\"").getBody().getResult());
+    // only the taken branch is evaluated: the untaken branch names an unknown
+    // variable, which would ERROR if it ran
+    assertEquals("untaken branch is not evaluated", "5", evaluate(frameId, "true ? n : nosuchvar").getBody().getResult());
+
+    // `is` type checks
+    assertEquals("object is its class", "true", evaluate(frameId, "obj is Point").getBody().getResult());
+    assertEquals("object is not another class", "false", evaluate(frameId, "obj is String").getBody().getResult());
+    assertEquals("int is Int", "true", evaluate(frameId, "n is Int").getBody().getResult());
+    assertEquals("int is Float (Haxe)", "true", evaluate(frameId, "n is Float").getBody().getResult());
+    assertEquals("int is not Bool", "false", evaluate(frameId, "n is Bool").getBody().getResult());
+    assertEquals("field is String", "true", evaluate(frameId, "obj.label is String").getBody().getResult());
+    // combined with logic
+    assertEquals("is in a boolean expression", "true", evaluate(frameId, "obj is Point && n is Int").getBody().getResult());
+    // an unknown type name is a user error, not a silent false
+    Response unknownType = evaluateRaw(frameId, "obj is Nonexistent");
+    assertFalse("unknown type rejected", unknownType.isSuccess());
+    assertTrue("names the unknown type", unknownType.getMessage().contains("Nonexistent"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   public void assignsExpressionResults() throws Exception {
     runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
     int frameId = topFrameId(lastStoppedThreadId());

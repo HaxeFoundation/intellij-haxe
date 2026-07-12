@@ -66,6 +66,28 @@ class ModuleDebugInfo {
 		return typesByName.get(name);
 	}
 
+	/**
+	 * True when `name` names a module type by its full name (`pkg.Cls`) OR by its
+	 * simple name (`Cls`) — used to tell a real type from a typo in an `is` check
+	 * without an import context.
+	 */
+	public function typeNameExists(name:String):Bool {
+		if (typesByName.exists(name)) {
+			return true;
+		}
+		for (full in typesByName.keys()) {
+			if (simpleName(full) == name) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	static inline function simpleName(full:String):String {
+		var dot = full.lastIndexOf(".");
+		return dot < 0 ? full : full.substr(dot + 1);
+	}
+
 	// dynobj field names are stored as hl_hash values; every hashable name is
 	// somewhere in the module's string table, so hashing all strings once gives
 	// the reverse mapping (same approach as hld Module.reverseHash)

@@ -25,6 +25,8 @@ class ExprParserTest {
 				case ENew(cls, args): "new " + cls + "(" + [for (a in args) dump(a)].join(",") + ")";
 				case EUnop(op, inner): "(" + op + dump(inner) + ")";
 				case EBinop(op, l, r): "(" + dump(l) + op + dump(r) + ")";
+				case ETernary(c, t, e): "(" + dump(c) + "?" + dump(t) + ":" + dump(e) + ")";
+				case EIs(e, name): "(" + dump(e) + " is " + name + ")";
 				case EAssign(t, v): "(" + dump(t) + "=" + dump(v) + ")";
 			}
 		}
@@ -72,6 +74,20 @@ class ExprParserTest {
 		assert.equals('("n="+n)', parsed('"n=" + n'), "string concat parse");
 		assert.equals("((n>>>2)&15)", parsed("n >>> 2 & 15"), "ushr then bitwise");
 		assert.equals("((~n)+1)", parsed("~n + 1"), "bitwise not");
+
+		// ternary (right-assoc, below || and above =)
+		assert.equals("((a>0)?1:2)", parsed("a > 0 ? 1 : 2"), "ternary with comparison condition");
+		assert.equals("(a?b:(c?d:e))", parsed("a ? b : c ? d : e"), "ternary right-assoc");
+		assert.equals("((a||b)?1:0)", parsed("a || b ? 1 : 0"), "ternary below ||");
+		assert.equals("(x=(a?1:2))", parsed("x = a ? 1 : 2"), "assignment below ternary");
+		assert.equals("((n>0)?(n+1):(n-1))", parsed("n > 0 ? n + 1 : n - 1"), "ternary branches are expressions");
+
+		// `is` type checks (comparison level; right side is a type name)
+		assert.equals("(x is Point)", parsed("x is Point"), "is with a class");
+		assert.equals("(x is pkg.Deep)", parsed("x is pkg.Deep"), "is with a dotted type");
+		assert.equals("((x is Point)&&(y is String))", parsed("x is Point && y is String"), "is binds tighter than &&");
+		assert.equals("obj.field", parsed("obj.field"), "field named after no keyword confusion");
+		assert.equals("isReady", parsed("isReady"), "identifier starting with 'is' is not the keyword");
 
 		// errors
 		assert.isTrue(rejects("1 +"), "dangling operator rejected");

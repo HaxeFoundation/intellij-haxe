@@ -25,6 +25,10 @@ enum Expr {
 	EUnop(op:String, e:Expr);
 	/** binary operator; `&&`/`||` short-circuit in the interpreter */
 	EBinop(op:String, left:Expr, right:Expr);
+	/** `cond ? thenExpr : elseExpr` — only the taken branch is evaluated */
+	ETernary(cond:Expr, thenExpr:Expr, elseExpr:Expr);
+	/** `e is Type` — a runtime type check; `typeName` is a (dotted) class/enum name */
+	EIs(e:Expr, typeName:String);
 	/** `target = value` (right-associative, lowest precedence) */
 	EAssign(target:Expr, value:Expr);
 }
