@@ -548,14 +548,33 @@ values so they stay realistic).
   Haxe 4.3.7 std API produces them. A runtime kind-23 vdynamic (from native
   code) is displayed as its raw Int64 storage.
 
-**Evaluate (watches/hover)**: the adapter's `evaluate` request resolves
-**variable paths only** — `name`, `obj.field.sub`, `arr[3]` (ValuePath parser;
-anything else errors with "Only variable paths can be evaluated"). Root
-resolution order: the frame's locals → fields of `this` (implicit member
-access) → the owning class's statics. The walk reuses the per-stop
-variablesReference registry, so results expand in the watches view and die
-with the stop like every other reference. No arbitrary expression evaluation:
-that would mean interpreting Haxe inside the debuggee.
+**Evaluate (watches/hover)**: the adapter's `evaluate` request accepts full
+EXPRESSIONS (M21b): variable paths, literals, calls, `new`, map/array
+brackets, and operators — `n * 2 + 1`, `arr[idx + 1]`, `Config.version > 5 &&
+!flag`, `"n=" + n`, `add(base + 1, 2) * 2`. Root resolution order for names:
+the frame's locals → fields of `this` (implicit member access) → the owning
+class's statics → a class named by a leading dotted prefix
+(`MyClass.someValue`, `pkg.Cls.member` — the statics container `pkg.$Cls`).
+
+Architecture (see `debug/eval/ExprParser|ExprAst|EvalValue|Operators`):
+a Pratt parser (HAXE precedence: bitwise ops in ONE tier binding tighter than
+comparisons; shifts between additive and bitwise) produces an AST whose leaves
+resolve through the existing machinery (typed reads at `targetOfPath`
+addresses, calls via callRaw, `new` via construct); operators fold
+ADAPTER-SIDE over `EvalValue` (Int/Float/Bool/String-content/Null/debuggee
+pointer) — no debuggee code runs for arithmetic. Haxe semantics: `/` is always
+Float, `+` concatenates when either side is a String, `==` compares string
+CONTENT and object POINTERS, `&&`/`||` short-circuit (the right side's calls
+don't run). A pure-path top-level expression still walks the per-stop
+variablesReference registry, so those results expand in the watches view
+exactly like the Variables view (map entries, enum params, ...). Deferred:
+ternary `?:`, type checks (`is`), stack-spilled call args.
+
+Sinks consume evaluated values everywhere: call/ctor ARGUMENTS are full
+expressions (`lowerValue` boxes primitives into Dynamic params, materializes
+string literals, passes pointers through), assignment RHS is a full expression
+(`n = n * 2 + 1`, `arr[idx] = n + 89` — computed element indexes included),
+and DAP `setVariable` (F2 in the Variables view) takes expressions too.
 
 **Value modification (`setVariable` + `path = value` in evaluate)**: writes a
 value into a resolved slot while the debuggee is stopped, to steer execution.

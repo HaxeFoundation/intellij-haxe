@@ -32,6 +32,8 @@ class TestMain {
 			{name: "RuntimeTypesTest", run: tests.RuntimeTypesTest.run},
 			{name: "ValuePathTest", run: tests.ValuePathTest.run},
 			{name: "ValueLiteralParserTest", run: tests.ValueLiteralParserTest.run},
+			{name: "ExprParserTest", run: tests.ExprParserTest.run},
+			{name: "OperatorsTest", run: tests.OperatorsTest.run},
 			{name: "ValueReaderTest", run: tests.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.ValueChildrenTest.run},
 			{name: "MapReaderTest", run: tests.MapReaderTest.run},

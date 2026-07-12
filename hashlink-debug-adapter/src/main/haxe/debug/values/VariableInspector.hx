@@ -203,28 +203,38 @@ class VariableInspector {
 		while (StringTools.endsWith(expression, ";")) {
 			expression = StringTools.rtrim(expression.substr(0, expression.length - 1));
 		}
-		var call = CallExpr.parse(expression);
-		if (call != null) {
-			return call.isConstruction
-				? decodeReturn("new " + call.callee + "()", construct(frameId, call.callee, call.args), constructedType(call.callee))
-				: evaluateCall(frameId, call.callee, call.args);
+		var e = debug.eval.ExprParser.parse(expression);
+		switch (e) {
+			case EAssign(lhs, rhs):
+				return assignExpr(frameId, lhs, rhs);
+			case ECall(callee, args):
+				var calleePath = chainToPath(callee);
+				if (calleePath == null) {
+					throw new debug.DebugError("The callee must be a function name or a variable path");
+				}
+				var values = [for (a in args) evalExpr(frameId, a)];
+				return evaluateCall(frameId, calleePath, values);
+			case ENew(className, args):
+				var values = [for (a in args) evalExpr(frameId, a)];
+				return decodeReturn("new " + className + "()", construct(frameId, className, values), constructedType(className));
+			case EIndex(_, _):
+				// the interpreter decides map-get vs array element (incl. computed keys)
+				return renderValue(expression, evalExpr(frameId, e));
+			default:
 		}
-		var assignAt = assignmentEquals(expression);
-		if (assignAt >= 0) {
-			return assign(frameId, expression.substr(0, assignAt), expression.substr(assignAt + 1));
+		// a pure variable path keeps the pre-M21b reference walk: it renders
+		// exactly like the Variables view (map entries, enum params, ...)
+		var path = chainToPath(e);
+		if (path != null) {
+			return evaluatePath(frameId, path);
 		}
-		// `map[key]` — bracket access on a map is sugar for `map.get(key)` (the
-		// compiler inlines the abstract's @:arrayAccess; there is no runtime
-		// operator). Arrays fall through: `arr[i]` is a real indexed slot.
-		var bracket = splitBracketTail(expression);
-		if (bracket != null && mapReceiverType(frameId, bracket.receiver) != null) {
-			var call = callRaw(frameId, bracket.receiver + ".get", [bracket.key]);
-			return decodeReturn(bracket.receiver + "[" + bracket.key + "]", call.raw, call.type);
-		}
-		var path = ValuePath.parse(expression);
-		if (path == null) {
-			throw new debug.DebugError("Only variable paths and assignments can be evaluated (e.g. name, obj.field, x = 5)");
-		}
+		// anything else is an operator expression: interpret it (M21b)
+		return renderValue(expression, evalExpr(frameId, e));
+	}
+
+	// The pre-M21b path walk: resolves the root, then follows accessors through
+	// the same variablesReference listings the Variables view uses.
+	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
 		var start = 0;
 		var current = resolveRoot(frameId, path.root);
 		if (current == null) {
@@ -264,81 +274,62 @@ class VariableInspector {
 	}
 
 	/**
-	 * Sets a named child of a variablesReference (DAP `setVariable`) to a
-	 * literal or another variable's value, and returns the child's new decoded
-	 * value. Throws DebugError with a user-facing message on any failure.
+	 * Sets a named child of a variablesReference (DAP `setVariable`) to any
+	 * evaluate expression (literal, another variable, arithmetic, a call), and
+	 * returns the child's new decoded value. Throws DebugError on any failure.
 	 */
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = targetInReference(reference, name);
-		applyWrite(target, valueExpr);
+		var v = evalExpr(writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
+		writeValue(target, v);
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
 
 	/**
-	 * Assigns to a variable PATH (`x`, `obj.field`, `arr[3]`) from the evaluate
-	 * request (`path = expr`), returning the new decoded value.
+	 * `target = expr` from evaluate: the target is a variable path, an array
+	 * element (any Int key expression), or a map bracket (sugar for set).
 	 */
-	public function assign(frameId:Int, lhsExpr:String, rhsExpr:String):VariableInfo {
-		// `map[key] = value` — sugar for `map.set(key, value)` (see evaluate).
-		// Arrays fall through: an array element IS a writable slot.
-		var bracket = splitBracketTail(lhsExpr);
-		if (bracket != null && mapReceiverType(frameId, bracket.receiver) != null) {
-			callRaw(frameId, bracket.receiver + ".set", [bracket.key, rhsExpr]); // set returns Void
-			var read = callRaw(frameId, bracket.receiver + ".get", [bracket.key]);
-			return decodeReturn(StringTools.trim(lhsExpr), read.raw, read.type);
+	function assignExpr(frameId:Int, lhs:debug.eval.ExprAst.Expr, rhs:debug.eval.ExprAst.Expr):VariableInfo {
+		switch (lhs) {
+			case EIndex(recv, key):
+				var recvPath = chainToPath(recv);
+				if (recvPath == null) {
+					throw new debug.DebugError("The receiver of [...] must be a variable path");
+				}
+				var target = targetOfPath(frameId, recvPath);
+				var display = pathDisplay(recvPath) + "[...]";
+				if (mapTypeOfTarget(target) != null) {
+					// map bracket: sugar for set(key, value), read back via get
+					var keyVal = evalExpr(frameId, key);
+					var rhsVal = evalExpr(frameId, rhs);
+					callRaw(frameId, pathPlus(recvPath, "set"), [keyVal, rhsVal]); // set returns Void
+					var read = callRaw(frameId, pathPlus(recvPath, "get"), [keyVal]);
+					return decodeReturn(display, read.raw, read.type);
+				}
+				// array element (constant or computed index): a writable slot
+				var element = childTarget(target, Std.string(intKey(frameId, key)));
+				writeValue(element, evalExpr(frameId, rhs));
+				var decoded = valueReader.read(element.address, element.type);
+				return {name: element.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+			default:
 		}
-		var path = ValuePath.parse(lhsExpr);
+		var path = chainToPath(lhs);
 		if (path == null) {
 			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
 		}
 		var target = targetOfPath(frameId, path);
-		applyWrite(target, rhsExpr);
+		writeValue(target, evalExpr(frameId, rhs));
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
 
-	// Splits `<receiver>[<key>]` at the FINAL balanced bracket, honouring nested
-	// brackets in the key; null when the expression does not end in `]`. Pure
-	// string work — whether the receiver is actually a map is decided separately.
-	static function splitBracketTail(expr:String):Null<{receiver:String, key:String}> {
-		var s = StringTools.trim(expr);
-		if (!StringTools.endsWith(s, "]")) {
-			return null;
-		}
-		var depth = 0;
-		var i = s.length - 1;
-		while (i >= 0) {
-			var c = StringTools.fastCodeAt(s, i);
-			if (c == "]".code) {
-				depth++;
-			} else if (c == "[".code) {
-				depth--;
-				if (depth == 0) {
-					break;
-				}
-			}
-			i--;
-		}
-		if (i <= 0) {
-			return null; // no matching '[' or an empty receiver
-		}
-		var receiver = StringTools.trim(s.substring(0, i));
-		var key = StringTools.trim(s.substring(i + 1, s.length - 1));
-		return (receiver.length == 0 || key.length == 0) ? null : {receiver: receiver, key: key};
-	}
-
-	// The map type of `receiverExpr` if it resolves to one of the map classes
+	// The map type of a resolved receiver if it is one of the map classes
 	// (StringMap/IntMap/ObjectMap or a BalancedTree), else null — the signal to
 	// route `[]` to get/set rather than treat it as an array index.
-	function mapReceiverType(frameId:Int, receiverExpr:String):Null<HLType> {
-		var p = ValuePath.parse(receiverExpr);
-		if (p == null) {
-			return null;
-		}
-		var target = try targetOfPath(frameId, p) catch (e:Dynamic) return null;
+	function mapTypeOfTarget(target:WriteTarget):Null<HLType> {
 		var t = target.type;
 		switch (t) {
 			case HObj(_):
@@ -358,6 +349,204 @@ class VariableInspector {
 		}
 	}
 
+	// --- the expression interpreter (M21b) ---
+	//
+	// Leaves resolve through the SAME machinery as paths/writes (typed reads at
+	// targetOfPath addresses, calls via callRaw, `new` via construct); operators
+	// fold ADAPTER-SIDE on EvalValue — no debuggee code runs for arithmetic.
+
+	function evalExpr(frameId:Int, e:debug.eval.ExprAst.Expr):debug.eval.EvalValue {
+		return switch (e) {
+			case EInt(v): VInt(v);
+			case EFloat(f): VFloat(f);
+			case EBool(b): VBool(b);
+			case ENull: VNull;
+			case EString(s): VString(s, null);
+			case EIdent(_), EField(_, _):
+				var path = chainToPath(e);
+				if (path == null) {
+					throw new debug.DebugError("This value cannot be resolved as a variable path");
+				}
+				valueOfPath(frameId, path);
+			case EIndex(recv, key):
+				indexValue(frameId, recv, key);
+			case ECall(callee, args):
+				var path = chainToPath(callee);
+				if (path == null) {
+					throw new debug.DebugError("The callee must be a function name or a variable path");
+				}
+				var values = [for (a in args) evalExpr(frameId, a)];
+				var ret = callRaw(frameId, path, values);
+				if (ret.type.match(HVoid)) {
+					throw new debug.DebugError('"' + pathDisplay(path) + '" returns Void and cannot be used inside an expression');
+				}
+				toEvalValue(ret.raw, ret.type);
+			case ENew(className, args):
+				var values = [for (a in args) evalExpr(frameId, a)];
+				VObject(construct(frameId, className, values), constructedType(className));
+			case EUnop(op, inner):
+				debug.eval.Operators.unop(op, evalExpr(frameId, inner));
+			case EBinop("&&", l, r):
+				// Haxe && / || short-circuit natively, so the right side only runs when needed
+				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "&&")
+					&& debug.eval.Operators.asBool(evalExpr(frameId, r), "&&"));
+			case EBinop("||", l, r):
+				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "||")
+					|| debug.eval.Operators.asBool(evalExpr(frameId, r), "||"));
+			case EBinop(op, l, r):
+				debug.eval.Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
+			case EAssign(_, _):
+				throw new debug.DebugError("Assignment is only allowed at the top level of an expression");
+		}
+	}
+
+	// A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath.
+	static function chainToPath(e:debug.eval.ExprAst.Expr):Null<ValuePath> {
+		var accessors:Array<PathAccessor> = [];
+		var cur = e;
+		while (true) {
+			switch (cur) {
+				case EIdent(name):
+					accessors.reverse();
+					return new ValuePath(name, accessors);
+				case EField(inner, name):
+					accessors.push(Field(name));
+					cur = inner;
+				case EIndex(inner, EInt(k)):
+					var i = Int64.toInt(k);
+					if (i < 0) {
+						return null;
+					}
+					accessors.push(Index(i));
+					cur = inner;
+				default:
+					return null;
+			}
+		}
+	}
+
+	static function pathDisplay(p:ValuePath):String {
+		var s = p.root;
+		for (a in p.accessors) {
+			s += switch (a) {
+				case Field(n): "." + n;
+				case Index(i): "[" + i + "]";
+			}
+		}
+		return s;
+	}
+
+	static function pathPlus(p:ValuePath, field:String):ValuePath {
+		return new ValuePath(p.root, p.accessors.concat([Field(field)]));
+	}
+
+	function intKey(frameId:Int, key:debug.eval.ExprAst.Expr):Int {
+		return switch (evalExpr(frameId, key)) {
+			case VInt(v):
+				var i = Int64.toInt(v);
+				if (i < 0) {
+					throw new debug.DebugError("An index must be >= 0");
+				}
+				i;
+			default:
+				throw new debug.DebugError("An array index must be an Int");
+		}
+	}
+
+	// `recv[key]`: a map routes to get(key); anything else is an indexed element
+	// (constant or computed key).
+	function indexValue(frameId:Int, recv:debug.eval.ExprAst.Expr, key:debug.eval.ExprAst.Expr):debug.eval.EvalValue {
+		var recvPath = chainToPath(recv);
+		if (recvPath == null) {
+			throw new debug.DebugError("The receiver of [...] must be a variable path");
+		}
+		var target = targetOfPath(frameId, recvPath);
+		if (mapTypeOfTarget(target) != null) {
+			var ret = callRaw(frameId, pathPlus(recvPath, "get"), [evalExpr(frameId, key)]);
+			return toEvalValue(ret.raw, ret.type);
+		}
+		var element = childTarget(target, Std.string(intKey(frameId, key)));
+		return evalValueAt(element.address, element.type);
+	}
+
+	function valueOfPath(frameId:Int, path:ValuePath):debug.eval.EvalValue {
+		var target = targetOfPath(frameId, path);
+		return evalValueAt(target.address, target.type);
+	}
+
+	// Typed read of a slot into the interpreter's currency.
+	function evalValueAt(address:Pointer, t:HLType):debug.eval.EvalValue {
+		return switch (t) {
+			case HUi8: VInt(Int64.ofInt(memory.readU8(address)));
+			case HUi16: VInt(Int64.ofInt(memory.readU16(address)));
+			case HI32: VInt(Int64.ofInt(memory.readI32(address)));
+			case HI64: VInt(memory.readI64(address));
+			case HF32: VFloat(memory.readF32(address));
+			case HF64: VFloat(memory.readF64(address));
+			case HBool: VBool(memory.readU8(address) != 0);
+			case HVoid: VNull;
+			case HStruct(_), HPacked(_): VObject(address, t); // inline: the slot IS the base
+			default: pointerValue(memory.readPointer(address), t);
+		}
+	}
+
+	function pointerValue(ptr:Pointer, t:HLType):debug.eval.EvalValue {
+		if (Int64.eq(ptr, Int64.ofInt(0))) {
+			return VNull;
+		}
+		return switch (t) {
+			case HNull(inner): evalValueAt(offset(ptr, align.ptr), inner); // box payload
+			case HDyn: dynamicValue(ptr);
+			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
+			case HObj(_): VObject(ptr, refineObjectType(ptr, t));
+			default: VObject(ptr, t);
+		}
+	}
+
+	// A Dynamic value: primitives live in a vdynamic box (hl_type* @0, payload
+	// one pointer past); pointer kinds ARE the value (their own header says so).
+	function dynamicValue(ptr:Pointer):debug.eval.EvalValue {
+		var runtime = runtimeTypes.typeAt(memory.readPointer(ptr));
+		if (runtime == null) {
+			return VObject(ptr, HDyn);
+		}
+		return switch (runtime) {
+			case HUi8: VInt(Int64.ofInt(memory.readU8(offset(ptr, align.ptr))));
+			case HUi16: VInt(Int64.ofInt(memory.readU16(offset(ptr, align.ptr))));
+			case HI32: VInt(Int64.ofInt(memory.readI32(offset(ptr, align.ptr))));
+			case HI64: VInt(memory.readI64(offset(ptr, align.ptr)));
+			case HF32: VFloat(memory.readF32(offset(ptr, align.ptr)));
+			case HF64: VFloat(memory.readF64(offset(ptr, align.ptr)));
+			case HBool: VBool(memory.readU8(offset(ptr, align.ptr)) != 0);
+			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
+			default: VObject(ptr, runtime);
+		}
+	}
+
+	// A call's raw return (RAX bits) into the interpreter's currency.
+	function toEvalValue(raw:Pointer, t:HLType):debug.eval.EvalValue {
+		return switch (t) {
+			case HVoid: VNull;
+			case HUi8, HUi16, HI32: VInt(Int64.ofInt(Int64.getLow(raw)));
+			case HI64: VInt(raw);
+			case HBool: VBool(Int64.getLow(raw) != 0);
+			case HF64: VFloat(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw)));
+			case HF32: VFloat(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw)));
+			default: pointerValue(raw, t);
+		}
+	}
+
+	function renderValue(name:String, v:debug.eval.EvalValue):VariableInfo {
+		return switch (v) {
+			case VInt(i): {name: name, value: Int64.toStr(i), type: "Int", reference: 0};
+			case VFloat(f): {name: name, value: Std.string(f), type: "Float", reference: 0};
+			case VBool(b): {name: name, value: b ? "true" : "false", type: "Bool", reference: 0};
+			case VNull: {name: name, value: "null", type: "Dynamic", reference: 0};
+			case VString(s, _): {name: name, value: "\"" + s + "\"", type: "String", reference: 0};
+			case VObject(raw, t): decodeReturn(name, raw, t);
+		}
+	}
+
 	// Set by DebugSession: runs a function inside the debuggee. Null until the
 	// eval-call machinery is enabled.
 	public var functionCaller:Null<(Pointer, Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> = null;
@@ -365,13 +554,13 @@ class VariableInspector {
 
 	/**
 	 * Evaluates a function call `callee(args...)` by running the callee in the
-	 * debuggee (M13). `callee` must resolve to a function value (an unbound
-	 * closure / function reference); args are literals or variable paths lowered
-	 * to the callee's declared parameter types. Returns the decoded result.
+	 * debuggee (M13). `callee` must resolve to a function value or method; args
+	 * are ALREADY-EVALUATED expression values lowered to the callee's declared
+	 * parameter types. Returns the decoded result.
 	 */
-	function evaluateCall(frameId:Int, callee:String, argExprs:Array<String>):VariableInfo {
-		var call = callRaw(frameId, callee, argExprs);
-		return decodeReturn(callee + "()", call.raw, call.type);
+	function evaluateCall(frameId:Int, callee:ValuePath, args:Array<debug.eval.EvalValue>):VariableInfo {
+		var call = callRaw(frameId, callee, args);
+		return decodeReturn(pathDisplay(callee) + "()", call.raw, call.type);
 	}
 
 	/**
@@ -383,7 +572,7 @@ class VariableInspector {
 	 * the class is never constructed in the program so its `new` was stripped by
 	 * DCE) it fails with a clear message rather than guessing.
 	 */
-	function construct(frameId:Int, className:String, argExprs:Array<String>):Pointer {
+	function construct(frameId:Int, className:String, args:Array<debug.eval.EvalValue>):Pointer {
 		if (functionCaller == null) {
 			throw new debug.DebugError("Constructing objects is not available in this session");
 		}
@@ -402,9 +591,9 @@ class VariableInspector {
 			default: throw new debug.DebugError('The constructor of "' + className + '" is not a function');
 		};
 		var paramTypes = ctorFun.args.slice(1); // drop the leading `this`
-		if (argExprs.length != paramTypes.length) {
+		if (args.length != paramTypes.length) {
 			throw new debug.DebugError('new ' + className + " takes " + paramTypes.length
-				+ " argument(s), got " + argExprs.length);
+				+ " argument(s), got " + args.length);
 		}
 		// allocate: hl_alloc_obj(classType) -> fresh zeroed instance
 		var instance = functionCaller(site.allocFunction, [{isFloat: false, bits: site.typePointer}], false);
@@ -413,8 +602,8 @@ class VariableInspector {
 		}
 		// run the constructor: new(this, args...) -> void, initialising `instance`
 		var ctorArgs:Array<debug.eval.CallEmitter.CallArg> = [{isFloat: false, bits: instance}];
-		for (i in 0...argExprs.length) {
-			ctorArgs.push(lowerArgument(frameId, argExprs[i], paramTypes[i]));
+		for (i in 0...args.length) {
+			ctorArgs.push(lowerValue(args[i], paramTypes[i]));
 		}
 		functionCaller(jit.functionEntry(site.ctorFindex), ctorArgs, false);
 		return instance;
@@ -428,19 +617,16 @@ class VariableInspector {
 
 	// Runs `callee(args)` in the debuggee and returns the raw result (RAX, or
 	// XMM0-as-RAX for a float return) plus the return type. Shared by evaluate
-	// (for display) and assign (to write the result into a slot).
-	function callRaw(frameId:Int, callee:String, argExprs:Array<String>):{raw:Pointer, type:format.hl.Data.HLType} {
+	// (for display), the interpreter, and assignment.
+	function callRaw(frameId:Int, path:ValuePath, args:Array<debug.eval.EvalValue>):{raw:Pointer, type:format.hl.Data.HLType} {
 		if (functionCaller == null) {
 			throw new debug.DebugError("Calling functions is not available in this session");
 		}
-		var path = ValuePath.parse(callee);
-		if (path == null) {
-			throw new debug.DebugError('Cannot call "' + callee + '": the callee must be a variable path');
-		}
+		var callee = pathDisplay(path);
 		// `recv.method(args)` — the last segment is an instance method on the
 		// receiver (proto method), not a closure-valued field. Try that first;
 		// fall through to the closure-field call when it isn't a method.
-		var method = tryMethodCall(frameId, path, argExprs);
+		var method = tryMethodCall(frameId, path, args);
 		if (method != null) {
 			return method;
 		}
@@ -461,18 +647,18 @@ class VariableInspector {
 		}
 		var bound = memory.readI32(offset(closurePtr, align.ptr * 2)) != 0;
 		var funcAddr = memory.readPointer(offset(closurePtr, align.ptr));
-		if (argExprs.length != fn.args.length) {
-			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + argExprs.length);
+		if (args.length != fn.args.length) {
+			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + args.length);
 		}
-		var args:Array<debug.eval.CallEmitter.CallArg> = [];
+		var callArgs:Array<debug.eval.CallEmitter.CallArg> = [];
 		if (bound) {
-			args.push({isFloat: false, bits: memory.readPointer(offset(closurePtr, align.ptr * 3))});
+			callArgs.push({isFloat: false, bits: memory.readPointer(offset(closurePtr, align.ptr * 3))});
 		}
-		for (i in 0...argExprs.length) {
-			args.push(lowerArgument(frameId, argExprs[i], fn.args[i]));
+		for (i in 0...args.length) {
+			callArgs.push(lowerValue(args[i], fn.args[i]));
 		}
 		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
-		return {raw: functionCaller(funcAddr, args, floatReturn), type: fn.ret};
+		return {raw: functionCaller(funcAddr, callArgs, floatReturn), type: fn.ret};
 	}
 
 	/**
@@ -482,7 +668,7 @@ class VariableInspector {
 	 * the path as a closure-valued field). Enables `map.set(k,v)`, `arr.push(x)`,
 	 * getters, and any other mutation/query the program's own methods provide.
 	 */
-	function tryMethodCall(frameId:Int, path:ValuePath, argExprs:Array<String>):Null<{raw:Pointer, type:format.hl.Data.HLType}> {
+	function tryMethodCall(frameId:Int, path:ValuePath, args:Array<debug.eval.EvalValue>):Null<{raw:Pointer, type:format.hl.Data.HLType}> {
 		if (path.accessors.length == 0) {
 			return null; // a bare name: not `recv.method`
 		}
@@ -521,16 +707,16 @@ class VariableInspector {
 			default: throw new debug.DebugError('"' + methodName + '" is not a function');
 		};
 		var paramTypes = fn.args.slice(1); // drop the implicit `this`
-		if (argExprs.length != paramTypes.length) {
+		if (args.length != paramTypes.length) {
 			throw new debug.DebugError('"' + methodName + '" takes ' + paramTypes.length
-				+ " argument(s), got " + argExprs.length);
+				+ " argument(s), got " + args.length);
 		}
-		var args:Array<debug.eval.CallEmitter.CallArg> = [{isFloat: false, bits: base}];
-		for (i in 0...argExprs.length) {
-			args.push(lowerArgument(frameId, argExprs[i], paramTypes[i]));
+		var callArgs:Array<debug.eval.CallEmitter.CallArg> = [{isFloat: false, bits: base}];
+		for (i in 0...args.length) {
+			callArgs.push(lowerValue(args[i], paramTypes[i]));
 		}
 		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
-		return {raw: functionCaller(jit.functionEntry(arrayIndex), args, floatReturn), type: fn.ret};
+		return {raw: functionCaller(jit.functionEntry(arrayIndex), callArgs, floatReturn), type: fn.ret};
 	}
 
 	// The (raw) findex of instance method `name` on an HObj/HStruct type, walking
@@ -644,65 +830,51 @@ class VariableInspector {
 		return {isFloat: false, bits: box};
 	}
 
-	// Lowers an argument expression to the raw 64-bit value its register needs,
-	// coercing to the callee's declared parameter type.
-	function lowerArgument(frameId:Int, argExpr:String, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
-		var literal = ValueLiteralParser.parse(argExpr);
-		if (literal == null) {
-			throw new debug.DebugError('Cannot parse argument "' + argExpr + '"');
-		}
+	// Lowers an ALREADY-EVALUATED expression value to the raw 64-bit value its
+	// register needs, coercing to the callee's declared parameter type.
+	function lowerValue(v:debug.eval.EvalValue, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
 		// A primitive going into a `Dynamic` parameter must be BOXED into a
 		// vdynamic: passing the raw bits would be read as a pointer and stored
-		// as garbage. Pointers (strings, objects, paths) are dynamic-compatible
-		// and pass as-is; primitive literals are boxed here (M17).
+		// as garbage. Pointers (strings, objects) are dynamic-compatible and
+		// pass as-is; primitives are boxed here (M17).
 		if (paramType.match(HDyn)) {
-			switch (literal) {
-				case LInt(v):
-					return boxPrimitive(Type.enumIndex(HI32), box -> memWriter.writeI32(box, Int64.getLow(v)));
-				case LFloat(f):
+			switch (v) {
+				case VInt(i):
+					return boxPrimitive(Type.enumIndex(HI32), box -> memWriter.writeI32(box, Int64.toInt(i)));
+				case VFloat(f):
 					return boxPrimitive(Type.enumIndex(HF64), box -> memWriter.writeF64(box, f));
-				case LBool(b):
+				case VBool(b):
 					return boxPrimitive(Type.enumIndex(HBool), box -> memWriter.writeU8(box, b ? 1 : 0));
 				default:
 			}
 		}
-		switch (literal) {
-			case LPath(argPath):
-				// read the current value at the path's slot as the parameter type
-				var src = targetOfPath(frameId, argPath);
-				return lowerFromMemory(src.address, src.type, paramType);
-			case LInt(v):
-				return isFloatSlot(paramType)
-					? {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(Int64.toInt(v))}
-					: {isFloat: false, bits: v};
-			case LFloat(f):
+		return switch (v) {
+			case VInt(i):
+				isFloatSlot(paramType)
+					? {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(Int64.toInt(i))}
+					: {isFloat: false, bits: i};
+			case VFloat(f):
 				if (!isFloatSlot(paramType)) {
 					throw new debug.DebugError("A float argument does not fit an integer parameter");
 				}
-				return {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(f)};
-			case LBool(b):
-				return {isFloat: false, bits: Int64.ofInt(b ? 1 : 0)};
-			case LNull:
-				return {isFloat: false, bits: Int64.ofInt(0)};
-			case LString(text):
+				{isFloat: true, bits: haxe.io.FPHelper.doubleToI64(f)};
+			case VBool(b):
+				{isFloat: false, bits: Int64.ofInt(b ? 1 : 0)};
+			case VNull:
+				{isFloat: false, bits: Int64.ofInt(0)};
+			case VString(text, ptr):
 				if (isFloatSlot(paramType)) {
 					throw new debug.DebugError("A string argument does not fit a float parameter");
 				}
-				return {isFloat: false, bits: makeString(text)};
-		}
-	}
-
-	function lowerFromMemory(address:Pointer, type:format.hl.Data.HLType, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
-		return switch (type) {
-			case HUi8: {isFloat: false, bits: Int64.ofInt(memory.readU8(address))};
-			case HUi16: {isFloat: false, bits: Int64.ofInt(memory.readU16(address))};
-			case HI32, HBool: {isFloat: false, bits: Int64.ofInt(memory.readI32(address))};
-			case HI64: {isFloat: false, bits: memory.readI64(address)};
-			case HF64: {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(memory.readF64(address))};
-			case HF32: {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(memory.readF32(address))};
-			default:
-				// a pointer type: pass the pointer value itself
-				{isFloat: false, bits: memory.readPointer(address)};
+				{isFloat: false, bits: ptr != null ? (ptr : Pointer) : makeString(text)};
+			case VObject(raw, t):
+				if (t.match(HStruct(_)) || t.match(HPacked(_))) {
+					throw new debug.DebugError("Passing a struct by value is not supported");
+				}
+				if (isFloatSlot(paramType)) {
+					throw new debug.DebugError("An object argument does not fit a float parameter");
+				}
+				{isFloat: false, bits: raw};
 		}
 	}
 
@@ -802,51 +974,28 @@ class VariableInspector {
 		return false;
 	}
 
-	// The index of the assignment `=`, or -1. Skips the comparison operators
-	// `==`, `!=`, `<=`, `>=` so `x == y` is still a (rejected) expression, not
-	// an assignment.
-	static function assignmentEquals(expression:String):Int {
-		var i = 0;
-		while (i < expression.length) {
-			if (StringTools.fastCodeAt(expression, i) == "=".code) {
-				var next = i + 1 < expression.length ? StringTools.fastCodeAt(expression, i + 1) : -1;
-				var prev = i > 0 ? StringTools.fastCodeAt(expression, i - 1) : -1;
-				if (next != "=".code && prev != "=".code && prev != "!".code && prev != "<".code && prev != ">".code) {
-					return i;
-				}
-			}
-			i++;
-		}
-		return -1;
-	}
-
-	function applyWrite(target:WriteTarget, valueExpr:String):Void {
+	// Writes an ALREADY-EVALUATED expression value into a target slot, mapping
+	// each value kind onto the appropriate ValueWriter primitive.
+	function writeValue(target:WriteTarget, v:debug.eval.EvalValue):Void {
 		if (writer == null) {
 			throw new debug.DebugError("Value modification is not available in this session");
 		}
-		// RHS is a function call or construction: run it, write its result (M13b/M15)
-		var call = CallExpr.parse(valueExpr);
-		if (call != null) {
-			if (call.isConstruction) {
-				writer.assignRaw(target, construct(writeFrame, call.callee, call.args), constructedType(call.callee));
-			} else {
-				var result = callRaw(writeFrame, call.callee, call.args);
-				writer.assignRaw(target, result.raw, result.type);
-			}
-			return;
-		}
-		var literal = ValueLiteralParser.parse(valueExpr);
-		if (literal == null) {
-			throw new debug.DebugError('Cannot parse "' + valueExpr
-				+ '": expected a number, "string", true/false, null, or another variable');
-		}
-		switch (literal) {
-			case LPath(rhsPath):
-				writer.copy(target, targetOfPath(currentFrameOf(target), rhsPath));
-			case LString(text):
-				writer.assignRaw(target, makeString(text), stringType());
-			default:
-				writer.write(target, literal);
+		switch (v) {
+			case VInt(i):
+				writer.write(target, LInt(i));
+			case VFloat(f):
+				writer.write(target, LFloat(f));
+			case VBool(b):
+				writer.write(target, LBool(b));
+			case VNull:
+				writer.write(target, LNull);
+			case VString(text, ptr):
+				writer.assignRaw(target, ptr != null ? (ptr : Pointer) : makeString(text), stringType());
+			case VObject(raw, t):
+				if (t.match(HStruct(_)) || t.match(HPacked(_))) {
+					throw new debug.DebugError("Assigning a whole struct is not supported");
+				}
+				writer.assignRaw(target, raw, t);
 		}
 	}
 
@@ -855,13 +1004,9 @@ class VariableInspector {
 		return t == null ? HDyn : t;
 	}
 
-	// The RHS of an assignment resolves in the same frame as the LHS; both
-	// assign() and setVariable() stash it so a `path = otherPath` works.
+	// The RHS of a setVariable resolves in the same frame as the target; both
+	// targetOfPath and targetInReference stash it so `path = otherPath` works.
 	var writeFrame:Int = 0;
-
-	function currentFrameOf(_:WriteTarget):Int {
-		return writeFrame;
-	}
 
 	function targetInReference(reference:Int, name:String):WriteTarget {
 		var container = references.get(reference);

@@ -279,17 +279,22 @@ class ValueReader {
 	}
 
 	function readString(strPtr:Pointer):String {
+		return "\"" + stringContentAt(strPtr) + "\"";
+	}
+
+	/** The UTF-16 content of a debuggee String, UNQUOTED ("" for empty). */
+	public function stringContentAt(strPtr:Pointer):String {
 		var bytesPtr = mem.readPointer(offset(strPtr, align.ptr));
 		var length = mem.readI32(offset(strPtr, align.ptr * 2));
 		if (length <= 0 || isNull(bytesPtr)) {
-			return "\"\"";
+			return "";
 		}
 		var raw = mem.read(bytesPtr, length * 2);
 		var buf = new StringBuf();
 		for (i in 0...length) {
 			buf.addChar(raw.getUInt16(i * 2)); // UTF-16 code unit (BMP)
 		}
-		return "\"" + buf.toString() + "\"";
+		return buf.toString();
 	}
 
 	static inline function leaf(value:String, type:String):DecodedValue {

@@ -78,6 +78,23 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  public void callsInsideExpressions() throws Exception {
+    // M21b: calls are expression leaves — results feed operators, and
+    // arguments are themselves full expressions (base = 10)
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+
+    assertEquals("call result in arithmetic", "10", evaluate(frameId, "add(2, 3) * 2").getBody().getResult());
+    assertEquals("expression arguments", "23", evaluate(frameId, "add(base + 1, base + 2)").getBody().getResult());
+    assertEquals("bound closures in expressions", "41",
+                 evaluate(frameId, "boost(1) + plus(base + 3)").getBody().getResult()); // 16 + 25
+    assertEquals("string return concatenated", "\"L10!\"", evaluate(frameId, "label(base) + \"!\"").getBody().getResult());
+    assertEquals("call result in comparison", "true", evaluate(frameId, "scale(4.0) == 10").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   public void rejectsBadCallsWithClearMessages() throws Exception {
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());

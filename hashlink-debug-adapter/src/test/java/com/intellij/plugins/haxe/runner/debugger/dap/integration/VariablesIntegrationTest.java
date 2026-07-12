@@ -491,18 +491,79 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
-  public void evaluateRejectsExpressionsWithAClearMessage() throws Exception {
+  public void evaluateRejectsBadExpressionsWithAClearMessage() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
-
-    Response rejected = evaluateRaw(frameId, "n + 1");
-    assertFalse("arithmetic must be rejected", rejected.isSuccess());
-    assertTrue("message names the limitation (was: " + rejected.getMessage() + ")",
-               rejected.getMessage().contains("variable paths"));
 
     Response unknown = evaluateRaw(frameId, "nosuch");
     assertFalse("unknown name must be rejected", unknown.isSuccess());
     assertTrue("message names the variable", unknown.getMessage().contains("nosuch"));
+
+    Response unknownInExpr = evaluateRaw(frameId, "nosuch + 1");
+    assertFalse("unknown name inside an expression must be rejected", unknownInExpr.isSuccess());
+    assertTrue("message names the variable", unknownInExpr.getMessage().contains("nosuch"));
+
+    Response malformed = evaluateRaw(frameId, "n +");
+    assertFalse("malformed expression must be rejected", malformed.isSuccess());
+
+    request(new DisconnectRequest());
+  }
+
+  // --- arbitrary expressions (M21b): operators folded adapter-side ---
+
+  @Test
+  public void evaluatesArithmeticAndLogicExpressions() throws Exception {
+    // Mutate.demo checkpoint: n=5, flag=false, obj=Point(1,2,"p"), arr=[5,10,15], idx=1
+    runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // arithmetic on locals, precedence, parentheses
+    assertEquals("n + 1", "6", evaluate(frameId, "n + 1").getBody().getResult());
+    assertEquals("n * 2 + 1", "11", evaluate(frameId, "n * 2 + 1").getBody().getResult());
+    assertEquals("(n + 1) * 2", "12", evaluate(frameId, "(n + 1) * 2").getBody().getResult());
+    assertEquals("division is Float (Haxe)", "2.5", evaluate(frameId, "n / 2").getBody().getResult());
+    assertEquals("unary minus", "-5", evaluate(frameId, "-n").getBody().getResult());
+    assertEquals("shift", "20", evaluate(frameId, "n << 2").getBody().getResult());
+
+    // fields, statics and class-qualified statics as operands
+    assertEquals("obj.x + obj.y", "3", evaluate(frameId, "obj.x + obj.y").getBody().getResult());
+    // Config.bump() already ran by this point, so version is 8 (not the initial 7)
+    assertEquals("Config.version + n", "13", evaluate(frameId, "Config.version + n").getBody().getResult());
+
+    // array elements, including a COMPUTED index
+    assertEquals("arr[1] + 1", "11", evaluate(frameId, "arr[1] + 1").getBody().getResult());
+    assertEquals("computed index arr[idx]", "10", evaluate(frameId, "arr[idx]").getBody().getResult());
+    assertEquals("computed index arr[idx + 1]", "15", evaluate(frameId, "arr[idx + 1]").getBody().getResult());
+
+    // comparisons + logic (short-circuit)
+    assertEquals("n > 4", "true", evaluate(frameId, "n > 4").getBody().getResult());
+    assertEquals("n == 5 && !flag", "true", evaluate(frameId, "n == 5 && !flag").getBody().getResult());
+    assertEquals("flag || n < 3", "false", evaluate(frameId, "flag || n < 3").getBody().getResult());
+    assertEquals("string content compare", "true", evaluate(frameId, "obj.label == \"p\"").getBody().getResult());
+
+    // string concat
+    assertEquals("\"n=\" + n", "\"n=5\"", evaluate(frameId, "\"n=\" + n").getBody().getResult());
+    assertEquals("label concat", "\"p!\"", evaluate(frameId, "obj.label + \"!\"").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void assignsExpressionResults() throws Exception {
+    runToBreakpoint(FIXTURE_MUTATE, FIXTURE_MUTATE_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // expression RHS on a local
+    assertTrue("n = n * 2 + 1", evaluate(frameId, "n = n * 2 + 1").isSuccess());
+    assertEquals("n now 11", "11", evaluate(frameId, "n").getBody().getResult());
+
+    // expression RHS on an array element with a COMPUTED index (idx=1)
+    assertTrue("arr[idx] = n + 89", evaluate(frameId, "arr[idx] = n + 89").isSuccess());
+    assertEquals("arr[1] now 100", "100", evaluate(frameId, "arr[1]").getBody().getResult());
+
+    // boolean expression into a Bool local
+    assertTrue("flag = n > 10", evaluate(frameId, "flag = n > 10").isSuccess());
+    assertEquals("flag now true", "true", evaluate(frameId, "flag").getBody().getResult());
 
     request(new DisconnectRequest());
   }
