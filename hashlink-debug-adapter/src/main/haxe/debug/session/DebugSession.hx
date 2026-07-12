@@ -230,7 +230,10 @@ class DebugSession {
 				new debug.layout.Align(jit.is64, jit.boolSize4), jit.hlVersionMajor, jit.hlVersionMinor);
 			inspector = new VariableInspector(module, jit, memReader);
 			inspector.frameWalker = tid -> stackWalker.walk(tid);
-			inspector.cpuRegistersFor = cpuRegisterRows;
+			var cpuRegisters = new debug.inspect.CpuRegisters(api, debuggeePid);
+			// CPU registers are only readable while stopped; the callback is invoked
+			// for a stopped thread's top frame, but guard defensively.
+			inspector.cpuRegistersFor = tid -> state.match(Stopped(_)) ? cpuRegisters.rows(tid) : [];
 			inspector.enableWrites(new debug.target.MemoryWriter(api, debuggeePid, jit.is64));
 			inspector.xmm0Writer = value ->
 				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
@@ -810,39 +813,6 @@ class DebugSession {
 	// ones hl_debug_read_register maps on every platform (higher indexes are
 	// x86-specific and fall back to Rax on Windows). All threads are frozen at a
 	// stop, so any thread's registers are readable.
-	function cpuRegisterRows(threadId:Int):Array<debug.values.VariableInfo> {
-		var rows:Array<debug.values.VariableInfo> = [];
-		if (state.match(Stopped(_))) {
-			try {
-				var read = (name, register) -> {
-					var value = api.readRegister(debuggeePid, threadId, register);
-					rows.push({name: name, value: debug.values.ValueReader.hex(value), type: "CPU", reference: 0});
-					value;
-				};
-				read("SP", Esp);
-				read("BP", Ebp);
-				read("IP", Eip);
-				var flags = Int64.toInt(read("FLAGS", EFlags));
-				rows[rows.length - 1].value += flagBits(flags);
-			} catch (e:Dynamic) {
-				dbg("cpu register read failed: " + Std.string(e));
-			}
-		}
-		return rows;
-	}
-
-	static function flagBits(flags:Int):String {
-		var names = [];
-		if (flags & 0x001 != 0) names.push("CF");
-		if (flags & 0x004 != 0) names.push("PF");
-		if (flags & 0x040 != 0) names.push("ZF");
-		if (flags & 0x080 != 0) names.push("SF");
-		if (flags & 0x100 != 0) names.push("TF");
-		if (flags & 0x400 != 0) names.push("DF");
-		if (flags & 0x800 != 0) names.push("OF");
-		return names.length == 0 ? "" : " [" + names.join(" ") + "]";
-	}
-
 	function handleDisconnect(requestSeq:Int):Void {
 		if (debuggeePid != 0) {
 			// Order matters: kill first (works on a suspended process and stops it
