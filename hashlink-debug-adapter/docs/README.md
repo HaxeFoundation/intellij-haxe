@@ -535,10 +535,36 @@ injects it. The dance:
 - Args are literals or variable paths, lowered to each parameter's declared
   type; returns are decoded (primitives inline, pointer returns via the normal
   value path). Not yet supported: bound closures (they need the captured
-  environment threaded in), creating new heap values, and stack-spilled
-  arguments beyond the register set. DANGEROUS by nature — it runs arbitrary
-  debuggee code on the session thread — but that is the accepted trade for
-  steering execution.
+  environment threaded in) and stack-spilled arguments beyond the register set.
+  DANGEROUS by nature — it runs arbitrary debuggee code on the session thread —
+  but that is the accepted trade for steering execution.
+- **Call the true entry, not opcode 0** (a sharp edge): a function resolved by
+  name is called at `JitInfo.functionEntry` = `jitCodeBase + fn.start`, the
+  start of the JIT prologue. `addressOf(fidx, 0)` points PAST the prologue
+  (correct for a breakpoint) — calling there skips frame setup and crashes with
+  a garbage return address. Closure values sidestep this because the vclosure's
+  function pointer already IS the true entry.
+
+**Assigning a call result / creating values (M13b, M13c)**:
+- `lhs = f(args)` writes the call's result into `lhs` (`ValueWriter.assignRaw`):
+  a pointer result is written directly (the callee returned a live heap object),
+  a primitive is coerced to the slot. So a factory/producer in the program can
+  be invoked and its result bound — including a String the program builds.
+- `x = "literal"` **allocates a brand-new String** in the debuggee:
+  `haxe.io.Bytes.alloc(len+1)` (a bytecode wrapper on the native allocator) →
+  write the UTF-8 into the returned buffer → `String.fromUTF8`, all via the
+  eval-call machinery. Buffer on the HEAP, not the stack — Windows has no red
+  zone, so a buffer below Esp plus the callee's own stack use faults the guard
+  page. GC-safe: no allocation between reading the buffer pointer and the
+  fromUTF8 call, and the buffer is fromUTF8's argument (kept live by the
+  conservative stack scan) during its internal allocation. **Depends on
+  `haxe.io.Bytes.alloc` being present** — the compiler dead-code-eliminates it
+  when the program never uses `haxe.io.Bytes`; then string creation reports a
+  clear "helper unavailable" error (most real programs include it).
+- **`$`-prefixed statics-container names**: a class `Pkg.Cls`'s static methods
+  live on the container type `Pkg.$Cls` (the `$` prefixes the LAST path
+  segment, e.g. `haxe.io.$Bytes`, `$String`). `displayClassName` strips that so
+  both display and name→findex lookup use the real `Pkg.Cls.method`.
 
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
@@ -666,4 +692,7 @@ tests set it):
 | Writing arguments | Register-passed args may be consumed from their ARRIVAL register on early uses; the slot write alone is not enough. First float arg → also patch XMM0 (the only exposed arrival register); anything else → console note, set it in the caller instead |
 | Eval-call trampoline | Every push/sub MUST be matched by an equal pop/add inside the trampoline. `push rax` is 8 bytes → pop 8, never 16. An unbalanced stack corrupts the scratch-register restore and hands the debuggee bad registers (symptom: can't step over its own breakpoint after a float-arg call) |
 | Injected calls | Run arbitrary debuggee code on the session thread; only while stopped. Verify Eip lands exactly past the trampoline INT3 (else it threw / hit a breakpoint) and restore code + Eip/Esp/Rax regardless |
+| Calling by name | Use `JitInfo.functionEntry` (prologue start), NOT `addressOf(fidx,0)` (past the prologue) — the latter skips frame setup and crashes. Closure calls are safe (the vclosure pointer is the true entry) |
+| String creation buffer | Heap (`haxe.io.Bytes.alloc`), never stack-below-Esp: Windows has no red zone, so a sub-Esp buffer + the callee's stack use faults the guard page |
+| Statics container names | `Pkg.Cls` statics live on `Pkg.$Cls` — the `$` is on the last segment, not the whole name; strip it there for name lookup and display |
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |

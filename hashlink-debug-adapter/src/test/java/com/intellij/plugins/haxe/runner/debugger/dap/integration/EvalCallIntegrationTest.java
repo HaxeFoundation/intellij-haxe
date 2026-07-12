@@ -55,7 +55,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // resume: the program's own output must be intact (calls didn't corrupt it)
     String output = continueToExit(stopped.getBody().getThreadId());
-    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,3"));
+    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,5"));
   }
 
   @Test
@@ -69,6 +69,51 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     Response notAFunction = evaluateRaw(frameId, "base(1)");
     assertFalse("calling a non-function rejected", notAFunction.isSuccess());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void assignsACallResultToAVariable() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
+
+    // int result into an int local
+    assertTrue("base = add(20, 3)", evaluate(frameId, "base = add(20, 3)").isSuccess());
+    // the prize: a String PRODUCED by the program's own code, assigned to a local
+    assertTrue("s = label(7)", evaluate(frameId, "s = label(7)").isSuccess());
+
+    int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
+    assertEquals("base now holds the call result", "23", findVariable(variables(locals), "base").getValue());
+    assertEquals("s now holds the produced String", "\"L7\"", findVariable(variables(locals), "s").getValue());
+
+    // resume: the reassigned locals reach the program's own println
+    String output = continueToExit(threadId);
+    assertTrue("the produced String reached execution (" + output + ")", output.contains(",L7,"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void createsAndAssignsNewStrings() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
+
+    // the headline M13c feature: allocate a brand-new String and assign it
+    assertTrue("s = \"hello\"", evaluate(frameId, "s = \"hello\"").isSuccess());
+    int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
+    assertEquals("s now holds the new string", "\"hello\"", findVariable(variables(locals), "s").getValue());
+
+    // a string with an escape, and a string passed as a call argument
+    assertTrue("s = \"a\\tb\"", evaluate(frameId, "s = \"a\\tb\"").isSuccess());
+    assertEquals("escaped string materialized", "\"a\tb\"", findVariable(variables(localsScopeReference(frameId)), "s").getValue());
+
+    // set it once more, then resume: the created string reaches the program
+    assertTrue("s = \"final\"", evaluate(frameId, "s = \"final\"").isSuccess());
+    String output = continueToExit(threadId);
+    assertTrue("the created string reached execution (" + output + ")", output.contains(",final,"));
 
     request(new DisconnectRequest());
   }

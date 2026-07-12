@@ -42,10 +42,12 @@ class VariableInspector {
 	final dynObjects:DynObjReader;
 	// Non-null once value modification is enabled (a MemoryWriter is available).
 	var writer:Null<ValueWriter> = null;
+	var memWriter:Null<debug.target.MemoryWriter> = null;
 
 	/** Enables value modification (setVariable / assignment) via `out`. */
 	public function enableWrites(out:debug.target.MemoryWriter):Void {
 		writer = new ValueWriter(memory, out, align, runtimeTypes);
+		memWriter = out;
 	}
 
 	// per-stop state, cleared on every resume
@@ -215,6 +217,7 @@ class VariableInspector {
 	// eval-call machinery is enabled.
 	public var functionCaller:Null<(Pointer, Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> = null;
 
+
 	/**
 	 * Evaluates a function call `callee(args...)` by running the callee in the
 	 * debuggee (M13). `callee` must resolve to a function value (an unbound
@@ -222,6 +225,14 @@ class VariableInspector {
 	 * to the callee's declared parameter types. Returns the decoded result.
 	 */
 	function evaluateCall(frameId:Int, callee:String, argExprs:Array<String>):VariableInfo {
+		var call = callRaw(frameId, callee, argExprs);
+		return decodeReturn(callee + "()", call.raw, call.type);
+	}
+
+	// Runs `callee(args)` in the debuggee and returns the raw result (RAX, or
+	// XMM0-as-RAX for a float return) plus the return type. Shared by evaluate
+	// (for display) and assign (to write the result into a slot).
+	function callRaw(frameId:Int, callee:String, argExprs:Array<String>):{raw:Pointer, type:format.hl.Data.HLType} {
 		if (functionCaller == null) {
 			throw new debug.DebugError("Calling functions is not available in this session");
 		}
@@ -253,8 +264,76 @@ class VariableInspector {
 			args.push(lowerArgument(frameId, argExprs[i], fn.args[i]));
 		}
 		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
-		var result = functionCaller(funcAddr, args, floatReturn);
-		return decodeReturn(callee + "()", result, fn.ret);
+		return {raw: functionCaller(funcAddr, args, floatReturn), type: fn.ret};
+	}
+
+	// Calls a bytecode function resolved by qualified name (a runtime helper),
+	// via jit.addressOf. Returns the raw result.
+	function callByName(name:String, args:Array<debug.eval.CallEmitter.CallArg>, floatReturn:Bool):Pointer {
+		if (functionCaller == null) {
+			throw new debug.DebugError("Calling functions is not available in this session");
+		}
+		var fidx = module.functionIndexByName(name);
+		if (fidx < 0) {
+			throw new debug.DebugError('Runtime helper "' + name + '" is unavailable in this program'
+				+ " (it may have been removed as unused code)");
+		}
+		// call the true entry (prologue), not addressOf(fidx,0) which is past it
+		return functionCaller(jit.functionEntry(fidx), args, floatReturn);
+	}
+
+	/**
+	 * Materializes a String literal as a live heap String in the debuggee and
+	 * returns its pointer (M13c). Allocates a byte buffer on the HEAP via the
+	 * program's own `haxe.io.Bytes.alloc`, writes the UTF-8 bytes into it, then
+	 * calls `String.fromUTF8` — both through the eval-call machinery. Heap
+	 * (not stack) because on Windows there is no red zone: a buffer below Esp
+	 * plus the callee's own stack use faults on the guard page. GC-safe: no
+	 * allocation happens between reading the buffer pointer and the fromUTF8
+	 * call that consumes it, and the buffer is fromUTF8's argument (kept live by
+	 * the conservative stack scan) during its internal allocation.
+	 */
+	function makeString(text:String):Pointer {
+		if (memWriter == null) {
+			throw new debug.DebugError("String creation is not available in this session");
+		}
+		var utf8 = haxe.io.Bytes.ofString(text, haxe.io.Encoding.UTF8);
+		var bytesObj = callByName("haxe.io.Bytes.alloc", [{isFloat: false, bits: Int64.ofInt(utf8.length + 1)}], false);
+		if (Int64.eq(bytesObj, Int64.ofInt(0))) {
+			throw new debug.DebugError("Failed to allocate a byte buffer in the debuggee");
+		}
+		var bufferPtr = memory.readPointer(offset(bytesObj, haxeBytesBufferOffset()));
+		if (Int64.eq(bufferPtr, Int64.ofInt(0))) {
+			throw new debug.DebugError("The allocated byte buffer was null");
+		}
+		if (utf8.length > 0) {
+			memWriter.write(bufferPtr, utf8); // alloc zero-filled, so the terminator is already 0
+		}
+		var str = callByName("String.fromUTF8", [{isFloat: false, bits: bufferPtr}], false);
+		if (Int64.eq(str, Int64.ofInt(0))) {
+			throw new debug.DebugError("String.fromUTF8 returned null");
+		}
+		return str;
+	}
+
+	// Offset of haxe.io.Bytes' `b` field (the hl.Bytes buffer), from the layout.
+	var haxeBytesBufferOffsetCache:Int = -1;
+
+	function haxeBytesBufferOffset():Int {
+		if (haxeBytesBufferOffsetCache >= 0) {
+			return haxeBytesBufferOffsetCache;
+		}
+		var proto = switch (module.typeByName("haxe.io.Bytes")) {
+			case HObj(p): p;
+			default: throw new debug.DebugError("haxe.io.Bytes is unavailable in this program");
+		};
+		for (field in objectLayout.fields(proto)) {
+			if (field.name == "b") {
+				haxeBytesBufferOffsetCache = field.offset;
+				return field.offset;
+			}
+		}
+		throw new debug.DebugError("Could not locate the byte buffer field of haxe.io.Bytes");
 	}
 
 	// Lowers an argument expression to the raw 64-bit value its register needs,
@@ -282,6 +361,11 @@ class VariableInspector {
 				return {isFloat: false, bits: Int64.ofInt(b ? 1 : 0)};
 			case LNull:
 				return {isFloat: false, bits: Int64.ofInt(0)};
+			case LString(text):
+				if (isFloatSlot(paramType)) {
+					throw new debug.DebugError("A string argument does not fit a float parameter");
+				}
+				return {isFloat: false, bits: makeString(text)};
 		}
 	}
 
@@ -415,17 +499,31 @@ class VariableInspector {
 		if (writer == null) {
 			throw new debug.DebugError("Value modification is not available in this session");
 		}
+		// RHS is a function call: run it and write its result (M13b)
+		var call = CallExpr.parse(valueExpr);
+		if (call != null) {
+			var result = callRaw(writeFrame, call.callee, call.args);
+			writer.assignRaw(target, result.raw, result.type);
+			return;
+		}
 		var literal = ValueLiteralParser.parse(valueExpr);
 		if (literal == null) {
 			throw new debug.DebugError('Cannot parse "' + valueExpr
-				+ '": expected a number, true/false, null, or another variable');
+				+ '": expected a number, "string", true/false, null, or another variable');
 		}
 		switch (literal) {
 			case LPath(rhsPath):
 				writer.copy(target, targetOfPath(currentFrameOf(target), rhsPath));
+			case LString(text):
+				writer.assignRaw(target, makeString(text), stringType());
 			default:
 				writer.write(target, literal);
 		}
+	}
+
+	function stringType():format.hl.Data.HLType {
+		var t = module.typeByName("String");
+		return t == null ? HDyn : t;
 	}
 
 	// The RHS of an assignment resolves in the same frame as the LHS; both

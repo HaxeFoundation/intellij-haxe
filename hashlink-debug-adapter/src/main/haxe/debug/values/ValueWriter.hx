@@ -60,6 +60,8 @@ class ValueWriter {
 				writeFloat(target, value);
 			case LPath(_):
 				throw new DebugError("internal: path literals are resolved by the caller");
+			case LString(_):
+				throw new DebugError("internal: string literals are materialized by the caller");
 		}
 	}
 
@@ -76,6 +78,61 @@ class ValueWriter {
 				+ '" because it is currently null (allocating a new boxed value is not supported)');
 		}
 		return {name: target.name, address: offset(box, align.ptr), type: inner};
+	}
+
+	/**
+	 * Writes an in-hand computed value (a call's raw result — RAX, or the double
+	 * bits for a float return) into the target, type-checked against the result
+	 * type. Pointer results are written directly (the callee returned a live
+	 * heap object, so no allocation/rooting concern); primitives are coerced.
+	 */
+	public function assignRaw(target:WriteTarget, raw:Int64, sourceType:HLType):Void {
+		if (target.type.match(HNull(_))) {
+			if (isPointer(sourceType) && Int64.compare(raw, Int64.ofInt(0)) == 0) {
+				out.writePointer(target.address, Int64.ofInt(0));
+				return;
+			}
+			assignRaw(unwrapNullBox(target), raw, sourceType);
+			return;
+		}
+		if (isPointer(target.type)) {
+			if (!isPointer(sourceType)) {
+				throw new DebugError('Cannot assign ' + ValueReader.typeName(sourceType)
+					+ ' to the reference "' + target.name + '"');
+			}
+			out.writePointer(target.address, raw);
+			return;
+		}
+		if (isFloat(target.type)) {
+			writeFloat(target, rawAsFloat(raw, sourceType));
+			return;
+		}
+		if (target.type.match(HBool)) {
+			writeBool(target, Int64.compare(rawAsInt(raw, sourceType), Int64.ofInt(0)) != 0);
+			return;
+		}
+		writeInt(target, rawAsInt(raw, sourceType));
+	}
+
+	// A call result arrives as raw RAX bits; interpret per the return type.
+	static function rawAsInt(raw:Int64, sourceType:HLType):Int64 {
+		return switch (sourceType) {
+			case HUi8: Int64.ofInt(Int64.getLow(raw) & 0xFF);
+			case HUi16: Int64.ofInt(Int64.getLow(raw) & 0xFFFF);
+			case HI32, HBool: Int64.ofInt(Int64.getLow(raw));
+			case HI64: raw;
+			case HF64: Int64.fromFloat(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw)));
+			case HF32: Int64.fromFloat(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw)));
+			default: throw new DebugError("Cannot assign a " + ValueReader.typeName(sourceType) + " result to a number");
+		}
+	}
+
+	static function rawAsFloat(raw:Int64, sourceType:HLType):Float {
+		return switch (sourceType) {
+			case HF64: haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw));
+			case HF32: haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw));
+			default: int64ToFloat(rawAsInt(raw, sourceType));
+		}
 	}
 
 	/** Copies an already-resolved source slot into the target (variable = variable). */

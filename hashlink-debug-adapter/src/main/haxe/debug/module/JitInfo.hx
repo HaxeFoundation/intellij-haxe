@@ -64,6 +64,16 @@ class JitInfo {
 		sortedByStart.sort((a, b) -> a.start - b.start);
 	}
 
+	/**
+	 * The function's true machine entry point — the start of its JIT prologue
+	 * (frame setup, callee-saved register saves). This is the address to CALL,
+	 * unlike `addressOf(fidx, 0)`, which points at opcode 0 AFTER the prologue
+	 * (correct for a breakpoint, fatal for a call — it skips frame setup).
+	 */
+	public function functionEntry(fidx:Int):Pointer {
+		return Int64.add(jitCodeBase, Int64.ofInt(functions[fidx].start));
+	}
+
 	/** Absolute machine address of opcode `op` in function `fidx`. */
 	public function addressOf(fidx:Int, op:Int):Pointer {
 		var fn = functions[fidx];

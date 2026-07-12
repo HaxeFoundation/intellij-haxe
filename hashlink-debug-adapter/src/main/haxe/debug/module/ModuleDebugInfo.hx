@@ -20,6 +20,9 @@ class ModuleDebugInfo {
 	final isWindows:Bool;
 	// findex (global) -> "Class.method" display name
 	final namesByFindex:Map<Int, String>;
+	// "Class.method" -> findex (the reverse of namesByFindex; for resolving
+	// runtime helpers like "String.fromUTF8" to call via the eval-call machinery)
+	final findexByName:Map<String, Int>;
 	// findex (global) -> position in data.functions (the index JitInfo uses)
 	final functionIndexByFindex:Map<Int, Int>;
 	// findex (global) -> the "$Class" statics prototype whose bindings own that function
@@ -51,6 +54,7 @@ class ModuleDebugInfo {
 		}
 		isWindows = Sys.systemName() == "Windows";
 		namesByFindex = buildNames();
+		findexByName = [for (findex => name in namesByFindex) name => findex];
 		functionIndexByFindex = buildFunctionIndex();
 		staticsProtoByFindex = buildStaticsIndex();
 		globalIndexByTypeName = buildGlobalTypeIndex();
@@ -293,6 +297,20 @@ class ModuleDebugInfo {
 		return {file: file, line: line};
 	}
 
+	/**
+	 * The data.functions index (what JitInfo uses) of a function by qualified
+	 * name ("String.fromUTF8"), or -1 when unknown or the name maps to a native
+	 * (natives have no jitted body and cannot be called this way).
+	 */
+	public function functionIndexByName(name:String):Int {
+		var findex = findexByName.get(name);
+		if (findex == null) {
+			return -1;
+		}
+		var fidx = functionIndexByFindex.get(findex);
+		return fidx == null ? -1 : fidx;
+	}
+
 	/** Best-effort display name ("Class.method") for a stack frame, else "fn@<findex>". */
 	public function functionName(fidx:Int):String {
 		if (fidx < 0 || fidx >= data.functions.length) {
@@ -444,8 +462,20 @@ class ModuleDebugInfo {
 	}
 
 	// Haxe names the static container "$Main"; strip the leading $ for display.
+	// The statics container type of a class "Pkg.Cls" is named "Pkg.$Cls" (the
+	// `$` prefixes the LAST path segment, not the whole qualified name). Strip
+	// it so both display and name lookup use the real class name.
 	function displayClassName(name:String):String {
-		return (name != null && StringTools.startsWith(name, "$")) ? name.substr(1) : name;
+		if (name == null) {
+			return name;
+		}
+		var dot = name.lastIndexOf(".");
+		if (dot >= 0) {
+			return (dot + 1 < name.length && name.charCodeAt(dot + 1) == "$".code)
+				? name.substr(0, dot + 1) + name.substr(dot + 2)
+				: name;
+		}
+		return StringTools.startsWith(name, "$") ? name.substr(1) : name;
 	}
 
 	// Total number of fields contributed by a type's super-class chain.

@@ -3,17 +3,16 @@ package debug.values;
 import haxe.Int64;
 
 /**
- * The right-hand side of a value assignment, parsed. The writable subset is
- * deliberately allocation-free: literals for every primitive, `null`, and a
- * variable path whose existing value is copied (a pointer copy for reference
- * types). Creating NEW heap values (strings, objects) requires calling the
- * debuggee's allocator and is out of scope until the eval-call machinery
- * exists. Parsed by ValueLiteralParser.
+ * The right-hand side of a value assignment, parsed: literals for every
+ * primitive, `null`, a string literal (materialized in the debuggee via the
+ * eval-call machinery — M13c), and a variable path whose existing value is
+ * copied (a pointer copy for reference types). Parsed by ValueLiteralParser.
  */
 enum ValueLiteral {
 	LInt(value:Int64);
 	LFloat(value:Float);
 	LBool(value:Bool);
 	LNull;
+	LString(value:String);
 	LPath(path:ValuePath);
 }

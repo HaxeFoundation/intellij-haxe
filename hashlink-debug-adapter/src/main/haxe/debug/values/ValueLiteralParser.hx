@@ -26,6 +26,10 @@ class ValueLiteralParser {
 				return LBool(false);
 			default:
 		}
+		if (s.length >= 2 && s.charCodeAt(0) == "\"".code && s.charCodeAt(s.length - 1) == "\"".code) {
+			var text = unescape(s.substring(1, s.length - 1));
+			return text == null ? null : LString(text);
+		}
 		var negative = false;
 		var digits = s;
 		if (StringTools.startsWith(digits, "-")) {
@@ -66,6 +70,39 @@ class ValueLiteralParser {
 		}
 		var path = ValuePath.parse(s);
 		return path == null ? null : LPath(path);
+	}
+
+	// Unescapes the inside of a "..." literal (\n \t \\ \" \0). Returns null on a
+	// dangling or unknown escape, or an inner unescaped quote (which would mean
+	// the outer quotes weren't the string bounds).
+	static function unescape(inner:String):Null<String> {
+		var out = new StringBuf();
+		var i = 0;
+		while (i < inner.length) {
+			var c = StringTools.fastCodeAt(inner, i);
+			if (c == "\"".code) {
+				return null; // an unescaped quote inside the bounds
+			}
+			if (c != "\\".code) {
+				out.addChar(c);
+				i++;
+				continue;
+			}
+			if (i + 1 >= inner.length) {
+				return null;
+			}
+			switch (StringTools.fastCodeAt(inner, i + 1)) {
+				case "n".code: out.addChar("\n".code);
+				case "t".code: out.addChar("\t".code);
+				case "r".code: out.addChar("\r".code);
+				case "\\".code: out.addChar("\\".code);
+				case "\"".code: out.addChar("\"".code);
+				case "0".code: out.addChar(0);
+				default: return null;
+			}
+			i += 2;
+		}
+		return out.toString();
 	}
 
 	static function startsWithDigit(s:String):Bool {
