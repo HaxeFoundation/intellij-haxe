@@ -90,6 +90,22 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  @Test
+  public void writeOnTheUseLineTakesEffect() throws Exception {
+    // stop ON the line that uses the parameter (a prior use one line earlier,
+    // no call between): the write must still reach the executed code. Pins
+    // that HL 1.15's jitted code re-reads the stack slot here — if this ever
+    // fails, the JIT started caching values in CPU registers across opcodes
+    // and value writes need a rethink (we cannot write arbitrary CPU regs).
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_CACHED_LINE);
+    int locals = localsScopeReference(topFrameId(stopped.getBody().getThreadId()));
+    assertEquals("v set on the use line", "100", setVariable(locals, "v", "100"));
+
+    String output = continueToExit(stopped.getBody().getThreadId());
+    // v=5, doubled already computed as 10; the use line must see v=100
+    assertTrue("the use line read the written value (" + output + ")", output.contains("cached:110"));
+  }
+
   // --- helpers ---
 
   private String setVariable(int containerReference, String name, String value) throws Exception {

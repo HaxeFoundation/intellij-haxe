@@ -71,7 +71,11 @@ final class HashLinkValue extends XNamedValue {
       public void setValue(@NotNull String expression, @NotNull XModificationCallback callback) {
         process.onRequestThread(() -> {
           try {
-            process.requestSetVariable(containerReference, variable.getName(), expression);
+            String newValue = process.requestSetVariable(containerReference, variable.getName(), expression);
+            // the node re-presents THIS instance after the edit: update the
+            // cached variable or the view keeps showing the old value
+            variable.setValue(newValue);
+            process.refreshRegistersTab();
             callback.valueModified();
           } catch (RuntimeException e) {
             callback.errorOccurred(e.getMessage() != null ? e.getMessage() : "Could not set value");

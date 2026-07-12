@@ -23,5 +23,15 @@ class Mutate {
 			Sys.println("mutate-branch-taken");
 		}
 		Sys.println("mutate-result:" + n + "," + obj.x + "," + arr[idx]);
+		cachedUse(n);
+	}
+
+	// Probes the JIT register-cache behavior: `v` is loaded on the first line
+	// and used again on the second with NO call between. A debugger write to
+	// v's stack slot while stopped on the second line reveals whether the
+	// compiled code re-reads the slot or uses a cached CPU register.
+	static function cachedUse(v:Int):Void {
+		var doubled = v * 2;
+		Sys.println("cached:" + (v + doubled)); // FIXTURE_CACHED_LINE = 35
 	}
 }

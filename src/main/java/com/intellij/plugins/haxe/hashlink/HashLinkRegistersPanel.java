@@ -64,7 +64,8 @@ final class HashLinkRegistersPanel extends JPanel implements XDebugSessionListen
     refresh();
   }
 
-  private void refresh() {
+  /** Re-reads the current frame's registers (also called after a value write). */
+  void refresh() {
     XStackFrame current = process.getSession().getCurrentStackFrame();
     if (!(current instanceof HashLinkStackFrame frame)) {
       return;

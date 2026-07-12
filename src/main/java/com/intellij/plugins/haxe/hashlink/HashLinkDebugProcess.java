@@ -389,6 +389,14 @@ public class HashLinkDebugProcess extends XDebugProcess {
            ? response.getBody().getVariables() : List.of();
   }
 
+  /** Reloads the Registers tab (after a value write; register rows may have changed). */
+  void refreshRegistersTab() {
+    HashLinkRegistersPanel panel = registersPanel;
+    if (panel != null) {
+      panel.refresh();
+    }
+  }
+
   /**
    * Sets the named child of a container reference to `value` (a literal or
    * another variable path). Returns the new rendered value; throws with the
