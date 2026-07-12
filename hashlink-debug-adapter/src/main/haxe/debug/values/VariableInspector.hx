@@ -11,19 +11,24 @@ import debug.module.LocalsResolver;
 import debug.module.ModuleDebugInfo;
 import debug.target.MemoryReader;
 import debug.target.StackFrameLocation;
-import format.hl.Data.HLType;
-import format.hl.Data.ObjPrototype;
-import haxe.Int64;
 
 /**
- * Everything "what can I see while stopped": owns the per-stop frame cache and
- * the variablesReference registry, and turns frames into scopes and references
- * into variable lists — locals via the reconstructed frame layout, object/
- * array/enum children via ValueChildren, statics via the globals table.
+ * The "what can I see and change while stopped" FACADE. It constructs and wires
+ * the value-inspection collaborators and exposes the small surface DebugSession
+ * drives — stop lifecycle, scopes/variables, evaluate/condition, setVariable —
+ * delegating each to the owning class:
  *
- * Wired once at launch from the module/jit metadata. DebugSession feeds it the
- * walked frames on every stop (setFrames) and invalidates it on every resume:
- * a reference must never outlive its stop, since the GC can move objects.
+ *  - StopState           per-stop frame caches + variablesReference registry
+ *  - SymbolResolver      variable path → writable {address, type}
+ *  - VariablesView       frames/references → DAP scopes & variable lists
+ *  - DebuggeeCallService running code in the debuggee (calls / new / string / box)
+ *  - ExpressionEvaluator the evaluate-expression interpreter (M21b/M23)
+ *  - VariableMutator     the write path (setVariable / assignment)
+ *
+ * Wired once at launch from the module/jit metadata; DebugSession sets the
+ * per-session callbacks (frameWalker, cpuRegistersFor, functionCaller, ...),
+ * feeds a new stop via startStop, and invalidates on every resume — a reference
+ * must never outlive its stop, since the GC can move objects.
  */
 class VariableInspector {
 	final module:ModuleDebugInfo;
@@ -46,12 +51,12 @@ class VariableInspector {
 	final view:VariablesView;
 	// The evaluate-expression interpreter (operators, is/ternary, calls).
 	final evaluator:ExpressionEvaluator;
-	// Non-null once value modification is enabled (a MemoryWriter is available).
-	var writer:Null<ValueWriter> = null;
+	// The value-modification path (setVariable / assignment).
+	final mutator:VariableMutator;
 
 	/** Enables value modification (setVariable / assignment) via `out`. */
 	public function enableWrites(out:debug.target.MemoryWriter):Void {
-		writer = new ValueWriter(memory, out, align, runtimeTypes);
+		mutator.writer = new ValueWriter(memory, out, align, runtimeTypes);
 		calls.memWriter = out;
 	}
 
@@ -75,16 +80,20 @@ class VariableInspector {
 		return provider;
 	}
 
-	// Set by DebugSession: writes the low half of XMM0. Register-passed float
-	// arguments ARRIVE in XMM registers; the jitted code may consume the still
-	// live arrival register instead of the (also updated) stack slot, so a
-	// write to the first float argument of the top frame patches XMM0 too —
-	// the only float register hl_debug_write_register exposes.
-	public var xmm0Writer:Null<Float->Void> = null;
+	// Set by DebugSession: writes the low half of XMM0 for the arrival-register
+	// fixup; and surfaces a non-fatal write warning. Both forwarded to the mutator.
+	public var xmm0Writer(never, set):Null<Float->Void>;
+	public var warnSink(never, set):Null<String->Void>;
 
-	// Set by DebugSession: surfaces a non-fatal warning to the client (as a
-	// console output event) when a write cannot be made fully effective.
-	public var warnSink:Null<String->Void> = null;
+	inline function set_xmm0Writer(w:Null<Float->Void>):Null<Float->Void> {
+		mutator.xmm0Writer = w;
+		return w;
+	}
+
+	inline function set_warnSink(sink:Null<String->Void>):Null<String->Void> {
+		mutator.warnSink = sink;
+		return sink;
+	}
 
 	public function new(module:ModuleDebugInfo, jit:JitInfo, memory:MemoryReader) {
 		this.module = module;
@@ -128,6 +137,8 @@ class VariableInspector {
 			objectLayout, valueReader, valueChildren);
 		evaluator = new ExpressionEvaluator(resolver, calls, view, valueReader, memory, module, align,
 			runtimeTypes, stops);
+		mutator = new VariableMutator(resolver, evaluator, calls, valueReader, memory, module, jit,
+			frameLayout, stops);
 	}
 
 	/** Begins a new stop landed in `threadId` (see StopState.startStop). */
@@ -177,7 +188,7 @@ class VariableInspector {
 		var e = debug.eval.ExprParser.parse(expression);
 		// a top-level assignment is a WRITE; everything else the interpreter renders
 		return switch (e) {
-			case EAssign(lhs, rhs): assignExpr(frameId, lhs, rhs);
+			case EAssign(lhs, rhs): mutator.assignExpr(frameId, lhs, rhs);
 			default: evaluator.evaluateExpr(frameId, e, expression);
 		}
 	}
@@ -187,57 +198,9 @@ class VariableInspector {
 		return evaluator.evaluateBool(frameId, expression);
 	}
 
-	/**
-	 * Sets a named child of a variablesReference (DAP `setVariable`) to any
-	 * evaluate expression (literal, another variable, arithmetic, a call), and
-	 * returns the child's new decoded value. Throws DebugError on any failure.
-	 */
-	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
-		var target = resolver.targetInReference(reference, name);
-		var v = evaluator.evalExpr(resolver.writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
-		writeValue(target, v);
-		fixupAfterWrite(target);
-		var decoded = valueReader.read(target.address, target.type);
-		return {name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
-	}
-
-	/**
-	 * `target = expr` from evaluate: the target is a variable path, an array
-	 * element (any Int key expression), or a map bracket (sugar for set).
-	 */
-	function assignExpr(frameId:Int, lhs:debug.eval.ExprAst.Expr, rhs:debug.eval.ExprAst.Expr):VariableInfo {
-		switch (lhs) {
-			case EIndex(recv, key):
-				var recvPath = ExpressionEvaluator.chainToPath(recv);
-				if (recvPath == null) {
-					throw new debug.DebugError("The receiver of [...] must be a variable path");
-				}
-				var target = resolver.targetOfPath(frameId, recvPath);
-				var display = recvPath.display() + "[...]";
-				if (evaluator.mapTypeOfTarget(target) != null) {
-					// map bracket: sugar for set(key, value), read back via get
-					var keyVal = evaluator.evalExpr(frameId, key);
-					var rhsVal = evaluator.evalExpr(frameId, rhs);
-					calls.callRaw(frameId, recvPath.plus("set"), [keyVal, rhsVal]); // set returns Void
-					var read = calls.callRaw(frameId, recvPath.plus("get"), [keyVal]);
-					return evaluator.decodeReturn(display, read.raw, read.type);
-				}
-				// array element (constant or computed index): a writable slot
-				var element = resolver.childTarget(target, Std.string(evaluator.intKey(frameId, key)));
-				writeValue(element, evaluator.evalExpr(frameId, rhs));
-				var decoded = valueReader.read(element.address, element.type);
-				return {name: element.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
-			default:
-		}
-		var path = ExpressionEvaluator.chainToPath(lhs);
-		if (path == null) {
-			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
-		}
-		var target = resolver.targetOfPath(frameId, path);
-		writeValue(target, evaluator.evalExpr(frameId, rhs));
-		fixupAfterWrite(target);
-		var decoded = valueReader.read(target.address, target.type);
-		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	/** Sets a variablesReference child to an evaluate expression (DAP `setVariable`). */
+	public inline function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
+		return mutator.setVariable(reference, name, valueExpr);
 	}
 
 	// Set by DebugSession: runs a function inside the debuggee. Forwarded to the
@@ -248,112 +211,6 @@ class VariableInspector {
 		Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> {
 		calls.functionCaller = caller;
 		return caller;
-	}
-
-	// An argument's early uses may be compiled against the CPU register it
-	// ARRIVED in rather than the (also updated) stack slot — verified live:
-	// writing only the slot left a traced Float parameter unchanged. The first
-	// float argument arrives in XMM0 on both conventions (win64 XMM indexes
-	// are positional, so there it must also be argument 0) and XMM0 is the one
-	// arrival register hl_debug_write_register exposes: patch it. Every other
-	// register-passed argument cannot be fixed up — surface a console warning
-	// so a "didn't take" write on the current line is explainable.
-	function fixupAfterWrite(target:WriteTarget):Void {
-		// the arrival-register fixup only applies to the stopped thread's top frame
-		var stoppedFrames = stops.framesFor(stops.stoppedThreadId);
-		if (stoppedFrames == null || stoppedFrames.length == 0) {
-			return;
-		}
-		var frame = stoppedFrames[0].location;
-		var argCount = module.argCount(frame.fidx);
-		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), argCount);
-		var argIndex = -1;
-		for (i in 0...argCount) {
-			if (Int64.eq(target.address, Int64.add(frame.ebp, Int64.ofInt(offsets[i].offset)))) {
-				argIndex = i;
-				break;
-			}
-		}
-		if (argIndex < 0) {
-			return; // not an argument of the top frame
-		}
-		var firstFloat = -1;
-		for (i in 0...argCount) {
-			if (isFloatSlot(offsets[i].t)) {
-				firstFloat = i;
-				break;
-			}
-		}
-		if (argIndex == firstFloat && target.type.match(HF64)
-			&& (!jit.winCall || firstFloat == 0) && xmm0Writer != null) {
-			xmm0Writer(memory.readF64(target.address));
-			return;
-		}
-		if (registerPassed(argIndex, offsets, argCount) && warnSink != null) {
-			warnSink("[debugger] note: \"" + target.name + "\" is a register-passed argument; code on the "
-				+ "current line may still use the value it arrived with. The new value applies to later uses; "
-				+ "to steer this line, set the value in the caller before the call." + String.fromCharCode(10));
-		}
-	}
-
-	static function isFloatSlot(t:format.hl.Data.HLType):Bool {
-		return t.match(HF32) || t.match(HF64);
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
-	}
-
-	// Whether argument `argIndex` arrives in a CPU register: win64 passes the
-	// first 4 positionally; SysV the first 6 integer-class / 8 float-class.
-	function registerPassed(argIndex:Int, offsets:Array<debug.layout.RegisterSlot>, argCount:Int):Bool {
-		if (jit.winCall) {
-			return argIndex < 4;
-		}
-		var ints = 0;
-		var floats = 0;
-		for (i in 0...argCount) {
-			var float = isFloatSlot(offsets[i].t);
-			if (i == argIndex) {
-				return float ? floats < 8 : ints < 6;
-			}
-			if (float) {
-				floats++;
-			} else {
-				ints++;
-			}
-		}
-		return false;
-	}
-
-	// Writes an ALREADY-EVALUATED expression value into a target slot, mapping
-	// each value kind onto the appropriate ValueWriter primitive.
-	function writeValue(target:WriteTarget, v:debug.eval.EvalValue):Void {
-		if (writer == null) {
-			throw new debug.DebugError("Value modification is not available in this session");
-		}
-		switch (v) {
-			case VInt(i):
-				writer.write(target, LInt(i));
-			case VFloat(f):
-				writer.write(target, LFloat(f));
-			case VBool(b):
-				writer.write(target, LBool(b));
-			case VNull:
-				writer.write(target, LNull);
-			case VString(text, ptr):
-				writer.assignRaw(target, ptr != null ? (ptr : Pointer) : calls.makeString(text), stringType());
-			case VObject(raw, t):
-				if (t.match(HStruct(_)) || t.match(HPacked(_))) {
-					throw new debug.DebugError("Assigning a whole struct is not supported");
-				}
-				writer.assignRaw(target, raw, t);
-		}
-	}
-
-	function stringType():format.hl.Data.HLType {
-		var t = module.typeByName("String");
-		return t == null ? HDyn : t;
 	}
 
 	/** The children of a variablesReference ([] for an unknown/stale reference). */
