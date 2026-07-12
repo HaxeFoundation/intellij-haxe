@@ -514,6 +514,32 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  public void mapBracketSyntaxSugarsToGetAndSet() throws Exception {
+    // map[k] / map[k]=v are compile-time sugar for get/set; the evaluator
+    // offers the same syntax by rewriting to the method calls.
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // read: stringMap["b"]==6 (String key), intMap[2]=="v2" (Int key)
+    assertEquals("stringMap[\"b\"]", "6", evaluate(frameId, "stringMap[\"b\"]").getBody().getResult());
+    assertEquals("intMap[2]", "\"v2\"", evaluate(frameId, "intMap[2]").getBody().getResult());
+    assertEquals("absent key reads null", "null", evaluate(frameId, "stringMap[\"zz\"]").getBody().getResult());
+
+    // write: string key with a boxed int value, and int key with a string value
+    assertEquals("stringMap[\"c\"] = 9 returns the value", "9", evaluate(frameId, "stringMap[\"c\"] = 9").getBody().getResult());
+    assertEquals("stringMap[\"c\"] reads back", "9", evaluate(frameId, "stringMap[\"c\"]").getBody().getResult());
+    assertTrue("intMap[7] = \"seven\"", evaluate(frameId, "intMap[7] = \"seven\"").isSuccess());
+    assertEquals("intMap[7] reads back", "\"seven\"", evaluate(frameId, "intMap[7]").getBody().getResult());
+
+    // arrays are NOT maps: arr[i] stays a real indexed slot (read + write)
+    assertEquals("ints[1] index read", "5", evaluate(frameId, "ints[1]").getBody().getResult());
+    assertTrue("ints[1] = 42 index write", evaluate(frameId, "ints[1] = 42").isSuccess());
+    assertEquals("ints[1] reads back the written index", "42", evaluate(frameId, "ints[1]").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   public void boxesPrimitivesIntoDynamicArguments() throws Exception {
     // stringMap is Map<String,Int>: values are stored BOXED (Dynamic). Passing
     // the int literal 9 requires boxing it into a vdynamic (M17) — previously

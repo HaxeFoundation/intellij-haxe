@@ -710,16 +710,20 @@ call when the segment isn't a method. **Gaps** (clear errors, no corruption):
   is present and readable via `get`, but the `Map(n)` preview may not tick up) —
   a display quirk, the mutation itself is real.
 
-**Map `[]` access has no runtime operator — use `get`/`set`.** `Map` is a Haxe
-abstract whose `[]` is `@:arrayAccess inline` methods (`get`, `arrayWrite`→`set`
-in `haxe/ds/Map.hx`), so the Haxe compiler rewrites `map[k]` → `map.get(k)` and
-`map[k]=v` → `map.set(k,v)` at COMPILE time. By bytecode there is only an
-`OCall` to `get`/`set`, and the `@:arrayAccess` metadata is gone (HL bytecode
-carries no metadata; the format `Data` has no meta field). So the evaluator
-exposes `map.get(k)` / `map.set(k, v)` directly — `map[k]` bracket sugar, if
-ever added, would be a hardcoded rewrite to exactly those calls, nothing more.
-(Contrast arrays: `arr[i]` is a real `OGetArray`/`OSetArray` runtime index, so
-`arr[i]` and `arr[i] = x` DO work directly.)
+**Map `[]` sugar (M18)** — `map[key]` and `map[key] = v` in the evaluator. There
+is no runtime `[]` operator for maps: `Map` is a Haxe abstract whose `[]` is
+`@:arrayAccess inline` methods (`get`, `arrayWrite`→`set` in `haxe/ds/Map.hx`),
+which the compiler rewrites to `get`/`set` calls at COMPILE time, and HL
+bytecode carries no metadata (the format `Data` has no meta field). So the
+evaluator reproduces the sugar itself: `splitBracketTail` peels the final
+balanced `[...]`, and if the receiver resolves to a map class
+(StringMap/IntMap/ObjectMap or a BalancedTree — `mapReceiverType`) the access is
+rewritten to a `get`/`set` method call (M16), with the key/value lowered like
+any argument (string keys materialised, primitive values boxed — M17). A write
+re-reads via `get` to return the stored value. **Arrays fall through**: a
+non-map receiver leaves `arr[i]` / `arr[i] = x` on the direct indexed-slot path
+(`arr[i]` is a real `OGetArray`/`OSetArray` index). Nested map brackets in one
+expression (`a[k1][k2]`, `map[k].field`) are not sugared — use the method calls.
 
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by

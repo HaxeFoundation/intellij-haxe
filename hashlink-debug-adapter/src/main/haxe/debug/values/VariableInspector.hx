@@ -211,6 +211,14 @@ class VariableInspector {
 		if (assignAt >= 0) {
 			return assign(frameId, expression.substr(0, assignAt), expression.substr(assignAt + 1));
 		}
+		// `map[key]` — bracket access on a map is sugar for `map.get(key)` (the
+		// compiler inlines the abstract's @:arrayAccess; there is no runtime
+		// operator). Arrays fall through: `arr[i]` is a real indexed slot.
+		var bracket = splitBracketTail(expression);
+		if (bracket != null && mapReceiverType(frameId, bracket.receiver) != null) {
+			var call = callRaw(frameId, bracket.receiver + ".get", [bracket.key]);
+			return decodeReturn(bracket.receiver + "[" + bracket.key + "]", call.raw, call.type);
+		}
 		var path = ValuePath.parse(expression);
 		if (path == null) {
 			throw new debug.DebugError("Only variable paths and assignments can be evaluated (e.g. name, obj.field, x = 5)");
@@ -255,6 +263,14 @@ class VariableInspector {
 	 * request (`path = expr`), returning the new decoded value.
 	 */
 	public function assign(frameId:Int, lhsExpr:String, rhsExpr:String):VariableInfo {
+		// `map[key] = value` — sugar for `map.set(key, value)` (see evaluate).
+		// Arrays fall through: an array element IS a writable slot.
+		var bracket = splitBracketTail(lhsExpr);
+		if (bracket != null && mapReceiverType(frameId, bracket.receiver) != null) {
+			callRaw(frameId, bracket.receiver + ".set", [bracket.key, rhsExpr]); // set returns Void
+			var read = callRaw(frameId, bracket.receiver + ".get", [bracket.key]);
+			return decodeReturn(StringTools.trim(lhsExpr), read.raw, read.type);
+		}
 		var path = ValuePath.parse(lhsExpr);
 		if (path == null) {
 			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
@@ -264,6 +280,64 @@ class VariableInspector {
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	}
+
+	// Splits `<receiver>[<key>]` at the FINAL balanced bracket, honouring nested
+	// brackets in the key; null when the expression does not end in `]`. Pure
+	// string work — whether the receiver is actually a map is decided separately.
+	static function splitBracketTail(expr:String):Null<{receiver:String, key:String}> {
+		var s = StringTools.trim(expr);
+		if (!StringTools.endsWith(s, "]")) {
+			return null;
+		}
+		var depth = 0;
+		var i = s.length - 1;
+		while (i >= 0) {
+			var c = StringTools.fastCodeAt(s, i);
+			if (c == "]".code) {
+				depth++;
+			} else if (c == "[".code) {
+				depth--;
+				if (depth == 0) {
+					break;
+				}
+			}
+			i--;
+		}
+		if (i <= 0) {
+			return null; // no matching '[' or an empty receiver
+		}
+		var receiver = StringTools.trim(s.substring(0, i));
+		var key = StringTools.trim(s.substring(i + 1, s.length - 1));
+		return (receiver.length == 0 || key.length == 0) ? null : {receiver: receiver, key: key};
+	}
+
+	// The map type of `receiverExpr` if it resolves to one of the map classes
+	// (StringMap/IntMap/ObjectMap or a BalancedTree), else null — the signal to
+	// route `[]` to get/set rather than treat it as an array index.
+	function mapReceiverType(frameId:Int, receiverExpr:String):Null<HLType> {
+		var p = ValuePath.parse(receiverExpr);
+		if (p == null) {
+			return null;
+		}
+		var target = try targetOfPath(frameId, p) catch (e:Dynamic) return null;
+		var t = target.type;
+		switch (t) {
+			case HObj(_):
+				var base = memory.readPointer(target.address);
+				if (!Int64.eq(base, Int64.ofInt(0))) {
+					t = refineObjectType(base, t);
+				}
+			default:
+		}
+		return isMapType(t) ? t : null;
+	}
+
+	static function isMapType(t:HLType):Bool {
+		return switch (t) {
+			case HObj(p): p != null && (ValueReader.mapKeyKind(p.name) != null || TreeMapReader.isTreeMap(p.name));
+			default: false;
+		}
 	}
 
 	// Set by DebugSession: runs a function inside the debuggee. Null until the
