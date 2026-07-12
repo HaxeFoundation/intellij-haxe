@@ -56,7 +56,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // resume: the program's own output must be intact (calls didn't corrupt it)
     String output = continueToExit(stopped.getBody().getThreadId());
-    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,5"));
+    assertTrue("program output intact after injected calls (" + output + ")", output.contains("call:11,25,true,orig10,L10,4"));
   }
 
   @Test
@@ -159,7 +159,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
     // the injected allocation + ctor left the debuggee intact
     String output = continueToExit(threadId);
-    assertTrue("program output intact after construction (" + output + ")", output.contains("call:11,25,true,orig10,L10,5"));
+    assertTrue("program output intact after construction (" + output + ")", output.contains("call:11,25,true,orig10,L10,4"));
   }
 
   @Test

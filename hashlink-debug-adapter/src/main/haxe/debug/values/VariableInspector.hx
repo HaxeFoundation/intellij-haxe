@@ -46,6 +46,9 @@ class VariableInspector {
 	// Recovers construction recipes by disassembling ONew sites (a hack; see
 	// ConstructorResolver). Created lazily on the first `new` evaluation.
 	var constructors:Null<debug.eval.ConstructorResolver> = null;
+	// Resolves C native addresses by disassembling call sites (a hack; see
+	// NativeResolver). Created lazily on the first string materialization.
+	var natives:Null<debug.eval.NativeResolver> = null;
 
 	/** Enables value modification (setVariable / assignment) via `out`. */
 	public function enableWrites(out:debug.target.MemoryWriter):Void {
@@ -396,46 +399,36 @@ class VariableInspector {
 	 * the conservative stack scan) during its internal allocation.
 	 */
 	function makeString(text:String):Pointer {
-		if (memWriter == null) {
-			throw new debug.DebugError("String creation is not available in this session");
+		if (memWriter == null || functionCaller == null) {
+			throw new debug.DebugError("Unable to create a string: value modification is not available in this session");
+		}
+		if (natives == null) {
+			natives = new debug.eval.NativeResolver(module, jit, memory);
+		}
+		// Allocate the char buffer with the LOW-LEVEL `alloc_bytes` native (present
+		// in any program that touches strings), reached by disassembling one of
+		// its call sites — unlike `haxe.io.Bytes.alloc`, which the compiler
+		// dead-code-eliminates when the program never uses `haxe.io.Bytes`.
+		var allocBytes = natives.resolve("alloc_bytes");
+		if (allocBytes == null) {
+			throw new debug.DebugError("Unable to create a string: the debuggee's byte allocator (alloc_bytes)"
+				+ " could not be located. String creation is x86-64 only and needs the program to allocate"
+				+ " bytes somewhere (nearly all do).");
 		}
 		var utf8 = haxe.io.Bytes.ofString(text, haxe.io.Encoding.UTF8);
-		var bytesObj = callByName("haxe.io.Bytes.alloc", [{isFloat: false, bits: Int64.ofInt(utf8.length + 1)}], false);
-		if (Int64.eq(bytesObj, Int64.ofInt(0))) {
-			throw new debug.DebugError("Failed to allocate a byte buffer in the debuggee");
-		}
-		var bufferPtr = memory.readPointer(offset(bytesObj, haxeBytesBufferOffset()));
+		// +1 for a guaranteed null terminator (alloc_bytes does not zero the tail)
+		var bufferPtr = functionCaller(allocBytes, [{isFloat: false, bits: Int64.ofInt(utf8.length + 1)}], false);
 		if (Int64.eq(bufferPtr, Int64.ofInt(0))) {
-			throw new debug.DebugError("The allocated byte buffer was null");
+			throw new debug.DebugError("Unable to create a string: alloc_bytes returned null");
 		}
-		if (utf8.length > 0) {
-			memWriter.write(bufferPtr, utf8); // alloc zero-filled, so the terminator is already 0
-		}
+		var buffer = haxe.io.Bytes.alloc(utf8.length + 1); // terminator byte defaults to 0
+		buffer.blit(0, utf8, 0, utf8.length);
+		memWriter.write(bufferPtr, buffer);
 		var str = callByName("String.fromUTF8", [{isFloat: false, bits: bufferPtr}], false);
 		if (Int64.eq(str, Int64.ofInt(0))) {
-			throw new debug.DebugError("String.fromUTF8 returned null");
+			throw new debug.DebugError("Unable to create a string: String.fromUTF8 returned null");
 		}
 		return str;
-	}
-
-	// Offset of haxe.io.Bytes' `b` field (the hl.Bytes buffer), from the layout.
-	var haxeBytesBufferOffsetCache:Int = -1;
-
-	function haxeBytesBufferOffset():Int {
-		if (haxeBytesBufferOffsetCache >= 0) {
-			return haxeBytesBufferOffsetCache;
-		}
-		var proto = switch (module.typeByName("haxe.io.Bytes")) {
-			case HObj(p): p;
-			default: throw new debug.DebugError("haxe.io.Bytes is unavailable in this program");
-		};
-		for (field in objectLayout.fields(proto)) {
-			if (field.name == "b") {
-				haxeBytesBufferOffsetCache = field.offset;
-				return field.offset;
-			}
-		}
-		throw new debug.DebugError("Could not locate the byte buffer field of haxe.io.Bytes");
 	}
 
 	// Lowers an argument expression to the raw 64-bit value its register needs,

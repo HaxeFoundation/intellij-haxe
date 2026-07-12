@@ -90,7 +90,7 @@ public abstract class DapIntegrationTestBase {
   protected static final int FIXTURE_FLOAT_LINE = 44; // Mutate.floatParam(): Float arg traced on the callee's first line
   protected static final int FIXTURE_INT_ARG_LINE = 50; // Mutate.intParam(): Int arg traced on the callee's first line
   protected static final String FIXTURE_CALL = "Call.hx";
-  protected static final int FIXTURE_CALL_LINE = 36; // Call.demo(): add/scale/negate/label callable, s reassignable
+  protected static final int FIXTURE_CALL_LINE = 38; // Call.demo(): add/scale/negate/label callable, s reassignable
 
   protected Process adapterProcess;
   protected DapClient client;

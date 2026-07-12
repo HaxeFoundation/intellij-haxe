@@ -45,11 +45,6 @@ import haxe.Int64;
  * =====================================================================
  */
 class ConstructorResolver {
-	static inline var MOV_RAX = 0xB848; // little-endian bytes 48 B8 (REX.W; mov rax, imm64)
-	static inline var CALL_RAX = 0xD0FF; // bytes FF D0 (call rax)
-	static inline var MOV_ARG_WIN = 0xB948; // 48 B9 (mov rcx, imm64)
-	static inline var MOV_ARG_SYSV = 0xBF48; // 48 BF (mov rdi, imm64)
-
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
@@ -133,23 +128,22 @@ class ConstructorResolver {
 			return null; // implausible span
 		}
 		var code = memory.read(start, len);
-		var argMov = jit.winCall ? MOV_ARG_WIN : MOV_ARG_SYSV;
-		// look for: <argMov> <typePtr:8> 48 B8 <allocFn:8> ... FF D0
-		// (win64 inserts `sub rsp, 0x20` shadow-space between `mov rax` and the
-		// call, so `FF D0` is not at a fixed offset — scan a few bytes for it)
+		var argMov = jit.winCall ? MachineCode.MOV_RCX : MachineCode.MOV_RDI;
+		// look for: <argMov=type ptr> <typePtr:8> mov rax,<allocFn> ; call rax
 		var i = 0;
-		while (i + 22 <= len) {
-			if (code.getUInt16(i) == argMov && code.getUInt16(i + 10) == MOV_RAX && hasCallRax(code, i + 20, len)) {
-				var typePtr = read64(code, i + 2);
-				var allocFn = read64(code, i + 12);
-				if (allocResolved && !Int64.eq(allocFn, allocFnValue)) {
-					// two ONew sites disagree on the allocator: something is off,
-					// don't trust the pattern
-					return null;
+		while (i + 12 <= len) {
+			if (code.getUInt16(i) == argMov) {
+				var allocFn = MachineCode.movRaxImmThenCall(code, i + 10, len);
+				if (allocFn != null) {
+					var typePtr = MachineCode.read64(code, i + 2);
+					if (allocResolved && !Int64.eq(allocFn, allocFnValue)) {
+						// two ONew sites disagree on the allocator: don't trust it
+						return null;
+					}
+					allocFnValue = allocFn;
+					allocResolved = true;
+					return {typePtr: typePtr, allocFn: allocFn};
 				}
-				allocFnValue = allocFn;
-				allocResolved = true;
-				return {typePtr: typePtr, allocFn: allocFn};
 			}
 			i++;
 		}
@@ -173,23 +167,5 @@ class ConstructorResolver {
 			}
 		}
 		return -1;
-	}
-
-	// `FF D0` (call rax) within a short window from `from` — skipping an optional
-	// `sub rsp, imm8` (win64 shadow-space allocation) between the mov and the call.
-	static function hasCallRax(code:haxe.io.Bytes, from:Int, len:Int):Bool {
-		var limit = from + 8 <= len - 1 ? from + 8 : len - 1;
-		var j = from;
-		while (j < limit) {
-			if (code.getUInt16(j) == CALL_RAX) {
-				return true;
-			}
-			j++;
-		}
-		return false;
-	}
-
-	static function read64(bytes:haxe.io.Bytes, pos:Int):Pointer {
-		return Int64.make(bytes.getInt32(pos + 4), bytes.getInt32(pos));
 	}
 }

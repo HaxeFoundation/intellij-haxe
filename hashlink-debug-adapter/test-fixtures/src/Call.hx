@@ -31,8 +31,10 @@ class Call {
 		var negate:(Bool) -> Bool = negateImpl;
 		var label:(Int) -> String = makeLabelImpl;
 		var s = "orig" + base; // a String local reassigned from a call result
-		var scratch = haxe.io.Bytes.alloc(1); // keep haxe.io.Bytes.alloc from being DCE'd (the debugger uses it to build strings)
-		var keep:Array<Dynamic> = [add, scale, negate, label, scratch]; // force real locals
-		Sys.println("call:" + add(base, 1) + "," + scale(base * 1.0) + "," + negate(base < 0) + "," + s + "," + label(base) + "," + keep.length); // FIXTURE_CALL_LINE = 36
+		// NOTE: no haxe.io.Bytes keepalive — the debugger now builds strings via
+		// the low-level `alloc_bytes` native, so string creation must work even
+		// when the program never uses haxe.io.Bytes (the reported case).
+		var keep:Array<Dynamic> = [add, scale, negate, label]; // force real locals
+		Sys.println("call:" + add(base, 1) + "," + scale(base * 1.0) + "," + negate(base < 0) + "," + s + "," + label(base) + "," + keep.length); // FIXTURE_CALL_LINE = 38
 	}
 }

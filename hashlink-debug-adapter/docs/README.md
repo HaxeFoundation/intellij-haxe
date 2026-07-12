@@ -637,17 +637,21 @@ injects it. The dance:
   a pointer result is written directly (the callee returned a live heap object),
   a primitive is coerced to the slot. So a factory/producer in the program can
   be invoked and its result bound — including a String the program builds.
-- `x = "literal"` **allocates a brand-new String** in the debuggee:
-  `haxe.io.Bytes.alloc(len+1)` (a bytecode wrapper on the native allocator) →
-  write the UTF-8 into the returned buffer → `String.fromUTF8`, all via the
-  eval-call machinery. Buffer on the HEAP, not the stack — Windows has no red
-  zone, so a buffer below Esp plus the callee's own stack use faults the guard
-  page. GC-safe: no allocation between reading the buffer pointer and the
-  fromUTF8 call, and the buffer is fromUTF8's argument (kept live by the
-  conservative stack scan) during its internal allocation. **Depends on
-  `haxe.io.Bytes.alloc` being present** — the compiler dead-code-eliminates it
-  when the program never uses `haxe.io.Bytes`; then string creation reports a
-  clear "helper unavailable" error (most real programs include it).
+- `x = "literal"` **allocates a brand-new String** in the debuggee: allocate a
+  char buffer with the low-level **`alloc_bytes` native**, write the UTF-8 (with
+  an explicit trailing `\0` — `alloc_bytes` does not zero the tail), then
+  `String.fromUTF8` (which is `@:keep`, never DCE'd). All via the eval-call
+  machinery. `alloc_bytes` is reached by `NativeResolver` (the same
+  disassembly hack as constructors — `mov rax,<native>; call rax` at any of the
+  native's jitted call sites), NOT via `haxe.io.Bytes.alloc`: that bytecode
+  wrapper is dead-code-eliminated whenever the program never uses
+  `haxe.io.Bytes`, which is exactly when a user hit "helper unavailable".
+  `alloc_bytes` is present in essentially any string-using program. Buffer is a
+  GC heap allocation (not stack — Windows has no red zone); GC-safe because no
+  allocation happens between getting the buffer and the `fromUTF8` that consumes
+  it. If `alloc_bytes` can't be mined (non-x86-64, or a program that never
+  allocates bytes) string creation fails with a string-specific "unable to
+  create a string" message.
 - **`$`-prefixed statics-container names**: a class `Pkg.Cls`'s static methods
   live on the container type `Pkg.$Cls` (the `$` prefixes the LAST path
   segment, e.g. `haxe.io.$Bytes`, `$String`). `displayClassName` strips that so

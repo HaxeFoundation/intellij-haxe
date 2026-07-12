@@ -311,6 +311,21 @@ class ModuleDebugInfo {
 		return fidx == null ? -1 : fidx;
 	}
 
+	/**
+	 * The findex of an imported C native by its name (e.g. "alloc_bytes"), or -1
+	 * when the program doesn't import it. Natives have no jitted body — this
+	 * findex is used to find a jitted CALL site to the native (see NativeResolver),
+	 * not as a callable index.
+	 */
+	public function nativeFindexByName(name:String):Int {
+		for (n in data.natives) {
+			if (n.name == name) {
+				return n.findex;
+			}
+		}
+		return -1;
+	}
+
 	/** Best-effort display name ("Class.method") for a stack frame, else "fn@<findex>". */
 	public function functionName(fidx:Int):String {
 		if (fidx < 0 || fidx >= data.functions.length) {
