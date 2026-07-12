@@ -106,6 +106,40 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     assertTrue("the use line read the written value (" + output + ")", output.contains("cached:110"));
   }
 
+  @Test
+  public void writeToFloatArgOnItsUseLineTakesEffect() throws Exception {
+    // the user-reported case: a Float parameter traced on the callee's FIRST
+    // line. Float args ARRIVE in XMM0 and the trace consumes that register,
+    // not the stack slot — the write must patch XMM0 too (the one arrival
+    // register hl_debug_write_register exposes).
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_FLOAT_LINE);
+    int locals = localsScopeReference(topFrameId(stopped.getBody().getThreadId()));
+    assertEquals("y set on its use line", "9.5", setVariable(locals, "y", "9.5"));
+
+    String output = continueToExit(stopped.getBody().getThreadId());
+    assertTrue("the trace printed the written float (" + output + ")", output.contains("float-was:9.5"));
+  }
+
+  @Test
+  public void writeToRegisterPassedIntArgWarnsAndAppliesToLaterUses() throws Exception {
+    // same shape with an Int argument: its arrival register (RCX) is NOT
+    // writable through the debug API, so the current line still sees the old
+    // value — the slot IS updated (later uses see it) and the adapter says so
+    // in a console note. Pins the documented limitation; if the output ever
+    // shows 99 here, HL started re-reading the slot and the note can go.
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_MUTATE, FIXTURE_INT_ARG_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+    int locals = localsScopeReference(frameId);
+    assertEquals("k slot updated", "99", setVariable(locals, "k", "99"));
+    assertEquals("re-read confirms the slot", "99",
+                 findVariable(variables(localsScopeReference(frameId)), "k").getValue());
+
+    String output = continueToExit(stopped.getBody().getThreadId());
+    assertTrue("the current line used the arrival register (" + output + ")", output.contains("int-was:12"));
+    assertTrue("the adapter warned about the register-passed argument (" + output + ")",
+               output.contains("register-passed argument"));
+  }
+
   // --- helpers ---
 
   private String setVariable(int containerReference, String name, String value) throws Exception {

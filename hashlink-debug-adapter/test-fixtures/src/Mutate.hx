@@ -24,6 +24,8 @@ class Mutate {
 		}
 		Sys.println("mutate-result:" + n + "," + obj.x + "," + arr[idx]);
 		cachedUse(n);
+		floatParam(n + 0.25);
+		intParam(n + 7);
 	}
 
 	// Probes the JIT register-cache behavior: `v` is loaded on the first line
@@ -32,6 +34,19 @@ class Mutate {
 	// compiled code re-reads the slot or uses a cached CPU register.
 	static function cachedUse(v:Int):Void {
 		var doubled = v * 2;
-		Sys.println("cached:" + (v + doubled)); // FIXTURE_CACHED_LINE = 35
+		Sys.println("cached:" + (v + doubled)); // FIXTURE_CACHED_LINE = 37
+	}
+
+	// User-reported shape: a Float parameter traced on the FIRST line of the
+	// callee — the breakpoint sits on the line that uses it. Float arguments
+	// arrive in XMM0; the write must patch the register too, not just the slot.
+	static function floatParam(y:Float):Void {
+		Sys.println("float-was:" + y); // FIXTURE_FLOAT_LINE = 44
+	}
+
+	// Same shape with an Int parameter (arrives in an integer register the
+	// debug API cannot write) — documents whether the slot write is honored.
+	static function intParam(k:Int):Void {
+		Sys.println("int-was:" + k); // FIXTURE_INT_ARG_LINE = 50
 	}
 }

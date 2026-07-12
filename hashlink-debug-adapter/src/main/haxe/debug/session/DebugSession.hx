@@ -199,6 +199,9 @@ class DebugSession {
 			inspector = new VariableInspector(module, jit, new MemoryReader(api, process.pid, jit.is64));
 			inspector.cpuRegisters = cpuRegisterRows;
 			inspector.enableWrites(new debug.target.MemoryWriter(api, process.pid, jit.is64));
+			inspector.xmm0Writer = value ->
+				api.writeRegister(process.pid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
+			inspector.warnSink = text -> emit(EvOutput("console", text));
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {

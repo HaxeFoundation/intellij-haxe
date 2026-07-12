@@ -57,6 +57,17 @@ class VariableInspector {
 	// architecture-neutral SP/BP/IP/FLAGS subset), shown on the top frame.
 	public var cpuRegisters:Null<Void->Array<VariableInfo>> = null;
 
+	// Set by DebugSession: writes the low half of XMM0. Register-passed float
+	// arguments ARRIVE in XMM registers; the jitted code may consume the still
+	// live arrival register instead of the (also updated) stack slot, so a
+	// write to the first float argument of the top frame patches XMM0 too —
+	// the only float register hl_debug_write_register exposes.
+	public var xmm0Writer:Null<Float->Void> = null;
+
+	// Set by DebugSession: surfaces a non-fatal warning to the client (as a
+	// console output event) when a write cannot be made fully effective.
+	public var warnSink:Null<String->Void> = null;
+
 	public function new(module:ModuleDebugInfo, jit:JitInfo, memory:MemoryReader) {
 		this.module = module;
 		this.jit = jit;
@@ -175,6 +186,7 @@ class VariableInspector {
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = targetInReference(reference, name);
 		applyWrite(target, valueExpr);
+		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
@@ -190,8 +202,79 @@ class VariableInspector {
 		}
 		var target = targetOfPath(frameId, path);
 		applyWrite(target, rhsExpr);
+		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	}
+
+	// An argument's early uses may be compiled against the CPU register it
+	// ARRIVED in rather than the (also updated) stack slot — verified live:
+	// writing only the slot left a traced Float parameter unchanged. The first
+	// float argument arrives in XMM0 on both conventions (win64 XMM indexes
+	// are positional, so there it must also be argument 0) and XMM0 is the one
+	// arrival register hl_debug_write_register exposes: patch it. Every other
+	// register-passed argument cannot be fixed up — surface a console warning
+	// so a "didn't take" write on the current line is explainable.
+	function fixupAfterWrite(target:WriteTarget):Void {
+		if (frameCache.length == 0) {
+			return;
+		}
+		var frame = frameCache[0];
+		var argCount = module.argCount(frame.fidx);
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), argCount);
+		var argIndex = -1;
+		for (i in 0...argCount) {
+			if (Int64.eq(target.address, Int64.add(frame.ebp, Int64.ofInt(offsets[i].offset)))) {
+				argIndex = i;
+				break;
+			}
+		}
+		if (argIndex < 0) {
+			return; // not an argument of the top frame
+		}
+		var firstFloat = -1;
+		for (i in 0...argCount) {
+			if (isFloatSlot(offsets[i].t)) {
+				firstFloat = i;
+				break;
+			}
+		}
+		if (argIndex == firstFloat && target.type.match(HF64)
+			&& (!jit.winCall || firstFloat == 0) && xmm0Writer != null) {
+			xmm0Writer(memory.readF64(target.address));
+			return;
+		}
+		if (registerPassed(argIndex, offsets, argCount) && warnSink != null) {
+			warnSink("[debugger] note: \"" + target.name + "\" is a register-passed argument; code on the "
+				+ "current line may still use the value it arrived with. The new value applies to later uses; "
+				+ "to steer this line, set the value in the caller before the call." + String.fromCharCode(10));
+		}
+	}
+
+	static function isFloatSlot(t:format.hl.Data.HLType):Bool {
+		return t.match(HF32) || t.match(HF64);
+	}
+
+	// Whether argument `argIndex` arrives in a CPU register: win64 passes the
+	// first 4 positionally; SysV the first 6 integer-class / 8 float-class.
+	function registerPassed(argIndex:Int, offsets:Array<debug.layout.RegisterSlot>, argCount:Int):Bool {
+		if (jit.winCall) {
+			return argIndex < 4;
+		}
+		var ints = 0;
+		var floats = 0;
+		for (i in 0...argCount) {
+			var float = isFloatSlot(offsets[i].t);
+			if (i == argIndex) {
+				return float ? floats < 8 : ints < 6;
+			}
+			if (float) {
+				floats++;
+			} else {
+				ints++;
+			}
+		}
+		return false;
 	}
 
 	// The index of the assignment `=`, or -1. Skips the comparison operators

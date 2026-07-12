@@ -493,6 +493,21 @@ HL has no write barriers and scans stacks conservatively, and we only write
 while stopped, so copying an existing pointer or dropping a reference upsets
 nothing. Capability `supportsSetVariable`.
 
+**Arrival-register gotcha (arguments)**: register-passed arguments (win64: the
+first 4, positionally; SysV: first 6 int-class / 8 float-class) arrive in CPU
+registers; the prologue spills them to the stack slots we read and write, but
+the jitted code for an argument's EARLY uses can consume the still-live
+arrival register — verified live: writing only the slot left a traced `Float`
+parameter unchanged on the trace line. `hl_debug_write_register` exposes
+exactly ONE arrival register, XMM0, so a write to the **first float argument**
+of the top frame patches XMM0 too and fully takes effect (the user-reported
+case, `trace("…" + y)` on a `someFn(y:Float)`). Any other register-passed
+argument cannot be fixed up: the slot write is real and later uses see it, but
+the CURRENT line may not — the adapter emits a console note saying so, and the
+reliable way to steer that line is to set the value in the CALLER before the
+call. Locals (non-arguments) are unaffected: HL 1.15 re-reads their slots
+(pinned by `writeOnTheUseLineTakesEffect`).
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).
@@ -616,4 +631,5 @@ tests set it):
 | variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory. Numbers are NEVER reused across stops: a stale reference must resolve to nothing, not alias the new stop's allocations |
 | Session thread | The command loop catches everything and rejects the one command — a handler exception must never kill the thread, or every later request times out and the client's views go permanently blank |
 | Unbound register slots | Never pointer-chase them: leftovers can look like any type, and a garbage String/map decode can hang or fatally OOM the adapter. Raw bits only (see Registers scope) |
+| Writing arguments | Register-passed args may be consumed from their ARRIVAL register on early uses; the slot write alone is not enough. First float arg → also patch XMM0 (the only exposed arrival register); anything else → console note, set it in the caller instead |
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |
