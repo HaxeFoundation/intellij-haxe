@@ -67,6 +67,116 @@ class ValueChildren {
 		}
 	}
 
+	/**
+	 * The address + static type of a single named child (a field name, or a
+	 * numeric index as a string), for value modification. Reuses the SAME
+	 * layout arithmetic as `of`, so a write lands exactly where the matching
+	 * read came from. Returns null when the child isn't individually
+	 * addressable (maps, enum params, closures) or doesn't exist.
+	 */
+	public function targetOf(pointer:Pointer, t:HLType, childName:String):Null<{address:Pointer, type:HLType}> {
+		return switch (t) {
+			case HObj(proto) if (proto != null && ValueReader.arrayBytesElementType(proto.name) != null):
+				arrayBytesElementTarget(pointer, ValueReader.arrayBytesElementType(proto.name), childName);
+			case HObj(proto) if (proto != null && proto.name == "hl.types.ArrayObj"):
+				arrayObjElementTarget(pointer, childName);
+			case HObj(proto) if (proto != null && proto.name == ValueReader.ARRAY_DYN):
+				arrayDynElementTarget(pointer, childName);
+			case HDynObj if (dynObjects != null):
+				var field = dynObjects.fieldByName(pointer, childName);
+				field == null ? null : {address: field.address, type: field.type};
+			case HObj(_), HStruct(_):
+				objectFieldTarget(pointer, t, childName);
+			case HArray:
+				varrayElementTarget(pointer, childName);
+			case HVirtual(fields):
+				virtualFieldTarget(pointer, fields, childName);
+			default:
+				null;
+		}
+	}
+
+	function objectFieldTarget(pointer:Pointer, t:HLType, name:String):Null<{address:Pointer, type:HLType}> {
+		var proto = switch (t) {
+			case HObj(p), HStruct(p): p;
+			default: null;
+		}
+		if (proto == null) {
+			return null;
+		}
+		for (field in objectLayout.fields(proto, t.match(HStruct(_)))) {
+			if (field.name == name) {
+				return {address: Int64.add(pointer, Int64.ofInt(field.offset)), type: field.type};
+			}
+		}
+		return null;
+	}
+
+	function arrayBytesElementTarget(pointer:Pointer, elemType:HLType, name:String):Null<{address:Pointer, type:HLType}> {
+		var index = asIndex(name);
+		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		if (index < 0 || index >= length) {
+			return null;
+		}
+		var bytes = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
+		if (Int64.eq(bytes, Int64.ofInt(0))) {
+			return null;
+		}
+		return {address: Int64.add(bytes, Int64.ofInt(index * align.typeSize(elemType))), type: elemType};
+	}
+
+	function arrayObjElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+		var index = asIndex(name);
+		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		var native = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
+		if (index < 0 || index >= length || Int64.eq(native, Int64.ofInt(0))) {
+			return null;
+		}
+		var elemType = varrayElementType(native);
+		var base = Int64.add(native, Int64.ofInt(varrayHeaderSize()));
+		return {address: Int64.add(base, Int64.ofInt(index * align.ptr)), type: elemType};
+	}
+
+	function arrayDynElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+		var inner = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		if (Int64.eq(inner, Int64.ofInt(0)) || runtimeTypes == null) {
+			return null;
+		}
+		var refined = runtimeTypes.typeAt(mem.readPointer(inner));
+		return switch (refined) {
+			case HObj(p) if (p != null && p.name != ValueReader.ARRAY_DYN): targetOf(inner, refined, name);
+			default: null;
+		}
+	}
+
+	function varrayElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+		var index = asIndex(name);
+		var size = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
+		if (index < 0 || index >= size) {
+			return null;
+		}
+		var elemType = varrayElementType(pointer);
+		var base = Int64.add(pointer, Int64.ofInt(varrayHeaderSize()));
+		return {address: Int64.add(base, Int64.ofInt(index * align.typeSize(elemType))), type: elemType};
+	}
+
+	// vvirtual: the field's indirect slot pointer (null slot = lives on the
+	// wrapped dynobj, not directly addressable here)
+	function virtualFieldTarget(pointer:Pointer, fields:Array<{name:String, t:HLType}>, name:String):Null<{address:Pointer, type:HLType}> {
+		for (i in 0...fields.length) {
+			if (fields[i].name == name) {
+				var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
+				return Int64.eq(slot, Int64.ofInt(0)) ? null : {address: slot, type: fields[i].t};
+			}
+		}
+		return null;
+	}
+
+	static function asIndex(name:String):Int {
+		var i = Std.parseInt(name);
+		return i == null ? -1 : i;
+	}
+
 	// venum: one child per constructor param at its EnumLayout offset
 	function enumParams(pointer:Pointer, proto:format.hl.Data.EnumPrototype):Array<VariableInfo> {
 		var index = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));

@@ -21,6 +21,7 @@ import dap.protocol.Request;
 import dap.protocol.Response;
 import dap.protocol.requests.ScopesArguments;
 import dap.protocol.requests.SetBreakpointsArguments;
+import dap.protocol.requests.SetVariableArguments;
 import dap.protocol.requests.EvaluateArguments;
 import dap.protocol.requests.VariablesArguments;
 import dap.protocol.SourceBreakpoint;
@@ -110,6 +111,8 @@ class RequestDispatcher {
 				handleScopes(request);
 			case "variables":
 				handleVariables(request);
+			case "setVariable":
+				handleSetVariable(request);
 			case "evaluate":
 				handleEvaluate(request);
 			case "threads":
@@ -124,7 +127,7 @@ class RequestDispatcher {
 	// --- request handlers ---
 
 	function handleInitialize(request:Request):Void {
-		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true, supportsEvaluateForHovers: true};
+		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true, supportsEvaluateForHovers: true, supportsSetVariable: true};
 		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
 		sendEvent("initialized");
@@ -229,6 +232,20 @@ class RequestDispatcher {
 		sessionCommands(CmdVariables(request.seq, args != null ? args.variablesReference : 0));
 	}
 
+	function handleSetVariable(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot set a value: nothing is running");
+			return;
+		}
+		var args:SetVariableArguments = request.arguments;
+		if (args == null || args.name == null || args.value == null) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Missing name or value");
+			return;
+		}
+		defer(request);
+		sessionCommands(CmdSetVariable(request.seq, args.variablesReference, args.name, args.value));
+	}
+
 	function handleEvaluate(request:Request):Void {
 		if (!launched) {
 			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot evaluate: nothing is running");
@@ -278,6 +295,8 @@ class RequestDispatcher {
 				completeSuccess(seq, scopesBody(scopes));
 			case EvVariables(seq, variables):
 				completeSuccess(seq, variablesBody(variables));
+			case EvVariableSet(seq, result):
+				completeSuccess(seq, {value: result.value, type: result.type, variablesReference: result.reference});
 			case EvEvaluated(seq, result):
 				completeSuccess(seq, {result: result.value, type: result.type, variablesReference: result.reference});
 			case EvRejected(seq, message):

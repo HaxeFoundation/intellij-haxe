@@ -16,6 +16,7 @@ enum SessionCommand {
 	CmdStackTrace(requestSeq:Int, threadId:Int);
 	CmdScopes(requestSeq:Int, frameId:Int);
 	CmdVariables(requestSeq:Int, reference:Int);
+	CmdSetVariable(requestSeq:Int, reference:Int, name:String, value:String);
 	CmdEvaluate(requestSeq:Int, frameId:Int, expression:String);
 	CmdDisconnect(requestSeq:Int);
 }

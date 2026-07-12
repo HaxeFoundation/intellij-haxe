@@ -11,6 +11,7 @@ import debug.module.LocalsResolver;
 import debug.module.ModuleDebugInfo;
 import debug.target.MemoryReader;
 import debug.target.StackFrameLocation;
+import format.hl.Data.HLType;
 import format.hl.Data.ObjPrototype;
 import haxe.Int64;
 
@@ -30,12 +31,22 @@ class VariableInspector {
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
+	final align:Align;
 	final frameLayout:FrameLayout;
 	final localsResolver:LocalsResolver;
 	final objectLayout:ObjectLayout;
 	final globalTable:GlobalTable;
 	final valueReader:ValueReader;
 	final valueChildren:ValueChildren;
+	final runtimeTypes:RuntimeTypes;
+	final dynObjects:DynObjReader;
+	// Non-null once value modification is enabled (a MemoryWriter is available).
+	var writer:Null<ValueWriter> = null;
+
+	/** Enables value modification (setVariable / assignment) via `out`. */
+	public function enableWrites(out:debug.target.MemoryWriter):Void {
+		writer = new ValueWriter(memory, out, align, runtimeTypes);
+	}
 
 	// per-stop state, cleared on every resume
 	var frameCache:Array<StackFrameLocation> = [];
@@ -51,14 +62,14 @@ class VariableInspector {
 		this.jit = jit;
 		this.memory = memory;
 
-		var align = new Align(jit.is64, jit.boolSize4);
+		align = new Align(jit.is64, jit.boolSize4);
 		align.structSizes = jit.structSizes;
 		frameLayout = new FrameLayout(align, jit.winCall);
 		localsResolver = new LocalsResolver(module);
 		objectLayout = new ObjectLayout(align);
 		globalTable = new GlobalTable(align, module.globals());
 
-		var runtimeTypes = new RuntimeTypes(memory, name -> module.typeByName(name));
+		runtimeTypes = new RuntimeTypes(memory, name -> module.typeByName(name));
 		var enumLayout = new EnumLayout(align);
 		valueReader = new ValueReader(memory, align);
 		valueReader.referenceAllocator = (pointer, type) -> allocReference(RefObject(pointer, type));
@@ -68,7 +79,7 @@ class VariableInspector {
 			var location = jit.resolveAddress(funPtr);
 			return location == null ? null : module.functionName(location.fidx);
 		};
-		var dynObjects = new DynObjReader(memory, align, runtimeTypes, hash -> module.reverseHash(hash));
+		dynObjects = new DynObjReader(memory, align, runtimeTypes, hash -> module.reverseHash(hash));
 		var maps = new MapReader(memory, align,
 			jit.hlVersionMajor > 1 || (jit.hlVersionMajor == 1 && jit.hlVersionMinor >= 13));
 		var treeMaps = new TreeMapReader(memory, align, objectLayout, runtimeTypes);
@@ -126,9 +137,13 @@ class VariableInspector {
 	 * user-facing message when the path cannot be resolved.
 	 */
 	public function evaluate(frameId:Int, expression:String):VariableInfo {
+		var assignAt = assignmentEquals(expression);
+		if (assignAt >= 0) {
+			return assign(frameId, expression.substr(0, assignAt), expression.substr(assignAt + 1));
+		}
 		var path = ValuePath.parse(expression);
 		if (path == null) {
-			throw new debug.DebugError("Only variable paths can be evaluated (e.g. name, obj.field, arr[0])");
+			throw new debug.DebugError("Only variable paths and assignments can be evaluated (e.g. name, obj.field, x = 5)");
 		}
 		var current = resolveRoot(frameId, path.root);
 		if (current == null) {
@@ -150,6 +165,220 @@ class VariableInspector {
 			current = next;
 		}
 		return current;
+	}
+
+	/**
+	 * Sets a named child of a variablesReference (DAP `setVariable`) to a
+	 * literal or another variable's value, and returns the child's new decoded
+	 * value. Throws DebugError with a user-facing message on any failure.
+	 */
+	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
+		var target = targetInReference(reference, name);
+		applyWrite(target, valueExpr);
+		var decoded = valueReader.read(target.address, target.type);
+		return {name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	}
+
+	/**
+	 * Assigns to a variable PATH (`x`, `obj.field`, `arr[3]`) from the evaluate
+	 * request (`path = expr`), returning the new decoded value.
+	 */
+	public function assign(frameId:Int, lhsExpr:String, rhsExpr:String):VariableInfo {
+		var path = ValuePath.parse(lhsExpr);
+		if (path == null) {
+			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
+		}
+		var target = targetOfPath(frameId, path);
+		applyWrite(target, rhsExpr);
+		var decoded = valueReader.read(target.address, target.type);
+		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	}
+
+	// The index of the assignment `=`, or -1. Skips the comparison operators
+	// `==`, `!=`, `<=`, `>=` so `x == y` is still a (rejected) expression, not
+	// an assignment.
+	static function assignmentEquals(expression:String):Int {
+		var i = 0;
+		while (i < expression.length) {
+			if (StringTools.fastCodeAt(expression, i) == "=".code) {
+				var next = i + 1 < expression.length ? StringTools.fastCodeAt(expression, i + 1) : -1;
+				var prev = i > 0 ? StringTools.fastCodeAt(expression, i - 1) : -1;
+				if (next != "=".code && prev != "=".code && prev != "!".code && prev != "<".code && prev != ">".code) {
+					return i;
+				}
+			}
+			i++;
+		}
+		return -1;
+	}
+
+	function applyWrite(target:WriteTarget, valueExpr:String):Void {
+		if (writer == null) {
+			throw new debug.DebugError("Value modification is not available in this session");
+		}
+		var literal = ValueLiteralParser.parse(valueExpr);
+		if (literal == null) {
+			throw new debug.DebugError('Cannot parse "' + valueExpr
+				+ '": expected a number, true/false, null, or another variable');
+		}
+		switch (literal) {
+			case LPath(rhsPath):
+				writer.copy(target, targetOfPath(currentFrameOf(target), rhsPath));
+			default:
+				writer.write(target, literal);
+		}
+	}
+
+	// The RHS of an assignment resolves in the same frame as the LHS; both
+	// assign() and setVariable() stash it so a `path = otherPath` works.
+	var writeFrame:Int = 0;
+
+	function currentFrameOf(_:WriteTarget):Int {
+		return writeFrame;
+	}
+
+	function targetInReference(reference:Int, name:String):WriteTarget {
+		var container = references.get(reference);
+		if (container == null) {
+			throw new debug.DebugError("This value can no longer be modified (the debuggee has moved on)");
+		}
+		return switch (container) {
+			case RefLocals(frameId):
+				writeFrame = frameId;
+				var local = localTarget(frameId, name);
+				if (local == null) {
+					throw new debug.DebugError('No local named "' + name + '"');
+				}
+				local;
+			case RefObject(pointer, type):
+				writeFrame = 0;
+				childTargetFromBase(name, pointer, type, name);
+			case RefStatics(pointer, proto):
+				writeFrame = 0;
+				childTargetFromBase(name, pointer, HObj(proto), name);
+			case RefRegisters(_):
+				throw new debug.DebugError("CPU/VM registers cannot be edited");
+		}
+	}
+
+	function targetOfPath(frameId:Int, path:ValuePath):WriteTarget {
+		writeFrame = frameId;
+		var current = rootTarget(frameId, path.root);
+		for (accessor in path.accessors) {
+			var childName = switch (accessor) {
+				case Field(name): name;
+				case Index(index): Std.string(index);
+			}
+			current = childTarget(current, childName);
+		}
+		return current;
+	}
+
+	function rootTarget(frameId:Int, name:String):WriteTarget {
+		var local = localTarget(frameId, name);
+		if (local != null) {
+			return local;
+		}
+		// implicit this.field
+		var self = localTarget(frameId, "this");
+		if (self != null) {
+			var member = tryChildTarget(self, name);
+			if (member != null) {
+				return member;
+			}
+		}
+		// static of the owning class
+		if (frameId >= 0 && frameId < frameCache.length) {
+			var proto = module.staticsProtoForFunction(frameCache[frameId].fidx);
+			if (proto != null) {
+				var globalIndex = module.staticsGlobalIndex(proto);
+				if (globalIndex >= 0) {
+					var slot = Int64.add(jit.globalsPtr, Int64.ofInt(globalTable.offsetOf(globalIndex)));
+					var singleton = memory.readPointer(slot);
+					if (!Int64.eq(singleton, Int64.ofInt(0))) {
+						var child = valueChildren.targetOf(singleton, HObj(proto), name);
+						if (child != null) {
+							return {name: name, address: child.address, type: child.type};
+						}
+					}
+				}
+			}
+		}
+		throw new debug.DebugError('Unknown variable "' + name + '"');
+	}
+
+	// A local/argument slot: ebp + FrameLayout offset, typed by the register.
+	function localTarget(frameId:Int, name:String):Null<WriteTarget> {
+		if (frameId < 0 || frameId >= frameCache.length) {
+			return null;
+		}
+		var frame = frameCache[frameId];
+		var local = findLocal(localsResolver.localsAt(frame.fidx, frame.op), name);
+		if (local == null) {
+			return null;
+		}
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		if (local.register < 0 || local.register >= offsets.length) {
+			return null;
+		}
+		var slot = offsets[local.register];
+		return {name: name, address: Int64.add(frame.ebp, Int64.ofInt(slot.offset)), type: slot.t};
+	}
+
+	static function findLocal(locals:Array<debug.module.LocalVar>, name:String):Null<debug.module.LocalVar> {
+		for (local in locals) {
+			if (local.name == name) {
+				return local;
+			}
+		}
+		return null;
+	}
+
+	function childTarget(parent:WriteTarget, childName:String):WriteTarget {
+		var child = tryChildTarget(parent, childName);
+		if (child == null) {
+			throw new debug.DebugError('"' + parent.name + '" has no member "' + childName + '"');
+		}
+		return child;
+	}
+
+	// Resolves a child by first finding the parent's object BASE: a struct is
+	// inline (its slot IS the base), a pointer type is dereferenced. Objects
+	// are refined to their runtime class so a Base-typed slot holding a Sub
+	// resolves Sub's fields.
+	function tryChildTarget(parent:WriteTarget, childName:String):Null<WriteTarget> {
+		var base:Pointer;
+		var effectiveType:HLType;
+		switch (parent.type) {
+			case HStruct(_):
+				base = parent.address;
+				effectiveType = parent.type;
+			case HObj(_), HArray, HDynObj, HVirtual(_):
+				base = memory.readPointer(parent.address);
+				if (Int64.eq(base, Int64.ofInt(0))) {
+					throw new debug.DebugError('"' + parent.name + '" is null');
+				}
+				effectiveType = parent.type.match(HObj(_)) ? refineObjectType(base, parent.type) : parent.type;
+			default:
+				return null;
+		}
+		return childTargetFromBase(parent.name + "." + childName, base, effectiveType, childName);
+	}
+
+	function childTargetFromBase(displayName:String, base:Pointer, type:HLType, childName:String):WriteTarget {
+		var child = valueChildren.targetOf(base, type, childName);
+		if (child == null) {
+			throw new debug.DebugError('"' + displayName + '" cannot be resolved to a writable location');
+		}
+		return {name: displayName, address: child.address, type: child.type};
+	}
+
+	function refineObjectType(base:Pointer, staticType:HLType):HLType {
+		var runtime = runtimeTypes.typeAt(memory.readPointer(base));
+		return switch (runtime) {
+			case HObj(_), HStruct(_): runtime;
+			default: staticType;
+		}
 	}
 
 	function resolveRoot(frameId:Int, name:String):Null<VariableInfo> {

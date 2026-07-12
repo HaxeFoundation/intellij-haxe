@@ -470,6 +470,29 @@ variablesReference registry, so results expand in the watches view and die
 with the stop like every other reference. No arbitrary expression evaluation:
 that would mean interpreting Haxe inside the debuggee.
 
+**Value modification (`setVariable` + `path = value` in evaluate)**: writes a
+value into a resolved slot while the debuggee is stopped, to steer execution.
+The IDE surfaces it as F2 / "Set Value" in the Variables view (`XValueModifier`
+on each `HashLinkValue`) and as `x = 5` in the evaluate box (`evaluate` detects
+a top-level `=`, skipping `==`/`!=`/`<=`/`>=`). The target is resolved to an
+`{address, type}` through the SAME layout arithmetic as reads
+(`ValueChildren.targetOf`), so a write lands exactly where the matching value
+was displayed — locals/args (`ebp+offset`), object/struct fields, array
+elements, dynobj fields, non-null virtual-field slots. The **envelope is
+deliberately allocation-free** (`ValueWriter`), because only the debuggee's own
+allocator can make new heap values, and we can't call it (yet — that is the
+eval-call milestone). Supported: a literal into a matching primitive slot
+(decimal/hex int, float, `true`/`false`, with int→float widening); `null` into
+any pointer slot; a variable path whose EXISTING value is copied (a raw pointer
+copy for reference types — `p = q` aliases the same object — or a numeric
+coercion for primitives); a `Null<T>` slot set to `null`, or its box updated in
+place when non-null; and an in-place primitive update of a `Dynamic` that
+already boxes that kind. Everything else is refused with a message
+(`x = "hi"` → needs allocation; a bool into an int slot → type error). GC-safe:
+HL has no write barriers and scans stacks conservatively, and we only write
+while stopped, so copying an existing pointer or dropping a reference upsets
+nothing. Capability `supportsSetVariable`.
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).
@@ -593,3 +616,4 @@ tests set it):
 | variablesReference lifetime | Per-stop only; cleared on every resume/step or a stale expand reads freed/moved memory. Numbers are NEVER reused across stops: a stale reference must resolve to nothing, not alias the new stop's allocations |
 | Session thread | The command loop catches everything and rejects the one command — a handler exception must never kill the thread, or every later request times out and the client's views go permanently blank |
 | Unbound register slots | Never pointer-chase them: leftovers can look like any type, and a garbage String/map decode can hang or fatally OOM the adapter. Raw bits only (see Registers scope) |
+| Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |

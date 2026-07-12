@@ -9,4 +9,6 @@ import lombok.Data;
 public class Capabilities {
   private Boolean supportsConfigurationDoneRequest;
   private Boolean supportsVariableType;
+  private Boolean supportsEvaluateForHovers;
+  private Boolean supportsSetVariable;
 }

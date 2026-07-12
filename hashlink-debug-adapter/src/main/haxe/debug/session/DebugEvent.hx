@@ -18,6 +18,7 @@ enum DebugEvent {
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
 	EvScopes(requestSeq:Int, scopes:Array<ScopeInfo>);
 	EvVariables(requestSeq:Int, variables:Array<VariableInfo>);
+	EvVariableSet(requestSeq:Int, result:VariableInfo);
 	EvEvaluated(requestSeq:Int, result:VariableInfo);
 	EvRejected(requestSeq:Int, message:String);
 	EvSessionEnded(requestSeq:Int);

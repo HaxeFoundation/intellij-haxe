@@ -82,6 +82,8 @@ public abstract class DapIntegrationTestBase {
   protected static final String FIXTURE_SHADOW = "Shadowed.hx";
   protected static final int FIXTURE_SHADOW_LOOP_LINE = 16; // inside the loop: x is the shadowing Int
   protected static final int FIXTURE_SHADOW_AFTER_LINE = 18; // after the loop: x is the outer String again
+  protected static final String FIXTURE_MUTATE = "Mutate.hx";
+  protected static final int FIXTURE_MUTATE_LINE = 21; // Mutate.demo() checkpoint: n/flag/obj/arr in scope
 
   protected Process adapterProcess;
   protected DapClient client;

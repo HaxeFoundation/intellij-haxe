@@ -30,6 +30,7 @@ class TestMain {
 			// value decoding
 			{name: "RuntimeTypesTest", run: tests.RuntimeTypesTest.run},
 			{name: "ValuePathTest", run: tests.ValuePathTest.run},
+			{name: "ValueLiteralParserTest", run: tests.ValueLiteralParserTest.run},
 			{name: "ValueReaderTest", run: tests.ValueReaderTest.run},
 			{name: "ValueChildrenTest", run: tests.ValueChildrenTest.run},
 			{name: "MapReaderTest", run: tests.MapReaderTest.run},

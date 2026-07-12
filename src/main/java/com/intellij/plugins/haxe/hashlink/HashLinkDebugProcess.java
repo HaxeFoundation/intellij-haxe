@@ -38,9 +38,12 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepInReq
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StepOutRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetVariableArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetVariableRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.VariablesRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ScopesResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTraceResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.SetVariableResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.VariablesResponse;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
@@ -384,6 +387,26 @@ public class HashLinkDebugProcess extends XDebugProcess {
     request.setArguments(arguments);
     return sendRequest(request) instanceof VariablesResponse response && response.isSuccess()
            ? response.getBody().getVariables() : List.of();
+  }
+
+  /**
+   * Sets the named child of a container reference to `value` (a literal or
+   * another variable path). Returns the new rendered value; throws with the
+   * adapter's message on failure (invalid type, allocation needed, ...).
+   */
+  String requestSetVariable(int containerReference, String name, String value) {
+    SetVariableRequest request = new SetVariableRequest();
+    SetVariableArguments arguments = new SetVariableArguments();
+    arguments.setVariablesReference(containerReference);
+    arguments.setName(name);
+    arguments.setValue(value);
+    request.setArguments(arguments);
+    Response response = sendRequest(request);
+    if (response instanceof SetVariableResponse ok && response.isSuccess()) {
+      return ok.getBody() != null ? ok.getBody().getValue() : value;
+    }
+    throw new IllegalStateException(response != null && response.getMessage() != null
+                                    ? response.getMessage() : "the adapter rejected the change");
   }
 
   // --- XDebugProcess wiring ---

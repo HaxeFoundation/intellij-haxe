@@ -7,4 +7,5 @@ typedef Capabilities = {
 	@:optional var supportsConfigurationDoneRequest:Bool;
 	@:optional var supportsVariableType:Bool;
 	@:optional var supportsEvaluateForHovers:Bool;
+	@:optional var supportsSetVariable:Bool;
 }

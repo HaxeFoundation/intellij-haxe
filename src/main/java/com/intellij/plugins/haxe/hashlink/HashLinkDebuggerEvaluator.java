@@ -42,7 +42,9 @@ final class HashLinkDebuggerEvaluator extends XDebuggerEvaluator {
         result.setValue(evaluated.getBody().getResult());
         result.setType(evaluated.getBody().getType());
         result.setVariablesReference(evaluated.getBody().getVariablesReference());
-        callback.evaluated(new HashLinkValue(process, result));
+        // a watch/hover result has no editable container (0); child expansion
+        // still uses the result's own reference
+        callback.evaluated(new HashLinkValue(process, result, 0));
       } else {
         String message = response != null && response.getMessage() != null
                          ? response.getMessage() : "Cannot evaluate";

@@ -134,6 +134,7 @@ class DebugSession {
 			case CmdStackTrace(seq, _): seq;
 			case CmdScopes(seq, _): seq;
 			case CmdVariables(seq, _): seq;
+			case CmdSetVariable(seq, _, _, _): seq;
 			case CmdEvaluate(seq, _, _): seq;
 			case CmdDisconnect(seq): seq;
 		}
@@ -158,6 +159,8 @@ class DebugSession {
 				handleScopes(seq, frameId);
 			case CmdVariables(seq, reference):
 				handleVariables(seq, reference);
+			case CmdSetVariable(seq, reference, name, value):
+				handleSetVariable(seq, reference, name, value);
 			case CmdEvaluate(seq, frameId, expression):
 				handleEvaluate(seq, frameId, expression);
 			case CmdDisconnect(seq):
@@ -195,6 +198,7 @@ class DebugSession {
 			stackWalker = new StackWalker(api, process.pid, jit);
 			inspector = new VariableInspector(module, jit, new MemoryReader(api, process.pid, jit.is64));
 			inspector.cpuRegisters = cpuRegisterRows;
+			inspector.enableWrites(new debug.target.MemoryWriter(api, process.pid, jit.is64));
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -560,6 +564,21 @@ class DebugSession {
 				emit(EvVariables(requestSeq, inspector.variablesFor(reference)));
 			default:
 				emit(EvRejected(requestSeq, "Cannot get variables: debuggee is not stopped"));
+		}
+	}
+
+	function handleSetVariable(requestSeq:Int, reference:Int, name:String, value:String):Void {
+		switch (state) {
+			case Stopped(_):
+				try {
+					emit(EvVariableSet(requestSeq, inspector.setVariable(reference, name, value)));
+				} catch (e:DebugError) {
+					emit(EvRejected(requestSeq, e.message));
+				} catch (e:Dynamic) {
+					emit(EvRejected(requestSeq, "Cannot set value: " + Std.string(e)));
+				}
+			default:
+				emit(EvRejected(requestSeq, "Cannot set a value: debuggee is not stopped"));
 		}
 	}
 

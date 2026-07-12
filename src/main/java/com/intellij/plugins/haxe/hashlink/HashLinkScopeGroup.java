@@ -26,7 +26,7 @@ final class HashLinkScopeGroup extends XValueGroup {
     process.onRequestThread(() -> {
       XValueChildrenList children = new XValueChildrenList();
       for (Variable variable : process.requestVariables(scope.getVariablesReference())) {
-        children.add(new HashLinkValue(process, variable));
+        children.add(new HashLinkValue(process, variable, scope.getVariablesReference()));
       }
       node.addChildren(children, true);
     });
