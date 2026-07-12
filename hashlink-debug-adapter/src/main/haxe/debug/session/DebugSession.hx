@@ -3,6 +3,9 @@ import dap.protocol.Breakpoint;
 
 import debug.DebugError;
 import debug.Pointer;
+import debug.eval.call.CallEmitter;
+import debug.eval.call.CallEmitter.CallArg;
+import debug.layout.Align;
 import debug.module.CodeGraph;
 import debug.module.JitInfo;
 import debug.module.JitInfoReader;
@@ -10,8 +13,12 @@ import debug.module.ModuleDebugInfo;
 import debug.target.DebugApi;
 import debug.target.DebuggeeProcess;
 import debug.target.MemoryReader;
-import debug.target.WaitOutcome;
+import debug.target.MemoryWriter;
 import debug.target.StackWalker;
+import debug.target.ThreadInfo;
+import debug.target.ThreadRegistry;
+import debug.target.WaitOutcome;
+import debug.inspect.CpuRegisters;
 import debug.inspect.VariableInspector;
 
 import haxe.Int64;
@@ -61,7 +68,7 @@ class DebugSession {
 	var breakpoints:Breakpoints;
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
-	var threadRegistry:debug.target.ThreadRegistry;
+	var threadRegistry:ThreadRegistry;
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
 	var alive:Bool = true;
@@ -226,15 +233,15 @@ class DebugSession {
 			breakpoints = new Breakpoints(api, debuggeePid);
 			stackWalker = new StackWalker(api, debuggeePid, jit);
 			var memReader = new MemoryReader(api, debuggeePid, jit.is64);
-			threadRegistry = new debug.target.ThreadRegistry(memReader,
-				new debug.layout.Align(jit.is64, jit.boolSize4), jit.hlVersionMajor, jit.hlVersionMinor);
+			threadRegistry = new ThreadRegistry(memReader,
+				new Align(jit.is64, jit.boolSize4), jit.hlVersionMajor, jit.hlVersionMinor);
 			inspector = new VariableInspector(module, jit, memReader);
 			inspector.frameWalker = tid -> stackWalker.walk(tid);
-			var cpuRegisters = new debug.inspect.CpuRegisters(api, debuggeePid);
+			var cpuRegisters = new CpuRegisters(api, debuggeePid);
 			// CPU registers are only readable while stopped; the callback is invoked
 			// for a stopped thread's top frame, but guard defensively.
 			inspector.cpuRegistersFor = tid -> state.match(Stopped(_)) ? cpuRegisters.rows(tid) : [];
-			inspector.enableWrites(new debug.target.MemoryWriter(api, debuggeePid, jit.is64));
+			inspector.enableWrites(new MemoryWriter(api, debuggeePid, jit.is64));
 			inspector.xmm0Writer = value ->
 				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
 			inspector.warnSink = text -> emit(EvOutput("console", text));
@@ -408,8 +415,8 @@ class DebugSession {
 	 * valid while stopped; a call that throws, recurses into a breakpoint, or
 	 * runs longer than CALL_TIMEOUT_MS fails with the state restored.
 	 */
-	function callInDebuggee(threadId:Int, funcAddr:Pointer, args:Array<debug.eval.call.CallEmitter.CallArg>, floatReturn:Bool):Pointer {
-		var asm = new debug.eval.call.CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
+	function callInDebuggee(threadId:Int, funcAddr:Pointer, args:Array<CallArg>, floatReturn:Bool):Pointer {
+		var asm = new CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
 		var asmSize = asm.length;
 
 		var prevEax = api.readRegister(debuggeePid, threadId, Eax);
@@ -734,7 +741,7 @@ class DebugSession {
 
 	// The live threads (from HL's registry), version-adaptive; falls back to a
 	// single "main" thread when the program was compiled without thread support.
-	function threadList():Array<debug.target.ThreadInfo> {
+	function threadList():Array<ThreadInfo> {
 		return threadRegistry.read(jit.threadsPtr, jit.threads, stoppedThreadId);
 	}
 
