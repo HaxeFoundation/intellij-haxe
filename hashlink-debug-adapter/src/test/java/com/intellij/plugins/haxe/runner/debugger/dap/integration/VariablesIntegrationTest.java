@@ -458,6 +458,39 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   }
 
   @Test
+  public void evaluatesClassQualifiedStatics() throws Exception {
+    // stop in Main (NOT Config / pkg.Deep): the class names must resolve from a
+    // FOREIGN frame, which the locals → this → frame-statics order cannot
+    runToBreakpoint(FIXTURE_MAIN, FIXTURE_INSPECT_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // top-level class statics read from another class's frame
+    assertEquals("Config.version", "7", evaluate(frameId, "Config.version").getBody().getResult());
+    assertEquals("Config.title", "\"cfg\"", evaluate(frameId, "Config.title").getBody().getResult());
+    // a PACKAGED class: the dotted class prefix spans path segments
+    assertEquals("pkg.Deep.marker", "99", evaluate(frameId, "pkg.Deep.marker").getBody().getResult());
+
+    // writes resolve through the same prefix (restored right after: the
+    // fixture's own output depends on Config.version)
+    assertTrue("Config.version = 41", evaluate(frameId, "Config.version = 41").isSuccess());
+    assertEquals("written static reads back", "41", evaluate(frameId, "Config.version").getBody().getResult());
+    assertTrue("Config.version restored", evaluate(frameId, "Config.version = 7").isSuccess());
+
+    // a bare class name evaluates to its expandable statics container
+    EvaluateResponse cls = evaluate(frameId, "Config");
+    assertTrue("class itself is expandable", cls.getBody().getVariablesReference() > 0);
+    assertEquals("version listed under the class", "7",
+                 variablesByName(cls.getBody().getVariablesReference()).get("version"));
+
+    // unknown roots still fail clearly
+    Response unknown = evaluateRaw(frameId, "NoSuchClass.value");
+    assertFalse("unknown class root rejected", unknown.isSuccess());
+    assertTrue("message names the root", unknown.getMessage().contains("NoSuchClass"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
   public void evaluateRejectsExpressionsWithAClearMessage() throws Exception {
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());

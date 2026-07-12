@@ -191,8 +191,10 @@ class VariableInspector {
 	/**
 	 * Evaluates a VARIABLE PATH (`name`, `obj.field`, `arr[3]`, ...) in a
 	 * cached frame. Root resolution order: the frame's locals, then fields of
-	 * `this`, then the owning class's statics. Throws debug.DebugError with a
-	 * user-facing message when the path cannot be resolved.
+	 * `this`, then the owning class's statics, then a class named by a leading
+	 * path prefix (`MyClass.member`, `pkg.MyClass.member` — resolves to that
+	 * class's statics container). Throws debug.DebugError with a user-facing
+	 * message when the path cannot be resolved.
 	 */
 	public function evaluate(frameId:Int, expression:String):VariableInfo {
 		// a single-line expression may carry a trailing ';' (e.g. copied from
@@ -223,11 +225,27 @@ class VariableInspector {
 		if (path == null) {
 			throw new debug.DebugError("Only variable paths and assignments can be evaluated (e.g. name, obj.field, x = 5)");
 		}
+		var start = 0;
 		var current = resolveRoot(frameId, path.root);
+		if (current == null) {
+			// `MyClass.member`: a leading prefix naming a class resolves to its
+			// statics container (locals/this/frame statics were tried first)
+			var cls = staticsPrefix(path);
+			if (cls != null) {
+				current = {
+					name: cls.className,
+					value: "class " + cls.className,
+					type: staticsContainerName(cls.className),
+					reference: allocReference(RefStatics(cls.singleton, cls.proto)),
+				};
+				start = cls.consumed;
+			}
+		}
 		if (current == null) {
 			throw new debug.DebugError('Unknown variable "' + path.root + '"');
 		}
-		for (accessor in path.accessors) {
+		for (i in start...path.accessors.length) {
+			var accessor = path.accessors[i];
 			var childName = switch (accessor) {
 				case Field(name): name;
 				case Index(index): Std.string(index);
@@ -871,9 +889,23 @@ class VariableInspector {
 
 	function targetOfPath(frameId:Int, path:ValuePath):WriteTarget {
 		writeFrame = frameId;
-		var current = rootTarget(frameId, path.root);
-		for (accessor in path.accessors) {
-			var childName = switch (accessor) {
+		var start = 0;
+		var current = tryRootTarget(frameId, path.root);
+		if (current == null) {
+			// `MyClass.member` / `pkg.MyClass.member`: a leading path prefix names
+			// a class — its statics container behaves like an object variable
+			// whose slot is the container's global (holding the singleton ptr)
+			var cls = staticsPrefix(path);
+			if (cls != null) {
+				current = {name: cls.className, address: cls.slot, type: HObj(cls.proto)};
+				start = cls.consumed;
+			}
+		}
+		if (current == null) {
+			throw new debug.DebugError('Unknown variable "' + path.root + '"');
+		}
+		for (i in start...path.accessors.length) {
+			var childName = switch (path.accessors[i]) {
 				case Field(name): name;
 				case Index(index): Std.string(index);
 			}
@@ -882,7 +914,7 @@ class VariableInspector {
 		return current;
 	}
 
-	function rootTarget(frameId:Int, name:String):WriteTarget {
+	function tryRootTarget(frameId:Int, name:String):Null<WriteTarget> {
 		var local = localTarget(frameId, name);
 		if (local != null) {
 			return local;
@@ -913,7 +945,63 @@ class VariableInspector {
 				}
 			}
 		}
-		throw new debug.DebugError('Unknown variable "' + name + '"');
+		return null;
+	}
+
+	// --- class-qualified statics (`MyClass.member`, `pkg.MyClass.member`) ---
+
+	// A class `pkg.Cls` keeps its statics on a container type named `pkg.$Cls`
+	// ($ prefixes the LAST segment — the M13c lesson).
+	static function staticsContainerName(className:String):String {
+		var lastDot = className.lastIndexOf(".");
+		return lastDot < 0 ? "$" + className : className.substr(0, lastDot + 1) + "$" + className.substr(lastDot + 1);
+	}
+
+	// The live statics singleton of the class named `className`, or null when
+	// no such class / no statics global / the singleton isn't allocated yet.
+	function staticsByClassName(className:String):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype}> {
+		var proto = switch (module.typeByName(staticsContainerName(className))) {
+			case HObj(p): p;
+			default: return null;
+		}
+		var globalIndex = module.staticsGlobalIndex(proto);
+		if (globalIndex < 0) {
+			return null;
+		}
+		var slot = Int64.add(jit.globalsPtr, Int64.ofInt(globalTable.offsetOf(globalIndex)));
+		var singleton = memory.readPointer(slot);
+		if (Int64.eq(singleton, Int64.ofInt(0))) {
+			return null;
+		}
+		return {slot: slot, singleton: singleton, proto: proto};
+	}
+
+	/**
+	 * Matches a leading dotted prefix of `path` against a class name — the root
+	 * alone (`MyClass`) or the root extended by field accessors (`pkg.MyClass`,
+	 * `pkg.sub.MyClass`). The FIRST (shortest) match wins; `consumed` is how
+	 * many accessors the class name swallowed. Callers must try frame-local
+	 * resolution first so a local can never be shadowed by a class.
+	 */
+	function staticsPrefix(path:ValuePath):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype, className:String, consumed:Int}> {
+		var name = path.root;
+		var i = 0;
+		while (true) {
+			var hit = staticsByClassName(name);
+			if (hit != null) {
+				return {slot: hit.slot, singleton: hit.singleton, proto: hit.proto, className: name, consumed: i};
+			}
+			if (i >= path.accessors.length) {
+				return null;
+			}
+			switch (path.accessors[i]) {
+				case Field(segment):
+					name += "." + segment;
+					i++;
+				default:
+					return null;
+			}
+		}
 	}
 
 	// A local/argument slot: ebp + FrameLayout offset, typed by the register.
