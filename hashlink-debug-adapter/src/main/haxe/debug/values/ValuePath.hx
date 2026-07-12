@@ -19,6 +19,23 @@ class ValuePath {
 		this.accessors = accessors;
 	}
 
+	/** The path rendered for display/error messages (`obj.field[3]`). */
+	public function display():String {
+		var s = root;
+		for (a in accessors) {
+			s += switch (a) {
+				case Field(n): "." + n;
+				case Index(i): "[" + i + "]";
+			}
+		}
+		return s;
+	}
+
+	/** A copy of this path with one more field accessor appended. */
+	public function plus(field:String):ValuePath {
+		return new ValuePath(root, accessors.concat([Field(field)]));
+	}
+
 	public static function parse(expression:Null<String>):Null<ValuePath> {
 		if (expression == null) {
 			return null;
