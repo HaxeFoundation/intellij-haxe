@@ -5,6 +5,7 @@ import debug.values.*;
 import debug.Pointer;
 import debug.eval.EvalValue;
 import debug.eval.ExprAst.Expr;
+import debug.eval.ExprParser;
 import debug.layout.FrameLayout;
 import debug.layout.RegisterSlot;
 import debug.module.JitInfo;
@@ -65,7 +66,7 @@ class VariableMutator {
 	 */
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = resolver.targetInReference(reference, name);
-		var v = evaluator.evalExpr(resolver.writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
+		var v = evaluator.evalExpr(resolver.writeFrame, ExprParser.parse(StringTools.trim(valueExpr)));
 		writeValue(target, v);
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);

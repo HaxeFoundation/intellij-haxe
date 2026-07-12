@@ -7,6 +7,7 @@ import debug.layout.FrameLayout;
 import debug.layout.GlobalTable;
 import debug.module.JitInfo;
 import debug.module.LocalsResolver;
+import debug.module.LocalVar;
 import debug.module.ModuleDebugInfo;
 import debug.target.MemoryReader;
 import format.hl.Data.HLType;
@@ -220,7 +221,7 @@ class SymbolResolver {
 		return {name: name, address: Int64.add(frame.ebp, Int64.ofInt(slot.offset)), type: slot.t};
 	}
 
-	static function findLocal(locals:Array<debug.module.LocalVar>, name:String):Null<debug.module.LocalVar> {
+	static function findLocal(locals:Array<LocalVar>, name:String):Null<LocalVar> {
 		for (local in locals) {
 			if (local.name == name) {
 				return local;

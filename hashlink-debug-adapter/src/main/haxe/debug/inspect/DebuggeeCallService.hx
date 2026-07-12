@@ -3,7 +3,10 @@ package debug.inspect;
 import debug.values.*;
 
 import debug.Pointer;
+import debug.eval.call.BoxResolver;
 import debug.eval.call.CallEmitter.CallArg;
+import debug.eval.call.ConstructorResolver;
+import debug.eval.call.NativeResolver;
 import debug.eval.EvalValue;
 import debug.layout.Align;
 import debug.module.JitInfo;
@@ -43,9 +46,9 @@ class DebuggeeCallService {
 	public var memWriter:Null<MemoryWriter> = null;
 
 	// Recover recipes by disassembling JIT sites (hacks); created lazily.
-	var constructors:Null<debug.eval.call.ConstructorResolver> = null;
-	var natives:Null<debug.eval.call.NativeResolver> = null;
-	var boxer:Null<debug.eval.call.BoxResolver> = null;
+	var constructors:Null<ConstructorResolver> = null;
+	var natives:Null<NativeResolver> = null;
+	var boxer:Null<BoxResolver> = null;
 
 	public function new(resolver:SymbolResolver, memory:MemoryReader, module:ModuleDebugInfo, jit:JitInfo, align:Align) {
 		this.resolver = resolver;
@@ -204,7 +207,7 @@ class DebuggeeCallService {
 			throw new debug.DebugError("Constructing objects is not available in this session");
 		}
 		if (constructors == null) {
-			constructors = new debug.eval.call.ConstructorResolver(module, jit, memory);
+			constructors = new ConstructorResolver(module, jit, memory);
 		}
 		var site = constructors.resolve(className);
 		if (site == null) {
@@ -267,7 +270,7 @@ class DebuggeeCallService {
 			throw new debug.DebugError("Unable to create a string: value modification is not available in this session");
 		}
 		if (natives == null) {
-			natives = new debug.eval.call.NativeResolver(module, jit, memory);
+			natives = new NativeResolver(module, jit, memory);
 		}
 		// Allocate the char buffer with the LOW-LEVEL `alloc_bytes` native (present
 		// in any program that touches strings), reached by disassembling one of
@@ -304,7 +307,7 @@ class DebuggeeCallService {
 			throw new debug.DebugError("Unable to box a value: value modification is not available in this session");
 		}
 		if (boxer == null) {
-			boxer = new debug.eval.call.BoxResolver(module, jit, memory);
+			boxer = new BoxResolver(module, jit, memory);
 		}
 		var recipe = boxer.resolve(kind);
 		if (recipe == null) {

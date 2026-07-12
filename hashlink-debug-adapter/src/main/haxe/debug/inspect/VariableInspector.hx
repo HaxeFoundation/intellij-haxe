@@ -3,6 +3,8 @@ package debug.inspect;
 import debug.values.*;
 
 import debug.Pointer;
+import debug.eval.ExprParser;
+import debug.eval.call.CallEmitter.CallArg;
 import debug.layout.Align;
 import debug.layout.EnumLayout;
 import debug.layout.FrameLayout;
@@ -12,6 +14,7 @@ import debug.module.JitInfo;
 import debug.module.LocalsResolver;
 import debug.module.ModuleDebugInfo;
 import debug.target.MemoryReader;
+import debug.target.MemoryWriter;
 import debug.target.StackFrameLocation;
 
 /**
@@ -57,7 +60,7 @@ class VariableInspector {
 	final mutator:VariableMutator;
 
 	/** Enables value modification (setVariable / assignment) via `out`. */
-	public function enableWrites(out:debug.target.MemoryWriter):Void {
+	public function enableWrites(out:MemoryWriter):Void {
 		mutator.writer = new ValueWriter(memory, out, align, runtimeTypes);
 		calls.memWriter = out;
 	}
@@ -187,7 +190,7 @@ class VariableInspector {
 		while (StringTools.endsWith(expression, ";")) {
 			expression = StringTools.rtrim(expression.substr(0, expression.length - 1));
 		}
-		var e = debug.eval.ExprParser.parse(expression);
+		var e = ExprParser.parse(expression);
 		// a top-level assignment is a WRITE; everything else the interpreter renders
 		return switch (e) {
 			case EAssign(lhs, rhs): mutator.assignExpr(frameId, lhs, rhs);
@@ -207,10 +210,10 @@ class VariableInspector {
 
 	// Set by DebugSession: runs a function inside the debuggee. Forwarded to the
 	// call service; null until the eval-call machinery is enabled.
-	public var functionCaller(never, set):Null<(Pointer, Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer>;
+	public var functionCaller(never, set):Null<(Pointer, Array<CallArg>, Bool)->Pointer>;
 
-	inline function set_functionCaller(caller:Null<(Pointer, Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer>):Null<(Pointer,
-		Array<debug.eval.call.CallEmitter.CallArg>, Bool)->Pointer> {
+	inline function set_functionCaller(caller:Null<(Pointer, Array<CallArg>, Bool)->Pointer>):Null<(Pointer,
+		Array<CallArg>, Bool)->Pointer> {
 		calls.functionCaller = caller;
 		return caller;
 	}

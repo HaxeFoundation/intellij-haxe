@@ -5,6 +5,8 @@ import debug.values.*;
 import debug.Pointer;
 import debug.eval.EvalValue;
 import debug.eval.ExprAst.Expr;
+import debug.eval.ExprParser;
+import debug.eval.Operators;
 import debug.layout.Align;
 import debug.module.ModuleDebugInfo;
 import debug.target.MemoryReader;
@@ -88,14 +90,14 @@ class ExpressionEvaluator {
 	 * error, surfaced with a clear message so the caller can fail safe (stop).
 	 */
 	public function evaluateBool(frameId:Int, expression:String):Bool {
-		var e = debug.eval.ExprParser.parse(StringTools.trim(expression));
+		var e = ExprParser.parse(StringTools.trim(expression));
 		if (e.match(EAssign(_, _))) {
 			throw new debug.DebugError("A breakpoint condition cannot be an assignment");
 		}
 		return switch (evalExpr(frameId, e)) {
 			case VBool(b): b;
 			case other: throw new debug.DebugError("A breakpoint condition must be true/false, got "
-				+ debug.eval.Operators.describe(other));
+				+ Operators.describe(other));
 		}
 	}
 
@@ -207,19 +209,19 @@ class ExpressionEvaluator {
 				var values = [for (a in args) evalExpr(frameId, a)];
 				VObject(calls.construct(frameId, className, values), constructedType(className));
 			case EUnop(op, inner):
-				debug.eval.Operators.unop(op, evalExpr(frameId, inner));
+				Operators.unop(op, evalExpr(frameId, inner));
 			case EBinop("&&", l, r):
 				// Haxe && / || short-circuit natively, so the right side only runs when needed
-				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "&&")
-					&& debug.eval.Operators.asBool(evalExpr(frameId, r), "&&"));
+				VBool(Operators.asBool(evalExpr(frameId, l), "&&")
+					&& Operators.asBool(evalExpr(frameId, r), "&&"));
 			case EBinop("||", l, r):
-				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "||")
-					|| debug.eval.Operators.asBool(evalExpr(frameId, r), "||"));
+				VBool(Operators.asBool(evalExpr(frameId, l), "||")
+					|| Operators.asBool(evalExpr(frameId, r), "||"));
 			case EBinop(op, l, r):
-				debug.eval.Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
+				Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
 			case ETernary(cond, thenE, elseE):
 				// only the taken branch runs (a branch may call a function)
-				debug.eval.Operators.asBool(evalExpr(frameId, cond), "?:")
+				Operators.asBool(evalExpr(frameId, cond), "?:")
 					? evalExpr(frameId, thenE) : evalExpr(frameId, elseE);
 			case EIs(inner, typeName):
 				VBool(valueIsOfType(evalExpr(frameId, inner), typeName));

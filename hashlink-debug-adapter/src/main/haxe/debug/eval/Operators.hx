@@ -2,6 +2,7 @@ package debug.eval;
 
 import debug.DebugError;
 import debug.eval.EvalValue;
+import debug.values.ValueReader;
 import haxe.Int64;
 
 /**
@@ -173,7 +174,7 @@ class Operators {
 			case VBool(_): "a Bool";
 			case VString(_, _): "a String";
 			case VNull: "null";
-			case VObject(_, t): "an object (" + debug.values.ValueReader.typeName(t) + ")";
+			case VObject(_, t): "an object (" + ValueReader.typeName(t) + ")";
 		}
 	}
 }
