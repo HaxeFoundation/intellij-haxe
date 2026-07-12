@@ -38,6 +38,8 @@ class VariableInspector {
 	final valueChildren:ValueChildren;
 	final runtimeTypes:RuntimeTypes;
 	final dynObjects:DynObjReader;
+	// Resolves variable paths → writable {address, type}; shared by reads and writes.
+	final resolver:SymbolResolver;
 	// Non-null once value modification is enabled (a MemoryWriter is available).
 	var writer:Null<ValueWriter> = null;
 	var memWriter:Null<debug.target.MemoryWriter> = null;
@@ -116,6 +118,8 @@ class VariableInspector {
 		valueChildren.dynObjects = dynObjects;
 		valueChildren.maps = maps;
 		valueChildren.treeMaps = treeMaps;
+		resolver = new SymbolResolver(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
+			valueChildren, runtimeTypes);
 	}
 
 	/** Begins a new stop landed in `threadId` (see StopState.startStop). */
@@ -231,12 +235,12 @@ class VariableInspector {
 		if (current == null) {
 			// `MyClass.member`: a leading prefix naming a class resolves to its
 			// statics container (locals/this/frame statics were tried first)
-			var cls = staticsPrefix(path);
+			var cls = resolver.staticsPrefix(path);
 			if (cls != null) {
 				current = {
 					name: cls.className,
 					value: "class " + cls.className,
-					type: staticsContainerName(cls.className),
+					type: SymbolResolver.staticsContainerName(cls.className),
 					reference: stops.allocReference(RefStatics(cls.singleton, cls.proto)),
 				};
 				start = cls.consumed;
@@ -270,8 +274,8 @@ class VariableInspector {
 	 * returns the child's new decoded value. Throws DebugError on any failure.
 	 */
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
-		var target = targetInReference(reference, name);
-		var v = evalExpr(writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
+		var target = resolver.targetInReference(reference, name);
+		var v = evalExpr(resolver.writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
 		writeValue(target, v);
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
@@ -289,7 +293,7 @@ class VariableInspector {
 				if (recvPath == null) {
 					throw new debug.DebugError("The receiver of [...] must be a variable path");
 				}
-				var target = targetOfPath(frameId, recvPath);
+				var target = resolver.targetOfPath(frameId, recvPath);
 				var display = pathDisplay(recvPath) + "[...]";
 				if (mapTypeOfTarget(target) != null) {
 					// map bracket: sugar for set(key, value), read back via get
@@ -300,7 +304,7 @@ class VariableInspector {
 					return decodeReturn(display, read.raw, read.type);
 				}
 				// array element (constant or computed index): a writable slot
-				var element = childTarget(target, Std.string(intKey(frameId, key)));
+				var element = resolver.childTarget(target, Std.string(intKey(frameId, key)));
 				writeValue(element, evalExpr(frameId, rhs));
 				var decoded = valueReader.read(element.address, element.type);
 				return {name: element.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
@@ -310,7 +314,7 @@ class VariableInspector {
 		if (path == null) {
 			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
 		}
-		var target = targetOfPath(frameId, path);
+		var target = resolver.targetOfPath(frameId, path);
 		writeValue(target, evalExpr(frameId, rhs));
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
@@ -326,7 +330,7 @@ class VariableInspector {
 			case HObj(_):
 				var base = memory.readPointer(target.address);
 				if (!Int64.eq(base, Int64.ofInt(0))) {
-					t = refineObjectType(base, t);
+					t = resolver.refineObjectType(base, t);
 				}
 			default:
 		}
@@ -515,17 +519,17 @@ class VariableInspector {
 		if (recvPath == null) {
 			throw new debug.DebugError("The receiver of [...] must be a variable path");
 		}
-		var target = targetOfPath(frameId, recvPath);
+		var target = resolver.targetOfPath(frameId, recvPath);
 		if (mapTypeOfTarget(target) != null) {
 			var ret = callRaw(frameId, pathPlus(recvPath, "get"), [evalExpr(frameId, key)]);
 			return toEvalValue(ret.raw, ret.type);
 		}
-		var element = childTarget(target, Std.string(intKey(frameId, key)));
+		var element = resolver.childTarget(target, Std.string(intKey(frameId, key)));
 		return evalValueAt(element.address, element.type);
 	}
 
 	function valueOfPath(frameId:Int, path:ValuePath):debug.eval.EvalValue {
-		var target = targetOfPath(frameId, path);
+		var target = resolver.targetOfPath(frameId, path);
 		return evalValueAt(target.address, target.type);
 	}
 
@@ -553,7 +557,7 @@ class VariableInspector {
 			case HNull(inner): evalValueAt(offset(ptr, align.ptr), inner); // box payload
 			case HDyn: dynamicValue(ptr);
 			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
-			case HObj(_): VObject(ptr, refineObjectType(ptr, t));
+			case HObj(_): VObject(ptr, resolver.refineObjectType(ptr, t));
 			default: VObject(ptr, t);
 		}
 	}
@@ -685,7 +689,7 @@ class VariableInspector {
 		if (method != null) {
 			return method;
 		}
-		var target = targetOfPath(frameId, path);
+		var target = resolver.targetOfPath(frameId, path);
 		var fn = switch (target.type) {
 			case HFun(f): f;
 			default: throw new debug.DebugError('"' + callee + '" is not a function');
@@ -733,7 +737,7 @@ class VariableInspector {
 			default: return null; // `recv[i](...)` is not a method call
 		};
 		// resolve the receiver = the path without its last segment
-		var receiver = targetOfPath(frameId, new ValuePath(path.root, path.accessors.slice(0, path.accessors.length - 1)));
+		var receiver = resolver.targetOfPath(frameId, new ValuePath(path.root, path.accessors.slice(0, path.accessors.length - 1)));
 		var base:Pointer;
 		var runtimeType:HLType;
 		switch (receiver.type) {
@@ -745,7 +749,7 @@ class VariableInspector {
 				if (Int64.eq(base, Int64.ofInt(0))) {
 					throw new debug.DebugError('"' + receiver.name + '" is null');
 				}
-				runtimeType = refineObjectType(base, receiver.type);
+				runtimeType = resolver.refineObjectType(base, receiver.type);
 			default:
 				return null; // methods only resolve on objects/structs
 		}
@@ -1057,226 +1061,6 @@ class VariableInspector {
 	function stringType():format.hl.Data.HLType {
 		var t = module.typeByName("String");
 		return t == null ? HDyn : t;
-	}
-
-	// The RHS of a setVariable resolves in the same frame as the target; both
-	// targetOfPath and targetInReference stash it so `path = otherPath` works.
-	var writeFrame:Int = 0;
-
-	function targetInReference(reference:Int, name:String):WriteTarget {
-		var container = stops.referenceTarget(reference);
-		if (container == null) {
-			throw new debug.DebugError("This value can no longer be modified (the debuggee has moved on)");
-		}
-		return switch (container) {
-			case RefLocals(frameId):
-				writeFrame = frameId;
-				var local = localTarget(frameId, name);
-				if (local == null) {
-					throw new debug.DebugError('No local named "' + name + '"');
-				}
-				local;
-			case RefObject(pointer, type):
-				writeFrame = 0;
-				childTargetFromBase(name, pointer, type, name);
-			case RefStatics(pointer, proto):
-				writeFrame = 0;
-				childTargetFromBase(name, pointer, HObj(proto), name);
-			case RefRegisters(_):
-				throw new debug.DebugError("CPU/VM registers cannot be edited");
-		}
-	}
-
-	function targetOfPath(frameId:Int, path:ValuePath):WriteTarget {
-		writeFrame = frameId;
-		var start = 0;
-		var current = tryRootTarget(frameId, path.root);
-		if (current == null) {
-			// `MyClass.member` / `pkg.MyClass.member`: a leading path prefix names
-			// a class — its statics container behaves like an object variable
-			// whose slot is the container's global (holding the singleton ptr)
-			var cls = staticsPrefix(path);
-			if (cls != null) {
-				current = {name: cls.className, address: cls.slot, type: HObj(cls.proto)};
-				start = cls.consumed;
-			}
-		}
-		if (current == null) {
-			throw new debug.DebugError('Unknown variable "' + path.root + '"');
-		}
-		for (i in start...path.accessors.length) {
-			var childName = switch (path.accessors[i]) {
-				case Field(name): name;
-				case Index(index): Std.string(index);
-			}
-			current = childTarget(current, childName);
-		}
-		return current;
-	}
-
-	function tryRootTarget(frameId:Int, name:String):Null<WriteTarget> {
-		var local = localTarget(frameId, name);
-		if (local != null) {
-			return local;
-		}
-		// implicit this.field
-		var self = localTarget(frameId, "this");
-		if (self != null) {
-			var member = tryChildTarget(self, name);
-			if (member != null) {
-				return member;
-			}
-		}
-		// static of the owning class
-		var frame = frameAt(frameId);
-		if (frame != null) {
-			var proto = module.staticsProtoForFunction(frame.location.fidx);
-			if (proto != null) {
-				var globalIndex = module.staticsGlobalIndex(proto);
-				if (globalIndex >= 0) {
-					var slot = Int64.add(jit.globalsPtr, Int64.ofInt(globalTable.offsetOf(globalIndex)));
-					var singleton = memory.readPointer(slot);
-					if (!Int64.eq(singleton, Int64.ofInt(0))) {
-						var child = valueChildren.targetOf(singleton, HObj(proto), name);
-						if (child != null) {
-							return {name: name, address: child.address, type: child.type};
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	// --- class-qualified statics (`MyClass.member`, `pkg.MyClass.member`) ---
-
-	// A class `pkg.Cls` keeps its statics on a container type named `pkg.$Cls`
-	// ($ prefixes the LAST segment — the M13c lesson).
-	static function staticsContainerName(className:String):String {
-		var lastDot = className.lastIndexOf(".");
-		return lastDot < 0 ? "$" + className : className.substr(0, lastDot + 1) + "$" + className.substr(lastDot + 1);
-	}
-
-	// The live statics singleton of the class named `className`, or null when
-	// no such class / no statics global / the singleton isn't allocated yet.
-	function staticsByClassName(className:String):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype}> {
-		var proto = switch (module.typeByName(staticsContainerName(className))) {
-			case HObj(p): p;
-			default: return null;
-		}
-		var globalIndex = module.staticsGlobalIndex(proto);
-		if (globalIndex < 0) {
-			return null;
-		}
-		var slot = Int64.add(jit.globalsPtr, Int64.ofInt(globalTable.offsetOf(globalIndex)));
-		var singleton = memory.readPointer(slot);
-		if (Int64.eq(singleton, Int64.ofInt(0))) {
-			return null;
-		}
-		return {slot: slot, singleton: singleton, proto: proto};
-	}
-
-	/**
-	 * Matches a leading dotted prefix of `path` against a class name — the root
-	 * alone (`MyClass`) or the root extended by field accessors (`pkg.MyClass`,
-	 * `pkg.sub.MyClass`). The FIRST (shortest) match wins; `consumed` is how
-	 * many accessors the class name swallowed. Callers must try frame-local
-	 * resolution first so a local can never be shadowed by a class.
-	 */
-	function staticsPrefix(path:ValuePath):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype, className:String, consumed:Int}> {
-		var name = path.root;
-		var i = 0;
-		while (true) {
-			var hit = staticsByClassName(name);
-			if (hit != null) {
-				return {slot: hit.slot, singleton: hit.singleton, proto: hit.proto, className: name, consumed: i};
-			}
-			if (i >= path.accessors.length) {
-				return null;
-			}
-			switch (path.accessors[i]) {
-				case Field(segment):
-					name += "." + segment;
-					i++;
-				default:
-					return null;
-			}
-		}
-	}
-
-	// A local/argument slot: ebp + FrameLayout offset, typed by the register.
-	function localTarget(frameId:Int, name:String):Null<WriteTarget> {
-		var handle = frameAt(frameId);
-		if (handle == null) {
-			return null;
-		}
-		var frame = handle.location;
-		var local = findLocal(localsResolver.localsAt(frame.fidx, frame.op), name);
-		if (local == null) {
-			return null;
-		}
-		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
-		if (local.register < 0 || local.register >= offsets.length) {
-			return null;
-		}
-		var slot = offsets[local.register];
-		return {name: name, address: Int64.add(frame.ebp, Int64.ofInt(slot.offset)), type: slot.t};
-	}
-
-	static function findLocal(locals:Array<debug.module.LocalVar>, name:String):Null<debug.module.LocalVar> {
-		for (local in locals) {
-			if (local.name == name) {
-				return local;
-			}
-		}
-		return null;
-	}
-
-	function childTarget(parent:WriteTarget, childName:String):WriteTarget {
-		var child = tryChildTarget(parent, childName);
-		if (child == null) {
-			throw new debug.DebugError('"' + parent.name + '" has no member "' + childName + '"');
-		}
-		return child;
-	}
-
-	// Resolves a child by first finding the parent's object BASE: a struct is
-	// inline (its slot IS the base), a pointer type is dereferenced. Objects
-	// are refined to their runtime class so a Base-typed slot holding a Sub
-	// resolves Sub's fields.
-	function tryChildTarget(parent:WriteTarget, childName:String):Null<WriteTarget> {
-		var base:Pointer;
-		var effectiveType:HLType;
-		switch (parent.type) {
-			case HStruct(_):
-				base = parent.address;
-				effectiveType = parent.type;
-			case HObj(_), HArray, HDynObj, HVirtual(_):
-				base = memory.readPointer(parent.address);
-				if (Int64.eq(base, Int64.ofInt(0))) {
-					throw new debug.DebugError('"' + parent.name + '" is null');
-				}
-				effectiveType = parent.type.match(HObj(_)) ? refineObjectType(base, parent.type) : parent.type;
-			default:
-				return null;
-		}
-		return childTargetFromBase(parent.name + "." + childName, base, effectiveType, childName);
-	}
-
-	function childTargetFromBase(displayName:String, base:Pointer, type:HLType, childName:String):WriteTarget {
-		var child = valueChildren.targetOf(base, type, childName);
-		if (child == null) {
-			throw new debug.DebugError('"' + displayName + '" cannot be resolved to a writable location');
-		}
-		return {name: displayName, address: child.address, type: child.type};
-	}
-
-	function refineObjectType(base:Pointer, staticType:HLType):HLType {
-		var runtime = runtimeTypes.typeAt(memory.readPointer(base));
-		return switch (runtime) {
-			case HObj(_), HStruct(_): runtime;
-			default: staticType;
-		}
 	}
 
 	function resolveRoot(frameId:Int, name:String):Null<VariableInfo> {
