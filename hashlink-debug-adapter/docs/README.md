@@ -696,10 +696,14 @@ to the runtime class, find the method by name walking the superclass chain
 the program's own methods". Array element writes (`arr[i] = x`) already work
 directly (the element address is writable). Falls back to the closure-field
 call when the segment isn't a method. **Gaps** (clear errors, no corruption):
-- a **primitive into a `Dynamic` parameter** needs boxing into a vdynamic
-  (allocate + tag + payload) — not supported yet, so `Map<K,Int>.set(k, 9)` is
-  refused with a "needs boxing" message; string/object/path args (pointers) are
-  dynamic-compatible and pass as-is (`Map<K,String>.set` works).
+- a **primitive into a `Dynamic` parameter** is BOXED into a vdynamic (M17):
+  `alloc_dynamic(typePtr)` allocates a GC-tracked box, its payload is written at
+  `HDYN_VALUE` (one pointer past the `hl_type*`). So `Map<K,Int>.set(k, 9)` now
+  works. Both `alloc_dynamic` and the primitive type pointer are mined from an
+  `OToDyn` JIT site (`BoxResolver`, same disassembly hack as constructors) — so
+  boxing a given primitive needs the program to box that primitive SOMEWHERE
+  (DCE-limited; Int boxing is near-universal). String/object/path args are
+  dynamic-compatible and still pass as-is.
 - DCE-limited to methods the program retains; inlined/forwarded methods (e.g.
   `StringMap.exists` in some builds) aren't proto methods and fall through.
 - MapReader's live entry **count** can lag a debugger-inserted entry (the entry

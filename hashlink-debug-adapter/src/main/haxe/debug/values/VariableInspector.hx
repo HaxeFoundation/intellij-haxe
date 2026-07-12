@@ -522,6 +522,32 @@ class VariableInspector {
 		return str;
 	}
 
+	var boxer:Null<debug.eval.BoxResolver> = null;
+
+	// Boxes a primitive literal into a fresh vdynamic so it can be passed to a
+	// `Dynamic` parameter (M17). `alloc_dynamic(typePtr)` gives a GC-tracked
+	// vdynamic tagged with the primitive's runtime type; `writePayload` writes
+	// the value into its payload slot (HDYN_VALUE = one pointer past the type).
+	function boxPrimitive(kind:Int, writePayload:Pointer->Void):debug.eval.CallEmitter.CallArg {
+		if (memWriter == null || functionCaller == null) {
+			throw new debug.DebugError("Unable to box a value: value modification is not available in this session");
+		}
+		if (boxer == null) {
+			boxer = new debug.eval.BoxResolver(module, jit, memory);
+		}
+		var recipe = boxer.resolve(kind);
+		if (recipe == null) {
+			throw new debug.DebugError("Unable to box this primitive into a Dynamic: the debuggee never boxes a value"
+				+ " of this type, so the boxing helper could not be located (boxing is x86-64 only and DCE-limited).");
+		}
+		var box = functionCaller(recipe.allocDynamic, [{isFloat: false, bits: recipe.typePointer}], false);
+		if (Int64.eq(box, Int64.ofInt(0))) {
+			throw new debug.DebugError("Unable to box a value: alloc_dynamic returned null");
+		}
+		writePayload(offset(box, align.ptr)); // HDYN_VALUE = one pointer past the hl_type*
+		return {isFloat: false, bits: box};
+	}
+
 	// Lowers an argument expression to the raw 64-bit value its register needs,
 	// coercing to the callee's declared parameter type.
 	function lowerArgument(frameId:Int, argExpr:String, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
@@ -530,13 +556,19 @@ class VariableInspector {
 			throw new debug.DebugError('Cannot parse argument "' + argExpr + '"');
 		}
 		// A primitive going into a `Dynamic` parameter must be BOXED into a
-		// vdynamic (allocate + tag + payload); passing the raw bits would be
-		// read as a pointer and stored as garbage. Not supported yet — refuse
-		// clearly rather than corrupt (affects e.g. Map<K,Int>.set). Pointers
-		// (strings, objects, paths) are dynamic-compatible and pass as-is.
-		if (paramType.match(HDyn) && (literal.match(LInt(_)) || literal.match(LFloat(_)) || literal.match(LBool(_)))) {
-			throw new debug.DebugError("Passing a number or bool as a Dynamic argument needs boxing,"
-				+ " which is not supported yet — pass a string/object, or a variable already of that type.");
+		// vdynamic: passing the raw bits would be read as a pointer and stored
+		// as garbage. Pointers (strings, objects, paths) are dynamic-compatible
+		// and pass as-is; primitive literals are boxed here (M17).
+		if (paramType.match(HDyn)) {
+			switch (literal) {
+				case LInt(v):
+					return boxPrimitive(Type.enumIndex(HI32), box -> memWriter.writeI32(box, Int64.getLow(v)));
+				case LFloat(f):
+					return boxPrimitive(Type.enumIndex(HF64), box -> memWriter.writeF64(box, f));
+				case LBool(b):
+					return boxPrimitive(Type.enumIndex(HBool), box -> memWriter.writeU8(box, b ? 1 : 0));
+				default:
+			}
 		}
 		switch (literal) {
 			case LPath(argPath):

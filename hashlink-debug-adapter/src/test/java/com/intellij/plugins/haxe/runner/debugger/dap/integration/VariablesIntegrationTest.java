@@ -510,10 +510,22 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("the inserted entry reads back", "\"hi\"", evaluate(frameId, "intMap.get(5)").getBody().getResult());
     assertEquals("pre-existing entry intact", "\"v2\"", evaluate(frameId, "intMap.get(2)").getBody().getResult());
 
-    // a primitive into a Dynamic-valued map is refused clearly (boxing gap)
-    Response boxed = evaluateRaw(frameId, "stringMap.set(\"c\", 9)");
-    assertFalse("primitive->Dynamic arg rejected", boxed.isSuccess());
-    assertTrue("boxing message (was: " + boxed.getMessage() + ")", boxed.getMessage().contains("boxing"));
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void boxesPrimitivesIntoDynamicArguments() throws Exception {
+    // stringMap is Map<String,Int>: values are stored BOXED (Dynamic). Passing
+    // the int literal 9 requires boxing it into a vdynamic (M17) — previously
+    // refused. Proven end to end: set then read the value back.
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    assertEquals("absent before insert", "null", evaluate(frameId, "stringMap.get(\"c\")").getBody().getResult());
+    assertTrue("stringMap.set(\"c\", 9) with boxing", evaluate(frameId, "stringMap.set(\"c\", 9)").isSuccess());
+    assertEquals("boxed int reads back", "9", evaluate(frameId, "stringMap.get(\"c\")").getBody().getResult());
+    // a pre-existing boxed value is unaffected
+    assertEquals("existing entry intact", "6", evaluate(frameId, "stringMap.get(\"b\")").getBody().getResult());
 
     request(new DisconnectRequest());
   }
