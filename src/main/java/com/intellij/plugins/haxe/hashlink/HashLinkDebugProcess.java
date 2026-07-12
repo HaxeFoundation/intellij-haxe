@@ -1,10 +1,12 @@
 package com.intellij.plugins.haxe.hashlink;
 
 import com.intellij.execution.ExecutionException;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.execution.ui.ExecutionConsole;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
@@ -125,6 +127,17 @@ public class HashLinkDebugProcess extends XDebugProcess {
   @Override
   public void sessionInitialized() {
     requestExecutor.execute(this::initializeSession);
+  }
+
+  // The default XDebugProcess.createConsole() builds a console but never
+  // attaches it to the process handler (unlike CommandLineState, which does) —
+  // without this override the debuggee's stdout/stderr go nowhere.
+  @Override
+  public @NotNull ExecutionConsole createConsole() {
+    ConsoleView console = TextConsoleBuilderFactory.getInstance()
+      .createBuilder(getSession().getProject()).getConsole();
+    console.attachToProcess(processHandler);
+    return console;
   }
 
   @Override
