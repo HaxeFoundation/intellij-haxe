@@ -44,6 +44,8 @@ class VariableInspector {
 	final calls:DebuggeeCallService;
 	// Turns frames + references into the DAP scopes/variables lists.
 	final view:VariablesView;
+	// The evaluate-expression interpreter (operators, is/ternary, calls).
+	final evaluator:ExpressionEvaluator;
 	// Non-null once value modification is enabled (a MemoryWriter is available).
 	var writer:Null<ValueWriter> = null;
 
@@ -124,6 +126,8 @@ class VariableInspector {
 		calls = new DebuggeeCallService(resolver, memory, module, jit, align);
 		view = new VariablesView(stops, memory, module, jit, frameLayout, localsResolver, globalTable,
 			objectLayout, valueReader, valueChildren);
+		evaluator = new ExpressionEvaluator(resolver, calls, view, valueReader, memory, module, align,
+			runtimeTypes, stops);
 	}
 
 	/** Begins a new stop landed in `threadId` (see StopState.startStop). */
@@ -150,10 +154,6 @@ class VariableInspector {
 		return stops.framesFor(threadId);
 	}
 
-	inline function frameAt(frameId:Int):Null<CachedFrame> {
-		return stops.frameAt(frameId);
-	}
-
 	/** The scopes of a cached frame: Locals, plus Statics when the owning class has static data. */
 	public inline function scopesFor(frameId:Int):Array<ScopeInfo> {
 		return view.scopesFor(frameId);
@@ -175,90 +175,16 @@ class VariableInspector {
 			expression = StringTools.rtrim(expression.substr(0, expression.length - 1));
 		}
 		var e = debug.eval.ExprParser.parse(expression);
-		switch (e) {
-			case EAssign(lhs, rhs):
-				return assignExpr(frameId, lhs, rhs);
-			case ECall(callee, args):
-				var calleePath = chainToPath(callee);
-				if (calleePath == null) {
-					throw new debug.DebugError("The callee must be a function name or a variable path");
-				}
-				var values = [for (a in args) evalExpr(frameId, a)];
-				return evaluateCall(frameId, calleePath, values);
-			case ENew(className, args):
-				var values = [for (a in args) evalExpr(frameId, a)];
-				return decodeReturn("new " + className + "()", calls.construct(frameId, className, values), constructedType(className));
-			case EIndex(_, _):
-				// the interpreter decides map-get vs array element (incl. computed keys)
-				return renderValue(expression, evalExpr(frameId, e));
-			default:
-		}
-		// a pure variable path keeps the pre-M21b reference walk: it renders
-		// exactly like the Variables view (map entries, enum params, ...)
-		var path = chainToPath(e);
-		if (path != null) {
-			return evaluatePath(frameId, path);
-		}
-		// anything else is an operator expression: interpret it (M21b)
-		return renderValue(expression, evalExpr(frameId, e));
-	}
-
-	/**
-	 * Evaluates a breakpoint condition to a Bool in the given frame (M22). The
-	 * expression must yield a Bool — a number/string/object condition is a user
-	 * error, surfaced with a clear message so the caller can fail safe (stop).
-	 */
-	public function evaluateBool(frameId:Int, expression:String):Bool {
-		var e = debug.eval.ExprParser.parse(StringTools.trim(expression));
-		if (e.match(EAssign(_, _))) {
-			throw new debug.DebugError("A breakpoint condition cannot be an assignment");
-		}
-		return switch (evalExpr(frameId, e)) {
-			case VBool(b): b;
-			case other: throw new debug.DebugError("A breakpoint condition must be true/false, got "
-				+ debug.eval.Operators.describe(other));
+		// a top-level assignment is a WRITE; everything else the interpreter renders
+		return switch (e) {
+			case EAssign(lhs, rhs): assignExpr(frameId, lhs, rhs);
+			default: evaluator.evaluateExpr(frameId, e, expression);
 		}
 	}
 
-	// The pre-M21b path walk: resolves the root, then follows accessors through
-	// the same variablesReference listings the Variables view uses.
-	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
-		var start = 0;
-		var current = resolveRoot(frameId, path.root);
-		if (current == null) {
-			// `MyClass.member`: a leading prefix naming a class resolves to its
-			// statics container (locals/this/frame statics were tried first)
-			var cls = resolver.staticsPrefix(path);
-			if (cls != null) {
-				current = {
-					name: cls.className,
-					value: "class " + cls.className,
-					type: SymbolResolver.staticsContainerName(cls.className),
-					reference: stops.allocReference(RefStatics(cls.singleton, cls.proto)),
-				};
-				start = cls.consumed;
-			}
-		}
-		if (current == null) {
-			throw new debug.DebugError('Unknown variable "' + path.root + '"');
-		}
-		for (i in start...path.accessors.length) {
-			var accessor = path.accessors[i];
-			var childName = switch (accessor) {
-				case Field(name): name;
-				case Index(index): Std.string(index);
-			}
-			if (current.reference <= 0) {
-				throw new debug.DebugError('"' + current.name + '" has no members');
-			}
-			var next = findByName(variablesFor(current.reference), childName);
-			if (next == null) {
-				var what = accessor.match(Index(_)) ? "index [" + childName + "]" : 'field "' + childName + '"';
-				throw new debug.DebugError('"' + current.name + '" has no ' + what);
-			}
-			current = next;
-		}
-		return current;
+	/** Evaluates a breakpoint condition to a Bool in the given frame (M22). */
+	public inline function evaluateBool(frameId:Int, expression:String):Bool {
+		return evaluator.evaluateBool(frameId, expression);
 	}
 
 	/**
@@ -268,7 +194,7 @@ class VariableInspector {
 	 */
 	public function setVariable(reference:Int, name:String, valueExpr:String):VariableInfo {
 		var target = resolver.targetInReference(reference, name);
-		var v = evalExpr(resolver.writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
+		var v = evaluator.evalExpr(resolver.writeFrame, debug.eval.ExprParser.parse(StringTools.trim(valueExpr)));
 		writeValue(target, v);
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
@@ -282,306 +208,36 @@ class VariableInspector {
 	function assignExpr(frameId:Int, lhs:debug.eval.ExprAst.Expr, rhs:debug.eval.ExprAst.Expr):VariableInfo {
 		switch (lhs) {
 			case EIndex(recv, key):
-				var recvPath = chainToPath(recv);
+				var recvPath = ExpressionEvaluator.chainToPath(recv);
 				if (recvPath == null) {
 					throw new debug.DebugError("The receiver of [...] must be a variable path");
 				}
 				var target = resolver.targetOfPath(frameId, recvPath);
 				var display = recvPath.display() + "[...]";
-				if (mapTypeOfTarget(target) != null) {
+				if (evaluator.mapTypeOfTarget(target) != null) {
 					// map bracket: sugar for set(key, value), read back via get
-					var keyVal = evalExpr(frameId, key);
-					var rhsVal = evalExpr(frameId, rhs);
+					var keyVal = evaluator.evalExpr(frameId, key);
+					var rhsVal = evaluator.evalExpr(frameId, rhs);
 					calls.callRaw(frameId, recvPath.plus("set"), [keyVal, rhsVal]); // set returns Void
 					var read = calls.callRaw(frameId, recvPath.plus("get"), [keyVal]);
-					return decodeReturn(display, read.raw, read.type);
+					return evaluator.decodeReturn(display, read.raw, read.type);
 				}
 				// array element (constant or computed index): a writable slot
-				var element = resolver.childTarget(target, Std.string(intKey(frameId, key)));
-				writeValue(element, evalExpr(frameId, rhs));
+				var element = resolver.childTarget(target, Std.string(evaluator.intKey(frameId, key)));
+				writeValue(element, evaluator.evalExpr(frameId, rhs));
 				var decoded = valueReader.read(element.address, element.type);
 				return {name: element.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 			default:
 		}
-		var path = chainToPath(lhs);
+		var path = ExpressionEvaluator.chainToPath(lhs);
 		if (path == null) {
 			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
 		}
 		var target = resolver.targetOfPath(frameId, path);
-		writeValue(target, evalExpr(frameId, rhs));
+		writeValue(target, evaluator.evalExpr(frameId, rhs));
 		fixupAfterWrite(target);
 		var decoded = valueReader.read(target.address, target.type);
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
-	}
-
-	// The map type of a resolved receiver if it is one of the map classes
-	// (StringMap/IntMap/ObjectMap or a BalancedTree), else null — the signal to
-	// route `[]` to get/set rather than treat it as an array index.
-	function mapTypeOfTarget(target:WriteTarget):Null<HLType> {
-		var t = target.type;
-		switch (t) {
-			case HObj(_):
-				var base = memory.readPointer(target.address);
-				if (!Int64.eq(base, Int64.ofInt(0))) {
-					t = resolver.refineObjectType(base, t);
-				}
-			default:
-		}
-		return isMapType(t) ? t : null;
-	}
-
-	static function isMapType(t:HLType):Bool {
-		return switch (t) {
-			case HObj(p): p != null && (ValueReader.mapKeyKind(p.name) != null || TreeMapReader.isTreeMap(p.name));
-			default: false;
-		}
-	}
-
-	// --- the expression interpreter (M21b) ---
-	//
-	// Leaves resolve through the SAME machinery as paths/writes (typed reads at
-	// targetOfPath addresses, calls via callRaw, `new` via construct); operators
-	// fold ADAPTER-SIDE on EvalValue — no debuggee code runs for arithmetic.
-
-	function evalExpr(frameId:Int, e:debug.eval.ExprAst.Expr):debug.eval.EvalValue {
-		return switch (e) {
-			case EInt(v): VInt(v);
-			case EFloat(f): VFloat(f);
-			case EBool(b): VBool(b);
-			case ENull: VNull;
-			case EString(s): VString(s, null);
-			case EIdent(_), EField(_, _):
-				var path = chainToPath(e);
-				if (path == null) {
-					throw new debug.DebugError("This value cannot be resolved as a variable path");
-				}
-				valueOfPath(frameId, path);
-			case EIndex(recv, key):
-				indexValue(frameId, recv, key);
-			case ECall(callee, args):
-				var path = chainToPath(callee);
-				if (path == null) {
-					throw new debug.DebugError("The callee must be a function name or a variable path");
-				}
-				var values = [for (a in args) evalExpr(frameId, a)];
-				var ret = calls.callRaw(frameId, path, values);
-				if (ret.type.match(HVoid)) {
-					throw new debug.DebugError('"' + path.display() + '" returns Void and cannot be used inside an expression');
-				}
-				toEvalValue(ret.raw, ret.type);
-			case ENew(className, args):
-				var values = [for (a in args) evalExpr(frameId, a)];
-				VObject(calls.construct(frameId, className, values), constructedType(className));
-			case EUnop(op, inner):
-				debug.eval.Operators.unop(op, evalExpr(frameId, inner));
-			case EBinop("&&", l, r):
-				// Haxe && / || short-circuit natively, so the right side only runs when needed
-				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "&&")
-					&& debug.eval.Operators.asBool(evalExpr(frameId, r), "&&"));
-			case EBinop("||", l, r):
-				VBool(debug.eval.Operators.asBool(evalExpr(frameId, l), "||")
-					|| debug.eval.Operators.asBool(evalExpr(frameId, r), "||"));
-			case EBinop(op, l, r):
-				debug.eval.Operators.binop(op, evalExpr(frameId, l), evalExpr(frameId, r));
-			case ETernary(cond, thenE, elseE):
-				// only the taken branch runs (a branch may call a function)
-				debug.eval.Operators.asBool(evalExpr(frameId, cond), "?:")
-					? evalExpr(frameId, thenE) : evalExpr(frameId, elseE);
-			case EIs(inner, typeName):
-				VBool(valueIsOfType(evalExpr(frameId, inner), typeName));
-			case EAssign(_, _):
-				throw new debug.DebugError("Assignment is only allowed at the top level of an expression");
-		}
-	}
-
-	// `value is Type` (Haxe Std.isOfType semantics, the subset we support):
-	// null is never an instance; Int/Float/Bool/String/Dynamic match by kind
-	// (an Int satisfies Float, as in Haxe); a class/enum/struct name matches an
-	// object whose runtime class equals it or descends from it (tsuper chain,
-	// by full or simple name). Interfaces are not resolved. A type name that
-	// names nothing is a user error (so a typo isn't a silent false).
-	function valueIsOfType(v:debug.eval.EvalValue, typeName:String):Bool {
-		if (v.match(VNull)) {
-			return false;
-		}
-		switch (typeName) {
-			case "Dynamic": return true;
-			case "Int": return v.match(VInt(_));
-			case "Float": return v.match(VFloat(_)) || v.match(VInt(_));
-			case "Bool": return v.match(VBool(_));
-			case "String": return v.match(VString(_, _));
-			default:
-		}
-		if (!module.typeNameExists(typeName)) {
-			throw new debug.DebugError('Unknown type "' + typeName + '" in an `is` check');
-		}
-		return switch (v) {
-			case VObject(ptr, type):
-				var runtime = switch (type) {
-					case HObj(_), HStruct(_): type;
-					default: runtimeTypes.typeAt(memory.readPointer(ptr));
-				}
-				classChainMatches(runtime, typeName);
-			default:
-				false; // a primitive/string against a (real) class name
-		}
-	}
-
-	// Walks an object's runtime class and its superclasses, matching each class
-	// name against `target` by full name (`pkg.Cls`) or simple name (`Cls`).
-	function classChainMatches(type:Null<HLType>, target:String):Bool {
-		var proto = switch (type) {
-			case HObj(p), HStruct(p): p;
-			default: null;
-		}
-		var seen = 0;
-		while (proto != null && seen++ < 64) {
-			if (proto.name == target || simpleClassName(proto.name) == target) {
-				return true;
-			}
-			proto = proto.tsuper == null ? null : switch (proto.tsuper) {
-				case HObj(p), HStruct(p): p;
-				default: null;
-			}
-		}
-		return false;
-	}
-
-	static inline function simpleClassName(full:String):String {
-		var dot = full.lastIndexOf(".");
-		return dot < 0 ? full : full.substr(dot + 1);
-	}
-
-	// A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath.
-	static function chainToPath(e:debug.eval.ExprAst.Expr):Null<ValuePath> {
-		var accessors:Array<PathAccessor> = [];
-		var cur = e;
-		while (true) {
-			switch (cur) {
-				case EIdent(name):
-					accessors.reverse();
-					return new ValuePath(name, accessors);
-				case EField(inner, name):
-					accessors.push(Field(name));
-					cur = inner;
-				case EIndex(inner, EInt(k)):
-					var i = Int64.toInt(k);
-					if (i < 0) {
-						return null;
-					}
-					accessors.push(Index(i));
-					cur = inner;
-				default:
-					return null;
-			}
-		}
-	}
-
-	function intKey(frameId:Int, key:debug.eval.ExprAst.Expr):Int {
-		return switch (evalExpr(frameId, key)) {
-			case VInt(v):
-				var i = Int64.toInt(v);
-				if (i < 0) {
-					throw new debug.DebugError("An index must be >= 0");
-				}
-				i;
-			default:
-				throw new debug.DebugError("An array index must be an Int");
-		}
-	}
-
-	// `recv[key]`: a map routes to get(key); anything else is an indexed element
-	// (constant or computed key).
-	function indexValue(frameId:Int, recv:debug.eval.ExprAst.Expr, key:debug.eval.ExprAst.Expr):debug.eval.EvalValue {
-		var recvPath = chainToPath(recv);
-		if (recvPath == null) {
-			throw new debug.DebugError("The receiver of [...] must be a variable path");
-		}
-		var target = resolver.targetOfPath(frameId, recvPath);
-		if (mapTypeOfTarget(target) != null) {
-			var ret = calls.callRaw(frameId, recvPath.plus("get"), [evalExpr(frameId, key)]);
-			return toEvalValue(ret.raw, ret.type);
-		}
-		var element = resolver.childTarget(target, Std.string(intKey(frameId, key)));
-		return evalValueAt(element.address, element.type);
-	}
-
-	function valueOfPath(frameId:Int, path:ValuePath):debug.eval.EvalValue {
-		var target = resolver.targetOfPath(frameId, path);
-		return evalValueAt(target.address, target.type);
-	}
-
-	// Typed read of a slot into the interpreter's currency.
-	function evalValueAt(address:Pointer, t:HLType):debug.eval.EvalValue {
-		return switch (t) {
-			case HUi8: VInt(Int64.ofInt(memory.readU8(address)));
-			case HUi16: VInt(Int64.ofInt(memory.readU16(address)));
-			case HI32: VInt(Int64.ofInt(memory.readI32(address)));
-			case HI64: VInt(memory.readI64(address));
-			case HF32: VFloat(memory.readF32(address));
-			case HF64: VFloat(memory.readF64(address));
-			case HBool: VBool(memory.readU8(address) != 0);
-			case HVoid: VNull;
-			case HStruct(_), HPacked(_): VObject(address, t); // inline: the slot IS the base
-			default: pointerValue(memory.readPointer(address), t);
-		}
-	}
-
-	function pointerValue(ptr:Pointer, t:HLType):debug.eval.EvalValue {
-		if (Int64.eq(ptr, Int64.ofInt(0))) {
-			return VNull;
-		}
-		return switch (t) {
-			case HNull(inner): evalValueAt(offset(ptr, align.ptr), inner); // box payload
-			case HDyn: dynamicValue(ptr);
-			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
-			case HObj(_): VObject(ptr, resolver.refineObjectType(ptr, t));
-			default: VObject(ptr, t);
-		}
-	}
-
-	// A Dynamic value: primitives live in a vdynamic box (hl_type* @0, payload
-	// one pointer past); pointer kinds ARE the value (their own header says so).
-	function dynamicValue(ptr:Pointer):debug.eval.EvalValue {
-		var runtime = runtimeTypes.typeAt(memory.readPointer(ptr));
-		if (runtime == null) {
-			return VObject(ptr, HDyn);
-		}
-		return switch (runtime) {
-			case HUi8: VInt(Int64.ofInt(memory.readU8(offset(ptr, align.ptr))));
-			case HUi16: VInt(Int64.ofInt(memory.readU16(offset(ptr, align.ptr))));
-			case HI32: VInt(Int64.ofInt(memory.readI32(offset(ptr, align.ptr))));
-			case HI64: VInt(memory.readI64(offset(ptr, align.ptr)));
-			case HF32: VFloat(memory.readF32(offset(ptr, align.ptr)));
-			case HF64: VFloat(memory.readF64(offset(ptr, align.ptr)));
-			case HBool: VBool(memory.readU8(offset(ptr, align.ptr)) != 0);
-			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
-			default: VObject(ptr, runtime);
-		}
-	}
-
-	// A call's raw return (RAX bits) into the interpreter's currency.
-	function toEvalValue(raw:Pointer, t:HLType):debug.eval.EvalValue {
-		return switch (t) {
-			case HVoid: VNull;
-			case HUi8, HUi16, HI32: VInt(Int64.ofInt(Int64.getLow(raw)));
-			case HI64: VInt(raw);
-			case HBool: VBool(Int64.getLow(raw) != 0);
-			case HF64: VFloat(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw)));
-			case HF32: VFloat(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw)));
-			default: pointerValue(raw, t);
-		}
-	}
-
-	function renderValue(name:String, v:debug.eval.EvalValue):VariableInfo {
-		return switch (v) {
-			case VInt(i): {name: name, value: Int64.toStr(i), type: "Int", reference: 0};
-			case VFloat(f): {name: name, value: Std.string(f), type: "Float", reference: 0};
-			case VBool(b): {name: name, value: b ? "true" : "false", type: "Bool", reference: 0};
-			case VNull: {name: name, value: "null", type: "Dynamic", reference: 0};
-			case VString(s, _): {name: name, value: "\"" + s + "\"", type: "String", reference: 0};
-			case VObject(raw, t): decodeReturn(name, raw, t);
-		}
 	}
 
 	// Set by DebugSession: runs a function inside the debuggee. Forwarded to the
@@ -592,43 +248,6 @@ class VariableInspector {
 		Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> {
 		calls.functionCaller = caller;
 		return caller;
-	}
-
-	/**
-	 * Evaluates a function call `callee(args...)` by running the callee in the
-	 * debuggee (M13). Args are ALREADY-EVALUATED expression values; the call
-	 * service lowers them to the callee's declared parameter types. Returns the
-	 * decoded result.
-	 */
-	function evaluateCall(frameId:Int, callee:ValuePath, args:Array<debug.eval.EvalValue>):VariableInfo {
-		var call = calls.callRaw(frameId, callee, args);
-		return decodeReturn(callee.display() + "()", call.raw, call.type);
-	}
-
-	// The module HLType of a construction result (the class named).
-	function constructedType(className:String):format.hl.Data.HLType {
-		var t = module.typeByName(className);
-		return t == null ? HDyn : t;
-	}
-
-	// Decodes a call's raw return value (RAX, or XMM0-as-RAX for a float return).
-	function decodeReturn(name:String, raw:Pointer, retType:format.hl.Data.HLType):VariableInfo {
-		return switch (retType) {
-			case HVoid: {name: name, value: "void", type: "Void", reference: 0};
-			case HUi8, HUi16, HI32: {name: name, value: Std.string(Int64.getLow(raw)), type: "Int", reference: 0};
-			case HI64: {name: name, value: Int64.toStr(raw), type: "Int64", reference: 0};
-			case HBool: {name: name, value: Int64.getLow(raw) != 0 ? "true" : "false", type: "Bool", reference: 0};
-			case HF64: {name: name, value: Std.string(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw))), type: "Float", reference: 0};
-			case HF32: {name: name, value: Std.string(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw))), type: "Float", reference: 0};
-			default:
-				// a pointer return: the raw value IS the object/string pointer
-				if (Int64.eq(raw, Int64.ofInt(0))) {
-					{name: name, value: "null", type: ValueReader.typeName(retType), reference: 0};
-				} else {
-					var decoded = valueReader.decodeReturnedPointer(raw, retType);
-					{name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
-				}
-		}
 	}
 
 	// An argument's early uses may be compiled against the CPU register it
@@ -735,40 +354,6 @@ class VariableInspector {
 	function stringType():format.hl.Data.HLType {
 		var t = module.typeByName("String");
 		return t == null ? HDyn : t;
-	}
-
-	function resolveRoot(frameId:Int, name:String):Null<VariableInfo> {
-		var locals = view.readLocals(frameId);
-		var local = findByName(locals, name);
-		if (local != null) {
-			return local;
-		}
-		// implicit this.field
-		var self = findByName(locals, "this");
-		if (self != null && self.reference > 0) {
-			var member = findByName(view.variablesFor(self.reference), name);
-			if (member != null) {
-				return member;
-			}
-		}
-		// static of the class owning the frame
-		var frame = frameAt(frameId);
-		if (frame != null) {
-			var statics = view.staticsScope(frame.location.fidx);
-			if (statics != null) {
-				return findByName(view.variablesFor(statics.reference), name);
-			}
-		}
-		return null;
-	}
-
-	static function findByName(variables:Array<VariableInfo>, name:String):Null<VariableInfo> {
-		for (v in variables) {
-			if (v.name == name) {
-				return v;
-			}
-		}
-		return null;
 	}
 
 	/** The children of a variablesReference ([] for an unknown/stale reference). */
