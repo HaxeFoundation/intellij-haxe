@@ -64,6 +64,14 @@ class ValueReader {
 		return decodePointed(ptr, t);
 	}
 
+	/**
+	 * Decodes a value whose pointer is already in hand (e.g. a function's
+	 * pointer-typed return value in RAX) — no address dereference.
+	 */
+	public function decodeReturnedPointer(ptr:Pointer, t:HLType):DecodedValue {
+		return decodePointed(ptr, t);
+	}
+
 	// Decodes a value whose pointer has already been dereferenced (`ptr` is the
 	// object/box itself). Split from readPointerValue because a vdynamic resolves
 	// to a pointer type without another indirection.

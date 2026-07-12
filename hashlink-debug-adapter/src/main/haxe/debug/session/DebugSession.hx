@@ -202,6 +202,8 @@ class DebugSession {
 			inspector.xmm0Writer = value ->
 				api.writeRegister(process.pid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
 			inspector.warnSink = text -> emit(EvOutput("console", text));
+			inspector.functionCaller = (funcAddr, args, floatReturn) ->
+				callInDebuggee(stoppedThreadId, funcAddr, args, floatReturn);
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -347,6 +349,92 @@ class DebugSession {
 
 	function resumeAfterMemoryWrite():Void {
 		api.resume(process.pid, stoppedThreadId);
+	}
+
+	// --- eval-call (M13): run a function inside the stopped debuggee ---
+
+	static inline var CALL_TIMEOUT_MS = 5000;
+
+	/**
+	 * Calls `funcAddr` in the debuggee with `args` (already lowered to raw
+	 * register values) and returns the raw result (RAX, or XMM0-as-RAX for a
+	 * float return). Injects a trampoline over the code at the stopped thread's
+	 * instruction pointer, runs it to a trailing INT3, then restores the
+	 * original code and the Eip/Esp/Rax registers.
+	 *
+	 * DANGEROUS: this runs arbitrary debuggee code on the session thread. Only
+	 * valid while stopped; a call that throws, recurses into a breakpoint, or
+	 * runs longer than CALL_TIMEOUT_MS fails with the state restored.
+	 */
+	function callInDebuggee(threadId:Int, funcAddr:Pointer, args:Array<debug.eval.CallEmitter.CallArg>, floatReturn:Bool):Pointer {
+		var asm = new debug.eval.CallEmitter(jit.winCall).build(funcAddr, args, floatReturn);
+		var asmSize = asm.length;
+
+		var prevEax = api.readRegister(process.pid, threadId, Eax);
+		var prevEip = api.readRegister(process.pid, threadId, Eip);
+		var prevEsp = api.readRegister(process.pid, threadId, Esp);
+
+		var original = haxe.io.Bytes.alloc(asmSize);
+		if (!api.readMemory(process.pid, prevEip, original, asmSize)) {
+			throw new DebugError("Cannot read code to inject a call");
+		}
+		if (!api.writeMemory(process.pid, prevEip, asm, asmSize)) {
+			throw new DebugError("Cannot inject the call trampoline");
+		}
+		api.flush(process.pid, prevEip, asmSize);
+
+		// give the call a fresh scratch stack below the current frame, aligned
+		// down to a 256-byte boundary (matches hld)
+		var stackTop = Int64.sub(prevEsp, Int64.ofInt(0xFF));
+		var lowByte = Int64.getLow(stackTop) & 0xFF;
+		stackTop = Int64.add(stackTop, Int64.ofInt((0x100 - lowByte) & 0xFF));
+		api.writeRegister(process.pid, threadId, Esp, stackTop);
+
+		var trapEnd = Int64.add(prevEip, Int64.ofInt(asmSize)); // Eip AFTER the INT3
+		var completed = resumeUntilTrap(threadId, trapEnd);
+
+		api.writeMemory(process.pid, prevEip, original, asmSize);
+		api.flush(process.pid, prevEip, asmSize);
+
+		var result = api.readRegister(process.pid, threadId, Eax);
+		var landedEip = api.readRegister(process.pid, threadId, Eip);
+
+		api.writeRegister(process.pid, threadId, Eax, prevEax);
+		api.writeRegister(process.pid, threadId, Eip, prevEip);
+		api.writeRegister(process.pid, threadId, Esp, prevEsp);
+
+		if (!completed || !Int64.eq(landedEip, trapEnd)) {
+			throw new DebugError("The called function did not return normally (it threw an exception or hit a breakpoint)");
+		}
+		return result;
+	}
+
+	// Resume the thread and wait until it traps at exactly `trapEnd` (Eip past
+	// our injected INT3). Returns false on exit, a foreign stop, or timeout.
+	function resumeUntilTrap(threadId:Int, trapEnd:Pointer):Bool {
+		api.resume(process.pid, threadId);
+		var budget = CALL_TIMEOUT_MS;
+		while (budget > 0) {
+			var outcome = api.wait(process.pid, WAIT_POLL_MS);
+			switch (outcome.result) {
+				case Timeout:
+					budget -= WAIT_POLL_MS;
+				case Breakpoint:
+					var eip = api.readRegister(process.pid, outcome.threadId, Eip);
+					if (Int64.eq(eip, trapEnd)) {
+						return true; // our trampoline's INT3
+					}
+					return false; // a user breakpoint fired inside the call
+				case SingleStep:
+					api.resume(process.pid, outcome.threadId);
+				case Exit:
+					state = Exited;
+					return false;
+				default:
+					return false; // exception / stack overflow inside the call
+			}
+		}
+		return false;
 	}
 
 	// --- run control ---

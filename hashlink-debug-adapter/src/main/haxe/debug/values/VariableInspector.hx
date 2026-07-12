@@ -148,6 +148,10 @@ class VariableInspector {
 	 * user-facing message when the path cannot be resolved.
 	 */
 	public function evaluate(frameId:Int, expression:String):VariableInfo {
+		var call = CallExpr.parse(expression);
+		if (call != null) {
+			return evaluateCall(frameId, call.callee, call.args);
+		}
 		var assignAt = assignmentEquals(expression);
 		if (assignAt >= 0) {
 			return assign(frameId, expression.substr(0, assignAt), expression.substr(assignAt + 1));
@@ -207,6 +211,114 @@ class VariableInspector {
 		return {name: target.name, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
 
+	// Set by DebugSession: runs a function inside the debuggee. Null until the
+	// eval-call machinery is enabled.
+	public var functionCaller:Null<(Pointer, Array<debug.eval.CallEmitter.CallArg>, Bool)->Pointer> = null;
+
+	/**
+	 * Evaluates a function call `callee(args...)` by running the callee in the
+	 * debuggee (M13). `callee` must resolve to a function value (an unbound
+	 * closure / function reference); args are literals or variable paths lowered
+	 * to the callee's declared parameter types. Returns the decoded result.
+	 */
+	function evaluateCall(frameId:Int, callee:String, argExprs:Array<String>):VariableInfo {
+		if (functionCaller == null) {
+			throw new debug.DebugError("Calling functions is not available in this session");
+		}
+		var path = ValuePath.parse(callee);
+		if (path == null) {
+			throw new debug.DebugError('Cannot call "' + callee + '": the callee must be a variable path');
+		}
+		var target = targetOfPath(frameId, path);
+		var fn = switch (target.type) {
+			case HFun(f): f;
+			default: throw new debug.DebugError('"' + callee + '" is not a function');
+		};
+		// the slot holds a vclosure; its function pointer is at +ptr. A bound
+		// closure (captured environment) needs the env threaded through as a
+		// leading argument, which is out of scope for now.
+		var closurePtr = memory.readPointer(target.address);
+		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
+			throw new debug.DebugError('"' + callee + '" is null');
+		}
+		if (memory.readI32(offset(closurePtr, align.ptr * 2)) == 1) {
+			throw new debug.DebugError("Cannot call a bound closure yet (it captures local state)");
+		}
+		var funcAddr = memory.readPointer(offset(closurePtr, align.ptr));
+		if (argExprs.length != fn.args.length) {
+			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + argExprs.length);
+		}
+		var args:Array<debug.eval.CallEmitter.CallArg> = [];
+		for (i in 0...argExprs.length) {
+			args.push(lowerArgument(frameId, argExprs[i], fn.args[i]));
+		}
+		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
+		var result = functionCaller(funcAddr, args, floatReturn);
+		return decodeReturn(callee + "()", result, fn.ret);
+	}
+
+	// Lowers an argument expression to the raw 64-bit value its register needs,
+	// coercing to the callee's declared parameter type.
+	function lowerArgument(frameId:Int, argExpr:String, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
+		var literal = ValueLiteralParser.parse(argExpr);
+		if (literal == null) {
+			throw new debug.DebugError('Cannot parse argument "' + argExpr + '"');
+		}
+		switch (literal) {
+			case LPath(argPath):
+				// read the current value at the path's slot as the parameter type
+				var src = targetOfPath(frameId, argPath);
+				return lowerFromMemory(src.address, src.type, paramType);
+			case LInt(v):
+				return isFloatSlot(paramType)
+					? {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(Int64.toInt(v))}
+					: {isFloat: false, bits: v};
+			case LFloat(f):
+				if (!isFloatSlot(paramType)) {
+					throw new debug.DebugError("A float argument does not fit an integer parameter");
+				}
+				return {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(f)};
+			case LBool(b):
+				return {isFloat: false, bits: Int64.ofInt(b ? 1 : 0)};
+			case LNull:
+				return {isFloat: false, bits: Int64.ofInt(0)};
+		}
+	}
+
+	function lowerFromMemory(address:Pointer, type:format.hl.Data.HLType, paramType:format.hl.Data.HLType):debug.eval.CallEmitter.CallArg {
+		return switch (type) {
+			case HUi8: {isFloat: false, bits: Int64.ofInt(memory.readU8(address))};
+			case HUi16: {isFloat: false, bits: Int64.ofInt(memory.readU16(address))};
+			case HI32, HBool: {isFloat: false, bits: Int64.ofInt(memory.readI32(address))};
+			case HI64: {isFloat: false, bits: memory.readI64(address)};
+			case HF64: {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(memory.readF64(address))};
+			case HF32: {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(memory.readF32(address))};
+			default:
+				// a pointer type: pass the pointer value itself
+				{isFloat: false, bits: memory.readPointer(address)};
+		}
+	}
+
+	// Decodes a call's raw return value (RAX, or XMM0-as-RAX for a float return).
+	function decodeReturn(name:String, raw:Pointer, retType:format.hl.Data.HLType):VariableInfo {
+		return switch (retType) {
+			case HVoid: {name: name, value: "void", type: "Void", reference: 0};
+			case HUi8, HUi16, HI32: {name: name, value: Std.string(Int64.getLow(raw)), type: "Int", reference: 0};
+			case HI64: {name: name, value: Int64.toStr(raw), type: "Int64", reference: 0};
+			case HBool: {name: name, value: Int64.getLow(raw) != 0 ? "true" : "false", type: "Bool", reference: 0};
+			case HF64: {name: name, value: Std.string(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw))), type: "Float", reference: 0};
+			case HF32: {name: name, value: Std.string(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw))), type: "Float", reference: 0};
+			default:
+				// a pointer return: the raw value IS the object/string pointer
+				if (Int64.eq(raw, Int64.ofInt(0))) {
+					{name: name, value: "null", type: ValueReader.typeName(retType), reference: 0};
+				} else {
+					var decoded = valueReader.decodeReturnedPointer(raw, retType);
+					{name: name, value: decoded.value, type: decoded.type, reference: decoded.reference};
+				}
+		}
+	}
+
 	// An argument's early uses may be compiled against the CPU register it
 	// ARRIVED in rather than the (also updated) stack slot — verified live:
 	// writing only the slot left a traced Float parameter unchanged. The first
@@ -253,6 +365,10 @@ class VariableInspector {
 
 	static function isFloatSlot(t:format.hl.Data.HLType):Bool {
 		return t.match(HF32) || t.match(HF64);
+	}
+
+	static inline function offset(p:Pointer, n:Int):Pointer {
+		return Int64.add(p, Int64.ofInt(n));
 	}
 
 	// Whether argument `argIndex` arrives in a CPU register: win64 passes the

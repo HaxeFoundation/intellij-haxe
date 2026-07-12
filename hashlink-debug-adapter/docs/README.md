@@ -508,6 +508,38 @@ reliable way to steer that line is to set the value in the CALLER before the
 call. Locals (non-arguments) are unaffected: HL 1.15 re-reads their slots
 (pinned by `writeOnTheUseLineTakesEffect`).
 
+**Calling functions in evaluate (`f(args)`) — the eval-call machinery (M13)**:
+`evaluate` recognises a call `callee(arg, ...)` where `callee` resolves to a
+function value and runs it INSIDE the stopped debuggee. Only the debuggee's own
+code can allocate or execute HL logic, so we borrow its thread: `CallEmitter`
+builds an x86-64 trampoline (port of hld `evalCall`) and `DebugSession.callInDebuggee`
+injects it. The dance:
+- The debug native only lets us write Esp/Eip/Rax, so the trampoline loads the
+  argument registers ITSELF: save the scratch/arg registers, `mov` each arg into
+  its calling-convention register (win64: RCX/RDX/R8/R9 + XMM0-3 positionally;
+  SysV: RDI/RSI/... + XMM0-7), `mov rax, funcAddr` / `call rax`, capture the
+  return (RAX, or XMM0 copied to RAX for a float return), restore the scratch
+  registers, `int3`.
+- The trampoline is written OVER the code at the stopped Eip (guaranteed
+  executable); we save Eip/Esp/Rax and the original bytes, give the call a fresh
+  256-byte-aligned scratch stack below the current frame, resume until the
+  trailing INT3, then restore the code and registers. If Eip did not land
+  exactly past the INT3 the call threw or hit a breakpoint → reported as an
+  error with everything restored.
+- **Stack discipline is everything** (learned the hard way): every push/sub must
+  be matched by an equal pop/add WITHIN the trampoline, or the scratch-register
+  restore reads the wrong slots and hands the debuggee corrupted registers — the
+  symptom was a float-argument call leaving the process unable to step over its
+  own breakpoint afterwards. In particular staging a float arg via `push rax` is
+  8 bytes, so it must pop 8 (`add rsp,8`), not 16.
+- Args are literals or variable paths, lowered to each parameter's declared
+  type; returns are decoded (primitives inline, pointer returns via the normal
+  value path). Not yet supported: bound closures (they need the captured
+  environment threaded in), creating new heap values, and stack-spilled
+  arguments beyond the register set. DANGEROUS by nature — it runs arbitrary
+  debuggee code on the session thread — but that is the accepted trade for
+  steering execution.
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).
@@ -632,4 +664,6 @@ tests set it):
 | Session thread | The command loop catches everything and rejects the one command — a handler exception must never kill the thread, or every later request times out and the client's views go permanently blank |
 | Unbound register slots | Never pointer-chase them: leftovers can look like any type, and a garbage String/map decode can hang or fatally OOM the adapter. Raw bits only (see Registers scope) |
 | Writing arguments | Register-passed args may be consumed from their ARRIVAL register on early uses; the slot write alone is not enough. First float arg → also patch XMM0 (the only exposed arrival register); anything else → console note, set it in the caller instead |
+| Eval-call trampoline | Every push/sub MUST be matched by an equal pop/add inside the trampoline. `push rax` is 8 bytes → pop 8, never 16. An unbalanced stack corrupts the scratch-register restore and hands the debuggee bad registers (symptom: can't step over its own breakpoint after a float-arg call) |
+| Injected calls | Run arbitrary debuggee code on the session thread; only while stopped. Verify Eip lands exactly past the trampoline INT3 (else it threw / hit a breakpoint) and restore code + Eip/Esp/Rax regardless |
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |

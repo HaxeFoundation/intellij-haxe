@@ -20,5 +20,9 @@ enum abstract Register(Int) from Int to Int {
 	var Dr3 = 7;
 	var Dr6 = 8;
 	var Dr7 = 9;
+	// RAX: the integer return register — index 10 in debug.c. Written only to
+	// save/restore it around an injected call (see EvalCaller); higher indexes
+	// are not portable.
+	var Eax = 10;
 	var Xmm0 = 11;
 }
