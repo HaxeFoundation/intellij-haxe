@@ -44,7 +44,7 @@ final class HashLinkStackFrame extends XStackFrame {
   public @Nullable XSourcePosition getSourcePosition() {
     String path = frame.getSource() != null ? frame.getSource().getPath() : null;
     try {
-      return HashLinkSourceResolver.resolve(process.getSession().getProject(), path, frame.getLine());
+      return HashLinkSourceResolver.resolve(process.getSession().getProject(), path, frame);
     } catch (RuntimeException e) {
       // one unresolvable frame must never wedge the whole Frames panel
       LOG.warn("Cannot resolve source for frame '" + frame.getName() + "' (" + path + ")", e);
