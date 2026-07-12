@@ -20,6 +20,7 @@ class ValueReaderTest {
 		readsDynamicInt(assert);
 		readsClosureName(assert);
 		readsRefThroughIndirection(assert);
+		functionTypeShowsSignature(assert);
 	}
 
 	static function addr(v:Int):Pointer {
@@ -145,6 +146,19 @@ class ValueReaderTest {
 		r.functionNameResolver = fun -> Int64.toStr(fun) == Std.string(0x7777) ? "Main.add" : null;
 		var decoded = r.read(addr(0x900), HFun({args: [], ret: HVoid}));
 		assert.equals("function Main.add", decoded.value, "closure resolves its function name");
-		assert.equals("Function", decoded.type, "closure type label");
+		assert.equals("() -> Void", decoded.type, "closure type shows its signature");
+	}
+
+	static function functionTypeShowsSignature(assert:Assert):Void {
+		assert.equals("() -> Void", ValueReader.typeName(HFun({args: [], ret: HVoid})),
+			"no-arg function signature");
+		assert.equals("(Int, String) -> Bool", ValueReader.typeName(HFun({args: [HI32, HObj({
+			name: "String", tsuper: null, fields: [], proto: [], globalValue: null, bindings: []
+		})], ret: HBool})), "argument and return types");
+		assert.equals("(Int) -> (Float) -> Int", ValueReader.typeName(HFun({
+			args: [HI32], ret: HFun({args: [HF64], ret: HI32})
+		})), "nested function types compose");
+		assert.equals("(Int) -> Void", ValueReader.typeName(HMethod({args: [HI32], ret: HVoid})),
+			"methods format like functions");
 	}
 }

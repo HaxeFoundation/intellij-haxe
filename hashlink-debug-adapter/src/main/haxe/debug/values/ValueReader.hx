@@ -244,9 +244,9 @@ class ValueReader {
 		var display = name != null ? "function " + name : "function @ " + hex(fun);
 		var hasValue = mem.readI32(offset(ptr, align.ptr * 2));
 		if (hasValue == 1 && referenceAllocator != null) {
-			return {value: display, type: "Function", reference: referenceAllocator(ptr, t)};
+			return {value: display, type: typeName(t), reference: referenceAllocator(ptr, t)};
 		}
-		return leaf(display, "Function");
+		return leaf(display, typeName(t));
 	}
 
 	// Prefer the object's runtime class (hl_type* header @ +0) over the static
@@ -366,7 +366,7 @@ class ValueReader {
 			case HEnum(proto): proto != null ? proto.name : "Enum";
 			case HNull(inner): typeName(inner);
 			case HRef(inner): typeName(inner);
-			case HFun(_), HMethod(_): "Function";
+			case HFun(fun), HMethod(fun): funSignature(fun);
 			case HAbstract(name): name;
 			case HPacked(inner): typeName(inner.v);
 			default: "Value";
@@ -375,6 +375,19 @@ class ValueReader {
 
 	static function displayName(name:String):String {
 		return (name != null && StringTools.startsWith(name, "$")) ? name.substr(1) : name;
+	}
+
+	// A function/method type rendered as its Haxe signature: `(Arg, Arg) -> Ret`
+	// (`() -> Void` for no args). The bytecode type table carries the parameter
+	// TYPES but not their names, so the arguments are unnamed. Argument and return
+	// types are named recursively, so nested function types compose.
+	static function funSignature(fun:Null<format.hl.Data.FunPrototype>):String {
+		if (fun == null) {
+			return "Function";
+		}
+		var args = fun.args == null ? [] : [for (a in fun.args) typeName(a)];
+		var ret = fun.ret == null ? "Unknown" : typeName(fun.ret);
+		return "(" + args.join(", ") + ") -> " + ret;
 	}
 
 	public static function hex(p:Pointer):String {
