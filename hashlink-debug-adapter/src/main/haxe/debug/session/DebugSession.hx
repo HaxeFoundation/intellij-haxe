@@ -432,12 +432,8 @@ class DebugSession {
 		}
 		api.flush(debuggeePid, prevEip, asmSize);
 
-		// give the call a fresh scratch stack below the current frame, aligned
-		// down to a 256-byte boundary (matches hld)
-		var stackTop = Int64.sub(prevEsp, Int64.ofInt(0xFF));
-		var lowByte = Int64.getLow(stackTop) & 0xFF;
-		stackTop = Int64.add(stackTop, Int64.ofInt((0x100 - lowByte) & 0xFF));
-		api.writeRegister(debuggeePid, threadId, Esp, stackTop);
+		// give the call a fresh scratch stack below the current frame
+		api.writeRegister(debuggeePid, threadId, Esp, scratchStackTop(prevEsp));
 
 		var trapEnd = Int64.add(prevEip, Int64.ofInt(asmSize)); // Eip AFTER the INT3
 		var completed = resumeUntilTrap(threadId, trapEnd);
@@ -498,6 +494,15 @@ class DebugSession {
 			}
 		}
 		return false;
+	}
+
+	// The scratch stack top for an injected call: the 256-byte-aligned address at
+	// or just below the current Esp (matches hld). Running the call here keeps it
+	// from corrupting the interrupted frame below Esp.
+	static inline function scratchStackTop(esp:Pointer):Pointer {
+		var top = Int64.sub(esp, Int64.ofInt(0xFF));
+		var lowByte = Int64.getLow(top) & 0xFF;
+		return Int64.add(top, Int64.ofInt((0x100 - lowByte) & 0xFF));
 	}
 
 	// --- run control ---
@@ -716,6 +721,17 @@ class DebugSession {
 		activeStep = null;
 	}
 
+	// Enter the Stopped state on `threadId`: end any active step, record the
+	// breakpoint we stopped at (null for a step or exception landing), and prime
+	// the inspector for a new stop. The caller emits the specific stopped event.
+	inline function enterStopped(threadId:Int, breakpoint:Null<PatchedBreakpoint>):Void {
+		finishStep();
+		currentStoppedBreakpoint = breakpoint;
+		stoppedThreadId = threadId;
+		inspector.startStop(threadId);
+		state = Stopped(threadId);
+	}
+
 	// Stack grows down: a shallower-or-equal frame has esp >= the step-start
 	// esp. Only meaningful for the step's OWN thread — every thread has its own
 	// stack, so comparing another thread's esp against step.startEsp is noise
@@ -881,11 +897,7 @@ class DebugSession {
 			case SingleStep:
 				api.resume(debuggeePid, outcome.threadId);
 			case Error, StackOverflow:
-				finishStep();
-				stoppedThreadId = outcome.threadId;
-				inspector.startStop(outcome.threadId);
-				state = Stopped(outcome.threadId);
-				currentStoppedBreakpoint = null;
+				enterStopped(outcome.threadId, null);
 				emit(EvStoppedException(outcome.threadId, outcome.result == StackOverflow ? "Stack overflow" : "Unhandled exception"));
 			case Handled:
 				// hl_debug_wait already continued this event internally (thread
@@ -932,12 +944,8 @@ class DebugSession {
 					return;
 				}
 			}
-			finishStep();
 			breakpoints.suspend(userBp);
-			currentStoppedBreakpoint = userBp;
-			stoppedThreadId = threadId;
-			inspector.startStop(threadId);
-			state = Stopped(threadId);
+			enterStopped(threadId, userBp);
 			emit(EvStoppedBreakpoint(threadId, [userBp.id]));
 			return;
 		}
@@ -955,11 +963,7 @@ class DebugSession {
 			stepPastTempAndResume(threadId, hitAddress);
 			return;
 		}
-		finishStep();
-		currentStoppedBreakpoint = null;
-		stoppedThreadId = threadId;
-		inspector.startStop(threadId);
-		state = Stopped(threadId);
+		enterStopped(threadId, null);
 		emit(EvStoppedStep(threadId));
 	}
 

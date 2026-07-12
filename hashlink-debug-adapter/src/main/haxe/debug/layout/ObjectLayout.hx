@@ -51,13 +51,9 @@ class ObjectLayout {
 		for (field in proto.fields) {
 			switch (field.t) {
 				case HPacked({v: HStruct(sub)}):
+					// an inlined @:packed sub-struct: aligned on and sized by the sub-struct
 					var packed = layout(sub, true);
-					if (packed.largestField > 0) {
-						var rem = size % packed.largestField;
-						if (rem != 0) {
-							size += packed.largestField - rem;
-						}
-					}
+					size = alignUp(size, packed.largestField);
 					if (packed.largestField > largestField) {
 						largestField = packed.largestField;
 					}
@@ -73,17 +69,18 @@ class ObjectLayout {
 					size += fieldSize;
 			}
 		}
-		var padSize = 0;
-		if (largestField > 0) {
-			var rem = size % largestField;
-			if (rem != 0) {
-				padSize = largestField - rem;
-				size += padSize;
-			}
-		}
+		// pad the total to a multiple of the largest field so nested layouts compose
+		var padSize = alignUp(size, largestField) - size;
+		size += padSize;
 		var result = {fields: fields, size: size, padSize: padSize, largestField: largestField};
 		cache.set(key, result);
 		return result;
+	}
+
+	// Rounds `value` up to the next multiple of `to` (a no-op when `to` <= 0).
+	static inline function alignUp(value:Int, to:Int):Int {
+		var rem = to <= 0 ? 0 : value % to;
+		return rem == 0 ? value : value + (to - rem);
 	}
 }
 
