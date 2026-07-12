@@ -685,6 +685,27 @@ itself *experimental / unavailable* rather than guessing. This is the most
 fragile machinery in the adapter (it reads raw JIT output) and is marked as
 such in the code.
 
+**Instance method calls (`recv.method(args)`) — M16**: the value-manipulation
+keystone. When an evaluate call's last path segment is a proto method on the
+receiver's runtime class (not a closure-valued field), it is called with the
+receiver threaded as `this`: resolve the receiver to its object pointer, refine
+to the runtime class, find the method by name walking the superclass chain
+(`proto` + `tsuper`, null-guarded), map its findex → array index, and run
+`method(this, args…)` on the eval-call machinery. Unblocks `map.set(k,v)` /
+`map.get(k)`, collection ops, getters — the general form of "mutate/query via
+the program's own methods". Array element writes (`arr[i] = x`) already work
+directly (the element address is writable). Falls back to the closure-field
+call when the segment isn't a method. **Gaps** (clear errors, no corruption):
+- a **primitive into a `Dynamic` parameter** needs boxing into a vdynamic
+  (allocate + tag + payload) — not supported yet, so `Map<K,Int>.set(k, 9)` is
+  refused with a "needs boxing" message; string/object/path args (pointers) are
+  dynamic-compatible and pass as-is (`Map<K,String>.set` works).
+- DCE-limited to methods the program retains; inlined/forwarded methods (e.g.
+  `StringMap.exists` in some builds) aren't proto methods and fall through.
+- MapReader's live entry **count** can lag a debugger-inserted entry (the entry
+  is present and readable via `get`, but the `Map(n)` preview may not tick up) —
+  a display quirk, the mutation itself is real.
+
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
 name, since they live in the instance type's virtual table, not the bindings).

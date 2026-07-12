@@ -345,6 +345,13 @@ class VariableInspector {
 		if (path == null) {
 			throw new debug.DebugError('Cannot call "' + callee + '": the callee must be a variable path');
 		}
+		// `recv.method(args)` — the last segment is an instance method on the
+		// receiver (proto method), not a closure-valued field. Try that first;
+		// fall through to the closure-field call when it isn't a method.
+		var method = tryMethodCall(frameId, path, argExprs);
+		if (method != null) {
+			return method;
+		}
 		var target = targetOfPath(frameId, path);
 		var fn = switch (target.type) {
 			case HFun(f): f;
@@ -370,6 +377,90 @@ class VariableInspector {
 		}
 		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
 		return {raw: functionCaller(funcAddr, args, floatReturn), type: fn.ret};
+	}
+
+	/**
+	 * If `path` is `receiver.method` and `method` is an instance method on the
+	 * receiver's runtime class, calls it with the receiver threaded as `this`
+	 * (M16). Returns null when it isn't a method call (the caller then treats
+	 * the path as a closure-valued field). Enables `map.set(k,v)`, `arr.push(x)`,
+	 * getters, and any other mutation/query the program's own methods provide.
+	 */
+	function tryMethodCall(frameId:Int, path:ValuePath, argExprs:Array<String>):Null<{raw:Pointer, type:format.hl.Data.HLType}> {
+		if (path.accessors.length == 0) {
+			return null; // a bare name: not `recv.method`
+		}
+		var last = path.accessors[path.accessors.length - 1];
+		var methodName = switch (last) {
+			case Field(name): name;
+			default: return null; // `recv[i](...)` is not a method call
+		};
+		// resolve the receiver = the path without its last segment
+		var receiver = targetOfPath(frameId, new ValuePath(path.root, path.accessors.slice(0, path.accessors.length - 1)));
+		var base:Pointer;
+		var runtimeType:HLType;
+		switch (receiver.type) {
+			case HStruct(_):
+				base = receiver.address;
+				runtimeType = receiver.type;
+			case HObj(_):
+				base = memory.readPointer(receiver.address);
+				if (Int64.eq(base, Int64.ofInt(0))) {
+					throw new debug.DebugError('"' + receiver.name + '" is null');
+				}
+				runtimeType = refineObjectType(base, receiver.type);
+			default:
+				return null; // methods only resolve on objects/structs
+		}
+		var findex = methodFindex(runtimeType, methodName);
+		if (findex < 0) {
+			return null; // no such proto method: fall back to closure-field handling
+		}
+		var arrayIndex = module.functionArrayIndex(findex);
+		if (arrayIndex < 0) {
+			throw new debug.DebugError('"' + methodName + '" has no callable body (native or removed)');
+		}
+		var fn = switch (module.functionType(arrayIndex)) {
+			case HFun(f): f;
+			default: throw new debug.DebugError('"' + methodName + '" is not a function');
+		};
+		var paramTypes = fn.args.slice(1); // drop the implicit `this`
+		if (argExprs.length != paramTypes.length) {
+			throw new debug.DebugError('"' + methodName + '" takes ' + paramTypes.length
+				+ " argument(s), got " + argExprs.length);
+		}
+		var args:Array<debug.eval.CallEmitter.CallArg> = [{isFloat: false, bits: base}];
+		for (i in 0...argExprs.length) {
+			args.push(lowerArgument(frameId, argExprs[i], paramTypes[i]));
+		}
+		var floatReturn = fn.ret.match(HF64) || fn.ret.match(HF32);
+		return {raw: functionCaller(jit.functionEntry(arrayIndex), args, floatReturn), type: fn.ret};
+	}
+
+	// The (raw) findex of instance method `name` on an HObj/HStruct type, walking
+	// the superclass chain; -1 if not found. Static-dispatch by name on the
+	// runtime class, so an override on a subclass is used.
+	function methodFindex(t:HLType, name:String):Int {
+		var proto = switch (t) {
+			case HObj(p), HStruct(p): p;
+			default: return -1;
+		}
+		var seen = 0;
+		while (proto != null && seen++ < 64) { // bounded, in case a chain is cyclic
+			var methods = proto.proto;
+			if (methods != null) {
+				for (m in methods) {
+					if (m.name == name) {
+						return m.findex;
+					}
+				}
+			}
+			proto = proto.tsuper == null ? null : switch (proto.tsuper) {
+				case HObj(p), HStruct(p): p;
+				default: null;
+			}
+		}
+		return -1;
 	}
 
 	// Calls a bytecode function resolved by qualified name (a runtime helper),
@@ -437,6 +528,15 @@ class VariableInspector {
 		var literal = ValueLiteralParser.parse(argExpr);
 		if (literal == null) {
 			throw new debug.DebugError('Cannot parse argument "' + argExpr + '"');
+		}
+		// A primitive going into a `Dynamic` parameter must be BOXED into a
+		// vdynamic (allocate + tag + payload); passing the raw bits would be
+		// read as a pointer and stored as garbage. Not supported yet — refuse
+		// clearly rather than corrupt (affects e.g. Map<K,Int>.set). Pointers
+		// (strings, objects, paths) are dynamic-compatible and pass as-is.
+		if (paramType.match(HDyn) && (literal.match(LInt(_)) || literal.match(LFloat(_)) || literal.match(LBool(_)))) {
+			throw new debug.DebugError("Passing a number or bool as a Dynamic argument needs boxing,"
+				+ " which is not supported yet — pass a string/object, or a variable already of that type.");
 		}
 		switch (literal) {
 			case LPath(argPath):

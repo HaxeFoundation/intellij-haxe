@@ -312,6 +312,16 @@ class ModuleDebugInfo {
 	}
 
 	/**
+	 * Maps a raw (global) findex — e.g. from a proto method entry — to the
+	 * position in `data.functions` that functionType/functionEntry expect, or
+	 * -1 for a native (no jitted body) or an unknown findex.
+	 */
+	public function functionArrayIndex(findex:Int):Int {
+		var fidx = functionIndexByFindex.get(findex);
+		return fidx == null ? -1 : fidx;
+	}
+
+	/**
 	 * The findex of an imported C native by its name (e.g. "alloc_bytes"), or -1
 	 * when the program doesn't import it. Natives have no jitted body — this
 	 * findex is used to find a jitted CALL site to the native (see NativeResolver),

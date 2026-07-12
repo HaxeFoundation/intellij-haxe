@@ -14,7 +14,7 @@ class ValuePath {
 	public final root:String;
 	public final accessors:Array<PathAccessor>;
 
-	function new(root:String, accessors:Array<PathAccessor>) {
+	public function new(root:String, accessors:Array<PathAccessor>) {
 		this.root = root;
 		this.accessors = accessors;
 	}

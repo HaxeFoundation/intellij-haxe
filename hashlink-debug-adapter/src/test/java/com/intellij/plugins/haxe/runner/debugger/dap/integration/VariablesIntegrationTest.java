@@ -474,6 +474,64 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
+  // --- container-element writes + instance method calls (M16) ---
+
+  @Test
+  public void writesArrayElementsThroughEvaluate() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // arr[i] = x directly (element address is writable) — ints is [2,5,10]
+    assertTrue("ints[0] = 99", evaluate(frameId, "ints[0] = 99").isSuccess());
+    assertEquals("ints[0] now 99", "99", evaluate(frameId, "ints[0]").getBody().getResult());
+    // a path RHS into another element
+    assertTrue("ints[2] = n", evaluate(frameId, "ints[2] = n").isSuccess());
+    assertEquals("ints[2] now n (=2)", "2", evaluate(frameId, "ints[2]").getBody().getResult());
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void callsInstanceMethodsAndMutatesAMap() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    // read via a method call: stringMap has "a2"->2, "b"->6
+    assertEquals("stringMap.get(\"b\")", "6", evaluate(frameId, "stringMap.get(\"b\")").getBody().getResult());
+    // intMap has 2->"v2"; String values are pointers (no boxing needed)
+    assertEquals("intMap.get(2)", "\"v2\"", evaluate(frameId, "intMap.get(2)").getBody().getResult());
+
+    // MUTATE the map via its own method — the value-manipulation prize. A
+    // String value is dynamic-compatible, so no boxing is required. The
+    // insertion is proven by reading the new key back through get() (a missing
+    // key returns null), the honest end-to-end signal.
+    assertEquals("absent key is null before insert", "null", evaluate(frameId, "intMap.get(5)").getBody().getResult());
+    assertTrue("intMap.set(5, \"hi\")", evaluate(frameId, "intMap.set(5, \"hi\")").isSuccess());
+    assertEquals("the inserted entry reads back", "\"hi\"", evaluate(frameId, "intMap.get(5)").getBody().getResult());
+    assertEquals("pre-existing entry intact", "\"v2\"", evaluate(frameId, "intMap.get(2)").getBody().getResult());
+
+    // a primitive into a Dynamic-valued map is refused clearly (boxing gap)
+    Response boxed = evaluateRaw(frameId, "stringMap.set(\"c\", 9)");
+    assertFalse("primitive->Dynamic arg rejected", boxed.isSuccess());
+    assertTrue("boxing message (was: " + boxed.getMessage() + ")", boxed.getMessage().contains("boxing"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void methodCallRejectsUnknownMethodsClearly() throws Exception {
+    runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
+    int frameId = topFrameId(lastStoppedThreadId());
+
+    Response noSuch = evaluateRaw(frameId, "stringMap.nope(1)");
+    assertFalse("unknown method rejected", noSuch.isSuccess());
+    Response wrongArity = evaluateRaw(frameId, "stringMap.set(\"c\")");
+    assertFalse("wrong arity rejected", wrongArity.isSuccess());
+    assertTrue("arity message", wrongArity.getMessage().contains("argument"));
+
+    request(new DisconnectRequest());
+  }
+
   private EvaluateResponse evaluate(int frameId, String expression) throws Exception {
     Response response = evaluateRaw(frameId, expression);
     assertTrue("evaluate '" + expression + "' succeeds: " + response.getMessage(), response.isSuccess());
