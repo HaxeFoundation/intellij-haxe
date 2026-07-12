@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.module;
 
 import debug.module.LocalVar;
 import debug.module.LocalsResolver;

@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.layout;
 
 import debug.layout.Align;
 import debug.layout.FieldLayout;

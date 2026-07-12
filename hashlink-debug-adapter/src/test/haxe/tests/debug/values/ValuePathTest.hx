@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.values;
 
 import debug.values.ValuePath;
 

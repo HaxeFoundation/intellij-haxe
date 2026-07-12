@@ -1,5 +1,3 @@
-package tests;
-
 import debug.Pointer;
 import debug.target.DebugApi;
 import debug.target.Register;

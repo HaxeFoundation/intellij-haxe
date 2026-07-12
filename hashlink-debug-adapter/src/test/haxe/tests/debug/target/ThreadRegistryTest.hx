@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.target;
 
 import debug.Pointer;
 import debug.layout.Align;

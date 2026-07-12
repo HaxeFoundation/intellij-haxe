@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.eval.call;
 
 import debug.eval.call.CallEmitter;
 

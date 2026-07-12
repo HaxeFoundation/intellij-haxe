@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.session;
 
 import debug.Pointer;
 import debug.session.Breakpoints;

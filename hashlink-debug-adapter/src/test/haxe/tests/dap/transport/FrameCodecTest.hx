@@ -1,4 +1,4 @@
-package tests;
+package tests.dap.transport;
 
 import dap.transport.FrameCodec;
 import dap.transport.MessageReader;

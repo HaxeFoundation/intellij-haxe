@@ -1,4 +1,4 @@
-package tests;
+package tests.dap.protocol;
 
 import dap.protocol.Response;
 import haxe.Json;

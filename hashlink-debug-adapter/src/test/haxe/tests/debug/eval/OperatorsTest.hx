@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.eval;
 
 import debug.eval.EvalValue;
 import debug.eval.Operators;

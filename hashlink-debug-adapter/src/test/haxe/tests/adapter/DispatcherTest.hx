@@ -1,4 +1,4 @@
-package tests;
+package tests.adapter;
 
 import debug.session.BreakpointResult;
 import debug.session.FrameInfo;

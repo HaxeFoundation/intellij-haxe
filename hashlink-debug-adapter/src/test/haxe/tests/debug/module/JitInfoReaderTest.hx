@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.module;
 
 import debug.DebugError;
 import debug.module.JitInfoReader;

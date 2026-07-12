@@ -10,33 +10,34 @@ class TestMain {
 	static function main():Void {
 		var suites:Array<{name:String, run:Assert->Void}> = [
 			// transport + protocol + dispatch
-			{name: "FrameCodecTest", run: tests.FrameCodecTest.run},
-			{name: "ProtocolJsonTest", run: tests.ProtocolJsonTest.run},
-			{name: "DispatcherTest", run: tests.DispatcherTest.run},
+			{name: "FrameCodecTest", run: tests.dap.transport.FrameCodecTest.run},
+			{name: "ProtocolJsonTest", run: tests.dap.protocol.ProtocolJsonTest.run},
+			{name: "DispatcherTest", run: tests.adapter.DispatcherTest.run},
 			// module / jit metadata
-			{name: "JitInfoReaderTest", run: tests.JitInfoReaderTest.run},
-			{name: "ModuleDebugInfoTest", run: tests.ModuleDebugInfoTest.run},
-			{name: "CodeGraphTest", run: tests.CodeGraphTest.run},
-			{name: "LocalScopesTest", run: tests.LocalScopesTest.run},
-			{name: "LocalsResolverTest", run: tests.LocalsResolverTest.run},
+			{name: "JitInfoReaderTest", run: tests.debug.module.JitInfoReaderTest.run},
+			{name: "ModuleDebugInfoTest", run: tests.debug.module.ModuleDebugInfoTest.run},
+			{name: "CodeGraphTest", run: tests.debug.module.CodeGraphTest.run},
+			{name: "LocalScopesTest", run: tests.debug.module.LocalScopesTest.run},
+			{name: "LocalsResolverTest", run: tests.debug.module.LocalsResolverTest.run},
 			// target control
-			{name: "BreakpointsTest", run: tests.BreakpointsTest.run},
-			{name: "StackWalkerTest", run: tests.StackWalkerTest.run},
-			{name: "ThreadRegistryTest", run: tests.ThreadRegistryTest.run},
+			{name: "BreakpointsTest", run: tests.debug.session.BreakpointsTest.run},
+			{name: "StackWalkerTest", run: tests.debug.target.StackWalkerTest.run},
+			{name: "ThreadRegistryTest", run: tests.debug.target.ThreadRegistryTest.run},
 			// memory layout
-			{name: "FrameLayoutTest", run: tests.FrameLayoutTest.run},
-			{name: "ObjectLayoutTest", run: tests.ObjectLayoutTest.run},
-			{name: "EnumLayoutTest", run: tests.EnumLayoutTest.run},
-			{name: "GlobalTableTest", run: tests.GlobalTableTest.run},
+			{name: "FrameLayoutTest", run: tests.debug.layout.FrameLayoutTest.run},
+			{name: "ObjectLayoutTest", run: tests.debug.layout.ObjectLayoutTest.run},
+			{name: "EnumLayoutTest", run: tests.debug.layout.EnumLayoutTest.run},
+			{name: "GlobalTableTest", run: tests.debug.layout.GlobalTableTest.run},
 			// value decoding
-			{name: "RuntimeTypesTest", run: tests.RuntimeTypesTest.run},
-			{name: "ValuePathTest", run: tests.ValuePathTest.run},
-			{name: "ExprParserTest", run: tests.ExprParserTest.run},
-			{name: "OperatorsTest", run: tests.OperatorsTest.run},
-			{name: "ValueReaderTest", run: tests.ValueReaderTest.run},
-			{name: "ValueChildrenTest", run: tests.ValueChildrenTest.run},
-			{name: "MapReaderTest", run: tests.MapReaderTest.run},
-			{name: "CallEmitterTest", run: tests.CallEmitterTest.run},
+			{name: "RuntimeTypesTest", run: tests.debug.values.RuntimeTypesTest.run},
+			{name: "ValuePathTest", run: tests.debug.values.ValuePathTest.run},
+			{name: "ValueReaderTest", run: tests.debug.values.ValueReaderTest.run},
+			{name: "ValueChildrenTest", run: tests.debug.values.ValueChildrenTest.run},
+			{name: "MapReaderTest", run: tests.debug.values.MapReaderTest.run},
+			// expression evaluator + eval-call
+			{name: "ExprParserTest", run: tests.debug.eval.ExprParserTest.run},
+			{name: "OperatorsTest", run: tests.debug.eval.OperatorsTest.run},
+			{name: "CallEmitterTest", run: tests.debug.eval.call.CallEmitterTest.run},
 		];
 
 		var assert = new Assert();

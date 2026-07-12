@@ -1,4 +1,4 @@
-package tests;
+package tests.debug.eval;
 
 import debug.eval.ExprAst.Expr;
 import debug.eval.ExprParser;
