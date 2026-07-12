@@ -26,8 +26,6 @@ import haxe.Int64;
  * a reference must never outlive its stop, since the GC can move objects.
  */
 class VariableInspector {
-	static inline var REF_BASE = 1000;
-
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
@@ -56,20 +54,17 @@ class VariableInspector {
 		memWriter = out;
 	}
 
-	// per-stop state, cleared on every resume. All threads are frozen at a stop,
-	// so any thread's stack is walked lazily on first request and cached.
-	final frameCaches:Map<Int, Array<CachedFrame>> = new Map(); // threadId -> its frames (with ids)
-	final frameHandles:Map<Int, CachedFrame> = new Map(); // frameId -> the frame it names
-	final references:Map<Int, RefTarget> = new Map();
-	// Frame ids AND variablesReferences draw from ONE monotonic counter that is
-	// never reset: a stale handle from before a resume resolves to nothing, never
-	// aliases a new stop's allocation, and the two id spaces can't collide.
-	var nextHandle:Int = REF_BASE;
-	// The thread the stop landed in — writes and eval-call run only here.
-	var stoppedThreadId:Int = 0;
+	// The per-stop frame caches and variablesReference registry (cleared on every
+	// resume). Owns `stoppedThreadId` — the thread writes/eval-call run in.
+	final stops = new StopState();
 
 	// Set by DebugSession: walks a thread's stack (StackWalker) on demand.
-	public var frameWalker:Null<Int->Array<StackFrameLocation>> = null;
+	public var frameWalker(never, set):Null<Int->Array<StackFrameLocation>>;
+
+	inline function set_frameWalker(walker:Null<Int->Array<StackFrameLocation>>):Null<Int->Array<StackFrameLocation>> {
+		stops.frameWalker = walker;
+		return walker;
+	}
 
 	// Set by DebugSession: a thread's CPU registers (the architecture-neutral
 	// SP/BP/IP/FLAGS subset), shown on that thread's top frame.
@@ -101,7 +96,7 @@ class VariableInspector {
 		runtimeTypes = new RuntimeTypes(memory, name -> module.typeByName(name));
 		var enumLayout = new EnumLayout(align);
 		valueReader = new ValueReader(memory, align);
-		valueReader.referenceAllocator = (pointer, type) -> allocReference(RefObject(pointer, type));
+		valueReader.referenceAllocator = (pointer, type) -> stops.allocReference(RefObject(pointer, type));
 		valueReader.runtimeTypes = runtimeTypes;
 		valueReader.enumLayout = enumLayout;
 		valueReader.functionNameResolver = funPtr -> {
@@ -123,28 +118,19 @@ class VariableInspector {
 		valueChildren.treeMaps = treeMaps;
 	}
 
-	/**
-	 * Begins a new stop: drops all per-thread frame caches, frame handles, and
-	 * references (their NUMBERS are never reused — see nextHandle). `threadId` is
-	 * the thread the stop landed in, the only one writes/eval-call may touch.
-	 */
-	public function startStop(threadId:Int):Void {
-		frameCaches.clear();
-		frameHandles.clear();
-		references.clear();
-		stoppedThreadId = threadId;
+	/** Begins a new stop landed in `threadId` (see StopState.startStop). */
+	public inline function startStop(threadId:Int):Void {
+		stops.startStop(threadId);
 	}
 
 	/** Clears every per-stop cache (on resume). */
-	public function invalidate():Void {
-		frameCaches.clear();
-		frameHandles.clear();
-		references.clear();
+	public inline function invalidate():Void {
+		stops.invalidate();
 	}
 
 	/** True once a stop has produced at least one frame (any thread walked). */
-	public function hasFrames():Bool {
-		return frameCaches.iterator().hasNext();
+	public inline function hasFrames():Bool {
+		return stops.hasFrames();
 	}
 
 	/**
@@ -152,24 +138,12 @@ class VariableInspector {
 	 * frozen at a stop). Each carries the globally-unique frame id the client
 	 * uses for scopes/variables/evaluate.
 	 */
-	public function framesFor(threadId:Int):Array<CachedFrame> {
-		var cached = frameCaches.get(threadId);
-		if (cached != null) {
-			return cached;
-		}
-		var walked = frameWalker == null ? [] : frameWalker(threadId);
-		var withIds:Array<CachedFrame> = [];
-		for (i in 0...walked.length) {
-			var frame:CachedFrame = {frameId: nextHandle++, threadId: threadId, index: i, location: walked[i]};
-			frameHandles.set(frame.frameId, frame);
-			withIds.push(frame);
-		}
-		frameCaches.set(threadId, withIds);
-		return withIds;
+	public inline function framesFor(threadId:Int):Array<CachedFrame> {
+		return stops.framesFor(threadId);
 	}
 
 	inline function frameAt(frameId:Int):Null<CachedFrame> {
-		return frameHandles.get(frameId);
+		return stops.frameAt(frameId);
 	}
 
 	/** The scopes of a cached frame: Locals, plus Statics when the owning class has static data. */
@@ -179,12 +153,12 @@ class VariableInspector {
 			return [];
 		}
 		var scopes:Array<ScopeInfo> = [];
-		scopes.push({name: "Locals", reference: allocReference(RefLocals(frameId))});
+		scopes.push({name: "Locals", reference: stops.allocReference(RefLocals(frameId))});
 		var statics = staticsScope(frame.location.fidx);
 		if (statics != null) {
 			scopes.push(statics);
 		}
-		scopes.push({name: "Registers", reference: allocReference(RefRegisters(frameId)), hint: "registers"});
+		scopes.push({name: "Registers", reference: stops.allocReference(RefRegisters(frameId)), hint: "registers"});
 		return scopes;
 	}
 
@@ -263,7 +237,7 @@ class VariableInspector {
 					name: cls.className,
 					value: "class " + cls.className,
 					type: staticsContainerName(cls.className),
-					reference: allocReference(RefStatics(cls.singleton, cls.proto)),
+					reference: stops.allocReference(RefStatics(cls.singleton, cls.proto)),
 				};
 				start = cls.consumed;
 			}
@@ -989,7 +963,7 @@ class VariableInspector {
 	// so a "didn't take" write on the current line is explainable.
 	function fixupAfterWrite(target:WriteTarget):Void {
 		// the arrival-register fixup only applies to the stopped thread's top frame
-		var stoppedFrames = frameCaches.get(stoppedThreadId);
+		var stoppedFrames = stops.framesFor(stops.stoppedThreadId);
 		if (stoppedFrames == null || stoppedFrames.length == 0) {
 			return;
 		}
@@ -1090,7 +1064,7 @@ class VariableInspector {
 	var writeFrame:Int = 0;
 
 	function targetInReference(reference:Int, name:String):WriteTarget {
-		var container = references.get(reference);
+		var container = stops.referenceTarget(reference);
 		if (container == null) {
 			throw new debug.DebugError("This value can no longer be modified (the debuggee has moved on)");
 		}
@@ -1341,7 +1315,7 @@ class VariableInspector {
 
 	/** The children of a variablesReference ([] for an unknown/stale reference). */
 	public function variablesFor(reference:Int):Array<VariableInfo> {
-		var target = references.get(reference);
+		var target = stops.referenceTarget(reference);
 		if (target == null) {
 			return [];
 		}
@@ -1455,7 +1429,7 @@ class VariableInspector {
 		var display = module.functionName(fidx);
 		var dot = display.indexOf(".");
 		var className = dot > 0 ? display.substr(0, dot) : display;
-		return {name: "Statics (" + className + ")", reference: allocReference(RefStatics(address, proto))};
+		return {name: "Statics (" + className + ")", reference: stops.allocReference(RefStatics(address, proto))};
 	}
 
 	// A statics container also holds its static methods (function-typed fields)
@@ -1498,18 +1472,4 @@ class VariableInspector {
 		}
 		return true;
 	}
-
-	function allocReference(target:RefTarget):Int {
-		var reference = nextHandle++;
-		references.set(reference, target);
-		return reference;
-	}
-}
-
-/** A walked stack frame plus the globally-unique id the client refers to it by. */
-typedef CachedFrame = {
-	var frameId:Int;
-	var threadId:Int;
-	var index:Int; // position in its thread's stack (0 = top)
-	var location:debug.target.StackFrameLocation;
 }
