@@ -436,6 +436,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("array index", "5", evaluate(frameId, "ints[1]").getBody().getResult());
     assertEquals("dynobj field path", "\"d2\"", evaluate(frameId, "dynObj.label").getBody().getResult());
     assertEquals("packed struct path", "1.5", evaluate(frameId, "holder.pos.x").getBody().getResult());
+    // a trailing ';' (e.g. pasted from source) is ignored on a single-line expr
+    assertEquals("trailing semicolon ignored", "2", evaluate(frameId, "n;").getBody().getResult());
+    assertEquals("trailing semicolon + spaces ignored", "5", evaluate(frameId, "ints[1] ; ").getBody().getResult());
 
     request(new DisconnectRequest());
   }

@@ -43,6 +43,9 @@ class VariableInspector {
 	// Non-null once value modification is enabled (a MemoryWriter is available).
 	var writer:Null<ValueWriter> = null;
 	var memWriter:Null<debug.target.MemoryWriter> = null;
+	// Recovers construction recipes by disassembling ONew sites (a hack; see
+	// ConstructorResolver). Created lazily on the first `new` evaluation.
+	var constructors:Null<debug.eval.ConstructorResolver> = null;
 
 	/** Enables value modification (setVariable / assignment) via `out`. */
 	public function enableWrites(out:debug.target.MemoryWriter):Void {
@@ -189,9 +192,17 @@ class VariableInspector {
 	 * user-facing message when the path cannot be resolved.
 	 */
 	public function evaluate(frameId:Int, expression:String):VariableInfo {
+		// a single-line expression may carry a trailing ';' (e.g. copied from
+		// source); it is not part of the expression grammar, so drop it
+		expression = StringTools.trim(expression);
+		while (StringTools.endsWith(expression, ";")) {
+			expression = StringTools.rtrim(expression.substr(0, expression.length - 1));
+		}
 		var call = CallExpr.parse(expression);
 		if (call != null) {
-			return evaluateCall(frameId, call.callee, call.args);
+			return call.isConstruction
+				? decodeReturn("new " + call.callee + "()", construct(frameId, call.callee, call.args), constructedType(call.callee))
+				: evaluateCall(frameId, call.callee, call.args);
 		}
 		var assignAt = assignmentEquals(expression);
 		if (assignAt >= 0) {
@@ -266,6 +277,58 @@ class VariableInspector {
 	function evaluateCall(frameId:Int, callee:String, argExprs:Array<String>):VariableInfo {
 		var call = callRaw(frameId, callee, argExprs);
 		return decodeReturn(callee + "()", call.raw, call.type);
+	}
+
+	/**
+	 * Constructs `new className(args)` in the debuggee (M15) and returns the new
+	 * instance pointer. Allocates via the recovered `hl_alloc_obj` + class type
+	 * pointer (see ConstructorResolver — a disassembly hack), then runs the
+	 * constructor `(this, args...)`. Construction is EXPERIMENTAL: if the
+	 * allocator/ONew pattern can't be mined (non-x86-64, an unrecognised JIT, or
+	 * the class is never constructed in the program so its `new` was stripped by
+	 * DCE) it fails with a clear message rather than guessing.
+	 */
+	function construct(frameId:Int, className:String, argExprs:Array<String>):Pointer {
+		if (functionCaller == null) {
+			throw new debug.DebugError("Constructing objects is not available in this session");
+		}
+		if (constructors == null) {
+			constructors = new debug.eval.ConstructorResolver(module, jit, memory);
+		}
+		var site = constructors.resolve(className);
+		if (site == null) {
+			throw new debug.DebugError('Cannot construct "' + className
+				+ '": no reachable constructor. Object construction is experimental — it only'
+				+ ' works for classes the program itself instantiates (and on x86-64).');
+		}
+		// the constructor's declared type: arg0 is `this`, the rest are the params
+		var ctorFun = switch (module.functionType(site.ctorFindex)) {
+			case HFun(f): f;
+			default: throw new debug.DebugError('The constructor of "' + className + '" is not a function');
+		};
+		var paramTypes = ctorFun.args.slice(1); // drop the leading `this`
+		if (argExprs.length != paramTypes.length) {
+			throw new debug.DebugError('new ' + className + " takes " + paramTypes.length
+				+ " argument(s), got " + argExprs.length);
+		}
+		// allocate: hl_alloc_obj(classType) -> fresh zeroed instance
+		var instance = functionCaller(site.allocFunction, [{isFloat: false, bits: site.typePointer}], false);
+		if (Int64.eq(instance, Int64.ofInt(0))) {
+			throw new debug.DebugError("Allocation returned null while constructing " + className);
+		}
+		// run the constructor: new(this, args...) -> void, initialising `instance`
+		var ctorArgs:Array<debug.eval.CallEmitter.CallArg> = [{isFloat: false, bits: instance}];
+		for (i in 0...argExprs.length) {
+			ctorArgs.push(lowerArgument(frameId, argExprs[i], paramTypes[i]));
+		}
+		functionCaller(jit.functionEntry(site.ctorFindex), ctorArgs, false);
+		return instance;
+	}
+
+	// The module HLType of a construction result (the class named).
+	function constructedType(className:String):format.hl.Data.HLType {
+		var t = module.typeByName(className);
+		return t == null ? HDyn : t;
 	}
 
 	// Runs `callee(args)` in the debuggee and returns the raw result (RAX, or
@@ -540,11 +603,15 @@ class VariableInspector {
 		if (writer == null) {
 			throw new debug.DebugError("Value modification is not available in this session");
 		}
-		// RHS is a function call: run it and write its result (M13b)
+		// RHS is a function call or construction: run it, write its result (M13b/M15)
 		var call = CallExpr.parse(valueExpr);
 		if (call != null) {
-			var result = callRaw(writeFrame, call.callee, call.args);
-			writer.assignRaw(target, result.raw, result.type);
+			if (call.isConstruction) {
+				writer.assignRaw(target, construct(writeFrame, call.callee, call.args), constructedType(call.callee));
+			} else {
+				var result = callRaw(writeFrame, call.callee, call.args);
+				writer.assignRaw(target, result.raw, result.type);
+			}
 			return;
 		}
 		var literal = ValueLiteralParser.parse(valueExpr);

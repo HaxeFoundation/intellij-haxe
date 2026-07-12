@@ -652,6 +652,34 @@ injects it. The dance:
   live on the container type `Pkg.$Cls` (the `$` prefixes the LAST path
   segment, e.g. `haxe.io.$Bytes`, `$String`). `displayClassName` strips that so
   both display and name→findex lookup use the real `Pkg.Cls.method`.
+- A trailing `;` on a single-line evaluate expression is stripped (pasted from
+  source): `n;` evaluates as `n`.
+
+**Constructing objects (`new Class(args)`) — M15, a documented HACK**:
+`new` compiles to an `ONew dst` (allocate) plus a constructor call; the
+constructor (`Class.new(this, args…)`) is a normal bytecode function we can
+call, but the allocator `hl_alloc_obj` is a C native with no findex and the
+class's runtime `hl_type*` isn't in the handshake either. There is **no clean
+way** to reach them, so `ConstructorResolver` **disassembles an `ONew Class`
+machine-code site** and reads the operands the JIT baked in. Per hashlink
+`jit.c`, `call_native` emits `mov rax, imm64` (`48 B8 …`) + `call rax`
+(`FF D0`), and `ONew`'s type argument is `mov rcx/rdi, imm64` right before it:
+
+    48 B9 <class hl_type* : 8>   ; win64 arg0 (rdi/48 BF on SysV)
+    48 B8 <hl_alloc_obj  : 8>
+    [48 83 EC 20]                ; win64 shadow-space `sub rsp,0x20` (optional)
+    FF D0                        ; call rax
+
+One `ONew Class` site yields the allocator, the class type pointer, and — from
+the `OCall` right after whose first arg is the allocated register — the
+constructor findex (mapped findex→array-index via `callTargetFunction`). We
+then `hl_alloc_obj(type)` → run `ctor(instance, args…)` on the eval-call
+machinery. **Caveats, by design**: x86-64 only; **DCE-limited** to classes the
+program actually instantiates (no `ONew` site otherwise — and the constructor
+may be stripped anyway); if the pattern isn't found, construction reports
+itself *experimental / unavailable* rather than guessing. This is the most
+fragile machinery in the adapter (it reads raw JIT output) and is marked as
+such in the code.
 
 **Statics scope**: shown for the class owning the stopped frame — static AND
 instance methods (instance methods are mapped to their "$Class" container by
@@ -788,3 +816,5 @@ tests set it):
 | Thread enumeration | Read HL's registry at `threadsPtr` (offsets are hld's, empirically pinned; name field only ≥1.13); `hl_debug_wait` swallows thread create/exit, so re-read every stop. "main" = lowest id, not the stopped thread |
 | Per-thread inspection | All threads frozen at a stop → walk any thread's stack via `read_register(tid)`; frame ids are globally unique (shared monotonic counter with references). Suspend-single-thread and output attribution are impossible with HL's API |
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and we only write while stopped |
+| Constructing objects | `new X(args)` is a HACK: disassemble an `ONew X` site for `48 B8 <hl_alloc_obj> … FF D0` + the type-ptr `mov` before it + the ctor findex from the following `OCall`. x86-64 only, DCE-limited to instantiated classes, reports "experimental/unavailable" if the pattern isn't found. Never assume the call is immediately after the `mov rax` — win64 slips `sub rsp,0x20` in between |
+| findex ≠ array index | An `OCall`/binding carries a raw findex; `functionType`/`functionEntry`/`opcodes` want the ARRAY position. Map with `callTargetFunction`/`functionIndexByFindex`, never use a raw findex directly |

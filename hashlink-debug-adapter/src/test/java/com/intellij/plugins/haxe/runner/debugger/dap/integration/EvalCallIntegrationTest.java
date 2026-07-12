@@ -15,6 +15,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.OutputEvent
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 /**
@@ -114,6 +115,65 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     assertTrue("s = \"final\"", evaluate(frameId, "s = \"final\"").isSuccess());
     String output = continueToExit(threadId);
     assertTrue("the created string reached execution (" + output + ")", output.contains(",final,"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void constructsObjectsWithNew() throws Exception {
+    // M15: `new Point(x,y,label)` — allocate via the mined hl_alloc_obj + type
+    // pointer, then run the constructor. Point is constructed elsewhere in the
+    // program (Main.inspectDemo), so its ONew site exists to mine.
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+
+    // construct with int + null-string args, expand the result, check fields
+    EvaluateResponse p = evaluate(frameId, "new Point(3, 4, null)");
+    assertEquals("constructed Point", "Point", p.getBody().getType());
+    assertTrue("Point is expandable", p.getBody().getVariablesReference() > 0);
+    Map<String, String> fields = variablesByName(p.getBody().getVariablesReference());
+    assertEquals("Point.x initialised by the ctor", "3", fields.get("x"));
+    assertEquals("Point.y initialised by the ctor", "4", fields.get("y"));
+    assertEquals("Point.label null", "null", fields.get("label"));
+
+    // a String constructor argument (materialised via M13c) reaches a field
+    Map<String, String> withLabel =
+      variablesByName(evaluate(frameId, "new Point(5, 6, \"hi\")").getBody().getVariablesReference());
+    assertEquals("Point.label from a string literal arg", "\"hi\"", withLabel.get("label"));
+
+    request(new DisconnectRequest());
+  }
+
+  @Test
+  public void assignsANewObjectToALocalAndItReachesExecution() throws Exception {
+    // `p = new Point(...)` — but Call.demo has no Point local, so verify via a
+    // fresh construction assigned through evaluate into a Dynamic array slot is
+    // out of scope; instead assert the constructed instance survives a resume by
+    // constructing, reading back, then continuing to a clean exit.
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int threadId = stopped.getBody().getThreadId();
+    int frameId = topFrameId(threadId);
+
+    EvaluateResponse p = evaluate(frameId, "new Point(7, 8, \"z\")");
+    assertEquals("y set", "8", variablesByName(p.getBody().getVariablesReference()).get("y"));
+
+    // the injected allocation + ctor left the debuggee intact
+    String output = continueToExit(threadId);
+    assertTrue("program output intact after construction (" + output + ")", output.contains("call:11,25,true,orig10,L10,5"));
+  }
+
+  @Test
+  public void rejectsConstructingAnUninstantiatedClassClearly() throws Exception {
+    StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
+    int frameId = topFrameId(stopped.getBody().getThreadId());
+
+    // Config is never `new`d in the program (only static access), so there is no
+    // ONew site to mine — construction must fail with a clear, honest message
+    Response rejected = evaluateRaw(frameId, "new Config()");
+    assertFalse("uninstantiated class rejected", rejected.isSuccess());
+    assertTrue("message explains the limitation (was: " + rejected.getMessage() + ")",
+               rejected.getMessage().toLowerCase().contains("experimental")
+               || rejected.getMessage().toLowerCase().contains("construct"));
 
     request(new DisconnectRequest());
   }

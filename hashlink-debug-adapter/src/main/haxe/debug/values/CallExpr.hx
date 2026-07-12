@@ -13,10 +13,13 @@ package debug.values;
 class CallExpr {
 	public final callee:String;
 	public final args:Array<String>;
+	// true for `new Class(args)` (construction) vs a plain `callee(args)` call
+	public final isConstruction:Bool;
 
-	function new(callee:String, args:Array<String>) {
+	function new(callee:String, args:Array<String>, isConstruction:Bool) {
 		this.callee = callee;
 		this.args = args;
+		this.isConstruction = isConstruction;
 	}
 
 	public static function parse(expression:Null<String>):Null<CallExpr> {
@@ -24,6 +27,12 @@ class CallExpr {
 			return null;
 		}
 		var s = StringTools.trim(expression);
+		// `new Class(args)` — the class name is the callee, isConstruction marks it
+		var construction = false;
+		if (StringTools.startsWith(s, "new ")) {
+			construction = true;
+			s = StringTools.ltrim(s.substr(4));
+		}
 		if (s.length == 0 || s.charCodeAt(s.length - 1) != ")".code) {
 			return null;
 		}
@@ -38,7 +47,7 @@ class CallExpr {
 			return null;
 		}
 		var inner = s.substring(open + 1, s.length - 1);
-		return new CallExpr(callee, splitArgs(inner));
+		return new CallExpr(callee, splitArgs(inner), construction);
 	}
 
 	// Splits on top-level commas (depth 0), honouring () and [] nesting. Empty
