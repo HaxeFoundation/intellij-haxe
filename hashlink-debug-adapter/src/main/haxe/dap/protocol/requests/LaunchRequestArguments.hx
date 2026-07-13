@@ -16,10 +16,10 @@ package dap.protocol.requests;
  */
 typedef LaunchRequestArguments = {
 	var program:String;
-	@:optional var args:Array<String>;
-	@:optional var cwd:String;
-	@:optional var hlPath:String;
-	@:optional var stopOnEntry:Bool;
-	@:optional var attachPid:Null<Int>;
-	@:optional var debugPort:Null<Int>;
+	var ?args:Array<String>;
+	var ?cwd:String;
+	var ?hlPath:String;
+	var ?stopOnEntry:Bool;
+	var ?attachPid:Null<Int>;
+	var ?debugPort:Null<Int>;
 }

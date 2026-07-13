@@ -6,5 +6,5 @@ package dap.protocol;
 typedef Request = {
 	> ProtocolMessage,
 	var command:String;
-	@:optional var arguments:Dynamic;
+	var ?arguments:Dynamic;
 }

@@ -9,6 +9,6 @@ typedef Response = {
 	var request_seq:Int;
 	var success:Bool;
 	var command:String;
-	@:optional var message:String;
-	@:optional var body:Dynamic;
+	var ?message:String;
+	var ?body:Dynamic;
 }

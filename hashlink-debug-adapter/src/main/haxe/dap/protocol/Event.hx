@@ -6,5 +6,5 @@ package dap.protocol;
 typedef Event = {
 	> ProtocolMessage,
 	var event:String;
-	@:optional var body:Dynamic;
+	var ?body:Dynamic;
 }

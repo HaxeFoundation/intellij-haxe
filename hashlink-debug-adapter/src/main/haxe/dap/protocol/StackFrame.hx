@@ -8,5 +8,5 @@ typedef StackFrame = {
 	var name:String;
 	var line:Int;
 	var column:Int;
-	@:optional var source:Source;
+	var ?source:Source;
 }

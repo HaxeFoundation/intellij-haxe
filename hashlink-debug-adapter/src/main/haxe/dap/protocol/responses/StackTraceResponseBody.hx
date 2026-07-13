@@ -6,5 +6,5 @@ import dap.protocol.StackFrame;
  */
 typedef StackTraceResponseBody = {
 	var stackFrames:Array<StackFrame>;
-	@:optional var totalFrames:Int;
+	var ?totalFrames:Int;
 }

@@ -6,5 +6,5 @@ package dap.protocol.events;
  */
 typedef OutputEventBody = {
 	var output:String;
-	@:optional var category:String;
+	var ?category:String;
 }

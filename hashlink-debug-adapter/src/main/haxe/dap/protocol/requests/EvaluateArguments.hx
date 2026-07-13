@@ -6,6 +6,6 @@ package dap.protocol.requests;
  */
 typedef EvaluateArguments = {
 	var expression:String;
-	@:optional var frameId:Null<Int>;
-	@:optional var context:String; // "watch" | "hover" | "repl" — all treated alike
+	var ?frameId:Null<Int>;
+	var ?context:String; // "watch" | "hover" | "repl" — all treated alike
 }

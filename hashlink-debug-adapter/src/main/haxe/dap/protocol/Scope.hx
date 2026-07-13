@@ -7,6 +7,6 @@ package dap.protocol;
 typedef Scope = {
 	var name:String;
 	var variablesReference:Int;
-	@:optional var expensive:Bool;
-	@:optional var presentationHint:String;
+	var ?expensive:Bool;
+	var ?presentationHint:String;
 }

@@ -7,7 +7,7 @@ import dap.protocol.SourceBreakpoint;
  */
 typedef SetBreakpointsArguments = {
 	var source:Source;
-	@:optional var breakpoints:Array<SourceBreakpoint>;
-	@:optional var lines:Array<Int>;
-	@:optional var sourceModified:Bool;
+	var ?breakpoints:Array<SourceBreakpoint>;
+	var ?lines:Array<Int>;
+	var ?sourceModified:Bool;
 }

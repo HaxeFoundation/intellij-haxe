@@ -5,8 +5,8 @@ package dap.protocol;
  */
 typedef SourceBreakpoint = {
 	var line:Int;
-	@:optional var column:Int;
-	@:optional var condition:String;
-	@:optional var hitCondition:String;
-	@:optional var logMessage:String;
+	var ?column:Int;
+	var ?condition:String;
+	var ?hitCondition:String;
+	var ?logMessage:String;
 }

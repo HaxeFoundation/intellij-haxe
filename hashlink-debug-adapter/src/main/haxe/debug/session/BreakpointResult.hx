@@ -7,6 +7,6 @@ typedef BreakpointResult = {
 	var id:Int;
 	var verified:Bool;
 	var line:Int;
-	@:optional var message:String;
-	@:optional var sourcePath:String;
+	var ?message:String;
+	var ?sourcePath:String;
 }

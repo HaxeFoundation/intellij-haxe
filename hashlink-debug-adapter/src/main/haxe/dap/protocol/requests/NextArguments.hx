@@ -5,6 +5,6 @@ package dap.protocol.requests;
  */
 typedef NextArguments = {
 	var threadId:Int;
-	@:optional var singleThread:Bool;
-	@:optional var granularity:String;
+	var ?singleThread:Bool;
+	var ?granularity:String;
 }

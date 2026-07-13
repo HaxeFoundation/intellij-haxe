@@ -5,7 +5,7 @@ package dap.protocol.requests;
  */
 typedef StepInArguments = {
 	var threadId:Int;
-	@:optional var singleThread:Bool;
-	@:optional var targetId:Int;
-	@:optional var granularity:String;
+	var ?singleThread:Bool;
+	var ?targetId:Int;
+	var ?granularity:String;
 }

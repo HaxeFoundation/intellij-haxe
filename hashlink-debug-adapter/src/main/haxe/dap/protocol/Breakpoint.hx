@@ -5,9 +5,9 @@ package dap.protocol;
  */
 typedef Breakpoint = {
 	var verified:Bool;
-	@:optional var id:Int;
-	@:optional var message:String;
-	@:optional var source:Source;
-	@:optional var line:Int;
-	@:optional var column:Int;
+	var ?id:Int;
+	var ?message:String;
+	var ?source:Source;
+	var ?line:Int;
+	var ?column:Int;
 }

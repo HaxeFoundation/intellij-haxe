@@ -5,7 +5,7 @@ package dap.protocol.requests;
  */
 typedef VariablesArguments = {
 	var variablesReference:Int;
-	@:optional var filter:String; // "indexed" | "named"
-	@:optional var start:Int;
-	@:optional var count:Int;
+	var ?filter:String; // "indexed" | "named"
+	var ?start:Int;
+	var ?count:Int;
 }

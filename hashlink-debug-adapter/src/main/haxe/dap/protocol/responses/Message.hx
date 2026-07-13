@@ -6,5 +6,5 @@ package dap.protocol.responses;
 typedef Message = {
 	var id:Int;
 	var format:String;
-	@:optional var showUser:Bool;
+	var ?showUser:Bool;
 }

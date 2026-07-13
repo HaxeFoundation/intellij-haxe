@@ -6,6 +6,6 @@ package dap.protocol.responses;
  */
 typedef EvaluateResponseBody = {
 	var result:String;
-	@:optional var type:String;
+	var ?type:String;
 	var variablesReference:Int;
 }

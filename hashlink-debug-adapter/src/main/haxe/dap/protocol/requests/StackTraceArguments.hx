@@ -5,6 +5,6 @@ package dap.protocol.requests;
  */
 typedef StackTraceArguments = {
 	var threadId:Int;
-	@:optional var startFrame:Int;
-	@:optional var levels:Int;
+	var ?startFrame:Int;
+	var ?levels:Int;
 }

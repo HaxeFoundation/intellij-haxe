@@ -6,8 +6,8 @@ package dap.protocol.events;
  */
 typedef StoppedEventBody = {
 	var reason:String;
-	@:optional var threadId:Int;
-	@:optional var allThreadsStopped:Bool;
-	@:optional var hitBreakpointIds:Array<Int>;
-	@:optional var description:String;
+	var ?threadId:Int;
+	var ?allThreadsStopped:Bool;
+	var ?hitBreakpointIds:Array<Int>;
+	var ?description:String;
 }

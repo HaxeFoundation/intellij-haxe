@@ -8,9 +8,9 @@ typedef Variable = {
 	var name:String;
 	var value:String;
 	var variablesReference:Int;
-	@:optional var type:String;
-	@:optional var namedVariables:Int;
-	@:optional var indexedVariables:Int;
+	var ?type:String;
+	var ?namedVariables:Int;
+	var ?indexedVariables:Int;
 	// Our classification for the client's icon (the wire form of debug.values.VariableKind).
-	@:optional var kind:String;
+	var ?kind:String;
 }
