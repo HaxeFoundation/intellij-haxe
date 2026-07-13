@@ -38,6 +38,15 @@ import haxe.Int64;
  * =====================================================================
  */
 class BoxResolver {
+	// A `mov reg, imm64` is 10 bytes: a 2-byte REX.W+opcode then the 8-byte
+	// immediate. The box site's arg-mov (`mov rcx/rdi, type*`) has this shape, so
+	// the type pointer sits at +2 and the following `mov rax, alloc ; call rax`
+	// begins at +MOV_IMM64_LEN.
+	static inline var MOV_IMM64_LEN = 10;
+	// Sanity cap on one OToDyn opcode's machine code: real sites are a handful of
+	// instructions, so anything larger is not the pattern we mine — skip it.
+	static inline var MAX_SITE_BYTES = 256;
+
 	final module:ModuleDebugInfo;
 	final jit:JitInfo;
 	final memory:MemoryReader;
@@ -113,15 +122,16 @@ class BoxResolver {
 		var start = jit.addressOf(fidx, op);
 		var end = jit.addressOf(fidx, op + 1);
 		var len = Int64.toInt(Int64.sub(end, start));
-		if (len <= 0 || len > 256) {
+		if (len <= 0 || len > MAX_SITE_BYTES) {
 			return null;
 		}
 		var code = memory.read(start, len);
 		var argMov = jit.winCall ? MachineCode.MOV_RCX : MachineCode.MOV_RDI;
 		var i = 0;
-		while (i + 12 <= len) {
+		// need room for the arg-mov (MOV_IMM64_LEN) plus the 2-byte start of the mov rax
+		while (i + MOV_IMM64_LEN + 2 <= len) {
 			if (code.getUInt16(i) == argMov) {
-				var allocFn = MachineCode.movRaxImmThenCall(code, i + 10, len);
+				var allocFn = MachineCode.movRaxImmThenCall(code, i + MOV_IMM64_LEN, len);
 				if (allocFn != null) {
 					return {typePtr: MachineCode.read64(code, i + 2), allocFn: allocFn};
 				}
