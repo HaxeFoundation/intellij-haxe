@@ -1,5 +1,10 @@
 package debug.module;
 
+// One `try` protection range in a function: op `p` is protected (a catch is
+// active) when `start < p <= end`. `start` is the OTrap's op, `end` is the last
+// protected op (the catch handler is at `end+1`). Module-private.
+private typedef Region = {start:Int, end:Int};
+
 /**
  * Static `try` protection ranges per function, derived from `OTrap` opcodes.
  *
@@ -13,7 +18,7 @@ package debug.module;
  */
 class TryRegions {
 	final module:ModuleDebugInfo;
-	final cache:Map<Int, Array<{start:Int, end:Int}>> = new Map();
+	final cache:Map<Int, Array<Region>> = new Map();
 
 	public function new(module:ModuleDebugInfo) {
 		this.module = module;
@@ -29,12 +34,12 @@ class TryRegions {
 		return false;
 	}
 
-	function regionsOf(fidx:Int):Array<{start:Int, end:Int}> {
+	function regionsOf(fidx:Int):Array<Region> {
 		var cached = cache.get(fidx);
 		if (cached != null) {
 			return cached;
 		}
-		var regions:Array<{start:Int, end:Int}> = [];
+		var regions:Array<Region> = [];
 		var ops = module.opcodes(fidx);
 		for (i in 0...ops.length) {
 			switch (ops[i]) {
