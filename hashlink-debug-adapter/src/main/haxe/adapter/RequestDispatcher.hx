@@ -137,6 +137,7 @@ class RequestDispatcher {
 		var capabilities:Capabilities = {
 			supportsConfigurationDoneRequest: true, supportsVariableType: true,
 			supportsEvaluateForHovers: true, supportsSetVariable: true,
+			supportsConditionalBreakpoints: true,
 			exceptionBreakpointFilters: [
 				{filter: "all", label: "All Exceptions"},
 				{filter: "uncaught", label: "Uncaught Exceptions"}

@@ -11,4 +11,5 @@ public class Capabilities {
   private Boolean supportsVariableType;
   private Boolean supportsEvaluateForHovers;
   private Boolean supportsSetVariable;
+  private Boolean supportsConditionalBreakpoints;
 }
