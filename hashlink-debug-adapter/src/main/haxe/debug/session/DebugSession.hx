@@ -1,4 +1,6 @@
 package debug.session;
+import debug.DebugErrorCode;
+import debug.Trace;
 import dap.protocol.Breakpoint;
 
 import debug.DebugError;
@@ -117,7 +119,7 @@ class DebugSession {
 	}
 
 	static inline function dbg(message:String):Void {
-		debug.Trace.log(message);
+		Trace.log(message);
 	}
 
 	function loop():Void {
@@ -173,7 +175,7 @@ class DebugSession {
 
 	// Reject a request with a plain, generic-coded message (no structured detail).
 	inline function reject(requestSeq:Int, message:String):Void {
-		emit(EvRejected(requestSeq, message, debug.DebugErrorCode.Generic, null));
+		emit(EvRejected(requestSeq, message, DebugErrorCode.Generic, null));
 	}
 
 	static function seqOf(command:SessionCommand):Int {

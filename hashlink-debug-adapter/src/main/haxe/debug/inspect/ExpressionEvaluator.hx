@@ -1,4 +1,6 @@
 package debug.inspect;
+import debug.DebugError;
+import debug.DebugErrorCode;
 
 import debug.values.*;
 
@@ -62,7 +64,7 @@ class ExpressionEvaluator {
 			case ECall(callee, args):
 				var calleePath = chainToPath(callee);
 				if (calleePath == null) {
-					throw new debug.DebugError("The callee must be a function name or a variable path");
+					throw new DebugError("The callee must be a function name or a variable path");
 				}
 				var values = [for (a in args) evalExpr(frameId, a)];
 				return evaluateCall(frameId, calleePath, values);
@@ -92,11 +94,11 @@ class ExpressionEvaluator {
 	public function evaluateBool(frameId:Int, expression:String):Bool {
 		var e = ExprParser.parse(StringTools.trim(expression));
 		if (e.match(EAssign(_, _))) {
-			throw new debug.DebugError("A breakpoint condition cannot be an assignment");
+			throw new DebugError("A breakpoint condition cannot be an assignment");
 		}
 		return switch (evalExpr(frameId, e)) {
 			case VBool(b): b;
-			case other: throw new debug.DebugError("A breakpoint condition must be true/false, got "
+			case other: throw new DebugError("A breakpoint condition must be true/false, got "
 				+ Operators.describe(other));
 		}
 	}
@@ -123,8 +125,8 @@ class ExpressionEvaluator {
 		if (current == null) {
 			// UnresolvedName + the offending token lets the client resolve it against
 			// its own source (imports) and re-issue a fully-qualified expression.
-			throw new debug.DebugError('Unknown variable "' + path.root + '"',
-				debug.DebugErrorCode.UnresolvedName, ["name" => path.root]);
+			throw new DebugError('Unknown variable "' + path.root + '"',
+				DebugErrorCode.UnresolvedName, ["name" => path.root]);
 		}
 		for (i in start...path.accessors.length) {
 			var accessor = path.accessors[i];
@@ -133,12 +135,12 @@ class ExpressionEvaluator {
 				case Index(index): Std.string(index);
 			}
 			if (current.reference <= 0) {
-				throw new debug.DebugError('"' + current.name + '" has no members');
+				throw new DebugError('"' + current.name + '" has no members');
 			}
 			var next = findByName(view.variablesFor(current.reference), childName);
 			if (next == null) {
 				var what = accessor.match(Index(_)) ? "index [" + childName + "]" : 'field "' + childName + '"';
-				throw new debug.DebugError('"' + current.name + '" has no ' + what);
+				throw new DebugError('"' + current.name + '" has no ' + what);
 			}
 			current = next;
 		}
@@ -192,7 +194,7 @@ class ExpressionEvaluator {
 			case EIdent(_), EField(_, _):
 				var path = chainToPath(e);
 				if (path == null) {
-					throw new debug.DebugError("This value cannot be resolved as a variable path");
+					throw new DebugError("This value cannot be resolved as a variable path");
 				}
 				valueOfPath(frameId, path);
 			case EIndex(recv, key):
@@ -200,12 +202,12 @@ class ExpressionEvaluator {
 			case ECall(callee, args):
 				var path = chainToPath(callee);
 				if (path == null) {
-					throw new debug.DebugError("The callee must be a function name or a variable path");
+					throw new DebugError("The callee must be a function name or a variable path");
 				}
 				var values = [for (a in args) evalExpr(frameId, a)];
 				var ret = calls.callRaw(frameId, path, values);
 				if (ret.type.match(HVoid)) {
-					throw new debug.DebugError('"' + path.display() + '" returns Void and cannot be used inside an expression');
+					throw new DebugError('"' + path.display() + '" returns Void and cannot be used inside an expression');
 				}
 				toEvalValue(ret.raw, ret.type);
 			case ENew(className, args):
@@ -229,7 +231,7 @@ class ExpressionEvaluator {
 			case EIs(inner, typeName):
 				VBool(valueIsOfType(evalExpr(frameId, inner), typeName));
 			case EAssign(_, _):
-				throw new debug.DebugError("Assignment is only allowed at the top level of an expression");
+				throw new DebugError("Assignment is only allowed at the top level of an expression");
 		}
 	}
 
@@ -252,7 +254,7 @@ class ExpressionEvaluator {
 			default:
 		}
 		if (!module.typeNameExists(typeName)) {
-			throw new debug.DebugError('Unknown type "' + typeName + '" in an `is` check');
+			throw new DebugError('Unknown type "' + typeName + '" in an `is` check');
 		}
 		return switch (v) {
 			case VObject(ptr, type):
@@ -260,13 +262,13 @@ class ExpressionEvaluator {
 					case HObj(_), HStruct(_): type;
 					default: runtimeTypes.typeAt(memory.readPointer(ptr));
 				}
-				debug.values.ClassChain.matches(runtime, typeName);
+				ClassChain.matches(runtime, typeName);
 			default:
 				false; // a primitive/string against a (real) class name
 		}
 	}
 
-	// (subtype matching moved to debug.values.ClassChain — shared with exception
+	// (subtype matching moved to ClassChain — shared with exception
 	// breakpoint type filters)
 
 	/** A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath. */
@@ -300,11 +302,11 @@ class ExpressionEvaluator {
 			case VInt(v):
 				var i = Int64.toInt(v);
 				if (i < 0) {
-					throw new debug.DebugError("An index must be >= 0");
+					throw new DebugError("An index must be >= 0");
 				}
 				i;
 			default:
-				throw new debug.DebugError("An array index must be an Int");
+				throw new DebugError("An array index must be an Int");
 		}
 	}
 
@@ -313,7 +315,7 @@ class ExpressionEvaluator {
 	function indexValue(frameId:Int, recv:Expr, key:Expr):EvalValue {
 		var recvPath = chainToPath(recv);
 		if (recvPath == null) {
-			throw new debug.DebugError("The receiver of [...] must be a variable path");
+			throw new DebugError("The receiver of [...] must be a variable path");
 		}
 		var target = resolver.targetOfPath(frameId, recvPath);
 		if (mapTypeOfTarget(target) != null) {

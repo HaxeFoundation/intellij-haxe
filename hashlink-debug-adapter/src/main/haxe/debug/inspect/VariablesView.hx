@@ -203,7 +203,7 @@ class VariablesView {
 			return false;
 		}
 		for (name in wanted) {
-			if (debug.values.ClassChain.matches(runtime, name)) {
+			if (ClassChain.matches(runtime, name)) {
 				return true;
 			}
 		}

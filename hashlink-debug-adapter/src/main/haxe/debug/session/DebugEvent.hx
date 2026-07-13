@@ -1,4 +1,6 @@
 package debug.session;
+import debug.DebugErrorCode;
+import debug.target.ThreadInfo;
 import debug.inspect.ScopeInfo;
 
 import debug.values.VariableInfo;
@@ -17,7 +19,7 @@ enum DebugEvent {
 	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
 	EvPaused(requestSeq:Int); // ack for a pause request; the stopped(reason:"pause") event follows
 	EvExceptionBreakpointsSet(requestSeq:Int); // ack for a setExceptionBreakpoints request
-	EvThreads(requestSeq:Int, threads:Array<debug.target.ThreadInfo>);
+	EvThreads(requestSeq:Int, threads:Array<ThreadInfo>);
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
 	EvScopes(requestSeq:Int, scopes:Array<ScopeInfo>);
 	EvVariables(requestSeq:Int, variables:Array<VariableInfo>);
@@ -25,7 +27,7 @@ enum DebugEvent {
 	EvEvaluated(requestSeq:Int, result:VariableInfo);
 	// `code`/`variables` carry the DAP Message.id + Message.variables so the client
 	// can branch on a stable code (e.g. UnresolvedName) rather than the message text.
-	EvRejected(requestSeq:Int, message:String, code:debug.DebugErrorCode, variables:Null<Map<String, String>>);
+	EvRejected(requestSeq:Int, message:String, code:DebugErrorCode, variables:Null<Map<String, String>>);
 	EvSessionEnded(requestSeq:Int);
 	// spontaneous events
 	EvBreakpointChanged(result:BreakpointResult);

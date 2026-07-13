@@ -1,4 +1,5 @@
 package adapter;
+import debug.Trace;
 
 import debug.session.DebugSession;
 import debug.session.SessionCommand;
@@ -52,7 +53,7 @@ class DebugAdapter {
 			var message = inbound.pop(true);
 			switch (message) {
 				case ClientPayload(payload):
-					debug.Trace.log("recv " + preview(payload));
+					Trace.log("recv " + preview(payload));
 					dispatcher.handleRawPayload(payload);
 				case FromSession(event):
 					dispatcher.handleSessionEvent(event);
@@ -100,7 +101,7 @@ class DebugAdapter {
 					// late messages after shutdown: nothing left to serve them
 			}
 		}
-		debug.Trace.log(clientEofSeen ? "client closed; exiting" : "client did not close within timeout; exiting");
+		Trace.log(clientEofSeen ? "client closed; exiting" : "client did not close within timeout; exiting");
 	}
 
 	// First ~100 chars: enough to identify command/seq without flooding the pipe.
@@ -119,7 +120,7 @@ class DebugAdapter {
 	function createSession():DebugSession {
 		var emit = event -> inbound.add(FromSession(event));
 		#if hl
-		return new DebugSession(new debug.target.HlNativeDebugApi(), emit);
+		return new DebugSession(new HlNativeDebugApi(), emit);
 		#else
 		throw "Debugging is only supported on the HashLink target";
 		#end
@@ -147,9 +148,9 @@ class DebugAdapter {
 			try {
 				var json = Json.stringify(message);
 				writer.write(json);
-				debug.Trace.log("sent " + preview(json));
+				Trace.log("sent " + preview(json));
 			} catch (e:Dynamic) {
-				debug.Trace.log("writer failed: " + Std.string(e));
+				Trace.log("writer failed: " + Std.string(e));
 				break;
 			}
 		}

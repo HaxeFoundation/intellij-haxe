@@ -1,4 +1,5 @@
 package adapter;
+import debug.target.ThreadInfo;
 
 import debug.session.BreakpointResult;
 import debug.session.DebugEvent;
@@ -461,7 +462,7 @@ class RequestDispatcher {
 		sink(event);
 	}
 
-	function threadsBody(threads:Array<debug.target.ThreadInfo>):ThreadsResponseBody {
+	function threadsBody(threads:Array<ThreadInfo>):ThreadsResponseBody {
 		return {threads: [for (t in threads) {id: t.id, name: t.name}]};
 	}
 

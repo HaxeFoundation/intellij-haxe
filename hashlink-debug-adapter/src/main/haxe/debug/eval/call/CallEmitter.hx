@@ -1,4 +1,5 @@
 package debug.eval.call;
+import debug.DebugError;
 
 import haxe.Int64;
 import haxe.io.Bytes;
@@ -97,7 +98,7 @@ class CallEmitter {
 			var cpu = [RCX, RDX, R8, R9];
 			for (i in 0...args.length) {
 				if (i >= 4) {
-					throw new debug.DebugError("Too many arguments to call (max " + maxArgs() + ")");
+					throw new DebugError("Too many arguments to call (max " + maxArgs() + ")");
 				}
 				result.push(args[i].isFloat ? {reg: i, xmm: true} : {reg: cpu[i], xmm: false});
 			}
@@ -110,12 +111,12 @@ class CallEmitter {
 		for (arg in args) {
 			if (arg.isFloat) {
 				if (nextFloat >= 8) {
-					throw new debug.DebugError("Too many float arguments to call");
+					throw new DebugError("Too many float arguments to call");
 				}
 				result.push({reg: nextFloat++, xmm: true});
 			} else {
 				if (nextInt >= intRegs.length) {
-					throw new debug.DebugError("Too many arguments to call (max " + maxArgs() + ")");
+					throw new DebugError("Too many arguments to call (max " + maxArgs() + ")");
 				}
 				result.push({reg: intRegs[nextInt++], xmm: false});
 			}

@@ -1,4 +1,6 @@
 package debug.inspect;
+import debug.DebugError;
+import debug.DebugErrorCode;
 
 import debug.values.*;
 
@@ -63,14 +65,14 @@ class SymbolResolver {
 	public function targetInReference(reference:Int, name:String):WriteTarget {
 		var container = stops.referenceTarget(reference);
 		if (container == null) {
-			throw new debug.DebugError("This value can no longer be modified (the debuggee has moved on)");
+			throw new DebugError("This value can no longer be modified (the debuggee has moved on)");
 		}
 		return switch (container) {
 			case RefLocals(frameId):
 				writeFrame = frameId;
 				var local = localTarget(frameId, name);
 				if (local == null) {
-					throw new debug.DebugError('No local named "' + name + '"');
+					throw new DebugError('No local named "' + name + '"');
 				}
 				local;
 			case RefObject(pointer, type):
@@ -80,7 +82,7 @@ class SymbolResolver {
 				writeFrame = 0;
 				childTargetFromBase(name, pointer, HObj(proto), name);
 			case RefRegisters(_):
-				throw new debug.DebugError("CPU/VM registers cannot be edited");
+				throw new DebugError("CPU/VM registers cannot be edited");
 		}
 	}
 
@@ -102,8 +104,8 @@ class SymbolResolver {
 		if (current == null) {
 			// UnresolvedName + the offending token lets the client resolve it against
 			// its own source (imports) and re-issue a fully-qualified expression.
-			throw new debug.DebugError('Unknown variable "' + path.root + '"',
-				debug.DebugErrorCode.UnresolvedName, ["name" => path.root]);
+			throw new DebugError('Unknown variable "' + path.root + '"',
+				DebugErrorCode.UnresolvedName, ["name" => path.root]);
 		}
 		for (i in start...path.accessors.length) {
 			var childName = switch (path.accessors[i]) {
@@ -237,7 +239,7 @@ class SymbolResolver {
 	public function childTarget(parent:WriteTarget, childName:String):WriteTarget {
 		var child = tryChildTarget(parent, childName);
 		if (child == null) {
-			throw new debug.DebugError('"' + parent.name + '" has no member "' + childName + '"');
+			throw new DebugError('"' + parent.name + '" has no member "' + childName + '"');
 		}
 		return child;
 	}
@@ -256,7 +258,7 @@ class SymbolResolver {
 			case HObj(_), HArray, HDynObj, HVirtual(_):
 				base = memory.readPointer(parent.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
-					throw new debug.DebugError('"' + parent.name + '" is null');
+					throw new DebugError('"' + parent.name + '" is null');
 				}
 				effectiveType = parent.type.match(HObj(_)) ? refineObjectType(base, parent.type) : parent.type;
 			default:
@@ -268,7 +270,7 @@ class SymbolResolver {
 	function childTargetFromBase(displayName:String, base:Pointer, type:HLType, childName:String):WriteTarget {
 		var child = valueChildren.targetOf(base, type, childName);
 		if (child == null) {
-			throw new debug.DebugError('"' + displayName + '" cannot be resolved to a writable location');
+			throw new DebugError('"' + displayName + '" cannot be resolved to a writable location');
 		}
 		return {name: displayName, address: child.address, type: child.type};
 	}

@@ -1,4 +1,5 @@
 package debug.inspect;
+import debug.DebugError;
 
 import debug.values.*;
 
@@ -68,7 +69,7 @@ class DebuggeeCallService {
 	 */
 	public function callRaw(frameId:Int, path:ValuePath, args:Array<EvalValue>):CallResult {
 		if (functionCaller == null) {
-			throw new debug.DebugError("Calling functions is not available in this session");
+			throw new DebugError("Calling functions is not available in this session");
 		}
 		var callee = path.display();
 		// `recv.method(args)` — the last segment is an instance method on the
@@ -81,7 +82,7 @@ class DebuggeeCallService {
 		var target = resolver.targetOfPath(frameId, path);
 		var fn = switch (target.type) {
 			case HFun(f): f;
-			default: throw new debug.DebugError('"' + callee + '" is not a function');
+			default: throw new DebugError('"' + callee + '" is not a function');
 		};
 		// The slot holds a vclosure {t @0, fun @+ptr, hasValue @+ptr*2, value @+ptr*3}.
 		// When hasValue != 0 the closure is BOUND (an instance-method closure whose
@@ -91,12 +92,12 @@ class DebuggeeCallService {
 		// already excludes that implicit parameter, so declared args map 1:1.
 		var closurePtr = memory.readPointer(target.address);
 		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
-			throw new debug.DebugError('"' + callee + '" is null');
+			throw new DebugError('"' + callee + '" is null');
 		}
 		var bound = memory.readI32(closurePtr.offset(align.ptr * 2)) != 0;
 		var funcAddr = memory.readPointer(closurePtr.offset(align.ptr));
 		if (args.length != fn.args.length) {
-			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + args.length);
+			throw new DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + args.length);
 		}
 		var callArgs:Array<CallArg> = [];
 		if (bound) {
@@ -136,7 +137,7 @@ class DebuggeeCallService {
 			case HObj(_):
 				base = memory.readPointer(receiver.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
-					throw new debug.DebugError('"' + receiver.name + '" is null');
+					throw new DebugError('"' + receiver.name + '" is null');
 				}
 				runtimeType = resolver.refineObjectType(base, receiver.type);
 			default:
@@ -148,15 +149,15 @@ class DebuggeeCallService {
 		}
 		var arrayIndex = module.functionArrayIndex(findex);
 		if (arrayIndex < 0) {
-			throw new debug.DebugError('"' + methodName + '" has no callable body (native or removed)');
+			throw new DebugError('"' + methodName + '" has no callable body (native or removed)');
 		}
 		var fn = switch (module.functionType(arrayIndex)) {
 			case HFun(f): f;
-			default: throw new debug.DebugError('"' + methodName + '" is not a function');
+			default: throw new DebugError('"' + methodName + '" is not a function');
 		};
 		var paramTypes = fn.args.slice(1); // drop the implicit `this`
 		if (args.length != paramTypes.length) {
-			throw new debug.DebugError('"' + methodName + '" takes ' + paramTypes.length
+			throw new DebugError('"' + methodName + '" takes ' + paramTypes.length
 				+ " argument(s), got " + args.length);
 		}
 		var callArgs:Array<CallArg> = [{isFloat: false, bits: base}];
@@ -204,31 +205,31 @@ class DebuggeeCallService {
 	 */
 	public function construct(frameId:Int, className:String, args:Array<EvalValue>):Pointer {
 		if (functionCaller == null) {
-			throw new debug.DebugError("Constructing objects is not available in this session");
+			throw new DebugError("Constructing objects is not available in this session");
 		}
 		if (constructors == null) {
 			constructors = new ConstructorResolver(module, jit, memory);
 		}
 		var site = constructors.resolve(className);
 		if (site == null) {
-			throw new debug.DebugError('Cannot construct "' + className
+			throw new DebugError('Cannot construct "' + className
 				+ '": no reachable constructor. Object construction is experimental — it only'
 				+ ' works for classes the program itself instantiates (and on x86-64).');
 		}
 		// the constructor's declared type: arg0 is `this`, the rest are the params
 		var ctorFun = switch (module.functionType(site.ctorFindex)) {
 			case HFun(f): f;
-			default: throw new debug.DebugError('The constructor of "' + className + '" is not a function');
+			default: throw new DebugError('The constructor of "' + className + '" is not a function');
 		};
 		var paramTypes = ctorFun.args.slice(1); // drop the leading `this`
 		if (args.length != paramTypes.length) {
-			throw new debug.DebugError('new ' + className + " takes " + paramTypes.length
+			throw new DebugError('new ' + className + " takes " + paramTypes.length
 				+ " argument(s), got " + args.length);
 		}
 		// allocate: hl_alloc_obj(classType) -> fresh zeroed instance
 		var instance = functionCaller(site.allocFunction, [{isFloat: false, bits: site.typePointer}], false);
 		if (Int64.eq(instance, Int64.ofInt(0))) {
-			throw new debug.DebugError("Allocation returned null while constructing " + className);
+			throw new DebugError("Allocation returned null while constructing " + className);
 		}
 		// run the constructor: new(this, args...) -> void, initialising `instance`
 		var ctorArgs:Array<CallArg> = [{isFloat: false, bits: instance}];
@@ -243,11 +244,11 @@ class DebuggeeCallService {
 	// Returns the raw result.
 	function callByName(name:String, args:Array<CallArg>, floatReturn:Bool):Pointer {
 		if (functionCaller == null) {
-			throw new debug.DebugError("Calling functions is not available in this session");
+			throw new DebugError("Calling functions is not available in this session");
 		}
 		var fidx = module.functionIndexByName(name);
 		if (fidx < 0) {
-			throw new debug.DebugError('Runtime helper "' + name + '" is unavailable in this program'
+			throw new DebugError('Runtime helper "' + name + '" is unavailable in this program'
 				+ " (it may have been removed as unused code)");
 		}
 		// call the true entry (prologue), not addressOf(fidx,0) which is past it
@@ -267,7 +268,7 @@ class DebuggeeCallService {
 	 */
 	public function makeString(text:String):Pointer {
 		if (memWriter == null || functionCaller == null) {
-			throw new debug.DebugError("Unable to create a string: value modification is not available in this session");
+			throw new DebugError("Unable to create a string: value modification is not available in this session");
 		}
 		if (natives == null) {
 			natives = new NativeResolver(module, jit, memory);
@@ -278,7 +279,7 @@ class DebuggeeCallService {
 		// dead-code-eliminates when the program never uses `haxe.io.Bytes`.
 		var allocBytes = natives.resolve("alloc_bytes");
 		if (allocBytes == null) {
-			throw new debug.DebugError("Unable to create a string: the debuggee's byte allocator (alloc_bytes)"
+			throw new DebugError("Unable to create a string: the debuggee's byte allocator (alloc_bytes)"
 				+ " could not be located. String creation is x86-64 only and needs the program to allocate"
 				+ " bytes somewhere (nearly all do).");
 		}
@@ -286,14 +287,14 @@ class DebuggeeCallService {
 		// +1 for a guaranteed null terminator (alloc_bytes does not zero the tail)
 		var bufferPtr = functionCaller(allocBytes, [{isFloat: false, bits: Int64.ofInt(utf8.length + 1)}], false);
 		if (Int64.eq(bufferPtr, Int64.ofInt(0))) {
-			throw new debug.DebugError("Unable to create a string: alloc_bytes returned null");
+			throw new DebugError("Unable to create a string: alloc_bytes returned null");
 		}
 		var buffer = haxe.io.Bytes.alloc(utf8.length + 1); // terminator byte defaults to 0
 		buffer.blit(0, utf8, 0, utf8.length);
 		memWriter.write(bufferPtr, buffer);
 		var str = callByName("String.fromUTF8", [{isFloat: false, bits: bufferPtr}], false);
 		if (Int64.eq(str, Int64.ofInt(0))) {
-			throw new debug.DebugError("Unable to create a string: String.fromUTF8 returned null");
+			throw new DebugError("Unable to create a string: String.fromUTF8 returned null");
 		}
 		return str;
 	}
@@ -304,19 +305,19 @@ class DebuggeeCallService {
 	// the value into its payload slot (HDYN_VALUE = one pointer past the type).
 	function boxPrimitive(kind:Int, writePayload:Pointer->Void):CallArg {
 		if (memWriter == null || functionCaller == null) {
-			throw new debug.DebugError("Unable to box a value: value modification is not available in this session");
+			throw new DebugError("Unable to box a value: value modification is not available in this session");
 		}
 		if (boxer == null) {
 			boxer = new BoxResolver(module, jit, memory);
 		}
 		var recipe = boxer.resolve(kind);
 		if (recipe == null) {
-			throw new debug.DebugError("Unable to box this primitive into a Dynamic: the debuggee never boxes a value"
+			throw new DebugError("Unable to box this primitive into a Dynamic: the debuggee never boxes a value"
 				+ " of this type, so the boxing helper could not be located (boxing is x86-64 only and DCE-limited).");
 		}
 		var box = functionCaller(recipe.allocDynamic, [{isFloat: false, bits: recipe.typePointer}], false);
 		if (Int64.eq(box, Int64.ofInt(0))) {
-			throw new debug.DebugError("Unable to box a value: alloc_dynamic returned null");
+			throw new DebugError("Unable to box a value: alloc_dynamic returned null");
 		}
 		writePayload(box.offset(align.ptr)); // HDYN_VALUE = one pointer past the hl_type*
 		return {isFloat: false, bits: box};
@@ -347,7 +348,7 @@ class DebuggeeCallService {
 					: {isFloat: false, bits: i};
 			case VFloat(f):
 				if (!isFloatSlot(paramType)) {
-					throw new debug.DebugError("A float argument does not fit an integer parameter");
+					throw new DebugError("A float argument does not fit an integer parameter");
 				}
 				{isFloat: true, bits: haxe.io.FPHelper.doubleToI64(f)};
 			case VBool(b):
@@ -356,15 +357,15 @@ class DebuggeeCallService {
 				{isFloat: false, bits: Int64.ofInt(0)};
 			case VString(text, ptr):
 				if (isFloatSlot(paramType)) {
-					throw new debug.DebugError("A string argument does not fit a float parameter");
+					throw new DebugError("A string argument does not fit a float parameter");
 				}
 				{isFloat: false, bits: ptr != null ? (ptr : Pointer) : makeString(text)};
 			case VObject(raw, t):
 				if (t.match(HStruct(_)) || t.match(HPacked(_))) {
-					throw new debug.DebugError("Passing a struct by value is not supported");
+					throw new DebugError("Passing a struct by value is not supported");
 				}
 				if (isFloatSlot(paramType)) {
-					throw new debug.DebugError("An object argument does not fit a float parameter");
+					throw new DebugError("An object argument does not fit a float parameter");
 				}
 				{isFloat: false, bits: raw};
 		}

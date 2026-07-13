@@ -1,4 +1,5 @@
 package debug.inspect;
+import debug.DebugError;
 
 import debug.values.*;
 
@@ -82,7 +83,7 @@ class VariableMutator {
 			case EIndex(recv, key):
 				var recvPath = ExpressionEvaluator.chainToPath(recv);
 				if (recvPath == null) {
-					throw new debug.DebugError("The receiver of [...] must be a variable path");
+					throw new DebugError("The receiver of [...] must be a variable path");
 				}
 				var target = resolver.targetOfPath(frameId, recvPath);
 				var display = recvPath.display() + "[...]";
@@ -103,7 +104,7 @@ class VariableMutator {
 		}
 		var path = ExpressionEvaluator.chainToPath(lhs);
 		if (path == null) {
-			throw new debug.DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
+			throw new DebugError('The left side of "=" must be a variable path (e.g. name, obj.field, arr[0])');
 		}
 		var target = resolver.targetOfPath(frameId, path);
 		writeValue(target, evaluator.evalExpr(frameId, rhs));
@@ -116,7 +117,7 @@ class VariableMutator {
 	// each value kind onto the appropriate ValueWriter primitive.
 	function writeValue(target:WriteTarget, v:EvalValue):Void {
 		if (writer == null) {
-			throw new debug.DebugError("Value modification is not available in this session");
+			throw new DebugError("Value modification is not available in this session");
 		}
 		switch (v) {
 			case VInt(i):
@@ -131,7 +132,7 @@ class VariableMutator {
 				writer.assignRaw(target, ptr != null ? (ptr : Pointer) : calls.makeString(text), stringType());
 			case VObject(raw, t):
 				if (t.match(HStruct(_)) || t.match(HPacked(_))) {
-					throw new debug.DebugError("Assigning a whole struct is not supported");
+					throw new DebugError("Assigning a whole struct is not supported");
 				}
 				writer.assignRaw(target, raw, t);
 		}

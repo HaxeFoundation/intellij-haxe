@@ -1,4 +1,6 @@
 package debug.inspect;
+import debug.DebugError;
+import haxe.io.Path;
 
 import debug.values.*;
 
@@ -128,7 +130,7 @@ class VariableInspector {
 			var name = module.functionName(location.fidx);
 			var source = module.lookup(location.fidx, location.op);
 			if (source == null || source.file == null) return name;
-			return name + " (" + haxe.io.Path.withoutDirectory(source.file) + ":" + source.line + ")";
+			return name + " (" + Path.withoutDirectory(source.file) + ":" + source.line + ")";
 		};
 		dynObjects = new DynObjReader(memory, align, runtimeTypes, hash -> module.reverseHash(hash));
 		var maps = new MapReader(memory, align,
@@ -198,7 +200,7 @@ class VariableInspector {
 	 * cached frame. Root resolution order: the frame's locals, then fields of
 	 * `this`, then the owning class's statics, then a class named by a leading
 	 * path prefix (`MyClass.member`, `pkg.MyClass.member` — resolves to that
-	 * class's statics container). Throws debug.DebugError with a user-facing
+	 * class's statics container). Throws DebugError with a user-facing
 	 * message when the path cannot be resolved.
 	 */
 	public function evaluate(frameId:Int, expression:String):VariableInfo {

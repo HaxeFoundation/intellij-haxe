@@ -1,4 +1,5 @@
 package debug.inspect;
+import debug.Trace;
 
 import debug.target.DebugApi;
 import debug.target.Register;
@@ -39,7 +40,7 @@ class CpuRegisters {
 			var flags = Int64.toInt(read("FLAGS", EFlags));
 			rows[rows.length - 1].value += flagBits(flags);
 		} catch (e:Dynamic) {
-			debug.Trace.log("cpu register read failed: " + Std.string(e));
+			Trace.log("cpu register read failed: " + Std.string(e));
 		}
 		return rows;
 	}
