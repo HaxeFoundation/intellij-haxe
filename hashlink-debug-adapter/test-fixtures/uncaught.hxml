@@ -1,0 +1,4 @@
+-cp src
+-main Uncaught
+-debug
+-hl ../build/hl/uncaught-fixture.hl

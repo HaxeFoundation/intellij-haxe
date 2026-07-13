@@ -8,6 +8,7 @@ import debug.eval.call.CallEmitter.CallArg;
 import debug.layout.Align;
 import debug.module.CodeGraph;
 import debug.module.ExceptionSites;
+import debug.module.TryRegions;
 import debug.module.JitInfo;
 import debug.module.JitInfoReader;
 import debug.module.ModuleDebugInfo;
@@ -67,10 +68,13 @@ class DebugSession {
 	var jit:JitInfo;
 	var module:ModuleDebugInfo;
 	var breakpoints:Breakpoints;
-	// Throw-site enumerator (built once jit+module are ready) + whether an
-	// exception breakpoint is currently armed (an INT3 at every throw site).
+	// Throw-site enumerator + static try-region analysis (both built once
+	// jit+module are ready). Which exception modes are active: "all" breaks on
+	// every throw; "uncaught" only when no live `try` will catch the throw.
 	var exceptionSites:ExceptionSites;
-	var exceptionsEnabled:Bool = false;
+	var tryRegions:TryRegions;
+	var exceptionBreakAll:Bool = false;
+	var exceptionBreakUncaught:Bool = false;
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
 	var threadRegistry:ThreadRegistry;
@@ -260,6 +264,7 @@ class DebugSession {
 
 			breakpoints = new Breakpoints(api, debuggeePid);
 			exceptionSites = new ExceptionSites(module, jit);
+			tryRegions = new TryRegions(module);
 			stackWalker = new StackWalker(api, debuggeePid, jit);
 			var memReader = new MemoryReader(api, debuggeePid, jit.is64);
 			threadRegistry = new ThreadRegistry(memReader,
@@ -658,24 +663,27 @@ class DebugSession {
 	// --- exception breakpoints (break on any thrown exception) ---
 
 	function handleSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>):Void {
-		exceptionsEnabled = filters != null && filters.length > 0;
+		exceptionBreakAll = filters != null && filters.indexOf("all") >= 0;
+		exceptionBreakUncaught = filters != null && filters.indexOf("uncaught") >= 0;
 		applyExceptionBreakpoints();
 		emit(EvExceptionBreakpointsSet(requestSeq));
 	}
 
-	// Reconciles the armed throw-site INT3s with the desired `exceptionsEnabled`
-	// state. A no-op before launch (breakpoints/sites not built yet — re-run once
-	// they are). Arming/disarming writes debuggee memory, so a running debuggee is
-	// briefly frozen first, exactly like setBreakpoints.
+	// Reconciles the armed throw-site INT3s with the desired state — armed while
+	// either mode ("all" / "uncaught") is on (both plant an INT3 at every throw;
+	// the mode only changes whether a hit surfaces). A no-op before launch
+	// (breakpoints/sites not built yet — re-run once they are). Arming/disarming
+	// writes debuggee memory, so a running debuggee is briefly frozen first.
 	function applyExceptionBreakpoints():Void {
-		if (breakpoints == null || exceptionSites == null || exceptionsEnabled == breakpoints.isExceptionsArmed()) {
+		var wanted = exceptionBreakAll || exceptionBreakUncaught;
+		if (breakpoints == null || exceptionSites == null || wanted == breakpoints.isExceptionsArmed()) {
 			return;
 		}
 		var wasRunning = switch (state) { case Running: true; default: false; };
 		if (wasRunning) {
 			pauseForMemoryWrite();
 		}
-		if (exceptionsEnabled) {
+		if (wanted) {
 			breakpoints.armExceptions(exceptionSites.all());
 		} else {
 			breakpoints.disarmExceptions();
@@ -683,6 +691,19 @@ class DebugSession {
 		if (wasRunning) {
 			resumeAfterMemoryWrite();
 		}
+	}
+
+	// True when no live frame's current op sits inside a `try` block — only HL's
+	// root handler would catch the throw. Typed catches are approximated as always
+	// matching (any active try counts as catching), so this can under-report an
+	// uncaught throw whose only enclosing catch has a non-matching type.
+	function isUncaught(threadId:Int):Bool {
+		for (frame in stackWalker.walk(threadId)) {
+			if (tryRegions.isProtected(frame.fidx, frame.op)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	// Describes the value being thrown (the exception in register `reg` of the top
@@ -1089,10 +1110,24 @@ class DebugSession {
 		}
 
 		// An exception is being thrown here and the exception breakpoint is armed.
-		// Restore the original byte so the throw itself runs on continue; the trap
-		// dance (stepOverAndResume) single-steps it and re-arms the site. Reported
-		// BEFORE the throw executes, so the frame is the throwing function.
+		// "all" stops on every throw; "uncaught" stops only when no live `try` will
+		// catch it — a caught throw under uncaught-only is resumed past silently
+		// (same trap-dance as a false conditional breakpoint), so the catch runs.
 		if (excEntry != null) {
+			if (!exceptionBreakAll && !(exceptionBreakUncaught && isUncaught(threadId))) {
+				inspector.invalidate();
+				var interrupted = resumePastUserBreakpoint(threadId, excEntry.bp);
+				if (state == Exited) {
+					return;
+				}
+				if (interrupted != null) {
+					handleWaitOutcome(interrupted);
+				}
+				return;
+			}
+			// Restore the original byte so the throw itself runs on continue; the
+			// trap dance (stepOverAndResume) single-steps it and re-arms the site.
+			// Reported BEFORE the throw executes, so the frame is the throwing function.
 			breakpoints.suspend(excEntry.bp);
 			enterStopped(threadId, excEntry.bp);
 			emit(EvStoppedException(threadId, describeThrow(threadId, excEntry.reg)));

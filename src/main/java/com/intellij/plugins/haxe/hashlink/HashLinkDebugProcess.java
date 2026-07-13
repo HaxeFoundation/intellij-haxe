@@ -72,6 +72,7 @@ import com.intellij.xdebugger.ui.XDebugTabLayouter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -114,6 +115,9 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private volatile int currentThreadId = 1;
   private volatile boolean shuttingDown = false;
   private volatile HashLinkRegistersPanel registersPanel;
+  // which exception breakpoints are enabled (union sent to the adapter)
+  private volatile boolean breakOnAllExceptions = false;
+  private volatile boolean breakOnUncaughtExceptions = false;
 
   public HashLinkDebugProcess(@NotNull XDebugSession session, Module module,
                               Path hlExecutable, Path hlProgram,
@@ -511,26 +515,50 @@ public class HashLinkDebugProcess extends XDebugProcess {
           breakpoints.unregister(breakpoint);
         }
       },
-      // the "Any HashLink exception" breakpoint: enabling it makes the adapter
-      // stop on every thrown exception; disabling it turns the throw-site INT3s off
+      // "Any HashLink exception": stop on every thrown exception
       new XBreakpointHandler<XBreakpoint<XBreakpointProperties>>(HashLinkExceptionBreakpointType.class) {
         @Override
         public void registerBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint) {
-          sendExceptionBreakpoints(true);
+          breakOnAllExceptions = true;
+          updateExceptionFilters();
         }
 
         @Override
         public void unregisterBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
-          sendExceptionBreakpoints(false);
+          breakOnAllExceptions = false;
+          updateExceptionFilters();
+        }
+      },
+      // "Uncaught HashLink exception": stop only where no live try/catch handles it
+      new XBreakpointHandler<XBreakpoint<XBreakpointProperties>>(HashLinkUncaughtExceptionBreakpointType.class) {
+        @Override
+        public void registerBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint) {
+          breakOnUncaughtExceptions = true;
+          updateExceptionFilters();
+        }
+
+        @Override
+        public void unregisterBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
+          breakOnUncaughtExceptions = false;
+          updateExceptionFilters();
         }
       }
     };
   }
 
-  private void sendExceptionBreakpoints(boolean enabled) {
+  // "Any exception" and "Uncaught exception" are independent breakpoints; the
+  // adapter gets the union of the active filters. Recomputed whenever either toggles.
+  private void updateExceptionFilters() {
+    List<String> filters = new ArrayList<>();
+    if (breakOnAllExceptions) {
+      filters.add("all");
+    }
+    if (breakOnUncaughtExceptions) {
+      filters.add("uncaught");
+    }
     SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
     SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
-    arguments.setFilters(enabled ? List.of("all") : List.of());
+    arguments.setFilters(filters);
     request.setArguments(arguments);
     onRequestThread(() -> sendRequest(request));
   }

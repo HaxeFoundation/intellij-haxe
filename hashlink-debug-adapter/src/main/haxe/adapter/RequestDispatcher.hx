@@ -136,7 +136,10 @@ class RequestDispatcher {
 		var capabilities:Capabilities = {
 			supportsConfigurationDoneRequest: true, supportsVariableType: true,
 			supportsEvaluateForHovers: true, supportsSetVariable: true,
-			exceptionBreakpointFilters: [{filter: "all", label: "All Exceptions"}]
+			exceptionBreakpointFilters: [
+				{filter: "all", label: "All Exceptions"},
+				{filter: "uncaught", label: "Uncaught Exceptions"}
+			]
 		};
 		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
