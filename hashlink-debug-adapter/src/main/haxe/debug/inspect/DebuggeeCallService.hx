@@ -1,4 +1,7 @@
 package debug.inspect;
+import haxe.io.Bytes;
+import haxe.io.Encoding;
+import haxe.io.FPHelper;
 import debug.DebugError;
 
 import debug.values.*;
@@ -275,21 +278,21 @@ class DebuggeeCallService {
 		}
 		// Allocate the char buffer with the LOW-LEVEL `alloc_bytes` native (present
 		// in any program that touches strings), reached by disassembling one of
-		// its call sites — unlike `haxe.io.Bytes.alloc`, which the compiler
-		// dead-code-eliminates when the program never uses `haxe.io.Bytes`.
+		// its call sites — unlike `Bytes.alloc`, which the compiler
+		// dead-code-eliminates when the program never uses `Bytes`.
 		var allocBytes = natives.resolve("alloc_bytes");
 		if (allocBytes == null) {
 			throw new DebugError("Unable to create a string: the debuggee's byte allocator (alloc_bytes)"
 				+ " could not be located. String creation is x86-64 only and needs the program to allocate"
 				+ " bytes somewhere (nearly all do).");
 		}
-		var utf8 = haxe.io.Bytes.ofString(text, haxe.io.Encoding.UTF8);
+		var utf8 = Bytes.ofString(text, Encoding.UTF8);
 		// +1 for a guaranteed null terminator (alloc_bytes does not zero the tail)
 		var bufferPtr = functionCaller(allocBytes, [{isFloat: false, bits: Int64.ofInt(utf8.length + 1)}], false);
 		if (Int64.eq(bufferPtr, Int64.ofInt(0))) {
 			throw new DebugError("Unable to create a string: alloc_bytes returned null");
 		}
-		var buffer = haxe.io.Bytes.alloc(utf8.length + 1); // terminator byte defaults to 0
+		var buffer = Bytes.alloc(utf8.length + 1); // terminator byte defaults to 0
 		buffer.blit(0, utf8, 0, utf8.length);
 		memWriter.write(bufferPtr, buffer);
 		var str = callByName("String.fromUTF8", [{isFloat: false, bits: bufferPtr}], false);
@@ -344,13 +347,13 @@ class DebuggeeCallService {
 		return switch (v) {
 			case VInt(i):
 				isFloatSlot(paramType)
-					? {isFloat: true, bits: haxe.io.FPHelper.doubleToI64(Int64.toInt(i))}
+					? {isFloat: true, bits: FPHelper.doubleToI64(Int64.toInt(i))}
 					: {isFloat: false, bits: i};
 			case VFloat(f):
 				if (!isFloatSlot(paramType)) {
 					throw new DebugError("A float argument does not fit an integer parameter");
 				}
-				{isFloat: true, bits: haxe.io.FPHelper.doubleToI64(f)};
+				{isFloat: true, bits: FPHelper.doubleToI64(f)};
 			case VBool(b):
 				{isFloat: false, bits: Int64.ofInt(b ? 1 : 0)};
 			case VNull:

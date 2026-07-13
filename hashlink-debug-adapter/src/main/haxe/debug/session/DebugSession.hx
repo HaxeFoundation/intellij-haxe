@@ -1,4 +1,8 @@
 package debug.session;
+import haxe.io.Bytes;
+import haxe.io.BytesBuffer;
+import haxe.io.BytesInput;
+import haxe.io.FPHelper;
 import debug.DebugErrorCode;
 import debug.Trace;
 import dap.protocol.Breakpoint;
@@ -50,9 +54,7 @@ private enum State {
  * OS event loop.
  */
 class DebugSession {
-	static inline var TRAP_FLAG = 0x100;
-	static inline var WAIT_POLL_MS = 20;
-	static inline var ATTACH_DRAIN_MS = 50;
+
 	// After attaching, Windows delivers a burst of startup debug events (initial
 	// breakpoint, module/DLL loads, thread creation). drainAttachEvents resumes
 	// past each until a wait Timeout says the queue is empty; this bounds how many
@@ -63,6 +65,10 @@ class DebugSession {
 	// for it, treating a wait Timeout as "not arrived yet"; this bounds the polling
 	// at MAX_FORCE_BREAK_POLLS * ATTACH_DRAIN_MS (~1s) before giving up.
 	static inline var MAX_FORCE_BREAK_POLLS = 20;
+
+	static inline var TRAP_FLAG = 0x100;
+	static inline var WAIT_POLL_MS = 20;
+	static inline var ATTACH_DRAIN_MS = 50;
 	static inline var CONNECT_RETRIES = 60;
 	static inline var CONNECT_DELAY_MS = 50;
 	static inline var HANDSHAKE_READ_TIMEOUT_S = 0.5;
@@ -269,7 +275,7 @@ class DebugSession {
 			// fully into memory (a read timeout marks the end) and parse from there.
 			// Parsing straight off the socket deadlocks against the two HL processes'
 			// send/recv buffering, and byte-at-a-time socket reads are far too slow.
-			jit = JitInfoReader.read(new haxe.io.BytesInput(readHandshake()));
+			jit = JitInfoReader.read(new BytesInput(readHandshake()));
 
 			if (!api.start(debuggeePid)) {
 				throw new DebugError("Failed to attach to the debuggee process");
@@ -291,7 +297,7 @@ class DebugSession {
 			inspector.cpuRegistersFor = tid -> state.match(Stopped(_)) ? cpuRegisters.rows(tid) : [];
 			inspector.enableWrites(new MemoryWriter(api, debuggeePid, jit.is64));
 			inspector.xmm0Writer = value ->
-				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, haxe.io.FPHelper.doubleToI64(value));
+				api.writeRegister(debuggeePid, stoppedThreadId, Xmm0, FPHelper.doubleToI64(value));
 			inspector.warnSink = text -> emit(EvOutput("console", text));
 			inspector.functionCaller = (funcAddr, args, floatReturn) ->
 				callInDebuggee(stoppedThreadId, funcAddr, args, floatReturn);
@@ -310,10 +316,10 @@ class DebugSession {
 	// Reads the entire handshake the VM sends before it blocks. Uses a read
 	// timeout: once the VM has sent everything and is waiting on us, the next
 	// read blocks and throws, which is our end-of-message signal.
-	function readHandshake():haxe.io.Bytes {
+	function readHandshake():Bytes {
 		handshakeSocket.setTimeout(HANDSHAKE_READ_TIMEOUT_S);
-		var accumulated = new haxe.io.BytesBuffer();
-		var buffer = haxe.io.Bytes.alloc(8192);
+		var accumulated = new BytesBuffer();
+		var buffer = Bytes.alloc(8192);
 		try {
 			while (true) {
 				var read = handshakeSocket.input.readBytes(buffer, 0, buffer.length);
@@ -484,7 +490,7 @@ class DebugSession {
 		var prevEip = api.readRegister(debuggeePid, threadId, Eip);
 		var prevEsp = api.readRegister(debuggeePid, threadId, Esp);
 
-		var original = haxe.io.Bytes.alloc(asmSize);
+		var original = Bytes.alloc(asmSize);
 		if (!api.readMemory(debuggeePid, prevEip, original, asmSize)) {
 			throw new DebugError("Cannot read code to inject a call");
 		}

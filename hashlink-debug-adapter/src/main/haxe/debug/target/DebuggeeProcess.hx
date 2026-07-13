@@ -1,4 +1,6 @@
 package debug.target;
+import haxe.io.Eof;
+import haxe.io.Input;
 
 import debug.DebugError;
 import debug.session.DebugSession;
@@ -70,7 +72,7 @@ class DebuggeeProcess {
 		pump(process.stderr, "stderr");
 	}
 
-	function pump(input:haxe.io.Input, category:String):Void {
+	function pump(input:Input, category:String):Void {
 		Thread.create(() -> {
 			var buffer = Bytes.alloc(4096);
 			try {
@@ -83,7 +85,7 @@ class DebuggeeProcess {
 					}
 					onOutput(category, buffer.getString(0, read));
 				}
-			} catch (e:haxe.io.Eof) {
+			} catch (e:Eof) {
 				// stream closed: pump done
 			} catch (e:Dynamic) {
 				// process gone: pump done
@@ -96,7 +98,7 @@ class DebuggeeProcess {
 	// thread as being in a blocking section around the read so the GC ignores it.
 	// The parked read allocates nothing (it fills a preallocated buffer); only a
 	// terminal EOF throws, which ends the pump anyway.
-	inline function blockingRead(input:haxe.io.Input, buffer:Bytes):Int {
+	inline function blockingRead(input:Input, buffer:Bytes):Int {
 		#if hl
 		hl.Gc.blocking(true);
 		var read = 0;

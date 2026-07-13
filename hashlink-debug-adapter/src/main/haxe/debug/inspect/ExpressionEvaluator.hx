@@ -1,4 +1,5 @@
 package debug.inspect;
+import haxe.io.FPHelper;
 import debug.DebugError;
 import debug.DebugErrorCode;
 
@@ -387,8 +388,8 @@ class ExpressionEvaluator {
 			case HUi8, HUi16, HI32: VInt(Int64.ofInt(raw.low));
 			case HI64: VInt(raw);
 			case HBool: VBool(raw.low != 0);
-			case HF64: VFloat(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high));
-			case HF32: VFloat(haxe.io.FPHelper.i32ToFloat(raw.low));
+			case HF64: VFloat(FPHelper.i64ToDouble(raw.low, raw.high));
+			case HF32: VFloat(FPHelper.i32ToFloat(raw.low));
 			default: pointerValue(raw, t);
 		}
 	}
@@ -423,8 +424,8 @@ class ExpressionEvaluator {
 			case HUi8, HUi16, HI32: {name: name, value: Std.string(raw.low), type: "Int", reference: 0};
 			case HI64: {name: name, value: Int64.toStr(raw), type: "Int64", reference: 0};
 			case HBool: {name: name, value: raw.low != 0 ? "true" : "false", type: "Bool", reference: 0};
-			case HF64: {name: name, value: Std.string(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high)), type: "Float", reference: 0};
-			case HF32: {name: name, value: Std.string(haxe.io.FPHelper.i32ToFloat(raw.low)), type: "Float", reference: 0};
+			case HF64: {name: name, value: Std.string(FPHelper.i64ToDouble(raw.low, raw.high)), type: "Float", reference: 0};
+			case HF32: {name: name, value: Std.string(FPHelper.i32ToFloat(raw.low)), type: "Float", reference: 0};
 			default:
 				// a pointer return: the raw value IS the object/string pointer
 				if (Int64.eq(raw, Int64.ofInt(0))) {

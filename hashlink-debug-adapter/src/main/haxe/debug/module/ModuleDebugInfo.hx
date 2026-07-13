@@ -1,4 +1,5 @@
 package debug.module;
+import haxe.io.BytesInput;
 import dap.protocol.Source;
 
 import debug.DebugError;
@@ -36,7 +37,7 @@ class ModuleDebugInfo {
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
 		try {
-			data = new format.hl.Reader().read(new haxe.io.BytesInput(bytes));
+			data = new format.hl.Reader().read(new BytesInput(bytes));
 		} catch (e:Dynamic) {
 			// The format lib throws raw strings like "HL Version 6 is not supported",
 			// which reads as if the HashLink RUNTIME were the problem. Name the

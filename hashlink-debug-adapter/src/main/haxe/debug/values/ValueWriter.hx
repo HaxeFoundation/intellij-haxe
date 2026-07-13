@@ -1,4 +1,5 @@
 package debug.values;
+import haxe.io.FPHelper;
 
 import debug.DebugError;
 import debug.Pointer;
@@ -121,16 +122,16 @@ class ValueWriter {
 			case HUi16: Int64.ofInt(raw.low & 0xFFFF);
 			case HI32, HBool: Int64.ofInt(raw.low);
 			case HI64: raw;
-			case HF64: Int64.fromFloat(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high));
-			case HF32: Int64.fromFloat(haxe.io.FPHelper.i32ToFloat(raw.low));
+			case HF64: Int64.fromFloat(FPHelper.i64ToDouble(raw.low, raw.high));
+			case HF32: Int64.fromFloat(FPHelper.i32ToFloat(raw.low));
 			default: throw new DebugError("Cannot assign a " + ValueReader.typeName(sourceType) + " result to a number");
 		}
 	}
 
 	static function rawAsFloat(raw:Int64, sourceType:HLType):Float {
 		return switch (sourceType) {
-			case HF64: haxe.io.FPHelper.i64ToDouble(raw.low, raw.high);
-			case HF32: haxe.io.FPHelper.i32ToFloat(raw.low);
+			case HF64: FPHelper.i64ToDouble(raw.low, raw.high);
+			case HF32: FPHelper.i32ToFloat(raw.low);
 			default: int64ToFloat(rawAsInt(raw, sourceType));
 		}
 	}
