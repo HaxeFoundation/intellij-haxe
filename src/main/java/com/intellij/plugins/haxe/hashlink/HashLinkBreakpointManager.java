@@ -29,6 +29,10 @@ final class HashLinkBreakpointManager {
   private final HashLinkDebugProcess process;
   private final Map<String, LinkedHashSet<XLineBreakpoint<XBreakpointProperties>>> byFile = new LinkedHashMap<>();
   private boolean live = false;
+  // A transient "run to cursor" line breakpoint (file path + 1-based line): appended
+  // to its file's set while active, removed on the next stop. -1 line means none.
+  private String runToPath;
+  private int runToLine = -1;
 
   HashLinkBreakpointManager(HashLinkDebugProcess process) {
     this.process = process;
@@ -68,12 +72,46 @@ final class HashLinkBreakpointManager {
     }
   }
 
-  // Runs on the request thread only.
-  private void flushFile(String path) {
+  /**
+   * Adds a transient run-to-cursor breakpoint at path:line (1-based) and flushes that
+   * file. Returns whether the line resolved to executable code (so the caller knows
+   * whether resuming will actually stop there). Runs on the request thread.
+   */
+  boolean setRunToBreakpoint(String path, int line) {
+    synchronized (this) {
+      runToPath = path;
+      runToLine = line;
+    }
+    return flushFile(path);
+  }
+
+  /** Removes the transient run-to-cursor breakpoint (if any) and reflushes its file. */
+  void clearRunToBreakpoint() {
+    String path;
+    synchronized (this) {
+      if (runToLine < 0) {
+        return;
+      }
+      path = runToPath;
+      runToPath = null;
+      runToLine = -1;
+    }
+    if (path != null) {
+      flushFile(path);
+    }
+  }
+
+  // Runs on the request thread (or event pump). Returns whether the transient
+  // run-to line for this file (if any) resolved to code; true when there is none.
+  private boolean flushFile(String path) {
     List<XLineBreakpoint<XBreakpointProperties>> ordered;
+    boolean appendRunTo;
+    int runToLineLocal;
     synchronized (this) {
       LinkedHashSet<XLineBreakpoint<XBreakpointProperties>> set = byFile.get(path);
       ordered = set == null ? List.of() : new ArrayList<>(set);
+      appendRunTo = path.equals(runToPath) && runToLine > 0;
+      runToLineLocal = runToLine;
     }
 
     SetBreakpointsRequest request = new SetBreakpointsRequest();
@@ -82,7 +120,7 @@ final class HashLinkBreakpointManager {
     source.setPath(path);
     source.setName(Path.of(path).getFileName().toString());
     arguments.setSource(source);
-    List<SourceBreakpoint> requested = new ArrayList<>(ordered.size());
+    List<SourceBreakpoint> requested = new ArrayList<>(ordered.size() + 1);
     for (XLineBreakpoint<XBreakpointProperties> breakpoint : ordered) {
       SourceBreakpoint sb = new SourceBreakpoint();
       sb.setLine(breakpoint.getLine() + 1); // DAP lines are 1-based
@@ -96,14 +134,19 @@ final class HashLinkBreakpointManager {
       sb.setCondition(condition);
       requested.add(sb);
     }
+    if (appendRunTo) {
+      SourceBreakpoint runTo = new SourceBreakpoint();
+      runTo.setLine(runToLineLocal); // already 1-based
+      requested.add(runTo);
+    }
     arguments.setBreakpoints(requested);
     request.setArguments(arguments);
 
     Response response = process.sendRequest(request);
     if (!(response instanceof SetBreakpointsResponse setResponse) || !response.isSuccess()) {
-      return;
+      return false;
     }
-    // responses come back in request order
+    // responses come back in request order: the user breakpoints, then the run-to line
     List<Breakpoint> results = setResponse.getBody().getBreakpoints();
     for (int i = 0; i < ordered.size() && i < results.size(); i++) {
       Breakpoint result = results.get(i);
@@ -115,6 +158,10 @@ final class HashLinkBreakpointManager {
                                                           "No executable code at this line");
       }
     }
+    if (appendRunTo && ordered.size() < results.size()) {
+      return results.get(ordered.size()).isVerified();
+    }
+    return true;
   }
 
   private static String filePath(XLineBreakpoint<XBreakpointProperties> breakpoint) {

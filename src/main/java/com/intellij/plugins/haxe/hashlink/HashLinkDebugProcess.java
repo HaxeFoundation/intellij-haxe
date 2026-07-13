@@ -63,6 +63,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XSourcePosition;
 import com.intellij.xdebugger.XDebuggerManager;
 import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.breakpoints.XBreakpoint;
@@ -259,11 +260,18 @@ public class HashLinkDebugProcess extends XDebugProcess {
       String description = stopped.getBody().getDescription();
       exceptionText = description != null ? description : "Exception thrown";
     }
-    // all threads are suspended at a stop; show them all, with the stopped one active
+    reportStopped(currentThreadId, exceptionText);
+    // run-to-cursor is one-shot: any stop (including a breakpoint reached before the
+    // cursor) cancels a pending run-to breakpoint.
+    breakpoints.clearRunToBreakpoint();
+  }
+
+  // Reports the current stop to the session (all threads suspended, the given one active).
+  private void reportStopped(int threadId, String exceptionText) {
     List<DapThread> threads = requestThreads();
-    List<StackFrame> activeFrames = requestStackTrace(currentThreadId);
+    List<StackFrame> activeFrames = requestStackTrace(threadId);
     getSession().positionReached(
-      new HashLinkSuspendContext(this, threads, currentThreadId, activeFrames, exceptionText));
+      new HashLinkSuspendContext(this, threads, threadId, activeFrames, exceptionText));
   }
 
   List<DapThread> requestThreads() {
@@ -346,6 +354,29 @@ public class HashLinkDebugProcess extends XDebugProcess {
     arguments.setThreadId(currentThreadId);
     request.setArguments(arguments);
     onRequestThread(() -> sendRequest(request));
+  }
+
+  // Run to cursor: plant a transient breakpoint at the target line (alongside the
+  // user's breakpoints) and resume. Any stop clears it (handleStopped). If the line
+  // has no executable code, don't resume — that would run away with no place to
+  // stop — and re-assert the current position so the UI leaves the "running" state.
+  @Override
+  public void runToPosition(@NotNull XSourcePosition position, @Nullable XSuspendContext context) {
+    String path = position.getFile().getPath();
+    int line = position.getLine() + 1; // XSourcePosition is 0-based; DAP is 1-based
+    int threadId = currentThreadId;
+    onRequestThread(() -> {
+      if (breakpoints.setRunToBreakpoint(path, line)) {
+        ContinueRequest request = new ContinueRequest();
+        ContinueArguments arguments = new ContinueArguments();
+        arguments.setThreadId(threadId);
+        request.setArguments(arguments);
+        sendRequest(request);
+      } else {
+        breakpoints.clearRunToBreakpoint();
+        reportStopped(threadId, null);
+      }
+    });
   }
 
   @Override
