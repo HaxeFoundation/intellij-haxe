@@ -197,8 +197,9 @@ class VariablesView {
 	// and compiler bookkeeping like __name__/__constructs__/__meta__; only count
 	// the user's actual static variables.
 	function hasStaticData(proto:ObjPrototype):Bool {
+		var methodFields = staticMethodFieldNames(proto);
 		for (field in proto.fields) {
-			if (isDisplayableStatic(field.name, field.t)) {
+			if (isDisplayableStatic(field.name, methodFields)) {
 				return true;
 			}
 		}
@@ -208,9 +209,10 @@ class VariablesView {
 	// Like object expansion but for a statics singleton: static methods and the
 	// compiler's __xx__ bookkeeping fields are hidden.
 	function readStaticFields(pointer:Pointer, proto:ObjPrototype):Array<VariableInfo> {
+		var methodFields = staticMethodFieldNames(proto);
 		var variables:Array<VariableInfo> = [];
 		for (field in objectLayout.fields(proto)) {
-			if (!isDisplayableStatic(field.name, field.type)) {
+			if (!isDisplayableStatic(field.name, methodFields)) {
 				continue;
 			}
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
@@ -220,15 +222,37 @@ class VariablesView {
 		return variables;
 	}
 
-	static function isDisplayableStatic(name:String, t:HLType):Bool {
-		switch (t) {
-			case HFun(_):
-				return false; // a static method sharing the container
-			default:
+	// The names of static fields that are METHOD bindings, not data. A class's
+	// static methods sit in its statics container as fields bound to a function
+	// via `bindings` (binding.mid = the bound function's findex; the same handle
+	// buildStaticsIndex keys on). Its "Class.method" name's last segment is the
+	// field name to hide. A function-TYPED static var (e.g. `static var
+	// cb:Dynamic->Void`, HFun at runtime) is NOT bound and must stay visible —
+	// hiding it by type alone, as an earlier "drop every HFun" rule did, made it
+	// unreadable in both the Statics view and `Class.member` evaluate.
+	function staticMethodFieldNames(proto:ObjPrototype):Map<String, Bool> {
+		var names = new Map<String, Bool>();
+		if (proto.bindings != null) {
+			for (binding in proto.bindings) {
+				var qualified = module.functionNameByFindex(binding.mid);
+				if (qualified != null) {
+					var lastDot = qualified.lastIndexOf(".");
+					names.set(lastDot < 0 ? qualified : qualified.substr(lastDot + 1), true);
+				}
+			}
+		}
+		return names;
+	}
+
+	static function isDisplayableStatic(name:String, methodFields:Map<String, Bool>):Bool {
+		if (name == null) {
+			return false;
+		}
+		if (methodFields.exists(name)) {
+			return false; // a static method binding, not a data field
 		}
 		// compiler-generated metadata (__name__, __constructs__, __meta__, ...)
-		if (name != null && name.length > 4
-			&& StringTools.startsWith(name, "__") && StringTools.endsWith(name, "__")) {
+		if (name.length > 4 && StringTools.startsWith(name, "__") && StringTools.endsWith(name, "__")) {
 			return false;
 		}
 		return true;

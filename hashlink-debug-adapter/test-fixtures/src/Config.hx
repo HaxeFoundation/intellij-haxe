@@ -15,4 +15,11 @@ class Config {
 		version = version + 1;
 		return before;
 	}
+
+	// A function-typed static VAR (HFun at runtime, but NOT a method binding):
+	// it must stay visible in the Statics scope and be resolvable as
+	// `Config.onBump`, unlike the bump() method above which is hidden. Regression
+	// guard: HFun-typed statics were previously dropped as if they were methods.
+	// Kept after bump() so FIXTURE_STATICS_LINE stays put; @:keep survives DCE.
+	@:keep public static var onBump:Null<Int->Void> = function(v:Int) {};
 }

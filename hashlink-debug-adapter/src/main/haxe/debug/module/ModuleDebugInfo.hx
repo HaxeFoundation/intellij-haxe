@@ -319,6 +319,11 @@ class ModuleDebugInfo {
 		return {file: file, line: line};
 	}
 
+	/** The "Class.method" display name of a function by its (global) findex, or null. */
+	public function functionNameByFindex(findex:Int):Null<String> {
+		return namesByFindex.get(findex);
+	}
+
 	/**
 	 * The data.functions index (what JitInfo uses) of a function by qualified
 	 * name ("String.fromUTF8"), or -1 when unknown or the name maps to a native

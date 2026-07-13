@@ -116,6 +116,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("Config.title", "\"cfg\"", statics.get("title"));
     // the static method sharing the container must not leak into the scope
     assertFalse("bump() hidden from Statics", statics.containsKey("bump"));
+    // ...but a function-TYPED static var (Null<Int->Void>, HFun at runtime) is
+    // data, not a method binding, and must stay visible
+    assertTrue("function-typed static var onBump shown", statics.containsKey("onBump"));
 
     // static fields carry the "static" classification (drives the static icon)
     assertEquals("Config.version is static", VariableKind.STATIC, findVariable(variables(staticsRef), "version").getKind());
@@ -489,6 +492,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("Config.title", "\"cfg\"", evaluate(frameId, "Config.title").getBody().getResult());
     // a PACKAGED class: the dotted class prefix spans path segments
     assertEquals("pkg.Deep.marker", "99", evaluate(frameId, "pkg.Deep.marker").getBody().getResult());
+    // a function-typed static var (Null<Int->Void>) resolves by FQN — regression:
+    // HFun statics were dropped as if they were methods, so this used to fail with
+    // `"...Config" has no field "onBump"`
+    assertTrue("Config.onBump resolves", evaluate(frameId, "Config.onBump").isSuccess());
 
     // writes resolve through the same prefix (restored right after: the
     // fixture's own output depends on Config.version)
