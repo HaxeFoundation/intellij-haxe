@@ -86,7 +86,14 @@ final class HashLinkBreakpointManager {
     for (XLineBreakpoint<XBreakpointProperties> breakpoint : ordered) {
       SourceBreakpoint sb = new SourceBreakpoint();
       sb.setLine(breakpoint.getLine() + 1); // DAP lines are 1-based
-      sb.setCondition(conditionOf(breakpoint)); // the IDE's "Condition" field, evaluated at each hit
+      // the IDE's "Condition" field, evaluated by the adapter at each hit — qualify
+      // its bare class names against the breakpoint file just like watch expressions
+      String condition = conditionOf(breakpoint);
+      if (condition != null) {
+        condition = HashLinkExpressionQualifier.qualify(
+          process.getSession().getProject(), breakpoint.getSourcePosition(), condition);
+      }
+      sb.setCondition(condition);
       requested.add(sb);
     }
     arguments.setBreakpoints(requested);

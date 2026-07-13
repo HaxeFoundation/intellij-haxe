@@ -58,7 +58,9 @@ final class HashLinkStackFrame extends XStackFrame {
 
   @Override
   public @Nullable XDebuggerEvaluator getEvaluator() {
-    return new HashLinkDebuggerEvaluator(process, frame.getId());
+    // the frame's own position is the context for qualifying bare class names
+    // (imports/scope of the breakpoint file), independent of any expression editor
+    return new HashLinkDebuggerEvaluator(process, frame.getId(), getSourcePosition());
   }
 
   @Override

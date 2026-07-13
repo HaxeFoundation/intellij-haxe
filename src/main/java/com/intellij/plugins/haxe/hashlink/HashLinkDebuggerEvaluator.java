@@ -14,23 +14,33 @@ import org.jetbrains.annotations.Nullable;
  * Watches/hover/Evaluate-dialog support. The adapter evaluates VARIABLE PATHS
  * (name, obj.field, arr[0], this-implicit fields, statics of the current
  * class) — arbitrary expressions come back with a descriptive error.
+ *
+ * <p>Bare class references are qualified to their fully-qualified names against
+ * the frame's source file (imports/scope) before being sent, so {@code
+ * Point.ORIGIN} works without the user typing {@code geom.Point.ORIGIN} — see
+ * {@link HashLinkExpressionQualifier}. The user still sees the text they typed.
  */
 final class HashLinkDebuggerEvaluator extends XDebuggerEvaluator {
   private final HashLinkDebugProcess process;
   private final int frameId;
+  private final XSourcePosition framePosition;
 
-  HashLinkDebuggerEvaluator(HashLinkDebugProcess process, int frameId) {
+  HashLinkDebuggerEvaluator(HashLinkDebugProcess process, int frameId, @Nullable XSourcePosition framePosition) {
     this.process = process;
     this.frameId = frameId;
+    this.framePosition = framePosition;
   }
 
   @Override
   public void evaluate(@NotNull String expression, @NotNull XEvaluationCallback callback,
                        @Nullable XSourcePosition expressionPosition) {
     process.onRequestThread(() -> {
+      String qualified = HashLinkExpressionQualifier.qualify(
+        process.getSession().getProject(), framePosition, expression);
+
       EvaluateRequest request = new EvaluateRequest();
       EvaluateArguments arguments = new EvaluateArguments();
-      arguments.setExpression(expression);
+      arguments.setExpression(qualified);
       arguments.setFrameId(frameId);
       arguments.setContext("watch");
       request.setArguments(arguments);
