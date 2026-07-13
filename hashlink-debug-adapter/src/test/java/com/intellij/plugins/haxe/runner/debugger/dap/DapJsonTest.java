@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointEvent;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.DebugErrorCode;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ErrorResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.ExitedEvent;
@@ -91,6 +92,19 @@ public class DapJsonTest {
     ErrorResponse response = (ErrorResponse)message;
     assertFalse(response.isSuccess());
     assertEquals(1000, response.getBody().getError().getId());
+  }
+
+  @Test
+  public void errorResponseDecodesCodeAndVariables() {
+    // A stable machine-readable code (Message.id) plus structured details
+    // (Message.variables) the client branches on instead of the human text.
+    String json = "{\"seq\":5,\"type\":\"response\",\"request_seq\":5,\"success\":false,\"command\":\"evaluate\","
+                  + "\"message\":\"Unknown variable \\\"Deep\\\"\","
+                  + "\"body\":{\"error\":{\"id\":2001,\"format\":\"Unknown variable {name}\","
+                  + "\"variables\":{\"name\":\"Deep\"}}}}";
+    ErrorResponse response = (ErrorResponse)DapJson.decode(json);
+    assertEquals(DebugErrorCode.UNRESOLVED_NAME.id(), response.getBody().getError().getId());
+    assertEquals("Deep", response.getBody().getError().getVariables().get("name"));
   }
 
   @Test

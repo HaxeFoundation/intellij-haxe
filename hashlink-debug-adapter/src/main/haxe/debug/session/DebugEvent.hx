@@ -21,7 +21,9 @@ enum DebugEvent {
 	EvVariables(requestSeq:Int, variables:Array<VariableInfo>);
 	EvVariableSet(requestSeq:Int, result:VariableInfo);
 	EvEvaluated(requestSeq:Int, result:VariableInfo);
-	EvRejected(requestSeq:Int, message:String);
+	// `code`/`variables` carry the DAP Message.id + Message.variables so the client
+	// can branch on a stable code (e.g. UnresolvedName) rather than the message text.
+	EvRejected(requestSeq:Int, message:String, code:debug.DebugErrorCode, variables:Null<Map<String, String>>);
 	EvSessionEnded(requestSeq:Int);
 	// spontaneous events
 	EvBreakpointChanged(result:BreakpointResult);

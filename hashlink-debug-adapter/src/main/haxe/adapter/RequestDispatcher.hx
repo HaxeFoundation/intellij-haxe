@@ -319,8 +319,8 @@ class RequestDispatcher {
 				completeSuccess(seq, {value: result.value, type: result.type, variablesReference: result.reference});
 			case EvEvaluated(seq, result):
 				completeSuccess(seq, {result: result.value, type: result.type, variablesReference: result.reference});
-			case EvRejected(seq, message):
-				completeError(seq, ERROR_INVALID_REQUEST, message);
+			case EvRejected(seq, message, code, variables):
+				completeError(seq, code, message, variables);
 			case EvSessionEnded(seq):
 				completeSuccess(seq, null);
 				shutdownRequested = true;
@@ -365,10 +365,10 @@ class RequestDispatcher {
 		sendSuccess(requestSeq, command == null ? "" : command, body);
 	}
 
-	function completeError(requestSeq:Int, errorId:Int, message:String):Void {
+	function completeError(requestSeq:Int, errorId:Int, message:String, ?variables:Null<Map<String, String>>):Void {
 		var command = deferredCommands.get(requestSeq);
 		deferredCommands.remove(requestSeq);
-		sendError(requestSeq, command == null ? "" : command, errorId, message);
+		sendError(requestSeq, command == null ? "" : command, errorId, message, variables);
 	}
 
 	function sendSuccess(requestSeq:Int, command:String, body:Dynamic):Void {
@@ -385,8 +385,17 @@ class RequestDispatcher {
 		sink(response);
 	}
 
-	function sendError(requestSeq:Int, command:String, errorId:Int, message:String):Void {
-		var body:ErrorResponseBody = {error: {id: errorId, format: message, showUser: false}};
+	function sendError(requestSeq:Int, command:String, errorId:Int, message:String, ?variables:Null<Map<String, String>>):Void {
+		var error:dap.protocol.responses.Message = {id: errorId, format: message, showUser: false};
+		if (variables != null) {
+			// DAP Message.variables is a plain JSON object; copy the Map into one
+			var details = new haxe.DynamicAccess<String>();
+			for (key => value in variables) {
+				details.set(key, value);
+			}
+			error.variables = details;
+		}
+		var body:ErrorResponseBody = {error: error};
 		var response:Response = {
 			seq: nextSeq++,
 			type: "response",

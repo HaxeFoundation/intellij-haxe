@@ -121,7 +121,10 @@ class ExpressionEvaluator {
 			}
 		}
 		if (current == null) {
-			throw new debug.DebugError('Unknown variable "' + path.root + '"');
+			// UnresolvedName + the offending token lets the client resolve it against
+			// its own source (imports) and re-issue a fully-qualified expression.
+			throw new debug.DebugError('Unknown variable "' + path.root + '"',
+				debug.DebugErrorCode.UnresolvedName, ["name" => path.root]);
 		}
 		for (i in start...path.accessors.length) {
 			var accessor = path.accessors[i];

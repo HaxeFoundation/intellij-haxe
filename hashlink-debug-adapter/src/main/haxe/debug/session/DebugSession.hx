@@ -133,10 +133,10 @@ class DebugSession {
 			dispatchCommand(command);
 		} catch (e:DebugError) {
 			dbg("cmd " + Type.enumConstructor(command) + " failed: " + e.message);
-			emit(EvRejected(seqOf(command), e.message));
+			rejectError(seqOf(command), e);
 		} catch (e:Dynamic) {
 			dbg("cmd " + Type.enumConstructor(command) + " failed: " + Std.string(e));
-			emit(EvRejected(seqOf(command), "Internal debugger error: " + Std.string(e)));
+			reject(seqOf(command), "Internal debugger error: " + Std.string(e));
 		}
 		// an eval-call may have been interrupted by another thread's stop; that
 		// event owns the process freeze and is processed only now, after the
@@ -146,6 +146,17 @@ class DebugSession {
 			pendingForeignStop = null;
 			handleWaitOutcome(foreign);
 		}
+	}
+
+	// Reject a request with a DebugError's machine-readable code + variables (the
+	// DAP Message.id / Message.variables the client branches on).
+	inline function rejectError(requestSeq:Int, e:DebugError):Void {
+		emit(EvRejected(requestSeq, e.message, e.code, e.variables));
+	}
+
+	// Reject a request with a plain, generic-coded message (no structured detail).
+	inline function reject(requestSeq:Int, message:String):Void {
+		emit(EvRejected(requestSeq, message, debug.DebugErrorCode.Generic, null));
 	}
 
 	static function seqOf(command:SessionCommand):Int {
@@ -534,7 +545,7 @@ class DebugSession {
 					handleWaitOutcome(interrupted);
 				}
 			default:
-				emit(EvRejected(requestSeq, "Cannot continue: debuggee is not stopped"));
+				reject(requestSeq, "Cannot continue: debuggee is not stopped");
 		}
 	}
 
@@ -636,7 +647,7 @@ class DebugSession {
 					emit(EvResumed(threadId));
 				}
 			default:
-				emit(EvRejected(requestSeq, "Cannot step: debuggee is not stopped"));
+				reject(requestSeq, "Cannot step: debuggee is not stopped");
 		}
 	}
 
@@ -777,7 +788,7 @@ class DebugSession {
 				}
 				emit(EvStackTrace(requestSeq, frames));
 			default:
-				emit(EvRejected(requestSeq, "Cannot get stack trace: debuggee is not stopped"));
+				reject(requestSeq, "Cannot get stack trace: debuggee is not stopped");
 		}
 	}
 
@@ -788,7 +799,7 @@ class DebugSession {
 			case Stopped(_):
 				emit(EvScopes(requestSeq, inspector.scopesFor(frameId)));
 			default:
-				emit(EvRejected(requestSeq, "Cannot get scopes: debuggee is not stopped"));
+				reject(requestSeq, "Cannot get scopes: debuggee is not stopped");
 		}
 	}
 
@@ -798,12 +809,12 @@ class DebugSession {
 				try {
 					emit(EvEvaluated(requestSeq, inspector.evaluate(frameId, expression)));
 				} catch (e:DebugError) {
-					emit(EvRejected(requestSeq, e.message));
+					rejectError(requestSeq, e);
 				} catch (e:Dynamic) {
-					emit(EvRejected(requestSeq, "Cannot evaluate: " + Std.string(e)));
+					reject(requestSeq, "Cannot evaluate: " + Std.string(e));
 				}
 			default:
-				emit(EvRejected(requestSeq, "Cannot evaluate: debuggee is not stopped"));
+				reject(requestSeq, "Cannot evaluate: debuggee is not stopped");
 		}
 	}
 
@@ -812,7 +823,7 @@ class DebugSession {
 			case Stopped(_):
 				emit(EvVariables(requestSeq, inspector.variablesFor(reference)));
 			default:
-				emit(EvRejected(requestSeq, "Cannot get variables: debuggee is not stopped"));
+				reject(requestSeq, "Cannot get variables: debuggee is not stopped");
 		}
 	}
 
@@ -822,12 +833,12 @@ class DebugSession {
 				try {
 					emit(EvVariableSet(requestSeq, inspector.setVariable(reference, name, value)));
 				} catch (e:DebugError) {
-					emit(EvRejected(requestSeq, e.message));
+					rejectError(requestSeq, e);
 				} catch (e:Dynamic) {
-					emit(EvRejected(requestSeq, "Cannot set value: " + Std.string(e)));
+					reject(requestSeq, "Cannot set value: " + Std.string(e));
 				}
 			default:
-				emit(EvRejected(requestSeq, "Cannot set a value: debuggee is not stopped"));
+				reject(requestSeq, "Cannot set a value: debuggee is not stopped");
 		}
 	}
 

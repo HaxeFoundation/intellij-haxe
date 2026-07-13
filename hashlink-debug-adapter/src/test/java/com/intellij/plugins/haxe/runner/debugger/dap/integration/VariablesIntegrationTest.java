@@ -9,6 +9,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.EvaluateRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.DebugErrorCode;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ErrorResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.EvaluateResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
@@ -504,6 +506,11 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     Response unknown = evaluateRaw(frameId, "NoSuchClass.value");
     assertFalse("unknown class root rejected", unknown.isSuccess());
     assertTrue("message names the root", unknown.getMessage().contains("NoSuchClass"));
+    // machine-readable: the UnresolvedName code + the offending token, so a client
+    // can resolve `NoSuchClass` against its own imports and re-issue qualified
+    ErrorResponse err = (ErrorResponse)unknown;
+    assertEquals("UnresolvedName code", DebugErrorCode.UNRESOLVED_NAME.id(), err.getBody().getError().getId());
+    assertEquals("offending name in variables", "NoSuchClass", err.getBody().getError().getVariables().get("name"));
 
     request(new DisconnectRequest());
   }
