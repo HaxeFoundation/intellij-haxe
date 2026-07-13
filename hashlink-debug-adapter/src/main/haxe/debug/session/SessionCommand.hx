@@ -16,7 +16,7 @@ enum SessionCommand {
 	CmdPause(requestSeq:Int, threadId:Int);
 	// Enables/disables breaking on thrown exceptions; `filters` is the DAP filter
 	// id list (non-empty = enable "all exceptions", empty = disable).
-	CmdSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>);
+	CmdSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>, filterTypes:Array<String>);
 	CmdThreads(requestSeq:Int);
 	CmdStackTrace(requestSeq:Int, threadId:Int);
 	CmdScopes(requestSeq:Int, frameId:Int);

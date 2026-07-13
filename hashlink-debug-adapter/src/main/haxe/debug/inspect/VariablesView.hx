@@ -177,6 +177,54 @@ class VariablesView {
 		return {name: "r" + reg, value: decoded.value, type: decoded.type, reference: decoded.reference};
 	}
 
+	/**
+	 * True when the value in register `reg` of `frameId` is an object whose
+	 * runtime class (or a superclass) matches one of `wanted` (FQN or simple
+	 * name) — the type filter for exception breakpoints. False for a non-object
+	 * slot or when `wanted` is empty.
+	 */
+	public function registerValueMatchesType(frameId:Int, reg:Int, wanted:Array<String>):Bool {
+		if (wanted == null || wanted.length == 0) {
+			return false;
+		}
+		var handle = stops.frameAt(frameId);
+		if (handle == null) {
+			return false;
+		}
+		var frame = handle.location;
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		if (reg < 0 || reg >= offsets.length) {
+			return false;
+		}
+		var slot = offsets[reg];
+		var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
+		var runtime = runtimeClassOf(address, slot.t);
+		if (runtime == null) {
+			return false;
+		}
+		for (name in wanted) {
+			if (debug.values.ClassChain.matches(runtime, name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// The runtime class of the value at `address` given its slot type — for an
+	// object the hl_type* sits at obj+0; for a Dynamic the boxed value's type sits
+	// at the vdynamic's +0. Both read one pointer then its type header. Non-object
+	// slots (primitives, structs without a header) have no class here.
+	function runtimeClassOf(address:Pointer, t:HLType):Null<HLType> {
+		var pointer = switch (t) {
+			case HObj(_), HDyn: memory.readPointer(address);
+			default: return null;
+		}
+		if (Int64.eq(pointer, Int64.ofInt(0)) || valueReader.runtimeTypes == null) {
+			return null;
+		}
+		return valueReader.runtimeTypes.typeAt(memory.readPointer(pointer));
+	}
+
 	function rawSlot(address:Pointer, t:HLType):DecodedValue {
 		return {
 			value: ValueReader.hex(memory.readPointer(address)),

@@ -1,0 +1,4 @@
+-cp src
+-main TypedThrow
+-debug
+-hl ../build/hl/typedthrow-fixture.hl

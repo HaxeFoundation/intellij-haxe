@@ -32,6 +32,7 @@ val threadsFixtureHl = layout.buildDirectory.file("hl/threads-fixture.hl")
 val spinFixtureHl = layout.buildDirectory.file("hl/spin-fixture.hl")
 val uncaughtFixtureHl = layout.buildDirectory.file("hl/uncaught-fixture.hl")
 val stacktraceFixtureHl = layout.buildDirectory.file("hl/stacktrace-fixture.hl")
+val typedThrowFixtureHl = layout.buildDirectory.file("hl/typedthrow-fixture.hl")
 // haxelib used to read the .hl bytecode debug tables; pinned for reproducible builds
 val formatHaxelibVersion = "3.7.0"
 
@@ -114,6 +115,18 @@ tasks.register<Exec>("buildStackTraceFixture") {
     outputs.file(stacktraceFixtureHl)
 }
 
+tasks.register<Exec>("buildTypedThrowFixture") {
+    group = "hashlink"
+    description = "Compiles the type-filtered exception fixture (build/hl/typedthrow-fixture.hl)"
+    onlyIf { buildHashlinkAdapter && haxeAvailable }
+    dependsOn("installFormatHaxelib")
+    workingDir = File(projectDir, "test-fixtures")
+    commandLine = listOf("haxe", "typedthrow.hxml")
+    inputs.dir("test-fixtures/src")
+    inputs.file("test-fixtures/typedthrow.hxml")
+    outputs.file(typedThrowFixtureHl)
+}
+
 tasks.register<Exec>("buildDebugAdapter") {
     group = "hashlink"
     description = "Compiles the DAP debug adapter to HashLink bytecode (build/hl/hl-debug-adapter.hl)"
@@ -159,7 +172,7 @@ tasks.named("check") {
 }
 
 tasks.named<Test>("test") {
-    dependsOn("buildDebugAdapter", "buildTestFixture", "buildThreadsFixture", "buildSpinFixture", "buildUncaughtFixture", "buildStackTraceFixture")
+    dependsOn("buildDebugAdapter", "buildTestFixture", "buildThreadsFixture", "buildSpinFixture", "buildUncaughtFixture", "buildStackTraceFixture", "buildTypedThrowFixture")
     // integration tests locate the built adapter, the debuggee fixtures and
     // (optionally) the HashLink executable through these
     systemProperty("dap.adapter.hl", adapterHl.get().asFile.absolutePath)
@@ -168,6 +181,7 @@ tasks.named<Test>("test") {
     systemProperty("dap.fixture.spin.hl", spinFixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.uncaught.hl", uncaughtFixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.stacktrace.hl", stacktraceFixtureHl.get().asFile.absolutePath)
+    systemProperty("dap.fixture.typedthrow.hl", typedThrowFixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.src.dir", File(projectDir, "test-fixtures/src").absolutePath)
     providers.gradleProperty("hashlinkBin").orNull?.let {
         systemProperty("hashlink.executable", it)

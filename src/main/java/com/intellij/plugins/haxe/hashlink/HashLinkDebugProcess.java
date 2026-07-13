@@ -121,8 +121,6 @@ public class HashLinkDebugProcess extends XDebugProcess {
   private volatile boolean shuttingDown = false;
   private volatile HashLinkRegistersPanel registersPanel;
   // which exception breakpoints are enabled (union sent to the adapter)
-  private volatile boolean breakOnAllExceptions = false;
-  private volatile boolean breakOnUncaughtExceptions = false;
 
   public HashLinkDebugProcess(@NotNull XDebugSession session, Module module,
                               Path hlExecutable, Path hlProgram,
@@ -202,13 +200,12 @@ public class HashLinkDebugProcess extends XDebugProcess {
       }
 
       breakpoints.flushAll();
-      // Send the exception filters IN-PHASE (before configurationDone), reading the
-      // persisted enabled state from the breakpoint manager. The registerBreakpoint
-      // callbacks alone are not enough on a fresh session: they fire on the EDT and
-      // their send lands after configurationDone (and races startup), so a
-      // breakpoint that was already enabled from a previous IDE run appeared armed
-      // but never took effect until toggled. This mirrors how line breakpoints flush.
-      syncExceptionFiltersFromBreakpoints();
+      // Send the exception filters IN-PHASE (before configurationDone). The request
+      // is built by reading the breakpoint manager, so a breakpoint already enabled
+      // from a previous IDE run arms here — the registerBreakpoint callbacks alone
+      // fire on the EDT and land after configurationDone (racing startup), which is
+      // why a persisted breakpoint used to appear armed but did nothing until
+      // toggled. This mirrors how line breakpoints flush.
       sendRequest(exceptionFiltersRequest());
       client.sendRequest(new ConfigurationDoneRequest(), REQUEST_TIMEOUT_MILLIS);
 
@@ -532,13 +529,11 @@ public class HashLinkDebugProcess extends XDebugProcess {
       new XBreakpointHandler<XBreakpoint<XBreakpointProperties>>(HashLinkExceptionBreakpointType.class) {
         @Override
         public void registerBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint) {
-          breakOnAllExceptions = true;
           updateExceptionFilters();
         }
 
         @Override
         public void unregisterBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
-          breakOnAllExceptions = false;
           updateExceptionFilters();
         }
       },
@@ -546,54 +541,71 @@ public class HashLinkDebugProcess extends XDebugProcess {
       new XBreakpointHandler<XBreakpoint<XBreakpointProperties>>(HashLinkUncaughtExceptionBreakpointType.class) {
         @Override
         public void registerBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint) {
-          breakOnUncaughtExceptions = true;
           updateExceptionFilters();
         }
 
         @Override
         public void unregisterBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
-          breakOnUncaughtExceptions = false;
+          updateExceptionFilters();
+        }
+      },
+      // Per-class exception breakpoints: stop on throws of a specific class (+ subclasses)
+      new XBreakpointHandler<XBreakpoint<HashLinkExceptionBreakpointProperties>>(HashLinkTypedExceptionBreakpointType.class) {
+        @Override
+        public void registerBreakpoint(@NotNull XBreakpoint<HashLinkExceptionBreakpointProperties> breakpoint) {
+          updateExceptionFilters();
+        }
+
+        @Override
+        public void unregisterBreakpoint(@NotNull XBreakpoint<HashLinkExceptionBreakpointProperties> breakpoint, boolean temporary) {
           updateExceptionFilters();
         }
       }
     };
   }
 
-  // "Any exception" and "Uncaught exception" are independent breakpoints; the
-  // adapter gets the union of the active filters. Recomputed whenever either toggles
-  // (live path — posted to the request thread).
+  // Recomputed whenever any exception breakpoint toggles (live path — posted to
+  // the request thread). See exceptionFiltersRequest for how the union is built.
   private void updateExceptionFilters() {
     onRequestThread(() -> sendRequest(exceptionFiltersRequest()));
   }
 
+  // Builds the setExceptionBreakpoints request by reading the CURRENT state of the
+  // three exception-breakpoint types straight from the breakpoint manager: the
+  // "all"/"uncaught" filters plus the class names of every enabled per-class
+  // breakpoint. Reading the manager (rather than tracking volatile flags) is the
+  // single source of truth, so a session started with breakpoints already enabled
+  // (e.g. after an IDE restart) arms them the same as a live toggle.
   private SetExceptionBreakpointsRequest exceptionFiltersRequest() {
     List<String> filters = new ArrayList<>();
-    if (breakOnAllExceptions) {
-      filters.add("all");
-    }
-    if (breakOnUncaughtExceptions) {
-      filters.add("uncaught");
-    }
-    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
-    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
-    arguments.setFilters(filters);
-    request.setArguments(arguments);
-    return request;
-  }
-
-  // Loads the persisted enabled state of the two exception-breakpoint types from
-  // the breakpoint manager, so a session started with them already enabled (e.g.
-  // after an IDE restart) arms them without needing a toggle.
-  private void syncExceptionFiltersFromBreakpoints() {
+    List<String> filterTypes = new ArrayList<>();
     ReadAction.run(() -> {
       XBreakpointManager manager =
         XDebuggerManager.getInstance(getSession().getProject()).getBreakpointManager();
       XDebuggerUtil util = XDebuggerUtil.getInstance();
-      breakOnAllExceptions =
-        anyEnabled(manager, util.findBreakpointType(HashLinkExceptionBreakpointType.class));
-      breakOnUncaughtExceptions =
-        anyEnabled(manager, util.findBreakpointType(HashLinkUncaughtExceptionBreakpointType.class));
+      if (anyEnabled(manager, util.findBreakpointType(HashLinkExceptionBreakpointType.class))) {
+        filters.add("all");
+      }
+      if (anyEnabled(manager, util.findBreakpointType(HashLinkUncaughtExceptionBreakpointType.class))) {
+        filters.add("uncaught");
+      }
+      XBreakpointType<?, ?> typedType = util.findBreakpointType(HashLinkTypedExceptionBreakpointType.class);
+      if (typedType != null) {
+        for (XBreakpoint<?> breakpoint : manager.getBreakpoints(typedType)) {
+          if (breakpoint.isEnabled()
+              && breakpoint.getProperties() instanceof HashLinkExceptionBreakpointProperties properties
+              && properties.className != null && !properties.className.isBlank()) {
+            filterTypes.add(properties.className.trim());
+          }
+        }
+      }
     });
+    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
+    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
+    arguments.setFilters(filters);
+    arguments.setFilterTypes(filterTypes);
+    request.setArguments(arguments);
+    return request;
   }
 
   private static boolean anyEnabled(XBreakpointManager manager, XBreakpointType<?, ?> type) {

@@ -75,6 +75,8 @@ class DebugSession {
 	var tryRegions:TryRegions;
 	var exceptionBreakAll:Bool = false;
 	var exceptionBreakUncaught:Bool = false;
+	// FQNs (or simple names) of exception classes to stop on — the per-type filter.
+	var exceptionBreakTypes:Array<String> = [];
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
 	var threadRegistry:ThreadRegistry;
@@ -182,7 +184,7 @@ class DebugSession {
 			case CmdContinue(seq, _): seq;
 			case CmdStep(seq, _, _): seq;
 			case CmdPause(seq, _): seq;
-			case CmdSetExceptionBreakpoints(seq, _): seq;
+			case CmdSetExceptionBreakpoints(seq, _, _): seq;
 			case CmdThreads(seq): seq;
 			case CmdStackTrace(seq, _): seq;
 			case CmdScopes(seq, _): seq;
@@ -208,8 +210,8 @@ class DebugSession {
 				handleStep(seq, threadId, mode);
 			case CmdPause(seq, threadId):
 				handlePause(seq, threadId);
-			case CmdSetExceptionBreakpoints(seq, filters):
-				handleSetExceptionBreakpoints(seq, filters);
+			case CmdSetExceptionBreakpoints(seq, filters, filterTypes):
+				handleSetExceptionBreakpoints(seq, filters, filterTypes);
 			case CmdThreads(seq):
 				handleThreads(seq);
 			case CmdStackTrace(seq, threadId):
@@ -662,9 +664,10 @@ class DebugSession {
 
 	// --- exception breakpoints (break on any thrown exception) ---
 
-	function handleSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>):Void {
+	function handleSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>, filterTypes:Array<String>):Void {
 		exceptionBreakAll = filters != null && filters.indexOf("all") >= 0;
 		exceptionBreakUncaught = filters != null && filters.indexOf("uncaught") >= 0;
+		exceptionBreakTypes = filterTypes != null ? filterTypes : [];
 		applyExceptionBreakpoints();
 		emit(EvExceptionBreakpointsSet(requestSeq));
 	}
@@ -675,7 +678,7 @@ class DebugSession {
 	// (breakpoints/sites not built yet — re-run once they are). Arming/disarming
 	// writes debuggee memory, so a running debuggee is briefly frozen first.
 	function applyExceptionBreakpoints():Void {
-		var wanted = exceptionBreakAll || exceptionBreakUncaught;
+		var wanted = exceptionBreakAll || exceptionBreakUncaught || exceptionBreakTypes.length > 0;
 		if (breakpoints == null || exceptionSites == null || wanted == breakpoints.isExceptionsArmed()) {
 			return;
 		}
@@ -719,6 +722,20 @@ class DebugSession {
 			return "Exception thrown";
 		}
 		return value.type != null ? value.type + ": " + value.value : value.value;
+	}
+
+	// True when the thrown value (register `reg` of the throwing frame) is an
+	// instance of one of the configured type filters — by FQN or simple name,
+	// including subclasses (the tsuper chain). Empty filter set ⇒ false.
+	function throwMatchesTypes(threadId:Int, reg:Int):Bool {
+		if (exceptionBreakTypes.length == 0) {
+			return false;
+		}
+		var frames = inspector.framesFor(threadId);
+		if (frames.length == 0) {
+			return false;
+		}
+		return inspector.registerValueMatchesType(frames[0].frameId, reg, exceptionBreakTypes);
 	}
 
 	// The single-step-over-the-patched-instruction sequence. On return the
@@ -1114,7 +1131,10 @@ class DebugSession {
 		// catch it — a caught throw under uncaught-only is resumed past silently
 		// (same trap-dance as a false conditional breakpoint), so the catch runs.
 		if (excEntry != null) {
-			if (!exceptionBreakAll && !(exceptionBreakUncaught && isUncaught(threadId))) {
+			var stop = exceptionBreakAll
+				|| (exceptionBreakUncaught && isUncaught(threadId))
+				|| throwMatchesTypes(threadId, excEntry.reg);
+			if (!stop) {
 				inspector.invalidate();
 				var interrupted = resumePastUserBreakpoint(threadId, excEntry.bp);
 				if (state == Exited) {

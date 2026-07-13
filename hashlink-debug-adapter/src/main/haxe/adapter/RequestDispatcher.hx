@@ -194,10 +194,11 @@ class RequestDispatcher {
 	function handleSetExceptionBreakpoints(request:Request):Void {
 		var args:SetExceptionBreakpointsArguments = request.arguments;
 		var filters = (args != null && args.filters != null) ? args.filters : [];
+		var filterTypes = (args != null && args.filterTypes != null) ? args.filterTypes : [];
 		// Forwarded pre- or post-launch: the session stores the intent and arms the
 		// throw sites once (or immediately, if already launched).
 		defer(request);
-		sessionCommands(CmdSetExceptionBreakpoints(request.seq, filters));
+		sessionCommands(CmdSetExceptionBreakpoints(request.seq, filters, filterTypes));
 	}
 
 	function handleConfigurationDone(request:Request):Void {

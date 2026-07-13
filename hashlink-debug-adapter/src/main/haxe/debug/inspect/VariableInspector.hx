@@ -188,6 +188,11 @@ class VariableInspector {
 		return view.readRegisterValue(frameId, reg);
 	}
 
+	/** True when register `reg` holds an object matching one of the type filters. */
+	public inline function registerValueMatchesType(frameId:Int, reg:Int, wanted:Array<String>):Bool {
+		return view.registerValueMatchesType(frameId, reg, wanted);
+	}
+
 	/**
 	 * Evaluates a VARIABLE PATH (`name`, `obj.field`, `arr[3]`, ...) in a
 	 * cached frame. Root resolution order: the frame's locals, then fields of

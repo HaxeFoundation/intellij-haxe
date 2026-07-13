@@ -140,6 +140,7 @@
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.hashlink.HashLinkExceptionBreakpointType"/>
     <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.hashlink.HashLinkUncaughtExceptionBreakpointType"/>
+    <xdebugger.breakpointType implementation="com.intellij.plugins.haxe.hashlink.HashLinkTypedExceptionBreakpointType"/>
 
     <lang.parserDefinition language="Haxe" implementationClass="com.intellij.plugins.haxe.lang.parser.HaxeParserDefinition"/>
     <lang.formatter language="Haxe" implementationClass="com.intellij.plugins.haxe.ide.formatter.HaxeFormattingModelBuilder"/>

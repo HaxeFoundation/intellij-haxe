@@ -260,36 +260,14 @@ class ExpressionEvaluator {
 					case HObj(_), HStruct(_): type;
 					default: runtimeTypes.typeAt(memory.readPointer(ptr));
 				}
-				classChainMatches(runtime, typeName);
+				debug.values.ClassChain.matches(runtime, typeName);
 			default:
 				false; // a primitive/string against a (real) class name
 		}
 	}
 
-	// Walks an object's runtime class and its superclasses, matching each class
-	// name against `target` by full name (`pkg.Cls`) or simple name (`Cls`).
-	function classChainMatches(type:Null<HLType>, target:String):Bool {
-		var proto = switch (type) {
-			case HObj(p), HStruct(p): p;
-			default: null;
-		}
-		var seen = 0;
-		while (proto != null && seen++ < 64) {
-			if (proto.name == target || simpleClassName(proto.name) == target) {
-				return true;
-			}
-			proto = proto.tsuper == null ? null : switch (proto.tsuper) {
-				case HObj(p), HStruct(p): p;
-				default: null;
-			}
-		}
-		return false;
-	}
-
-	static inline function simpleClassName(full:String):String {
-		var dot = full.lastIndexOf(".");
-		return dot < 0 ? full : full.substr(dot + 1);
-	}
+	// (subtype matching moved to debug.values.ClassChain — shared with exception
+	// breakpoint type filters)
 
 	/** A chain of EIdent/EField/EIndex(constant int) is exactly a ValuePath. */
 	public static function chainToPath(e:Expr):Null<ValuePath> {
