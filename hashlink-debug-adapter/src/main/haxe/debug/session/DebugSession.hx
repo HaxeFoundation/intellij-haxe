@@ -327,7 +327,7 @@ class DebugSession {
 			return;
 		}
 
-		var locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}> = [];
+		var locations:Array<BreakpointLocation> = [];
 		var results:Array<BreakpointResult> = [];
 		for (request in requested) {
 			var resolved = module.resolveLine(sourcePath, request.line);

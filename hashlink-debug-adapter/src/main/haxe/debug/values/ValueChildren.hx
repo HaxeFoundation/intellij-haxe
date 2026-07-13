@@ -74,7 +74,7 @@ class ValueChildren {
 	 * read came from. Returns null when the child isn't individually
 	 * addressable (maps, enum params, closures) or doesn't exist.
 	 */
-	public function targetOf(pointer:Pointer, t:HLType, childName:String):Null<{address:Pointer, type:HLType}> {
+	public function targetOf(pointer:Pointer, t:HLType, childName:String):Null<AddressedValue> {
 		return switch (t) {
 			case HObj(proto) if (proto != null && ValueReader.arrayBytesElementType(proto.name) != null):
 				arrayBytesElementTarget(pointer, ValueReader.arrayBytesElementType(proto.name), childName);
@@ -96,7 +96,7 @@ class ValueChildren {
 		}
 	}
 
-	function objectFieldTarget(pointer:Pointer, t:HLType, name:String):Null<{address:Pointer, type:HLType}> {
+	function objectFieldTarget(pointer:Pointer, t:HLType, name:String):Null<AddressedValue> {
 		var proto = switch (t) {
 			case HObj(p), HStruct(p): p;
 			default: null;
@@ -112,7 +112,7 @@ class ValueChildren {
 		return null;
 	}
 
-	function arrayBytesElementTarget(pointer:Pointer, elemType:HLType, name:String):Null<{address:Pointer, type:HLType}> {
+	function arrayBytesElementTarget(pointer:Pointer, elemType:HLType, name:String):Null<AddressedValue> {
 		var index = asIndex(name);
 		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		if (index < 0 || index >= length) {
@@ -125,7 +125,7 @@ class ValueChildren {
 		return {address: Int64.add(bytes, Int64.ofInt(index * align.typeSize(elemType))), type: elemType};
 	}
 
-	function arrayObjElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+	function arrayObjElementTarget(pointer:Pointer, name:String):Null<AddressedValue> {
 		var index = asIndex(name);
 		var length = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var native = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
@@ -137,7 +137,7 @@ class ValueChildren {
 		return {address: Int64.add(base, Int64.ofInt(index * align.ptr)), type: elemType};
 	}
 
-	function arrayDynElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+	function arrayDynElementTarget(pointer:Pointer, name:String):Null<AddressedValue> {
 		var inner = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		if (Int64.eq(inner, Int64.ofInt(0)) || runtimeTypes == null) {
 			return null;
@@ -149,7 +149,7 @@ class ValueChildren {
 		}
 	}
 
-	function varrayElementTarget(pointer:Pointer, name:String):Null<{address:Pointer, type:HLType}> {
+	function varrayElementTarget(pointer:Pointer, name:String):Null<AddressedValue> {
 		var index = asIndex(name);
 		var size = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr * 2)));
 		if (index < 0 || index >= size) {
@@ -162,7 +162,7 @@ class ValueChildren {
 
 	// vvirtual: the field's indirect slot pointer (null slot = lives on the
 	// wrapped dynobj, not directly addressable here)
-	function virtualFieldTarget(pointer:Pointer, fields:Array<{name:String, t:HLType}>, name:String):Null<{address:Pointer, type:HLType}> {
+	function virtualFieldTarget(pointer:Pointer, fields:Array<{name:String, t:HLType}>, name:String):Null<AddressedValue> {
 		for (i in 0...fields.length) {
 			if (fields[i].name == name) {
 				var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));

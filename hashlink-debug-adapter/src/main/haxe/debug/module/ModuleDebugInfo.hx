@@ -300,7 +300,7 @@ class ModuleDebugInfo {
 	}
 
 	/** Reverse mapping: bytecode location -> source (file, line). */
-	public function lookup(fidx:Int, op:Int):Null<{file:String, line:Int}> {
+	public function lookup(fidx:Int, op:Int):Null<SourceLine> {
 		if (fidx < 0 || fidx >= data.functions.length) {
 			return null;
 		}
@@ -536,3 +536,6 @@ class ModuleDebugInfo {
 		}
 	}
 }
+
+/** A source position: the file path and 1-based line number. */
+typedef SourceLine = {file:String, line:Int}

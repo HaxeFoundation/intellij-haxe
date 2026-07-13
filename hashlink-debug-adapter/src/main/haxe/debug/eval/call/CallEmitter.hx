@@ -90,8 +90,8 @@ class CallEmitter {
 	}
 
 	// Which register each argument goes in.
-	function placeArgs(args:Array<CallArg>):Array<{reg:Int, xmm:Bool}> {
-		var result:Array<{reg:Int, xmm:Bool}> = [];
+	function placeArgs(args:Array<CallArg>):Array<ArgRegister> {
+		var result:Array<ArgRegister> = [];
 		if (winCall) {
 			// positional: argument i uses slot i (RCX/RDX/R8/R9 or XMM0..3)
 			var cpu = [RCX, RDX, R8, R9];
@@ -233,3 +233,6 @@ typedef CallArg = {
 	var isFloat:Bool;
 	var bits:Int64;
 }
+
+/** Where an argument goes: the target register, and whether it's an XMM (float) register. */
+typedef ArgRegister = {reg:Int, xmm:Bool}

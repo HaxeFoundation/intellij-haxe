@@ -66,7 +66,7 @@ class DebuggeeCallService {
 	 * instance-method call first (`recv.method(args)` — M16), falling back to the
 	 * closure-field call.
 	 */
-	public function callRaw(frameId:Int, path:ValuePath, args:Array<EvalValue>):{raw:Pointer, type:HLType} {
+	public function callRaw(frameId:Int, path:ValuePath, args:Array<EvalValue>):CallResult {
 		if (functionCaller == null) {
 			throw new debug.DebugError("Calling functions is not available in this session");
 		}
@@ -116,7 +116,7 @@ class DebuggeeCallService {
 	 * the path as a closure-valued field). Enables `map.set(k,v)`, `arr.push(x)`,
 	 * getters, and any other mutation/query the program's own methods provide.
 	 */
-	function tryMethodCall(frameId:Int, path:ValuePath, args:Array<EvalValue>):Null<{raw:Pointer, type:HLType}> {
+	function tryMethodCall(frameId:Int, path:ValuePath, args:Array<EvalValue>):Null<CallResult> {
 		if (path.accessors.length == 0) {
 			return null; // a bare name: not `recv.method`
 		}
@@ -378,3 +378,6 @@ class DebuggeeCallService {
 		return t.match(HF32) || t.match(HF64);
 	}
 }
+
+/** The result of running debuggee code: the raw return value (RAX, or XMM0-as-RAX for a float) and its HL type. */
+typedef CallResult = {raw:Pointer, type:HLType}

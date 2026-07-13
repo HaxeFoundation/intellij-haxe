@@ -157,7 +157,7 @@ class SymbolResolver {
 
 	// The live statics singleton of the class named `className`, or null when
 	// no such class / no statics global / the singleton isn't allocated yet.
-	function staticsByClassName(className:String):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype}> {
+	function staticsByClassName(className:String):Null<StaticsContainer> {
 		var proto = switch (module.typeByName(staticsContainerName(className))) {
 			case HObj(p): p;
 			default: return null;
@@ -181,7 +181,7 @@ class SymbolResolver {
 	 * many accessors the class name swallowed. Callers must try frame-local
 	 * resolution first so a local can never be shadowed by a class.
 	 */
-	public function staticsPrefix(path:ValuePath):Null<{slot:Pointer, singleton:Pointer, proto:ObjPrototype, className:String, consumed:Int}> {
+	public function staticsPrefix(path:ValuePath):Null<StaticsPrefix> {
 		var name = path.root;
 		var i = 0;
 		while (true) {
@@ -279,3 +279,9 @@ class SymbolResolver {
 		}
 	}
 }
+
+/** A class's live statics: the global slot holding it, the singleton pointer, and its proto. */
+typedef StaticsContainer = {slot:Pointer, singleton:Pointer, proto:ObjPrototype}
+
+/** A StaticsContainer matched by a dotted path prefix: the class name that matched and how many path accessors it consumed. */
+typedef StaticsPrefix = {>StaticsContainer, className:String, consumed:Int}

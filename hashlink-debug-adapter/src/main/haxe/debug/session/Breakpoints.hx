@@ -36,7 +36,7 @@ class Breakpoints {
 	 * caller assigns each location's breakpoint id (so ids stay stable across
 	 * re-verification). Returns the installed breakpoints in input order.
 	 */
-	public function setForSource(sourceKey:String, locations:Array<{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}>):Array<PatchedBreakpoint> {
+	public function setForSource(sourceKey:String, locations:Array<BreakpointLocation>):Array<PatchedBreakpoint> {
 		clearSource(sourceKey);
 		var installed:Array<PatchedBreakpoint> = [];
 		for (loc in locations) {
@@ -151,7 +151,7 @@ class Breakpoints {
 		bySource.clear();
 	}
 
-	function install(loc:{id:Int, address:Pointer, fidx:Int, op:Int, file:String, line:Int, condition:Null<String>}):PatchedBreakpoint {
+	function install(loc:BreakpointLocation):PatchedBreakpoint {
 		var key = addressKey(loc.address);
 		var existing = byAddress.get(key);
 		if (existing != null) {

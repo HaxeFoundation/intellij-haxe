@@ -93,7 +93,7 @@ class JitInfo {
 	 * Maps a machine address back to (function index, opcode index).
 	 * Returns null when the address is not inside any known function's code.
 	 */
-	public function resolveAddress(ptr:Pointer):Null<{fidx:Int, op:Int}> {
+	public function resolveAddress(ptr:Pointer):Null<CodePosition> {
 		if (!isCodePtr(ptr)) {
 			return null;
 		}
@@ -132,3 +132,6 @@ class JitInfo {
 		return -1;
 	}
 }
+
+/** A code position: a function index and an opcode index within it. */
+typedef CodePosition = {fidx:Int, op:Int}
