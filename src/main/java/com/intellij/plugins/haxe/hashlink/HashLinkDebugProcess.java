@@ -60,7 +60,6 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
-import com.intellij.xdebugger.impl.XDebugSessionImpl;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
@@ -129,14 +128,10 @@ public class HashLinkDebugProcess extends XDebugProcess {
 
   @Override
   public void sessionInitialized() {
-    // The platform hides the Pause button unless the session is explicitly told
-    // the process supports pausing — overriding startPausing() alone is not
-    // detected (PauseAction.update reads isPauseActionSupported()).
-    if (getSession() instanceof XDebugSessionImpl session) {
-      session.setPauseActionSupported(true);
-    }
+    getSession().setPauseActionSupported(true);
     requestExecutor.execute(this::initializeSession);
   }
+
 
   // The default XDebugProcess.createConsole() builds a console but never
   // attaches it to the process handler (unlike CommandLineState, which does) —
