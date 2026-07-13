@@ -1052,14 +1052,11 @@ class DebugSession {
 	// stop, so any thread's registers are readable.
 	function handleDisconnect(requestSeq:Int):Void {
 		if (debuggeePid != 0) {
-			// Order matters: kill first (works on a suspended process and stops it
-			// from reaching further breakpoints), then continue any un-continued
-			// debug event so the termination can complete, then detach —
-			// DebugActiveProcessStop wants outstanding events resolved, and
-			// detaching a suspended debuggee has produced intermittent hangs.
-			// In attach mode there is no kill (the client owns the process's
-			// lifetime), so restore every patched INT3 first: the debuggee may
-			// keep running after we detach, and a leftover trap would crash it.
+			// Free the debuggee before we let go. Launch mode: kill it (we own it).
+			// Attach mode: no kill (the client owns its lifetime), so restore every
+			// patched INT3 first — the process may keep running after we detach and a
+			// leftover trap would crash it. Either way, continue any held stop event so
+			// a suspended process does not stall the detach we do further below.
 			if (process != null) {
 				process.kill();
 				dbg("disconnect: kill done");
@@ -1077,6 +1074,34 @@ class DebugSession {
 					dbg("disconnect: resumed stopped thread " + threadId);
 				default:
 			}
+			// Drain any still-pending debug events (the just-continued stop, or an
+			// EXIT_PROCESS from a concurrent terminate) and continue them. Windows
+			// DebugActiveProcessStop stalls while a debug event is outstanding, so a
+			// suspended debuggee we detach without draining leaves the client stuck on
+			// "waiting for process detach" — it cannot die until we let go cleanly.
+			var drained = 0;
+			while (drained++ < MAX_ATTACH_DRAIN_EVENTS) {
+				var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
+				switch (outcome.result) {
+					case Timeout, Exit:
+						break; // nothing pending, or the debuggee is already gone
+					default:
+						try {
+							api.resume(debuggeePid, outcome.threadId);
+						} catch (e:Dynamic) {}
+				}
+			}
+			dbg("disconnect: drained pending events");
+		}
+		// Answer the disconnect NOW, before the detach. In attach mode
+		// DebugActiveProcessStop can stall for seconds on a just-suspended debuggee;
+		// the client tears us down (killing both processes) the instant it sees this
+		// response — which also unblocks/moots the detach. Waiting for the detach here
+		// only made the client sit on its disconnect timeout.
+		alive = false;
+		emit(EvSessionEnded(requestSeq));
+		dbg("disconnect: response emitted");
+		if (debuggeePid != 0) {
 			try {
 				api.stop(debuggeePid);
 			} catch (e:Dynamic) {}
@@ -1087,9 +1112,6 @@ class DebugSession {
 			}
 		}
 		closeHandshake();
-		alive = false;
-		emit(EvSessionEnded(requestSeq));
-		dbg("disconnect: response emitted");
 	}
 
 	// --- wait-event classification while running ---

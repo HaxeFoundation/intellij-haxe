@@ -2,7 +2,9 @@ package com.intellij.plugins.haxe.hashlink;
 
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.process.ProcessEvent;
 import com.intellij.execution.process.ProcessHandler;
+import com.intellij.execution.process.ProcessListener;
 import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
@@ -82,6 +84,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -133,6 +136,33 @@ public class HashLinkDebugProcess extends XDebugProcess {
     this.processHandler = debuggeeHandler;
     this.debugPort = debugPort;
     this.debuggeePid = debuggeePid;
+    // "Terminate" (destroy, not detach) kills the debuggee handler. But the debuggee is
+    // debug-attached by the adapter and suspended at a breakpoint — Windows cannot
+    // TerminateProcess it from a third party while a debugger holds it, so destroyProcess
+    // hangs on "waiting for process detach". Killing the adapter (the debugger) instead
+    // ends the debug session; DebugActiveProcess's kill-on-exit then tears the debuggee
+    // down. Gated on client != null so our own graceful teardown (which nulls client
+    // before destroying the handler) and Disconnect (detach, willBeDestroyed=false) are
+    // left to the normal disconnect path.
+    processHandler.addProcessListener(new ProcessListener() {
+      @Override
+      public void processWillTerminate(@NotNull ProcessEvent event, boolean willBeDestroyed) {
+        if (willBeDestroyed && client != null) {
+          Process adapter = adapterProcess;
+          if (adapter != null) {
+            adapter.destroyForcibly();
+            // wait until the adapter is gone so the debug session is fully torn down
+            // before the debuggee handler's own destroy runs, avoiding a race where it
+            // TerminateProcess-es a still-attached debuggee
+            try {
+              adapter.waitFor(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+              Thread.currentThread().interrupt();
+            }
+          }
+        }
+      }
+    });
   }
 
   // --- lifecycle ---
