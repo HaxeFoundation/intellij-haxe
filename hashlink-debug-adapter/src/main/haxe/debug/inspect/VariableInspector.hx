@@ -175,6 +175,11 @@ class VariableInspector {
 		return view.scopesFor(frameId);
 	}
 
+	/** The decoded value in HL register `reg` of a frame (for describing a thrown exception). */
+	public inline function readRegisterValue(frameId:Int, reg:Int):Null<VariableInfo> {
+		return view.readRegisterValue(frameId, reg);
+	}
+
 	/**
 	 * Evaluates a VARIABLE PATH (`name`, `obj.field`, `arr[3]`, ...) in a
 	 * cached frame. Root resolution order: the frame's locals, then fields of

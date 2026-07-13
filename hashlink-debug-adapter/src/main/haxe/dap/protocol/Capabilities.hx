@@ -8,4 +8,12 @@ typedef Capabilities = {
 	var ?supportsVariableType:Bool;
 	var ?supportsEvaluateForHovers:Bool;
 	var ?supportsSetVariable:Bool;
+	// The exception categories the client can toggle via setExceptionBreakpoints.
+	var ?exceptionBreakpointFilters:Array<ExceptionBreakpointsFilter>;
+}
+
+/** One toggle in the client's exception-breakpoint list (only the required fields). */
+typedef ExceptionBreakpointsFilter = {
+	var filter:String;
+	var label:String;
 }

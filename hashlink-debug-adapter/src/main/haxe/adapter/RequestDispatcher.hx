@@ -22,6 +22,7 @@ import dap.protocol.Request;
 import dap.protocol.Response;
 import dap.protocol.requests.ScopesArguments;
 import dap.protocol.requests.SetBreakpointsArguments;
+import dap.protocol.requests.SetExceptionBreakpointsArguments;
 import dap.protocol.requests.SetVariableArguments;
 import dap.protocol.requests.EvaluateArguments;
 import dap.protocol.requests.VariablesArguments;
@@ -96,6 +97,8 @@ class RequestDispatcher {
 				handleLaunch(request);
 			case "setBreakpoints":
 				handleSetBreakpoints(request);
+			case "setExceptionBreakpoints":
+				handleSetExceptionBreakpoints(request);
 			case "configurationDone":
 				handleConfigurationDone(request);
 			case "continue":
@@ -130,7 +133,11 @@ class RequestDispatcher {
 	// --- request handlers ---
 
 	function handleInitialize(request:Request):Void {
-		var capabilities:Capabilities = {supportsConfigurationDoneRequest: true, supportsVariableType: true, supportsEvaluateForHovers: true, supportsSetVariable: true};
+		var capabilities:Capabilities = {
+			supportsConfigurationDoneRequest: true, supportsVariableType: true,
+			supportsEvaluateForHovers: true, supportsSetVariable: true,
+			exceptionBreakpointFilters: [{filter: "all", label: "All Exceptions"}]
+		};
 		sendSuccess(request.seq, request.command, capabilities);
 		// the spec requires the initialized event strictly after the initialize response
 		sendEvent("initialized");
@@ -179,6 +186,15 @@ class RequestDispatcher {
 		}
 		defer(request);
 		sessionCommands(CmdSetBreakpoints(request.seq, sourceKey, sourcePath, requested, false));
+	}
+
+	function handleSetExceptionBreakpoints(request:Request):Void {
+		var args:SetExceptionBreakpointsArguments = request.arguments;
+		var filters = (args != null && args.filters != null) ? args.filters : [];
+		// Forwarded pre- or post-launch: the session stores the intent and arms the
+		// throw sites once (or immediately, if already launched).
+		defer(request);
+		sessionCommands(CmdSetExceptionBreakpoints(request.seq, filters));
 	}
 
 	function handleConfigurationDone(request:Request):Void {
@@ -322,6 +338,8 @@ class RequestDispatcher {
 			case EvStepStarted(seq):
 				completeSuccess(seq, null);
 			case EvPaused(seq):
+				completeSuccess(seq, null);
+			case EvExceptionBreakpointsSet(seq):
 				completeSuccess(seq, null);
 			case EvThreads(seq, threads):
 				completeSuccess(seq, threadsBody(threads));

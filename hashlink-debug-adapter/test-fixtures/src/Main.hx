@@ -17,7 +17,7 @@ class Main {
 		for (i in 0...count) {
 			total = add(total, i); // FIXTURE_LOOP_LINE = 18
 		}
-		inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); slowDemo(); pkg.Deep.touch(); // same line: keeps the line constants below stable
+		throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); slowDemo(); pkg.Deep.touch(); // same line: keeps the line constants below stable
 		Sys.println("fixture-total:" + total);
 	}
 
@@ -43,5 +43,16 @@ class Main {
 		var before = Std.parseInt("7") + 0; // plain Int 7
 		Sys.sleep(3.0); // FIXTURE_SLOW_LINE = 44 — step over waits ~3s
 		Sys.println("slow-done:" + before); // FIXTURE_SLOW_AFTER_LINE = 45
+	}
+
+	// A caught throw, so an "exception breakpoint" has a deterministic throw site
+	// to stop on early in the run. Kept after slowDemo() so the line constants
+	// above stay put; called first on the demo line so it fires before the sleep.
+	static function throwDemo():Void {
+		try {
+			throw "boom";
+		} catch (e:String) {
+			Sys.println("caught:" + e);
+		}
 	}
 }

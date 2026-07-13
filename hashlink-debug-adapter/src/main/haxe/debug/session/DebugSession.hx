@@ -7,6 +7,7 @@ import debug.eval.call.CallEmitter;
 import debug.eval.call.CallEmitter.CallArg;
 import debug.layout.Align;
 import debug.module.CodeGraph;
+import debug.module.ExceptionSites;
 import debug.module.JitInfo;
 import debug.module.JitInfoReader;
 import debug.module.ModuleDebugInfo;
@@ -66,6 +67,10 @@ class DebugSession {
 	var jit:JitInfo;
 	var module:ModuleDebugInfo;
 	var breakpoints:Breakpoints;
+	// Throw-site enumerator (built once jit+module are ready) + whether an
+	// exception breakpoint is currently armed (an INT3 at every throw site).
+	var exceptionSites:ExceptionSites;
+	var exceptionsEnabled:Bool = false;
 	var handshakeSocket:Socket;
 	var stackWalker:StackWalker;
 	var threadRegistry:ThreadRegistry;
@@ -173,6 +178,7 @@ class DebugSession {
 			case CmdContinue(seq, _): seq;
 			case CmdStep(seq, _, _): seq;
 			case CmdPause(seq, _): seq;
+			case CmdSetExceptionBreakpoints(seq, _): seq;
 			case CmdThreads(seq): seq;
 			case CmdStackTrace(seq, _): seq;
 			case CmdScopes(seq, _): seq;
@@ -198,6 +204,8 @@ class DebugSession {
 				handleStep(seq, threadId, mode);
 			case CmdPause(seq, threadId):
 				handlePause(seq, threadId);
+			case CmdSetExceptionBreakpoints(seq, filters):
+				handleSetExceptionBreakpoints(seq, filters);
 			case CmdThreads(seq):
 				handleThreads(seq);
 			case CmdStackTrace(seq, threadId):
@@ -251,6 +259,7 @@ class DebugSession {
 			drainAttachEvents();
 
 			breakpoints = new Breakpoints(api, debuggeePid);
+			exceptionSites = new ExceptionSites(module, jit);
 			stackWalker = new StackWalker(api, debuggeePid, jit);
 			var memReader = new MemoryReader(api, debuggeePid, jit.is64);
 			threadRegistry = new ThreadRegistry(memReader,
@@ -267,6 +276,7 @@ class DebugSession {
 			inspector.warnSink = text -> emit(EvOutput("console", text));
 			inspector.functionCaller = (funcAddr, args, floatReturn) ->
 				callInDebuggee(stoppedThreadId, funcAddr, args, floatReturn);
+			applyExceptionBreakpoints(); // honour a pre-launch setExceptionBreakpoints
 			state = Configured;
 			emit(EvLaunched(requestSeq));
 		} catch (e:DebugError) {
@@ -645,6 +655,51 @@ class DebugSession {
 		return threads.length > 0 ? threads[0].id : eventThread;
 	}
 
+	// --- exception breakpoints (break on any thrown exception) ---
+
+	function handleSetExceptionBreakpoints(requestSeq:Int, filters:Array<String>):Void {
+		exceptionsEnabled = filters != null && filters.length > 0;
+		applyExceptionBreakpoints();
+		emit(EvExceptionBreakpointsSet(requestSeq));
+	}
+
+	// Reconciles the armed throw-site INT3s with the desired `exceptionsEnabled`
+	// state. A no-op before launch (breakpoints/sites not built yet — re-run once
+	// they are). Arming/disarming writes debuggee memory, so a running debuggee is
+	// briefly frozen first, exactly like setBreakpoints.
+	function applyExceptionBreakpoints():Void {
+		if (breakpoints == null || exceptionSites == null || exceptionsEnabled == breakpoints.isExceptionsArmed()) {
+			return;
+		}
+		var wasRunning = switch (state) { case Running: true; default: false; };
+		if (wasRunning) {
+			pauseForMemoryWrite();
+		}
+		if (exceptionsEnabled) {
+			breakpoints.armExceptions(exceptionSites.all());
+		} else {
+			breakpoints.disarmExceptions();
+		}
+		if (wasRunning) {
+			resumeAfterMemoryWrite();
+		}
+	}
+
+	// Describes the value being thrown (the exception in register `reg` of the top
+	// frame) for the stopped(reason:"exception") text; a generic message if it
+	// can't be read.
+	function describeThrow(threadId:Int, reg:Int):String {
+		var frames = inspector.framesFor(threadId);
+		if (frames.length == 0) {
+			return "Exception thrown";
+		}
+		var value = inspector.readRegisterValue(frames[0].frameId, reg);
+		if (value == null || value.value == null) {
+			return "Exception thrown";
+		}
+		return value.type != null ? value.type + ": " + value.value : value.value;
+	}
+
 	// The single-step-over-the-patched-instruction sequence. On return the
 	// debuggee is frozen again (either our SingleStep event or an interrupting
 	// event is pending), which is exactly when register writes are reliable.
@@ -995,8 +1050,9 @@ class DebugSession {
 		var hitAddress = Int64.sub(eip, Int64.ofInt(1));
 		var userBp = breakpoints != null ? breakpoints.atAddress(hitAddress) : null;
 		var temp = breakpoints != null && breakpoints.isTemp(hitAddress);
+		var excEntry = breakpoints != null ? breakpoints.exceptionAt(hitAddress) : null;
 
-		if (userBp == null && !temp) {
+		if (userBp == null && !temp && excEntry == null) {
 			// attach/loader breakpoint or spurious: just keep going
 			api.resume(debuggeePid, threadId);
 			return;
@@ -1029,6 +1085,17 @@ class DebugSession {
 			breakpoints.suspend(userBp);
 			enterStopped(threadId, userBp);
 			emit(EvStoppedBreakpoint(threadId, [userBp.id]));
+			return;
+		}
+
+		// An exception is being thrown here and the exception breakpoint is armed.
+		// Restore the original byte so the throw itself runs on continue; the trap
+		// dance (stepOverAndResume) single-steps it and re-arms the site. Reported
+		// BEFORE the throw executes, so the frame is the throwing function.
+		if (excEntry != null) {
+			breakpoints.suspend(excEntry.bp);
+			enterStopped(threadId, excEntry.bp);
+			emit(EvStoppedException(threadId, describeThrow(threadId, excEntry.reg)));
 			return;
 		}
 

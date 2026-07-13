@@ -36,6 +36,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextArgum
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.NextRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ScopesRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetExceptionBreakpointsArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.SetExceptionBreakpointsRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.StackTraceArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DapThread;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
@@ -60,6 +62,7 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.breakpoints.XBreakpoint;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
@@ -500,8 +503,29 @@ public class HashLinkDebugProcess extends XDebugProcess {
         public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
           breakpoints.unregister(breakpoint);
         }
+      },
+      // the "Any HashLink exception" breakpoint: enabling it makes the adapter
+      // stop on every thrown exception; disabling it turns the throw-site INT3s off
+      new XBreakpointHandler<XBreakpoint<XBreakpointProperties>>(HashLinkExceptionBreakpointType.class) {
+        @Override
+        public void registerBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint) {
+          sendExceptionBreakpoints(true);
+        }
+
+        @Override
+        public void unregisterBreakpoint(@NotNull XBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
+          sendExceptionBreakpoints(false);
+        }
       }
     };
+  }
+
+  private void sendExceptionBreakpoints(boolean enabled) {
+    SetExceptionBreakpointsRequest request = new SetExceptionBreakpointsRequest();
+    SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
+    arguments.setFilters(enabled ? List.of("all") : List.of());
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
   }
 
   private static Thread daemon(Runnable work, String name) {

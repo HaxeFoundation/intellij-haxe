@@ -156,6 +156,27 @@ class VariablesView {
 		return variables;
 	}
 
+	/**
+	 * The decoded value held in HL register `reg` of `frameId` — used to describe
+	 * the value being thrown at a throw site, where it is a live bound value.
+	 * Null when the frame is gone or the register is out of range.
+	 */
+	public function readRegisterValue(frameId:Int, reg:Int):Null<VariableInfo> {
+		var handle = stops.frameAt(frameId);
+		if (handle == null) {
+			return null;
+		}
+		var frame = handle.location;
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		if (reg < 0 || reg >= offsets.length) {
+			return null;
+		}
+		var slot = offsets[reg];
+		var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
+		var decoded = try valueReader.read(address, slot.t) catch (e:Dynamic) rawSlot(address, slot.t);
+		return {name: "r" + reg, value: decoded.value, type: decoded.type, reference: decoded.reference};
+	}
+
 	function rawSlot(address:Pointer, t:HLType):DecodedValue {
 		return {
 			value: ValueReader.hex(memory.readPointer(address)),

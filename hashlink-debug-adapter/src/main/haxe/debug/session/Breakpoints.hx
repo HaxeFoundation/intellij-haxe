@@ -1,6 +1,7 @@
 package debug.session;
 
 import debug.Pointer;
+import debug.module.ExceptionSites.ThrowSite;
 import debug.target.DebugApi;
 
 import haxe.Int64;
@@ -25,6 +26,9 @@ class Breakpoints {
 	final bySource:Map<String, Array<PatchedBreakpoint>> = new Map();
 	// temporary INT3s planted for a step; `shared` = coincides with a user breakpoint
 	final temps:Map<String, {address:Pointer, originalByte:Int, shared:Bool}> = new Map();
+	// INT3s planted at every throw site while an exception breakpoint is enabled;
+	// `reg` is the HL register holding the thrown value at that site
+	final byException:Map<String, {bp:PatchedBreakpoint, reg:Int}> = new Map();
 
 	public function new(api:DebugApi, pid:Int) {
 		this.api = api;
@@ -93,7 +97,9 @@ class Breakpoints {
 		if (temps.exists(key)) {
 			return;
 		}
-		var shared = byAddress.exists(key);
+		// a user breakpoint OR an armed throw-site already holds an INT3 here — leave
+		// its byte alone so clearTemps doesn't restore over the wrong original
+		var shared = byAddress.exists(key) || byException.exists(key);
 		var original = INT3;
 		if (!shared) {
 			original = readByte(address);
@@ -136,6 +142,42 @@ class Breakpoints {
 		return temps.keys().hasNext();
 	}
 
+	// --- exception breakpoints (one INT3 per throw site while enabled) ---
+
+	/** Plants an INT3 at every throw site (skipping addresses already patched). */
+	public function armExceptions(sites:Array<ThrowSite>):Void {
+		for (site in sites) {
+			var key = addressKey(site.address);
+			if (byAddress.exists(key) || byException.exists(key)) {
+				continue; // a user breakpoint or an already-armed site owns this byte
+			}
+			var original = readByte(site.address);
+			var bp:PatchedBreakpoint = {
+				id: -1, address: site.address, originalByte: original,
+				fidx: site.fidx, op: site.op, file: "", line: 0, condition: null
+			};
+			writeByte(site.address, INT3);
+			byException.set(key, {bp: bp, reg: site.reg});
+		}
+	}
+
+	/** Restores every throw-site byte and forgets them. */
+	public function disarmExceptions():Void {
+		for (entry in byException) {
+			restore(entry.bp);
+		}
+		byException.clear();
+	}
+
+	public function isExceptionsArmed():Bool {
+		return byException.keys().hasNext();
+	}
+
+	/** The throw-site breakpoint at `address` (with its thrown-value register), or null. */
+	public function exceptionAt(address:Pointer):Null<{bp:PatchedBreakpoint, reg:Int}> {
+		return byException.get(addressKey(address));
+	}
+
 	/**
 	 * Restores every patched byte (user breakpoints and temps). Used before
 	 * detaching in attach mode: the debuggee keeps running without a debugger,
@@ -144,6 +186,7 @@ class Breakpoints {
 	 */
 	public function removeAll():Void {
 		clearTemps();
+		disarmExceptions();
 		for (bp in byAddress) {
 			restore(bp);
 		}

@@ -22,6 +22,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ScopesResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.SetBreakpointsResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.SetExceptionBreakpointsResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTraceResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.EvaluateResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.SetVariableResponse;
@@ -74,6 +75,7 @@ public final class DapJson {
     Class<? extends Response> target = switch (command) {
       case "initialize" -> InitializeResponse.class;
       case "setBreakpoints" -> SetBreakpointsResponse.class;
+      case "setExceptionBreakpoints" -> SetExceptionBreakpointsResponse.class;
       case "configurationDone" -> ConfigurationDoneResponse.class;
       case "launch" -> LaunchResponse.class;
       case "threads" -> ThreadsResponse.class;
