@@ -18,6 +18,7 @@ package com.intellij.plugins.haxe.metadata.util;
 import com.intellij.openapi.progress.ProgressIndicatorProvider;
 import com.intellij.plugins.haxe.lang.psi.HaxeCompiletimeMetaArg;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
+import com.intellij.plugins.haxe.lang.psi.HaxeModule;
 import com.intellij.plugins.haxe.metadata.HaxeMetadataList;
 import com.intellij.plugins.haxe.metadata.lexer.HaxeMetadataTokenTypes;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMeta;
@@ -246,6 +247,10 @@ public class HaxeMetadataUtils {
     PsiElement next = element;
     while (null != next && next.getNode().getElementType() == EMBEDDED_META) {
       next = UsefulPsiTreeUtil.getNextSiblingSkipWhiteSpacesAndComments(next);
+      if (next instanceof HaxeModule module) {
+        // a module is just a container, we want the first real component
+        next = module.getFirstChild();
+      }
       if (next instanceof PsiFile) {
         next = null;
       }

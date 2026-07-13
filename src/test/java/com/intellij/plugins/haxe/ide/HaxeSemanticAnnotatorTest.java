@@ -325,6 +325,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testIntIteratorExtensionMethods() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings("extensions/IntIteratorExtensions.hx");
+  }
+
+  @Test
   public void testFieldInitializerCheck() throws Exception {
     doTestNoFixWithWarnings();
   }

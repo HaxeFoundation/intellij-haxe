@@ -49,7 +49,6 @@ import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
  */
 public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpressionCodeFragment {
   private PsiElement myContext;
-  private boolean myPhysical;
   private FileViewProvider myViewProvider;
   private GlobalSearchScope myScope = null;
 
@@ -66,7 +65,6 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
       }
     });
 
-    myPhysical = isPhysical;
     ((SingleRootFileViewProvider)getViewProvider()).forceCachedPsi(this);
     final MyHaxeFileElementType type = new MyHaxeFileElementType();
     init(type, type);
@@ -90,20 +88,16 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
 
   protected HaxeExpressionCodeFragmentImpl clone() {
     final HaxeExpressionCodeFragmentImpl clone = (HaxeExpressionCodeFragmentImpl)cloneImpl((FileElement)calcTreeElement().clone());
-    clone.myPhysical = myPhysical;
     clone.myOriginalFile = this;
     FileManager fileManager = ((PsiManagerEx)getManager()).getFileManager();
     SingleRootFileViewProvider cloneViewProvider =
-      (SingleRootFileViewProvider)fileManager.createFileViewProvider(new LightVirtualFile(getName(), getLanguage(), getText()), myPhysical);
+      (SingleRootFileViewProvider)fileManager.createFileViewProvider(new LightVirtualFile(getName(), getLanguage(), getText()), false);
     clone.myViewProvider = cloneViewProvider;
     cloneViewProvider.forceCachedPsi(clone);
     clone.init(getContentElementType(), getContentElementType());
     return clone;
   }
 
-  public boolean isPhysical() {
-    return myPhysical;
-  }
 
   public void setContext(PsiElement context) {
     myContext = context;
@@ -135,10 +129,10 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     protected ASTNode doParseContents(@NotNull ASTNode chameleon, @NotNull PsiElement psi) {
       final PsiBuilderFactory factory = PsiBuilderFactory.getInstance();
       final PsiBuilder psiBuilder = factory.createBuilder(getProject(), chameleon);
-      final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser());
+      final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser(), HaxeParser.EXTENDS_SETS_);
 
       final PsiBuilder.Marker marker = enter_section_(builder, 0, _NONE_, "<code fragment>");
-      HaxeParser.expression(builder, 1, 0);
+      HaxeParser.expression(builder, 1, -1);
       while (builder.getTokenType() != null) {
         builder.advanceLexer();
       }
