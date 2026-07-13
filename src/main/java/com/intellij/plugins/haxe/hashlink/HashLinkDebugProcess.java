@@ -239,10 +239,17 @@ public class HashLinkDebugProcess extends XDebugProcess {
 
   private void handleStopped(StoppedEvent stopped) {
     currentThreadId = stopped.getBody().getThreadId();
+    // stopped on a thrown exception → mark the throw line in the gutter, tooltip = the value
+    String exceptionText = null;
+    if ("exception".equals(stopped.getBody().getReason())) {
+      String description = stopped.getBody().getDescription();
+      exceptionText = description != null ? description : "Exception thrown";
+    }
     // all threads are suspended at a stop; show them all, with the stopped one active
     List<DapThread> threads = requestThreads();
     List<StackFrame> activeFrames = requestStackTrace(currentThreadId);
-    getSession().positionReached(new HashLinkSuspendContext(this, threads, currentThreadId, activeFrames));
+    getSession().positionReached(
+      new HashLinkSuspendContext(this, threads, currentThreadId, activeFrames, exceptionText));
   }
 
   List<DapThread> requestThreads() {

@@ -17,10 +17,11 @@ final class HashLinkSuspendContext extends XSuspendContext {
   private final HashLinkExecutionStack active;
 
   HashLinkSuspendContext(HashLinkDebugProcess process, List<DapThread> threads,
-                         int activeThreadId, List<StackFrame> activeFrames) {
+                         int activeThreadId, List<StackFrame> activeFrames,
+                         @Nullable String exceptionText) {
     // fall back to a single synthetic thread if the list is somehow empty
     if (threads.isEmpty()) {
-      this.active = new HashLinkExecutionStack(process, activeThreadId, "main", activeFrames);
+      this.active = new HashLinkExecutionStack(process, activeThreadId, "main", activeFrames, exceptionText);
       this.stacks = new HashLinkExecutionStack[]{active};
       return;
     }
@@ -30,7 +31,9 @@ final class HashLinkSuspendContext extends XSuspendContext {
       DapThread thread = threads.get(i);
       boolean isActive = thread.getId() == activeThreadId;
       HashLinkExecutionStack stack = new HashLinkExecutionStack(
-        process, thread.getId(), threadLabel(thread), isActive ? activeFrames : null);
+        process, thread.getId(), threadLabel(thread), isActive ? activeFrames : null,
+        // the exception gutter marker belongs only on the thread that threw
+        isActive ? exceptionText : null);
       stacks[i] = stack;
       if (isActive) {
         activeStack = stack;
