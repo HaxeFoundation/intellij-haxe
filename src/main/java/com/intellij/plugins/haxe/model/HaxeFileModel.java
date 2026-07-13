@@ -20,6 +20,7 @@ import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.stubs.stub.HaxePackageStub;
 import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
+import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.stubs.StubElement;
@@ -228,10 +229,16 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public List<HaxeImportModel> getImportModels() {
-    return getChildren().stream()
+    List<HaxeImportModel> result = getChildren().stream()
       .filter(element -> element instanceof HaxeImportStatement)
       .map(element -> ((HaxeImportStatement)element).getModel())
       .collect(Collectors.toList());
+    result.addAll(getFragmentStoredImportModels());
+    HaxeFileModel context = getContextFileModel();
+    if (context != null) {
+      result.addAll(context.getImportModels());
+    }
+    return result;
   }
 
   public List<HaxeUsingStatement> getUsingStatements() {
@@ -242,11 +249,16 @@ public class HaxeFileModel implements HaxeExposableModel {
   }
 
   public List<HaxeUsingModel> getUsingModels() {
-    return getChildren().stream()
+    List<HaxeUsingModel> result = getChildren().stream()
       .filter(element -> element instanceof HaxeUsingStatement)
        .map(HaxeUsingStatement.class::cast)
       .map(element -> element.getModel())
       .collect(Collectors.toList());
+    HaxeFileModel context = getContextFileModel();
+    if (context != null) {
+      result.addAll(context.getUsingModels());
+    }
+    return result;
   }
   @NotNull
   public List<HaxeImportableModel> getOrderedImportAndUsingModels() {
@@ -261,8 +273,60 @@ public class HaxeFileModel implements HaxeExposableModel {
         result.add(usingStatement.getModel());
       }
     }
+    result.addAll(getFragmentStoredImportModels());
+    HaxeFileModel context = getContextFileModel();
+    if (context != null) {
+      result.addAll(context.getOrderedImportAndUsingModels());
+    }
 
     return result;
+  }
+
+  /**
+   * Import models for the type names {@linkplain HaxeExpressionCodeFragment#importClass
+   * added directly to an evaluate/debugger fragment} (empty for a normal file).
+   * Each stored name is turned into an ordinary {@link HaxeImportModel} by
+   * synthesizing an {@code import <fqn>;} statement, so it resolves through the
+   * same machinery as a written import — but the statement lives outside the
+   * fragment's text and thus never reaches the evaluated expression.
+   */
+  @NotNull
+  private List<HaxeImportModel> getFragmentStoredImportModels() {
+    if (!(file instanceof HaxeExpressionCodeFragment fragment)) {
+      return Collections.emptyList();
+    }
+    Set<String> names = fragment.getImportedTypeNames();
+    if (names.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<HaxeImportModel> models = new ArrayList<>(names.size());
+    for (String qualifiedName : names) {
+      HaxeImportStatement statement = HaxeElementGenerator.createImportStatementFromPath(file.getProject(), qualifiedName);
+      if (statement != null) {
+        models.add(statement.getModel());
+      }
+    }
+    return models;
+  }
+
+  /**
+   * When this model wraps an evaluate/debugger code fragment, the model of the
+   * source file the fragment was created against (its {@code context}); {@code
+   * null} for a normal file. A fragment holds no import statements of its own, so
+   * a bare class reference typed in the evaluate window would otherwise never
+   * resolve — this lets it inherit the imports/usings in scope at the breakpoint,
+   * exactly as a Java debugger code fragment inherits its context's imports, and
+   * without those imports appearing in the fragment's (evaluated) text. The
+   * context file is an ordinary {@link HaxeFile}, so this does not recurse.
+   */
+  @Nullable
+  private HaxeFileModel getContextFileModel() {
+    if (!(file instanceof HaxeExpressionCodeFragment)) {
+      return null;
+    }
+    PsiElement context = file.getContext();
+    HaxeFileModel contextModel = context != null ? fromElement(context) : null;
+    return contextModel == this ? null : contextModel;
   }
 
   private @NotNull List<PsiElement> getChildrenFromStubOrPsi() {

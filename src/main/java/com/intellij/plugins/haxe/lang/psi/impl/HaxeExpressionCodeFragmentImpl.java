@@ -42,6 +42,9 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 
 /**
@@ -51,6 +54,9 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
   private PsiElement myContext;
   private FileViewProvider myViewProvider;
   private GlobalSearchScope myScope = null;
+  // imports added in the evaluate window are held here, not in the fragment text,
+  // so they never end up in the evaluated expression (see HaxeExpressionCodeFragment)
+  private final Set<String> myImportedTypeNames = new LinkedHashSet<>();
 
   public HaxeExpressionCodeFragmentImpl(Project project,
                                         @NonNls String name,
@@ -95,12 +101,23 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     clone.myViewProvider = cloneViewProvider;
     cloneViewProvider.forceCachedPsi(clone);
     clone.init(getContentElementType(), getContentElementType());
+    clone.myImportedTypeNames.addAll(myImportedTypeNames);
     return clone;
   }
 
 
   public void setContext(PsiElement context) {
     myContext = context;
+  }
+
+  @Override
+  public boolean importClass(String qualifiedName) {
+    return myImportedTypeNames.add(qualifiedName);
+  }
+
+  @Override
+  public Set<String> getImportedTypeNames() {
+    return myImportedTypeNames;
   }
 
   @Override
