@@ -1,4 +1,6 @@
 package debug.module;
+import format.hl.Reader;
+import format.hl.Tools;
 import haxe.io.BytesInput;
 import dap.protocol.Source;
 
@@ -37,7 +39,7 @@ class ModuleDebugInfo {
 	public function new(hlFilePath:String) {
 		var bytes = sys.io.File.getBytes(hlFilePath);
 		try {
-			data = new format.hl.Reader().read(new BytesInput(bytes));
+			data = new Reader().read(new BytesInput(bytes));
 		} catch (e:Dynamic) {
 			// The format lib throws raw strings like "HL Version 6 is not supported",
 			// which reads as if the HashLink RUNTIME were the problem. Name the
@@ -99,7 +101,7 @@ class ModuleDebugInfo {
 		if (reversedHashes == null) {
 			reversedHashes = new Map();
 			for (s in data.strings) {
-				reversedHashes.set(format.hl.Tools.hash(s), s);
+				reversedHashes.set(Tools.hash(s), s);
 			}
 		}
 		return reversedHashes.get(hash);

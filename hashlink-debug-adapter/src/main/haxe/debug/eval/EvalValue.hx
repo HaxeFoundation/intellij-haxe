@@ -1,4 +1,5 @@
 package debug.eval;
+import format.hl.Data.HLType;
 
 import haxe.Int64;
 
@@ -20,5 +21,5 @@ enum EvalValue {
 	VString(v:String, ptr:Null<debug.Pointer>);
 	VNull;
 	/** A debuggee-resident pointer value (object/array/map/closure/...). */
-	VObject(raw:debug.Pointer, type:format.hl.Data.HLType);
+	VObject(raw:debug.Pointer, type:HLType);
 }

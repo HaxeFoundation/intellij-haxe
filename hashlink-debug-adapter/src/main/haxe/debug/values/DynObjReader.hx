@@ -1,4 +1,5 @@
 package debug.values;
+import format.hl.Tools;
 
 import debug.Pointer;
 import debug.layout.Align;
@@ -98,7 +99,7 @@ class DynObjReader {
 		var lookup = mem.readPointer(ptr.offset(align.ptr));
 		var rawData = mem.readPointer(ptr.offset(align.ptr * 2));
 		var values = mem.readPointer(ptr.offset(align.ptr * 3));
-		var hash = format.hl.Tools.hash(name);
+		var hash = Tools.hash(name);
 
 		var min = 0;
 		var max = count;

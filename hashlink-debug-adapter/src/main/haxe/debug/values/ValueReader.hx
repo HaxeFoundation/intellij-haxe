@@ -1,4 +1,8 @@
 package debug.values;
+import format.hl.Data.EnumPrototype;
+import format.hl.Data.FunPrototype;
+import format.hl.Data.ObjPrototype;
+import format.hl.Tools;
 
 import debug.Pointer;
 import debug.layout.Align;
@@ -132,7 +136,7 @@ class ValueReader {
 	}
 
 	// haxe.ds.EnumValueMap / BalancedTree: entry count by walking the tree
-	function readTreeMap(ptr:Pointer, proto:format.hl.Data.ObjPrototype):DecodedValue {
+	function readTreeMap(ptr:Pointer, proto:ObjPrototype):DecodedValue {
 		var count = treeMaps.entryCount(ptr, proto);
 		if (count < 0) {
 			return {value: displayName(proto.name) + " @ " + hex(ptr), type: displayName(proto.name), reference: 0};
@@ -198,7 +202,7 @@ class ValueReader {
 	// venum: constructor index @ +ptr; params inline per EnumLayout. Constructors
 	// without params are leaves; with params the value previews them inline and
 	// expands into one child per param.
-	function readEnum(ptr:Pointer, t:HLType, proto:format.hl.Data.EnumPrototype):DecodedValue {
+	function readEnum(ptr:Pointer, t:HLType, proto:EnumPrototype):DecodedValue {
 		var index = mem.readI32(ptr.offset(align.ptr));
 		if (index < 0 || index >= proto.constructs.length) {
 			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
@@ -226,7 +230,7 @@ class ValueReader {
 
 	// vdynamic: runtime type @ +0, payload @ +ptr. Whether the vdynamic address
 	// *is* the value or the value lives in the payload slot follows the VM's
-	// own classification (format.hl.Tools.isDynamic): objects/virtuals/enums/
+	// own classification (Tools.isDynamic): objects/virtuals/enums/
 	// arrays/dynobjs ARE vdynamic-compatible; primitives, abstracts, bytes,
 	// refs and structs are carried in the payload.
 	function readDynamic(ptr:Pointer):DecodedValue {
@@ -238,7 +242,7 @@ class ValueReader {
 			case HDyn:
 				expandableOrRaw(ptr, HDyn); // avoid recursing on a dyn-of-dyn
 			default:
-				format.hl.Tools.isDynamic(resolved)
+				Tools.isDynamic(resolved)
 					? decodePointed(ptr, resolved)
 					: read(ptr.offset(align.ptr), resolved);
 		}
@@ -382,7 +386,7 @@ class ValueReader {
 	// (`() -> Void` for no args). The bytecode type table carries the parameter
 	// TYPES but not their names, so the arguments are unnamed. Argument and return
 	// types are named recursively, so nested function types compose.
-	static function funSignature(fun:Null<format.hl.Data.FunPrototype>):String {
+	static function funSignature(fun:Null<FunPrototype>):String {
 		if (fun == null) {
 			return "Function";
 		}

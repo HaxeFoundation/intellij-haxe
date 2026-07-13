@@ -1,4 +1,6 @@
 package debug.values;
+import format.hl.Data.EnumPrototype;
+import format.hl.Data.ObjPrototype;
 
 import debug.Pointer;
 import debug.layout.Align;
@@ -178,7 +180,7 @@ class ValueChildren {
 	}
 
 	// venum: one child per constructor param at its EnumLayout offset
-	function enumParams(pointer:Pointer, proto:format.hl.Data.EnumPrototype):Array<VariableInfo> {
+	function enumParams(pointer:Pointer, proto:EnumPrototype):Array<VariableInfo> {
 		var index = mem.readI32(Int64.add(pointer, Int64.ofInt(align.ptr)));
 		var variables:Array<VariableInfo> = [];
 		for (param in enumLayout.params(proto, index)) {
@@ -246,7 +248,7 @@ class ValueChildren {
 	}
 
 	// EnumValueMap / BalancedTree entries, walked in-order (sorted keys)
-	function treeMapEntries(pointer:Pointer, proto:format.hl.Data.ObjPrototype):Array<VariableInfo> {
+	function treeMapEntries(pointer:Pointer, proto:ObjPrototype):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		for (entry in treeMaps.entries(pointer, proto, keyAddress -> reader.read(keyAddress, HDyn).value)) {
 			var decoded = reader.read(entry.valueAddress, HDyn);
