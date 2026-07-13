@@ -71,6 +71,12 @@ class DebugSession {
 	var threadRegistry:ThreadRegistry;
 	var stoppedThreadId:Int = 0;
 	var currentStoppedBreakpoint:PatchedBreakpoint;
+	// A user pause holds the debug event of the thread the forced break landed on
+	// (on Windows a transient system thread, NOT a real HL thread). That exact
+	// thread must be the one continued to unfreeze the process, so it is stashed
+	// here for the next resume while a real HL thread is reported for inspection.
+	// -1 when no pause event is held.
+	var pauseEventThread:Int = -1;
 	var alive:Bool = true;
 	// The in-flight step (temps planted, landing pending), bound to its thread;
 	// null when no step is active. See ActiveStep for why this is a singleton.
@@ -166,6 +172,7 @@ class DebugSession {
 			case CmdConfigurationDone(seq): seq;
 			case CmdContinue(seq, _): seq;
 			case CmdStep(seq, _, _): seq;
+			case CmdPause(seq, _): seq;
 			case CmdThreads(seq): seq;
 			case CmdStackTrace(seq, _): seq;
 			case CmdScopes(seq, _): seq;
@@ -189,6 +196,8 @@ class DebugSession {
 				handleContinue(seq, threadId);
 			case CmdStep(seq, threadId, mode):
 				handleStep(seq, threadId, mode);
+			case CmdPause(seq, threadId):
+				handlePause(seq, threadId);
 			case CmdThreads(seq):
 				handleThreads(seq);
 			case CmdStackTrace(seq, threadId):
@@ -387,6 +396,18 @@ class DebugSession {
 	// Force the running debuggee to stop, so its memory can be patched, then keep
 	// running. Any breakpoint/step event that arrives here is not user-visible.
 	function pauseForMemoryWrite():Void {
+		var outcome = forceBreakAndDrain();
+		if (outcome != null) {
+			stoppedThreadId = outcome.threadId;
+		}
+	}
+
+	// Interrupt the running debuggee (forceBreak) and drain auto-continued
+	// lifecycle events until the forced stop lands, returning that stopping
+	// outcome. Returns null when the debuggee exited during the interrupt
+	// (state=Exited, EvExited emitted) or the stop never arrived in the drain
+	// budget. Shared by the silent memory-write pause and the user pause.
+	function forceBreakAndDrain():Null<WaitOutcome> {
 		api.forceBreak(debuggeePid);
 		for (_ in 0...20) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
@@ -399,12 +420,12 @@ class DebugSession {
 					state = Exited;
 					releaseExitedProcess(outcome.threadId);
 					emit(EvExited(safeExitCode()));
-					return;
+					return null;
 				default:
-					stoppedThreadId = outcome.threadId;
-					return;
+					return outcome;
 			}
 		}
+		return null;
 	}
 
 	function resumeAfterMemoryWrite():Void {
@@ -570,8 +591,58 @@ class DebugSession {
 				return interrupted; // a pending event owns the freeze; don't resume
 			}
 		}
-		api.resume(debuggeePid, threadId);
+		// A user pause parked on a system break thread whose event must be the one
+		// continued; the inspected Haxe thread is not it. Consume it once.
+		var resumeThread = pauseEventThread != -1 ? pauseEventThread : threadId;
+		pauseEventThread = -1;
+		api.resume(debuggeePid, resumeThread);
 		return null;
+	}
+
+	// User pause: interrupt the running debuggee and report a stop with reason
+	// "pause", WITHOUT resuming. The forced break lands on a thread that may not be
+	// a real HL thread (a system break thread on Windows), so its event is stashed
+	// in pauseEventThread for the resume while a real HL thread is reported for
+	// inspection — the user sees a Haxe stack, and continue/step resume correctly.
+	function handlePause(requestSeq:Int, threadId:Int):Void {
+		switch (state) {
+			case Running:
+				var outcome = forceBreakAndDrain();
+				if (state == Exited) {
+					// the debuggee exited during the interrupt (EvExited already sent)
+					emit(EvPaused(requestSeq));
+					return;
+				}
+				if (outcome == null) {
+					reject(requestSeq, "Could not pause the debuggee");
+					return;
+				}
+				pauseEventThread = outcome.threadId;
+				var inspectThread = pauseInspectThread(threadId, outcome.threadId);
+				enterStopped(inspectThread, null);
+				emit(EvPaused(requestSeq));      // ack the pause request first
+				emit(EvStoppedPause(inspectThread)); // then the stopped(reason:"pause") event
+			case Stopped(_):
+				// already stopped (e.g. a breakpoint hit as the pause arrived): the
+				// client is already showing a stop, so just acknowledge
+				emit(EvPaused(requestSeq));
+			default:
+				reject(requestSeq, "Cannot pause: debuggee is not running");
+		}
+	}
+
+	// The real HL thread to report a pause on: the requested thread when it is a
+	// live HL thread, else the first (main) HL thread, else the raw event thread.
+	function pauseInspectThread(requested:Int, eventThread:Int):Int {
+		var threads = threadList();
+		if (requested > 0) {
+			for (t in threads) {
+				if (t.id == requested) {
+					return requested;
+				}
+			}
+		}
+		return threads.length > 0 ? threads[0].id : eventThread;
 	}
 
 	// The single-step-over-the-patched-instruction sequence. On return the

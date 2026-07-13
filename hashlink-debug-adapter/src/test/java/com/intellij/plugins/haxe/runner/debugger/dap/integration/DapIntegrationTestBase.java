@@ -96,6 +96,7 @@ public abstract class DapIntegrationTestBase {
   protected DapClient client;
   protected Path fixtureHl;
   protected Path threadsFixtureHl;
+  protected Path spinFixtureHl;
   protected Path fixtureSrcDir;
   protected String hlExecutable;
 
@@ -122,6 +123,10 @@ public abstract class DapIntegrationTestBase {
       String threadsProperty = System.getProperty("dap.fixture.threads.hl", "");
       if (!threadsProperty.isEmpty() && Files.isRegularFile(Path.of(threadsProperty))) {
         threadsFixtureHl = Path.of(threadsProperty);
+      }
+      String spinProperty = System.getProperty("dap.fixture.spin.hl", "");
+      if (!spinProperty.isEmpty() && Files.isRegularFile(Path.of(spinProperty))) {
+        spinFixtureHl = Path.of(spinProperty);
       }
     }
     Optional<Path> hl = HlExecutableResolver.resolve();

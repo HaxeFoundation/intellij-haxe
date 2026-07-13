@@ -29,6 +29,7 @@ val buildHashlinkAdapter = providers.gradleProperty("buildHashlinkAdapter").getO
 val adapterHl = layout.buildDirectory.file("hl/hl-debug-adapter.hl")
 val fixtureHl = layout.buildDirectory.file("hl/test-fixture.hl")
 val threadsFixtureHl = layout.buildDirectory.file("hl/threads-fixture.hl")
+val spinFixtureHl = layout.buildDirectory.file("hl/spin-fixture.hl")
 // haxelib used to read the .hl bytecode debug tables; pinned for reproducible builds
 val formatHaxelibVersion = "3.7.0"
 
@@ -73,6 +74,18 @@ tasks.register<Exec>("buildThreadsFixture") {
     inputs.dir("test-fixtures/src")
     inputs.file("test-fixtures/threads.hxml")
     outputs.file(threadsFixtureHl)
+}
+
+tasks.register<Exec>("buildSpinFixture") {
+    group = "hashlink"
+    description = "Compiles the busy-loop pause debuggee fixture (build/hl/spin-fixture.hl)"
+    onlyIf { buildHashlinkAdapter && haxeAvailable }
+    dependsOn("installFormatHaxelib")
+    workingDir = File(projectDir, "test-fixtures")
+    commandLine = listOf("haxe", "spin.hxml")
+    inputs.dir("test-fixtures/src")
+    inputs.file("test-fixtures/spin.hxml")
+    outputs.file(spinFixtureHl)
 }
 
 tasks.register<Exec>("buildDebugAdapter") {
@@ -120,12 +133,13 @@ tasks.named("check") {
 }
 
 tasks.named<Test>("test") {
-    dependsOn("buildDebugAdapter", "buildTestFixture", "buildThreadsFixture")
+    dependsOn("buildDebugAdapter", "buildTestFixture", "buildThreadsFixture", "buildSpinFixture")
     // integration tests locate the built adapter, the debuggee fixtures and
     // (optionally) the HashLink executable through these
     systemProperty("dap.adapter.hl", adapterHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.hl", fixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.threads.hl", threadsFixtureHl.get().asFile.absolutePath)
+    systemProperty("dap.fixture.spin.hl", spinFixtureHl.get().asFile.absolutePath)
     systemProperty("dap.fixture.src.dir", File(projectDir, "test-fixtures/src").absolutePath)
     providers.gradleProperty("hashlinkBin").orNull?.let {
         systemProperty("hashlink.executable", it)

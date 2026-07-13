@@ -25,6 +25,8 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.TerminatedE
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueArguments;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ContinueRequest;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.PauseArguments;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.PauseRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.DisconnectRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequest;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.InitializeRequestArguments;
@@ -315,6 +317,17 @@ public class HashLinkDebugProcess extends XDebugProcess {
   public void resume(@Nullable XSuspendContext context) {
     ContinueRequest request = new ContinueRequest();
     ContinueArguments arguments = new ContinueArguments();
+    arguments.setThreadId(currentThreadId);
+    request.setArguments(arguments);
+    onRequestThread(() -> sendRequest(request));
+  }
+
+  @Override
+  public void startPausing() {
+    // interrupt the running debuggee; the adapter replies, then sends a
+    // stopped(reason:"pause") event that the existing stop handling renders
+    PauseRequest request = new PauseRequest();
+    PauseArguments arguments = new PauseArguments();
     arguments.setThreadId(currentThreadId);
     request.setArguments(arguments);
     onRequestThread(() -> sendRequest(request));

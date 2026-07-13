@@ -1,0 +1,4 @@
+-cp src
+-main Spin
+-debug
+-hl ../build/hl/spin-fixture.hl

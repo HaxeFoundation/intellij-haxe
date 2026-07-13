@@ -15,6 +15,7 @@ enum DebugEvent {
 	EvConfigurationDone(requestSeq:Int);
 	EvContinued(requestSeq:Int);
 	EvStepStarted(requestSeq:Int); // ack for a next/stepIn/stepOut request; the stop follows
+	EvPaused(requestSeq:Int); // ack for a pause request; the stopped(reason:"pause") event follows
 	EvThreads(requestSeq:Int, threads:Array<debug.target.ThreadInfo>);
 	EvStackTrace(requestSeq:Int, frames:Array<FrameInfo>);
 	EvScopes(requestSeq:Int, scopes:Array<ScopeInfo>);
@@ -30,6 +31,7 @@ enum DebugEvent {
 	EvStoppedBreakpoint(threadId:Int, hitBreakpointIds:Array<Int>);
 	EvStoppedStep(threadId:Int);
 	EvStoppedException(threadId:Int, description:String);
+	EvStoppedPause(threadId:Int); // the debuggee was interrupted by a user pause
 	// The debuggee resumed on its own after a step that had no user-code landing
 	// (e.g. stepping past a thread entry's last statement): tell the client it is
 	// running so it stops waiting for a step stop that can never arrive.

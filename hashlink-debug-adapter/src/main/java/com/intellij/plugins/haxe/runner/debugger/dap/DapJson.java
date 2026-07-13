@@ -5,6 +5,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointE
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ConfigurationDoneResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.ContinueResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.NextResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.PauseResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StepInResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StepOutResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.DisconnectResponse;
@@ -80,6 +81,7 @@ public final class DapJson {
       case "next" -> NextResponse.class;
       case "stepIn" -> StepInResponse.class;
       case "stepOut" -> StepOutResponse.class;
+      case "pause" -> PauseResponse.class;
       case "stackTrace" -> StackTraceResponse.class;
       case "scopes" -> ScopesResponse.class;
       case "variables" -> VariablesResponse.class;

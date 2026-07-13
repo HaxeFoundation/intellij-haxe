@@ -16,6 +16,7 @@ import dap.protocol.responses.ContinueResponseBody;
 import dap.protocol.responses.ErrorResponseBody;
 import dap.protocol.Event;
 import dap.protocol.requests.LaunchRequestArguments;
+import dap.protocol.requests.PauseArguments;
 import dap.protocol.ProtocolMessage;
 import dap.protocol.Request;
 import dap.protocol.Response;
@@ -105,6 +106,8 @@ class RequestDispatcher {
 				handleStep(request, StepIn);
 			case "stepOut":
 				handleStep(request, StepOut);
+			case "pause":
+				handlePause(request);
 			case "stackTrace":
 				handleStackTrace(request);
 			case "scopes":
@@ -209,6 +212,17 @@ class RequestDispatcher {
 		sessionCommands(CmdStep(request.seq, threadId, mode));
 	}
 
+	function handlePause(request:Request):Void {
+		if (!launched) {
+			sendError(request.seq, request.command, ERROR_INVALID_REQUEST, "Cannot pause: nothing is running");
+			return;
+		}
+		var args:PauseArguments = request.arguments;
+		var threadId = args != null ? args.threadId : currentThreadId;
+		defer(request);
+		sessionCommands(CmdPause(request.seq, threadId));
+	}
+
 	function handleThreads(request:Request):Void {
 		if (!launched) {
 			// pre-launch: DAP clients still poll threads; give them the placeholder
@@ -307,6 +321,8 @@ class RequestDispatcher {
 				completeSuccess(seq, body);
 			case EvStepStarted(seq):
 				completeSuccess(seq, null);
+			case EvPaused(seq):
+				completeSuccess(seq, null);
 			case EvThreads(seq, threads):
 				completeSuccess(seq, threadsBody(threads));
 			case EvStackTrace(seq, frames):
@@ -335,6 +351,9 @@ class RequestDispatcher {
 			case EvStoppedException(threadId, description):
 				currentThreadId = threadId;
 				sendEvent("stopped", {reason: "exception", threadId: threadId, allThreadsStopped: true, description: description});
+			case EvStoppedPause(threadId):
+				currentThreadId = threadId;
+				sendEvent("stopped", {reason: "pause", threadId: threadId, allThreadsStopped: true});
 			case EvResumed(threadId):
 				currentThreadId = threadId;
 				sendEvent("continued", {threadId: threadId, allThreadsContinued: true});
