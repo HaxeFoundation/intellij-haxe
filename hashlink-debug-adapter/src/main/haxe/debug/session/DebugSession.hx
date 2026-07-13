@@ -501,7 +501,7 @@ class DebugSession {
 	// from corrupting the interrupted frame below Esp.
 	static inline function scratchStackTop(esp:Pointer):Pointer {
 		var top = Int64.sub(esp, Int64.ofInt(0xFF));
-		var lowByte = Int64.getLow(top) & 0xFF;
+		var lowByte = top.low & 0xFF;
 		return Int64.add(top, Int64.ofInt((0x100 - lowByte) & 0xFF));
 	}
 

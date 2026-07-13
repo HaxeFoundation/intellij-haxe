@@ -117,20 +117,20 @@ class ValueWriter {
 	// A call result arrives as raw RAX bits; interpret per the return type.
 	static function rawAsInt(raw:Int64, sourceType:HLType):Int64 {
 		return switch (sourceType) {
-			case HUi8: Int64.ofInt(Int64.getLow(raw) & 0xFF);
-			case HUi16: Int64.ofInt(Int64.getLow(raw) & 0xFFFF);
-			case HI32, HBool: Int64.ofInt(Int64.getLow(raw));
+			case HUi8: Int64.ofInt(raw.low & 0xFF);
+			case HUi16: Int64.ofInt(raw.low & 0xFFFF);
+			case HI32, HBool: Int64.ofInt(raw.low);
 			case HI64: raw;
-			case HF64: Int64.fromFloat(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw)));
-			case HF32: Int64.fromFloat(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw)));
+			case HF64: Int64.fromFloat(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high));
+			case HF32: Int64.fromFloat(haxe.io.FPHelper.i32ToFloat(raw.low));
 			default: throw new DebugError("Cannot assign a " + ValueReader.typeName(sourceType) + " result to a number");
 		}
 	}
 
 	static function rawAsFloat(raw:Int64, sourceType:HLType):Float {
 		return switch (sourceType) {
-			case HF64: haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw));
-			case HF32: haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw));
+			case HF64: haxe.io.FPHelper.i64ToDouble(raw.low, raw.high);
+			case HF32: haxe.io.FPHelper.i32ToFloat(raw.low);
 			default: int64ToFloat(rawAsInt(raw, sourceType));
 		}
 	}
@@ -192,13 +192,13 @@ class ValueWriter {
 
 	function writeInt(target:WriteTarget, value:Int64):Void {
 		switch (target.type) {
-			case HUi8: out.writeU8(target.address, Int64.getLow(value));
-			case HUi16: out.writeU16(target.address, Int64.getLow(value));
-			case HI32: out.writeI32(target.address, Int64.getLow(value));
+			case HUi8: out.writeU8(target.address, value.low);
+			case HUi16: out.writeU16(target.address, value.low);
+			case HI32: out.writeI32(target.address, value.low);
 			case HI64: out.writeI64(target.address, value);
 			case HF32: out.writeF32(target.address, int64ToFloat(value));
 			case HF64: out.writeF64(target.address, int64ToFloat(value));
-			case HDyn: mutateBox(target, HI32, box -> out.writeI32(box, Int64.getLow(value)));
+			case HDyn: mutateBox(target, HI32, box -> out.writeI32(box, value.low));
 			default:
 				throw new DebugError('Cannot assign an integer to the ' + ValueReader.typeName(target.type)
 					+ ' "' + target.name + '"');
@@ -271,9 +271,9 @@ class ValueWriter {
 	}
 
 	static function int64ToFloat(v:Int64):Float {
-		var low = Int64.getLow(v);
+		var low = v.low;
 		var lowUnsigned = low < 0 ? low + 4294967296.0 : low;
-		return Int64.getHigh(v) * 4294967296.0 + lowUnsigned;
+		return v.high * 4294967296.0 + lowUnsigned;
 	}
 
 	static inline function offset(p:Pointer, n:Int):Pointer {

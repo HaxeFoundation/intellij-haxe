@@ -147,7 +147,7 @@ class RequestDispatcher {
 			program: args.program,
 			args: args.args != null ? args.args : [],
 			cwd: args.cwd,
-			hlPath: (args.hlPath != null && args.hlPath != "") ? args.hlPath : Sys.executablePath(),
+			hlPath: (args.hlPath != null && args.hlPath != "") ? args.hlPath : defaultHlExecutable(),
 			stopOnEntry: args.stopOnEntry == true,
 			attachPid: args.attachPid,
 			debugPort: args.debugPort
@@ -468,6 +468,15 @@ class RequestDispatcher {
 				}
 			]
 		};
+	}
+
+	// The HL runtime (hl.exe) running THIS adapter — the VM we launch the debuggee
+	// with when the client doesn't override it. Sys.executablePath()'s deprecation
+	// points at Sys.programPath(), but on HL that returns the adapter's own .hl
+	// file, not the runtime, so we keep executablePath and silence just this one.
+	@:haxe.warning("-WDeprecated")
+	static function defaultHlExecutable():String {
+		return Sys.executablePath();
 	}
 
 	static function baseName(path:String):String {

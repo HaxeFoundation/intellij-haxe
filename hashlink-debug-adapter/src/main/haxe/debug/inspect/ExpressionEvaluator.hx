@@ -401,11 +401,11 @@ class ExpressionEvaluator {
 	function toEvalValue(raw:Pointer, t:HLType):EvalValue {
 		return switch (t) {
 			case HVoid: VNull;
-			case HUi8, HUi16, HI32: VInt(Int64.ofInt(Int64.getLow(raw)));
+			case HUi8, HUi16, HI32: VInt(Int64.ofInt(raw.low));
 			case HI64: VInt(raw);
-			case HBool: VBool(Int64.getLow(raw) != 0);
-			case HF64: VFloat(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw)));
-			case HF32: VFloat(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw)));
+			case HBool: VBool(raw.low != 0);
+			case HF64: VFloat(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high));
+			case HF32: VFloat(haxe.io.FPHelper.i32ToFloat(raw.low));
 			default: pointerValue(raw, t);
 		}
 	}
@@ -437,11 +437,11 @@ class ExpressionEvaluator {
 	public function decodeReturn(name:String, raw:Pointer, retType:HLType):VariableInfo {
 		return switch (retType) {
 			case HVoid: {name: name, value: "void", type: "Void", reference: 0};
-			case HUi8, HUi16, HI32: {name: name, value: Std.string(Int64.getLow(raw)), type: "Int", reference: 0};
+			case HUi8, HUi16, HI32: {name: name, value: Std.string(raw.low), type: "Int", reference: 0};
 			case HI64: {name: name, value: Int64.toStr(raw), type: "Int64", reference: 0};
-			case HBool: {name: name, value: Int64.getLow(raw) != 0 ? "true" : "false", type: "Bool", reference: 0};
-			case HF64: {name: name, value: Std.string(haxe.io.FPHelper.i64ToDouble(Int64.getLow(raw), Int64.getHigh(raw))), type: "Float", reference: 0};
-			case HF32: {name: name, value: Std.string(haxe.io.FPHelper.i32ToFloat(Int64.getLow(raw))), type: "Float", reference: 0};
+			case HBool: {name: name, value: raw.low != 0 ? "true" : "false", type: "Bool", reference: 0};
+			case HF64: {name: name, value: Std.string(haxe.io.FPHelper.i64ToDouble(raw.low, raw.high)), type: "Float", reference: 0};
+			case HF32: {name: name, value: Std.string(haxe.io.FPHelper.i32ToFloat(raw.low)), type: "Float", reference: 0};
 			default:
 				// a pointer return: the raw value IS the object/string pointer
 				if (Int64.eq(raw, Int64.ofInt(0))) {

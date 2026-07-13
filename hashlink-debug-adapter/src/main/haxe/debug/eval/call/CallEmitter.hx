@@ -217,8 +217,8 @@ class CallEmitter {
 	}
 
 	static function addInt64(out:BytesBuffer, value:Int64):Void {
-		var low = Int64.getLow(value);
-		var high = Int64.getHigh(value);
+		var low = value.low;
+		var high = value.high;
 		for (i in 0...4) {
 			out.addByte((low >>> (i * 8)) & 0xFF);
 		}

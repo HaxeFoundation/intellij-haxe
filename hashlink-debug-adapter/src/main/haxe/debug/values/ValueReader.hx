@@ -391,8 +391,8 @@ class ValueReader {
 	}
 
 	public static function hex(p:Pointer):String {
-		var high = Int64.getHigh(p);
-		var low = Int64.getLow(p);
+		var high = p.high;
+		var low = p.low;
 		return high != 0 ? "0x" + StringTools.hex(high) + StringTools.hex(low, 8) : "0x" + StringTools.hex(low);
 	}
 }

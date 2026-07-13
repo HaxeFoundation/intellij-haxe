@@ -61,14 +61,14 @@ class MemoryWriter {
 
 	public function writeI64(address:Pointer, value:Int64):Void {
 		var b = Bytes.alloc(8);
-		b.setInt32(0, Int64.getLow(value));
-		b.setInt32(4, Int64.getHigh(value));
+		b.setInt32(0, value.low);
+		b.setInt32(4, value.high);
 		write(address, b);
 	}
 
 	public function writePointer(address:Pointer, value:Pointer):Void {
 		if (pointerSize == 4) {
-			writeI32(address, Int64.getLow(value));
+			writeI32(address, value.low);
 			return;
 		}
 		writeI64(address, value);
