@@ -53,6 +53,16 @@ class DebugSession {
 	static inline var TRAP_FLAG = 0x100;
 	static inline var WAIT_POLL_MS = 20;
 	static inline var ATTACH_DRAIN_MS = 50;
+	// After attaching, Windows delivers a burst of startup debug events (initial
+	// breakpoint, module/DLL loads, thread creation). drainAttachEvents resumes
+	// past each until a wait Timeout says the queue is empty; this bounds how many
+	// it will clear so an unexpected stream of events cannot loop it forever.
+	static inline var MAX_ATTACH_DRAIN_EVENTS = 20;
+	// A forced break (user pause) is requested now but delivered asynchronously,
+	// possibly behind a few benign auto-continued events. forceBreakAndDrain polls
+	// for it, treating a wait Timeout as "not arrived yet"; this bounds the polling
+	// at MAX_FORCE_BREAK_POLLS * ATTACH_DRAIN_MS (~1s) before giving up.
+	static inline var MAX_FORCE_BREAK_POLLS = 20;
 	static inline var CONNECT_RETRIES = 60;
 	static inline var CONNECT_DELAY_MS = 50;
 	static inline var HANDSHAKE_READ_TIMEOUT_S = 0.5;
@@ -340,7 +350,7 @@ class DebugSession {
 	// Consume the events the OS raises at attach time (e.g. the Windows attach
 	// breakpoint / module-load events) so the debuggee is back to a clean state.
 	function drainAttachEvents():Void {
-		for (_ in 0...20) {
+		for (_ in 0...MAX_ATTACH_DRAIN_EVENTS) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout:
@@ -428,7 +438,7 @@ class DebugSession {
 	// budget. Shared by the silent memory-write pause and the user pause.
 	function forceBreakAndDrain():Null<WaitOutcome> {
 		api.forceBreak(debuggeePid);
-		for (_ in 0...20) {
+		for (_ in 0...MAX_FORCE_BREAK_POLLS) {
 			var outcome = api.wait(debuggeePid, ATTACH_DRAIN_MS);
 			switch (outcome.result) {
 				case Timeout: // keep waiting for the forced stop
