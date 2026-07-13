@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+* Fixed: IllegalArgumentException during highlighting when a switch, call expression or object-literal member is still incomplete while editing.
+
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 
 * Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe). (fixed by Tobbse - #1254)
