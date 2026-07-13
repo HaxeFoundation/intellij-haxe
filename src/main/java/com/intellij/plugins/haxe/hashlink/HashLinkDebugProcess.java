@@ -7,6 +7,7 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.ExecutionConsole;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
@@ -62,9 +63,13 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.content.Content;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
+import com.intellij.xdebugger.XDebuggerUtil;
 import com.intellij.xdebugger.breakpoints.XBreakpoint;
 import com.intellij.xdebugger.breakpoints.XBreakpointHandler;
+import com.intellij.xdebugger.breakpoints.XBreakpointManager;
 import com.intellij.xdebugger.breakpoints.XBreakpointProperties;
+import com.intellij.xdebugger.breakpoints.XBreakpointType;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.frame.XSuspendContext;
@@ -197,6 +202,14 @@ public class HashLinkDebugProcess extends XDebugProcess {
       }
 
       breakpoints.flushAll();
+      // Send the exception filters IN-PHASE (before configurationDone), reading the
+      // persisted enabled state from the breakpoint manager. The registerBreakpoint
+      // callbacks alone are not enough on a fresh session: they fire on the EDT and
+      // their send lands after configurationDone (and races startup), so a
+      // breakpoint that was already enabled from a previous IDE run appeared armed
+      // but never took effect until toggled. This mirrors how line breakpoints flush.
+      syncExceptionFiltersFromBreakpoints();
+      sendRequest(exceptionFiltersRequest());
       client.sendRequest(new ConfigurationDoneRequest(), REQUEST_TIMEOUT_MILLIS);
 
       Thread pump = daemon(this::pumpEvents, "HashLink DAP events");
@@ -547,8 +560,13 @@ public class HashLinkDebugProcess extends XDebugProcess {
   }
 
   // "Any exception" and "Uncaught exception" are independent breakpoints; the
-  // adapter gets the union of the active filters. Recomputed whenever either toggles.
+  // adapter gets the union of the active filters. Recomputed whenever either toggles
+  // (live path — posted to the request thread).
   private void updateExceptionFilters() {
+    onRequestThread(() -> sendRequest(exceptionFiltersRequest()));
+  }
+
+  private SetExceptionBreakpointsRequest exceptionFiltersRequest() {
     List<String> filters = new ArrayList<>();
     if (breakOnAllExceptions) {
       filters.add("all");
@@ -560,7 +578,34 @@ public class HashLinkDebugProcess extends XDebugProcess {
     SetExceptionBreakpointsArguments arguments = new SetExceptionBreakpointsArguments();
     arguments.setFilters(filters);
     request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    return request;
+  }
+
+  // Loads the persisted enabled state of the two exception-breakpoint types from
+  // the breakpoint manager, so a session started with them already enabled (e.g.
+  // after an IDE restart) arms them without needing a toggle.
+  private void syncExceptionFiltersFromBreakpoints() {
+    ReadAction.run(() -> {
+      XBreakpointManager manager =
+        XDebuggerManager.getInstance(getSession().getProject()).getBreakpointManager();
+      XDebuggerUtil util = XDebuggerUtil.getInstance();
+      breakOnAllExceptions =
+        anyEnabled(manager, util.findBreakpointType(HashLinkExceptionBreakpointType.class));
+      breakOnUncaughtExceptions =
+        anyEnabled(manager, util.findBreakpointType(HashLinkUncaughtExceptionBreakpointType.class));
+    });
+  }
+
+  private static boolean anyEnabled(XBreakpointManager manager, XBreakpointType<?, ?> type) {
+    if (type == null) {
+      return false;
+    }
+    for (XBreakpoint<?> breakpoint : manager.getBreakpoints(type)) {
+      if (breakpoint.isEnabled()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static Thread daemon(Runnable work, String name) {
