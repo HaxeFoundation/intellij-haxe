@@ -11,4 +11,6 @@ typedef Variable = {
 	@:optional var type:String;
 	@:optional var namedVariables:Int;
 	@:optional var indexedVariables:Int;
+	// Our classification for the client's icon (the wire form of debug.values.VariableKind).
+	@:optional var kind:String;
 }

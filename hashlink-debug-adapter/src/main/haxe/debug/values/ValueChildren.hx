@@ -199,14 +199,14 @@ class ValueChildren {
 			if (Int64.eq(slot, Int64.ofInt(0))) {
 				var fallback = wrappedField(wrapped, fields[i].name);
 				if (fallback != null) {
-					variables.push({name: fields[i].name, value: fallback.value, type: fallback.type, reference: fallback.reference});
+					variables.push({name: fields[i].name, value: fallback.value, type: fallback.type, reference: fallback.reference, kind: VariableKind.Field});
 				} else {
-					variables.push({name: fields[i].name, value: "?", type: ValueReader.typeName(fields[i].t), reference: 0});
+					variables.push({name: fields[i].name, value: "?", type: ValueReader.typeName(fields[i].t), reference: 0, kind: VariableKind.Field});
 				}
 				continue;
 			}
 			var decoded = reader.read(slot, fields[i].t);
-			variables.push({name: fields[i].name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+			variables.push({name: fields[i].name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: VariableKind.Field});
 		}
 		return variables;
 	}
@@ -229,7 +229,7 @@ class ValueChildren {
 		var variables:Array<VariableInfo> = [];
 		for (field in dynObjects.fields(pointer)) {
 			var decoded = reader.read(field.address, field.type);
-			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: VariableKind.Field});
 		}
 		return variables;
 	}
@@ -278,7 +278,7 @@ class ValueChildren {
 		for (field in objectLayout.fields(proto, t.match(HStruct(_)))) {
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
 			var decoded = reader.read(address, field.type);
-			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: VariableKind.Field});
 		}
 		return variables;
 	}

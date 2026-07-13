@@ -2,6 +2,8 @@ package com.intellij.plugins.haxe.hashlink;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
+import javax.swing.Icon;
 import com.intellij.xdebugger.frame.XCompositeNode;
 import com.intellij.xdebugger.frame.XNamedValue;
 import com.intellij.xdebugger.frame.XValueChildrenList;
@@ -35,9 +37,20 @@ final class HashLinkValue extends XNamedValue {
   public void computePresentation(@NotNull XValueNode node, @NotNull XValuePlace place) {
     boolean expandable = variable.getVariablesReference() > 0;
     String value = variable.getValue() != null ? variable.getValue() : "";
-    node.setPresentation(AllIcons.Debugger.Value,
+    node.setPresentation(iconFor(variable.getKind()),
                          new XRegularValuePresentation(value, variable.getType()),
                          expandable);
+  }
+
+  /** Maps the adapter's classification to a node icon; a plain value otherwise. */
+  private static Icon iconFor(VariableKind kind) {
+    return switch (kind) {
+      case ARGUMENT -> AllIcons.Nodes.Parameter;
+      case LOCAL -> AllIcons.Nodes.Variable;
+      case STATIC -> AllIcons.Nodes.Static;
+      case FIELD -> AllIcons.Nodes.Field;
+      case UNSPECIFIED -> AllIcons.Debugger.Value;
+    };
   }
 
   @Override

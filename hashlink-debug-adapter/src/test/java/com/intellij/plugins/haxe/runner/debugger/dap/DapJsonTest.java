@@ -26,6 +26,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StackTra
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StepInResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.StepOutResponse;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.VariablesResponse;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.TerminatedEvent;
 import java.util.List;
@@ -176,6 +177,19 @@ public class DapJsonTest {
     assertEquals("total", ((VariablesResponse)vm).getBody().getVariables().get(0).getName());
     assertEquals("3", ((VariablesResponse)vm).getBody().getVariables().get(0).getValue());
     assertEquals(0, ((VariablesResponse)vm).getBody().getVariables().get(0).getVariablesReference());
+  }
+
+  @Test
+  public void variableDecodesIconKind() {
+    String vars = "{\"seq\":2,\"type\":\"response\",\"request_seq\":2,\"success\":true,\"command\":\"variables\","
+                  + "\"body\":{\"variables\":["
+                  + "{\"name\":\"amount\",\"value\":\"5\",\"type\":\"Int\",\"variablesReference\":0,\"kind\":\"argument\"},"
+                  + "{\"name\":\"count\",\"value\":\"3\",\"type\":\"Int\",\"variablesReference\":0},"
+                  + "{\"name\":\"future\",\"value\":\"0\",\"type\":\"Int\",\"variablesReference\":0,\"kind\":\"bogus\"}]}}";
+    VariablesResponse vm = (VariablesResponse)DapJson.decode(vars);
+    assertEquals(VariableKind.ARGUMENT, vm.getBody().getVariables().get(0).getKind());
+    assertEquals("absent kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(1).getKind());
+    assertEquals("unknown kind decodes to UNSPECIFIED", VariableKind.UNSPECIFIED, vm.getBody().getVariables().get(2).getKind());
   }
 
   @Test

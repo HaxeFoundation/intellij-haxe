@@ -93,7 +93,8 @@ class VariablesView {
 			return [];
 		}
 		var frame = handle.location;
-		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), module.argCount(frame.fidx));
+		var argCount = module.argCount(frame.fidx);
+		var offsets = frameLayout.registerOffsets(module.registers(frame.fidx), argCount);
 		var locals = localsResolver.localsAt(frame.fidx, frame.op);
 		var variables:Array<VariableInfo> = [];
 		for (local in locals) {
@@ -103,7 +104,11 @@ class VariablesView {
 			var slot = offsets[local.register];
 			var address = Int64.add(frame.ebp, Int64.ofInt(slot.offset));
 			var decoded = valueReader.read(address, slot.t);
-			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+			// The first `argCount` registers are the function's parameters; `this`
+			// (register 0 of a method) stays Unspecified so it keeps the plain value
+			// icon rather than looking like a parameter.
+			var kind = local.name == "this" ? VariableKind.Unspecified : (local.register < argCount ? VariableKind.Argument : VariableKind.Local);
+			variables.push({name: local.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: kind});
 		}
 		return variables;
 	}
@@ -210,7 +215,7 @@ class VariablesView {
 			}
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
 			var decoded = valueReader.read(address, field.type);
-			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference});
+			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: VariableKind.Static});
 		}
 		return variables;
 	}

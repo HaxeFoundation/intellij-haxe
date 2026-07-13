@@ -14,4 +14,6 @@ public class Variable {
   private String type;
   private Integer namedVariables;
   private Integer indexedVariables;
+  /** Our classification for the client's icon; UNSPECIFIED when the wire omits it. */
+  private VariableKind kind = VariableKind.UNSPECIFIED;
 }

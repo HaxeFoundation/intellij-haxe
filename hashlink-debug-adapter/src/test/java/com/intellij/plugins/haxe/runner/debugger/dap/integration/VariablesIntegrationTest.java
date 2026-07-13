@@ -13,6 +13,7 @@ import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.Evaluate
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.StoppedEvent;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.VariableKind;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
@@ -37,6 +38,10 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("i is 0 on first iteration", "0", locals.get("i"));
     assertEquals("total is 0 before first add", "0", locals.get("total"));
 
+    // Main.main takes no parameters, so these are classified plain locals (icon hint)
+    List<Variable> raw = topFrameVariables(stopped.getBody().getThreadId());
+    assertEquals("count is a local", VariableKind.LOCAL, findVariable(raw, "count").getKind());
+
     request(new DisconnectRequest());
   }
 
@@ -46,9 +51,15 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
     // step into add(total, i): its args are stack-passed on Windows x64
     assertTrue("stepIn accepted", request(stepInRequest(stopped.getBody().getThreadId())).isSuccess());
-    Map<String, String> args = localsInTopFrame(awaitStopped().getBody().getThreadId());
+    int addThread = awaitStopped().getBody().getThreadId();
+    Map<String, String> args = localsInTopFrame(addThread);
     assertEquals("current arg", "0", args.get("current"));
     assertEquals("amount arg", "0", args.get("amount"));
+
+    // parameters carry the "argument" classification (drives the parameter icon)
+    List<Variable> rawArgs = topFrameVariables(addThread);
+    assertEquals("current is an argument", VariableKind.ARGUMENT, findVariable(rawArgs, "current").getKind());
+    assertEquals("amount is an argument", VariableKind.ARGUMENT, findVariable(rawArgs, "amount").getKind());
 
     request(new DisconnectRequest());
   }
@@ -77,11 +88,15 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertNotNull("local p present", p);
     assertTrue("Point is expandable", p.getVariablesReference() > 0);
     assertEquals("p typed as Point", "Point", p.getType());
+    assertEquals("a frame local is classified local", VariableKind.LOCAL, p.getKind());
 
     Map<String, String> fields = variablesByName(p.getVariablesReference());
     assertEquals("Point.x", "10", fields.get("x"));
     assertEquals("Point.y", "20", fields.get("y"));
     assertEquals("Point.label", "\"origin\"", fields.get("label"));
+
+    // an object's members carry the "field" classification (drives the field icon)
+    assertEquals("Point.x is a field", VariableKind.FIELD, findVariable(variables(p.getVariablesReference()), "x").getKind());
 
     request(new DisconnectRequest());
   }
@@ -99,6 +114,9 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     assertEquals("Config.title", "\"cfg\"", statics.get("title"));
     // the static method sharing the container must not leak into the scope
     assertFalse("bump() hidden from Statics", statics.containsKey("bump"));
+
+    // static fields carry the "static" classification (drives the static icon)
+    assertEquals("Config.version is static", VariableKind.STATIC, findVariable(variables(staticsRef), "version").getKind());
 
     request(new DisconnectRequest());
   }

@@ -459,7 +459,13 @@ class RequestDispatcher {
 	function variablesBody(variables:Array<VariableInfo>):Dynamic {
 		return {
 			variables: [
-				for (v in variables) {name: v.name, value: v.value, type: v.type, variablesReference: v.reference}
+				for (v in variables) {
+					var variable:Dynamic = {name: v.name, value: v.value, type: v.type, variablesReference: v.reference};
+					if (v.kind != null) {
+						variable.kind = v.kind;
+					}
+					variable;
+				}
 			]
 		};
 	}
