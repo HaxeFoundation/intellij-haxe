@@ -61,7 +61,7 @@ class ValueReader {
 
 	function readPointerValue(address:Pointer, t:HLType):DecodedValue {
 		var ptr = mem.readPointer(address);
-		if (isNull(ptr)) {
+		if (ptr.isNull()) {
 			return leaf("null", typeName(t));
 		}
 		return decodePointed(ptr, t);
@@ -87,17 +87,17 @@ class ValueReader {
 				arrayValue(ptr, t, arrayDynLength(ptr));
 			case HObj(proto) if (proto != null && isArrayWrapper(proto.name)):
 				// hl.types.ArrayBytes_*/ArrayObj both keep `length` right after the header
-				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr)));
+				arrayValue(ptr, t, mem.readI32(ptr.offset(align.ptr)));
 			case HArray:
 				// varray: at@+ptr, size@+ptr*2
-				arrayValue(ptr, t, mem.readI32(offset(ptr, align.ptr * 2)));
+				arrayValue(ptr, t, mem.readI32(ptr.offset(align.ptr * 2)));
 			case HRef(inner):
 				// a reference: the dereferenced pointer IS the address of the value
 				// (captured-and-mutated closure locals are the common case)
 				read(ptr, inner);
 			case HNull(inner):
 				// a box: the wrapped value sits right after the type header
-				read(offset(ptr, align.ptr), inner);
+				read(ptr.offset(align.ptr), inner);
 			case HDyn:
 				readDynamic(ptr);
 			case HFun(_), HMethod(_):
@@ -176,7 +176,7 @@ class ValueReader {
 	// haxe.ds.StringMap/IntMap/ObjectMap: the native map lives in the wrapper's
 	// first field; preview shows the live entry count
 	function readMapWrapper(ptr:Pointer, t:HLType):DecodedValue {
-		var native = mem.readPointer(offset(ptr, align.ptr));
+		var native = mem.readPointer(ptr.offset(align.ptr));
 		var count = maps.entryCount(native);
 		if (count < 0) {
 			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
@@ -199,7 +199,7 @@ class ValueReader {
 	// without params are leaves; with params the value previews them inline and
 	// expands into one child per param.
 	function readEnum(ptr:Pointer, t:HLType, proto:format.hl.Data.EnumPrototype):DecodedValue {
-		var index = mem.readI32(offset(ptr, align.ptr));
+		var index = mem.readI32(ptr.offset(align.ptr));
 		if (index < 0 || index >= proto.constructs.length) {
 			return {value: typeName(t) + " @ " + hex(ptr), type: typeName(t), reference: 0};
 		}
@@ -209,7 +209,7 @@ class ValueReader {
 		}
 		var parts:Array<String> = [];
 		for (param in enumLayout.params(proto, index)) {
-			parts.push(read(offset(ptr, param.offset), param.type).value);
+			parts.push(read(ptr.offset(param.offset), param.type).value);
 		}
 		var display = construct.name + "(" + parts.join(", ") + ")";
 		var reference = referenceAllocator == null ? 0 : referenceAllocator(ptr, t);
@@ -240,7 +240,7 @@ class ValueReader {
 			default:
 				format.hl.Tools.isDynamic(resolved)
 					? decodePointed(ptr, resolved)
-					: read(offset(ptr, align.ptr), resolved);
+					: read(ptr.offset(align.ptr), resolved);
 		}
 	}
 
@@ -248,10 +248,10 @@ class ValueReader {
 	// (hasValue == 1) the captured value (the bound object or the capture
 	// environment) sits @ +ptr*3 and the closure expands into it
 	function readClosure(ptr:Pointer, t:HLType):DecodedValue {
-		var fun = mem.readPointer(offset(ptr, align.ptr));
+		var fun = mem.readPointer(ptr.offset(align.ptr));
 		var name = functionNameResolver == null ? null : functionNameResolver(fun);
 		var display = name != null ? "function " + name : "function @ " + hex(fun);
-		var hasValue = mem.readI32(offset(ptr, align.ptr * 2));
+		var hasValue = mem.readI32(ptr.offset(align.ptr * 2));
 		if (hasValue == 1 && referenceAllocator != null) {
 			return {value: display, type: typeName(t), reference: referenceAllocator(ptr, t)};
 		}
@@ -293,9 +293,9 @@ class ValueReader {
 
 	/** The UTF-16 content of a debuggee String, UNQUOTED ("" for empty). */
 	public function stringContentAt(strPtr:Pointer):String {
-		var bytesPtr = mem.readPointer(offset(strPtr, align.ptr));
-		var length = mem.readI32(offset(strPtr, align.ptr * 2));
-		if (length <= 0 || isNull(bytesPtr)) {
+		var bytesPtr = mem.readPointer(strPtr.offset(align.ptr));
+		var length = mem.readI32(strPtr.offset(align.ptr * 2));
+		if (length <= 0 || bytesPtr.isNull()) {
 			return "";
 		}
 		var raw = mem.read(bytesPtr, length * 2);
@@ -308,14 +308,6 @@ class ValueReader {
 
 	static inline function leaf(value:String, type:String):DecodedValue {
 		return {value: value, type: type, reference: 0};
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
-	}
-
-	static inline function isNull(p:Pointer):Bool {
-		return Int64.eq(p, Int64.ofInt(0));
 	}
 
 	public static function isExpandable(t:HLType):Bool {
@@ -339,8 +331,8 @@ class ValueReader {
 	// ArrayDyn: inner ArrayBase pointer @ +ptr; the wrapper has no length field of
 	// its own, the inner one (@ +ptr) is authoritative. -1 when the inner is null.
 	function arrayDynLength(ptr:Pointer):Int {
-		var inner = mem.readPointer(offset(ptr, align.ptr));
-		return isNull(inner) ? -1 : mem.readI32(offset(inner, align.ptr));
+		var inner = mem.readPointer(ptr.offset(align.ptr));
+		return inner.isNull() ? -1 : mem.readI32(inner.offset(align.ptr));
 	}
 
 	/** Element type encoded in an hl.types.ArrayBytes_* class name, or null. */

@@ -45,7 +45,7 @@ class ThreadRegistry {
 	 * program) or the registry is unreadable.
 	 */
 	public function read(registryPtr:Pointer, threadsEnabled:Bool, stoppedThreadId:Int):Array<ThreadInfo> {
-		var raw:Array<{id:Int, name:Null<String>}> = threadsEnabled && !isNull(registryPtr)
+		var raw:Array<{id:Int, name:Null<String>}> = threadsEnabled && !registryPtr.isNull()
 			? readRegistry(registryPtr)
 			: [];
 		if (raw.length == 0) {
@@ -64,23 +64,23 @@ class ThreadRegistry {
 		if (count <= 0 || count > MAX_THREADS) {
 			return [];
 		}
-		var array = mem.readPointer(offset(registryPtr, ptr));
-		if (isNull(array)) {
+		var array = mem.readPointer(registryPtr.offset(ptr));
+		if (array.isNull()) {
 			return [];
 		}
 		var flagsPos = ptr * 6 + 8;
 		var namePos = hlVersion >= 1.13 ? flagsPos + 8 : -1;
 		var result:Array<{id:Int, name:Null<String>}> = [];
 		for (i in 0...count) {
-			var info = mem.readPointer(offset(array, ptr * i));
-			if (isNull(info)) {
+			var info = mem.readPointer(array.offset(ptr * i));
+			if (info.isNull()) {
 				continue;
 			}
-			if (mem.readI32(offset(info, flagsPos)) & FLAG_INVISIBLE != 0) {
+			if (mem.readI32(info.offset(flagsPos)) & FLAG_INVISIBLE != 0) {
 				continue; // GC / internal thread, hidden from the user
 			}
 			var id = mem.readI32(info);
-			var name = namePos >= 0 ? readName(offset(info, namePos)) : null;
+			var name = namePos >= 0 ? readName(info.offset(namePos)) : null;
 			result.push({id: id, name: name});
 		}
 		return result;
@@ -97,13 +97,5 @@ class ThreadRegistry {
 			return null;
 		}
 		return bytes.getString(0, len);
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
-	}
-
-	static inline function isNull(p:Pointer):Bool {
-		return Int64.eq(p, Int64.ofInt(0));
 	}
 }

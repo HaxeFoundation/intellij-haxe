@@ -36,11 +36,11 @@ class MapReader {
 
 	/** Live entry count, or -1 when the layout is unsupported/implausible. */
 	public function entryCount(native:Pointer):Int {
-		if (!supported || isNull(native)) {
+		if (!supported || native.isNull()) {
 			return -1;
 		}
 		var counts = countsOffset();
-		var nentries = mem.readI32(offset(native, counts + 4));
+		var nentries = mem.readI32(native.offset(counts + 4));
 		return (nentries >= 0 && nentries <= 1 << 24) ? nentries : -1;
 	}
 
@@ -54,12 +54,12 @@ class MapReader {
 			return [];
 		}
 		var cells = mem.readPointer(native);
-		var nexts = mem.readPointer(offset(native, align.ptr));
-		var entries = mem.readPointer(offset(native, align.ptr * 2));
-		var values = mem.readPointer(offset(native, align.ptr * 3));
+		var nexts = mem.readPointer(native.offset(align.ptr));
+		var entries = mem.readPointer(native.offset(align.ptr * 2));
+		var values = mem.readPointer(native.offset(align.ptr * 3));
 		var counts = countsOffset();
-		var ncells = mem.readI32(offset(native, counts));
-		var maxEntries = mem.readI32(offset(native, counts + 8));
+		var ncells = mem.readI32(native.offset(counts));
+		var maxEntries = mem.readI32(native.offset(counts + 8));
 		if (ncells <= 0 || ncells > 1 << 24) {
 			return [];
 		}
@@ -96,14 +96,14 @@ class MapReader {
 		var result:Array<MapEntrySlot> = [];
 		var cell = 0;
 		while (cell < ncells && result.length < total && result.length < MAX_ENTRIES) {
-			var c = small ? mem.readU8(offset(cells, cell)) : mem.readI32(offset(cells, cell << 2));
+			var c = small ? mem.readU8(cells.offset(cell)) : mem.readI32(cells.offset(cell << 2));
 			cell++;
 			while (result.length < total && result.length < MAX_ENTRIES) {
 				if (small ? c == 255 : c < 0) {
 					break;
 				}
-				var valueAddress = offset(values, c * valueStride + valuePos);
-				var keyAddress = keyInValue ? offset(values, c * valueStride) : offset(entries, c * keyStride);
+				var valueAddress = values.offset(c * valueStride + valuePos);
+				var keyAddress = keyInValue ? values.offset(c * valueStride) : entries.offset(c * keyStride);
 				var key = switch (kind) {
 					case StringKey: "\"" + readUcs2(mem.readPointer(keyAddress)) + "\"";
 					case IntKey: Std.string(mem.readI32(keyAddress));
@@ -111,7 +111,7 @@ class MapReader {
 					case ObjectKey: dynPreview(keyAddress);
 				}
 				result.push({key: key, valueAddress: valueAddress});
-				c = small ? mem.readU8(offset(nexts, c)) : mem.readI32(offset(nexts, c << 2));
+				c = small ? mem.readU8(nexts.offset(c)) : mem.readI32(nexts.offset(c << 2));
 			}
 		}
 		return result;
@@ -124,7 +124,7 @@ class MapReader {
 
 	// null-terminated UCS-2 key bytes (not a String object)
 	function readUcs2(bytes:Pointer):String {
-		if (isNull(bytes)) {
+		if (bytes.isNull()) {
 			return "";
 		}
 		var raw = mem.read(bytes, MAX_KEY_CHARS * 2);
@@ -137,13 +137,5 @@ class MapReader {
 			buf.addChar(c);
 		}
 		return buf.toString();
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
-	}
-
-	static inline function isNull(p:Pointer):Bool {
-		return Int64.eq(p, Int64.ofInt(0));
 	}
 }

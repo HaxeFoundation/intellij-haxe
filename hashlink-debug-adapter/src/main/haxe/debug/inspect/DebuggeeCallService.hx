@@ -93,14 +93,14 @@ class DebuggeeCallService {
 		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
 			throw new debug.DebugError('"' + callee + '" is null');
 		}
-		var bound = memory.readI32(offset(closurePtr, align.ptr * 2)) != 0;
-		var funcAddr = memory.readPointer(offset(closurePtr, align.ptr));
+		var bound = memory.readI32(closurePtr.offset(align.ptr * 2)) != 0;
+		var funcAddr = memory.readPointer(closurePtr.offset(align.ptr));
 		if (args.length != fn.args.length) {
 			throw new debug.DebugError('"' + callee + '" takes ' + fn.args.length + " argument(s), got " + args.length);
 		}
 		var callArgs:Array<CallArg> = [];
 		if (bound) {
-			callArgs.push({isFloat: false, bits: memory.readPointer(offset(closurePtr, align.ptr * 3))});
+			callArgs.push({isFloat: false, bits: memory.readPointer(closurePtr.offset(align.ptr * 3))});
 		}
 		for (i in 0...args.length) {
 			callArgs.push(lowerValue(args[i], fn.args[i]));
@@ -318,7 +318,7 @@ class DebuggeeCallService {
 		if (Int64.eq(box, Int64.ofInt(0))) {
 			throw new debug.DebugError("Unable to box a value: alloc_dynamic returned null");
 		}
-		writePayload(offset(box, align.ptr)); // HDYN_VALUE = one pointer past the hl_type*
+		writePayload(box.offset(align.ptr)); // HDYN_VALUE = one pointer past the hl_type*
 		return {isFloat: false, bits: box};
 	}
 
@@ -368,10 +368,6 @@ class DebuggeeCallService {
 				}
 				{isFloat: false, bits: raw};
 		}
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
 	}
 
 	static function isFloatSlot(t:HLType):Bool {

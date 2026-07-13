@@ -48,7 +48,7 @@ class RuntimeTypes {
 
 	/** The module HLType for the runtime type at `typePtr`, or null when unknown. */
 	public function typeAt(typePtr:Pointer):Null<HLType> {
-		if (isNull(typePtr)) {
+		if (typePtr.isNull()) {
 			return null;
 		}
 		var key = Int64.toStr(typePtr);
@@ -82,10 +82,10 @@ class RuntimeTypes {
 				HI64;
 			case KOBJ, KSTRUCT:
 				var data = dataPtr(typePtr);
-				isNull(data) ? null : resolveName(readName(offsetName(data)));
+				data.isNull() ? null : resolveName(readName(offsetName(data)));
 			case KENUM:
 				var data = dataPtr(typePtr);
-				isNull(data) ? null : resolveName(readName(mem.readPointer(data)));
+				data.isNull() ? null : resolveName(readName(mem.readPointer(data)));
 			case KNULL, KREF:
 				var inner = typeAt(dataPtr(typePtr));
 				inner == null ? null : (kind == KNULL ? HNull(inner) : HRef(inner));
@@ -106,7 +106,7 @@ class RuntimeTypes {
 	// null-terminated UCS-2, capped; a failed/zeroed read yields "" which simply
 	// fails the name lookup and falls back to the static type
 	function readName(namePtr:Pointer):String {
-		if (isNull(namePtr)) {
+		if (namePtr.isNull()) {
 			return "";
 		}
 		var buf = new StringBuf();
@@ -119,9 +119,5 @@ class RuntimeTypes {
 			buf.addChar(c);
 		}
 		return buf.toString();
-	}
-
-	static inline function isNull(p:Pointer):Bool {
-		return Int64.eq(p, Int64.ofInt(0));
 	}
 }

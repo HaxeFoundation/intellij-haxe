@@ -39,7 +39,7 @@ class DynObjReader {
 
 	/** Number of fields of the dynobj at `ptr` (0 when implausible). */
 	public function fieldCount(ptr:Pointer):Int {
-		var n = mem.readI32(offset(ptr, align.ptr * 4));
+		var n = mem.readI32(ptr.offset(align.ptr * 4));
 		return (n >= 0 && n <= MAX_FIELDS) ? n : 0;
 	}
 
@@ -49,21 +49,21 @@ class DynObjReader {
 		if (count == 0) {
 			return [];
 		}
-		var lookup = mem.readPointer(offset(ptr, align.ptr));
-		var rawData = mem.readPointer(offset(ptr, align.ptr * 2));
-		var values = mem.readPointer(offset(ptr, align.ptr * 3));
+		var lookup = mem.readPointer(ptr.offset(align.ptr));
+		var rawData = mem.readPointer(ptr.offset(align.ptr * 2));
+		var values = mem.readPointer(ptr.offset(align.ptr * 3));
 
 		var ordered:Array<Null<DynObjField>> = [];
 		var unordered:Array<DynObjField> = [];
 		var hasIndex = false;
 		for (i in 0...count) {
-			var entry = offset(lookup, i * (align.ptr + 8));
+			var entry = lookup.offset(i * (align.ptr + 8));
 			var fieldType = runtimeTypes.typeAt(mem.readPointer(entry));
 			if (fieldType == null) {
 				fieldType = HDyn;
 			}
-			var hash = mem.readI32(offset(entry, align.ptr));
-			var packed = mem.readI32(offset(entry, align.ptr + 4));
+			var hash = mem.readI32(entry.offset(align.ptr));
+			var packed = mem.readI32(entry.offset(align.ptr + 4));
 			var slot = packed & OFFSET_MASK;
 			var index = packed >>> 17;
 			if (index > 0) {
@@ -74,8 +74,8 @@ class DynObjReader {
 				name = "field#" + hash;
 			}
 			var address = isPointerType(fieldType)
-				? offset(values, slot * align.ptr)
-				: offset(rawData, slot);
+				? values.offset(slot * align.ptr)
+				: rawData.offset(slot);
 			var field:DynObjField = {name: name, address: address, type: fieldType};
 			if (hasIndex) {
 				ordered[index] = field;
@@ -95,17 +95,17 @@ class DynObjReader {
 		if (count == 0) {
 			return null;
 		}
-		var lookup = mem.readPointer(offset(ptr, align.ptr));
-		var rawData = mem.readPointer(offset(ptr, align.ptr * 2));
-		var values = mem.readPointer(offset(ptr, align.ptr * 3));
+		var lookup = mem.readPointer(ptr.offset(align.ptr));
+		var rawData = mem.readPointer(ptr.offset(align.ptr * 2));
+		var values = mem.readPointer(ptr.offset(align.ptr * 3));
 		var hash = format.hl.Tools.hash(name);
 
 		var min = 0;
 		var max = count;
 		while (min < max) {
 			var mid = (min + max) >> 1;
-			var entry = offset(lookup, mid * (align.ptr + 8));
-			var h = mem.readI32(offset(entry, align.ptr));
+			var entry = lookup.offset(mid * (align.ptr + 8));
+			var h = mem.readI32(entry.offset(align.ptr));
 			if (h < hash) {
 				min = mid + 1;
 			} else if (h > hash) {
@@ -115,10 +115,10 @@ class DynObjReader {
 				if (fieldType == null) {
 					fieldType = HDyn;
 				}
-				var slot = mem.readI32(offset(entry, align.ptr + 4)) & OFFSET_MASK;
+				var slot = mem.readI32(entry.offset(align.ptr + 4)) & OFFSET_MASK;
 				var address = isPointerType(fieldType)
-					? offset(values, slot * align.ptr)
-					: offset(rawData, slot);
+					? values.offset(slot * align.ptr)
+					: rawData.offset(slot);
 				return {name: name, address: address, type: fieldType};
 			}
 		}
@@ -130,9 +130,5 @@ class DynObjReader {
 			case HVoid, HUi8, HUi16, HI32, HI64, HF32, HF64, HBool: false;
 			default: true;
 		}
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
 	}
 }

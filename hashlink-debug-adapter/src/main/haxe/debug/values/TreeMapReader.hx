@@ -40,7 +40,7 @@ class TreeMapReader {
 	public function entryCount(mapPtr:Pointer, mapProto:ObjPrototype):Int {
 		var root = rootNode(mapPtr, mapProto);
 		if (root == null) {
-			return isNull(rootPointer(mapPtr, mapProto)) ? 0 : -1;
+			return rootPointer(mapPtr, mapProto).isNull() ? 0 : -1;
 		}
 		var counter = {n: 0};
 		countRec(root.address, root.proto, counter, 0);
@@ -64,26 +64,26 @@ class TreeMapReader {
 	// --- tree walking ---
 
 	function walkRec(node:Pointer, proto:ObjPrototype, out:Array<MapEntrySlot>, keyPreview:Pointer->String, depth:Int):Void {
-		if (isNull(node) || depth > MAX_DEPTH || out.length >= MAX_ENTRIES) {
+		if (node.isNull() || depth > MAX_DEPTH || out.length >= MAX_ENTRIES) {
 			return;
 		}
 		var fields = nodeFields(proto);
-		walkRec(mem.readPointer(offset(node, fields.left)), proto, out, keyPreview, depth + 1);
+		walkRec(mem.readPointer(node.offset(fields.left)), proto, out, keyPreview, depth + 1);
 		if (out.length >= MAX_ENTRIES) {
 			return;
 		}
-		out.push({key: keyPreview(offset(node, fields.key)), valueAddress: offset(node, fields.value)});
-		walkRec(mem.readPointer(offset(node, fields.right)), proto, out, keyPreview, depth + 1);
+		out.push({key: keyPreview(node.offset(fields.key)), valueAddress: node.offset(fields.value)});
+		walkRec(mem.readPointer(node.offset(fields.right)), proto, out, keyPreview, depth + 1);
 	}
 
 	function countRec(node:Pointer, proto:ObjPrototype, counter:{n:Int}, depth:Int):Void {
-		if (isNull(node) || depth > MAX_DEPTH || counter.n >= MAX_ENTRIES) {
+		if (node.isNull() || depth > MAX_DEPTH || counter.n >= MAX_ENTRIES) {
 			return;
 		}
 		var fields = nodeFields(proto);
 		counter.n++;
-		countRec(mem.readPointer(offset(node, fields.left)), proto, counter, depth + 1);
-		countRec(mem.readPointer(offset(node, fields.right)), proto, counter, depth + 1);
+		countRec(mem.readPointer(node.offset(fields.left)), proto, counter, depth + 1);
+		countRec(mem.readPointer(node.offset(fields.right)), proto, counter, depth + 1);
 	}
 
 	// --- field offsets ---
@@ -91,7 +91,7 @@ class TreeMapReader {
 	// the map's `root` field (inherited from BalancedTree) + the TreeNode proto
 	function rootNode(mapPtr:Pointer, mapProto:ObjPrototype):Null<{address:Pointer, proto:ObjPrototype}> {
 		var root = rootPointer(mapPtr, mapProto);
-		if (isNull(root)) {
+		if (root.isNull()) {
 			return null;
 		}
 		var runtime = runtimeTypes.typeAt(mem.readPointer(root));
@@ -105,7 +105,7 @@ class TreeMapReader {
 	function rootPointer(mapPtr:Pointer, mapProto:ObjPrototype):Pointer {
 		for (field in objectLayout.fields(mapProto)) {
 			if (field.name == "root") {
-				return mem.readPointer(offset(mapPtr, field.offset));
+				return mem.readPointer(mapPtr.offset(field.offset));
 			}
 		}
 		return Int64.ofInt(0);
@@ -123,13 +123,5 @@ class TreeMapReader {
 			}
 		}
 		return {left: left, right: right, key: key, value: value};
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
-	}
-
-	static inline function isNull(p:Pointer):Bool {
-		return Int64.eq(p, Int64.ofInt(0));
 	}
 }

@@ -77,7 +77,7 @@ class ValueWriter {
 			throw new DebugError('Cannot assign to "' + target.name
 				+ '" because it is currently null (allocating a new boxed value is not supported)');
 		}
-		return {name: target.name, address: offset(box, align.ptr), type: inner};
+		return {name: target.name, address: box.offset(align.ptr), type: inner};
 	}
 
 	/**
@@ -231,7 +231,7 @@ class ValueWriter {
 				+ '" in place (currently ' + (boxed == null ? "unknown" : ValueReader.typeName(boxed))
 				+ "; allocating a new boxed value is not supported)");
 		}
-		writePayload(offset(box, align.ptr));
+		writePayload(box.offset(align.ptr));
 	}
 
 	function readNumericAsInt(source:WriteTarget):Int64 {
@@ -274,9 +274,5 @@ class ValueWriter {
 		var low = v.low;
 		var lowUnsigned = low < 0 ? low + 4294967296.0 : low;
 		return v.high * 4294967296.0 + lowUnsigned;
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
 	}
 }

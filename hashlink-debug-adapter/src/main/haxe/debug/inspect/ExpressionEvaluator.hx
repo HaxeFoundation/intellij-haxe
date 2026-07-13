@@ -350,7 +350,7 @@ class ExpressionEvaluator {
 			return VNull;
 		}
 		return switch (t) {
-			case HNull(inner): evalValueAt(offset(ptr, align.ptr), inner); // box payload
+			case HNull(inner): evalValueAt(ptr.offset(align.ptr), inner); // box payload
 			case HDyn: dynamicValue(ptr);
 			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
 			case HObj(_): VObject(ptr, resolver.refineObjectType(ptr, t));
@@ -366,13 +366,13 @@ class ExpressionEvaluator {
 			return VObject(ptr, HDyn);
 		}
 		return switch (runtime) {
-			case HUi8: VInt(Int64.ofInt(memory.readU8(offset(ptr, align.ptr))));
-			case HUi16: VInt(Int64.ofInt(memory.readU16(offset(ptr, align.ptr))));
-			case HI32: VInt(Int64.ofInt(memory.readI32(offset(ptr, align.ptr))));
-			case HI64: VInt(memory.readI64(offset(ptr, align.ptr)));
-			case HF32: VFloat(memory.readF32(offset(ptr, align.ptr)));
-			case HF64: VFloat(memory.readF64(offset(ptr, align.ptr)));
-			case HBool: VBool(memory.readU8(offset(ptr, align.ptr)) != 0);
+			case HUi8: VInt(Int64.ofInt(memory.readU8(ptr.offset(align.ptr))));
+			case HUi16: VInt(Int64.ofInt(memory.readU16(ptr.offset(align.ptr))));
+			case HI32: VInt(Int64.ofInt(memory.readI32(ptr.offset(align.ptr))));
+			case HI64: VInt(memory.readI64(ptr.offset(align.ptr)));
+			case HF32: VFloat(memory.readF32(ptr.offset(align.ptr)));
+			case HF64: VFloat(memory.readF64(ptr.offset(align.ptr)));
+			case HBool: VBool(memory.readU8(ptr.offset(align.ptr)) != 0);
 			case HObj(p) if (p != null && p.name == "String"): VString(valueReader.stringContentAt(ptr), ptr);
 			default: VObject(ptr, runtime);
 		}
@@ -455,9 +455,5 @@ class ExpressionEvaluator {
 			case HObj(p): p != null && (ValueReader.mapKeyKind(p.name) != null || TreeMapReader.isTreeMap(p.name));
 			default: false;
 		}
-	}
-
-	static inline function offset(p:Pointer, n:Int):Pointer {
-		return Int64.add(p, Int64.ofInt(n));
 	}
 }
