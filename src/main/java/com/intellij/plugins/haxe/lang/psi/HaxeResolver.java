@@ -2511,14 +2511,19 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     }
     // TODO mlo: clean up (separate members and extension methods)
     SpecificTypeReference type = result != null && !result.isUnknown() ? result.getType()  : null;
-    //enum values does not have a HaxeClass but we need a class for a lot of the checks below (extension methods etc),
-    // so we use the EnumValue as class as a replacement
+    // Enum values don't have a HaxeClass via ResultHolder.getClassType, but for resolving
+    // members and `@:using`/`using`-imported extension methods we need the declaring enum class
+    // (e.g. for `MyEnum.SomeValue.method()` the receiver is `MyEnum`).
     boolean fromEnumValue = false;
+    SpecificHaxeClassReference enumClassOverride = null;
     if (type instanceof SpecificEnumValueReference valueReference) {
-      type = getEnumValue(valueReference.context);
+      enumClassOverride = valueReference.getEnumClass();
+      type = enumClassOverride;
       fromEnumValue = true;
     }
-    SpecificHaxeClassReference classType = result == null || result.isUnknown() ? null : result.getClassType();
+    SpecificHaxeClassReference classType = enumClassOverride != null
+                                           ? enumClassOverride
+                                           : (result == null || result.isUnknown() ? null : result.getClassType());
     HaxeClass  haxeClass = classType != null ? classType.getHaxeClass() : null;
 
 
