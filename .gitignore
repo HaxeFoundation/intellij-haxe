@@ -11,3 +11,8 @@
 local-build-overrides.xml
 intellij-haxe*.jar
 
+# JVM crash/heap-dump artifacts (never commit these)
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
