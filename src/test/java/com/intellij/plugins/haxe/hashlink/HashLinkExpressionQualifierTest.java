@@ -1,9 +1,11 @@
 package com.intellij.plugins.haxe.hashlink;
 
+import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.plugins.haxe.HaxeCodeInsightFixtureTestCase;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpressionCodeFragment;
 import com.intellij.plugins.haxe.lang.psi.HaxeReferenceExpression;
+import com.intellij.plugins.haxe.util.HaxeAddImportHelper;
 import com.intellij.plugins.haxe.util.HaxeElementGenerator;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
@@ -140,6 +142,33 @@ public class HashLinkExpressionQualifierTest extends HaxeCodeInsightFixtureTestC
     assertNotNull("context element at the breakpoint", context);
 
     assertEquals("Widget.count", HashLinkExpressionQualifier.rewrite(getProject(), context, "Widget.count"));
+  }
+
+  /**
+   * The auto-import chokepoint: every path that adds an import (completion,
+   * copy/paste, reference binding, the add-import intentions) goes through
+   * {@link HaxeAddImportHelper#addImport}. On a fragment it must hold the import
+   * on the fragment and leave the evaluated text untouched — never insert an
+   * {@code import} statement that would break evaluation.
+   */
+  public void testAddImportHelperHoldsImportOnFragmentInsteadOfText() {
+    myFixture.addFileToProject("far/Widget.hx",
+                               "package far;\nclass Widget { public static var count:Int = 3; }");
+    myFixture.configureByText("Main.hx",
+                              "package other;\nclass Main { static function main() { var here<caret> = 0; } }");
+    PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
+    assertNotNull("context element at the breakpoint", context);
+
+    PsiFile fragment = HaxeElementGenerator.createExpressionCodeFragment(getProject(), "Widget.count", context, false);
+    WriteCommandAction.runWriteCommandAction(getProject(),
+                                             () -> { HaxeAddImportHelper.addImport("far.Widget", fragment); });
+
+    assertEquals("the import must not enter the evaluated text", "Widget.count", fragment.getText());
+    assertTrue("the import is held on the fragment",
+               ((HaxeExpressionCodeFragment)fragment).getImportedTypeNames().contains("far.Widget"));
+    PsiElement target = leftmostReference(fragment, "Widget").resolve();
+    assertTrue("`Widget` now resolves", target instanceof HaxeClass);
+    assertEquals("far.Widget", ((HaxeClass)target).getQualifiedName());
   }
 
   private static HaxeReferenceExpression leftmostReference(PsiFile fragment, String name) {

@@ -112,9 +112,9 @@ public class HaxeStaticMemberAddImportIntentionAction implements HintAction, Que
         if(component instanceof HaxeModelTarget target) {
           HaxeModel model = target.getModel();
           String qname = model.getQualifiedInfo().toShortendImportReferenceString();
-          // in the evaluate window this holds the import on the fragment rather
-          // than editing its text (see addImportOrRegisterOnFragment)
-          HaxeAddImportHelper.addImportOrRegisterOnFragment(qname, file);
+          // addImport holds the import on the fragment in the evaluate window;
+          // inserts a statement in an ordinary file
+          HaxeAddImportHelper.addImport(qname, file);
           PsiUtilCore.ensureValid(file);
         }
       });

@@ -126,9 +126,9 @@ public class HaxeTypeAddImportIntentionAction implements HintAction, QuestionAct
 
     WriteCommandAction.writeCommandAction(myType.getProject(), file)
       .run(() -> {
-        // in the evaluate window this records the import on the fragment instead
-        // of editing its text (see HaxeAddImportHelper.addImportOrRegisterOnFragment)
-        HaxeAddImportHelper.addImportOrRegisterOnFragment(((HaxeClass)component).getQualifiedName(), file);
+        // addImport records the import on the fragment (not its text) in the
+        // evaluate window; inserts a statement in an ordinary file
+        HaxeAddImportHelper.addImport(((HaxeClass)component).getQualifiedName(), file);
         PsiUtilCore.ensureValid(file);
       });
   }

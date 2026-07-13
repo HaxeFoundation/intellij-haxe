@@ -41,23 +41,23 @@ public class HaxeAddImportHelper {
    * Makes {@code path} resolvable in {@code file}. For an ordinary file this
    * inserts an {@code import path;} statement; for an evaluate/debugger
    * {@link HaxeExpressionCodeFragment} it records the import ON the fragment,
-   * outside its text — so the evaluated expression is left untouched (the Haxe
-   * analogue of {@link com.intellij.psi.PsiImportHolder#importClass}). Because
-   * that records no PSI change, resolve caches are dropped and highlighting
-   * restarted so the now-stale "unresolved" state clears. Call inside a write
-   * action. Returns the inserted statement, or {@code null} when held on a fragment.
+   * outside its text, so the evaluated expression is left untouched (the Haxe
+   * analogue of {@link com.intellij.psi.PsiImportHolder#importClass}).
+   *
+   * <p>This is the single chokepoint every auto-import path — completion, copy /
+   * paste, reference binding, the add-import intentions — flows through, so none
+   * of them can inject an import into a fragment's evaluated text. Recording it on
+   * the fragment changes no PSI, so resolve caches are dropped and highlighting
+   * restarted to clear the now-stale "unresolved" state. Returns the inserted
+   * statement, or {@code null} when the import was held on a fragment.
    */
-  public static HaxeImportStatement addImportOrRegisterOnFragment(String path, PsiFile file) {
+  public static HaxeImportStatement addImport(String path, PsiFile file) {
     if (file instanceof HaxeExpressionCodeFragment fragment) {
       fragment.importClass(path);
       file.getManager().dropResolveCaches();
       DaemonCodeAnalyzer.getInstance(file.getProject()).restart(file);
       return null;
     }
-    return addImport(path, file);
-  }
-
-  public static HaxeImportStatement addImport(String path, PsiFile file) {
     PsiElement child = PsiTreeUtil.findChildOfType(file, HaxePackageStatement.class);
     List<HaxeImportStatement> importStatements = PsiTreeUtil.findChildrenOfType(file, HaxeImportStatement.class).stream().toList();
     if(!importStatements.isEmpty()) {
@@ -73,6 +73,11 @@ public class HaxeAddImportHelper {
     }
   }
   public static HaxeUsingStatement addUsing(String path, PsiFile file) {
+    if (file instanceof HaxeExpressionCodeFragment) {
+      // a fragment holds no `using` list; skip rather than inject `using` text
+      // into the evaluated expression
+      return null;
+    }
     PsiElement child = PsiTreeUtil.findChildOfType(file, HaxePackageStatement.class);
     List<HaxeImportStatement> importStatements = PsiTreeUtil.findChildrenOfType(file, HaxeImportStatement.class).stream().toList();
     if(!importStatements.isEmpty()) {
