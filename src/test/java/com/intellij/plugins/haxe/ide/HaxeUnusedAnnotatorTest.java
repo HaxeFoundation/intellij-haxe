@@ -97,4 +97,13 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
         );
         doTest();
     }
+
+    @Test
+    public void testUnusedModuleLevelFunctionTest() throws Exception {
+        myFixture.enableInspections(
+                HaxeUnusedFunctionInspection.class,
+                HaxeUnusedMethodInspection.class
+        );
+        doTest();
+    }
 }
