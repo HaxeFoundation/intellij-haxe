@@ -474,6 +474,13 @@ the caller keeps the static type.
   closure is **bound** and the captured value — the bound object for a method
   closure, or the capture environment for a lambda — sits @ +24, read as a
   dynamic and shown as a single `captured` child.
+- **Stack-trace symbols** (`hl_symbol`): a `haxe.Exception.__nativeStack` is an
+  `hl.NativeArray<hl_symbol>` where each entry is a **code return address** (the
+  same thing HL's own `resolve_symbol` decodes). Rather than the opaque
+  `hl_symbol @ 0x..` the raw abstract would render, each is resolved the way a
+  call-stack frame is (`JitInfo.resolveAddress` → `functionName` + `lookup`) into
+  `Class.method (File.hx:line)`. Entries with no source line (e.g. the HL boot
+  entry) fall back to the bare function name.
 - **Refs** (`HRef`, e.g. `hl.Ref.make(x)`): the dereferenced pointer IS the
   address of the value — read the inner type there. Note that a local mutated
   by a closure is NOT a ref: genhl boxes it into a **1-element array**

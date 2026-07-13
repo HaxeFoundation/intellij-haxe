@@ -122,6 +122,14 @@ class VariableInspector {
 			var location = jit.resolveAddress(funPtr);
 			return location == null ? null : module.functionName(location.fidx);
 		};
+		valueReader.symbolResolver = codePtr -> {
+			var location = jit.resolveAddress(codePtr);
+			if (location == null) return null;
+			var name = module.functionName(location.fidx);
+			var source = module.lookup(location.fidx, location.op);
+			if (source == null || source.file == null) return name;
+			return name + " (" + haxe.io.Path.withoutDirectory(source.file) + ":" + source.line + ")";
+		};
 		dynObjects = new DynObjReader(memory, align, runtimeTypes, hash -> module.reverseHash(hash));
 		var maps = new MapReader(memory, align,
 			jit.hlVersionMajor > 1 || (jit.hlVersionMajor == 1 && jit.hlVersionMinor >= 13));

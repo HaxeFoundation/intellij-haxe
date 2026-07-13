@@ -98,6 +98,7 @@ public abstract class DapIntegrationTestBase {
   protected Path threadsFixtureHl;
   protected Path spinFixtureHl;
   protected Path uncaughtFixtureHl;
+  protected Path stacktraceFixtureHl;
   protected Path fixtureSrcDir;
   protected String hlExecutable;
 
@@ -132,6 +133,10 @@ public abstract class DapIntegrationTestBase {
       String uncaughtProperty = System.getProperty("dap.fixture.uncaught.hl", "");
       if (!uncaughtProperty.isEmpty() && Files.isRegularFile(Path.of(uncaughtProperty))) {
         uncaughtFixtureHl = Path.of(uncaughtProperty);
+      }
+      String stacktraceProperty = System.getProperty("dap.fixture.stacktrace.hl", "");
+      if (!stacktraceProperty.isEmpty() && Files.isRegularFile(Path.of(stacktraceProperty))) {
+        stacktraceFixtureHl = Path.of(stacktraceProperty);
       }
     }
     Optional<Path> hl = HlExecutableResolver.resolve();

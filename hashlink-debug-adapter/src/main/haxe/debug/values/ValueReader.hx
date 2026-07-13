@@ -24,6 +24,9 @@ class ValueReader {
 	public var runtimeTypes:Null<RuntimeTypes> = null;
 	// Resolves a jitted code address to a function display name (closures).
 	public var functionNameResolver:Null<Pointer->Null<String>> = null;
+	// Resolves an hl_symbol stack-trace entry (a code return address) to a
+	// "Class.method (File.hx:line)" label; null → raw pointer fallback.
+	public var symbolResolver:Null<Pointer->Null<String>> = null;
 	// Constructor-param offsets, for inline enum display and expansion.
 	public var enumLayout:Null<EnumLayout> = null;
 	// Runtime dynamic-object reader (Dynamic structures, Reflect/JSON objects).
@@ -112,6 +115,12 @@ class ValueReader {
 			case HAbstract(name) if (maps != null && nativeMapKind(name) != null):
 				// the abstract value IS the native map pointer (no wrapper indirection)
 				readNativeMap(ptr, nativeMapKind(name), name);
+			case HAbstract("hl_symbol"):
+				// a haxe.Exception.__nativeStack entry: the abstract value is a code
+				// return address. Resolve it to a source location the way the call
+				// stack does, instead of showing an opaque `hl_symbol @ 0x..`.
+				var label = symbolResolver == null ? null : symbolResolver(ptr);
+				leaf(label != null ? label : "hl_symbol @ " + hex(ptr), "StackFrame");
 			case HObj(_):
 				expandableOrRaw(ptr, refineObjectType(ptr, t));
 			case HStruct(_):
