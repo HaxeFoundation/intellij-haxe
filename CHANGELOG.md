@@ -9,6 +9,9 @@
 ## Unreleased
 * Fixed: The unused-method inspection crashed with a NullPointerException on module-level functions.
 
+## Unreleased
+* Added: Go-to-declaration (Ctrl/Cmd+Click) on object literal keys, jumping to the matching field of the type the literal is used as (including extended and intersection typedefs).
+
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 
 * Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe). (fixed by Tobbse - #1254)
