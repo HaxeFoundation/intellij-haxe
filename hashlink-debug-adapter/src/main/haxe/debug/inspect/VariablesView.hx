@@ -264,7 +264,7 @@ class VariablesView {
 
 	// A statics container also holds its static methods (function-typed fields)
 	// and compiler bookkeeping like __name__/__constructs__/__meta__; only count
-	// the user's actual static variables.
+	// the actual static variables.
 	function hasStaticData(proto:ObjPrototype):Bool {
 		var methodFields = staticMethodFieldNames(proto);
 		for (field in proto.fields) {

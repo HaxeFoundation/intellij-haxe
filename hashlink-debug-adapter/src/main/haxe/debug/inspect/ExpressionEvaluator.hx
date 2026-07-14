@@ -17,7 +17,7 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
- * The evaluate-expression interpreter (M21b/M23). A parsed expression's leaves
+ * The evaluate-expression interpreter. A parsed expression's leaves
  * resolve through the SAME machinery as paths/writes (typed reads at
  * SymbolResolver addresses, calls via DebuggeeCallService, `new` via construct,
  * map brackets via get/set); operators fold ADAPTER-SIDE on EvalValue — no
@@ -25,7 +25,7 @@ import haxe.Int64;
  * operands / conditions / call arguments) or a rendered VariableInfo (for
  * display in the watches view).
  *
- * A pure variable path keeps the pre-M21b reference walk (`evaluatePath`) so a
+ * A pure variable path keeps the direct reference walk (`evaluatePath`) so a
  * watch renders exactly like the Variables view — map entries, enum params,
  * expandable references and all.
  */
@@ -58,7 +58,7 @@ class ExpressionEvaluator {
 	 * Evaluates a NON-assignment expression to a displayed value (the caller
 	 * handles a top-level assignment before delegating here). A pure path uses
 	 * the Variables-view reference walk; a call/new returns the decoded result;
-	 * anything else is interpreted (M21b) and rendered.
+	 * anything else is interpreted and rendered.
 	 */
 	public function evaluateExpr(frameId:Int, e:Expr, exprText:String):VariableInfo {
 		switch (e) {
@@ -77,18 +77,18 @@ class ExpressionEvaluator {
 				return renderValue(exprText, evalExpr(frameId, e));
 			default:
 		}
-		// a pure variable path keeps the pre-M21b reference walk: it renders
+		// a pure variable path keeps the direct reference walk: it renders
 		// exactly like the Variables view (map entries, enum params, ...)
 		var path = chainToPath(e);
 		if (path != null) {
 			return evaluatePath(frameId, path);
 		}
-		// anything else is an operator expression: interpret it (M21b)
+		// anything else is an operator expression: interpret it
 		return renderValue(exprText, evalExpr(frameId, e));
 	}
 
 	/**
-	 * Evaluates a breakpoint condition to a Bool in the given frame (M22). The
+	 * Evaluates a breakpoint condition to a Bool in the given frame. The
 	 * expression must yield a Bool — a number/string/object condition is a user
 	 * error, surfaced with a clear message so the caller can fail safe (stop).
 	 */
@@ -104,7 +104,7 @@ class ExpressionEvaluator {
 		}
 	}
 
-	// The pre-M21b path walk: resolves the root, then follows accessors through
+	// The direct path walk: resolves the root, then follows accessors through
 	// the same variablesReference listings the Variables view uses.
 	function evaluatePath(frameId:Int, path:ValuePath):VariableInfo {
 		var start = 0;
@@ -182,7 +182,7 @@ class ExpressionEvaluator {
 		return null;
 	}
 
-	// --- the expression interpreter (M21b) ---
+	// --- the expression interpreter ---
 
 	/** Evaluates an expression node to a typed adapter-side value. */
 	public function evalExpr(frameId:Int, e:Expr):EvalValue {

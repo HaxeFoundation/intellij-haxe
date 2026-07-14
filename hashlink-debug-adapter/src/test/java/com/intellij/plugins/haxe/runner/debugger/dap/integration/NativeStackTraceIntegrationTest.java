@@ -15,7 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Presentation of a haxe.Exception's {@code __nativeStack} (M40): its entries are
+ * Presentation of a haxe.Exception's {@code __nativeStack}: its entries are
  * {@code hl.NativeArray<hl_symbol>} — code return addresses. Rather than the opaque
  * {@code hl_symbol @ 0x..} the runtime would otherwise show, each is resolved to a
  * "Class.method (File.hx:line)" label using the same debug info the call stack uses.

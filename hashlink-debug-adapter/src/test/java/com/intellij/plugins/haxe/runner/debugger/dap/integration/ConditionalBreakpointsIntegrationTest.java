@@ -16,7 +16,7 @@ import java.util.Map;
 import org.junit.Test;
 
 /**
- * Conditional breakpoints (M22): the adapter evaluates the IDE's breakpoint
+ * Conditional breakpoints: the adapter evaluates the IDE's breakpoint
  * Condition expression at each hit and only stops when it is true. Verified
  * against real HashLink on the Main.hx loop (line 18: total = add(total, i),
  * i in 0..3), where at i==2 the accumulated total is exactly 1.

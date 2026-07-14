@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.Test;
 
 /**
- * Exception breakpoints (M37): with the "All Exceptions" filter enabled, the
+ * Exception breakpoints: with the "All Exceptions" filter enabled, the
  * debugger stops at a throw site (an OThrow) with reason "exception", the thrown
  * value in the description, and an inspectable frame. Uses the fixture's caught
  * {@code throw "boom"} in Main.throwDemo() as a deterministic early throw.

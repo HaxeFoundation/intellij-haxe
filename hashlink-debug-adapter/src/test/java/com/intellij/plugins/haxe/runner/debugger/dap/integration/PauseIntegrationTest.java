@@ -18,7 +18,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Pause (M36): interrupt a freely-running debuggee, report a stop with reason
+ * Pause: interrupt a freely-running debuggee, report a stop with reason
  * "pause" IN Haxe code (real frames + locals), then resume it to completion.
  * Exercises the forceBreak + drain path and the resume of the held break-event
  * thread against real HashLink, using a busy-loop fixture so the interrupt lands

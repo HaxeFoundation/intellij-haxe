@@ -19,7 +19,7 @@ import java.util.Map;
 import org.junit.Test;
 
 /**
- * Runs functions inside the stopped debuggee via evaluate (M13a) against real
+ * Runs functions inside the stopped debuggee via evaluate against real
  * HashLink: injects a call trampoline, runs it, and reads the return. The
  * decisive checks assert KNOWN return values, and that the debuggee is intact
  * afterwards (execution continues to a clean exit).
@@ -79,7 +79,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void callsInsideExpressions() throws Exception {
-    // M21b: calls are expression leaves — results feed operators, and
+    // calls are expression leaves — results feed operators, and
     // arguments are themselves full expressions (base = 10)
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
     int frameId = topFrameId(stopped.getBody().getThreadId());
@@ -137,7 +137,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     int threadId = stopped.getBody().getThreadId();
     int frameId = topFrameId(threadId);
 
-    // the headline M13c feature: allocate a brand-new String and assign it
+    // allocate a brand-new String and assign it
     assertTrue("s = \"hello\"", evaluate(frameId, "s = \"hello\"").isSuccess());
     int locals = localsScopeReference(topFrameId(lastStoppedThreadId()));
     assertEquals("s now holds the new string", "\"hello\"", findVariable(variables(locals), "s").getValue());
@@ -156,7 +156,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void constructsObjectsWithNew() throws Exception {
-    // M15: `new Point(x,y,label)` — allocate via the mined hl_alloc_obj + type
+    // `new Point(x,y,label)` — allocate via the mined hl_alloc_obj + type
     // pointer, then run the constructor. Point is constructed elsewhere in the
     // program (Main.inspectDemo), so its ONew site exists to mine.
     StoppedEvent stopped = runToBreakpoint(FIXTURE_CALL, FIXTURE_CALL_LINE);
@@ -171,7 +171,7 @@ public class EvalCallIntegrationTest extends DapIntegrationTestBase {
     assertEquals("Point.y initialised by the ctor", "4", fields.get("y"));
     assertEquals("Point.label null", "null", fields.get("label"));
 
-    // a String constructor argument (materialised via M13c) reaches a field
+    // a String constructor argument (materialised on the heap) reaches a field
     Map<String, String> withLabel =
       variablesByName(evaluate(frameId, "new Point(5, 6, \"hi\")").getBody().getVariablesReference());
     assertEquals("Point.label from a string literal arg", "\"hi\"", withLabel.get("label"));

@@ -488,7 +488,7 @@ class DebugSession {
 		api.resume(debuggeePid, stoppedThreadId);
 	}
 
-	// --- eval-call (M13): run a function inside the stopped debuggee ---
+	// --- eval-call: run a function inside the stopped debuggee ---
 
 	static inline var CALL_TIMEOUT_MS = 5000;
 
@@ -561,7 +561,7 @@ class DebugSession {
 					if (outcome.threadId == threadId && Int64.eq(eip, trapEnd)) {
 						return true; // our trampoline's INT3
 					}
-					// a user breakpoint fired in some thread during the call
+					// a breakpoint fired in some thread during the call
 					pendingForeignStop = outcome;
 					return false;
 				case SingleStep:
@@ -1162,7 +1162,7 @@ class DebugSession {
 
 		// a real breakpoint always wins over a step landing
 		if (userBp != null) {
-			// A conditional breakpoint (M22) only stops when its expression is true.
+			// A conditional breakpoint only stops when its expression is true.
 			// Evaluate it against the hitting thread's top frame; a false result
 			// resumes without stopping (and WITHOUT ending an in-flight step — the
 			// step's temps are still planted, so it keeps progressing).

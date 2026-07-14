@@ -280,7 +280,7 @@ public abstract class DapIntegrationTestBase {
     return breakpoint;
   }
 
-  /** A single conditional breakpoint in a fixture source file (M22). */
+  /** A single conditional breakpoint in a fixture source file. */
   protected Response setConditionalBreakpoint(String fixtureFile, int line, String condition) throws Exception {
     String sourcePath = fixtureSrcDir.resolve(fixtureFile).toString();
     SetBreakpointsRequest request = new SetBreakpointsRequest();

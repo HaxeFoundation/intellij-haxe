@@ -541,7 +541,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  // --- arbitrary expressions (M21b): operators folded adapter-side ---
+  // --- arbitrary expressions: operators folded adapter-side ---
 
   @Test
   public void evaluatesArithmeticAndLogicExpressions() throws Exception {
@@ -633,7 +633,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
     request(new DisconnectRequest());
   }
 
-  // --- container-element writes + instance method calls (M16) ---
+  // --- container-element writes + instance method calls ---
 
   @Test
   public void writesArrayElementsThroughEvaluate() throws Exception {
@@ -701,8 +701,8 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
   @Test
   public void boxesPrimitivesIntoDynamicArguments() throws Exception {
     // stringMap is Map<String,Int>: values are stored BOXED (Dynamic). Passing
-    // the int literal 9 requires boxing it into a vdynamic (M17) — previously
-    // refused. Proven end to end: set then read the value back.
+    // the int literal 9 requires boxing it into a vdynamic.
+    // Proven end to end: set then read the value back.
     runToBreakpoint(FIXTURE_RICH, FIXTURE_RICH_LINE);
     int frameId = topFrameId(lastStoppedThreadId());
 

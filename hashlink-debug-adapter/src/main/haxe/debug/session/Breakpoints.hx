@@ -24,7 +24,7 @@ class Breakpoints {
 	final pid:Int;
 	final byAddress:Map<String, PatchedBreakpoint> = new Map();
 	final bySource:Map<String, Array<PatchedBreakpoint>> = new Map();
-	// temporary INT3s planted for a step; `shared` = coincides with a user breakpoint
+	// temporary INT3s planted for a step; `shared` = coincides with a breakpoint
 	final temps:Map<String, {address:Pointer, originalByte:Int, shared:Bool}> = new Map();
 	// INT3s planted at every throw site while an exception breakpoint is enabled;
 	// `reg` is the HL register holding the thrown value at that site
@@ -88,16 +88,16 @@ class Breakpoints {
 	}
 
 	/**
-	 * Plants a temporary INT3 (for a step) at `address`. If a user breakpoint is
+	 * Plants a temporary INT3 (for a step) at `address`. If a breakpoint is
 	 * already installed there, nothing is written and the temp is marked `shared`
-	 * so clearTemps leaves the user breakpoint intact.
+	 * so clearTemps leaves the breakpoint intact.
 	 */
 	public function addTemp(address:Pointer):Void {
 		var key = addressKey(address);
 		if (temps.exists(key)) {
 			return;
 		}
-		// a user breakpoint OR an armed throw-site already holds an INT3 here — leave
+		// a breakpoint OR an armed throw-site already holds an INT3 here — leave
 		// its byte alone so clearTemps doesn't restore over the wrong original
 		var shared = byAddress.exists(key) || byException.exists(key);
 		var original = INT3;
@@ -108,7 +108,7 @@ class Breakpoints {
 		temps.set(key, {address: address, originalByte: original, shared: shared});
 	}
 
-	/** Removes all temporary breakpoints, restoring bytes not shared with a user breakpoint. */
+	/** Removes all temporary breakpoints, restoring bytes not shared with a breakpoint. */
 	public function clearTemps():Void {
 		for (temp in temps) {
 			if (!temp.shared) {
@@ -149,7 +149,7 @@ class Breakpoints {
 		for (site in sites) {
 			var key = addressKey(site.address);
 			if (byAddress.exists(key) || byException.exists(key)) {
-				continue; // a user breakpoint or an already-armed site owns this byte
+				continue; // a breakpoint or an already-armed site owns this byte
 			}
 			var original = readByte(site.address);
 			var bp:PatchedBreakpoint = {
@@ -179,7 +179,7 @@ class Breakpoints {
 	}
 
 	/**
-	 * Restores every patched byte (user breakpoints and temps). Used before
+	 * Restores every patched byte (breakpoints and temps). Used before
 	 * detaching in attach mode: the debuggee keeps running without a debugger,
 	 * so any leftover INT3 would crash it. Restoring a byte that was already
 	 * suspended writes the same original value again — harmless.

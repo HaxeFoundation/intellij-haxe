@@ -1,5 +1,5 @@
 /**
- * Multi-threaded fixture (M14): its OWN program (main class) because it blocks
+ * Multi-threaded fixture: its OWN program (main class) because it blocks
  * forever — it can't join the shared Main flow that other tests run to exit.
  *
  * A worker thread waits until main is parked in block() (holding a live local),

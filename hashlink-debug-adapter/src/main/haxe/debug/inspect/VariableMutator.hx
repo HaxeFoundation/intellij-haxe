@@ -16,7 +16,7 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
- * The value-modification path (M12): DAP `setVariable` and `path = expr` in
+ * The value-modification path: DAP `setVariable` and `path = expr` in
  * evaluate. Resolves the target slot (via SymbolResolver), evaluates the RHS
  * (via ExpressionEvaluator), and writes it (via ValueWriter) while the debuggee
  * is stopped — to steer execution.

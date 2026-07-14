@@ -1,7 +1,7 @@
 /**
- * Eval-call fixture (M13): unbound function values the debugger can invoke via
+ * Eval-call fixture: unbound function values the debugger can invoke via
  * `evaluate` while stopped, plus a String local to reassign from a call result,
- * plus BOUND closures (M20): an instance-method closure (captured value = the
+ * plus BOUND closures: an instance-method closure (captured value = the
  * receiver object) and a capturing lambda (captured value = the environment).
  * Each closure local is kept alive as a real escaping value through `keep`.
  *

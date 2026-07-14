@@ -387,7 +387,7 @@ public class HashLinkDebugProcess extends XDebugProcess {
   }
 
   // Run to cursor: plant a transient breakpoint at the target line (alongside the
-  // user's breakpoints) and resume. Any stop clears it (handleStopped). If the line
+  // existing breakpoints) and resume. Any stop clears it (handleStopped). If the line
   // has no executable code, don't resume — that would run away with no place to
   // stop — and re-assert the current position so the UI leaves the "running" state.
   @Override

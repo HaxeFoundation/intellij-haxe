@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Type-specific exception breakpoints (M42): a filter naming exception class
+ * Type-specific exception breakpoints: a filter naming exception class
  * "Boom" must skip an unrelated {@code haxe.Exception} throw and stop only at the
  * {@code Kaboom} throw — Kaboom extends Boom, so this also proves subtype matching
  * (we match the thrown value's class and its superclasses).

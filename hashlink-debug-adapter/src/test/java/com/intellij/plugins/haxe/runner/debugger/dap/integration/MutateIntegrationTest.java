@@ -78,7 +78,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
     int frameId = topFrameId(stopped.getBody().getThreadId());
     int locals = localsScopeReference(frameId);
 
-    // creating a new String needs allocation — not supported in M12a
+    // creating a new String needs allocation — not available in this session
     Response newString = evaluate(frameId, "n = \"hello\"");
     assertFalse("assigning a string literal is rejected", newString.isSuccess());
 

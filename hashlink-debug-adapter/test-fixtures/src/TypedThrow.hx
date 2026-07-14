@@ -1,5 +1,5 @@
 /**
- * Type-filtered exception breakpoint fixture (M42): throws two different
+ * Type-filtered exception breakpoint fixture: throws two different
  * exception types. With a filter on "Boom", the unrelated haxe.Exception throw
  * must be SKIPPED, and only the Kaboom throw (a Boom subclass — this exercises
  * subtype matching) must stop the debugger. Both are caught so the program would

@@ -4,7 +4,7 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
- * The expression interpreter's typed currency (M21b). Leaves read debuggee
+ * The expression interpreter's typed currency. Leaves read debuggee
  * memory into one of these; operators fold them adapter-side; sinks (call
  * arguments, assignments, display) convert them back out.
  */

@@ -8,7 +8,7 @@ typedef Capabilities = {
 	var ?supportsVariableType:Bool;
 	var ?supportsEvaluateForHovers:Bool;
 	var ?supportsSetVariable:Bool;
-	// We evaluate a breakpoint's `condition` at each hit (M22).
+	// We evaluate a breakpoint's `condition` at each hit.
 	var ?supportsConditionalBreakpoints:Bool;
 	// The exception categories the client can toggle via setExceptionBreakpoints.
 	var ?exceptionBreakpointFilters:Array<ExceptionBreakpointsFilter>;

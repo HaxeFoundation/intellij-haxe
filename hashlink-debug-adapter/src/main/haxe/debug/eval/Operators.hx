@@ -6,7 +6,7 @@ import debug.values.ValueReader;
 import haxe.Int64;
 
 /**
- * Pure adapter-side operator folding over EvalValue (M21b) — Haxe semantics:
+ * Pure adapter-side operator folding over EvalValue — Haxe semantics:
  *
  * - `/` is ALWAYS Float (like Haxe, unlike C).
  * - `+` concatenates when either side is a String (numbers/bools/null are

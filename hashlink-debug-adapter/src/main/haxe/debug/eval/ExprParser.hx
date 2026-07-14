@@ -4,7 +4,7 @@ import debug.DebugError;
 import debug.eval.ExprAst.Expr;
 
 /**
- * Tokenizer + precedence-climbing parser for evaluate expressions (M21b).
+ * Tokenizer + precedence-climbing parser for evaluate expressions.
  *
  * Operator precedence follows HAXE (which differs from C: bitwise ops share
  * one tier and bind tighter than comparisons; shifts sit between additive and

@@ -29,7 +29,7 @@ import debug.target.StackFrameLocation;
  *  - SymbolResolver      variable path → writable {address, type}
  *  - VariablesView       frames/references → DAP scopes & variable lists
  *  - DebuggeeCallService running code in the debuggee (calls / new / string / box)
- *  - ExpressionEvaluator the evaluate-expression interpreter (M21b/M23)
+ *  - ExpressionEvaluator the evaluate-expression interpreter
  *  - VariableMutator     the write path (setVariable / assignment)
  *
  * Wired once at launch from the module/jit metadata; DebugSession sets the
@@ -218,7 +218,7 @@ class VariableInspector {
 		}
 	}
 
-	/** Evaluates a breakpoint condition to a Bool in the given frame (M22). */
+	/** Evaluates a breakpoint condition to a Bool in the given frame. */
 	public inline function evaluateBool(frameId:Int, expression:String):Bool {
 		return evaluator.evaluateBool(frameId, expression);
 	}

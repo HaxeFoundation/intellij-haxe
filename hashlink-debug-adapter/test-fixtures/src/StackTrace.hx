@@ -1,5 +1,5 @@
 /**
- * Stack-trace presentation fixture (M40): builds a haxe.Exception a couple of
+ * Stack-trace presentation fixture: builds a haxe.Exception a couple of
  * calls deep — which captures __nativeStack as an hl.NativeArray<hl_symbol> — and
  * holds it in a local so a test can stop, expand the exception, and confirm each
  * __nativeStack entry is resolved to a "Class.method (File.hx:line)" label instead

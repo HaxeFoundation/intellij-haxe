@@ -21,7 +21,7 @@ import format.hl.Data.HLType;
 import haxe.Int64;
 
 /**
- * Runs code INSIDE the stopped debuggee (M13–M20): calls functions/methods,
+ * Runs code INSIDE the stopped debuggee: calls functions/methods,
  * constructs objects, materializes strings, and boxes primitives — everything
  * that needs the debuggee's own machinery rather than adapter-side reads.
  *
@@ -65,9 +65,9 @@ class DebuggeeCallService {
 	/**
 	 * Runs `callee(args)` in the debuggee and returns the raw result (RAX, or
 	 * XMM0-as-RAX for a float return) plus the return type. `callee` resolves to
-	 * a function value (an unbound or bound closure — M20); args are ALREADY
+	 * a function value (an unbound or bound closure); args are ALREADY
 	 * evaluated and lowered to the callee's declared parameter types. Tries an
-	 * instance-method call first (`recv.method(args)` — M16), falling back to the
+	 * instance-method call first (`recv.method(args)`), falling back to the
 	 * closure-field call.
 	 */
 	public function callRaw(frameId:Int, path:ValuePath, args:Array<EvalValue>):CallResult {
@@ -91,7 +91,7 @@ class DebuggeeCallService {
 		// When hasValue != 0 the closure is BOUND (an instance-method closure whose
 		// value is the receiver, or a lambda whose value is its capture env): the
 		// jit's OCallClosure emits `fun(value, args...)` — thread the captured value
-		// through as the leading argument (M20). The closure's visible HFun type
+		// through as the leading argument. The closure's visible HFun type
 		// already excludes that implicit parameter, so declared args map 1:1.
 		var closurePtr = memory.readPointer(target.address);
 		if (Int64.eq(closurePtr, Int64.ofInt(0))) {
@@ -116,7 +116,7 @@ class DebuggeeCallService {
 	/**
 	 * If `path` is `receiver.method` and `method` is an instance method on the
 	 * receiver's runtime class, calls it with the receiver threaded as `this`
-	 * (M16). Returns null when it isn't a method call (the caller then treats
+	 * Returns null when it isn't a method call (the caller then treats
 	 * the path as a closure-valued field). Enables `map.set(k,v)`, `arr.push(x)`,
 	 * getters, and any other mutation/query the program's own methods provide.
 	 */
@@ -198,7 +198,7 @@ class DebuggeeCallService {
 	}
 
 	/**
-	 * Constructs `new className(args)` in the debuggee (M15) and returns the new
+	 * Constructs `new className(args)` in the debuggee and returns the new
 	 * instance pointer. Allocates via the recovered `hl_alloc_obj` + class type
 	 * pointer (see ConstructorResolver — a disassembly hack), then runs the
 	 * constructor `(this, args...)`. Construction is EXPERIMENTAL: if the
@@ -260,7 +260,7 @@ class DebuggeeCallService {
 
 	/**
 	 * Materializes a String literal as a live heap String in the debuggee and
-	 * returns its pointer (M13c). Allocates a byte buffer on the HEAP via the
+	 * returns its pointer. Allocates a byte buffer on the HEAP via the
 	 * program's own `alloc_bytes` native, writes the UTF-8 bytes into it, then
 	 * calls `String.fromUTF8` — both through the eval-call machinery. Heap
 	 * (not stack) because on Windows there is no red zone: a buffer below Esp
@@ -303,7 +303,7 @@ class DebuggeeCallService {
 	}
 
 	// Boxes a primitive literal into a fresh vdynamic so it can be passed to a
-	// `Dynamic` parameter (M17). `alloc_dynamic(typePtr)` gives a GC-tracked
+	// `Dynamic` parameter. `alloc_dynamic(typePtr)` gives a GC-tracked
 	// vdynamic tagged with the primitive's runtime type; `writePayload` writes
 	// the value into its payload slot (HDYN_VALUE = one pointer past the type).
 	function boxPrimitive(kind:Int, writePayload:Pointer->Void):CallArg {
@@ -332,7 +332,7 @@ class DebuggeeCallService {
 		// A primitive going into a `Dynamic` parameter must be BOXED into a
 		// vdynamic: passing the raw bits would be read as a pointer and stored
 		// as garbage. Pointers (strings, objects) are dynamic-compatible and
-		// pass as-is; primitives are boxed here (M17).
+		// pass as-is; primitives are boxed here.
 		if (paramType.match(HDyn)) {
 			switch (v) {
 				case VInt(i):

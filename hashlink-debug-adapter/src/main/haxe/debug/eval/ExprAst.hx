@@ -1,7 +1,7 @@
 package debug.eval;
 
 /**
- * The evaluate-expression AST (M21b). Leaves are the constructs the debugger
+ * The evaluate-expression AST. Leaves are the constructs the debugger
  * already knows how to resolve (literals, variable paths, calls, `new`);
  * operators are folded ADAPTER-SIDE on typed values — no debuggee code runs
  * for arithmetic itself.

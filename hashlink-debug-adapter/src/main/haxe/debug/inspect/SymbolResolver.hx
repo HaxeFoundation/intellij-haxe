@@ -154,7 +154,7 @@ class SymbolResolver {
 	// --- class-qualified statics (`MyClass.member`, `pkg.MyClass.member`) ---
 
 	// A class `pkg.Cls` keeps its statics on a container type named `pkg.$Cls`
-	// ($ prefixes the LAST segment — the M13c lesson).
+	// ($ prefixes the LAST segment, not the whole qualified name).
 	public static function staticsContainerName(className:String):String {
 		var lastDot = className.lastIndexOf(".");
 		return lastDot < 0 ? "$" + className : className.substr(0, lastDot + 1) + "$" + className.substr(lastDot + 1);

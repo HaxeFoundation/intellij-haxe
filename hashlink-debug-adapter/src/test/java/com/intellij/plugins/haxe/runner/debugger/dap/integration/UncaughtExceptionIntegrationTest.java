@@ -14,7 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Uncaught-only exception breakpoints (M39): with only the "uncaught" filter, a
+ * Uncaught-only exception breakpoints: with only the "uncaught" filter, a
  * throw inside a live {@code try} is skipped and execution stops only at a throw
  * no {@code catch} will handle. The fixture throws "caught-one" inside a try, then
  * "uncaught-one" with no handler — we must stop on the latter.

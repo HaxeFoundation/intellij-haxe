@@ -146,7 +146,7 @@ final class HashLinkBreakpointManager {
     if (!(response instanceof SetBreakpointsResponse setResponse) || !response.isSuccess()) {
       return false;
     }
-    // responses come back in request order: the user breakpoints, then the run-to line
+    // responses come back in request order: the breakpoints, then the run-to line
     List<Breakpoint> results = setResponse.getBody().getBreakpoints();
     for (int i = 0; i < ordered.size() && i < results.size(); i++) {
       Breakpoint result = results.get(i);
