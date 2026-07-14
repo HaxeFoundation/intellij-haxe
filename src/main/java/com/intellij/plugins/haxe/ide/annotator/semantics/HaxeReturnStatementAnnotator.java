@@ -287,7 +287,12 @@ public class HaxeReturnStatementAnnotator implements Annotator {
     }
 
     private static boolean isSwitchOnEnum(HaxeSwitchStatement switchStatement) {
-        ResultHolder switchType = HaxeExpressionEvaluator.evaluate(switchStatement.getExpression()).result;
+        HaxeExpression expression = switchStatement.getExpression();
+        if (expression == null) {
+            // Incomplete switch (no scrutinee yet).
+            return false;
+        }
+        ResultHolder switchType = HaxeExpressionEvaluator.evaluate(expression).result;
         if(switchType.getClassType() != null) {
             SpecificTypeReference specificTypeReference = switchType.getClassType().fullyResolveTypeDefAndUnwrapNullTypeReference();
             switchType = specificTypeReference.createHolder();

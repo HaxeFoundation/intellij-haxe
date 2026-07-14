@@ -1,6 +1,7 @@
 package com.intellij.plugins.haxe.model;
 
 import com.intellij.plugins.haxe.lang.psi.HaxeComponentName;
+import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteral;
 import com.intellij.plugins.haxe.lang.psi.HaxeObjectLiteralElement;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
@@ -51,6 +52,11 @@ public class HaxeObjectLiteralMemberModel extends HaxeBaseMemberModel {
   }
   @Override
   public ResultHolder getResultType(@Nullable HaxeGenericResolver resolver) {
-    return HaxeExpressionEvaluator.evaluate(myPsi.getExpression(), resolver).result;
+    HaxeExpression expression = myPsi.getExpression();
+    if (expression == null) {
+      // Object-literal member without a value (incomplete user input, error recovery).
+      return SpecificHaxeClassReference.getUnknown(myPsi).createHolder();
+    }
+    return HaxeExpressionEvaluator.evaluate(expression, resolver).result;
   }
 }
