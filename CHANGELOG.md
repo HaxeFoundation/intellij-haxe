@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+* Fixed: Methods provided via `@:using` on an enum were reported as unresolved when called on an enum value.
 * Fixed: IllegalArgumentException during highlighting when a switch, call expression or object-literal member is still incomplete while editing.
 
 ## 1.8.6

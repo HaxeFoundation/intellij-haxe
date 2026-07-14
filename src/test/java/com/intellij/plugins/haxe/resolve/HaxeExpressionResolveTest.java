@@ -68,4 +68,9 @@ public class HaxeExpressionResolveTest extends HaxeCodeInsightFixtureTestCase {
   public void testEnumExtensions() {
     doTest();
   }
+
+  @Test
+  public void testEnumUsingMetaExtension() {
+    doTest("colors/Color.hx");
+  }
 }
