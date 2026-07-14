@@ -456,16 +456,17 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
    * Returns {@code null} when no expected type can be determined.
    */
   @Nullable
-  public ResultHolder findExpectedType(@NotNull PsiElement expression) {
+  public static ResultHolder findExpectedType(@NotNull PsiElement expression) {
     return findParentAssignType(expression, true);
   }
 
   // Experimental
   // try to step one level up until we find a type definition and then pass that back down
-  private ResultHolder findParentAssignType(@NotNull PsiElement reference) {
+  private static ResultHolder findParentAssignType(@NotNull PsiElement reference) {
     return findParentAssignType(reference, false);
   }
-  private ResultHolder findParentAssignType(@NotNull PsiElement reference, boolean isValueExpression) {
+
+  private static ResultHolder findParentAssignType(@NotNull PsiElement reference, boolean isValueExpression) {
     PsiElement parent = reference.getParent();
     if (parent == null) return null;
 
@@ -660,7 +661,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
     return findParentAssignType(parent, isValueExpression);
   }
 
-  private @Nullable ResultHolder findTypeFromPatternMatchExpression(HaxeReferenceExpression referenceExpression) {
+  private static @Nullable ResultHolder findTypeFromPatternMatchExpression(HaxeReferenceExpression referenceExpression) {
     HaxeReference leftReference = HaxeResolveUtil.getLeftReference(referenceExpression);
     if (leftReference instanceof HaxeReferenceExpression callieReference) {
       ResultHolder callieType = HaxeExpressionEvaluator.evaluate(callieReference).result;
@@ -892,7 +893,7 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
       if(referenceParent instanceof  HaxeObjectLiteralElement literalElement) {
         HaxeObjectLiteral objectLiteral = PsiTreeUtil.getParentOfType(literalElement, HaxeObjectLiteral.class);
         if(objectLiteral != null) {
-          ResultHolder objectLiteralType = findObjectLiteralType(new HaxeExpressionEvaluatorContext(objectLiteral), null, objectLiteral);
+          ResultHolder objectLiteralType = findObjectLiteralType(objectLiteral);
           if(objectLiteralType != null && !objectLiteralType.isUnknown()) {
             SpecificHaxeClassReference typeFromUsage = objectLiteralType.getClassType();
             if (typeFromUsage != null && typeFromUsage.getHaxeClassModel() != null) {

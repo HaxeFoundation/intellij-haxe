@@ -1,7 +1,4 @@
 /*
- * Copyright 2014-2014 AS3Boyan
- * Copyright 2014-2014 Elias Ku
- *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,7 +22,6 @@ import com.intellij.plugins.haxe.lang.psi.HaxeResolver;
 import com.intellij.plugins.haxe.model.HaxeBaseMemberModel;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
 import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluator;
-import com.intellij.plugins.haxe.model.evaluator.HaxeExpressionEvaluatorContext;
 import com.intellij.plugins.haxe.model.type.HaxeGenericResolver;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
 import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
@@ -64,13 +60,12 @@ public class HaxeGotoDeclarationHandler implements GotoDeclarationHandler {
     if (objectLiteral == null) return null;
 
     HaxeGenericResolver resolver = new HaxeGenericResolver();
-    ResultHolder expectedType =
-      HaxeExpressionEvaluator.findObjectLiteralType(new HaxeExpressionEvaluatorContext(objectLiteral), resolver, objectLiteral);
+    ResultHolder expectedType = HaxeExpressionEvaluator.findObjectLiteralType(objectLiteral, resolver);
     if (expectedType == null || expectedType.isUnknown()) {
       // findObjectLiteralType only understands a few direct contexts (assignment, return, var init,
       // plain call). Fall back to the resolver's full finder, which also handles constructor
       // arguments and literals nested inside arrays or other object literals.
-      expectedType = HaxeResolver.getInstance(objectLiteral.getProject()).findExpectedType(objectLiteral);
+      expectedType = HaxeResolver.findExpectedType(objectLiteral);
     }
     if (expectedType == null || expectedType.isUnknown()) return null;
 
