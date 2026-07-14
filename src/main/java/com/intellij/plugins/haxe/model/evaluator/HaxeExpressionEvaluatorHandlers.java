@@ -353,15 +353,12 @@ public class HaxeExpressionEvaluatorHandlers {
             else {
               typeHolder = SpecificHaxeClassReference.withoutGenerics(classReference).createHolder();
             }
-            // make sure we do not wrap type in class if reference is type in ObjectLiteral
-            if (!(element.getParent() instanceof HaxeObjectLiteralElement)) {
-              // check if pure Class Reference
-              if (reference instanceof HaxeReferenceExpressionImpl expression) {
-                if (expression.isPureClassReferenceOf(haxeClass)) {
-                  // make sure its not an import statement
-                  if (PsiTreeUtil.getParentOfType(expression, HaxeImportStatement.class) == null) {
-                    typeHolder = wrapTypeInClassOrEnum(element,  haxeClass);
-                  }
+            // check if pure Class Reference
+            if (reference instanceof HaxeReferenceExpressionImpl expression) {
+              if (expression.isPureClassReferenceOf(haxeClass)) {
+                // make sure its not an import statement
+                if (PsiTreeUtil.getParentOfType(expression, HaxeImportStatement.class) == null) {
+                  typeHolder = wrapTypeInClassOrEnum(element,  haxeClass);
                 }
               }
             }
