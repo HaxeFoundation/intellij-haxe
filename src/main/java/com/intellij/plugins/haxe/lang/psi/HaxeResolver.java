@@ -981,7 +981,12 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
           index = 0;
         }
         if(PossibleCallExpression instanceof  HaxeCallExpression callExpression) {
-          ResultHolder result = HaxeExpressionEvaluator.evaluate(callExpression.getExpression(), new HaxeGenericResolver()).result;
+          HaxeExpression callee = callExpression.getExpression();
+          if (callee == null) {
+            // Incomplete call expression (no callee yet).
+            return null;
+          }
+          ResultHolder result = HaxeExpressionEvaluator.evaluate(callee, new HaxeGenericResolver()).result;
           SpecificFunctionReference functionType = result.getFunctionType();
           if(functionType != null) {
             List<HaxeArgument> arguments = functionType.getArguments();
@@ -1738,7 +1743,12 @@ public final class HaxeResolver implements ResolveCache.AbstractResolver<HaxeRef
           lastElement = members.isEmpty() ? null : members.getFirst();
           
         } else if(switchStatement != null){
-          ResultHolder resultHolder = HaxeExpressionEvaluator.evaluate(switchStatement.getExpression()).result;
+          HaxeExpression switchExpression = switchStatement.getExpression();
+          if (switchExpression == null) {
+            // Incomplete switch (no scrutinee yet).
+            continue;
+          }
+          ResultHolder resultHolder = HaxeExpressionEvaluator.evaluate(switchExpression).result;
           if (resultHolder != null && resultHolder.getClassType() != null) {
             HaxeClass haxeClass = resultHolder.getClassType().getHaxeClass();
             if (haxeClass != null) {
