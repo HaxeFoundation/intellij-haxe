@@ -1,4 +1,6 @@
 # Changelog
+## Unreleased
+* Fixed: Bodyless macro stubs are now typed `Dynamic` instead of having `Void` inferred from the missing body, so assignments from their calls are no longer flagged as incompatible.
 
 ## Unreleased
 * Fixed: Methods provided via `@:using` on an enum were reported as unresolved when called on an enum value.
