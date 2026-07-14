@@ -1,6 +1,11 @@
 # Changelog
-## Unreleased
+## 1.8.7
 * Fixed: Bare class references in object literal fields are now typed as `Class<T>`, so such literals unify with typedefs that have Class-typed members.
+* Fixed: Bodyless macro stubs are now typed `Dynamic` instead of having `Void` inferred from the missing body, so assignments from their calls are no longer flagged as incompatible.
+* Fixed: Methods provided via `@:using` on an enum were reported as unresolved when called on an enum value.
+* Fixed: IllegalArgumentException during highlighting when a switch, call expression or object-literal member is still incomplete while editing.
+* Fixed: The unused-method inspection crashed with a NullPointerException on module-level functions.
+* Added: Go-to-declaration (Ctrl/Cmd+Click) on object literal keys, jumping to the matching field of the type the literal is used as (including extended and intersection typedefs).
 
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 

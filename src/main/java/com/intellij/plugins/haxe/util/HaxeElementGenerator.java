@@ -200,9 +200,9 @@ public class HaxeElementGenerator {
     return HaxeElementGenerator.createDummyFile(myProject, builder.toString()).getChildren()[0];
   }
 
-  public static PsiFile createExpressionCodeFragment(Project myProject, String text, PsiElement context, boolean resolveScope) {
+  public static PsiFile createExpressionCodeFragment(Project myProject, String text, PsiElement context, boolean isPhysical) {
     final String name = "dummy." + HaxeFileType.INSTANCE.getDefaultExtension();
-    HaxeExpressionCodeFragmentImpl codeFragment = new HaxeExpressionCodeFragmentImpl(myProject, name, text, true);
+    HaxeExpressionCodeFragmentImpl codeFragment = new HaxeExpressionCodeFragmentImpl(myProject, name, text, isPhysical);
     codeFragment.setContext(context);
     return codeFragment;
   }

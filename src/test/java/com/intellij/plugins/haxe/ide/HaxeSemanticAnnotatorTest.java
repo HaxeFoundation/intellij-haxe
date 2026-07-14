@@ -1129,6 +1129,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     doTestNoFixWithWarnings();
   }
   @Test
+  public void testMacroStubReturnTypeIsNotVoid() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+  @Test
   public void testTypeTagsShouldNotResolveToEnumValue() throws Throwable {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
