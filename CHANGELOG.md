@@ -6,6 +6,9 @@
 * Fixed: Methods provided via `@:using` on an enum were reported as unresolved when called on an enum value.
 * Fixed: IllegalArgumentException during highlighting when a switch, call expression or object-literal member is still incomplete while editing.
 
+## Unreleased
+* Fixed: The unused-method inspection crashed with a NullPointerException on module-level functions.
+
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 
 * Fixed: Methods implementing an abstract parent method were flagged as unused (no `override` keyword required in Haxe). (fixed by Tobbse - #1254)

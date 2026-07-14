@@ -236,8 +236,9 @@ public class HaxeMethodModel extends HaxeMemberModel implements HaxeExposableMod
   }
 
   public HaxeMethodModel getParentMethod(@Nullable HaxeGenericResolver resolver) {
-    HaxeClassModel declaringClass = getDeclaringClass();
-    if(declaringClass == null) return null;
+    // Module-level functions have no declaring class, so there is no parent method to find.
+    final HaxeClassModel declaringClass = getDeclaringClass();
+    if (declaringClass == null) return null;
     final HaxeClassModel aClass = declaringClass.getParentClass();
     return (aClass != null) ? aClass.getMethod(this.getName(), resolver) : null;
   }
