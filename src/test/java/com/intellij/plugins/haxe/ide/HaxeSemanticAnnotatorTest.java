@@ -579,6 +579,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testObjectLiteralWithClassAndInstanceTypes() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
   public void testObjectLiteralWithTypedefArrayFields() throws Exception {
     doTestNoFixWithWarnings();
   }
