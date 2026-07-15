@@ -1,8 +1,6 @@
 package com.intellij.plugins.haxe.lang.psi.indexes.filebased.indexer;
 
-import com.intellij.plugins.haxe.lang.psi.HaxeClass;
-import com.intellij.plugins.haxe.lang.psi.HaxeFile;
-import com.intellij.plugins.haxe.lang.psi.HaxeType;
+import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.indexes.utils.HaxeIndexUtil;
 import com.intellij.plugins.haxe.lang.psi.indexes.filebased.data.HaxeComponentIndexData;
 import com.intellij.plugins.haxe.lang.psi.stubs.HaxeStubableFileService;
@@ -53,45 +51,53 @@ public class HaxeClassInheritanceIndexer implements DataIndexer<String, List<Hax
         final Map<String, List<HaxeComponentIndexData>> result = new HashMap<String, List<HaxeComponentIndexData>>(classes.size());
         final Map<String, String> qNameCache = new HashMap<String, String>();
 
+
         for (HaxeClass haxeClass : classes) {
-            if (haxeClass.isTypeDef()) {
-                continue;
+            if (!haxeClass.isTypeDef()) {
+                HaxeClassModel classModel = haxeClass.getModel();
+                FullyQualifiedInfo qualifiedInfo = classModel.getQualifiedInfo();
+                String qualifiedName = qualifiedInfo.getQualifiedName(true);
+
+                HaxeComponentIndexData value = createIndexData(classModel);
+
+                for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
+                    proccessInheritance(haxeFile, haxeType, qNameCache, result, value);
+
+                }
+                for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
+                    proccessInheritance(haxeFile, haxeType, qNameCache, result, value);
+                }
             }
-
-            HaxeClassModel classModel = haxeClass.getModel();
-            FullyQualifiedInfo qualifiedInfo = classModel.getQualifiedInfo();
-            String qualifiedName = qualifiedInfo.getQualifiedName(true);
-
-
-            HaxeComponentIndexData value = createIndexData(classModel);
-
-            for (HaxeType haxeType : haxeClass.getHaxeExtendsList()) {
-                if (haxeType == null) continue;
-
-                final String classNameCandidate = getClassNameCandidate(haxeType);
-                final String key = containsDotSeparator(classNameCandidate)
-                        ? classNameCandidate
-                        : getQNameAndCache(qNameCache, haxeFile, classNameCandidate, haxeType);
-
-                insert(result, key, value);
-
-
-            }
-            for (HaxeType haxeType : haxeClass.getHaxeImplementsList()) {
-                if (haxeType == null) continue;
-
-                final String classNameCandidate = getClassNameCandidate(haxeType);
-                final String key = containsDotSeparator(classNameCandidate)
-                        ? classNameCandidate
-                        : getQNameAndCache(qNameCache, haxeFile, classNameCandidate, haxeType);
-
-                insert(result, key, value);
-
-            }
-
-
         }
         return result;
+    }
+
+    private static @NotNull List<HaxeType> extractTypeListFromAnonymous(HaxeClass haxeClass) {
+        if(haxeClass instanceof HaxeTypedefDeclaration typedefDeclaration)  {
+            HaxeTypeOrAnonymous typeOrAnonymous = typedefDeclaration.getTypeOrAnonymous();
+            if(typeOrAnonymous != null) {
+                HaxeAnonymousType anonymousType = typeOrAnonymous.getAnonymousType();
+                if(anonymousType != null) {
+                    return anonymousType.getTypeList();
+                }
+            }
+        }
+        return List.of();
+    }
+
+    private static void proccessInheritance(HaxeFile haxeFile,
+                                            HaxeType haxeType,
+                                            Map<String, String> qNameCache,
+                                            Map<String, List<HaxeComponentIndexData>> result,
+                                            HaxeComponentIndexData value) {
+        if (haxeType == null) return;
+
+        final String classNameCandidate = getClassNameCandidate(haxeType);
+        final String key = containsDotSeparator(classNameCandidate)
+                ? classNameCandidate
+                : getQNameAndCache(qNameCache, haxeFile, classNameCandidate, haxeType);
+
+        insert(result, key, value);
     }
 
     private static String getQNameAndCache(Map<String, String> qNameCache, PsiFile psiFile, String classNameCandidate, HaxeType haxeType) {

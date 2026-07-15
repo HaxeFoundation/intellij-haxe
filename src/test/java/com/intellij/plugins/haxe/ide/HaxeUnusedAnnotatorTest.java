@@ -88,4 +88,22 @@ public class HaxeUnusedAnnotatorTest extends HaxeCodeInsightFixtureTestCase {
         );
         doTest("UnusedMethodsTestOutside.hx");
     }
+
+    @Test
+    public void testUnusedMethodAbstractImplTest() throws Exception {
+        myFixture.enableInspections(
+                HaxeUnusedFunctionInspection.class,
+                HaxeUnusedMethodInspection.class
+        );
+        doTest();
+    }
+
+    @Test
+    public void testUnusedModuleLevelFunctionTest() throws Exception {
+        myFixture.enableInspections(
+                HaxeUnusedFunctionInspection.class,
+                HaxeUnusedMethodInspection.class
+        );
+        doTest();
+    }
 }

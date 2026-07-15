@@ -763,6 +763,14 @@ public class HaxeExpressionEvaluator {
 
 
 
+  public static @Nullable ResultHolder findObjectLiteralType(HaxeObjectLiteral objectLiteral) {
+    return findObjectLiteralType(new HaxeExpressionEvaluatorContext(objectLiteral), null, objectLiteral);
+  }
+
+  public static @Nullable ResultHolder findObjectLiteralType(HaxeObjectLiteral objectLiteral, HaxeGenericResolver resolver) {
+    return findObjectLiteralType(new HaxeExpressionEvaluatorContext(objectLiteral), resolver, objectLiteral);
+  }
+
   public static @Nullable ResultHolder findObjectLiteralType(HaxeExpressionEvaluatorContext context,
                                                   HaxeGenericResolver resolver,
                                                   HaxeObjectLiteral objectLiteral) {

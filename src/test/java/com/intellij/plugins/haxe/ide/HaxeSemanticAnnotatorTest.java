@@ -325,6 +325,12 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
 
   @Test
+  public void testIntIteratorExtensionMethods() throws Exception {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings("extensions/IntIteratorExtensions.hx");
+  }
+
+  @Test
   public void testFieldInitializerCheck() throws Exception {
     doTestNoFixWithWarnings();
   }
@@ -569,6 +575,16 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
   }
   @Test
   public void testInitializeTypedefWithOptionalFields() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testObjectLiteralWithClassAndInstanceTypes() throws Exception {
+    doTestNoFixWithWarnings();
+  }
+
+  @Test
+  public void testObjectLiteralWithTypedefArrayFields() throws Exception {
     doTestNoFixWithWarnings();
   }
 
@@ -1114,6 +1130,11 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
 
   @Test
   public void testMacroSemantics() throws Throwable {
+    myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
+    doTestNoFixWithWarnings();
+  }
+  @Test
+  public void testMacroStubReturnTypeIsNotVoid() throws Throwable {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }

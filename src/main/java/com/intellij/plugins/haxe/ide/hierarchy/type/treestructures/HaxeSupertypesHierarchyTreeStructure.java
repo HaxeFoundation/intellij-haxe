@@ -19,14 +19,17 @@ package com.intellij.plugins.haxe.ide.hierarchy.type.treestructures;
 
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.HierarchyTreeStructure;
+import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.ide.hierarchy.type.HaxeTypeHierarchyNodeDescriptor;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.search.SearchScope;
 import com.intellij.util.ArrayUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -47,11 +50,26 @@ public final class HaxeSupertypesHierarchyTreeStructure extends HierarchyTreeStr
   protected final Object[] buildChildren(final HierarchyNodeDescriptor descriptor) {
     final PsiClass theHaxeClass = ((HaxeTypeHierarchyNodeDescriptor) descriptor).getHaxeClass();
     if (null == theHaxeClass) return ArrayUtil.EMPTY_OBJECT_ARRAY;
-    final PsiClass[] supers = theHaxeClass.getSupers();
+
+    List<PsiClass> supers = new ArrayList<>(Arrays.asList(theHaxeClass.getSupers()));
+    removeElementsAlreadyInBranch(supers);
+
     final List<HaxeTypeHierarchyNodeDescriptor> descriptors = new ArrayList<HaxeTypeHierarchyNodeDescriptor>();
-    for (PsiClass aSuper : supers) {
-        descriptors.add(new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aSuper, false));
+    return supers.stream()
+            .map(aSuper -> new HaxeTypeHierarchyNodeDescriptor(myProject, descriptor, aSuper, false))
+            .toArray();
+  }
+
+  // a form of recursion guard for when we get inheritance that loops back on it self
+  //class A extends C {}
+  //class B extends A {}
+  //class C extends B {}
+  private void removeElementsAlreadyInBranch(List<PsiClass> subTypeList) {
+    NodeDescriptor descriptor = this.getBaseDescriptor();
+    while(descriptor  instanceof  HaxeTypeHierarchyNodeDescriptor nodeDescriptor) {
+      HaxeClass haxeClass = nodeDescriptor.getHaxeClass();
+      if(haxeClass != null)subTypeList.remove(haxeClass);
+      descriptor = descriptor.getParentDescriptor();
     }
-    return descriptors.toArray(new HaxeTypeHierarchyNodeDescriptor[0]);
   }
 }
