@@ -25,9 +25,17 @@ import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl;
+import com.intellij.execution.process.KillableProcessHandler;
+import com.intellij.execution.process.ProcessEvent;
+import com.intellij.execution.process.ProcessListener;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationAction;
+import com.intellij.notification.NotificationGroupManager;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.compiler.*;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleType;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -47,6 +55,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
+import com.intellij.plugins.haxe.util.CompilationContext;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import lombok.CustomLog;
@@ -133,7 +142,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
                          HaxeBundle.message("no.module.for.run.configuration", configuration.getName()), null, -1, -1);
       return ProcessingItem.EMPTY_ARRAY;
     }
-    HaxeCommonCompilerUtil.CompilationContext compilationContext = createCompilationContext(context, module, configuration);
+    CompilationContext compilationContext = createCompilationContext(context, module, configuration);
 
     if (compileModule(context, module, compilationContext)) {
       final int index = findProcessingItemIndexByModule(items, configuration.getConfigurationModule());
@@ -160,7 +169,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
   private static boolean compileModule(final CompileContext context,
                                        Module module,
-                                       @NotNull final HaxeCommonCompilerUtil.CompilationContext compilationContext) {
+                                       @NotNull final CompilationContext compilationContext) {
 
     /*
     if ((skipBuildMap.get(module) != null) && (skipBuildMap.get(module).booleanValue())) {
@@ -181,7 +190,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
     return compiled;
   }
 
-  public static HaxeCommonCompilerUtil.CompilationContext createDummyCompilationContext(final Module module) {
+  public static CompilationContext createDummyCompilationContext(final Module module) {
     DummyCompileContext context = new DummyCompileContext(module.getProject()) {
       @Override
       public Project getProject() {
@@ -191,7 +200,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
     return createCompilationContext(context, module, null);
   }
 
-  private static HaxeCommonCompilerUtil.CompilationContext createCompilationContext(final CompileContext context,
+  private static CompilationContext createCompilationContext(final CompileContext context,
                                                                                     final Module module,
                                                                                     ModuleBasedConfiguration configuration) {
     final HaxeModuleSettings settings = HaxeModuleSettings.getInstance(module);
@@ -211,7 +220,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
     final HaxeTestsConfiguration finalHaxeTestsConfiguration = haxeTestsConfiguration;
 
-    return new HaxeCommonCompilerUtil.CompilationContext() {
+    return new CompilationContext() {
       private String myErrorRoot;
 
       @Override
@@ -357,13 +366,45 @@ public class HaxeCompiler implements FileProcessingCompiler {
       public String getModuleDirPath() {
         return ProjectUtil.guessModuleDir(module).getCanonicalPath();
       }
+
+      @Override
+      public boolean isCancelled() {
+        final ProgressIndicator indicator = context.getProgressIndicator();
+        return indicator != null && indicator.isCanceled();
+      }
+
+      @Override
+      public void handleUnresponsiveProcess(@NotNull KillableProcessHandler processHandler) {
+        final Notification notification = NotificationGroupManager.getInstance()
+          .getNotificationGroup("haxe.build.process")
+          .createNotification(
+            HaxeBundle.message("haxe.build.process.not.stopping.title"),
+            HaxeBundle.message("haxe.build.process.not.stopping.message", module.getName()), NotificationType.WARNING);
+
+        notification.addAction(NotificationAction.createSimpleExpiring(
+          HaxeBundle.message("haxe.build.process.kill.action"),
+          processHandler::killProcess));
+
+        // dismiss the notification if the process ends up terminating on its own
+        processHandler.addProcessListener(new ProcessListener() {
+          @Override
+          public void processTerminated(@NotNull ProcessEvent event) {
+            notification.expire();
+          }
+        });
+        notification.notify(module.getProject());
+      }
+
     };
   }
 
     private static boolean isDebug(Module module, ModuleBasedConfiguration configuration) {
-    if(configuration == null) return false;
+      if (configuration != null) {
         String name = RunnerAndConfigurationSettingsImpl.getUniqueIdFor(configuration);
-        return ExecutionManagerImpl.getInstance(module.getProject()).isStarting(name, DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
+        return ExecutionManagerImpl.getInstance(module.getProject())
+          .isStarting(name, DefaultDebugExecutor.EXECUTOR_ID, HaxeDebugRunner.HAXE_DEBUG_RUNNER_ID);
+      }
+      return false;
     }
 
     private static int findProcessingItemIndexByModule(ProcessingItem[] items, RunConfigurationModule moduleConfiguration) {

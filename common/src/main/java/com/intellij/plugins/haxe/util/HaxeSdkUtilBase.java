@@ -18,6 +18,7 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -161,5 +162,26 @@ public class HaxeSdkUtilBase {
       env.put(pathvar, path);
     }
     return env;
+  }
+
+  /**
+   * Patch the PATH environment variable of a GeneralCommandLine to include the Haxe SDK.
+   *
+   * Note that unlike ProcessBuilder.environment(), a GeneralCommandLine's environment map
+   * starts out empty (the parent environment is merged in at process start), so the parent
+   * values have to be copied in before the PATH prepend can be applied.
+   *
+   * @param commandLine command line whose environment is being modified in place.
+   * @param haxeSdkData SDK for which the environment is being modified.
+   * @return the command line that was passed in.
+   */
+  @NotNull
+  public static GeneralCommandLine patchEnvironment(@NotNull GeneralCommandLine commandLine, @Nullable HaxeSdkAdditionalDataBase haxeSdkData) {
+    if (haxeSdkData != null) {
+      final Map<String, String> env = commandLine.getEnvironment();
+      commandLine.getParentEnvironment().forEach(env::putIfAbsent);
+      patchEnvironment(env, haxeSdkData);
+    }
+    return commandLine;
   }
 }

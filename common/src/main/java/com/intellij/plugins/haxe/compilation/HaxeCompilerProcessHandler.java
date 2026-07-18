@@ -15,14 +15,15 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.execution.process.ColoredProcessHandler;
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.process.KillableColoredProcessHandler;
 import com.intellij.openapi.util.Key;
-import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.plugins.haxe.util.CompilationContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -32,14 +33,15 @@ import java.util.Scanner;
  *
  * Created by ebishton on 6/14/17.
  */
-public class HaxeCompilerProcessHandler extends ColoredProcessHandler {
+public class HaxeCompilerProcessHandler extends KillableColoredProcessHandler {
 
   static final String STDERR_PREFIX = "(stderr) ";
 
-  final HaxeCommonCompilerUtil.CompilationContext context;
+  final CompilationContext context;
 
-  public HaxeCompilerProcessHandler(@NotNull HaxeCommonCompilerUtil.CompilationContext context, @NotNull Process process, /*@NotNull*/ String commandLine, @NotNull Charset charset) {
-    super(process, commandLine, charset);
+  public HaxeCompilerProcessHandler(@NotNull CompilationContext context,
+                                    @NotNull GeneralCommandLine commandLine) throws ExecutionException {
+    super(commandLine);
     this.context = context;
   }
 

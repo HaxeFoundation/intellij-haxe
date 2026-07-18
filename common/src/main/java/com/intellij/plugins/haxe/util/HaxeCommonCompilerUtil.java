@@ -18,16 +18,18 @@
  */
 package com.intellij.plugins.haxe.util;
 
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.plugins.haxe.HaxeCompilerBundle;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerProcessHandler;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
-import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.util.BooleanValueHolder;
 import com.intellij.util.PathUtil;
@@ -36,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,50 +48,9 @@ import java.util.regex.Pattern;
  * @author: Fedor.Korotkov
  */
 public class HaxeCommonCompilerUtil {
-  public interface CompilationContext {
 
-    HaxeSdkAdditionalDataBase getHaxeSdkData();
+  private static final long GRACEFUL_STOP_TIMEOUT = 5_000;
 
-    @NotNull
-    HaxeModuleSettingsBase getModuleSettings();
-
-    String getModuleName();
-
-    String getCompilationClass();
-    String getOutputFileName();
-    String getOutputDirectory();
-    Boolean getIsTestBuild();
-
-    void errorHandler(String message);
-    void warningHandler(String message);
-    void infoHandler(String message);
-
-    void log(String message);
-
-    String getSdkHomePath();
-
-    public String getHaxelibPath();
-
-    public String getNekoBinPath();
-
-    boolean isDebug();
-
-    String getSdkName();
-
-    List<String> getSourceRoots();
-
-    String getModuleDefaultCompileOutputPath();
-
-    void setErrorRoot(String root);
-
-    String getErrorRoot();
-
-    void handleOutput(String[] lines);
-
-    HaxeTarget getHaxeTarget();
-
-    String getModuleDirPath();
-  }
 
   private static final Logger LOG = Logger.getInstance("#HaxeCommonCompilerUtil");
 
@@ -122,52 +82,72 @@ public class HaxeCommonCompilerUtil {
     final BooleanValueHolder hasErrors = new BooleanValueHolder(false);
     try {
       for (List<String> commandLine : commandLines) {
-
-        // Show the command line in the output window.
-        // TODO: Make a checkbox in the SDK configuration window to enable/disable showing the command line.
-        String commandLineString = HaxeCommonBundle.message("compiler.command.line", String.join(" ", commandLine));
-
         // Output extra debug information to the console window. Note that process output, and these lines,
         // in particular, are kept in a LinkedHashSet (internally, a HashMap).  Duplicate lines (having the
         // same hash value) are NOT added to the set, so these will not be repeated in the output when multiple
         // commands are run.  For this reason, the lime banner is also not repeated in the output when it runs
         // a second time.
-        context.infoHandler(HaxeCommonBundle.message("compiler.working.path", workingPath));
-        context.infoHandler(HaxeCommonBundle.message("compiler.output.path", context.getModuleDefaultCompileOutputPath()));
-        context.infoHandler(HaxeCommonBundle.message("compiler.output.file", context.getOutputFileName()));
+        context.infoHandler(HaxeCompilerBundle.message("compiler.working.path", workingPath));
+        context.infoHandler(HaxeCompilerBundle.message("compiler.output.path", context.getModuleDefaultCompileOutputPath()));
+        context.infoHandler(HaxeCompilerBundle.message("compiler.output.file", context.getOutputFileName()));
 
-        ProcessBuilder process = HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData());
-        final BaseOSProcessHandler handler = new HaxeCompilerProcessHandler(
-          context,
-          process.start(),
-          commandLineString,
-          Charset.defaultCharset()
-        );
 
-        handler.addProcessListener(new ProcessAdapter() {
+        final GeneralCommandLine generalCommandLine = new GeneralCommandLine(commandLine)
+                .withWorkDirectory(workingDirectory)
+                .withCharset(Charset.defaultCharset());
+        HaxeSdkUtilBase.patchEnvironment(generalCommandLine, context.getHaxeSdkData());
+
+        final HaxeCompilerProcessHandler processHandler = new HaxeCompilerProcessHandler(context, generalCommandLine);
+        // on cancellation, first attempt a graceful stop (SIGINT) so the
+        // toolchain gets a chance to clean up before we kill the process tree
+        processHandler.setShouldKillProcessSoftly(true);
+
+
+        processHandler.addProcessListener(new ProcessListener() {
           @Override
-          public void processTerminated(ProcessEvent event) {
+          public void processTerminated(@NotNull ProcessEvent event) {
             int exitcode = event.getExitCode();
             hasErrors.setValue(exitcode != 0);
             if (exitcode < 0) {
               context.infoHandler(HaxeCommonBundle.message("negative.error.code.message"));
             }
-
-            super.processTerminated(event);
           }
         });
 
-        handler.startNotify();
-        handler.waitFor();
+        processHandler.startNotify();
+        if (waitFor(context, processHandler)){
+          return false;
+        }
       }
     }
-    catch (IOException e) {
+    catch (ExecutionException e) {
       context.errorHandler(HaxeCommonBundle.message("process.threw.exception", e.getMessage()));
       hasErrors.setValue(true);
       return false;
     }
 
     return !hasErrors.getValue();
+  }
+
+  private static boolean waitFor(CompilationContext context, HaxeCompilerProcessHandler processHandler) {
+    long killDeadline = -1;
+    boolean unresponsiveReported = false;
+    while (!processHandler.waitFor(200)) {
+      if (context.isCancelled()) {
+        if (killDeadline < 0) {
+          context.infoHandler(HaxeCompilerBundle.message("compiler.cancellation.stopping.process"));
+          processHandler.destroyProcess();
+          killDeadline = System.currentTimeMillis() + GRACEFUL_STOP_TIMEOUT;
+        }
+        else if (!unresponsiveReported && System.currentTimeMillis() > killDeadline) {
+          // the process survived the graceful stop attempt; the context decides whether
+          // to kill it outright or leave the decision to the user, so keep waiting here
+          unresponsiveReported = true;
+          context.handleUnresponsiveProcess(processHandler);
+        }
+      }
+    }
+    return context.isCancelled();
   }
 
   private static boolean verifyProjectSettings(CompilationContext context) {

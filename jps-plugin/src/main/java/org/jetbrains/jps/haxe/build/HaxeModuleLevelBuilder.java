@@ -20,10 +20,13 @@ package org.jetbrains.jps.haxe.build;
 
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.vfs.VfsUtilCore;
+import com.intellij.execution.process.KillableProcessHandler;
 import com.intellij.plugins.haxe.HaxeCommonBundle;
+import com.intellij.plugins.haxe.HaxeCompilerBundle;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
+import com.intellij.plugins.haxe.util.CompilationContext;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
 import com.intellij.util.Function;
 import com.intellij.util.containers.ContainerUtil;
@@ -121,7 +124,7 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
 
     context.processMessage(new ProgressMessage(HaxeCommonBundle.message("haxe.module.compilation.progress.message", module.getName())));
 
-    boolean compiled = HaxeCommonCompilerUtil.compile(new HaxeCommonCompilerUtil.CompilationContext() {
+    boolean compiled = HaxeCommonCompilerUtil.compile(new CompilationContext() {
       private String myErrorRoot;
 
       @Override
@@ -272,6 +275,19 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
         final File baseDirectory = JpsModelSerializationDataService.getBaseDirectory(module);
         return baseDirectory != null ? baseDirectory.getPath() : null;
       }
+
+      @Override
+      public boolean isCancelled() {
+        return context.getCancelStatus().isCanceled();
+      }
+
+      @Override
+      public void handleUnresponsiveProcess(@NotNull KillableProcessHandler processHandler) {
+        // no UI to ask the user from the external build process; kill the process tree outright
+        infoHandler(HaxeCompilerBundle.message("compiler.cancellation.killing.process"));
+        processHandler.killProcess();
+      }
+
     });
 
     if (!compiled) {
