@@ -183,7 +183,7 @@
     pin(".*Statement")=1
 //    pin(".*Meta")=1
 
-    generate=[names="long" first-check="100" java="21"]
+    generate=[names="long" first-check="100" java="25"]
 }
 
 haxeFile ::= packageStatement? topLevelList

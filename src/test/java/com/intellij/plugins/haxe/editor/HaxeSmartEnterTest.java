@@ -43,15 +43,12 @@ public class HaxeSmartEnterTest extends HaxeCodeInsightFixtureTestCase {
     myFixture.configureByFile(getTestName(false) + ".hx");
     setTestStyleSettings(2);
     final List<SmartEnterProcessor> processors = SmartEnterProcessors.INSTANCE.forKey(HaxeLanguage.INSTANCE);
-    new WriteCommandAction(myFixture.getProject()) {
-      @Override
-      protected void run(@NotNull Result result) throws Throwable {
-        final Editor editor = myFixture.getEditor();
-        for (SmartEnterProcessor processor : processors) {
-          processor.process(myFixture.getProject(), editor, myFixture.getFile());
-        }
+    WriteCommandAction.writeCommandAction(myFixture.getProject()).run(() -> {
+      final Editor editor = myFixture.getEditor();
+      for (SmartEnterProcessor processor : processors) {
+        processor.process(myFixture.getProject(), editor, myFixture.getFile());
       }
-    }.execute();
+    });
     myFixture.checkResultByFile(getTestName(false) + "_after.hx", true);
   }
 

@@ -90,16 +90,23 @@ abstract public class HaxeCodeInsightFixtureTestCase extends UsefulTestCase {
     tuneFixture(moduleFixtureBuilder);
 
     String path = getTestDataPath();
+    configureRootAccess(path);
+
     myFixture.setTestDataPath(path);
     myFixture.setUp();
-
-    // required for tests that compare results to files in testdata
-    VfsRootAccess.allowRootAccess(getProject(), path);
 
     // disable RecursionPrevention assert as type inference will cause several RecursionPrevention events.
     RecursionManager.disableAssertOnRecursionPrevention(myFixture.getProjectDisposable());
     RecursionManager.disableMissedCacheAssertions(myFixture.getProjectDisposable());
 
+  }
+
+  private void configureRootAccess(String path) {
+    // we need to add PluginsPath to avoid problems wih Flex plugin
+    // after 2026.2 update it would throw VfsRootAccessNotAllowedError during fixture.setUp()
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), PathManager.getPluginsPath());
+    // required for tests that compare results to files in testdata
+    VfsRootAccess.allowRootAccess(getTestRootDisposable(), path);
   }
 
   protected boolean toAddSourceRoot() {

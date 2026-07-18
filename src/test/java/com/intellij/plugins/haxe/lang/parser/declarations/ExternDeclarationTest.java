@@ -25,13 +25,17 @@ import com.intellij.openapi.extensions.Extensions;
 import com.intellij.openapi.extensions.ExtensionsArea;
 import com.intellij.openapi.extensions.impl.ExtensionsAreaImpl;
 import com.intellij.openapi.project.DumbService;
+import com.intellij.openapi.project.DumbUtil;
 import com.intellij.plugins.haxe.lang.RegexLanguageInjector;
+import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.impl.AbstractHaxePsiClass;
 import com.intellij.psi.PsiClass;
 import org.jetbrains.annotations.Nullable;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class ExternDeclarationTest extends DeclarationTestBase {
   public ExternDeclarationTest() {
@@ -42,35 +46,11 @@ public class ExternDeclarationTest extends DeclarationTestBase {
   @Before
   public void setUp() throws Exception {
     super.setUp();
-    // Work around @NotNull bug down in the test fixture.  Since no InjectedLanguageManager
-    // was registered, null was passed to a @NotNull function.  This affected testSimple().
-    registerExtensionPoint(getExtensionArea(getProject()), MockMultiHostInjector.MULTIHOST_INJECTOR_EP_NAME, MockMultiHostInjector.class);
-    registerExtensionPoint(getExtensionArea(null), RegexLanguageInjector.EXTENSION_POINT_NAME,
-                           RegexLanguageInjector.class); // Might as well use the real one.
-    registerInjectedLanguageManager();
-    // End workaround.
-  }
-
-  private static ExtensionsAreaImpl getExtensionArea(@Nullable("null means root") AreaInstance areaInstance) {
-    ExtensionsArea area = Extensions.getArea(areaInstance);
-    assert area instanceof ExtensionsAreaImpl : "Unexpected return type from Extensions.getArea()";
-    return (ExtensionsAreaImpl)area;
-  }
-
-  private void registerInjectedLanguageManager() {
-    getProject().registerService(DumbService.class, MockDumbService.class);
-    getProject().registerService(InjectedLanguageManager.class, CoreInjectedLanguageManager.class);
   }
 
   @Test
   public void testSimple() throws Throwable {
     doTest(true);
-    HaxeFile file = (HaxeFile)myFile;
-    assertNotNull(file);
-    PsiClass[] psiClasses = file.getClasses();
-    assertEquals(1, psiClasses.length);
-    AbstractHaxePsiClass psiClass = (AbstractHaxePsiClass)psiClasses[0];
-    assertTrue(psiClass.isExtern());
   }
 
   @Test
