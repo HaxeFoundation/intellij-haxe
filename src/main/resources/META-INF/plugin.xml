@@ -60,7 +60,7 @@
     <gotoDeclarationHandler implementation="com.intellij.plugins.haxe.ide.HaxeGotoDeclarationHandler"/>
 
     <sdkType implementation="com.intellij.plugins.haxe.config.sdk.HaxeSdkType"/>
-    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxeCompilerTask"/>
+    <compiler.task implementation="com.intellij.plugins.haxe.compilation.HaxePreCompilerTask"/>
     <moduleType id="HAXE_MODULE" implementationClass="com.intellij.plugins.haxe.ide.module.HaxeModuleType"/>
     <moduleBuilder builderClass="com.intellij.plugins.haxe.ide.module.HaxeModuleBuilder"/>
     <moduleConfigurationEditorProvider implementation="com.intellij.plugins.haxe.ide.projectStructure.HaxeModuleConfigurationEditorProvider"/>

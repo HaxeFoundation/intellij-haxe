@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.ide;
 
 import com.intellij.execution.Platform;
-import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
 import junit.framework.TestCase;
 import org.junit.Test;
@@ -35,7 +35,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
+    TestCase.assertEquals(Category.ERROR, compilerError.getCategory());
     TestCase.assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     TestCase.assertEquals("Class not found : StringTools212", compilerError.getMessage());
     TestCase.assertEquals(5, compilerError.getLine());
@@ -49,7 +49,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
+    TestCase.assertEquals(Category.ERROR, compilerError.getCategory());
     TestCase.assertEquals("C:/Users/fedor.korotkov/workspace/haxe-bubble-breaker/src/Main.hx", compilerError.getPath());
     TestCase.assertEquals("Class not found : StringTools212", compilerError.getMessage());
     TestCase.assertEquals(5, compilerError.getLine());
@@ -63,7 +63,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
+    TestCase.assertEquals(Category.ERROR, compilerError.getCategory());
     TestCase.assertEquals("/trees/test/./HelloWorld.hx", compilerError.getPath());
     TestCase.assertEquals("Unknown identifier : addEvetListener", compilerError.getMessage());
     TestCase.assertEquals(12, compilerError.getLine());
@@ -77,7 +77,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
+    TestCase.assertEquals(Category.ERROR, compilerError.getCategory());
     if (Platform.current() == Platform.UNIX) {
       TestCase.assertEquals("/an/absolute/path/HelloWorld.hx", compilerError.getPath());
     }
@@ -93,7 +93,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.ERROR, compilerError.getCategory());
+    TestCase.assertEquals(Category.ERROR, compilerError.getCategory());
     TestCase.assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
     TestCase.assertEquals("Interfaces cannot implement another interface (use extends instead)", compilerError.getMessage());
     TestCase.assertEquals(18, compilerError.getLine());
@@ -107,7 +107,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+    TestCase.assertEquals(Category.WARNING, compilerError.getCategory());
     TestCase.assertEquals("/trees/test/hello/HelloWorld.hx", compilerError.getPath());
     TestCase.assertEquals("Danger, Will Robinson!", compilerError.getMessage());
     TestCase.assertEquals(18, compilerError.getLine());
@@ -123,7 +123,7 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+    TestCase.assertEquals(Category.WARNING, compilerError.getCategory());
   }
 
   @Test
@@ -134,6 +134,6 @@ public class HaxeCompilerErrorParsingTest extends TestCase {
     final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create(rootPath, error, false);
 
     TestCase.assertNotNull(compilerError);
-    TestCase.assertEquals(CompilerMessageCategory.WARNING, compilerError.getCategory());
+    TestCase.assertEquals(Category.WARNING, compilerError.getCategory());
   }
 }

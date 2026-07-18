@@ -15,15 +15,15 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.process.KillableColoredProcessHandler;
+import com.intellij.execution.process.BaseOSProcessHandler;
 import com.intellij.openapi.util.Key;
 import com.intellij.plugins.haxe.util.CompilationContext;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -31,17 +31,23 @@ import java.util.Scanner;
 /**
  * Runs the compiler and handles its output.
  *
+ * Extends BaseOSProcessHandler (not ColoredProcessHandler/KillableProcessHandler) because this
+ * class is loaded inside the external JPS build process, whose classpath only includes the
+ * util-8/util_rt platform jars.  Process-tree termination is handled by HaxeProcessTreeUtil.
+ *
  * Created by ebishton on 6/14/17.
  */
-public class HaxeCompilerProcessHandler extends KillableColoredProcessHandler {
+public class HaxeCompilerProcessHandler extends BaseOSProcessHandler {
 
   static final String STDERR_PREFIX = "(stderr) ";
 
   final CompilationContext context;
 
   public HaxeCompilerProcessHandler(@NotNull CompilationContext context,
-                                    @NotNull GeneralCommandLine commandLine) throws ExecutionException {
-    super(commandLine);
+                                    @NotNull Process process,
+                                    /*@NotNull*/ String commandLine,
+                                    @Nullable Charset charset) {
+    super(process, commandLine, charset);
     this.context = context;
   }
 
@@ -78,8 +84,8 @@ public class HaxeCompilerProcessHandler extends KillableColoredProcessHandler {
   }
 
   @Override
-  public void coloredTextAvailable(@NotNull String text, @NotNull Key attributes) {
-    super.coloredTextAvailable(text, attributes);
+  public void notifyTextAvailable(@NotNull String text, @NotNull Key outputType) {
+    super.notifyTextAvailable(text, outputType);
     if(text.trim().length()>0) {// avoid empty lines
       context.handleOutput(new String[]{text});
     }

@@ -1,6 +1,5 @@
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.execution.process.KillableProcessHandler;
 import com.intellij.plugins.haxe.config.HaxeTarget;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
@@ -58,5 +57,5 @@ public interface CompilationContext {
      * request and a graceful stop attempt.  Implementations decide what to do with the
      * unresponsive process: offer the user a way to kill it (IDE), or kill it outright (JPS).
      */
-    void handleUnresponsiveProcess(@NotNull KillableProcessHandler processHandler);
+    void handleUnresponsiveProcess(@NotNull Process process);
 }

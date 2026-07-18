@@ -18,12 +18,7 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
-import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.LocalFileSystem;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileManager;
-import com.intellij.openapi.vfs.VirtualFileSystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,13 +33,26 @@ import java.util.regex.Pattern;
  * @author: Fedor.Korotkov
  */
 public class HaxeCompilerMessage {
-  private final CompilerMessageCategory category;
+
+  /**
+   * Message severity.  A local enum (rather than the platform's CompilerMessageCategory) is
+   * used because this class is also loaded inside the external JPS build process, whose
+   * classpath does not contain the IDE's compiler-openapi classes.  IDE-side consumers map
+   * this to CompilerMessageCategory; the JPS builder maps it to BuildMessage.Kind.
+   */
+  public enum Category {
+    ERROR,
+    WARNING,
+    INFORMATION
+  }
+
+  private final Category category;
   private final String message;
   private final String path;
   private final int line;
   private final int column;
 
-  public HaxeCompilerMessage(CompilerMessageCategory category, String errorMessage, String path, int line, int column) {
+  public HaxeCompilerMessage(Category category, String errorMessage, String path, int line, int column) {
     this.category = category;
     this.message = errorMessage;
     this.path = path;
@@ -52,7 +60,7 @@ public class HaxeCompilerMessage {
     this.column = column;
   }
 
-  public CompilerMessageCategory getCategory() {
+  public Category getCategory() {
     return category;
   }
 
@@ -72,29 +80,16 @@ public class HaxeCompilerMessage {
     return column;
   }
 
-  public String getUrl() {
-
-    VirtualFileSystem vfs = VirtualFileManager.getInstance().getFileSystem(LocalFileSystem.PROTOCOL);
-    VirtualFile file = vfs.findFileByPath(getPath());
-
-    StringBuilder msg = new StringBuilder(file.getUrl());
-    msg.append('#');
-    msg.append(getLine());
-    msg.append(':');
-    msg.append(getColumn());
-    return msg.toString();
-  }
-
   public boolean isInformationalMessage() {
-    return CompilerMessageCategory.INFORMATION.equals(category);
+    return Category.INFORMATION.equals(category);
   }
 
   public boolean isErrorMessage() {
-    return CompilerMessageCategory.ERROR.equals(category);
+    return Category.ERROR.equals(category);
   }
 
   public boolean isWarningMessage() {
-    return CompilerMessageCategory.WARNING.equals(category);
+    return Category.WARNING.equals(category);
   }
 
   @Nullable
@@ -114,7 +109,7 @@ public class HaxeCompilerMessage {
 
         // Library (\S+) (is not installed.*)
         if ((m = pLibraryNotInstalled.matcher(trimmed)).matches()) {
-            return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
+            return new HaxeCompilerMessage(Category.ERROR,
                                          "Library " + m.group(1).trim() +
                                          " " +
                                          m.group(2).trim(), null, -1, -1);
@@ -139,7 +134,7 @@ public class HaxeCompilerMessage {
         // ([^:]*)Error:(.*)
         else if ((m = pBareError.matcher(trimmed)).matches()) {
           String msg = buildGenericErrorMessage(m.group(1).trim(), m.group(2).trim());
-          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(Category.ERROR,
                                        msg, null, -1, -1);
         }
         // ([^:]+) : (.+)  Keep this pattern *last* because it's the most generic
@@ -151,7 +146,7 @@ public class HaxeCompilerMessage {
           String error = m.group(1).trim();
           if (matchesInformationalPattern(error)) {
             // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
-            return new HaxeCompilerMessage(CompilerMessageCategory.INFORMATION,
+            return new HaxeCompilerMessage(Category.INFORMATION,
                                          message, null, -1, -1);
           }
 
@@ -164,17 +159,17 @@ public class HaxeCompilerMessage {
           // Both forms contain a "Warning :" token, so detect that and report
           // them as warnings instead of misclassifying them as errors.
           if (pFilelessWarning.matcher(trimmed).matches()) {
-            return new HaxeCompilerMessage(CompilerMessageCategory.WARNING,
+            return new HaxeCompilerMessage(Category.WARNING,
                                          msg, null, -1, -1);
           }
-          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(Category.ERROR,
                                        msg, null, -1, -1);
         }
 
         // Anything that doesn't match error patterns is purely informational
         else {
           // Don't trim the message for information.  (Spaces are meaningful in the compiler banners.)
-          return new HaxeCompilerMessage(CompilerMessageCategory.INFORMATION,
+          return new HaxeCompilerMessage(Category.INFORMATION,
                                          message, null, -1, -1);
         }
 
@@ -213,11 +208,11 @@ public class HaxeCompilerMessage {
           if (0 == text.indexOf(colonChar)) {
             text = text.substring(colonChar.length()).trim();
           }
-          return new HaxeCompilerMessage(CompilerMessageCategory.WARNING,
+          return new HaxeCompilerMessage(Category.WARNING,
                                        text, filePath, line, column);
         }
         else {
-          return new HaxeCompilerMessage(CompilerMessageCategory.ERROR,
+          return new HaxeCompilerMessage(Category.ERROR,
                                        text, filePath, line, column);
         }
     }

@@ -25,9 +25,6 @@ import com.intellij.execution.configurations.RunConfigurationModule;
 import com.intellij.execution.executors.DefaultDebugExecutor;
 import com.intellij.execution.impl.ExecutionManagerImpl;
 import com.intellij.execution.impl.RunnerAndConfigurationSettingsImpl;
-import com.intellij.execution.process.KillableProcessHandler;
-import com.intellij.execution.process.ProcessEvent;
-import com.intellij.execution.process.ProcessListener;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationAction;
 import com.intellij.notification.NotificationGroupManager;
@@ -57,6 +54,7 @@ import com.intellij.plugins.haxe.runner.debugger.HaxeDebugRunner;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.CompilationContext;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
+import com.intellij.plugins.haxe.util.HaxeProcessTreeUtil;
 import com.intellij.plugins.haxe.util.HaxeSdkUtilBase;
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -374,7 +372,7 @@ public class HaxeCompiler implements FileProcessingCompiler {
       }
 
       @Override
-      public void handleUnresponsiveProcess(@NotNull KillableProcessHandler processHandler) {
+      public void handleUnresponsiveProcess(@NotNull Process process) {
         final Notification notification = NotificationGroupManager.getInstance()
           .getNotificationGroup("haxe.build.process")
           .createNotification(
@@ -383,15 +381,10 @@ public class HaxeCompiler implements FileProcessingCompiler {
 
         notification.addAction(NotificationAction.createSimpleExpiring(
           HaxeBundle.message("haxe.build.process.kill.action"),
-          processHandler::killProcess));
+          () -> HaxeProcessTreeUtil.killProcessTree(process)));
 
         // dismiss the notification if the process ends up terminating on its own
-        processHandler.addProcessListener(new ProcessListener() {
-          @Override
-          public void processTerminated(@NotNull ProcessEvent event) {
-            notification.expire();
-          }
-        });
+        process.onExit().thenRun(notification::expire);
         notification.notify(module.getProject());
       }
 

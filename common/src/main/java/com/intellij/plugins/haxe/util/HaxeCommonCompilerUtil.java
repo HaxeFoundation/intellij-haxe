@@ -18,8 +18,6 @@
  */
 package com.intellij.plugins.haxe.util;
 
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.process.*;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.io.FileUtil;
@@ -32,12 +30,13 @@ import com.intellij.plugins.haxe.config.NMETarget;
 import com.intellij.plugins.haxe.config.OpenFLTarget;
 import com.intellij.plugins.haxe.module.HaxeModuleSettingsBase;
 import com.intellij.util.BooleanValueHolder;
-import com.intellij.util.PathUtil;
+import com.intellij.util.PathUtilRt;
 import com.intellij.util.text.StringTokenizer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,16 +91,15 @@ public class HaxeCommonCompilerUtil {
         context.infoHandler(HaxeCompilerBundle.message("compiler.output.file", context.getOutputFileName()));
 
 
-        final GeneralCommandLine generalCommandLine = new GeneralCommandLine(commandLine)
-                .withWorkDirectory(workingDirectory)
-                .withCharset(Charset.defaultCharset());
-        HaxeSdkUtilBase.patchEnvironment(generalCommandLine, context.getHaxeSdkData());
+        // NOTE: this code also runs inside the external JPS build process, whose classpath
+        // only has the util-8/util_rt platform jars: no GeneralCommandLine, and no
+        // Killable*/Colored* process handlers.  Stick to ProcessBuilder + BaseOSProcessHandler.
+        final String commandLineString = String.join(" ", commandLine);
+        final ProcessBuilder processBuilder =
+          HaxeSdkUtilBase.createProcessBuilder(commandLine, workingDirectory, context.getHaxeSdkData());
 
-        final HaxeCompilerProcessHandler processHandler = new HaxeCompilerProcessHandler(context, generalCommandLine);
-        // on cancellation, first attempt a graceful stop (SIGINT) so the
-        // toolchain gets a chance to clean up before we kill the process tree
-        processHandler.setShouldKillProcessSoftly(true);
-
+        final HaxeCompilerProcessHandler processHandler =
+          new HaxeCompilerProcessHandler(context, processBuilder.start(), commandLineString, Charset.defaultCharset());
 
         processHandler.addProcessListener(new ProcessListener() {
           @Override
@@ -120,7 +118,7 @@ public class HaxeCommonCompilerUtil {
         }
       }
     }
-    catch (ExecutionException e) {
+    catch (IOException e) {
       context.errorHandler(HaxeCommonBundle.message("process.threw.exception", e.getMessage()));
       hasErrors.setValue(true);
       return false;
@@ -136,14 +134,16 @@ public class HaxeCommonCompilerUtil {
       if (context.isCancelled()) {
         if (killDeadline < 0) {
           context.infoHandler(HaxeCompilerBundle.message("compiler.cancellation.stopping.process"));
-          processHandler.destroyProcess();
+          // ask the whole tree to stop (SIGTERM on Unix; on Windows this already terminates),
+          // hxcpp builds spawn many native compiler children that outlive the root process
+          HaxeProcessTreeUtil.destroyProcessTree(processHandler.getProcess());
           killDeadline = System.currentTimeMillis() + GRACEFUL_STOP_TIMEOUT;
         }
         else if (!unresponsiveReported && System.currentTimeMillis() > killDeadline) {
           // the process survived the graceful stop attempt; the context decides whether
           // to kill it outright or leave the decision to the user, so keep waiting here
           unresponsiveReported = true;
-          context.handleUnresponsiveProcess(processHandler);
+          context.handleUnresponsiveProcess(processHandler.getProcess());
         }
       }
     }
@@ -226,13 +226,13 @@ public class HaxeCommonCompilerUtil {
 
     if (settings.isUseOpenFLToBuild()) {
       String openFLPath = settings.getOpenFLPath();
-      workingPath = PathUtil.getParentPath(openFLPath);
+      workingPath = PathUtilRt.getParentPath(openFLPath);
     } else if (settings.isUseNmmlToBuild()) {
       String nmmlPath = settings.getNmmlPath();
-      workingPath = PathUtil.getParentPath(nmmlPath);
+      workingPath = PathUtilRt.getParentPath(nmmlPath);
     } else if (settings.isUseHxmlToBuild()) {
       String hxmlPath = settings.getHxmlPath();
-      workingPath = PathUtil.getParentPath(hxmlPath);
+      workingPath = PathUtilRt.getParentPath(hxmlPath);
     } else if (settings.isUseUserPropertiesToBuild()) {
       workingPath = findCwdInCommandLineArguments(settings);
     }

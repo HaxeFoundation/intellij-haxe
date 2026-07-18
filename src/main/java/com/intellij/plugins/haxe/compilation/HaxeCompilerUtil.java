@@ -20,15 +20,13 @@ package com.intellij.plugins.haxe.compilation;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.compiler.CompileContext;
+import com.intellij.openapi.compiler.CompilerMessageCategory;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.ProjectUtil;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtilCore;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.openapi.wm.ToolWindowId;
-import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkAdditionalDataBase;
 import com.intellij.plugins.haxe.util.CompilationContext;
 import com.intellij.plugins.haxe.util.HaxeCommonCompilerUtil;
@@ -53,11 +51,7 @@ public class HaxeCompilerUtil
     //    log.setLevel(LogLevel.DEBUG);
     //}
 
-    public static final String ERROR = "Error: ";
-
-    private static com.intellij.openapi.util.Key messageWindowAutoOpened =
-      new com.intellij.openapi.util.Key("messageWindowAutoOpened");
-
+    private static final ErrorNotifier defaultNotifier = new ErrorNotifier();
 
     /**
      * Error notification callback.
@@ -67,8 +61,6 @@ public class HaxeCompilerUtil
             log.info(message);
         }
     }
-    private static ErrorNotifier defaultNotifier = new ErrorNotifier();
-
 
     /**
      * Verify that the Haxe project file (.xml, .nmml, etc.; NOT an IDEA project file)
@@ -87,7 +79,6 @@ public class HaxeCompilerUtil
      * Returns a VirtualFile to the located project file, or null on error.
      */
     public static VirtualFile verifyProjectFile(@NotNull Module module, @NotNull String type, @NotNull String path, @Nullable ErrorNotifier notifier) {
-
         if (path.isEmpty()) {
             String message = "Completion error: No " + type + " project file is specified in project settings.";  // TODO: Externalize string.
             advertiseError(message, notifier);
@@ -164,11 +155,6 @@ public class HaxeCompilerUtil
     private static void addErrorToContext(String error, CompileContext context,
                                           String errorRoot)
     {
-        // TODO: Add a button to the Haxe module settings to control whether we always open the window or not.
-        if (context.getUserData(messageWindowAutoOpened) == null) {
-            openCompilerMessagesWindow(context);
-            context.putUserData(messageWindowAutoOpened, "yes");
-        }
 
         final HaxeCompilerMessage compilerError = HaxeCompilerMessage.create
             (errorRoot,
@@ -178,33 +164,22 @@ public class HaxeCompilerUtil
 
         if (null != compilerError) {
             String path = compilerError.getPath();
-            context.addMessage
-                (compilerError.getCategory(),
+            CompilerMessageCategory messageCategory = toCompilerMessageCategory(compilerError.getCategory());
+            String url = path == null ? null : VfsUtilCore.pathToUrl(compilerError.getPath());
+            context.addMessage(messageCategory,
                  compilerError.getMessage(),
-                 path == null ? null : VfsUtilCore.pathToUrl(compilerError.getPath()),
+                 url,
                  compilerError.getLine(),
                  compilerError.getColumn());
         }
     }
 
-    private static boolean isHeadless() {
-      return ApplicationManager.getApplication().isUnitTestMode() || ApplicationManager.getApplication().isHeadlessEnvironment();
-    }
-
-    private static void openCompilerMessagesWindow(final CompileContext context) {
-        // Force the compile window open.  We should probably have a configuration button
-        // on the compile gui page to force it open or not.
-        if (!isHeadless()) {
-            ApplicationManager.getApplication().invokeLater(new Runnable() {
-                public void run() {
-                    // This was lifted from intellij-community/java/compiler/impl/src/com/intellij/compiler/progress/CompilerTask.java
-                    final ToolWindow tw = ToolWindowManager.getInstance(context.getProject()).getToolWindow(ToolWindowId.MESSAGES_WINDOW);
-                    if (tw != null) {
-                        tw.activate(null, false);
-                    }
-                }
-            });
-        }
+    private static CompilerMessageCategory toCompilerMessageCategory(HaxeCompilerMessage.Category category) {
+        return switch (category) {
+            case ERROR -> CompilerMessageCategory.ERROR;
+            case WARNING -> CompilerMessageCategory.WARNING;
+            default -> CompilerMessageCategory.INFORMATION;
+        };
     }
 
     /**

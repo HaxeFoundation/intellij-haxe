@@ -15,7 +15,7 @@
  */
 package com.intellij.plugins.haxe.compiler;
 
-import com.intellij.openapi.compiler.CompilerMessageCategory;
+import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage.Category;
 import com.intellij.plugins.haxe.compilation.HaxeCompilerMessage;
 import com.intellij.testFramework.UsefulTestCase;
 import org.junit.Test;
@@ -25,7 +25,7 @@ import org.junit.Test;
  */
 public class HaxeCompilerMessageTest extends UsefulTestCase {
 
-  private void doTest(String output, CompilerMessageCategory cat, String msg, String path, int line, int col) throws Throwable {
+  private void doTest(String output, Category cat, String msg, String path, int line, int col) throws Throwable {
     HaxeCompilerMessage e = HaxeCompilerMessage.create("", output);
     assertEquals(cat, e.getCategory());
     assertEquals(msg, e.getMessage());
@@ -35,15 +35,15 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   }
 
   private void doInfoTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.INFORMATION, compilerOutput, null, -1, -1);
+    doTest(compilerOutput, Category.INFORMATION, compilerOutput, null, -1, -1);
   }
 
   private void doWarningTest(String compilerOutput) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.WARNING, compilerOutput.trim(), null, -1, -1);
+    doTest(compilerOutput, Category.WARNING, compilerOutput.trim(), null, -1, -1);
   }
 
   private void doErrorTest(String compilerOutput, String expected) throws Throwable {
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, expected, null, -1, -1);
+    doTest(compilerOutput, Category.ERROR, expected, null, -1, -1);
   }
 
   // hxcpp 3.3 link message
@@ -76,7 +76,7 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   @Test
   public void testLibraryNotInstalled() throws Throwable {
     String compilerOutput = "Error: Library Flixel is not installed. Please run haxelib...";
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
+    doTest(compilerOutput, Category.ERROR, "Library Flixel is not installed. Please run haxelib...", null, -1, -1);
   }
 
   // Hxcpp 3.3
@@ -96,7 +96,7 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   @Test
   public void testLinesError() throws Throwable {
     String compilerOutput = "Test.hx:4: lines 4-10 : Invalid -main : Test does not have static function main";
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, "Invalid -main : Test does not have static function main",
+    doTest(compilerOutput, Category.ERROR, "Invalid -main : Test does not have static function main",
            "Missing file: /Test.hx", 4, -1);
   }
 
@@ -111,6 +111,6 @@ public class HaxeCompilerMessageTest extends UsefulTestCase {
   public void testUnexpectedCharacter() throws Throwable {
     String compilerOutput = "Test.hx:4: characters 6-7 : Unexpected %";
     String expected = "Unexpected %";
-    doTest(compilerOutput, CompilerMessageCategory.ERROR, expected, "Missing file: /Test.hx", 4, 6);
+    doTest(compilerOutput, Category.ERROR, expected, "Missing file: /Test.hx", 4, 6);
   }
 }
