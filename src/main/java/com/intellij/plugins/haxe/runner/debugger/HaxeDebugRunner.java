@@ -180,7 +180,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
         if (!settings.isUseOpenFLToBuild()) {
           flashFileToDebug = HaxeCompilerUtil.calculateCompilerOutput(module);
         } else {
-          HXMLProjectModel lime = LimeUtil.getLimeProjectModel(module, true);
+          HXMLProjectModel lime = LimeUtil.getLimeProjectModelWithProgress(module, true);
           flashFileToDebug = HaxeFileUtil.joinPath(module.getProject().getBasePath(), lime.getSwfOutputFileName());
         }
       }

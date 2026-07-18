@@ -15,8 +15,12 @@
  */
 package com.intellij.plugins.haxe.compilation;
 
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.util.ThrowableComputable;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
 import com.intellij.psi.PsiFile;
@@ -39,6 +43,19 @@ public class LimeUtil {
 
   private static final StringBuffer EMPTY_STRINGBUFFER = new StringBuffer("\n");
 
+  /**
+   * Same as {@link #getLimeProjectModel}, but safe to call from the EDT: the
+   * `haxelib run lime display` process runs on a pooled thread under a modal,
+   * cancellable progress dialog instead of blocking the UI thread.
+   */
+  public static HXMLProjectModel getLimeProjectModelWithProgress(Module module, boolean useDebugConfig) {
+    return ProgressManager.getInstance().runProcessWithProgressSynchronously(
+      (ThrowableComputable<HXMLProjectModel, RuntimeException>)() -> getLimeProjectModel(module, useDebugConfig),
+      HaxeBundle.message("haxe.project.configuration.reading"),
+      true,
+      module.getProject());
+  }
+
   public static HXMLProjectModel getLimeProjectModel(Module module, boolean useDebugConfig) {
 
     HaxeCompilerServices cs = new HaxeCompilerServices(new HaxeCompilerUtil.ErrorNotifier(){
@@ -49,10 +66,14 @@ public class LimeUtil {
 
     CharSequence displayData = concatList(cs.getLimeProjectConfiguration(module, useDebugConfig, null));
 
-    PsiFile psi = PsiFileFactory.getInstance(module.getProject()).createFileFromText(
-      "Lime.Display.Temp." + HXMLFileType.DEFAULT_EXTENSION, HXMLFileType.INSTANCE, displayData);
+    // building PSI from the output loads the file tree, which requires read
+    // access when called from a background thread
+    return ReadAction.computeBlocking(() -> {
+      PsiFile psi = PsiFileFactory.getInstance(module.getProject()).createFileFromText(
+        "Lime.Display.Temp." + HXMLFileType.DEFAULT_EXTENSION, HXMLFileType.INSTANCE, displayData);
 
-    return new HXMLProjectModel(psi);
+      return new HXMLProjectModel(psi);
+    });
   }
 
 
