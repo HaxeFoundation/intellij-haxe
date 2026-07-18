@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.ide.quickfix.typedialog;
 import com.intellij.ide.actions.ElementCreator;
 import com.intellij.ide.actions.newclass.CreateWithTemplatesDialogPanel;
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil;
-import com.intellij.lang.LangBundle;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.CommandProcessor;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -50,7 +50,7 @@ public class HaxeCreateTypeDialogBuilder {
    @NotNull private final VirtualFile mySourceRoot;
 
     @NlsContexts.PopupTitle
-    private String myTitle = LangBundle.message("popup.title.default.title");
+    private String myTitle = HaxeBundle.message("haxe.defaults.popup.title");
     private int numberOfGenerics = 0;
     private String myDefaultText = null;
     private final List<CreateWithTemplatesDialogPanel.TemplatePresentation> myTemplatesList = new ArrayList<>();
@@ -120,7 +120,7 @@ public class HaxeCreateTypeDialogBuilder {
                 String errorMessage = Optional.ofNullable(myInputValidator)
                         .filter(validator -> validator instanceof InputValidatorEx)
                         .map(validator -> ((InputValidatorEx) validator).getErrorText(newElementName))
-                        .orElse(LangBundle.message("incorrect.name"));
+                        .orElse(HaxeBundle.message("haxe.defaults.incorrect.name"));
                 contentPanel.setError(errorMessage);
             }
         });

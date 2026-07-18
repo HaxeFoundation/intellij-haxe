@@ -18,7 +18,7 @@
 package com.intellij.plugins.haxe.ide.hierarchy.method;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.IdeBundle;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.ide.hierarchy.HierarchyNodeDescriptor;
 import com.intellij.ide.hierarchy.JavaHierarchyUtil;
 import com.intellij.openapi.editor.markup.TextAttributes;
@@ -95,7 +95,7 @@ public final class HaxeMethodHierarchyNodeDescriptor extends HaxeHierarchyNodeDe
     final PsiElement psiClass = getHaxeClass();
 
     if (psiClass == null){
-      final String invalidPrefix = IdeBundle.message("node.hierarchy.invalid");
+      final String invalidPrefix = HaxeBundle.message("haxe.hierarchy.node.invalid.prefix");
       if (!myHighlightedText.getText().startsWith(invalidPrefix)) {
         myHighlightedText.getBeginning().addText(invalidPrefix, HierarchyNodeDescriptor.getInvalidPrefixAttributes());
       }
