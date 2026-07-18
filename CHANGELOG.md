@@ -1,4 +1,7 @@
 # Changelog
+## Unreleased
+* Misc: Disabled Gradle build cache for the parser/lexer generator tasks (their outputs overlap in src/main/gen, so a restored cache snapshot could bring back stale generated sources).
+
 ## 1.8.7
 * Added: Support for intellij 2026.2
 * Fixed: Bare class references in object literal fields are now typed as `Class<T>`, so such literals unify with typedefs that have Class-typed members.
