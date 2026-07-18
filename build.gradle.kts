@@ -289,15 +289,18 @@ tasks.register<Delete>("cleanGenerated") {
 tasks.register<GenerateParserTask>("generateHaxeParser") {
     group = "parsers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/parser/haxe.bnf"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/lang")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
+
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/lang/parser/HaxeParser.java")
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/lang/lexer/HaxeTokenTypes.java")
+    outputs.dir("src/main/gen/com/intellij/plugins/haxe/lang/psi")
 
 }
 tasks.register<GenerateLexerTask>("generateHaxeLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/lang/lexer/haxe.flex"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/lang")
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/lang/lexer/_HaxeLexer.java")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
 }
@@ -305,16 +308,19 @@ tasks.register<GenerateLexerTask>("generateHaxeLexer") {
 tasks.register<GenerateParserTask>("generateMetadataParser") {
     group = "parsers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/parser/metadata.bnf"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/metadata")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
+
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/metadata/parser/HaxeMetadataParser.java")
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/HaxeMetadataTokenTypes.java")
+    outputs.dir("src/main/gen/com/intellij/plugins/haxe/metadata/psi")
 
 }
 
 tasks.register<GenerateLexerTask>("generateMetadataLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/metadata/lexer/metadata.flex"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/metadata")
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/metadata/lexer/MetadataLexer.java")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
 }
@@ -323,15 +329,17 @@ tasks.register<GenerateLexerTask>("generateMetadataLexer") {
 tasks.register<GenerateParserTask>("generateHxmlParser") {
     group = "parsers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/parser/hxml.bnf"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/hxml")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
+
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/hxml/HXMLParser.java")
+    outputs.dir("src/main/gen/com/intellij/plugins/haxe/hxml/psi")
 }
 
 tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     group = "lexers"
     sourceFile.set(File("src/main/java/com/intellij/plugins/haxe/buildsystem/hxml/lexer/hxml.flex"))
-    outputs.dir("src/main/gen/com/intellij/plugins/haxe/hxml")
+    outputs.file("src/main/gen/com/intellij/plugins/haxe/hxml/lexer/HXMLLexer.java")
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
 }
