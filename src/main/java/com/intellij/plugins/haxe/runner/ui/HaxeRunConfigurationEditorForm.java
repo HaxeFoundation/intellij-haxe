@@ -34,6 +34,7 @@ import com.intellij.plugins.haxe.ide.module.HaxeModuleSettings;
 import com.intellij.plugins.haxe.ide.module.HaxeModuleType;
 import com.intellij.plugins.haxe.runner.HaxeApplicationConfiguration;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -72,11 +73,14 @@ public class HaxeRunConfigurationEditorForm extends SettingsEditor<HaxeApplicati
       }
     }
     myComboModules.setSelectedItem(configuration.getConfigurationModule().getModule());
+    myComboModules.setRenderer(BuilderKt.listCellRenderer((row) -> {
+      Object value = row.getValue();
+      int index = row.getIndex();
 
-    myComboModules.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
       if (value instanceof Module module) {
-        label.setText(module.getName());
+        row.text(module.getName(), null);
       }
+      return null;
     }));
 
 

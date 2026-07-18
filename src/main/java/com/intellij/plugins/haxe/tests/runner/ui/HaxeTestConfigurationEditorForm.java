@@ -30,6 +30,7 @@ import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.tests.runner.HaxeTestsConfiguration;
 import com.intellij.plugins.haxe.util.UsefulPsiTreeUtil;
 import com.intellij.ui.SimpleListCellRenderer;
+import com.intellij.ui.dsl.listCellRenderer.BuilderKt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.java.JavaSourceRootType;
 
@@ -82,14 +83,15 @@ public class HaxeTestConfigurationEditorForm extends SettingsEditor<HaxeTestsCon
       }
     });
 
+    myComboRunnerClasses.setRenderer(BuilderKt.listCellRenderer((row) -> {
+      Object value = row.getValue();
+      int index = row.getIndex();
 
-    myComboRunnerClasses.setRenderer(SimpleListCellRenderer.create((label, value, index) -> {
-      if (value instanceof HaxeClass) {
-        final HaxeClass haxeClass = (HaxeClass)value;
-        label.setText(haxeClass.getName());
+      if (value instanceof HaxeClass haxeClass) {
+        row.text(haxeClass.getName(), null);
       }
+      return null;
     }));
-    //
 
     updateModule((Module)myComboModules.getSelectedItem());
   }

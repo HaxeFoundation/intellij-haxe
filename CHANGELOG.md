@@ -1,5 +1,6 @@
 # Changelog
 ## 1.8.7
+* Added: Support for intellij 2026.2
 * Fixed: Bare class references in object literal fields are now typed as `Class<T>`, so such literals unify with typedefs that have Class-typed members.
 * Fixed: Bodyless macro stubs are now typed `Dynamic` instead of having `Void` inferred from the missing body, so assignments from their calls are no longer flagged as incompatible.
 * Fixed: Methods provided via `@:using` on an enum were reported as unresolved when called on an enum value.
