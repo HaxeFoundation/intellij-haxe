@@ -4,6 +4,7 @@ import com.intellij.lang.annotation.AnnotationBuilder;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceConstructorIntention;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceExpressionImpl;
@@ -177,21 +178,24 @@ public class HaxeAccessAnnotator implements Annotator {
     boolean isModuleMember = memberModel.isModuleMember();
     boolean isConstructor = (memberModel instanceof HaxeMethodModel model) && model.isConstructor();
     boolean isMethodBind = (memberModel instanceof HaxeMethodModel) && referenceExpression.getLastChild().textMatches("bind");
+
     if(isMethodBind)  return;
     if(isModuleMember)  return;
-    if (isStaticAccess && !isMemberStatic && !isConstructor) {
 
+    if (isStaticAccess && !isMemberStatic && !isConstructor) {
       // static access to enum abstract members should be allowed
       if(memberModel.isEnumMember()) return;
 
-      // TODO bundle
-      holder.newAnnotation(HighlightSeverity.ERROR, "Static access to instance field " + memberModel.getName() + " is not allowed ")
+      String errorMessage = HaxeBundle.message("haxe.semantic.static.access.to.instance.field", memberModel.getName());
+      holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
               .range(referenceExpression.getLastChild())
               .create();
+
     } else if (!isStaticAccess && isMemberStatic) {
       if (isMemberInline) return;// allow static access when inlining
-      // TODO bundle
-      holder.newAnnotation(HighlightSeverity.ERROR, "Cannot access static field " + memberModel.getName() + " from a class instance")
+
+      String errorMessage = HaxeBundle.message("haxe.semantic.instance.access.to.static.field", memberModel.getName());
+      holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
               .range(referenceExpression.getLastChild())
               .create();
 
@@ -284,9 +288,9 @@ public class HaxeAccessAnnotator implements Annotator {
       return;
     }
 
-    // TODO bundle and better message for properties that are public but deny read or write
-    String message = isPublicProperty ? "Cannot access field " + memberName
-                                      : "Cannot access private field " + memberName;
+    // TODO better message for properties that are public but deny read or write
+    String message = isPublicProperty ? HaxeBundle.message("haxe.semantic.cannot.access.field", memberName)
+                                      : HaxeBundle.message("haxe.semantic.cannot.access.private.field", memberName);
     holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(referenceExpression.getLastChild())
             .create();

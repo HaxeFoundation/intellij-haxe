@@ -26,6 +26,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.diagnostic.LogLevel;
 import com.intellij.openapi.progress.*;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.ide.hierarchy.HaxeHierarchyTimeoutHandler;
 import com.intellij.psi.*;
 import com.intellij.psi.search.SearchScope;
@@ -94,10 +95,8 @@ public class HaxeCallerMethodsTreeStructure extends HierarchyTreeStructure {
       ApplicationManager.getApplication().runReadAction(new Runnable() {
         @Override
         public void run() {
-          ProgressManager.getInstance().run(
-            // TODO: Put this string in a resource bundle.
-            new Task.Backgroundable(myProject, "Searching for callers of " + getSearchTargetName(descriptor),
-                                    false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+          String title = HaxeBundle.message("haxe.hierarchy.searching.for.callers", getSearchTargetName(descriptor));
+          ProgressManager.getInstance().run(new Task.Backgroundable(myProject, title, false) {
               @Override
               public void run(@NotNull ProgressIndicator indicator) {
                 children.addAll(Arrays.asList(buildChildrenInternal(descriptor)));

@@ -44,6 +44,7 @@ import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.buildsystem.hxml.HXMLFileType;
 import com.intellij.plugins.haxe.buildsystem.hxml.model.HXMLProjectModel;
 import com.intellij.plugins.haxe.buildsystem.nmml.NMMLFileType;
@@ -227,9 +228,8 @@ public class HaxelibProjectUpdater {
       log.debug("No SDK for module " + module.getName() + ".  Not syncing haxelibs.");
       NotificationGroupManager.getInstance()
         .getNotificationGroup("haxe.haxelib.warning")
-        // TODO move to bundle
-        .createNotification("Module '"+module.getName()+"' is missing Haxe SDK", NotificationType.WARNING)
-        .setTitle("Unable to resolve dependencies")
+        .createNotification(HaxeBundle.message("haxe.haxelib.module.missing.sdk.message", module.getName()), NotificationType.WARNING)
+        .setTitle(HaxeBundle.message("haxe.haxelib.module.missing.sdk.title"))
         .notify(module.getProject());
       return; // Nothing to do if there is no SDK.
     }
@@ -1607,9 +1607,9 @@ public class HaxelibProjectUpdater {
       if (myTestInForeground) {
         doUpdateWork();
       } else {
-        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance().run(
-          // TODO: Put this string in a resource bundle.
-          new Task.Backgroundable(project, "Synchronizing with haxelib libraries...", false, PerformInBackgroundOption.ALWAYS_BACKGROUND) {
+        String title = HaxeBundle.message("haxe.haxelib.synchronizing.libraries");
+        ApplicationManager.getApplication().invokeLater(() -> ProgressManager.getInstance()
+                .run(new Task.Backgroundable(project, title, false) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
               doUpdateWork();

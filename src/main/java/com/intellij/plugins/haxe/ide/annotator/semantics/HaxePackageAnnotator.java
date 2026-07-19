@@ -5,6 +5,7 @@ import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeFile;
 import com.intellij.plugins.haxe.lang.psi.HaxePackageStatement;
@@ -58,11 +59,10 @@ public class HaxePackageAnnotator implements Annotator {
     final String actualPackage2 = HaxeResolveUtil.getPackageName(file);
     // @TODO: Should use HaxeResolveUtil
 
-    for (String s : StringUtils.split(packageName, '.')) {
-      if (!s.substring(0, 1).toLowerCase().equals(s.substring(0, 1))) {
-        //HaxeSemanticError.addError(element, new HaxeSemanticError("Package name '" + s + "' must start with a lower case character"));
-        // @TODO: Move to bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Package name '" + s + "' must start with a lower case character").create();
+    for (String packagePart : StringUtils.split(packageName, '.')) {
+      if (!packagePart.substring(0, 1).toLowerCase().equals(packagePart.substring(0, 1))) {
+        String errorMessage = HaxeBundle.message("haxe.semantic.package.name.must.start.with.lower.case", packagePart);
+        holder.newAnnotation(HighlightSeverity.ERROR, errorMessage).create();
       }
     }
 

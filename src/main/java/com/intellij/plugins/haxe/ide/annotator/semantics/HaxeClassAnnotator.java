@@ -163,25 +163,28 @@ public class HaxeClassAnnotator implements Annotator {
         if (extendedClassModel != null) {
           if (isAnonymousType(clazz)) {
             if (!isAnonymousType(extendedClassModel)) {
-              // @TODO: Move to bundle
-              holder.newAnnotation(HighlightSeverity.ERROR, "Not an anonymous type").range(referenceExpression)
+              holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.not.anonymous.type")).range(referenceExpression)
                 .create();
             }
           }
           else if (clazz.isInterface()) {
             if (!extendedClassModel.isInterface() && !extendedClassModel.isTypedef()) {
-              // @TODO: Move to bundle
-              holder.newAnnotation(HighlightSeverity.ERROR, "Can't extend " +extendedClassModel.getName() +", it is not a interface").range(referenceExpression).create();
+              String errorMessage = HaxeBundle.message("haxe.semantic.cannot.extend.not.interface", extendedClassModel.getName());
+              holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
+                      .range(referenceExpression)
+                      .create();
             }
           }
           else if (clazz.isClass()) {
             if (!extendedClassModel.isClass() && !extendedClassModel.isTypedef()) {
-              // @TODO: Move to bundle
-              AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, "Can't extend " + extendedClassModel.getName() + ", it is not a class")
-                  .range(referenceExpression);
+              String errorMessage = HaxeBundle.message("haxe.semantic.cannot.extend.not.class", extendedClassModel.getName());
+              AnnotationBuilder builder = holder.newAnnotation(HighlightSeverity.ERROR, errorMessage).range(referenceExpression);
+
               if(extendedClassModel.isInterface()) {
-                builder.withFix(HaxeFixer.create("Change to implements", () -> clazz.changeToInterface(extendedClassModel.getName())));
+                String popupMessage = HaxeBundle.message("haxe.quickfix.change.to.implements");
+                builder = builder.withFix(HaxeFixer.create(popupMessage, () -> clazz.changeToInterface(extendedClassModel.getName())));
               }
+
               builder.create();
             }
           }
@@ -189,8 +192,9 @@ public class HaxeClassAnnotator implements Annotator {
           final String qname1 = extendedClassModel.haxeClass.getQualifiedName();
           final String qname2 = clazz.haxeClass.getQualifiedName();
           if (qname1 != null && qname1.equals(qname2)) {
-            // @TODO: Move to bundle
-            holder.newAnnotation(HighlightSeverity.ERROR, "Cannot extend self").range(referenceExpression).create();
+            holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.cannot.extend.self"))
+                    .range(referenceExpression)
+                    .create();
           }
         }
       }
@@ -327,10 +331,9 @@ public class HaxeClassAnnotator implements Annotator {
     }
 
     if (!missingMethods.isEmpty() && !clazz.isAbstractClass()) {
-      // @TODO: Move to bundle
       boolean macroWarning = hasMacroForCodeGeneration(clazz);
       if (macroWarning) {
-        String message = "Method implementations might be missing: " + StringUtils.join(missingMethodsNames, ", ");
+        String message = HaxeBundle.message("haxe.semantic.methods.might.not.be.implemented", StringUtils.join(missingMethodsNames, ", "));
         message += HaxeBundle.message("haxe.semantic.macro.generated");
         holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
           .range(abstractClass.getPsi())
@@ -338,7 +341,7 @@ public class HaxeClassAnnotator implements Annotator {
           .create();
 
       }else {
-        String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
+        String message = HaxeBundle.message("haxe.semantic.methods.not.implemented", StringUtils.join(missingMethodsNames, ", "));
         holder.newAnnotation(HighlightSeverity.ERROR, message)
           .range(abstractClass.getPsi())
           .withFix(implementMissingMethodsFix(clazz, missingMethods))
@@ -350,7 +353,8 @@ public class HaxeClassAnnotator implements Annotator {
 
   @NotNull
   private static HaxeFixer implementMissingMethodsFix(HaxeClassModel clazz, List<HaxeMethodModel> missingMethods) {
-    return new HaxeFixer("Implement methods") {
+    String popupText = HaxeBundle.message("haxe.quickfix.implement.methods");
+    return new HaxeFixer(popupText) {
       @Override
       public void run() {
         OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
@@ -478,10 +482,12 @@ public class HaxeClassAnnotator implements Annotator {
       }
 
       if (!missingFields.isEmpty()) {
-        // @TODO: Move to bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented fields: " + StringUtils.join(missingFieldNames, ", "))
+        String fixPopupText = HaxeBundle.message("haxe.quickfix.implement.fields");
+        String errorMessage = HaxeBundle.message("haxe.semantic.fields.not.implemented", StringUtils.join(missingFieldNames, ", "));
+
+        holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
           .range(intReference.getPsi())
-          .withFix(new HaxeFixer("Implement fields") {
+          .withFix(new HaxeFixer(fixPopupText) {
             @Override
             public void run() {
               OverrideImplementMethodFix fix = new OverrideImplementMethodFix(clazz.haxeClass, false);
@@ -602,22 +608,16 @@ public class HaxeClassAnnotator implements Annotator {
     }
 
     if (!missingMethods.isEmpty()) {
-      // @TODO: Move to bundle
-      //holder.newAnnotation(HighlightSeverity.ERROR, "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", "))
-      //  .range(intReference.getPsi())
-      //  .withFix(implementMissingMethodsFix(classModel, missingMethods))
-      //  .create();
-
       boolean macroWarning = hasMacroForCodeGeneration(classModel);
       if (macroWarning) {
-        String message = "Method implementations might be missing: " + StringUtils.join(missingMethodsNames, ", ");
+        String message = HaxeBundle.message("haxe.semantic.methods.might.not.be.implemented", StringUtils.join(missingMethodsNames, ", "));
         message += HaxeBundle.message("haxe.semantic.macro.generated");
         holder.newAnnotation(HighlightSeverity.WEAK_WARNING, message)
           .range(intReference.getPsi())
           .withFix(implementMissingMethodsFix(classModel, missingMethods))
           .create();
       }else {
-        String message = "Not implemented methods: " + StringUtils.join(missingMethodsNames, ", ");
+        String message = HaxeBundle.message("haxe.semantic.methods.not.implemented", StringUtils.join(missingMethodsNames, ", "));
         holder.newAnnotation(HighlightSeverity.ERROR, message)
           .range(intReference.getPsi())
           .withFix(implementMissingMethodsFix(classModel, missingMethods))

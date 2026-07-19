@@ -126,7 +126,7 @@ public class HaxeLineMarkerUtil {
 
                 @Override
                 protected @NotNull String getTabTitle() {
-                    return "Implementations of " + componentName; // TODO bundle
+                    return HaxeBundle.message("haxe.line.marker.implementations.of", componentName);
                 }
 
                 @Override
@@ -170,7 +170,7 @@ public class HaxeLineMarkerUtil {
 
             @Override
             protected @NotNull String getTabTitle() {
-                return "Subclasses of " + componentName; // TODO bundle
+                return HaxeBundle.message("haxe.line.marker.subclasses.of", componentName);
             }
 
             @Override
@@ -211,7 +211,7 @@ public class HaxeLineMarkerUtil {
 
             @Override
             protected @NotNull String getTabTitle() {
-                return "Subclasses of " + componentName; // TODO bundle
+                return HaxeBundle.message("haxe.line.marker.subclasses.of", componentName);
             }
 
             @Override

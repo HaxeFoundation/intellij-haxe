@@ -1,5 +1,6 @@
 package com.intellij.plugins.haxe.ide.documentation;
 
+import com.intellij.plugins.haxe.HaxeBundle;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TableBlock;
 import org.commonmark.ext.gfm.tables.TableCell;
@@ -106,8 +107,9 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         TableBlock tableBlock = new TableBlock();
         text.insertBefore(tableBlock);
 
-        // TODO  bundle ?
-        createTableHeader(tableBlock, "Argument", "Description");
+        createTableHeader(tableBlock,
+                          HaxeBundle.message("haxe.documentation.table.header.argument"),
+                          HaxeBundle.message("haxe.documentation.table.header.description"));
         lookForAndAddParameterTagsToTable(text, tableBlock);
 
         text.unlink();
@@ -118,8 +120,9 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         TableBlock tableBlock = new TableBlock();
         text.insertBefore(tableBlock);
 
-        // TODO  bundle ?
-        createTableHeader(tableBlock, "Event", "Description");
+        createTableHeader(tableBlock,
+                          HaxeBundle.message("haxe.documentation.table.header.event"),
+                          HaxeBundle.message("haxe.documentation.table.header.description"));
         lookForAndAddEventTagsToTable(text, tableBlock, TAG_EVENT);
 
         text.unlink();
@@ -128,8 +131,9 @@ class HaxeDocumentationTagsVisitor extends AbstractVisitor {
         TableBlock tableBlock = new TableBlock();
         text.insertBefore(tableBlock);
 
-        // TODO  bundle ?
-        createTableHeader(tableBlock, "Exception", "Description");
+        createTableHeader(tableBlock,
+                          HaxeBundle.message("haxe.documentation.table.header.exception"),
+                          HaxeBundle.message("haxe.documentation.table.header.description"));
         lookForAndAddEventTagsToTable(text, tableBlock, TAG_THROWS);
 
         text.unlink();

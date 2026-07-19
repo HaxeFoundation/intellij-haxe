@@ -4,6 +4,7 @@ import com.intellij.codeInsight.intention.CommonIntentionAction;
 import com.intellij.codeInsight.intention.preview.IntentionPreviewInfo;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeAdditiveExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeExpression;
 import com.intellij.plugins.haxe.lang.psi.HaxeStringLiteralExpression;
@@ -22,8 +23,7 @@ public class HaxeStringInterpolationUtil {
     private static final String SINGE_QUOTE = "'";
 
     public static @NotNull CommonIntentionAction convertToInterpolationFix(HaxeAdditiveExpression additiveExpression) {
-        // TODO bundle
-        return new HaxeFixer("Convert to String interpolation") {
+        return new HaxeFixer(HaxeBundle.message("haxe.semantic.convert.to.string.interpolation")) {
             @Override
             public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
                 HaxeAdditiveExpression elementInCopy = PsiTreeUtil.findSameElementInCopy(additiveExpression, file);

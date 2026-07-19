@@ -183,8 +183,13 @@ public class HaxeCallExpressionContext {
             }
             SpecificTypeReference expectedCallieType = parameters.getFirst().getType();
             if (!expectedCallieType.canAssign(callie)) {
-                // todo better error message, use bundle and show types
-                if (trackErrors) evaluation.addError("Can not use extension method, wrong type", sourceExpression);
+                if (trackErrors) {
+                    String errorMessage = HaxeBundle.message("haxe.semantic.extension.method.wrong.type",
+                            expectedCallieType.toPresentationString(true),
+                            callie.toPresentationString(true));
+
+                    evaluation.addError(errorMessage, sourceExpression);
+                }
                 return evaluation.validationFailed();
             }
             // while it might be a waste to re-evaluate the callie assignability

@@ -80,13 +80,13 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
 
     if(containsString && !allStrings) {
       // suggest interpolation
-      holder.newAnnotation(HighlightSeverity.INFORMATION, "Convert to String interpolation") // TODO bundle
+      holder.newAnnotation(HighlightSeverity.INFORMATION, HaxeBundle.message("haxe.semantic.convert.to.string.interpolation"))
               .range(additiveExpression)
               .withFix(convertToInterpolationFix(additiveExpression))
               .create();
 
     }else if(allStrings) {
-      holder.newAnnotation(HighlightSeverity.INFORMATION, "Merge concatenated strings") // TODO bundle
+      holder.newAnnotation(HighlightSeverity.INFORMATION, HaxeBundle.message("haxe.semantic.merge.concatenated.strings"))
               .range(additiveExpression)
               .withFix(mergeStringsFix(additiveExpression))
               .create();
@@ -94,8 +94,7 @@ public class HaxeStringAnnotator implements Annotator, DumbAware {
   }
 
   private @NotNull CommonIntentionAction mergeStringsFix(HaxeAdditiveExpression additiveExpression) {
-    // TODO bundle
-    return new HaxeFixer("Merge concatenated strings") {
+    return new HaxeFixer(HaxeBundle.message("haxe.semantic.merge.concatenated.strings")) {
 
       @Override
       public @NotNull IntentionPreviewInfo generatePreview(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {

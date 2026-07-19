@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeClass;
 import com.intellij.plugins.haxe.lang.psi.HaxeMethod;
 import com.intellij.plugins.haxe.lang.psi.HaxePsiModifier;
@@ -36,8 +37,7 @@ public class HaxeAbstractClassAnnotator implements Annotator {
     if (isAbstractClass && classModel.isFinal()) {
       PsiElement element = classModel.getNamePsi();
       if (element == null) classModel.getBasePsi();
-      // TODO move to bundle
-      String message = "An abstract class may not be final";
+      String message = HaxeBundle.message("haxe.semantic.abstract.class.cannot.be.final");
       holder.newAnnotation(HighlightSeverity.ERROR, message)
         .withFix(new HaxeModifierRemoveFixer(classModel.getModifiers(), HaxePsiModifier.ABSTRACT))
         .withFix(new HaxeModifierRemoveFixer(classModel.getModifiers(), HaxePsiModifier.FINAL))
@@ -52,8 +52,7 @@ public class HaxeAbstractClassAnnotator implements Annotator {
     if (containsAbstractMethod && !isAbstractClass) {
       PsiElement element = classModel.getNamePsi();
       if (element == null) classModel.getBasePsi();
-      // TODO move to bundle
-      String message = "Class contains abstract members";
+      String message = HaxeBundle.message("haxe.semantic.class.contains.abstract.members");
       holder.newAnnotation(HighlightSeverity.ERROR, message)
         .withFix(new HaxeModifierAddFixer(classModel.getModifiers(), HaxePsiModifier.ABSTRACT))
         .range(element)
@@ -66,15 +65,13 @@ public class HaxeAbstractClassAnnotator implements Annotator {
     if (methodModel != null) {
       if (methodModel.isAbstract()) {
         if (methodModel.getReturnTypeTagPsi() == null) {
-          // TODO move to bundle
-          String message = "Type required for abstract functions";
+          String message = HaxeBundle.message("haxe.semantic.type.required.for.abstract.functions");
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .range(methodModel.getBasePsi())
             .create();
         }
         if (methodModel.getBodyPsi() != null) {
-          // TODO move to bundle
-          String message = "Abstract methods may not have an expression";
+          String message = HaxeBundle.message("haxe.semantic.abstract.method.cannot.have.expression");
           holder.newAnnotation(HighlightSeverity.ERROR, message)
             .withFix(new HaxeModifierRemoveFixer(methodModel.getModifiers(), HaxePsiModifier.ABSTRACT))
             .range(methodModel.getBodyPsi())

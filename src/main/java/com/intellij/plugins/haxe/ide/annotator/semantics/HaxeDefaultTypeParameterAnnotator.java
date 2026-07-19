@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.lexer.HaxeTokenTypes;
 import com.intellij.plugins.haxe.lang.psi.HaxeGenericDefaultType;
 import com.intellij.plugins.haxe.lang.psi.HaxeGenericListPart;
@@ -29,15 +30,11 @@ public class HaxeDefaultTypeParameterAnnotator implements Annotator {
 
     if (type != null && parent2 instanceof HaxeMethodDeclaration) {
       PsiElement equalsToken = PsiTreeUtil.findSiblingBackward(type, HaxeTokenTypes.OASSIGN, null);
-    //TODO extract text to bundle
-      holder.newAnnotation(HighlightSeverity.ERROR, "Default type parameters are only supported on types")
+      String popupText = HaxeBundle.message("haxe.quickfix.remove.default.type");
+      String errorMessage = HaxeBundle.message("haxe.semantic.default.type.parameters.only.on.types");
+      holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
         .range(type)
-        .withFix(new HaxeFixer("Remove default type") {
-          @Override
-          public void run() {
-            psi.deleteChildRange(equalsToken, type);
-          }
-        })
+        .withFix(HaxeFixer.create(popupText, () -> psi.deleteChildRange(equalsToken, type)))
         .create();
     }
   }

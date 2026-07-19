@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeLocalVarDeclaration;
 import com.intellij.plugins.haxe.model.HaxeLocalVarModel;
 import com.intellij.plugins.haxe.model.type.ResultHolder;
@@ -32,8 +33,7 @@ public class HaxeLocalVarAnnotator implements Annotator {
     }else if (local.hasInitializer()) {
       ResultHolder init = getTypeFromVarInit(local.getInitializerPsi(), null);
       if (init.isVoid()) {
-        // TODO bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Variables of type Void are not allowed")
+        holder.newAnnotation(HighlightSeverity.ERROR, HaxeBundle.message("haxe.semantic.void.variables.not.allowed"))
           .range(local.getBasePsi())
           .create();
 

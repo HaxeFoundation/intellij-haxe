@@ -115,9 +115,9 @@ public class HaxeMethodAnnotator implements Annotator {
 
       if (checkRepeatedParameterName) {
         if (argumentNames.containsKey(paramName) && !paramName.equals(DEFAULT_ARG_NAME)) {
-          // @TODO: Move to bundle
-          holder.newAnnotation(HighlightSeverity.WARNING,"Repeated argument name '" + paramName + "'").range(param.getNamePsi()).create();
-          holder.newAnnotation(HighlightSeverity.WARNING, "Repeated argument name '" + paramName + "'").range(argumentNames.get(paramName)).create();
+          String warningMessage = HaxeBundle.message("haxe.semantic.repeated.argument.name", paramName);
+          holder.newAnnotation(HighlightSeverity.WARNING, warningMessage).range(param.getNamePsi()).create();
+          holder.newAnnotation(HighlightSeverity.WARNING, warningMessage).range(argumentNames.get(paramName)).create();
         }
         else {
           argumentNames.put(paramName, param.getNamePsi());
@@ -203,21 +203,17 @@ public class HaxeMethodAnnotator implements Annotator {
 
     if (currentMethod.isConstructor()) {
       if (currentModifiers.hasModifier(STATIC)) {
-        // @TODO: Move to bundle
-        holder.newAnnotation(HighlightSeverity.ERROR, "Constructor can't be static").range(currentMethod.getNameOrBasePsi())
-        .withFix(
-          new HaxeModifierRemoveFixer(currentModifiers, STATIC)
-        )
-          .create();
+        String errorMessage = HaxeBundle.message("haxe.semantic.constructor.cannot.be.static");
+        holder.newAnnotation(HighlightSeverity.ERROR, errorMessage).range(currentMethod.getNameOrBasePsi())
+        .withFix(new HaxeModifierRemoveFixer(currentModifiers, STATIC))
+        .create();
       }
     }
     else if (currentMethod.isStaticInit()) {
       if (!currentModifiers.hasModifier(STATIC)) {
         holder.newAnnotation(HighlightSeverity.ERROR, "__init__ must be static").range(currentMethod.getNameOrBasePsi())
-        .withFix(
-          new HaxeModifierAddFixer(currentModifiers, STATIC)
-        )
-          .create();
+        .withFix(new HaxeModifierAddFixer(currentModifiers, STATIC))
+        .create();
       }
     }
     else if (parentMethod != null) {

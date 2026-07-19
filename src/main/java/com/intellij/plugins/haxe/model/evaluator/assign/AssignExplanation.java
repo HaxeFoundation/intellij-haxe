@@ -1,8 +1,10 @@
 package com.intellij.plugins.haxe.model.evaluator.assign;
 
 import com.intellij.openapi.util.text.Strings;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.psi.PsiElement;
 import lombok.Getter;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,9 +56,12 @@ public class AssignExplanation {
 
     public String createWrongTypeMembersMessage() {
         return getWrongTypeMembers().entrySet().stream()
-                //TODO bundle
-                .map(entry -> "Incompatible type:  have '" + entry.getKey() + "' wants '" + entry.getValue() + "'")
+                .map(this::buildIncompatibleTypeMessage)
                 .collect(Collectors.joining(", "));
+    }
+
+    private @NonNull String buildIncompatibleTypeMessage(Map.Entry<String, String> entry) {
+        return HaxeBundle.message("haxe.semantic.incompatible.type.have.wants", entry.getKey(), entry.getValue());
     }
 
     public void clearErrors() {

@@ -3,6 +3,7 @@ package com.intellij.plugins.haxe.ide.annotator.semantics;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.lang.annotation.Annotator;
 import com.intellij.lang.annotation.HighlightSeverity;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.lang.psi.fakes.impl.HaxeFakeComponentBindMethod;
 import com.intellij.plugins.haxe.model.FullyQualifiedInfo;
@@ -92,8 +93,9 @@ public class HaxeCallExpressionAnnotator implements Annotator {
             }
             // if not enum value constructor, expr, dynamic or unknown, show error
             if (!type.isEnumValueType() && !type.isDynamic() && !type.isUnknown() && !type.getType().isExpr()) {
-              // TODO bundle
-              holder.newAnnotation(HighlightSeverity.ERROR, typeReference.toPresentationString(true) + " is not a callable type")
+              String typePresentationString = typeReference.toPresentationString(true);
+              String errorMessage = HaxeBundle.message("haxe.semantic.not.callable.type", typePresentationString);
+              holder.newAnnotation(HighlightSeverity.ERROR, errorMessage)
                 .range(element)
                 .create();
             }

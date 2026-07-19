@@ -23,6 +23,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.plugins.haxe.HaxeBundle;
 
 import com.intellij.plugins.haxe.util.HaxeDebugTimeLog;
 import lombok.CustomLog;
@@ -188,9 +189,8 @@ final public class HaxeHierarchyTimeoutHandler {
     ApplicationManager.getApplication().invokeLater(new Runnable() {
       @Override
       public void run() {
-        // TODO: Put this message and title in a resource bundle.
-        String title = "Call Hierarchy Search Timed Out";
-        String msg = "Search took too long (>" + max_duration_seconds + "seconds).  Results may be incomplete.";
+        String title = HaxeBundle.message("haxe.hierarchy.timeout.dialog.title");
+        String msg = HaxeBundle.message("haxe.hierarchy.timeout.dialog.message", max_duration_seconds);
         if (DEBUG) {
           msg += " Canceled after " + (stopTime - startTime) + " milliseconds.";
         }

@@ -25,6 +25,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.ProjectJdkImpl;
 import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.plugins.haxe.HaxeBundle;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkData;
 import com.intellij.plugins.haxe.config.sdk.HaxeSdkType;
 
@@ -79,8 +80,7 @@ public class HaxelibSdkUtils {
     ModuleRootManager mgr = ModuleRootManager.getInstance(module);
     Sdk sdk = null != mgr ? mgr.getSdk() : null;
     if (null == sdk) {
-      // TODO: Move error string to a resource in HaxeBundle.
-      sdk = getDefaultSDK("Invalid (or no) SDK specified for module " + module.getName());
+      sdk = getDefaultSDK(HaxeBundle.message("haxe.haxelib.invalid.sdk.for.module", module.getName()));
     }
     return sdk;
   }
@@ -97,8 +97,7 @@ public class HaxelibSdkUtils {
     ProjectRootManager mgr = ProjectRootManager.getInstance(project);
     Sdk sdk = null != mgr ? mgr.getProjectSdk() : null;
     if (null == sdk) {
-      // TODO: Move error string to a resource in HaxeBundle.
-      sdk = getDefaultSDK("Invalid (or no) SDK specified for project " + project.getName());
+      sdk = getDefaultSDK(HaxeBundle.message("haxe.haxelib.invalid.sdk.for.project", project.getName()));
     }
     return sdk;
   }
