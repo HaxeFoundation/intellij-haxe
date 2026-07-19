@@ -315,6 +315,9 @@
 
     <moduleService serviceImplementation="com.intellij.plugins.haxe.ide.module.HaxeModuleSettings"/>
 
+    <statusBarWidgetFactory id="HaxeTargetWidget"
+                            implementation="com.intellij.plugins.haxe.ide.statusbar.HaxeTargetStatusBarWidgetFactory"/>
+
     <internalFileTemplate name="HaxeClass"/>
     <internalFileTemplate name="HaxeInterface"/>
     <internalFileTemplate name="HaxeEnum"/>
