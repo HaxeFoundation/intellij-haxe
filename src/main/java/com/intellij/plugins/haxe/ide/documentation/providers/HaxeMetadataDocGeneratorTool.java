@@ -1,6 +1,6 @@
 package com.intellij.plugins.haxe.ide.documentation.providers;
 
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
