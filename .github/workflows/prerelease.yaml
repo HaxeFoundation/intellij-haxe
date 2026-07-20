@@ -1,6 +1,5 @@
 name: Pre-release, IntelliJ-Haxe-plugin
 
-
 on:
   push:
     tags:
@@ -40,7 +39,7 @@ jobs:
     strategy:
       fail-fast: true # cancel all builds if one fails.
       matrix:
-        IDEA_VERSION: [2026.1]
+        IDEA_VERSION: [2026.2]
     needs: prepare
     runs-on: ubuntu-latest
     steps:
@@ -62,7 +61,7 @@ jobs:
       - name: Set up Haxe
         uses: krdlab/setup-haxe@v2
         with:
-          haxe-version: 4.3.4
+          haxe-version: 4.3.7
 
       - name: Test haxe
         run: haxe -version
