@@ -35,6 +35,8 @@ public class HaxeAdditionalConfigurablePanel {
   private TextFieldWithBrowseButton myNekoTextField;
   private JPanel myPanel;
   private JLabel myNekoLabel;
+  private TextFieldWithBrowseButton myHlTextField;
+  private JLabel myHlLabel;
   private TextFieldWithBrowseButton myHaxelibTextField;
   private JLabel myHaxelibLabel;
 
@@ -56,6 +58,17 @@ public class HaxeAdditionalConfigurablePanel {
       }
     });
     myNekoLabel.setLabelFor(myNekoTextField.getTextField());
+    myHlTextField.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        final FileChooserDescriptor descriptor = new FileChooserDescriptor(true, false, false, false, false, false);
+        final VirtualFile file = FileChooser.chooseFile(descriptor, myPanel, null, null);
+        if (file != null) {
+          setHlBinPath(FileUtil.toSystemIndependentName(file.getPath()));
+        }
+      }
+    });
+    myHlLabel.setLabelFor(myHlTextField.getTextField());
     myHaxelibTextField.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
@@ -88,6 +101,14 @@ public class HaxeAdditionalConfigurablePanel {
 
   public String getNekoBinPath() {
     return FileUtil.toSystemIndependentName(myNekoTextField.getText());
+  }
+
+  public void setHlBinPath(String path) {
+    myHlTextField.setText(FileUtil.toSystemDependentName(path));
+  }
+
+  public String getHlBinPath() {
+    return FileUtil.toSystemIndependentName(myHlTextField.getText());
   }
 
   public void setHaxelibPath(String path) {

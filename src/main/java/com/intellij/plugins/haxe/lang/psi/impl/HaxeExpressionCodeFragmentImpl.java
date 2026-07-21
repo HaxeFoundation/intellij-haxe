@@ -21,6 +21,7 @@ import com.intellij.lang.ASTNode;
 import com.intellij.lang.Language;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiBuilderFactory;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.plugins.haxe.HaxeLanguage;
@@ -32,6 +33,8 @@ import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.SingleRootFileViewProvider;
+import com.intellij.psi.SmartPointerManager;
+import com.intellij.psi.SmartPsiElementPointer;
 import com.intellij.psi.impl.PsiManagerEx;
 import com.intellij.psi.impl.file.impl.FileManager;
 import com.intellij.psi.impl.source.tree.FileElement;
@@ -42,15 +45,30 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import static com.intellij.lang.parser.GeneratedParserUtilBase.*;
 
 /**
  * @author: Fedor.Korotkov
  */
 public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpressionCodeFragment {
-  private PsiElement myContext;
+  // The resolve context (the PSI element at the debugger's source position) is
+  // held through a SMART pointer, never as a raw element: the fragment lives as
+  // long as the evaluate/watches editor, and the context's file gets reparsed
+  // underneath it (a document edit, a VFS refresh racing session start). A raw
+  // element dies on the first reparse, and a dead context previously turned
+  // isValid() false FOREVER — the platform then threw "Invalid PSI Element ...
+  // invalid context: containing file is null" when the editor touched the
+  // fragment. The pointer re-anchors across reparses; if truly gone, the
+  // fragment degrades to a context-less one instead of becoming invalid.
+  private SmartPsiElementPointer<PsiElement> myContext;
   private FileViewProvider myViewProvider;
   private GlobalSearchScope myScope = null;
+  // imports added in the evaluate window are held here, not in the fragment text,
+  // so they never end up in the evaluated expression (see HaxeExpressionCodeFragment)
+  private final Set<String> myImportedTypeNames = new LinkedHashSet<>();
 
   public HaxeExpressionCodeFragmentImpl(Project project,
                                         @NonNls String name,
@@ -72,7 +90,10 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
 
 
   public PsiElement getContext() {
-    return myContext;
+    SmartPsiElementPointer<PsiElement> pointer = myContext;
+    if (pointer == null) return null;
+    PsiElement element = pointer.getElement();
+    return element != null && element.isValid() ? element : null;
   }
 
   @NotNull
@@ -82,8 +103,10 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
   }
 
   public boolean isValid() {
-    if (!super.isValid()) return false;
-    return myContext == null || myContext.isValid();
+    // deliberately independent of the context element: a reparse of the
+    // context's file must degrade resolution (getContext() -> null), not
+    // permanently invalidate the fragment the debugger UI is editing
+    return super.isValid();
   }
 
   protected HaxeExpressionCodeFragmentImpl clone() {
@@ -95,12 +118,28 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     clone.myViewProvider = cloneViewProvider;
     cloneViewProvider.forceCachedPsi(clone);
     clone.init(getContentElementType(), getContentElementType());
+    clone.myImportedTypeNames.addAll(myImportedTypeNames);
     return clone;
   }
 
 
   public void setContext(PsiElement context) {
-    myContext = context;
+    if (context == null || !context.isValid()) {
+      myContext = null;
+      return;
+    }
+    myContext = ReadAction.compute(
+      () -> SmartPointerManager.getInstance(getProject()).createSmartPsiElementPointer(context));
+  }
+
+  @Override
+  public boolean importClass(String qualifiedName) {
+    return myImportedTypeNames.add(qualifiedName);
+  }
+
+  @Override
+  public Set<String> getImportedTypeNames() {
+    return myImportedTypeNames;
   }
 
   @Override

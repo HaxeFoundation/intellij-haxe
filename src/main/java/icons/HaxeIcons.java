@@ -51,6 +51,9 @@ public class HaxeIcons {
 
   public static final Icon HAXE_RELOAD = load("/icons/Haxe_reload.svg");
 
+  public static final Icon HASHLINK = load("/icons/other/HashLink_logo.svg");
+  public static final Icon VSHAXE= load("/icons/other/VsHaxe-logo.svg");
+
 
 
 

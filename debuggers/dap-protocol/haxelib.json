@@ -1,0 +1,12 @@
+{
+	"name": "intellij-dap-protocol",
+	"url": "https://github.com/HaxeFoundation/intellij-haxe",
+	"license": "MIT",
+	"tags": ["dap", "debug", "debugger", "protocol"],
+	"description": "Debug Adapter Protocol message typedefs (Haxe), shared by the intellij-haxe debug adapters and the intellij-hxcpp-debug-server.",
+	"version": "0.1.0",
+	"releasenote": "Extracted from the HashLink debug adapter",
+	"contributors": ["intellij-haxe"],
+	"classPath": "src/main/haxe",
+	"dependencies": {}
+}

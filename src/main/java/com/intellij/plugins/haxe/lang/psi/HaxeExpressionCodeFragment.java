@@ -20,8 +20,23 @@ package com.intellij.plugins.haxe.lang.psi;
 import com.intellij.psi.PsiCodeFragment;
 import com.intellij.psi.impl.PsiFileEx;
 
+import java.util.Set;
+
 /**
  * @author: Fedor.Korotkov
  */
 public interface HaxeExpressionCodeFragment extends PsiFileEx, PsiCodeFragment {
+
+  /**
+   * Records an import (a fully-qualified type name) on the fragment itself,
+   * separate from its text — so a class the context file does not import can
+   * still resolve in the evaluate window without altering the expression that
+   * gets evaluated. The Haxe analogue of {@link com.intellij.psi.PsiImportHolder#importClass}.
+   *
+   * @return {@code true} if the import was newly added.
+   */
+  boolean importClass(String qualifiedName);
+
+  /** The fully-qualified type names imported into this fragment (see {@link #importClass}). */
+  Set<String> getImportedTypeNames();
 }

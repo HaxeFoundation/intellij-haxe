@@ -9,37 +9,22 @@ jobs:
   prepare:
     name: Create release draft
     runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      id: ${{ steps.create_release.outputs.id }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
-      - name: shorten Changelog
-        id: shortlog
-        run: |
-          sed -b -e '/^\r\?$/,$d' CHANGELOG.md >> shortlog.txt
+      - name: Shorten Changelog
+        run: sed -b -e '/^\r\?$/,$d' CHANGELOG.md >> shortlog.txt
 
-      - name: read Changelog
-        id: changelog
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: ./shortlog.txt
-
-      - name: Get short SHA
-        id: short_sha
-        run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Create draft release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: ${{ steps.changelog.outputs.content }}
-          draft: true
-          prerelease: false
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --draft \
+            --title "Release ${{ github.ref_name }}" \
+            --notes-file shortlog.txt
 
   build:
     name: Build and upload artifacts
@@ -49,6 +34,8 @@ jobs:
         IDEA_VERSION: [ 2026.2 ]
     needs: prepare
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Maximize Build Space (ubuntu)
         run: |
@@ -74,46 +61,43 @@ jobs:
         run: haxe -version
 
       - name: Cache intelliJ downloads
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: $GITHUB_WORKSPACE/idea
           key: ${{ matrix.IDEA_VERSION }}-idea
           restore-keys: ${{ matrix.IDEA_VERSION }}-idea
 
+      # debugger tests are skipped here (most need windows + the hxcpp
+      # toolchain); the parallel 'debuggers' job below runs them for this
+      # exact build, and 'finish' won't publish unless it passes
       - name: Build with Gradle
         run: ./gradlew clean test buildPlugin verifyPlugin
 
-
-      - name: Find assets
-        id: find_assets
+      - name: Upload asset to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           ARTIFACT_PATHNAME=$(ls *.zip | head -n 1)
-          ARTIFACT_NAME=$(basename $ARTIFACT_PATHNAME)
-          echo artifact_name=${ARTIFACT_NAME} >> $GITHUB_OUTPUT
-          echo artifact_pathname=${ARTIFACT_PATHNAME} >> $GITHUB_OUTPUT
+          ASSET_NAME="intellij-haxe-${{ matrix.IDEA_VERSION }}.zip"
+          cp "$ARTIFACT_PATHNAME" "$ASSET_NAME"
+          gh release upload "${{ github.ref_name }}" "$ASSET_NAME" --clobber
 
-
-      - name: Upload Asset
-        id: upload-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ needs.prepare.outputs.upload_url }}
-          asset_path: ${{ steps.find_assets.outputs.artifact_pathname }}
-          asset_name: intellij-haxe-${{ matrix.IDEA_VERSION }}.zip
-          asset_content_type: application/java-archive
-
+  # tag pushes never trigger the path-filtered debugger-*.yaml workflows, so
+  # test every debugger module here for the exact commit being released
+  debuggers:
+    name: Test debugger modules
+    uses: ./.github/workflows/debugger-all.yaml
 
   finish:
     name: publish release
-    needs: [prepare, build]
+    needs: [prepare, build, debuggers]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Publish release
-        uses: StuYarrow/publish-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          id: ${{ needs.prepare.outputs.id }}
-
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "${{ github.ref_name }}" --draft=false

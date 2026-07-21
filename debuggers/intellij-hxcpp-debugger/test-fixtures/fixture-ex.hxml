@@ -1,0 +1,7 @@
+# Exception-behavior fixture. Compile from the MODULE root
+# (haxe test-fixtures/fixture-ex.hxml), like fixture.hxml.
+-cp test-fixtures/src
+-main MainEx
+-lib intellij-hxcpp-debug-server
+-debug
+-cpp build/hxcpp/fixture-ex

@@ -1,0 +1,46 @@
+# Runs the build-and-test of EVERY debugger module, unconditionally (no path
+# filtering). Used by release.yaml/prerelease.yaml: tag pushes never trigger
+# the path-filtered per-module debugger-*.yaml workflows, so releases call
+# this to test the debuggers for the exact build being shipped. Keep the
+# matrix entries in sync with the per-module trigger files.
+name: Debugger build, all modules (reusable)
+
+on:
+  workflow_call:
+
+jobs:
+  debugger:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - module: dap-protocol
+            os: ubuntu-latest
+            needs-haxe: false
+            needs-hashlink: false
+          - module: hashlink-debug-adapter
+            os: windows-latest
+            needs-haxe: true
+            needs-hashlink: true
+            haxelibs: |
+              haxelib install format 3.7.0 --quiet --always
+          - module: vshaxe-hxcpp-debugger-adapter
+            os: windows-latest
+            needs-haxe: true
+            needs-hashlink: false
+            haxelibs: |
+              haxelib install hxcpp --quiet --always
+              haxelib install hxcpp-debug-server 1.2.4 --quiet --always
+          - module: intellij-hxcpp-debugger
+            os: windows-latest
+            needs-haxe: true
+            needs-hashlink: false
+            haxelibs: |
+              haxelib install hxcpp --quiet --always
+    uses: ./.github/workflows/debugger-build.yaml
+    with:
+      module: ${{ matrix.module }}
+      os: ${{ matrix.os }}
+      needs-haxe: ${{ matrix.needs-haxe }}
+      needs-hashlink: ${{ matrix.needs-hashlink }}
+      haxelibs: ${{ matrix.haxelibs }}

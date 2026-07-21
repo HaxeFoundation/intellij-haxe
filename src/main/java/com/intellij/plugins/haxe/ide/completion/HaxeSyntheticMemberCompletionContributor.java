@@ -80,7 +80,7 @@ public class HaxeSyntheticMemberCompletionContributor extends CompletionContribu
 
         if (reference != null) {
             for (Map.Entry<String, String> data : targetSpecificSyntaxData.entrySet()) {
-                HaxeMethod method = HaxeSynteticPsiUtil.createSynteticForTargetSpecificSyntax(data.getKey(), data.getValue(), reference);
+                HaxeMethod method = HaxeSyntheticPsiUtil.createSyntheticForTargetSpecificSyntax(data.getKey(), data.getValue(), reference);
                 resultSet.addAllElements(createSynteticMember(method.getComponentName()));
             }
         }
@@ -88,7 +88,7 @@ public class HaxeSyntheticMemberCompletionContributor extends CompletionContribu
 
     private static void addTrace(CompletionResultSet resultSet, PsiElement position, Project project) {
         HaxeIdentifier identifier = PsiTreeUtil.getParentOfType(position, HaxeIdentifier.class);
-        HaxeMethod method = HaxeSynteticPsiUtil.createSynteticForTrace(project);
+        HaxeMethod method = HaxeSyntheticPsiUtil.createSyntheticForTrace(project);
         resultSet.addAllElements(createSynteticMember(method.getComponentName()));
     }
 }

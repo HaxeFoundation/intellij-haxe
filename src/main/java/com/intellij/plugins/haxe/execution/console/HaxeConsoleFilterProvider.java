@@ -27,7 +27,9 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
             Pattern.CASE_INSENSITIVE);
 
     Pattern stacktraceWithFileAndLine = Pattern.compile("(called\\sfrom\\s)"
-                                                        + "(?<qname>([\\w_.$]+)+)"
+                                                        // qname: Class.method, incl. Haxe's synthetic closure names
+                                                        // like Class.~method.1 and fun$N — so allow . $ ~ (\w has _)
+                                                        + "(?<qname>[\\w.$~]+)"
                                                         + "\\s*(\\("
                                                         + "(?<path>((\\w:)?/)?([a-z_\\-\\s0-9.,]+(/)?)+\\.(\\w+))"
                                                         + "((\\sline\\s|:)(?<line>\\d+))"
@@ -39,9 +41,16 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
         String basePath = project.getBasePath();
         Filter psiFilter = (text, entireLength) -> {
+                // Filter.Result offsets are absolute in the whole console document, not relative
+                // to this line, so anchor every within-line index to the line's start. Do NOT
+                // trim text first: entireLength - text.length() must use the real line length.
+                int lineStartOffset = entireLength - text.length();
                 if (HaxeProjectSettings.getInstance(project).getDetectCodeReferencesInConsole()) {
                     Matcher compilerMessageMatcher = compilerMessageWithFileAndLine.matcher(text);
-                    if (compilerMessageMatcher.matches()) {
+                    // find() not matches(): console lines arrive with their trailing newline,
+                    // and matches() requires the whole input to match (and `.` never matches \n),
+                    // so a full-line anchor would never fire on real console output.
+                    if (compilerMessageMatcher.find()) {
                         String path = compilerMessageMatcher.group("path");
                         String line = compilerMessageMatcher.group("line");
                         String type = compilerMessageMatcher.group("type");
@@ -60,18 +69,22 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
 
                         if (virtualFile != null) {
                             OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo - 1, columnNo - 1);
-                            int endOffset = offsetPath + path.length() + line.length();
-                            return new Filter.Result(offsetPath, endOffset + 1, openFileHyperlinkInfo);
+                            int highlightStartOffset = lineStartOffset + offsetPath;
+                            int highlightEndOffset = highlightStartOffset + path.length() + line.length() + 1; // path + ':' + line
+                            return new Filter.Result(highlightStartOffset, highlightEndOffset, openFileHyperlinkInfo);
                         }
                     }
                     Matcher stacktrace = stacktraceWithFileAndLine.matcher(text);
-                    if (stacktrace.matches()) {
+                    // find() not matches(): see the compiler-message matcher above — the
+                    // trailing newline on a console line makes a full-line match() never fire.
+                    if (stacktrace.find()) {
                         String path = stacktrace.group("path");
                         String line = stacktrace.group("line");
 
                         int lineNo = Integer.parseInt(line);
-                        int offsetPath = text.indexOf(path);
-
+                        // highlight the whole "path:line" span (matcher offsets, not indexOf)
+                        int pathStart = stacktrace.start("path");
+                        int lineEnd = stacktrace.end("line");
 
                         VirtualFile virtualFile = HaxeFileUtil.locateFile(path, basePath);
                         if (virtualFile == null) {
@@ -89,9 +102,10 @@ public class HaxeConsoleFilterProvider implements ConsoleFilterProvider {
                         }
 
                         if (virtualFile != null) {
-                            OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, lineNo - 1);
-                            int endOffset = offsetPath + path.length();
-                            return new Filter.Result(offsetPath, endOffset, openFileHyperlinkInfo);
+                            OpenFileHyperlinkInfo openFileHyperlinkInfo = new OpenFileHyperlinkInfo(project, virtualFile, Math.max(0, lineNo - 1));
+                            int highlightStartOffset = lineStartOffset + pathStart;
+                            int highlightEndOffset = lineStartOffset + lineEnd;
+                            return new Filter.Result(highlightStartOffset, highlightEndOffset, openFileHyperlinkInfo);
                         }
                     }
         }

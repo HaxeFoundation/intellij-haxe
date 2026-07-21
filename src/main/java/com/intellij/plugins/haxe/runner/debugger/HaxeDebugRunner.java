@@ -94,8 +94,15 @@ import java.util.regex.Pattern;
  * <p/>
  * This is the singular Haxe debug runner, that can debug:
  * 1. Flash targets
- * 2. Hxcpp targets, run locally by the IDE
- * 3. Hxcpp targets, run by an external command
+ * 2. Hxcpp targets, run locally by the IDE (LEGACY hxcpp debugger)
+ * 3. Hxcpp targets, run by an external command (LEGACY hxcpp debugger)
+ * <p/>
+ * The hxcpp paths here are the LEGACY debugger (the old
+ * hxcpp.DebugSocket protocol via :hxcpp-debugger-protocol-legacy); the
+ * dedicated HXCPP Application configuration
+ * ({@code runner.debugger.hxcpp}) is the current one. Kept fully
+ * functional: existing users need it, and this runner also carries the
+ * Flash/Flex debugging support, which must not change.
  */
 public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
   public static final String HAXE_DEBUG_RUNNER_ID = "HaxeDebugRunner";
@@ -264,7 +271,7 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
                    (project, "Listening for debugged process " +
                              "on port " + port + " ... Press OK after " +
                              "remote debugged process has started.",
-                    "Haxe Debugger");
+                    "Legacy HXCPP Debugger");
                }
                // Else, start the being-debugged process and make the
                // local debug process instance aware of it.
@@ -433,15 +440,15 @@ public class HaxeDebugRunner extends GenericProgramRunner<RunnerSettings> {
     }
 
     private void info(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger");
     }
 
     private void warn(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger Warning");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger Warning");
     }
 
     private void error(String message) {
-      showInfoMessage(mProject, message, "Haxe Debugger Error");
+      showInfoMessage(mProject, message, "Legacy HXCPP Debugger Error");
       this.stop();
     }
 

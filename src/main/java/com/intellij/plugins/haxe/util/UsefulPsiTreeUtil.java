@@ -303,6 +303,10 @@ public class UsefulPsiTreeUtil {
     // skip object literals
     if(element instanceof HaxeObjectLiteral literal) return getAncestor(literal.getParent(), clazz);
     if (clazz.isAssignableFrom(element.getClass())) return (T)element;
+    // detached code fragments (debugger evaluate / jump-to-source) end the parent chain at the
+    // fragment file; continue through the creation context so the walk behaves as if the
+    // fragment's text were written at that position (e.g. `this` typing in the evaluate view)
+    if (element instanceof HaxeExpressionCodeFragment fragment) return getAncestor(fragment.getContext(), clazz);
     return getAncestor(element.getParent(), clazz);
   }
 
