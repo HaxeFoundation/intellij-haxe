@@ -1,0 +1,118 @@
+package tests.debug.module;
+
+import debug.module.CodeGraph;
+import debug.module.ModuleDebugInfo;
+
+
+/**
+	Exercises ModuleDebugInfo against the compiled test fixture. The fixture path
+	is provided via DAP_FIXTURE_HL (set by the Gradle testHaxeAdapter task);
+	when unset the suite prints SKIP so a bare `haxe test.hxml` still passes.
+
+	Line constants mirror test-fixtures/src/Main.hx.
+**/
+class ModuleDebugInfoTest {
+	static inline var FIXTURE_LOOP_LINE = 18;
+	static inline var FIXTURE_ADD_LINE = 29; // the return line (28 is the declaration)
+
+	public static function run(assert:Assert):Void {
+		rejectsUnsupportedBytecodeFormatVersion(assert);
+
+		var fixture = Sys.getEnv("DAP_FIXTURE_HL");
+		if (fixture == null || !sys.FileSystem.exists(fixture)) {
+			Sys.println("SKIP ModuleDebugInfoTest (DAP_FIXTURE_HL not set or missing)");
+			return;
+		}
+
+		var module = new ModuleDebugInfo(fixture);
+		assert.isTrue(module.functionCount() > 0, "fixture has functions");
+
+		var loopHits = module.resolveLine("Main.hx", FIXTURE_LOOP_LINE);
+		assert.isTrue(loopHits.length > 0, "loop line resolves to code");
+		assert.equals(FIXTURE_LOOP_LINE, loopHits[0].line, "loop line not moved");
+
+		// reverse lookup of a resolved location returns the same file/line
+		var back = module.lookup(loopHits[0].fidx, loopHits[0].op);
+		assert.isTrue(back != null, "reverse lookup succeeds");
+		assert.equals(FIXTURE_LOOP_LINE, back.line, "reverse lookup line matches");
+		assert.isTrue(StringTools.endsWith(normalizeSlashes(back.file), "Main.hx"), "reverse lookup file is Main.hx");
+
+		var addHits = module.resolveLine("Main.hx", FIXTURE_ADD_LINE);
+		assert.isTrue(addHits.length > 0, "add line resolves to code");
+		var addName = module.functionName(addHits[0].fidx);
+		assert.isTrue(StringTools.endsWith(addName, "add"), "add frame name ends with 'add' (was " + addName + ")");
+
+		// a CONSTRUCTOR is named "Class.new", not the "fn@N" fallback: its findex
+		// is bound on the "$Class" statics container at the inherited
+		// hl.Class.__constructor__ field. ClosureCalls.Holder.new is line 29.
+		var ctorHits = module.resolveLine("ClosureCalls.hx", 29);
+		assert.isTrue(ctorHits.length > 0, "constructor line resolves to code");
+		var ctorName = module.functionName(ctorHits[0].fidx);
+		assert.isTrue(StringTools.endsWith(ctorName, "Holder.new"),
+			"constructor frame named Holder.new (was " + ctorName + ")");
+
+		// absolute path with backslashes should still match (Windows client paths)
+		var abs = "C:\\some\\project\\src\\Main.hx";
+		assert.isTrue(module.resolveLine(abs, FIXTURE_LOOP_LINE).length > 0, "absolute backslash path matches");
+
+		// an unknown file -> unresolved
+		assert.equals(0, module.resolveLine("NoSuchFile.hx", 5).length, "unknown file unresolved");
+
+		// a line without code resolves empty so the planner rejects it
+		assert.equals(0, module.resolveLine("Main.hx", 23).length, "blank line between functions unresolved");
+		assert.equals(0, module.resolveLine("Main.hx", 11).length, "doc-comment line unresolved");
+
+		opcodeAndCallAccessors(assert, module, loopHits[0].fidx);
+	}
+
+	// The loop line calls add(); check opcodes/lineOf/callTargetFunction resolve it.
+	static function opcodeAndCallAccessors(assert:Assert, module:ModuleDebugInfo, mainFidx:Int):Void {
+		var ops = module.opcodes(mainFidx);
+		assert.isTrue(ops.length > 0, "main function has opcodes");
+
+		var graph = new debug.module.CodeGraph(ops);
+		var foundCallToAdd = false;
+		var lineOfCallCorrect = false;
+		for (op in 0...ops.length) {
+			if (module.lineOf(mainFidx, op) != FIXTURE_LOOP_LINE) {
+				continue;
+			}
+			if (!graph.isCall(op)) {
+				continue;
+			}
+			var callee = module.callTargetFunction(mainFidx, op);
+			if (callee >= 0 && StringTools.endsWith(module.functionName(callee), "add")) {
+				foundCallToAdd = true;
+				lineOfCallCorrect = true;
+			}
+		}
+		assert.isTrue(foundCallToAdd, "loop line has a static call resolving to add");
+		assert.isTrue(lineOfCallCorrect, "the call opcode is on the loop line");
+		assert.equals(0, module.lineOf(mainFidx, 999999), "out-of-range opcode line is 0");
+	}
+
+	// A .hl file with an unsupported BYTECODE FORMAT version must fail with an
+	// error naming that version kind (the raw format-lib error reads like a
+	// HashLink runtime problem). No fixture needed: the file is fabricated.
+	static function rejectsUnsupportedBytecodeFormatVersion(assert:Assert):Void {
+		var out = new haxe.io.BytesOutput();
+		out.writeString("HLB");
+		out.writeByte(9); // bytecode format version 9: unsupported (format lib reads 2-5)
+		var path = "build/bad-bytecode-version-test.hl";
+		sys.io.File.saveBytes(path, out.getBytes());
+		try {
+			new ModuleDebugInfo(path);
+			assert.fail("unsupported bytecode format version should throw");
+		} catch (e:debug.DebugError) {
+			assert.isTrue(StringTools.contains(e.message, "bytecode format version"),
+				"names the version kind (was: " + e.message + ")");
+			assert.isTrue(StringTools.contains(e.message, "not the HashLink runtime version"),
+				"disambiguates from the runtime version");
+		}
+		sys.FileSystem.deleteFile(path);
+	}
+
+	static function normalizeSlashes(p:String):String {
+		return p == null ? "" : StringTools.replace(p, "\\", "/");
+	}
+}

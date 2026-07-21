@@ -1,0 +1,39 @@
+name: "Debugger: intellij-hxcpp-debugger"
+
+on:
+  push:
+    branches: ['master', 'develop', 'dev/*', 'feature/*']
+    paths:
+      - 'debuggers/intellij-hxcpp-debugger/**'
+      # shared dependency of every debugger module (also the haxelib the
+      # server's DAP typedefs come from, via haxelib dev)
+      - 'debuggers/dap-protocol/**'
+      # shared build inputs that can break any module build
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'gradlew*'
+      # the CI definition itself
+      - '.github/workflows/debugger-build.yaml'
+      - '.github/workflows/debugger-intellij-hxcpp.yaml'
+  pull_request:
+    branches: ['master', 'develop', 'feature/*']
+    paths:
+      - 'debuggers/intellij-hxcpp-debugger/**'
+      - 'debuggers/dap-protocol/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'gradlew*'
+      - '.github/workflows/debugger-build.yaml'
+      - '.github/workflows/debugger-intellij-hxcpp.yaml'
+
+jobs:
+  intellij-hxcpp-debugger:
+    uses: ./.github/workflows/debugger-build.yaml
+    with:
+      module: intellij-hxcpp-debugger
+      os: windows-latest
+      needs-haxe: true
+      haxelibs: |
+        haxelib install hxcpp --quiet --always

@@ -32,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.intellij.plugins.haxe.lang.psi.HaxeCodeFragmentUtil.isInCodeFragment;
 import static com.intellij.plugins.haxe.metadata.psi.HaxeMeta.*;
 
 public class HaxeAccessAnnotator implements Annotator {
@@ -41,13 +42,16 @@ public class HaxeAccessAnnotator implements Annotator {
 
     if (element instanceof HaxeReferenceExpression referenceExpression) {
       // we want to ignore references used in package, type or metas
+      if (isInCodeFragment(element)) return;
       if (checkIfShouldBeIgnored(referenceExpression)) return;
       checkAccessForReference(referenceExpression, holder);
     }
     else if (element instanceof HaxeNewExpression newExpression) {
+      if (isInCodeFragment(element)) return;
       checkAccessForConstructor(newExpression, holder);
     }
    else if (element instanceof HaxeCompiletimeMetaArg compileTimeMeta) {
+      if (isInCodeFragment(element)) return;
       HaxeMeta haxeMeta = PsiTreeUtil.getParentOfType(compileTimeMeta, HaxeMeta.class);
       if (haxeMeta != null) {
         if (haxeMeta.isType(ALLOW) || haxeMeta.isType(ACCESS)) {
@@ -124,6 +128,7 @@ public class HaxeAccessAnnotator implements Annotator {
     if(haxeMeta instanceof  HaxeCompiletimeMetaArg) return true;
     return false;
   }
+
 
   private void checkAccessForReference(@NotNull HaxeReferenceExpression referenceExpression, @NotNull AnnotationHolder holder) {
 

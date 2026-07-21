@@ -32,8 +32,8 @@ import static com.intellij.plugins.haxe.lang.psi.impl.HaxeReferenceUtil.wrapType
 
 @CustomLog
 public class HaxeReferenceSuggestionUtil {
-
-    public static Object[] getVariants(HaxeReferenceImpl haxeReference) {
+    // forceShowPrivateMembers is used for evaluate expressions during debugging where we want to show completion for all possible refs.
+    public static Object[] getVariants(HaxeReferenceImpl haxeReference, boolean forceShowPrivateMembers) {
         List<HaxeLookupElement> variants = new ArrayList<>();
 
         final HaxeReference leftReference = HaxeResolveUtil.getLeftReference(haxeReference);
@@ -63,7 +63,7 @@ public class HaxeReferenceSuggestionUtil {
                 if(haxeClass.isTypeDef()) {
                     haxeClass = tryResolveTypeDef(haxeClass);
                 }
-                boolean ignorePrivateMembers = haxeClass != refClass;
+                boolean ignorePrivateMembers = haxeClass != refClass && !forceShowPrivateMembers;
                 boolean hasModuleName = leftReference.textMatches(haxeClass.getName());
                 if(isStaticAccess) {
                     addClassStaticMemberSuggestions(variants, haxeClass, ignorePrivateMembers);
@@ -78,7 +78,7 @@ public class HaxeReferenceSuggestionUtil {
             case HaxeMethod haxeMethod -> addMethodBindSuggestion(variants, haxeMethod);
             case HaxePsiField haxeField -> {
                 if(resolvedType.isClassType()) {
-                    addClassMemberSuggestions(variants, resolvedType, targetReference);
+                    addClassMemberSuggestions(variants, resolvedType, targetReference, forceShowPrivateMembers);
                 }else if (resolvedType.isFunctionType()) {
                     addFunctionBindSuggestion(variants, haxeField, resolvedType.getFunctionType(), haxeReference);
                 }
@@ -110,7 +110,7 @@ public class HaxeReferenceSuggestionUtil {
                 }
             };
         if(!skipTypeMembers && !hasProcessedTypeMembers){
-            addClassMemberSuggestions(variants, resolvedType, targetReference);
+            addClassMemberSuggestions(variants, resolvedType, targetReference, forceShowPrivateMembers);
             // suggest static members from current class if  ref is not a chain
             if(!isStaticAccess && isFirstInChain) {
                 if(resolvedType.getType() instanceof SpecificHaxeClassReference classReference) {
@@ -228,13 +228,14 @@ public class HaxeReferenceSuggestionUtil {
       return Set.copyOf(dedupeMap.values());
   }
 
-    private static void addClassMemberSuggestions( List<HaxeLookupElement> variants, ResultHolder resolvedType, HaxeReference targetReference) {
+    private static void addClassMemberSuggestions(List<HaxeLookupElement> variants, ResultHolder resolvedType, HaxeReference targetReference,
+                                                  boolean forceShowPrivateMembers) {
         if(resolvedType.isClassType()) {
             SpecificHaxeClassReference classType = resolvedType.getClassType();
             HaxeClass haxeClass = classType.getHaxeClass();
             HaxeGenericResolver genericResolver = classType.getGenericResolver();
 
-            boolean ignorePrivateMembers = shouldIgnorePrivateMembers(classType, targetReference);
+            boolean ignorePrivateMembers = !forceShowPrivateMembers && shouldIgnorePrivateMembers(classType, targetReference);
             Set<HaxeComponentName> nonStaticMembers = findClassNonStaticMembers(haxeClass, targetReference, genericResolver, ignorePrivateMembers);
             variants.addAll(HaxeMemberLookupElement.createClassMembers(classType, genericResolver, nonStaticMembers));
         }
@@ -257,7 +258,6 @@ public class HaxeReferenceSuggestionUtil {
         HaxeClassModel model = containingClass.getModel();
         if(model != null) {
             SpecificTypeReference targetResolved = model.getInstanceReference().fullyResolveTypeDefAndUnwrapNullTypeReference();
-            SpecificTypeReference classResolved = classType.fullyResolveTypeDefAndUnwrapNullTypeReference();
             return !classType.isSameType(targetResolved);
         }
         return true;

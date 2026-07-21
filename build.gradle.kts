@@ -6,6 +6,7 @@ import org.jetbrains.intellij.platform.gradle.extensions.IntelliJPlatformExtensi
 import org.jetbrains.intellij.platform.gradle.models.ProductRelease
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateLexerTask
 import org.jetbrains.intellij.platform.gradle.tasks.GenerateParserTask
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
@@ -61,12 +62,12 @@ dependencies {
     val ideaTargetDir = "${ideaBaseDir}/idea${platformType}-${platformVersion}"
 
 
-    implementation("org.commonmark:commonmark:0.21.0")
-    implementation("org.commonmark:commonmark-ext-autolink:0.21.0")
-    implementation("org.commonmark:commonmark-ext-gfm-tables:0.21.0")
+    implementation(libs.commonmark)
+    implementation(libs.commonmarkAutolink)
+    implementation(libs.commonmarkGfmTables)
 
-    implementation("tools.jackson.core:jackson-databind:3.1.0")
-    implementation("org.apache.commons:commons-text:1.14.0")
+    implementation(libs.jacksonDatabind)
+    implementation(libs.commonsText)
 
     val flexShared = "${ideaTargetDir}/config/plugins/flex/lib/flex-shared.jar"
     val flexSupport = "${ideaTargetDir}/config/plugins/flex/lib/FlexSupport.jar"
@@ -83,10 +84,10 @@ dependencies {
     testCompileOnly(files("${ideaTargetDir}/lib/openapi.jar"))
     testCompileOnly(files("${ideaTargetDir}/lib/util.jar"))
 
-    compileOnly("org.projectlombok:lombok:1.18.44")
-    testCompileOnly("org.projectlombok:lombok:1.18.44")
-    annotationProcessor ("org.projectlombok:lombok:1.18.44")
-    testAnnotationProcessor ("org.projectlombok:lombok:1.18.44")
+    compileOnly(libs.lombok)
+    testCompileOnly(libs.lombok)
+    annotationProcessor (libs.lombok)
+    testAnnotationProcessor (libs.lombok)
 
     // TODO upgrade to junit5 (testFramework(TestFrameworkType.JUnit5))
     testImplementation(libs.junit)
@@ -112,9 +113,16 @@ dependencies {
 
         pluginModule(implementation(project(":jps-plugin")))
         pluginModule(implementation(project(":common")))
+        pluginModule(implementation(project(":debuggers:hashlink-debug-adapter")))
 
-        pluginComposedModule(implementation(project(":hxcpp-debugger-protocol")))
+        pluginComposedModule(implementation(project(":debuggers:hxcpp-debugger-protocol-legacy")))
         pluginComposedModule(implementation(project(":common")))
+        // composed (merged into the main jar) so the DAP client/protocol classes
+        // are on the plugin's runtime classpath - lib/modules jars are not loaded
+        pluginComposedModule(implementation(project(":debuggers:dap-protocol")))
+        pluginComposedModule(implementation(project(":debuggers:hashlink-debug-adapter")))
+        pluginComposedModule(implementation(project(":debuggers:vshaxe-hxcpp-debugger-adapter")))
+        pluginComposedModule(implementation(project(":debuggers:eval-debugger")))
 
     }
 
@@ -257,6 +265,16 @@ tasks {
     processResources {
         from("src") {
             include("**/*.properties")
+        }
+    }
+
+
+    // ship the DAP debug adapter bytecode inside the plugin directory (not a jar):
+    // the hl executable needs a real file path to run it
+    withType<PrepareSandboxTask> {
+        dependsOn(":debuggers:hashlink-debug-adapter:buildDebugAdapter")
+        from(project(":debuggers:hashlink-debug-adapter").layout.buildDirectory.file("hl/hl-debug-adapter.hl")) {
+            into(pluginName.map { "$it/adapter" })
         }
     }
 

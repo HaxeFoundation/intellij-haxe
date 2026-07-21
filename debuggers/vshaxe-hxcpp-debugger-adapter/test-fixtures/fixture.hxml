@@ -1,0 +1,10 @@
+# Debuggee fixture: windows exe with the hxcpp-debug-server compiled in.
+# The port is fixed and non-default so integration tests never collide with
+# a real debug session; tests bind their adapter listener to it.
+-cp test-fixtures/src
+-main Main
+-cpp build/hxcpp/fixture
+-debug
+-lib hxcpp-debug-server
+-D HXCPP_DEBUG_HOST=127.0.0.1
+-D HXCPP_DEBUG_PORT=6973

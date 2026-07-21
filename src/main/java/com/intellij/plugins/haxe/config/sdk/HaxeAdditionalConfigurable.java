@@ -54,6 +54,7 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
     return haxeSdkData == null ||
            !myHaxeAdditionalConfigurablePanel.getNekoBinPath().equals(haxeSdkData.getNekoBinPath()) ||
+           !myHaxeAdditionalConfigurablePanel.getHlBinPath().equals(haxeSdkData.getHlBinPath()) ||
            !myHaxeAdditionalConfigurablePanel.getHaxelibPath().equals(haxeSdkData.getHaxelibPath()) ||
            myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag() ^ haxeSdkData.getUseCompilerCompletionFlag() ||
            myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag() ^ haxeSdkData.getRemoveCompletionDuplicatesFlag();
@@ -62,12 +63,15 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
   @Override
   public void apply() throws ConfigurationException {
     final HaxeSdkData haxeSdkData = getHaxeSdkData();
-    if (haxeSdkData == null) {
-      return;
-    }
-
-    final HaxeSdkData newData = new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion());
+    // An SDK entry can lack HaxeSdkData (created by an old plugin version, or a
+    // deferred setup write that never ran). Returning here would silently drop
+    // everything typed in this panel, with no way to ever configure the SDK
+    // short of deleting and recreating it — so create the data instead.
+    final HaxeSdkData newData = haxeSdkData != null
+                                ? new HaxeSdkData(haxeSdkData.getHomePath(), haxeSdkData.getVersion())
+                                : new HaxeSdkData(mySdk.getHomePath(), mySdk.getVersionString());
     newData.setNekoBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getNekoBinPath()));
+    newData.setHlBinPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHlBinPath()));
     newData.setHaxelibPath(FileUtil.toSystemIndependentName(myHaxeAdditionalConfigurablePanel.getHaxelibPath()));
     newData.setUseCompilerCompletionFlag(myHaxeAdditionalConfigurablePanel.getUseCompilerCompletionFlag());
     newData.setRemoveCompletionDuplicatesFlag(myHaxeAdditionalConfigurablePanel.getRemoveCompletionDuplicatesFlag());
@@ -92,6 +96,8 @@ public class HaxeAdditionalConfigurable implements AdditionalDataConfigurable {
     if (haxeSdkData != null) {
       final String nekoBinPath = haxeSdkData.getNekoBinPath();
       myHaxeAdditionalConfigurablePanel.setNekoBinPath(FileUtil.toSystemDependentName(nekoBinPath == null ? "" : nekoBinPath));
+      final String hlBinPath = haxeSdkData.getHlBinPath();
+      myHaxeAdditionalConfigurablePanel.setHlBinPath(FileUtil.toSystemDependentName(hlBinPath == null ? "" : hlBinPath));
       final String haxelibPath = haxeSdkData.getHaxelibPath();
       myHaxeAdditionalConfigurablePanel.setHaxelibPath(FileUtil.toSystemDependentName(haxelibPath == null ? "" : haxelibPath));
       final boolean bUseCompilerCompletion = haxeSdkData.getUseCompilerCompletionFlag();

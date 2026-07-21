@@ -48,6 +48,10 @@ jobs:
       - name: Test haxe
         run: haxe -version
 
+      # Debugger tests are opt-in (-PdebuggerTests=true) and are NOT run here:
+      # they need real toolchains (windows + hxcpp/HashLink) and run via the
+      # compat-matrix tool / dedicated workflows. The HashLink adapter (shipped
+      # in the plugin) still compiles here.
       - name: Build with Gradle (windows)
         timeout-minutes: 30
         if: ${{ matrix.os == 'windows-latest'}}

@@ -1,0 +1,9 @@
+# Compile from the MODULE root (haxe test-fixtures/fixture.hxml): hxcpp builds
+# generated-file paths from the cwd without normalizing.
+-cp test-fixtures/src
+-main Main
+# uncalled evaluate-time target; must be listed or it is never compiled
+fix.PackCounter
+-lib intellij-hxcpp-debug-server
+-debug
+-cpp build/hxcpp/fixture

@@ -1,0 +1,12 @@
+// Applied (-I) by the compat-matrix tool to its CHILD gradle builds only:
+// makes every Test task print per-test events to stdout, which the tool
+// tails to log live per-suite progress during the long lanes. Deliberately
+// an init script so the modules' own build files stay untouched.
+allprojects {
+    tasks.withType(Test).configureEach {
+        testLogging {
+            events "passed", "failed", "skipped"
+            exceptionFormat "short"
+        }
+    }
+}

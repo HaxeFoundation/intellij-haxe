@@ -1,0 +1,5 @@
+-cp src
+-main VmError
+-debug
+-D hl-legacy32
+-hl ../build/hl/vm-fixture.hl

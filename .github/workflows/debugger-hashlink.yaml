@@ -1,0 +1,39 @@
+name: "Debugger: hashlink-debug-adapter"
+
+on:
+  push:
+    branches: ['master', 'develop', 'dev/*', 'feature/*']
+    paths:
+      - 'debuggers/hashlink-debug-adapter/**'
+      # shared dependency of every debugger module
+      - 'debuggers/dap-protocol/**'
+      # shared build inputs that can break any module build
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'gradlew*'
+      # the CI definition itself
+      - '.github/workflows/debugger-build.yaml'
+      - '.github/workflows/debugger-hashlink.yaml'
+  pull_request:
+    branches: ['master', 'develop', 'feature/*']
+    paths:
+      - 'debuggers/hashlink-debug-adapter/**'
+      - 'debuggers/dap-protocol/**'
+      - 'gradle/**'
+      - 'gradle.properties'
+      - 'settings.gradle.kts'
+      - 'gradlew*'
+      - '.github/workflows/debugger-build.yaml'
+      - '.github/workflows/debugger-hashlink.yaml'
+
+jobs:
+  hashlink-debug-adapter:
+    uses: ./.github/workflows/debugger-build.yaml
+    with:
+      module: hashlink-debug-adapter
+      os: windows-latest
+      needs-haxe: true
+      needs-hashlink: true
+      haxelibs: |
+        haxelib install format 3.7.0 --quiet --always

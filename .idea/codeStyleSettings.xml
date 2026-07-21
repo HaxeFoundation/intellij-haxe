@@ -24,6 +24,9 @@
             <package name="java.awt" withSubpackages="false" static="false" />
             <package name="javax.tools" withSubpackages="true" static="false" />
             <package name="javax.swing" withSubpackages="false" static="false" />
+            <package name="com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests" withSubpackages="false" static="false" />
+            <package name="com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses" withSubpackages="false" static="false" />
+            <package name="com.intellij.plugins.haxe.runner.debugger.dap.protocol.events" withSubpackages="false" static="false" />
           </value>
         </option>
         <option name="STATIC_METHODS_ORDER_WEIGHT" value="5" />
