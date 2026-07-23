@@ -20,6 +20,8 @@ package com.intellij.plugins.haxe.runner.debugger;
 import com.intellij.lang.javascript.flex.projectStructure.model.Dependencies;
 import com.intellij.lang.javascript.flex.projectStructure.model.DependencyEntry;
 import com.intellij.lang.javascript.flex.projectStructure.model.SdkEntry;
+import com.intellij.flex.model.bc.ComponentSet;
+import com.intellij.flex.model.bc.LinkageType;
 
 import lombok.CustomLog;
 import org.jetbrains.annotations.NotNull;
@@ -46,20 +48,20 @@ public class FakeFlexDependencies implements Dependencies {
   }
 
   @NotNull
-  public com.intellij.flex.model.bc.LinkageType getFrameworkLinkage()
+  public LinkageType getFrameworkLinkage()
   {
     log.info("FakeFlexDependencies::getFrameworkLinkage");
     return null;
   }
 
   @NotNull
-  public java.lang.String getTargetPlayer() {
+  public String getTargetPlayer() {
     log.info("FakeFlexDependencies::getTargetPlayer");
     return null;
   }
 
   @NotNull
-  public com.intellij.flex.model.bc.ComponentSet getComponentSet()
+  public ComponentSet getComponentSet()
   {
     log.info("FakeFlexDependencies::getComponentSet");
     return null;

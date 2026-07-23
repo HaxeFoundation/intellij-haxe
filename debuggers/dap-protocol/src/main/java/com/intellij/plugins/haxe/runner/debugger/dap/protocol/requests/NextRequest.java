@@ -15,4 +15,12 @@ public class NextRequest extends Request {
   public NextRequest() {
     super(COMMAND);
   }
+
+  public static NextRequest of(int threadId) {
+    NextRequest request = new NextRequest();
+    NextArguments arguments = new NextArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

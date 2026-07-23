@@ -30,7 +30,7 @@ public class HxcppVshaxeConfigurationFactory extends ConfigurationFactory {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.VSHAXE;
+    return HaxeIcons.DEBUGGER_VSHAXE;
   }
 
   @Override

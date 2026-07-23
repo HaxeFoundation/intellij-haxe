@@ -103,6 +103,62 @@ HashLink is not bundled with the repository — install it from
 CI currently has no HashLink runtime, so the integration tests skip there; the framing,
 JSON and dispatcher tests still run everywhere.
 
+### Linux support
+
+HashLink publishes no linux release binaries (Windows only since 1.6), so the only
+provisionable linux runtime is the **nightly** — and the debugger works on it:
+**102 of 104 integration tests pass**, identically across haxe 4.1.5 through
+5.0.0-preview.1. Getting there needed linux-only adaptations (all no-ops on
+Windows), because HashLink's linux `debug_*` natives are ptrace-based and
+behave differently from the Windows debug API:
+
+- `hl_debug_wait` on linux IGNORES its timeout — it is a plain blocking
+  `waitpid`. The Windows-style "drain the post-attach event burst until a wait
+  times out" loop therefore deadlocks on the SECOND wait. Linux delivers
+  exactly one attach stop, so the drain keeps it and returns
+  (`DebugSession.drainAttachEvents`).
+- linux ptrace memory writes require a ptrace-STOPPED tracee (Windows'
+  `WriteProcessMemory` works on a running process). The attach SIGSTOP is
+  therefore HELD through launch-time breakpoint installation and released in
+  `configurationDone`, when the handshake-socket gate opens anyway.
+- while Running the session thread is parked in that blocking wait, so a
+  queued command (pause, breakpoint changes) would sit until some debug event
+  arrived. Enqueueing now NUDGES the debuggee (`forceBreak` = SIGTRAP on the
+  traced thread); the resulting stop matches nothing patched, is resumed
+  silently, and the command interleave runs (`DebugSession.send`).
+- a signal-delivered VM error (null access = SIGSEGV) reaches hl_throw with
+  no walkable chain: the C error path has no frame pointers, hl's SIGSEGV
+  handler dismantles the kernel signal frame before the error path runs, and
+  RBP is repurposed by the C code. The walker instead rebuilds the top frame
+  from the VM's own throw capture (`hl_thread_info.exc_stack_trace`) and
+  recovers its frame base by scanning the stack for the return address into
+  the captured caller (`StackWalker.recoverThroughSignalFrame`).
+- a debuggee killed without a parseable exit status (see the threads limit
+  below) used to spin the session forever — `waitpid` failure is now treated
+  as process death.
+- float-register WRITES: hl's linux `debug_write_register` cannot write XMM
+  (its ptrace write path never handled the FP pseudo-offsets its read path
+  defines — the write silently no-ops). The adapter instead loads the
+  register by running a two-instruction injected stub (`movsd xmm0,[mem]` +
+  INT3) through the same eval-call machinery that already runs code in the
+  debuggee — the write becomes something the debuggee does to itself, so the
+  broken native is never called.
+
+Machine requirement: **attach mode** (attaching to a debuggee the adapter did
+not spawn) needs `kernel.yama.ptrace_scope=0` (`sudo sysctl
+kernel.yama.ptrace_scope=0`; Ubuntu defaults to 1, which only allows tracing
+your own descendants — launch mode is unaffected). The 2 remaining failures
+are a limit of HashLink's linux natives (`src/std/debug.c`) with NO
+adapter-side workaround: a breakpoint executed by a SECONDARY thread kills
+the debuggee. `PTRACE_ATTACH`/`waitpid` on linux are per-thread and hl
+attaches only the main thread, so a worker hitting a breakpoint INT3 is
+untraced and its SIGTRAP takes the default (fatal) action before any adapter
+code can intervene. Unlike the float write, code injection cannot help — the
+obstacle is not a missing operation but which thread is traced — so this
+needs per-tid attach (`/proc/<pid>/task` + `PTRACE_O_TRACECLONE`) and
+`waitpid(-1, __WALL)` upstream. See the docs backlog entry on
+multi-threading.
+
 ## Distribution
 
 The root build copies `hl-debug-adapter.hl` into the plugin sandbox/zip at

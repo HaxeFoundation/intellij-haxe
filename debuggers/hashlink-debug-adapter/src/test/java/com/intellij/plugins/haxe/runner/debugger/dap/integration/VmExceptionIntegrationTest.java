@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Map;
 import org.junit.Assume;
@@ -94,7 +95,7 @@ public class VmExceptionIntegrationTest extends DapIntegrationTestBase {
   }
 
   private int nullAccessLine() throws Exception {
-    List<String> lines = java.nio.file.Files.readAllLines(fixtureSrcDir.resolve("VmError.hx"));
+    List<String> lines = Files.readAllLines(fixtureSrcDir.resolve("VmError.hx"));
     for (int i = 0; i < lines.size(); i++) {
       if (lines.get(i).contains("// bp:nullaccess")) {
         return i + 1;

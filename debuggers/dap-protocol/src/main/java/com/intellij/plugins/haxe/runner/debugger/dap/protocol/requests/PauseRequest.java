@@ -15,4 +15,12 @@ public class PauseRequest extends Request {
   public PauseRequest() {
     super(COMMAND);
   }
+
+  public static PauseRequest of(int threadId) {
+    PauseRequest request = new PauseRequest();
+    PauseArguments arguments = new PauseArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

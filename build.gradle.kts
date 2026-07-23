@@ -123,6 +123,7 @@ dependencies {
         pluginComposedModule(implementation(project(":debuggers:hashlink-debug-adapter")))
         pluginComposedModule(implementation(project(":debuggers:vshaxe-hxcpp-debugger-adapter")))
         pluginComposedModule(implementation(project(":debuggers:eval-debugger")))
+        pluginComposedModule(implementation(project(":debuggers:browser-debugger")))
 
     }
 

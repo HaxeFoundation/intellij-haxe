@@ -229,7 +229,9 @@ public abstract class DapIntegrationTestBase {
    * the gradle fixture build resolves too.
    */
   protected static void assumeFixtureHaxe43Plus() {
-    Assume.assumeTrue("not supported by the current debugger adapter below haxe 4.3 "
+    // "known limitation:" marks a DELIBERATE version/OS constraint; the matrix
+    // report groups these apart from ordinary missing-prerequisite skips
+    Assume.assumeTrue("known limitation: not supported by the current debugger adapter below haxe 4.3 "
                       + "(pre-4.3 throw wrapping / catch-handler debug info) - skipping",
                       fixtureHaxeAtLeast(4, 3));
   }

@@ -230,6 +230,19 @@ slurped the whole message until a 0.5 s read timeout marked the end — that
 timeout fired on EVERY launch, a dead half-second each time.) The pump buffer
 is 4096 bytes (streaming, size just bounds one copy).
 
+**The debug-port reservation can be lost.** `findFreePort` must release its
+reservation before the VM can bind the port, and in that window (process
+spawn + VM startup) another socket can take it — the VM then prints
+`Could not start debugger on port N` and whatever owns the port drops the
+adapter's connect, surfacing as a connect failure or a handshake EOF.
+`spawnAndHandshake` detects the VM's startup banner (first stderr chunk
+only; the program cannot have produced output yet under `--debug-wait`) and
+relaunches on a fresh port, up to `LAUNCH_BIND_ATTEMPTS` times. The banner
+text is a retry trigger, not a correctness dependency: if a future HL
+rewords it (string verified present in 1.13–nightly), the launch degrades
+to the plain error instead of retrying — the nightly matrix lane is the
+canary for that.
+
 Rules for any future VM socket exchange where the peer sends a
 variable-length message and then waits: don't issue exact-size reads straight
 off the socket unless the format is self-delimiting and the reader never
@@ -1211,3 +1224,36 @@ capability — hence parked until a real expression fails.
 | Value writes | Allocation-free only (no debuggee allocator access): literals into primitives, null into pointers, pointer-copy/box-payload updates. New strings/objects need the eval-call machinery. GC-safe because HL has no write barriers and writes happen only while stopped |
 | Constructing objects | `new X(args)` is a HACK: disassemble an `ONew X` site for the alloc call (`mov (r/e)ax,<hl_alloc_obj> … FF D0`) + the type-ptr set-arg before it (`mov rcx/rdi` on x64, `push` on x86) + the ctor findex from the following `OCall`. Arch-selected via `MachineCode.mineArgThenCall`, DCE-limited to instantiated classes, reports "experimental/unavailable" if the pattern isn't found. Never assume the call is immediately after the `mov` — win64 slips `sub rsp,0x20` in between |
 | findex ≠ array index | An `OCall`/binding carries a raw findex; `functionType`/`functionEntry`/`opcodes` want the ARRAY position. Map with `callTargetFunction`/`functionIndexByFindex`, never use a raw findex directly |
+
+## Backlog: correct multi-threading on linux (assessed 2026-07-22, open)
+
+**Multi-threaded debugging does not work on linux today**: a breakpoint hit by
+a SECONDARY thread KILLS the debuggee. linux ptrace attaches per-thread and
+hl's `debug_start` only attaches the main thread, so a worker's INT3 takes
+SIGTRAP's default action (process kill). The adapter now reports the death
+instead of spinning, but any real session dies the moment a breakpoint lands
+off the main thread; ThreadsIntegrationTest (2 tests) fails. Single-threaded
+debuggees and Windows are unaffected.
+
+The fix belongs in HashLink's native debug code, not the adapter — no
+adapter-side code can change which threads ptrace attached. It is expected to
+be fixable: a proof-of-concept linux HashLink build that attaches every
+thread (not just the main one) already exists at
+<https://github.com/m0rkeulv/hashlink/releases/tag/latest> — point the tests
+at it with `-PhashlinkBin=<path>` to confirm ThreadsIntegrationTest passes.
+
+To ship it: upstream the change into a HashLink release, then version-gate
+linux multi-threading on the runtime (the matrix pins released runtimes).
+Until then, document the limitation in the IDE (an adapter-side breakpoint
+veto is not viable — line/thread mapping is not statically known). Worth
+checking whether upstream vshaxe/hashlink-debugger dies the same way.
+
+Related linux limit in the same natives, already WORKED AROUND (kept here
+for context): float/XMM register WRITES are unimplemented on linux, so the
+adapter loads the register through an injected code stub instead of the
+broken `debug_write_register` (see the adapter README's "Linux support").
+A per-tid attach change would not remove that workaround — it is a
+separate native gap — but a future hl that implements FP writes could
+retire it. The VmException stack recovery also leans on the VM's
+exc_stack_trace capture (glibc-layout offset in
+`Align.threadExcStackTraceLinux`).

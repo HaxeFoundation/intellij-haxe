@@ -109,8 +109,18 @@ class Macro {
 	}
 
 	static function collectExpr(expr:TypedExpr, offsetsByFile:Map<String, Map<Int, Bool>>):Void {
+		// On haxe < 4.2 a TFunction's position starts in the trivia BEFORE the
+		// declaration — a leading comment line enters the table and a
+		// breakpoint there falsely verifies. Skip it there; the body carries
+		// the function's real lines. Haxe 4.2 tightened the position to the
+		// declaration itself (a line hxcpp instruments), so it stays recorded.
+		#if (haxe_ver < 4.2)
+		var skip = expr.expr.match(TFunction(_));
+		#else
+		var skip = false;
+		#end
 		var pos = Context.getPosInfos(expr.pos);
-		if (pos.min >= 0 && pos.file != null && pos.file.length > 0) {
+		if (!skip && pos.min >= 0 && pos.file != null && pos.file.length > 0) {
 			var offsets = offsetsByFile.get(pos.file);
 			if (offsets == null) {
 				offsets = new Map();

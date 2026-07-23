@@ -34,7 +34,7 @@ import org.junit.Test;
  * the hashlink adapter resumes with user INT3s armed): a step-out must stop at
  * a breakpoint further down the function, and a step-over must stop at a
  * breakpoint inside the function being stepped over. The eval VM itself honours
- * breakpoints mid-verb (response + breakpointStop notification, live-verified);
+ * breakpoints mid-verb (response + breakpointStop notification);
  * these tests pin the adapter's step-emulation loops to the same contract.
  */
 public class EvalStepBreakpointLiveTest {
@@ -74,7 +74,8 @@ public class EvalStepBreakpointLiveTest {
     adapter = new EvalDebugAdapter(TIMEOUT);
     haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalStepBp",
                               "-D", "eval-debugger=127.0.0.1:" + adapter.getVmPort(), "--interp")
-      .redirectErrorStream(true).start();
+      .redirectErrorStream(true)
+      .start();
     dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     Socket clientSide = new Socket(InetAddress.getLoopbackAddress(), dapListener.getLocalPort());
     adapter.start(new DapConnection(dapListener.accept()));

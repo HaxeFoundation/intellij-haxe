@@ -45,7 +45,7 @@ import tools.jackson.databind.JsonNode;
  * the IDE-side {@code DapClient} and translates every request into the haxe
  * compiler's eval-debugger JSON-RPC protocol (and its notifications back into
  * DAP events). Reference: vshaxe/eval-debugger's Main.hx; the wire behaviour
- * this relies on is live-verified in {@code EvalLiveTest} / docs.
+ * this relies on is covered by {@code EvalLiveTest} / docs.
  *
  * Lifecycle: construct (binds the VM listener socket), let the caller spawn
  * {@code haxe <args> -D eval-debugger=127.0.0.1:<port> --interp} (or any
@@ -103,7 +103,7 @@ public class EvalDebugAdapter implements Closeable {
   /**
    * Set by the reader thread when the VM pushes breakpointStop DURING a step:
    * the VM answers the step verb normally and ADDITIONALLY notifies that the
-   * landing is a user breakpoint (live-verified). The loop consumes this and
+   * landing is a user breakpoint. The loop consumes this and
    * reports the stop as "breakpoint" instead of stepping onward past it.
    */
   private volatile Integer breakpointHitDuringStep;
@@ -337,7 +337,7 @@ public class EvalDebugAdapter implements Closeable {
 
   private void handleConfigurationDone(ConfigurationDoneRequest request) throws IOException {
     if (!exceptionOptionsConfigured) {
-      // the VM's DEFAULT is to stop on uncaught exceptions (live-verified) —
+      // the VM's DEFAULT is to stop on uncaught exceptions —
       // an unconfigured session must not stop where the user set nothing up
       try {
         vm().setExceptionOptions(List.of());
@@ -356,7 +356,7 @@ public class EvalDebugAdapter implements Closeable {
    * SUCCESS: the VM acks continue from a helper thread while the resumed
    * program runs, and when the program finishes the process can exit before
    * that ack is flushed — the resume happened, the terminated event (from
-   * the disconnect callback) ends the session. Live-observed race. Any OTHER
+   * the disconnect callback) ends the session. Any OTHER
    * failure (a request timeout, a socket reset mid-write) means the VM is
    * gone or wedged — the session is ended deterministically rather than
    * letting every later request burn its own timeout.
@@ -419,7 +419,7 @@ public class EvalDebugAdapter implements Closeable {
     // On haxe <= 4.3 the resumed exception runs the program off within
     // milliseconds (disconnect -> terminated). The haxe 5 preview's VM
     // instead survives as a ZOMBIE: resume acknowledged, stack permanently
-    // gone, program never finishes, no event ever pushed (live-verified,
+    // gone, program never finishes, no event ever pushed (
     // including that further resumes and pause change nothing). Give the
     // legitimate death a moment, then probe: a VM still answering from the
     // frame-less state is that zombie - end the session deterministically
@@ -527,7 +527,7 @@ public class EvalDebugAdapter implements Closeable {
    * An UNCAUGHT exception stop is a state the VM can never leave forward:
    * every continue or step RE-EXECUTES the whole throw expression (the
    * exception constructor runs again, then the same exceptionStop — an
-   * infinite loop, live-verified; the program cannot die while the option is
+   * infinite loop; the program cannot die while the option is
    * armed, and closing the socket wedges the process instead of freeing it).
    * The one working exit: clear the exception options FIRST, then resume —
    * the re-executed throw finally propagates for real and the program dies

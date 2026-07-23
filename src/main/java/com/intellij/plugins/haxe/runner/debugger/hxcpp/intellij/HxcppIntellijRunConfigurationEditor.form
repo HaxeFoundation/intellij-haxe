@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij.HxcppIntellijRunConfigurationEditor">
+  <grid id="27dc6" binding="panel" layout-manager="GridLayoutManager" row-count="7" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="0" left="0" bottom="0" right="0"/>
+    <constraints>
+      <xy x="20" y="20" width="1034" height="240"/>
+    </constraints>
+    <properties/>
+    <border type="none"/>
+    <children>
+      <component id="e1001" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelFor value="e1002"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.editor.module"/>
+        </properties>
+      </component>
+      <component id="e1002" class="com.intellij.application.options.ModulesComboBox" binding="moduleCombo">
+        <constraints>
+          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="e1003" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelFor value="e1004"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.editor.executable"/>
+        </properties>
+      </component>
+      <component id="e1004" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="executableField">
+        <constraints>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="e1005" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelFor value="e1006"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.editor.working.directory"/>
+        </properties>
+      </component>
+      <component id="e1006" class="com.intellij.openapi.ui.TextFieldWithBrowseButton" binding="workingDirectoryField">
+        <constraints>
+          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+      </component>
+      <component id="e1007" class="javax.swing.JTextPane" binding="workingDirectoryHintArea">
+        <constraints>
+          <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="32"/>
+          </grid>
+        </constraints>
+        <properties>
+          <editable value="false"/>
+          <opaque value="false"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.editor.working.directory.hint"/>
+        </properties>
+      </component>
+      <component id="e1008" class="javax.swing.JLabel">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <labelFor value="e1009"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.editor.program.arguments"/>
+        </properties>
+      </component>
+      <component id="e1009" class="com.intellij.ui.components.JBTextField" binding="programArgumentsField">
+        <constraints>
+          <grid row="4" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <columns value="25"/>
+        </properties>
+      </component>
+      <component id="e1010" class="javax.swing.JTextPane" binding="debugHintArea">
+        <constraints>
+          <grid row="5" column="0" row-span="1" col-span="2" vsize-policy="7" hsize-policy="7" anchor="8" fill="1" indent="0" use-parent-layout="false">
+            <preferred-size width="-1" height="32"/>
+          </grid>
+        </constraints>
+        <properties>
+          <editable value="false"/>
+          <opaque value="false"/>
+          <text resource-bundle="messages/HaxeDebuggerBundle" key="hxcpp.intellij.runner.debug.hint"/>
+        </properties>
+      </component>
+      <vspacer id="e1011">
+        <constraints>
+          <grid row="6" column="0" row-span="1" col-span="2" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+    </children>
+  </grid>
+</form>

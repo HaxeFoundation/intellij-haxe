@@ -1,9 +1,6 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.client;
 
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ProtocolMessage;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import java.io.Closeable;
 import java.io.IOException;
@@ -22,7 +19,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * matched to their request by {@code request_seq}, events go to a queue that
  * callers drain with {@link #pollEvent}. Owns the client-side seq counter.
  */
-public class DapClient implements Closeable {
+public class DapClient implements DapEndpoint {
   /** Poison pill offered to every pending request when the reader exits. */
   private static final Response CONNECTION_CLOSED = new Response();
 
@@ -31,12 +28,41 @@ public class DapClient implements Closeable {
   private final AtomicInteger nextSeq = new AtomicInteger(1);
   private final ConcurrentMap<Integer, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
   private final BlockingQueue<Event> events = new LinkedBlockingQueue<>();
+  // REVERSE requests (adapter -> client, e.g. js-debug's startDebugging);
+  // drained like events - a client that never polls simply leaves them here
+  private final BlockingQueue<Request> incomingRequests = new LinkedBlockingQueue<>();
   private volatile boolean closed = false;
   private volatile boolean readerFinished = false;
   private volatile Throwable readerDeathCause;
 
   public static DapClient connect(String host, int port, int connectTimeoutMillis) throws IOException {
     return new DapClient(DapConnection.connect(host, port, connectTimeoutMillis));
+  }
+
+  /**
+   * {@link #connect} with a retry window: the DAP adapters announce their
+   * port slightly BEFORE the listener accepts (on both vscode
+   * web adapters), so an immediate connect can be refused — retry briefly
+   * instead of failing the session.
+   */
+  public static DapClient connectWithRetry(String host, int port, int connectTimeoutMillis,
+                                           long retryWindowMillis) throws IOException {
+    long deadline = System.currentTimeMillis() + retryWindowMillis;
+    IOException last = null;
+    while (System.currentTimeMillis() < deadline) {
+      try {
+        return connect(host, port, connectTimeoutMillis);
+      } catch (IOException e) {
+        last = e;
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException ie) {
+          Thread.currentThread().interrupt();
+          throw new IOException("Interrupted while connecting to the debug adapter", ie);
+        }
+      }
+    }
+    throw last != null ? last : new IOException("Could not connect to the debug adapter");
   }
 
   public DapClient(DapConnection connection) {
@@ -100,6 +126,36 @@ public class DapClient implements Closeable {
     return events.poll(timeoutMillis, TimeUnit.MILLISECONDS);
   }
 
+  /**
+   * Returns the next REVERSE request the adapter sent to the client (js-debug's
+   * {@code startDebugging}), waiting up to the timeout; null when none.
+   */
+  public Request pollIncomingRequest(long timeoutMillis) throws InterruptedException {
+    return incomingRequests.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+  }
+
+  /**
+   * Sends a request WITHOUT waiting for its response (assigns the next seq).
+   * For adapters that defer a response past further client requests —
+   * js-debug only answers {@code launch} after {@code configurationDone}, so
+   * awaiting it synchronously would deadlock the session setup. The eventual
+   * response is discarded by the reader (no pending entry).
+   */
+  public void sendRequestNoWait(Request request) throws IOException {
+    request.setSeq(nextSeq.getAndIncrement());
+    connection.send(request);
+  }
+
+  /** Answers a reverse request (assigns the next outgoing seq and sends the response). */
+  public void respond(Request incoming, boolean success) throws IOException {
+    Response response = new Response();
+    response.setSeq(nextSeq.getAndIncrement());
+    response.setRequest_seq(incoming.getSeq());
+    response.setCommand(incoming.getCommand());
+    response.setSuccess(success);
+    connection.send(response);
+  }
+
   private void readLoop() {
     try {
       while (true) {
@@ -115,6 +171,9 @@ public class DapClient implements Closeable {
         }
         else if (message instanceof Event event) {
           events.offer(event);
+        }
+        else if (message instanceof Request incoming) {
+          incomingRequests.offer(incoming);
         }
       }
     } catch (IOException | RuntimeException e) {

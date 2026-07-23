@@ -1,4 +1,4 @@
-package com.intellij.plugins.haxe.runner.debugger.hashlink;
+package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ReadAction;
@@ -7,7 +7,6 @@ import com.intellij.openapi.util.TextRange;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import com.intellij.plugins.haxe.lang.psi.HaxeCallExpression;
 import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSupportUtils;
-import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugProcess;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.psi.PsiElement;
 import com.intellij.xdebugger.XSourcePosition;
@@ -24,7 +23,12 @@ import org.jetbrains.concurrency.AsyncPromise;
 import org.jetbrains.concurrency.Promise;
 
 /**
- * Smart step into for HashLink: on a line with several calls (chained
+ * One of two smart-step flavours: smart step into for adapters that answer
+ * DAP {@code stepInTargets} (HashLink's bundled adapter reads the bytecode;
+ * js-debug reads the AST through the source map) — the preferred flavour
+ * wherever the capability exists; servers with no line→calls knowledge use
+ * the PSI-computed {@link PsiResolvedSmartStepHandler} instead. On a line
+ * with several calls (chained
  * {@code a().b()} or nested {@code a(b())}), lists them so the user picks
  * which one to enter. Both the dedicated action (Shift+F7) and the plain Step
  * Into (F7, via {@link #computeStepIntoVariants}) show the chooser; F7 steps
@@ -40,11 +44,20 @@ import org.jetbrains.concurrency.Promise;
  * what makes the platform highlight the calls in the editor and let the user
  * Tab between them, like the Java debugger. A target whose call can't be
  * found in the PSI still works — it just isn't highlighted.
+ *
+ * KNOWN LIMITATION (js-debug): when the stopped line is the
+ * LAST statement of its function, js-debug reverse-maps the line AND line+1
+ * through the source map; haxe emits no mappings for the closing-brace line,
+ * the sibling counts differ, and the adapter bails to zero targets
+ * ("Expected to have the same number of start and end locations") — the step
+ * then degrades to a plain step into the first call. Any following mapped
+ * statement on the next line restores the chooser. Pinned by
+ * JsDebugAdapterLiveProbe.stepInTargetsKnownLimitationOnLastStatementOfFunction.
  */
-class HashLinkSmartStepIntoHandler extends XSmartStepIntoHandler<HashLinkSmartStepIntoHandler.Variant> {
+public class AdapterTargetsSmartStepHandler extends XSmartStepIntoHandler<AdapterTargetsSmartStepHandler.Variant> {
   private final DapDebugProcess process;
 
-  HashLinkSmartStepIntoHandler(DapDebugProcess process) {
+  public AdapterTargetsSmartStepHandler(DapDebugProcess process) {
     this.process = process;
   }
 
@@ -100,13 +113,12 @@ class HashLinkSmartStepIntoHandler extends XSmartStepIntoHandler<HashLinkSmartSt
   // its own occurrence even when an already-executed call earlier on the line
   // shares the name (`cfg.test1(1)...test1(2)` after test1(1) ran), and it
   // keeps same-named calls from swapping (`a.reset(b.reset())`).
-  // (package-private, static: exercised directly by tests)
-  static List<TextRange> matchCallRanges(List<StepInTarget> targets, List<PsiElement> names) {
+  // (public static: exercised directly by tests)
+  public static List<TextRange> matchCallRanges(List<StepInTarget> targets, List<PsiElement> names) {
     TextRange[] result = new TextRange[targets.size()];
     List<PsiElement> remaining = new ArrayList<>(names);
     for (int t = targets.size() - 1; t >= 0; t--) {
-      String label = targets.get(t).getLabel();
-      String simpleName = label.substring(label.lastIndexOf('.') + 1);
+      String simpleName = simpleCalleeName(targets.get(t).getLabel());
       for (int i = remaining.size() - 1; i >= 0; i--) {
         if (remaining.get(i).getText().equals(simpleName)) {
           result[t] = remaining.get(i).getTextRange();
@@ -118,10 +130,25 @@ class HashLinkSmartStepIntoHandler extends XSmartStepIntoHandler<HashLinkSmartSt
     return Arrays.asList(result);
   }
 
+  /**
+   * The bare callee name from an adapter step-in-target label. Handles both
+   * dialects: HashLink's {@code "pack.Class.method"} and js-debug's
+   * {@code "method(...)"} (source-map-mapped, with a parameter placeholder).
+   * Strip the argument list first, THEN take the segment after the last dot.
+   */
+  public static String simpleCalleeName(String label) {
+    if (label == null) {
+      return "";
+    }
+    int paren = label.indexOf('(');
+    String beforeArgs = paren >= 0 ? label.substring(0, paren) : label;
+    return beforeArgs.substring(beforeArgs.lastIndexOf('.') + 1).trim();
+  }
+
   // The name identifiers of the call expressions on the position's line, in
   // EXECUTION order — the order the adapter reports targets (bytecode order).
-  // (package-private, static: exercised directly by tests)
-  static List<PsiElement> callNameElementsInExecutionOrder(Project project, XSourcePosition position) {
+  // (public static: exercised directly by tests)
+  public static List<PsiElement> callNameElementsInExecutionOrder(Project project, XSourcePosition position) {
     List<PsiElement> names = new ArrayList<>();
     for (HaxeCallExpression call : HaxeDebuggerSupportUtils.callExpressionsOnLine(project, position)) {
       PsiElement name = HaxeDebuggerSupportUtils.callNameElement(call);
@@ -137,7 +164,7 @@ class HashLinkSmartStepIntoHandler extends XSmartStepIntoHandler<HashLinkSmartSt
   // unimplemented title breaks session initialization, not just the popup.
   @Override
   public String getPopupTitle() {
-    return HaxeDebuggerBundle.message("hashlink.debugger.smart.step.into.title");
+    return HaxeDebuggerBundle.message("dap.debugger.smart.step.into.title");
   }
 
   @Override

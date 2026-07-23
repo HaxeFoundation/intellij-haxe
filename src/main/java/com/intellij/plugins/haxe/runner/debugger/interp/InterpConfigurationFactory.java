@@ -31,7 +31,7 @@ public class InterpConfigurationFactory extends ConfigurationFactory {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.HAXE_LOGO;
+    return HaxeIcons.DEBUGGER_EVAL;
   }
 
   @Override

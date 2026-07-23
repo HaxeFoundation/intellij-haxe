@@ -34,13 +34,16 @@ import org.jetbrains.concurrency.Promise;
  * Into (F7, via {@link #computeStepIntoVariants}) show the chooser; F7 steps
  * plainly when the line has at most one call.
  *
- * Unlike the HashLink handler, the variants are computed ENTIRELY from the
- * Haxe PSI — the in-debuggee server has no line→calls knowledge (there is no
- * bytecode to mine on hxcpp) — by resolving each call on the stopped line to
- * its declaring class. Choosing one sends the custom
+ * One of two smart-step flavours: here the variants are computed ENTIRELY
+ * from the Haxe PSI — the in-debuggee server has no line→calls knowledge
+ * (there is no bytecode to mine on hxcpp) — by resolving each call on the
+ * stopped line to its declaring class. Choosing one sends the custom
  * {@code intellij/stepIntoFunction} request with (className, functionName);
  * the server races a temporary entry breakpoint against a step-over, so a
  * variant whose call never executes degrades safely to a step over.
+ * Backends whose ADAPTER can report the calls itself use
+ * {@link AdapterTargetsSmartStepHandler} instead — adapter-reported targets
+ * are preferred wherever the DAP {@code stepInTargets} capability exists.
  *
  * Filtered out: calls that do not resolve to a class method (closures, local
  * functions — no runtime class/function name exists for the entry breakpoint
@@ -49,10 +52,10 @@ import org.jetbrains.concurrency.Promise;
  * the DECLARED class, so entering an override called through a base-typed
  * reference lands as a step over instead.
  */
-class DapSmartStepIntoHandler extends XSmartStepIntoHandler<DapSmartStepIntoHandler.Variant> {
+class PsiResolvedSmartStepHandler extends XSmartStepIntoHandler<PsiResolvedSmartStepHandler.Variant> {
   private final DapDebugProcess process;
 
-  DapSmartStepIntoHandler(DapDebugProcess process) {
+  PsiResolvedSmartStepHandler(DapDebugProcess process) {
     this.process = process;
   }
 

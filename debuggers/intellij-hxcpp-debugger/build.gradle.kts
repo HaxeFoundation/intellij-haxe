@@ -105,9 +105,13 @@ tasks.register<Exec>("registerDapProtocolHaxelib") {
 // `-lib intellij-hxcpp-debug-server`, so the dev registration IS the setup
 tasks.register<Exec>("registerServerHaxelib") {
     group = "hxcpp"
-    description = "Registers haxelib/ as the haxelib dev path for 'intellij-hxcpp-debug-server'"
+    description = "Registers hxcpp-debug-server/ as the haxelib dev path for 'intellij-hxcpp-debug-server'"
     onlyIf { haxeAvailable }
-    commandLine = listOf("haxelib", "dev", "intellij-hxcpp-debug-server", File(projectDir, "haxelib").absolutePath)
+    // this directory must NOT be named `haxelib`: on linux, haxelib's recursive
+    // dependency resolution re-invokes "haxelib" cwd-relative from the module
+    // root, and a `haxelib` subdirectory there shadows the binary (execve of a
+    // directory -> EACCES, so every fixture build fails). Windows is unaffected.
+    commandLine = listOf("haxelib", "dev", "intellij-hxcpp-debug-server", File(projectDir, "hxcpp-debug-server").absolutePath)
 }
 
 // hscript powers watch/hover/condition evaluation (M5); it is a released
@@ -192,7 +196,7 @@ hxcppFixtures.forEach { (name, spec) ->
         inputs.dir("test-fixtures/src")
         inputs.file("test-fixtures/${spec.first}")
         // the fixture embeds the server sources: a haxelib change must rebuild
-        inputs.dir("haxelib")
+        inputs.dir("hxcpp-debug-server")
         outputs.file(fixtureExe(name))
     }
 }

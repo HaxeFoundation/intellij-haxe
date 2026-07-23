@@ -172,6 +172,22 @@ class X64CallEmitter implements CallTrampoline {
 		addInt64(out, value);
 	}
 
+	/**
+		A minimal stub for the linux float-register-write workaround: loads
+		Xmm0 with `bits` and traps. hl's linux debug natives cannot WRITE
+		float registers (the ptrace write path never handled the FP
+		pseudo-offsets its own read path defines), but they can inject code —
+		which is how eval-calls already run — so the register write becomes a
+		two-instruction injected stub. RAX is clobbered here; the injector
+		saves and restores it around every injected run.
+	**/
+	public static function buildXmm0Load(bits:Int64):Bytes {
+		var out = new BytesBuffer();
+		setXmm(out, 0, bits);
+		out.addByte(0xCC); // the trailing INT3 the injector runs to
+		return out.getBytes();
+	}
+
 	// load an XMM register: stage the value through RAX and an 8-byte stack
 	// slot. NOTE: `push rax` pushes 8 bytes, so this pops exactly 8 (add rsp,8)
 	// — NOT popXmm's `add rsp,16`, which would leave the stack unbalanced and

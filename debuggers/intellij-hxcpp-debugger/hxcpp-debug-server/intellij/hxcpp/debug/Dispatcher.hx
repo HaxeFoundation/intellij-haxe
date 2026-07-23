@@ -208,12 +208,15 @@ class Dispatcher {
 				// hxcpp's continueThreads wants the stopped thread as its "special"
 				// arg (count 1 = stop at the next breakpoint), not a wildcard. It
 				// resumes EVERY stopped thread, hence allThreadsContinued.
+				// The response goes out BEFORE the threads are released: a resumed
+				// program can run to exit() before this dispatcher runs again, and
+				// a response not yet written dies with the process's socket.
 				stepActive = false;
 				clearTempStepBreakpoint();
 				resumed();
 				stoppedStacks.clear();
-				debugger.continueThreads(resumeThread(request.arguments), 1);
 				sendResponse(seq, command, true, {allThreadsContinued: true});
+				debugger.continueThreads(resumeThread(request.arguments), 1);
 			case "intellij/stepIntoFunction":
 				handleStepIntoFunction(seq, command, request.arguments);
 			case "intellij/setToStringRendering":
@@ -289,8 +292,10 @@ class Dispatcher {
 		stepIterations = 0;
 		resumed();
 		stoppedStacks.remove(threadId); // stepThread resumes only this thread
-		debugger.stepThread(threadId, type);
+		// respond BEFORE releasing the thread: a step off the program's last
+		// line exits the process, taking an unwritten response with it
 		sendResponse(seq, command, true, null);
+		debugger.stepThread(threadId, type);
 	}
 
 	/**
@@ -338,8 +343,9 @@ class Dispatcher {
 		stepIterations = 0;
 		resumed();
 		stoppedStacks.remove(threadId);
-		debugger.stepThread(threadId, StepType.OVER);
+		// respond BEFORE releasing the thread (same exit race as handleStep)
 		sendResponse(seq, command, true, null);
+		debugger.stepThread(threadId, StepType.OVER);
 	}
 
 	function clearTempStepBreakpoint():Void {

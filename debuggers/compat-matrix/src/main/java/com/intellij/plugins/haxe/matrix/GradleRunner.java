@@ -2,6 +2,7 @@ package com.intellij.plugins.haxe.matrix;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.concurrent.TimeUnit;
  * Runs a child gradle build with a lane's environment. Always {@code
  * --no-daemon}: the forked test JVM must inherit THIS invocation's
  * PATH/HAXE_STD_PATH, and a warm daemon keeps the environment it was born
- * with (it would silently test the wrong haxe — live-observed). Bounded; on
+ * with (it would silently test the wrong haxe). Bounded; on
  * timeout the whole process TREE dies, plus known stray debuggees — a stuck
  * runtime error dialog must not wedge the matrix.
  */
@@ -59,7 +60,16 @@ final class GradleRunner {
       .redirectOutput(logFile.toFile())
       .redirectError(new File(logFile + ".err"));
     applyEnv(builder.environment(), extraEnv);
+    // the child gradlew needs a JVM the SHELL environment may not have (an
+    // IDE-launched parent runs on a gradle-provisioned JDK invisible to the
+    // shell — on a bare linux VM there is no `java` on PATH at all); this
+    // process's own JVM is by construction a working one
+    builder.environment().putIfAbsent("JAVA_HOME", System.getProperty("java.home"));
     try {
+      // the redirect targets must exist or CreateProcess fails with a
+      // misleading "cannot find the path specified" (fresh checkouts have
+      // no logs/ directory yet; older runs left one behind, masking this)
+      Files.createDirectories(logFile.toAbsolutePath().getParent());
       Process process = builder.start();
       long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(timeoutSec);
       TestEventTail tail = liveTestProgress ? new TestEventTail(logFile, log) : null;

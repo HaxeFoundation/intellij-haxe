@@ -15,4 +15,12 @@ public class StepOutRequest extends Request {
   public StepOutRequest() {
     super(COMMAND);
   }
+
+  public static StepOutRequest of(int threadId) {
+    StepOutRequest request = new StepOutRequest();
+    StepOutArguments arguments = new StepOutArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

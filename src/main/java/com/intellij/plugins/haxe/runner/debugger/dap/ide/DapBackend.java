@@ -2,7 +2,7 @@ package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import com.intellij.execution.process.ColoredProcessHandler;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
+import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.LaunchRequest;
@@ -47,7 +47,7 @@ public interface DapBackend extends Closeable {
    * Blocks until the DAP peer is ready and returns the client for the session.
    * Called once, on the debug process's request thread.
    */
-  DapClient connect() throws IOException;
+  DapEndpoint connect() throws IOException;
 
   /**
    * Called right after {@link #connect()} succeeded, on the request thread —
@@ -89,6 +89,36 @@ public interface DapBackend extends Closeable {
   }
 
   /**
+   * Whether the adapter emits its {@code initialized} event only AFTER the
+   * launch response (the vscode web adapters do — launch actually starts the
+   * browser); the haxe-side servers emit it right after initialize. Decides
+   * where the debug process waits for it.
+   */
+  default boolean initializedEventAfterLaunch() {
+    return false;
+  }
+
+  /**
+   * Whether to send {@code configurationDone} after configuration. The
+   * vscode-firefox-debug adapter reports {@code
+   * supportsConfigurationDoneRequest=false} and needs none — its debuggee
+   * simply runs, with breakpoints applied as they arrive.
+   */
+  default boolean sendsConfigurationDone() {
+    return true;
+  }
+
+  /**
+   * Whether the launch response arrives promptly enough to await. js-debug
+   * answers launch only AFTER configurationDone, so awaiting it synchronously
+   * would deadlock the setup sequence — such a backend returns false and the
+   * launch is sent fire-and-forget.
+   */
+  default boolean awaitsLaunchResponse() {
+    return true;
+  }
+
+  /**
    * Whether the server understands the {@code setExceptionBreakpoints}
    * filters (and thus whether the exception breakpoint types should drive
    * this session). The filter vocabulary comes from {@link #anyThrowFilterId}
@@ -115,13 +145,57 @@ public interface DapBackend extends Closeable {
   boolean supportsSmartStepInto();
 
   /**
+   * How long one DAP request may wait for its response. The browser backends
+   * use a SHORTER budget: firefox's per-actor FIFO queue can wedge on a
+   * request the browser never answers (a devtools-internal crash while
+   * previewing a worker object), and every request the IDE sends is
+   * serialized on one thread — a long timeout turns one wedged request into a
+   * long total freeze of the debugger views.
+   */
+  default long requestTimeoutMillis() {
+    return 15_000;
+  }
+
+  /**
+   * Whether the debuggee's threads pause and resume INDEPENDENTLY (the
+   * browser targets: each worker is its own JS VM; the adapters' stopped
+   * events are always allThreadsStopped=false and there is NO whole-program
+   * pause/resume on the wire). For such a backend: a stop arriving while a
+   * pause is already on screen leaves that thread paused but untouched
+   * UI-wise (inspectable via the thread list), and the IDE's Resume sends a
+   * continue to EVERY listed thread — background threads paused at their own
+   * breakpoints and any zombie a page reload left behind are released too,
+   * so the IDE and runtime states cannot drift apart (a running thread
+   * answers the continue with an error, harmless). Emulating suspend-all by
+   * pausing the other threads is deliberately NOT done: the firefox
+   * adapter's per-thread FIFO request queue wedges forever on an interrupt
+   * that races a breakpoint pause. The haxe-side servers are suspend-all
+   * natively and keep the plain single continue.
+   */
+  default boolean threadsPauseIndependently() {
+    return false;
+  }
+
+  /**
+   * Whether the adapter evaluates expressions against a FOREIGN runtime that
+   * legitimately knows more than the Haxe PSI — the browser JS runtime, reached
+   * through externs that may not map every field. In such a session the
+   * evaluate/watch views must not flag "unresolved" identifiers as errors: the
+   * expression evaluates fine and the runtime is the source of truth (the haxe
+   * native runtimes match the PSI, so their sessions keep the strict checks).
+   */
+  default boolean evaluatesAgainstForeignRuntime() {
+    return false;
+  }
+
+  /**
    * The smart-step-into handler for this backend. The default resolves the
    * targets from the Haxe PSI and sends the custom {@code
    * intellij/stepIntoFunction} request; a backend whose adapter reports
    * targets itself (DAP {@code stepInTargets}) supplies its own handler.
    */
   default @Nullable XSmartStepIntoHandler<?> createSmartStepIntoHandler(DapDebugProcess process) {
-    return supportsSmartStepInto() ? new DapSmartStepIntoHandler(process) : null;
+    return supportsSmartStepInto() ? new PsiResolvedSmartStepHandler(process) : null;
   }
 
   /** An extra Debug tool window tab (e.g. a Registers view), or null for none. */
@@ -150,6 +224,17 @@ public interface DapBackend extends Closeable {
    */
   default @Nullable XSourcePosition resolveSource(Project project, @Nullable String path, StackFrame frame) {
     return DapSourceResolver.resolve(project, path, frame.getLine());
+  }
+
+  /**
+   * The wire form of a breakpoint's source path. The IDE's VFS paths use
+   * FORWARD slashes even on Windows; the haxe-side servers normalize
+   * separators themselves, but the vscode web adapters match paths literally
+   * and silently never bind a forward-slash path — such a backend converts to
+   * native separators here.
+   */
+  default String breakpointSourcePath(String vfsPath) {
+    return vfsPath;
   }
 
   /**

@@ -1,11 +1,14 @@
 package com.intellij.plugins.haxe.runner.debugger.hxcpp.intellij;
 
+import com.intellij.application.options.ModulesComboBox;
 import com.intellij.openapi.project.Project;
-import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapExecutableRunConfigurationEditorBase;
-import com.intellij.util.ui.FormBuilder;
+import com.intellij.ui.components.JBTextField;
+import com.intellij.util.ui.UIUtil;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JTextPane;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -13,22 +16,52 @@ import org.jetbrains.annotations.NotNull;
  * the shared executable fields. Deliberately minimal — the debug connection
  * is fully automatic (ephemeral port via env vars), so there is nothing
  * network-ish to configure.
+ *
+ * The layout lives in the matching .form (labels bind their bundle keys
+ * there); the shared reset/apply comes from the base editor.
  */
 public class HxcppIntellijRunConfigurationEditor
   extends DapExecutableRunConfigurationEditorBase<HxcppIntellijRunConfiguration> {
-  private final JPanel panel;
+
+  private JPanel panel;
+  private ModulesComboBox moduleCombo;
+  private TextFieldWithBrowseButton executableField;
+  private TextFieldWithBrowseButton workingDirectoryField;
+  private JTextPane workingDirectoryHintArea;
+  private JBTextField programArgumentsField;
+  private JTextPane debugHintArea;
 
   public HxcppIntellijRunConfigurationEditor(Project project) {
     super(project);
-    panel = FormBuilder.createFormBuilder()
-      .addLabeledComponent(HaxeDebuggerBundle.message("hxcpp.intellij.runner.editor.module"), moduleCombo)
-      .addLabeledComponent(HaxeDebuggerBundle.message("hxcpp.intellij.runner.editor.executable"), executableField)
-      .addLabeledComponent(HaxeDebuggerBundle.message("hxcpp.intellij.runner.editor.working.directory"), workingDirectoryField)
-      .addComponentToRightColumn(hint(HaxeDebuggerBundle.message("hxcpp.intellij.runner.editor.working.directory.hint")))
-      .addLabeledComponent(HaxeDebuggerBundle.message("hxcpp.intellij.runner.editor.program.arguments"), programArgumentsField)
-      .addComponent(hint(HaxeDebuggerBundle.message("hxcpp.intellij.runner.debug.hint")))
-      .addComponentFillVertically(new JPanel(), 0)
-      .getPanel();
+    wireCommonChoosers();
+    styleHint(workingDirectoryHintArea);
+    styleHint(debugHintArea);
+  }
+
+  private static void styleHint(JTextPane hint) {
+    hint.setForeground(UIUtil.getContextHelpForeground());
+    hint.setFont(UIUtil.getLabelFont(UIUtil.FontSize.SMALL));
+    hint.setBorder(null);
+  }
+
+  @Override
+  protected ModulesComboBox moduleCombo() {
+    return moduleCombo;
+  }
+
+  @Override
+  protected TextFieldWithBrowseButton executableField() {
+    return executableField;
+  }
+
+  @Override
+  protected TextFieldWithBrowseButton workingDirectoryField() {
+    return workingDirectoryField;
+  }
+
+  @Override
+  protected JBTextField programArgumentsField() {
+    return programArgumentsField;
   }
 
   @Override
