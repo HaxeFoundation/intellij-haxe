@@ -1,10 +1,7 @@
 package com.intellij.plugins.haxe.runner.debugger.dap.ide;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Breakpoint;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Source;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.SourceBreakpoint;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
 import com.intellij.xdebugger.XExpression;
@@ -16,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.BreakpointEvent;
 
 /**
  * Bookkeeping for line breakpoints. DAP's {@code setBreakpoints} replaces the
@@ -30,6 +28,10 @@ import java.util.Map;
 final class DapBreakpointManager {
   private final DapDebugProcess process;
   private final Map<String, LinkedHashSet<XLineBreakpoint<XBreakpointProperties>>> byFile = new LinkedHashMap<>();
+  // adapter breakpoint id -> IDE breakpoint, rebuilt from each flush response;
+  // lets async breakpoint events (source-map-lazy verification) find their
+  // gutter icon
+  private final Map<Integer, XLineBreakpoint<XBreakpointProperties>> byAdapterId = new LinkedHashMap<>();
   private boolean live = false;
   // A transient "run to cursor" line breakpoint (file path + 1-based line): appended
   // to its file's set while active, removed on the next stop. -1 line means none.
@@ -119,7 +121,8 @@ final class DapBreakpointManager {
     SetBreakpointsRequest request = new SetBreakpointsRequest();
     SetBreakpointsArguments arguments = new SetBreakpointsArguments();
     Source source = new Source();
-    source.setPath(path);
+    // the backend decides the wire form (VFS forward slashes vs native)
+    source.setPath(process.backend().breakpointSourcePath(path));
     source.setName(Path.of(path).getFileName().toString());
     arguments.setSource(source);
     List<SourceBreakpoint> requested = new ArrayList<>(ordered.size() + 1);
@@ -153,18 +156,50 @@ final class DapBreakpointManager {
     for (int i = 0; i < ordered.size() && i < results.size(); i++) {
       Breakpoint result = results.get(i);
       XLineBreakpoint<XBreakpointProperties> breakpoint = ordered.get(i);
-      if (result.isVerified()) {
-        process.getSession().updateBreakpointPresentation(breakpoint, AllIcons.Debugger.Db_verified_breakpoint, null);
-      } else {
-        // prefer the server's reason (line-table reject vs unknown file) over the generic text
-        String message = result.getMessage() != null ? result.getMessage() : "No executable code at this line";
-        process.getSession().updateBreakpointPresentation(breakpoint, AllIcons.Debugger.Db_invalid_breakpoint, message);
+      if (result.getId() != null) {
+        synchronized (this) {
+          byAdapterId.put(result.getId(), breakpoint);
+        }
       }
+      presentBreakpointState(breakpoint, result);
     }
     if (appendRunTo && ordered.size() < results.size()) {
       return results.get(ordered.size()).isVerified();
     }
     return true;
+  }
+
+  /**
+   * An async breakpoint state change pushed by the adapter — the web adapters
+   * verify lazily: setBreakpoints answers verified=false, and this event
+   * upgrades the breakpoint once the source map resolves it (or downgrades it
+   * when a reload invalidates it). Runs on the event pump.
+   */
+  void onBreakpointEvent(BreakpointEvent event) {
+    if (event.getBody() == null || event.getBody().getBreakpoint() == null) {
+      return;
+    }
+    Breakpoint state = event.getBody().getBreakpoint();
+    if (state.getId() == null) {
+      return;
+    }
+    XLineBreakpoint<XBreakpointProperties> breakpoint;
+    synchronized (this) {
+      breakpoint = byAdapterId.get(state.getId());
+    }
+    if (breakpoint != null) {
+      presentBreakpointState(breakpoint, state);
+    }
+  }
+
+  private void presentBreakpointState(XLineBreakpoint<XBreakpointProperties> breakpoint, Breakpoint state) {
+    if (state.isVerified()) {
+      process.getSession().updateBreakpointPresentation(breakpoint, AllIcons.Debugger.Db_verified_breakpoint, null);
+    } else {
+      // prefer the server's reason (line-table reject vs unknown file) over the generic text
+      String message = state.getMessage() != null ? state.getMessage() : "No executable code at this line";
+      process.getSession().updateBreakpointPresentation(breakpoint, AllIcons.Debugger.Db_invalid_breakpoint, message);
+    }
   }
 
   private static String filePath(XLineBreakpoint<XBreakpointProperties> breakpoint) {
