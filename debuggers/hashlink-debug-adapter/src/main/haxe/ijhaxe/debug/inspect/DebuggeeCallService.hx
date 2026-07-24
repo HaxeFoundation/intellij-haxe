@@ -17,6 +17,7 @@ import ijhaxe.debug.module.JitInfo;
 import ijhaxe.debug.module.ModuleDebugInfo;
 import ijhaxe.debug.target.MemoryReader;
 import ijhaxe.debug.target.MemoryWriter;
+import ijhaxe.debug.Trace;
 import format.hl.Data.HLType;
 import haxe.Int64;
 
@@ -79,6 +80,9 @@ class DebuggeeCallService {
 			throw new DebugError("Calling functions is not available in this session");
 		}
 		var callee = path.display();
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] callRaw "$callee" frame=$frameId args=${args.length}');
+		}
 		// `recv.method(args)` — the last segment is an instance method on the
 		// receiver (proto method), not a closure-valued field. Try that first;
 		// fall through to the closure-field call when it isn't a method.
@@ -170,6 +174,9 @@ class DebuggeeCallService {
 		for (i in 0...args.length) {
 			callArgs.push(lowerValue(args[i], paramTypes[i]));
 		}
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] method "$methodName" findex=$findex');
+		}
 		return {raw: functionCaller(jit.functionEntry(arrayIndex), callArgs, returnFloatBits(fn.ret)), type: fn.ret};
 	}
 
@@ -211,6 +218,9 @@ class DebuggeeCallService {
 	public function construct(frameId:Int, className:String, args:Array<EvalValue>):Pointer {
 		if (functionCaller == null) {
 			throw new DebugError("Constructing objects is not available in this session");
+		}
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] construct new $className(${args.length} args)');
 		}
 		if (constructors == null) {
 			constructors = new ConstructorResolver(module, jit, memory);
@@ -254,6 +264,9 @@ class DebuggeeCallService {
 		if (fidx < 0) {
 			throw new DebugError('Runtime helper "' + name + '" is unavailable in this program'
 				+ " (it may have been removed as unused code)");
+		}
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] helper "$name" fidx=$fidx');
 		}
 		// call the true entry (prologue), not addressOf(fidx,0) which is past it
 		return functionCaller(jit.functionEntry(fidx), args, floatBits);

@@ -10,6 +10,8 @@ import ijhaxe.debug.eval.call.X86CallEmitter;
 import ijhaxe.debug.module.JitInfo;
 import ijhaxe.debug.target.DebugApi;
 import ijhaxe.debug.target.WaitOutcome;
+import ijhaxe.debug.values.ValueReader.hex;
+import ijhaxe.debug.Trace;
 
 import haxe.Int64;
 import haxe.io.Bytes;
@@ -66,6 +68,10 @@ class EvalCallInjector {
 		float return).
 	**/
 	public function call(threadId:Int, funcAddr:Pointer, args:Array<CallArg>, floatBits:Int):Pointer {
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] call thread=$threadId func=${hex(funcAddr)} args=${args.length}'
+				+ ' floatBits=$floatBits ' + describeArgs(args));
+		}
 		// the trampoline is CPU-architecture-specific: x86-64 loads argument
 		// registers and returns through RAX/XMM0; x86 pushes cdecl stack args and
 		// returns through EAX/ST0. Selected once from the handshake bitness.
@@ -90,9 +96,19 @@ class EvalCallInjector {
 		// Re-plant the lifted breakpoints, except the one the session is stopped on.
 		breakpoints.rearmAll(hooks.keepSuspended());
 		if (error != null) {
+			if (Trace.isEnabled()) {
+				Trace.log('[eval-call] FAILED thread=$threadId func=${hex(funcAddr)}: ' + Std.string(error));
+			}
 			throw error;
 		}
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] done thread=$threadId func=${hex(funcAddr)} raw=${hex(result)}');
+		}
 		return result;
+	}
+
+	static function describeArgs(args:Array<CallArg>):String {
+		return "[" + [for (a in args) (a.isFloat ? "f:" : "i:") + hex(a.bits)].join(" ") + "]";
 	}
 
 	/**
@@ -128,6 +144,16 @@ class EvalCallInjector {
 		var prevEax = api.readRegister(debuggeePid, threadId, Eax);
 		var prevEip = api.readRegister(debuggeePid, threadId, Eip);
 		var prevEsp = api.readRegister(debuggeePid, threadId, Esp);
+		// readable context the injection does NOT restore - snapshot it so the
+		// after-call readback exposes any clobber the resume then runs with
+		var prevEbp = api.readRegister(debuggeePid, threadId, Ebp);
+		var prevFlags = api.readRegister(debuggeePid, threadId, EFlags);
+		var prevXmm0 = api.readRegister(debuggeePid, threadId, Xmm0);
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] inject thread=$threadId eip=${hex(prevEip)} esp=${hex(prevEsp)}'
+				+ ' ebp=${hex(prevEbp)} eax=${hex(prevEax)} flags=${hex(prevFlags)} xmm0=${hex(prevXmm0)}'
+				+ ' asm=$asmSize scratch=${hex(scratchStackTop(prevEsp))}');
+		}
 
 		var original = Bytes.alloc(asmSize);
 		if (!api.readMemory(debuggeePid, prevEip, original, asmSize)) {
@@ -160,10 +186,37 @@ class EvalCallInjector {
 		api.writeRegister(debuggeePid, threadId, Eip, prevEip);
 		api.writeRegister(debuggeePid, threadId, Esp, prevEsp);
 
+		if (Trace.isEnabled()) {
+			logRestoredContext(threadId, prevEbp, prevFlags, prevXmm0, completed, landedEip, trapEnd);
+		}
 		if (!completed || !Int64.eq(landedEip, trapEnd)) {
 			throw new DebugError("The called function did not return normally (it threw an exception or hit a breakpoint)");
 		}
 		return result;
+	}
+
+	// After-call readback of the context the injection does not restore: any
+	// CLOBBERED line here is state the resume will run the interrupted function
+	// with. Ebp/EFlags/Xmm0 are the only such registers the native API can even
+	// read - the volatile GP/XMM registers a call may trash are not observable.
+	function logRestoredContext(threadId:Int, prevEbp:Pointer, prevFlags:Pointer, prevXmm0:Pointer,
+			completed:Bool, landedEip:Pointer, trapEnd:Pointer):Void {
+		var nowEbp = api.readRegister(debuggeePid, threadId, Ebp);
+		var nowFlags = api.readRegister(debuggeePid, threadId, EFlags);
+		var nowXmm0 = api.readRegister(debuggeePid, threadId, Xmm0);
+		var clobbered = [];
+		if (!Int64.eq(nowEbp, prevEbp)) {
+			clobbered.push('ebp ${hex(prevEbp)}->${hex(nowEbp)}');
+		}
+		if (!Int64.eq(nowFlags, prevFlags)) {
+			clobbered.push('flags ${hex(prevFlags)}->${hex(nowFlags)}');
+		}
+		if (!Int64.eq(nowXmm0, prevXmm0)) {
+			clobbered.push('xmm0 ${hex(prevXmm0)}->${hex(nowXmm0)}');
+		}
+		Trace.log('[eval-call] restore thread=$threadId completed=$completed landed=${hex(landedEip)}'
+			+ ' trapEnd=${hex(trapEnd)}'
+			+ (clobbered.length > 0 ? ' CLOBBERED: ' + clobbered.join(", ") : ' context clean'));
 	}
 
 	// Resume the thread and wait until it traps at exactly `trapEnd` (Eip past
@@ -186,6 +239,10 @@ class EvalCallInjector {
 						return true; // our trampoline's INT3
 					}
 					// a breakpoint fired in some thread during the call
+					if (Trace.isEnabled()) {
+						Trace.log('[eval-call] foreign breakpoint during call: thread=${outcome.threadId}'
+							+ ' eip=${hex(eip)} (call thread=$threadId trapEnd=${hex(trapEnd)})');
+					}
 					hooks.onForeignStop(outcome);
 					return false;
 				case SingleStep:
@@ -195,14 +252,24 @@ class EvalCallInjector {
 					// exited/named itself during the call): not our trap and not
 					// a failure — keep waiting
 				case Exit:
+					if (Trace.isEnabled()) {
+						Trace.log('[eval-call] debuggee EXITED during call (thread=${outcome.threadId})');
+					}
 					hooks.onExited(outcome.threadId);
 					return false;
 				case Error, StackOverflow:
 					// an exception mid-call: also a pending event that must be
 					// reported as a stop, not silently discarded
+					if (Trace.isEnabled()) {
+						Trace.log('[eval-call] ${outcome.result} during call: thread=${outcome.threadId}'
+							+ ' eip=${hex(api.readRegister(debuggeePid, outcome.threadId, Eip))}');
+					}
 					hooks.onForeignStop(outcome);
 					return false;
 			}
+		}
+		if (Trace.isEnabled()) {
+			Trace.log('[eval-call] TIMEOUT after ${CALL_TIMEOUT_MS}ms waiting for the trampoline trap');
 		}
 		return false;
 	}

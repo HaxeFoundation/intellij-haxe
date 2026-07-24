@@ -55,7 +55,7 @@ class LineBreakpointController {
 
 	// Keeps the breakpoint we are currently stopped on suspended (INT3 lifted) across a
 	// setForSource re-install. No-op when running, or when the stopped breakpoint is not
-	// an address-keyed line breakpoint (e.g. an exception breakpoint) or was removed.
+	// an address-keyed line breakpoint (e.g. an exception breakpoint).
 	function reconcileStoppedBreakpoint():Void {
 		if (session.currentStoppedBreakpoint == null) {
 			return;
@@ -64,6 +64,13 @@ class LineBreakpointController {
 		if (reinstalled != null) {
 			session.breakpoints.suspend(reinstalled);
 			session.currentStoppedBreakpoint = reinstalled;
+		} else {
+			// The stopped-on breakpoint was REMOVED: drop the stale reference, or
+			// the next continue's step-past re-arms the deleted breakpoint's INT3.
+			// That orphan trap has no table entry, so its hit is "resumed past
+			// silently" with Eip already beyond the 0xCC - executing the original
+			// instruction minus its first byte, which faults the VM.
+			session.currentStoppedBreakpoint = null;
 		}
 	}
 
