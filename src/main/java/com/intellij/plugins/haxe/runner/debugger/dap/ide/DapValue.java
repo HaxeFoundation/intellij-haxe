@@ -49,10 +49,13 @@ final class DapValue extends HaxeDebuggerValue {
   @Override
   public void computePresentation(@NotNull XValueNode node, @NotNull XValuePlace place) {
     boolean expandable = variable.getVariablesReference() > 0;
+
+    String type = variable.getType();
+    VariableKind kind = variable.getKind();
     String value = variable.getValue() != null ? variable.getValue() : "";
-    node.setPresentation(iconFor(variable.getKind()),
-                         new XRegularValuePresentation(value, variable.getType()),
-                         expandable);
+
+    node.setPresentation(iconFor(kind), new XRegularValuePresentation(value, type), expandable);
+    FqnNavigateLink.attach(node, process.getSession().getProject(), value);
   }
 
   /** Maps the server's classification to a node icon; a plain value otherwise. */

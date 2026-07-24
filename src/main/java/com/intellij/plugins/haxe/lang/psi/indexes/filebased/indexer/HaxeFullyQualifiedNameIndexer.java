@@ -62,7 +62,15 @@ public class HaxeFullyQualifiedNameIndexer implements DataIndexer<String, HaxeCo
     private static Map<String, HaxeComponentIndexData> collectAllClasses(List<HaxeClassModel> classes) {
         Map<String, HaxeComponentIndexData> indexDataMap = new HashMap<>();
         for (HaxeClassModel model : classes) {
-            indexDataMap.put(model.getQualifiedInfo().getQualifiedName(true), createIndexData(model));
+            String qualifiedName = model.getQualifiedInfo().getQualifiedName(true);
+            String qualifiedShortName = model.getQualifiedInfo().getQualifiedName(false);
+
+            HaxeComponentIndexData data = createIndexData(model);
+            indexDataMap.put(qualifiedName, data);
+
+            if(!qualifiedName.equals(qualifiedShortName)) {
+                indexDataMap.put(qualifiedShortName, data);
+            }
         }
         return indexDataMap;
     }

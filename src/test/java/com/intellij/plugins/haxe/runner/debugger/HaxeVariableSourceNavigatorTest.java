@@ -96,7 +96,7 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
     HaxeClass secondary = candidates.iterator().next();
     // the premise of the runtime-name comparison: PSI's qualified name is NOT
     // what the debugger reports (pack.Secondary)
-    assertEquals("pack.Module.Secondary", secondary.getQualifiedName());
+    assertEquals("pack.Module.Secondary", secondary.getFullyQualifiedName());
     assertEquals("pack.Secondary", HaxeDebuggerSupportUtils.runtimeClassName(secondary));
   }
 

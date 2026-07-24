@@ -25,10 +25,7 @@ import com.intellij.util.indexing.ID;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class HaxeClassNameFileIndex extends HaxeComponentBaseIndex {
     public static final ID<String, HaxeComponentIndexData> INDEX = ID.create("HaxeClassNameIndex");
