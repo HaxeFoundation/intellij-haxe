@@ -1,7 +1,7 @@
 package tests.debug.module;
 
-import debug.DebugError;
-import debug.module.JitInfoReader;
+import ijhaxe.debug.DebugError;
+import ijhaxe.debug.module.JitInfoReader;
 
 import haxe.Int64;
 import haxe.io.BytesInput;

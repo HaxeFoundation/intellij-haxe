@@ -1,10 +1,10 @@
 package tests.debug.values;
 
-import debug.Pointer;
-import debug.layout.Align;
-import debug.target.MemoryReader;
-import debug.values.RuntimeTypes;
-import debug.values.ValueReader;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.target.MemoryReader;
+import ijhaxe.debug.values.RuntimeTypes;
+import ijhaxe.debug.values.ValueReader;
 
 import format.hl.Data.HLType;
 import haxe.Int64;
@@ -122,7 +122,7 @@ class ValueReaderTest {
 		pokeI32(api, 0x1008, 42);
 		pokeI32(api, 0x2000, 3); // kind 3 = HI32
 		var r = reader(api);
-		r.runtimeTypes = new debug.values.RuntimeTypes(new MemoryReader(api, 1, true), new debug.layout.Align(true, false), _ -> null);
+		r.runtimeTypes = new ijhaxe.debug.values.RuntimeTypes(new MemoryReader(api, 1, true), new ijhaxe.debug.layout.Align(true, false), _ -> null);
 		var decoded = r.read(addr(0x900), HDyn);
 		assert.equals("42", decoded.value, "Dynamic holding an Int decodes via the runtime type");
 	}

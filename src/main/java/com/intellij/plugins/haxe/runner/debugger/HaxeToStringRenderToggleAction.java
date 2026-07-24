@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
  * XDebugProcess.registerAdditionalActions}. Reads/writes the PROJECT-level
  * {@link HaxeDebuggerSettings} and pushes a flip to THIS session's backend
  * through {@code push} — the debug process sends the custom
- * {@code intellij/setToStringRendering} request and rebuilds the views, so
+ * {@code custom/setToStringRendering} request and rebuilds the views, so
  * the current stop re-renders without a restart. Sessions started later
  * pick the setting up at launch.
  */

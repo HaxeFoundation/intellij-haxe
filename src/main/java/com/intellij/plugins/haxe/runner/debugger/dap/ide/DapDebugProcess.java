@@ -610,7 +610,7 @@ public class DapDebugProcess extends XDebugProcess {
   }
 
   /**
-   * Smart step into the chosen callee (custom intellij/stepIntoFunction
+   * Smart step into the chosen callee (custom custom/stepIntoFunction
    * request). {@code occurrence} picks WHICH invocation on the line when the
    * same function is called more than once (1-based).
    */

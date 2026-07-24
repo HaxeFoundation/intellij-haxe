@@ -1,6 +1,6 @@
 package tests.debug.values;
 
-import debug.values.ValuePath;
+import ijhaxe.debug.values.ValuePath;
 
 class ValuePathTest {
 	public static function run(assert:Assert):Void {

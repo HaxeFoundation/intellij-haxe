@@ -1,7 +1,7 @@
 package tests.debug.module;
 
-import debug.module.CodeGraph;
-import debug.module.LocalScopes;
+import ijhaxe.debug.module.CodeGraph;
+import ijhaxe.debug.module.LocalScopes;
 
 import format.hl.Data.Opcode;
 
@@ -52,7 +52,7 @@ class LocalScopesTest {
 		return new LocalScopes(new CodeGraph(loopOps()), assigns, pos -> dst.exists(pos) ? dst.get(pos) : -1);
 	}
 
-	static function registerOf(locals:Array<debug.module.LocalVar>, name:String):Int {
+	static function registerOf(locals:Array<ijhaxe.debug.module.LocalVar>, name:String):Int {
 		for (l in locals) {
 			if (l.name == name) {
 				return l.register;

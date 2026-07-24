@@ -1,7 +1,7 @@
 package tests.debug.breakpoints;
 
-import debug.Pointer;
-import debug.breakpoints.Breakpoints;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.breakpoints.Breakpoints;
 
 import haxe.Int64;
 

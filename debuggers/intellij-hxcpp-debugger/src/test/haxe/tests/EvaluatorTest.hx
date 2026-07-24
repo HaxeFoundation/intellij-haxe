@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.eval.Evaluator;
+import ijhaxe.hxcpp.debug.eval.Evaluator;
 
 class EvaluatorTest {
 	public static function run(assert:Assert):Void {

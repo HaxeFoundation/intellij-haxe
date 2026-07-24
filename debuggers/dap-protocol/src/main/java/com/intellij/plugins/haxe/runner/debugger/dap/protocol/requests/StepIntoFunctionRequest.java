@@ -17,7 +17,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class StepIntoFunctionRequest extends Request {
-  public static final String COMMAND = "intellij/stepIntoFunction";
+  public static final String COMMAND = "custom/stepIntoFunction";
 
   private StepIntoFunctionArguments arguments;
 

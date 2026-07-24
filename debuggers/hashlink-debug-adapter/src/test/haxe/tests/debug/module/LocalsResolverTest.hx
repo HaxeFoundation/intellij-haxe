@@ -1,8 +1,8 @@
 package tests.debug.module;
 
-import debug.module.LocalVar;
-import debug.module.LocalsResolver;
-import debug.module.ModuleDebugInfo;
+import ijhaxe.debug.module.LocalVar;
+import ijhaxe.debug.module.LocalsResolver;
+import ijhaxe.debug.module.ModuleDebugInfo;
 
 
 /**
@@ -44,7 +44,7 @@ class LocalsResolverTest {
 		assert.equals(2, registerOf(moveLocals, "dy"), "dy is arg register 2");
 	}
 
-	static function registerOf(locals:Array<debug.module.LocalVar>, name:String):Int {
+	static function registerOf(locals:Array<ijhaxe.debug.module.LocalVar>, name:String):Int {
 		for (l in locals) {
 			if (l.name == name) {
 				return l.register;

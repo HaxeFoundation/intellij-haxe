@@ -19,3 +19,7 @@ replay_pid*.log
 
 # provisioned debugger toolchains (downloaded by debuggerCompatibilityReport)
 /debuggerResources/
+
+# haxelib upload zips (gradlew buildHaxelibZips)
+/intellij-dap-protocol-*.zip
+/intellij-hxcpp-debug-server-*.zip

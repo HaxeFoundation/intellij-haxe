@@ -38,7 +38,7 @@ import org.jetbrains.concurrency.Promise;
  * from the Haxe PSI — the in-debuggee server has no line→calls knowledge
  * (there is no bytecode to mine on hxcpp) — by resolving each call on the
  * stopped line to its declaring class. Choosing one sends the custom
- * {@code intellij/stepIntoFunction} request with (className, functionName);
+ * {@code custom/stepIntoFunction} request with (className, functionName);
  * the server races a temporary entry breakpoint against a step-over, so a
  * variant whose call never executes degrades safely to a step over.
  * Backends whose ADAPTER can report the calls itself use

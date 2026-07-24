@@ -2,6 +2,9 @@
 ## 1.9.0
 * Added: New (experimental) debugger support for Eval, hashlink and hxcpp. 
 
+## 1.8.9
+* Fixed: Allow typeTags to be wrapped in parentheses
+
 ## 1.8.8
 * Added: Statusbar widget for quick change of haxe target.
 * Fixed: Stop button should now work for build jobs.

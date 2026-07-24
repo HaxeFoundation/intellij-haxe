@@ -1,12 +1,12 @@
 package tests.debug.values;
 
-import debug.Pointer;
-import debug.layout.Align;
-import debug.layout.ObjectLayout;
-import debug.target.MemoryReader;
-import debug.values.RuntimeTypes;
-import debug.values.ValueChildren;
-import debug.values.ValueReader;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.layout.ObjectLayout;
+import ijhaxe.debug.target.MemoryReader;
+import ijhaxe.debug.values.RuntimeTypes;
+import ijhaxe.debug.values.ValueChildren;
+import ijhaxe.debug.values.ValueReader;
 
 import format.hl.Data.HLType;
 import haxe.Int64;

@@ -1,8 +1,8 @@
 package tests;
 
-import dap.protocol.SourceBreakpoint;
-import intellij.hxcpp.debug.breakpoints.Breakpoints;
-import intellij.hxcpp.debug.breakpoints.LineTable;
+import ijhaxe.dap.protocol.SourceBreakpoint;
+import ijhaxe.hxcpp.debug.breakpoints.Breakpoints;
+import ijhaxe.hxcpp.debug.breakpoints.LineTable;
 
 class BreakpointsTest {
 	public static function run(assert:Assert):Void {

@@ -680,7 +680,7 @@ public class EvalDebugAdapter implements Closeable {
   }
 
   /**
-   * Smart step into the NAMED callee (custom intellij/stepIntoFunction, sent
+   * Smart step into the NAMED callee (custom custom/stepIntoFunction, sent
    * by the IDE with PSI-resolved (className, functionName, occurrence)). The
    * eval protocol has no such method, but its sub-expression stepIn makes an
    * exact emulation possible while STAYING ON THE LINE: single-step through

@@ -1,13 +1,13 @@
 package tests.adapter;
 
-import debug.breakpoints.BreakpointResult;
-import debug.session.FrameInfo;
-import debug.session.SessionCommand;
+import ijhaxe.debug.breakpoints.BreakpointResult;
+import ijhaxe.debug.session.FrameInfo;
+import ijhaxe.debug.session.SessionCommand;
 
-import adapter.RequestDispatcher;
-import dap.protocol.Event;
-import dap.protocol.ProtocolMessage;
-import dap.protocol.Response;
+import ijhaxe.adapter.RequestDispatcher;
+import ijhaxe.dap.protocol.Event;
+import ijhaxe.dap.protocol.ProtocolMessage;
+import ijhaxe.dap.protocol.Response;
 
 class DispatcherTest {
 	public static function run(assert:Assert):Void {

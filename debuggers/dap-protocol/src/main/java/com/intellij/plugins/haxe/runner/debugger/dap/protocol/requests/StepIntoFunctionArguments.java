@@ -3,7 +3,7 @@ package com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests;
 import lombok.Data;
 
 /**
- * Arguments for the custom "intellij/stepIntoFunction" request: the callee to
+ * Arguments for the custom "custom/stepIntoFunction" request: the callee to
  * enter, named the way hxcpp generated code names its stack frames — dotted
  * class path ("my.pack.Target") plus bare function name ("update").
  */

@@ -1,7 +1,7 @@
 package tests.debug.eval;
 
-import debug.eval.ExprAst.Expr;
-import debug.eval.ExprParser;
+import ijhaxe.debug.eval.ExprAst.Expr;
+import ijhaxe.debug.eval.ExprParser;
 
 /**
 	Parser structure tests: each expression is parsed and dumped to a canonical
@@ -37,7 +37,7 @@ class ExprParserTest {
 			return try {
 				ExprParser.parse(s);
 				false;
-			} catch (e:debug.DebugError) true;
+			} catch (e:ijhaxe.debug.DebugError) true;
 		}
 
 		// literals

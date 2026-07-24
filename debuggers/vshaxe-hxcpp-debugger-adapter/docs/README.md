@@ -76,7 +76,7 @@ reports honestly what it cannot:
 | Breakpoint files matched by EXACT full path — moved projects / CI builds miss | server's `path2Key` lookup, no suffix matching over the protocol | suffix matching against the runtime file tables |
 | No line-level breakpoint verification | the server verifies nothing per line | compile-time line table, non-code lines rejected |
 | No exception filters (uncaught only, quirky delivery) | `setExceptionOptions` has NO server-side handler (null-success) | uncaught/critical/thrown/typed filters |
-| No smart step into | no such request in the wire protocol | `intellij/stepIntoFunction` |
+| No smart step into | no such request in the wire protocol | `custom/stepIntoFunction` |
 | No toString-rendering control | the server ALWAYS `Std.string()`s objects | live gear toggle, raw reads by default |
 | Multi-expression lines re-hit breakpoints once per sub-expression | hxcpp traps at expression granularity, surfaced as-is by the server | server-side "surface stops only on line change" policy |
 

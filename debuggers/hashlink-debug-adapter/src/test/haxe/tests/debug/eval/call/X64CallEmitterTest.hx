@@ -1,6 +1,6 @@
 package tests.debug.eval.call;
 
-import debug.eval.call.X64CallEmitter;
+import ijhaxe.debug.eval.call.X64CallEmitter;
 
 import haxe.Int64;
 import haxe.io.Bytes;
@@ -60,7 +60,7 @@ class X64CallEmitterTest {
 		var threw = false;
 		try {
 			new X64CallEmitter(true).build(Int64.ofInt(1), tooMany, 0);
-		} catch (e:debug.DebugError) {
+		} catch (e:ijhaxe.debug.DebugError) {
 			threw = true;
 		}
 		assert.isTrue(threw, "win64 rejects a 5th register argument");
