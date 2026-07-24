@@ -31,7 +31,7 @@ public class HxcppIntellijConfigurationFactory extends ConfigurationFactory {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.HAXE_LOGO;
+    return HaxeIcons.DEBUGGER_HXCPP;
   }
 
   @Override

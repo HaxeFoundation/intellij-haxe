@@ -190,7 +190,7 @@ public class SteppingIntegrationTest extends DapIntegrationTestBase {
     assertTrue("breakpoint on the caught throw",
                setBreakpoints(fixtureSrcDir.resolve("Uncaught.hx").toString(), 11).isSuccess());
     assertTrue("configurationDone",
-               request(new com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.ConfigurationDoneRequest()).isSuccess());
+               request(new ConfigurationDoneRequest()).isSuccess());
     StoppedEvent atThrow = awaitStopped();
     int threadId = atThrow.getBody().getThreadId();
 

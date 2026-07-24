@@ -29,7 +29,7 @@ import org.junit.Test;
  * the eval VM in a state it can never leave forward: at the exceptionStop,
  * every continue/step RE-EXECUTES the whole throw expression — constructor,
  * stack collection, toString, then the same exceptionStop again, forever
- * (live-verified; the user stepped in circles through the constructor and
+ * (the debugger stepped in circles through the constructor and
  * could not let the program die). The adapter's way out, pinned here: clear
  * the VM's exception options, then resume — the program dies NATURALLY with
  * its own uncaught-exception stderr and exit code 1. Also pinned: a session
@@ -68,7 +68,8 @@ public class EvalObjectThrowLiveTest {
     adapter = new EvalDebugAdapter(TIMEOUT);
     haxe = new ProcessBuilder("haxe", "-cp", fixtures.toString(), "-main", "EvalThrowObj",
                               "-D", "eval-debugger=127.0.0.1:" + adapter.getVmPort(), "--interp")
-      .redirectErrorStream(true).start();
+      .redirectErrorStream(true)
+      .start();
     dapListener = new ServerSocket(0, 1, InetAddress.getLoopbackAddress());
     Socket clientSide = new Socket(InetAddress.getLoopbackAddress(), dapListener.getLocalPort());
     adapter.start(new DapConnection(dapListener.accept()));

@@ -57,4 +57,17 @@ final class DapSuspendContext extends XSuspendContext {
   public XExecutionStack[] getExecutionStacks() {
     return stacks;
   }
+
+  // The frames view's thread dropdown fills through this callback (lazily, on
+  // first popup open). Two chunks ON PURPOSE: the view refreshes an already
+  // open popup only when a delivery CHANGES the combo's item count — a single
+  // final chunk removes the "Loading..." row (-1) and adds the one missing
+  // thread (+1) in the same pass, the count stays equal, the refresh is
+  // skipped, and the thread only appears on the SECOND open. Splitting the
+  // stacks from the completion signal makes each pass change the count.
+  @Override
+  public void computeExecutionStacks(XExecutionStackContainer container) {
+    container.addExecutionStack(List.of(stacks), false);
+    container.addExecutionStack(List.of(), true);
+  }
 }

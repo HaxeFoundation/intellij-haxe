@@ -153,7 +153,14 @@ public class EvalLiveTest {
     }
     assertTrue("local 'greeting' visible in some scope", sawGreeting);
 
-    protocol.resume();
+    try {
+      protocol.resume();
+    } catch (EvalConnectionClosedException programEnded) {
+      // The VM acks continue from a helper thread while the resumed program
+      // runs, so a fixture this small can exit before the ack is flushed; the
+      // clean-exit assertions below still verify the resume took effect.
+      // The adapter tolerates the same race in resumeToleratingExit.
+    }
     assertTrue("debuggee ran to completion", haxe.waitFor(TIMEOUT_MS, TimeUnit.MILLISECONDS));
     assertEquals("clean exit", 0, haxe.exitValue());
     String output;

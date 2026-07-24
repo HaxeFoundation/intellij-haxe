@@ -9,6 +9,9 @@ import java.util.List;
 import javax.swing.Icon;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.ui.ColoredTextContainer;
+import com.intellij.ui.SimpleTextAttributes;
 
 /**
  * One thread's call stack. The active (stopped) thread is built eagerly from the
@@ -68,7 +71,7 @@ final class DapExecutionStack extends XExecutionStack {
   }
 
   private List<DapStackFrame> toFrames(List<StackFrame> dapFrames) {
-    return dapFrames.stream().map(frame -> new DapStackFrame(process, frame)).toList();
+    return dapFrames.stream().map(frame -> new DapStackFrame(process, frame, threadId)).toList();
   }
 
   @Override
@@ -86,8 +89,27 @@ final class DapExecutionStack extends XExecutionStack {
     // a non-active thread the user selected: fetch its stack off the EDT
     process.onRequestThread(() -> {
       List<DapStackFrame> frames = toFrames(process.requestStackTrace(threadId));
+      if (frames.isEmpty() && firstFrameIndex == 0) {
+        // the thread is RUNNING (browser threads pause independently), so it
+        // has no stack. An EMPTY list would leave the PREVIOUS thread's
+        // variables on screen (nothing gets selected, so the variables view
+        // never rebuilds); a selectable placeholder row is
+        // auto-selected and clears them, saying why there is nothing to show.
+        container.addStackFrames(List.of(new RunningThreadFrame()), true);
+        return;
+      }
       addFrom(frames, firstFrameIndex, container);
     }, () -> container.addStackFrames(List.of(), true));
+  }
+
+  /** The one row shown for a thread that is not paused; has no variables. */
+  private static final class RunningThreadFrame extends XStackFrame {
+    @Override
+    public void customizePresentation(@NotNull ColoredTextContainer component) {
+      component.append(HaxeDebuggerBundle.message("dap.debugger.thread.running"),
+                       SimpleTextAttributes.GRAYED_ITALIC_ATTRIBUTES);
+      component.setIcon(AllIcons.Debugger.ThreadRunning);
+    }
   }
 
   private static void addFrom(List<DapStackFrame> frames, int firstFrameIndex,

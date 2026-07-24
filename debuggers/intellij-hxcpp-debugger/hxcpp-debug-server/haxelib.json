@@ -1,0 +1,14 @@
+{
+	"name": "intellij-hxcpp-debug-server",
+	"url": "https://github.com/HaxeFoundation/intellij-haxe",
+	"license": "MIT",
+	"tags": ["cpp", "hxcpp", "debug", "debugger", "intellij", "dap"],
+	"description": "In-process DAP debug server for HXCPP applications, used by the intellij-haxe plugin's HXCPP debugger.",
+	"version": "0.1.0",
+	"releasenote": "Scaffolding (M0)",
+	"contributors": ["intellij-haxe"],
+	"dependencies": {
+		"intellij-dap-protocol": "",
+		"hscript": ""
+	}
+}

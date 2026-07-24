@@ -75,6 +75,32 @@ class VmExceptionControl {
 		return value.isNull() ? null : value;
 	}
 
+	/**
+		The VM's own throw-time stack capture (`hl_save_stack` fills
+		exc_stack_trace before the throw break): every captured code address,
+		top first. Empty when the thread/count is unavailable. Used by the
+		linux stack recovery — see StackWalker.
+	**/
+	public function capturedStack(threadId:Int):Array<Pointer> {
+		var info = infoFor(threadId);
+		if (info == null) {
+			return [];
+		}
+		var count = mem.readI32(info.offset(align.threadExcStackCount));
+		if (count <= 0 || count > 0x100) {
+			return [];
+		}
+		var entries:Array<Pointer> = [];
+		for (i in 0...count) {
+			var entry = mem.readPointer(info.offset(align.threadExcStackTraceLinux + align.ptr * i));
+			if (entry.isNull()) {
+				break;
+			}
+			entries.push(entry);
+		}
+		return entries;
+	}
+
 	// hl_thread_info* of the thread with OS id `threadId`, walking the runtime
 	// registry (count @ +0, hl_thread_info* array @ +ptr). Null when the
 	// registry is absent/unreadable or the thread is not in it.

@@ -10,4 +10,5 @@ public class Capabilities {
   private Boolean supportsSetVariable;
   private Boolean supportsConditionalBreakpoints;
   private Boolean supportsStepInTargetsRequest;
+  private Boolean supportsCompletionsRequest;
 }

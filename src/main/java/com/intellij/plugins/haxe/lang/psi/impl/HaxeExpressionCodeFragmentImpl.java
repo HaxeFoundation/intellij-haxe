@@ -84,8 +84,13 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     });
 
     ((SingleRootFileViewProvider)getViewProvider()).forceCachedPsi(this);
-    final MyHaxeFileElementType type = new MyHaxeFileElementType();
-    init(type, type);
+    // the element type MUST be the shared singleton: every IElementType
+    // construction registers permanently into a global short-indexed
+    // registry, and the debugger creates fragments constantly (variable
+    // hover, watches, evaluate) - a per-fragment instance exhausted the
+    // registry (~9900 leaked types) and broke ALL Haxe PSI with a
+    // TooManyElementTypesException.
+    init(HaxeCodeFragmentElementType.INSTANCE, HaxeCodeFragmentElementType.INSTANCE);
   }
 
 
@@ -152,22 +157,33 @@ public class HaxeExpressionCodeFragmentImpl extends HaxeFile implements HaxeExpr
     return myScope;
   }
 
-  private class MyHaxeFileElementType extends IFileElementType {
-    public MyHaxeFileElementType() {
-      super(HaxeLanguage.INSTANCE);
+  private static final class HaxeCodeFragmentElementType extends IFileElementType {
+    static final HaxeCodeFragmentElementType INSTANCE = new HaxeCodeFragmentElementType();
+
+    private HaxeCodeFragmentElementType() {
+      super("HAXE_CODE_FRAGMENT", HaxeLanguage.INSTANCE);
     }
 
     @Nullable
     @Override
     public ASTNode parseContents(final ASTNode chameleon) {
-      final PsiElement psi = new HaxePsiCompositeElementImpl(chameleon);
+      // Initial parse: the chameleon is the fragment's own FileElement with
+      // its PSI already bound. REPARSE (typing in the evaluate/watches/set-
+      // value editors commits the fragment's document): the platform hands a
+      // FRESH element inside a DummyHolder - it has NO psi bound, and asking
+      // it would route through HaxeParserDefinition.createElement, which has
+      // no case for this type ("AssertionError: Unknown element type:
+      // HAXE_CODE_FRAGMENT"). The holder's psi IS bound - prefer it, exactly
+      // like the Java fragment parser does.
+      ASTNode holder = chameleon.getTreeParent();
+      PsiElement psi = holder != null ? holder.getPsi() : chameleon.getPsi();
       return doParseContents(chameleon, psi);
     }
 
     @Override
     protected ASTNode doParseContents(@NotNull ASTNode chameleon, @NotNull PsiElement psi) {
       final PsiBuilderFactory factory = PsiBuilderFactory.getInstance();
-      final PsiBuilder psiBuilder = factory.createBuilder(getProject(), chameleon);
+      final PsiBuilder psiBuilder = factory.createBuilder(psi.getProject(), chameleon);
       final PsiBuilder builder = adapt_builder_(HaxeTokenTypes.EXPRESSION, psiBuilder, new HaxeParser(), HaxeParser.EXTENDS_SETS_);
 
       final PsiBuilder.Marker marker = enter_section_(builder, 0, _NONE_, "<code fragment>");

@@ -23,18 +23,32 @@ final class Platform {
     if (dir == null || !Files.isDirectory(dir)) {
       return null;
     }
-    Path direct = dir.resolve(exe(name));
-    if (Files.isRegularFile(direct)) {
+    Path direct = binaryAt(dir, name);
+    if (direct != null) {
       return direct;
     }
     // archives usually contain one top-level folder; look one level down
     try (var children = Files.list(dir)) {
       return children.filter(Files::isDirectory)
-        .map(sub -> sub.resolve(exe(name)))
-        .filter(Files::isRegularFile)
-        .findFirst().orElse(null);
+        .map(sub -> binaryAt(sub, name))
+        .filter(java.util.Objects::nonNull)
+        .findFirst()
+        .orElse(null);
     } catch (Exception e) {
       return null;
     }
+  }
+
+  /**
+   * Windows archives keep the binary at the archive root; the linux
+   * node/HashLink layouts put it under bin/ — both spots count.
+   */
+  private static Path binaryAt(Path dir, String name) {
+    Path direct = dir.resolve(exe(name));
+    if (Files.isRegularFile(direct)) {
+      return direct;
+    }
+    Path inBin = dir.resolve("bin").resolve(exe(name));
+    return Files.isRegularFile(inBin) ? inBin : null;
   }
 }

@@ -118,7 +118,7 @@ public class MutateIntegrationTest extends DapIntegrationTestBase {
   public void writeToRegisterPassedIntArgWarnsAndAppliesToLaterUses() throws Exception {
     // the arrival-register caveat is an x86-64 calling-convention behavior;
     // 32-bit HL passes args on the stack, so it does not exist there
-    org.junit.Assume.assumeFalse("register-passed args are x86-64 only - skipping on x86 hl", isX86Hl());
+    org.junit.Assume.assumeFalse("known limitation: register-passed args are x86-64 only - skipping on x86 hl", isX86Hl());
     // same shape with an Int argument: its arrival register (RCX) is NOT
     // writable through the debug API, so the current line still sees the old
     // value — the slot IS updated (later uses see it) and the adapter says so

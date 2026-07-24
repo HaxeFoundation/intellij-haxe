@@ -15,4 +15,12 @@ public class ScopesRequest extends Request {
   public ScopesRequest() {
     super(COMMAND);
   }
+
+  public static ScopesRequest of(int frameId) {
+    ScopesRequest request = new ScopesRequest();
+    ScopesArguments arguments = new ScopesArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

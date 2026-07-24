@@ -27,6 +27,9 @@ public final class DapStackFrame extends XStackFrame {
 
   private final DapDebugProcess process;
   private final StackFrame frame;
+  // the thread this frame belongs to - selecting the frame makes its thread
+  // the stepping target (multi-thread sessions: workers as threads)
+  private final int threadId;
 
   // Resolved once and cached: the resolver's index lookups are prohibited slow
   // operations on the EDT, yet platform/plugin listeners may call
@@ -38,13 +41,18 @@ public final class DapStackFrame extends XStackFrame {
   private volatile @Nullable XSourcePosition position;
   private volatile boolean positionResolved;
 
-  DapStackFrame(DapDebugProcess process, StackFrame frame) {
+  DapStackFrame(DapDebugProcess process, StackFrame frame, int threadId) {
     this.process = process;
     this.frame = frame;
+    this.threadId = threadId;
   }
 
   public int frameId() {
     return frame.getId();
+  }
+
+  public int threadId() {
+    return threadId;
   }
 
   /**
@@ -52,7 +60,11 @@ public final class DapStackFrame extends XStackFrame {
    * previously expanded variable nodes and highlights changed values, instead
    * of collapsing the tree on every stop. Keyed by the function plus its
    * source path (independent of the current line, so a step within a method
-   * restores). Null name → no stable identity, let the platform rebuild.
+   * restores) plus the THREAD: two worker threads paused in the same function
+   * must never be "the same frame" — the platform resolves frame selection by
+   * this identity, and a cross-thread collision routed evaluation to the
+   * other thread's frame and revived stale variable handles.
+   * Null name → no stable identity, let the platform rebuild.
    */
   @Override
   public @Nullable Object getEqualityObject() {
@@ -61,7 +73,7 @@ public final class DapStackFrame extends XStackFrame {
       return null;
     }
     String path = frame.getSource() != null ? frame.getSource().getPath() : null;
-    return path != null ? name + "@" + path : name;
+    return (path != null ? name + "@" + path : name) + "#" + threadId;
   }
 
   @Override

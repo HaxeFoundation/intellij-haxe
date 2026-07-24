@@ -15,4 +15,12 @@ public class ContinueRequest extends Request {
   public ContinueRequest() {
     super(COMMAND);
   }
+
+  public static ContinueRequest of(int threadId) {
+    ContinueRequest request = new ContinueRequest();
+    ContinueArguments arguments = new ContinueArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

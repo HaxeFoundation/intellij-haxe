@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.AdapterTargetsSmartStepHandler;
 
 /**
  * The HashLink backend: spawns the bundled external {@code hl-debug-adapter.hl}
@@ -162,7 +163,7 @@ public class HashLinkBackend implements DapBackend {
   // not from the PSI-based default handler.
   @Override
   public XSmartStepIntoHandler<?> createSmartStepIntoHandler(DapDebugProcess process) {
-    return new HashLinkSmartStepIntoHandler(process);
+    return new AdapterTargetsSmartStepHandler(process);
   }
 
   @Override

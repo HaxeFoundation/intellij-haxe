@@ -4,6 +4,7 @@ import format.hl.Tools;
 import haxe.io.BytesInput;
 import dap.protocol.Source;
 
+import debug.HostPlatform;
 import debug.DebugError;
 
 import format.hl.Data;
@@ -55,7 +56,7 @@ class ModuleDebugInfo {
 		if (!data.flags.has(HasDebug)) {
 			throw new DebugError('The program "$hlFilePath" was compiled without debug info; recompile with -debug');
 		}
-		isWindows = Sys.systemName() == "Windows";
+		isWindows = HostPlatform.IS_WINDOWS;
 		namesByFindex = buildNames();
 		findexByName = [for (findex => name in namesByFindex) name => findex];
 		functionIndexByFindex = buildFunctionIndex();

@@ -60,6 +60,16 @@ final class Report {
           json.append("{\"test\":").append(quote(failed.get(f).test()));
           json.append(",\"message\":").append(quote(failed.get(f).message())).append('}');
         }
+        json.append("],\"skippedTests\":[");
+        List<Results.SkippedTest> skips = cls.skippedTests();
+        for (int s = 0; s < skips.size(); s++) {
+          if (s > 0) {
+            json.append(',');
+          }
+          json.append("{\"test\":").append(quote(skips.get(s).test()));
+          json.append(",\"message\":").append(quote(skips.get(s).message()));
+          json.append(",\"known\":").append(skips.get(s).known()).append('}');
+        }
         json.append("]}");
       }
       json.append("]}");

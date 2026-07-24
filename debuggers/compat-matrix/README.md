@@ -6,6 +6,21 @@ them, and writes a self-contained HTML report: a summary card per debugger,
 a green/red grid per lane, and the list of any failing tests. This is the
 "full check on all our debugger work" button.
 
+Skips are first-class in the report: a cell shows `passed/total` (the
+shortfall is skips, never failures — those get their own red pill), a
+fully-skipped cell shows an orange `skipped` pill, and each grid carries
+collapsible lists of the skipped tests with their `Assume` reasons and the
+cells they skipped on. Two classes are kept apart and worded honestly:
+
+- **Known limitations** — tests deliberately flagged not to run on an OS or
+  toolchain version (the HashLink pre-4.3 exception tests, the multi-thread
+  tests on linux). To flag one, start its `Assume` message with
+  `known limitation:` — the report strips the marker and groups these under
+  their own heading.
+- **Missing prerequisites** — everything else: a runtime not provisioned, a
+  fixture not built, a lane not selected for this pass. Listed as exactly
+  that, never presented as something that cannot run.
+
 Implemented as a plain JVM tool (`src/main/java`, module
 `:debuggers:compat-matrix`) so it runs anywhere the build runs — Windows and
 linux — with no PowerShell or python requirement.
@@ -14,7 +29,8 @@ linux — with no PowerShell or python requirement.
 
 ```
 gradlew debuggerCompatibilityReport                       # all lanes
-gradlew debuggerCompatibilityReport -PmatrixLanes=eval    # one lane
+gradlew debuggerCompatibilityReport -PmatrixLanes=eval    # one lane (eval,
+                                     # hashlink, hxcpp, firefox, chromium)
 gradlew debuggerCompatibilityReport -PmatrixHaxe=haxe_4_1_5  # one haxe
                                      # version (handy for rerunning one cell)
 gradlew debuggerCompatibilityReport -PmatrixHl=hashlink-1.15.0  # one HL
@@ -49,11 +65,25 @@ passes on its once-only retry (reported as *flaky*), the first attempt's
 failure XMLs are kept in `results/<cell>/first-attempt/` for diagnosis.
 Progress streams to the console and `progress.log`.
 
+Known load-flake families (researched 2026-07-22; the retry classifies
+them correctly, do not chase them as regressions): the eval lane's
+anti-stall step tests measure wall clock that INCLUDES the debuggee
+running under `haxe --interp` — on a loaded machine a legitimate step can
+brush the test's 8s threshold and the protocol's 10s cap; and the browser
+probes' full-session tests ride real browser startup. (The HL lane's
+truncated-final-output flake — output events trailing the exited event —
+was a real adapter race, fixed by draining the output pumps before
+reporting exit.)
+
 ## Toolchain provisioning
 
 The versions to certify live in `VersionManifest.java` (compile-checked; one
-line per version). On first run each is downloaded from the official GitHub
-releases and extracted into:
+line per version). Every versioned artifact is pinned **per platform** with
+its SHA-256 (node from the official signed `SHASUMS256.txt`, haxe/HashLink
+from the GitHub release assets), and the download is verified against the pin
+before anything is extracted — the one deliberate exception is the HashLink
+nightly, which moves by design and cannot carry a pin. On first run each is
+downloaded and extracted into:
 
 ```
 debuggerResources/            (gitignored)
@@ -85,11 +115,35 @@ manifest simply not listing older versions.
 ## Duration
 
 - eval lane: ~1 minute per haxe version (live suite against the real VM).
+- firefox / chromium lanes: the browser-debugger module's live probe for
+  that family, per haxe version x per provisioned NODE runtime (~2 minutes
+  per cell; the probes compile their `haxe -js` fixtures with the lane's
+  haxe, and the vscode DAP adapters run on the cell's node). Node is
+  auto-provisioned — the manifest pins the active LTS and the current
+  release with the official SHASUMS256.txt hashes. The BROWSERS are not:
+  firefox/chromium must be installed on the machine (or pointed at with
+  the `WEB_DEBUG_FIREFOX_EXE` / `WEB_DEBUG_CHROMIUM_EXE` environment
+  variables — e.g. an ungoogled-chromium build), and the pinned adapters
+  must be present under `<repo>/node` (see the browser-debugger README);
+  without them the probes self-skip and the cells report skipped suites
+  instead of failing the run. On linux the distro browser is usually a
+  SNAP, whose confinement cannot read the adapters' temp profiles under
+  /tmp — launches fail with an empty error while the DAP wire works. Drop
+  a non-snap build (Mozilla's firefox tarball, Chrome for Testing, ...)
+  under `debuggerResources/browsers/` and the matrix discovers it and
+  exports the WEB_DEBUG_*_EXE variable to the probes itself.
 - hashlink lane: fixture build per haxe version + a test run per runtime;
   the default "smart-reduced" grid runs known-degraded old haxe versions
   (4.1.5/4.2.5) against the reference runtimes only — latest release and
   nightly — since their behaviour was proven identical on every runtime;
-  `-PmatrixFull=true` runs every combination.
+  `-PmatrixFull=true` runs every combination. On linux only the NIGHTLY
+  runtime provisions (HashLink ships no linux release binaries; build
+  1.13–1.15 from source into `debuggerResources/hashlink/<name>/` to widen
+  the grid). Expect 102/104 per cell there: the attach-mode tests need
+  `sudo sysctl kernel.yama.ptrace_scope=0` once per boot, and 2 tests
+  (secondary-thread breakpoints) hit a limit of HashLink's linux ptrace
+  natives with no adapter-side workaround — see the hashlink-debug-adapter
+  README's "Linux support" section.
 - `-PmatrixParallel=true` runs each lane in its own thread. The lanes are
   disjoint (separate modules, fixtures, and debugger binaries), so this is
   safe; the stray-process sweep is deferred to the end because it kills

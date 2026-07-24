@@ -25,9 +25,12 @@ public final class HaxeRunConfigurationEditorUtil {
   /**
    * Wires the field's browse button: a file chooser (opening at the field's
    * current path) whose choice replaces the field text, with
-   * system-dependent separators.
+   * system-dependent separators. Also caps the field's PREFERRED width — a
+   * long path must not size the whole dialog (the form still stretches the
+   * field to the dialog's actual width).
    */
   public static void browseInto(Project project, TextFieldWithBrowseButton field, FileChooserDescriptor descriptor) {
+    field.getTextField().setColumns(25);
     field.addActionListener(e -> {
       VirtualFile file = FileChooser.chooseFile(descriptor, project, currentSelection(field));
       if (file != null) {

@@ -11,10 +11,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Set;
 import java.util.zip.ZipEntry;
@@ -53,6 +56,11 @@ final class Provisioner {
     return ensureAll("hashlink", VersionManifest.hashlinkVersions(), "hl");
   }
 
+  /** Provisioned node runtimes for the web-debugger lanes (each contains node). */
+  List<Path> nodeDirs() throws IOException {
+    return ensureAll("node", VersionManifest.nodeVersions(), "node");
+  }
+
   private List<Path> ensureAll(String kind, List<VersionManifest.Tool> tools, String binary) throws IOException {
     Path base = resources.resolve(kind);
     Files.createDirectories(base);
@@ -74,7 +82,7 @@ final class Provisioner {
       }
       log.line(kind + " " + tool.name() + " : downloading " + tool.url());
       try {
-        downloadAndExtract(tool.url(), dir);
+        downloadAndExtract(tool.url(), dir, tool.sha256());
         if (Platform.findBinary(dir, binary) == null) {
           log.line(kind + " " + tool.name() + " : extracted but no " + binary + " binary found - skipped");
           continue;
@@ -85,7 +93,9 @@ final class Provisioner {
         log.line(kind + " " + tool.name() + " : provisioning FAILED (" + e.getMessage() + ") - skipped");
       }
     }
-    // hand-dropped extras (not in the manifest) join the matrix by discovery
+    // hand-dropped extras (not in the manifest) join the matrix by discovery,
+    // appended after the manifest versions in name order. Manifest order is
+    // authoritative (it sets the run order - see haxeVersions).
     try (var children = Files.list(base)) {
       for (Path dir : children.filter(Files::isDirectory).sorted().toList()) {
         if (dirs.contains(dir)) {
@@ -97,31 +107,74 @@ final class Provisioner {
         }
       }
     }
-    dirs.sort(null);
     return dirs;
   }
 
-  private void downloadAndExtract(String url, Path dir) throws IOException, InterruptedException {
+  private void downloadAndExtract(String url, Path dir, String sha256) throws IOException, InterruptedException {
     if (Files.exists(dir)) {
       deleteRecursively(dir);
     }
     Files.createDirectories(dir);
     HttpRequest request = HttpRequest.newBuilder(URI.create(url))
-      .timeout(Duration.ofMinutes(10)).GET().build();
-    HttpResponse<InputStream> response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
-    if (response.statusCode() != 200) {
-      throw new IOException("HTTP " + response.statusCode() + " for " + url);
-    }
-    try (InputStream body = response.body()) {
-      if (url.endsWith(".zip")) {
-        extractZip(body, dir);
-      } else if (url.endsWith(".tar.gz") || url.endsWith(".tgz")) {
-        extractTarGz(body, dir);
-      } else {
-        throw new IOException("unsupported archive type: " + url);
+      .timeout(Duration.ofMinutes(10))
+      .GET()
+      .build();
+    if (sha256 != null) {
+      // pinned artifact: download fully, verify the hash, and only then
+      // extract - nothing from an unverified archive touches the disk tree
+      Path download = Files.createTempFile(dir, "download-", ".tmp");
+      try {
+        HttpResponse<Path> response = http.send(request, HttpResponse.BodyHandlers.ofFile(download));
+        if (response.statusCode() != 200) {
+          throw new IOException("HTTP " + response.statusCode() + " for " + url);
+        }
+        String actual = sha256Of(download);
+        if (!actual.equalsIgnoreCase(sha256)) {
+          throw new IOException("SHA-256 mismatch for " + url
+                                + "\n  expected " + sha256 + "\n  actual   " + actual);
+        }
+        try (InputStream in = Files.newInputStream(download)) {
+          extract(url, in, dir);
+        }
+      } finally {
+        Files.deleteIfExists(download);
+      }
+    } else {
+      HttpResponse<InputStream> response = http.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      if (response.statusCode() != 200) {
+        throw new IOException("HTTP " + response.statusCode() + " for " + url);
+      }
+      try (InputStream body = response.body()) {
+        extract(url, body, dir);
       }
     }
     unwrapNestedArchives(dir, 2);
+  }
+
+  private void extract(String url, InputStream body, Path dir) throws IOException {
+    if (url.endsWith(".zip")) {
+      extractZip(body, dir);
+    } else if (url.endsWith(".tar.gz") || url.endsWith(".tgz")) {
+      extractTarGz(body, dir);
+    } else {
+      throw new IOException("unsupported archive type: " + url);
+    }
+  }
+
+  private static String sha256Of(Path file) throws IOException {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      try (InputStream in = Files.newInputStream(file)) {
+        byte[] buffer = new byte[64 * 1024];
+        int read;
+        while ((read = in.read(buffer)) >= 0) {
+          digest.update(buffer, 0, read);
+        }
+      }
+      return HexFormat.of().formatHex(digest.digest());
+    } catch (NoSuchAlgorithmException e) {
+      throw new IOException("SHA-256 unavailable", e);
+    }
   }
 
   /**
@@ -175,7 +228,7 @@ final class Provisioner {
     boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
     try (TarArchiveInputStream tar = new TarArchiveInputStream(new GzipCompressorInputStream(in))) {
       TarArchiveEntry entry;
-      while ((entry = tar.getNextTarEntry()) != null) {
+      while ((entry = tar.getNextEntry()) != null) {
         Path target = safeResolve(dir, entry.getName());
         if (entry.isDirectory()) {
           Files.createDirectories(target);
