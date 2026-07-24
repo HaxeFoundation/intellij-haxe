@@ -57,7 +57,7 @@ public class InterpDapBackend implements DapBackend {
   @Override
   public boolean supportsSmartStepInto() {
     // no such request in the eval WIRE protocol, but the adapter emulates
-    // intellij/stepIntoFunction via sub-expression stepping (see
+    // custom/stepIntoFunction via sub-expression stepping (see
     // EvalDebugAdapter.handleStepIntoFunction)
     return true;
   }
@@ -69,7 +69,7 @@ public class InterpDapBackend implements DapBackend {
 
   @Override
   public boolean supportsExpressionStepping() {
-    return true; // the adapter's intellij/setExpressionStepping mode (eval only)
+    return true; // the adapter's custom/setExpressionStepping mode (eval only)
   }
 
   @Override

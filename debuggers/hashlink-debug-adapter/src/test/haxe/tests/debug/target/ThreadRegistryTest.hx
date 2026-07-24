@@ -1,9 +1,9 @@
 package tests.debug.target;
 
-import debug.Pointer;
-import debug.layout.Align;
-import debug.target.MemoryReader;
-import debug.target.ThreadRegistry;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.target.MemoryReader;
+import ijhaxe.debug.target.ThreadRegistry;
 
 import haxe.Int64;
 

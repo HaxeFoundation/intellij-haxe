@@ -10,7 +10,7 @@ import org.junit.Test;
 
 /**
  * Object labels via the debuggee's own toString(), toggled LIVE through the
- * custom {@code intellij/setToStringRendering} request (the IDE's
+ * custom {@code custom/setToStringRendering} request (the IDE's
  * Variables-view gear toggle): off (the default) labels every object with
  * its class name and runs NO user code; on, a class chain that declares
  * toString renders through it, and a THROWING toString degrades back to the

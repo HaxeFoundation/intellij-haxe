@@ -243,7 +243,7 @@ class DupChainTarget {
 
 // Object-label scenario (mode "tostring"): a class WITH toString, one
 // WITHOUT, and one whose toString THROWS - probes toggle labels live via
-// intellij/setToStringRendering. A SELF-RECURSING toString is deliberately
+// custom/setToStringRendering. A SELF-RECURSING toString is deliberately
 // absent: on hxcpp that overflow kills the process before any handler runs
 // (see Values.renderWithToString), which is what the off-default protects
 // against - the unit tests cover recursion on the eval target instead.

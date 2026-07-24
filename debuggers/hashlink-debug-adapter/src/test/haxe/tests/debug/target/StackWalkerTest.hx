@@ -1,7 +1,7 @@
 package tests.debug.target;
 
-import debug.module.JitInfo;
-import debug.target.StackWalker;
+import ijhaxe.debug.module.JitInfo;
+import ijhaxe.debug.target.StackWalker;
 
 import haxe.Int64;
 

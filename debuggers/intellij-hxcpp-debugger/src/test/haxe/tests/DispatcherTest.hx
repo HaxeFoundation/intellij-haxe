@@ -1,8 +1,8 @@
 package tests;
 
 import haxe.Json;
-import intellij.hxcpp.debug.DebuggerApi;
-import intellij.hxcpp.debug.Dispatcher;
+import ijhaxe.hxcpp.debug.DebuggerApi;
+import ijhaxe.hxcpp.debug.Dispatcher;
 
 // An exception hierarchy for the typed-filter tests. SubError inherits its
 // constructor — the case a per-type entry breakpoint could never catch, and
@@ -214,7 +214,7 @@ class DispatcherTest {
 		t.dispatcher.handleDebugEvent(stop(1, DebugThread.STATUS_STOPPED_BREAK_IMMEDIATE, -1, "Main.hx", 12));
 		t.sent.resize(0);
 		t.dispatcher.handleRequest(Json.stringify({
-			seq: 4, type: "request", command: "intellij/stepIntoFunction",
+			seq: 4, type: "request", command: "custom/stepIntoFunction",
 			arguments: {threadId: 1, className: "my.pack.Target", functionName: "two"}
 		}));
 	}

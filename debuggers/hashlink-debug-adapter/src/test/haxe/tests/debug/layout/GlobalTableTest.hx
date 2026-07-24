@@ -1,7 +1,7 @@
 package tests.debug.layout;
 
-import debug.layout.Align;
-import debug.layout.GlobalTable;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.layout.GlobalTable;
 
 import format.hl.Data.HLType;
 

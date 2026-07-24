@@ -1,7 +1,7 @@
 package tests.debug.module;
 
-import debug.module.CodeGraph;
-import debug.module.ModuleDebugInfo;
+import ijhaxe.debug.module.CodeGraph;
+import ijhaxe.debug.module.ModuleDebugInfo;
 
 
 /**
@@ -70,7 +70,7 @@ class ModuleDebugInfoTest {
 		var ops = module.opcodes(mainFidx);
 		assert.isTrue(ops.length > 0, "main function has opcodes");
 
-		var graph = new debug.module.CodeGraph(ops);
+		var graph = new ijhaxe.debug.module.CodeGraph(ops);
 		var foundCallToAdd = false;
 		var lineOfCallCorrect = false;
 		for (op in 0...ops.length) {
@@ -103,7 +103,7 @@ class ModuleDebugInfoTest {
 		try {
 			new ModuleDebugInfo(path);
 			assert.fail("unsupported bytecode format version should throw");
-		} catch (e:debug.DebugError) {
+		} catch (e:ijhaxe.debug.DebugError) {
 			assert.isTrue(StringTools.contains(e.message, "bytecode format version"),
 				"names the version kind (was: " + e.message + ")");
 			assert.isTrue(StringTools.contains(e.message, "not the HashLink runtime version"),

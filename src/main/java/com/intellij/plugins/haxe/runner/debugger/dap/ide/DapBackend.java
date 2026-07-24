@@ -117,7 +117,7 @@ public interface DapBackend extends Closeable {
   /**
    * The smart-step-into handler for this backend. The default resolves the
    * targets from the Haxe PSI and sends the custom {@code
-   * intellij/stepIntoFunction} request; a backend whose adapter reports
+   * custom/stepIntoFunction} request; a backend whose adapter reports
    * targets itself (DAP {@code stepInTargets}) supplies its own handler.
    */
   default @Nullable XSmartStepIntoHandler<?> createSmartStepIntoHandler(DapDebugProcess process) {
@@ -154,7 +154,7 @@ public interface DapBackend extends Closeable {
 
   /**
    * Whether the server understands the custom
-   * {@code intellij/setToStringRendering} request (object labels via the
+   * {@code custom/setToStringRendering} request (object labels via the
    * object's own toString, toggleable live). The vshaxe server does not —
    * it always renders through Std.string and offers no control.
    */
@@ -162,7 +162,7 @@ public interface DapBackend extends Closeable {
 
   /**
    * Whether the server understands the custom
-   * {@code intellij/setExpressionStepping} request (eval only: each step
+   * {@code custom/setExpressionStepping} request (eval only: each step
    * becomes one raw interpreter sub-step and stack frames carry the exact
    * expression span for the editor highlight).
    */

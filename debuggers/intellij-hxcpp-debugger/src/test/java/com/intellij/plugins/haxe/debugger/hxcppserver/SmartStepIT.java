@@ -10,7 +10,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Smart step into (the custom intellij/stepIntoFunction request): a temporary
+ * Smart step into (the custom custom/stepIntoFunction request): a temporary
  * entry breakpoint on the chosen callee races a step-over. Covers static and
  * instance targets, packaged class names, the step-over fallback for a callee
  * that never runs, and the no-op stop for a class name the runtime rejects.

@@ -1,7 +1,7 @@
 package tests.debug.layout;
 
-import debug.layout.Align;
-import debug.layout.EnumLayout;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.layout.EnumLayout;
 
 import format.hl.Data.EnumPrototype;
 import format.hl.Data.HLType;

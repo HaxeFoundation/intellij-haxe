@@ -1,6 +1,6 @@
 package tests.debug.module;
 
-import debug.module.CodeGraph;
+import ijhaxe.debug.module.CodeGraph;
 
 import format.hl.Data.Opcode;
 

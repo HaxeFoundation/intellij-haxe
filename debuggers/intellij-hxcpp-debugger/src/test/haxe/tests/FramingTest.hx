@@ -1,7 +1,7 @@
 package tests;
 
 import haxe.io.Bytes;
-import intellij.hxcpp.debug.dap.DapFraming;
+import ijhaxe.hxcpp.debug.dap.DapFraming;
 
 class FramingTest {
 	public static function run(assert:Assert):Void {

@@ -1,7 +1,7 @@
-import debug.Pointer;
-import debug.target.DebugApi;
-import debug.target.Register;
-import debug.target.WaitOutcome;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.target.DebugApi;
+import ijhaxe.debug.target.Register;
+import ijhaxe.debug.target.WaitOutcome;
 
 import haxe.Int64;
 import haxe.io.Bytes;

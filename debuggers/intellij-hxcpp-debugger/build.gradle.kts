@@ -223,3 +223,18 @@ tasks.named<Test>("test") {
 tasks.named("check") {
     dependsOn("testHaxeServer")
 }
+
+// Haxelib upload zip: the library sits at the ZIP ROOT, and the source tree
+// already IS the release layout (haxelib.json with classPath "src", sources
+// under src/, extraParams.hxml beside them) — the zip is a straight copy.
+// Lands in the project root (git-ignored).
+val serverHaxelibVersion = Regex("\"version\"\\s*:\\s*\"([^\"]+)\"")
+    .find(file("hxcpp-debug-server/haxelib.json").readText())!!.groupValues[1]
+
+tasks.register<Zip>("buildHaxelibZip") {
+    group = "haxelib"
+    description = "Builds the intellij-hxcpp-debug-server haxelib upload zip into the project root"
+    archiveFileName = "intellij-hxcpp-debug-server-$serverHaxelibVersion.zip"
+    destinationDirectory = rootProject.layout.projectDirectory
+    from("hxcpp-debug-server")
+}

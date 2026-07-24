@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.values.VariablesView;
+import ijhaxe.hxcpp.debug.values.VariablesView;
 
 class VariablesViewTest {
 	public static function run(assert:Assert):Void {

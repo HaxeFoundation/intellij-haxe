@@ -362,3 +362,12 @@ tasks.register<GenerateLexerTask>("generateHxmlLexer") {
     targetRootOutputDir.set(File("src/main/gen"))
     purgeOldFiles = false
 }
+
+// One button for every haxelib upload zip (see the per-module buildHaxelibZip
+// tasks); the zips land in the project root, git-ignored.
+tasks.register("buildHaxelibZips") {
+    group = "haxelib"
+    description = "Builds every haxelib upload zip into the project root"
+    dependsOn(":debuggers:dap-protocol:buildHaxelibZip",
+              ":debuggers:intellij-hxcpp-debugger:buildHaxelibZip")
+}

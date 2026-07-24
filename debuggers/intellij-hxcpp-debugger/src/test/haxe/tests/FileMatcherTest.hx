@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.breakpoints.FileMatcher;
+import ijhaxe.hxcpp.debug.breakpoints.FileMatcher;
 
 class FileMatcherTest {
 	public static function run(assert:Assert):Void {

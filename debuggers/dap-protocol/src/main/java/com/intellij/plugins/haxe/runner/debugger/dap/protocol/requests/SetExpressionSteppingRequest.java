@@ -19,7 +19,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SetExpressionSteppingRequest extends Request {
-  public static final String COMMAND = "intellij/setExpressionStepping";
+  public static final String COMMAND = "custom/setExpressionStepping";
 
   private SetExpressionSteppingArguments arguments;
 

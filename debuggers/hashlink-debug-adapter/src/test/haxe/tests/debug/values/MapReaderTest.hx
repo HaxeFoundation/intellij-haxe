@@ -1,10 +1,10 @@
 package tests.debug.values;
 
-import debug.Pointer;
-import debug.layout.Align;
-import debug.target.MemoryReader;
-import debug.values.MapKeyKind;
-import debug.values.MapReader;
+import ijhaxe.debug.Pointer;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.target.MemoryReader;
+import ijhaxe.debug.values.MapKeyKind;
+import ijhaxe.debug.values.MapReader;
 import haxe.Int64;
 
 /**
