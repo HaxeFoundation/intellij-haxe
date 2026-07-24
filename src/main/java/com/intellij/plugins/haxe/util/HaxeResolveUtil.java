@@ -179,12 +179,17 @@ public class HaxeResolveUtil {
   }
   @Nullable
   public static PsiElement findClassOrMemberByQName(final @Nullable String qName, final @Nullable PsiElement context) {
-    if (context == null || qName == null) {
+    if (context == null) return null;
+    return findClassOrMemberByQName(qName, context.getProject());
+  }
+  @Nullable
+  public static PsiElement findClassOrMemberByQName(final @Nullable String qName, Project project) {
+    if (project == null || qName == null) {
       return null;
     }
-    final PsiManager psiManager = context.getManager();
-    final GlobalSearchScope scope = getScopeForElement(context);
-    return findClassOrMemberByQName(qName, psiManager, scope);
+    PsiManager psiManager = PsiManager.getInstance(project);
+    GlobalSearchScope searchScope = GlobalSearchScope.allScope(project);
+    return findClassOrMemberByQName(qName, psiManager, searchScope);
   }
 
   @NotNull

@@ -4,7 +4,6 @@ import com.intellij.execution.DefaultExecutionResult;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.ExecutionResult;
 import com.intellij.execution.Executor;
-import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RunProfileState;
 import com.intellij.execution.filters.TextConsoleBuilderFactory;
 import com.intellij.execution.process.ProcessHandler;
@@ -12,6 +11,8 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.runners.ProgramRunner;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.ide.BrowserUtil;
+import com.intellij.ide.browsers.BrowserLauncher;
+import com.intellij.ide.browsers.WebBrowser;
 import com.intellij.plugins.haxe.HaxeDebuggerBundle;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -96,17 +97,18 @@ public class BrowserRunningState implements RunProfileState {
     }
   }
 
-  // The configured executable gets the url as its argument (works for every
-  // browser fork); blank falls back to the system default browser.
+  // Opens the url in the browser configured on the run configuration (the
+  // IDE registry entry); with no resolvable selection the system default
+  // browser opens instead.
   private void openBrowser(String url) throws ExecutionException {
     try {
-      String executable = configuration.getBrowserExecutablePath();
-      if (executable.isBlank()) {
-        BrowserUtil.browse(url);
+      WebBrowser browser = DebugBrowser.resolve(configuration.getBrowserId());
+      if (browser != null) {
+        BrowserLauncher.getInstance().browse(url, browser, configuration.getProject());
       } else {
-        new GeneralCommandLine(executable, url).createProcess();
+        BrowserUtil.browse(url);
       }
-    } catch (ExecutionException | RuntimeException e) {
+    } catch (RuntimeException e) {
       throw new ExecutionException(HaxeDebuggerBundle.message("browser.runner.browser.failed", e.getMessage()), e);
     }
   }

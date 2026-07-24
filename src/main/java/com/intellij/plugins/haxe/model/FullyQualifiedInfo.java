@@ -146,10 +146,10 @@ public class FullyQualifiedInfo {
       builder.append(packageName);
     }
 
-    if (moduleName == null || moduleName.isEmpty()) return builder.toString();
-    if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
-    builder.append(moduleName);
-
+    if (moduleName != null && !moduleName.isEmpty()) {
+      if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
+      builder.append(moduleName);
+    }
     if (className != null && !className.isEmpty()) {
       builder.append(PATH_SEPARATOR);
       builder.append(className);
@@ -176,15 +176,15 @@ public class FullyQualifiedInfo {
       builder.append(packageName);
     }
 
-    if (moduleName == null || moduleName.isEmpty()) {
-      if (!includeModule)return builder.toString();
-    }else {
-      if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
-      builder.append(moduleName);
+    if (moduleName != null && !moduleName.isEmpty()) {
+      if (includeModule || className == null) {
+        if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
+        builder.append(moduleName);
+      }
     }
 
-    if (className != null && !className.isEmpty() && (includeModule || !className.equals(moduleName))) {
-      builder.append(PATH_SEPARATOR);
+    if (className != null && !className.isEmpty()) {
+      if (!builder.isEmpty()) builder.append(PATH_SEPARATOR);
       builder.append(className);
     }
 

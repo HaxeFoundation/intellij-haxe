@@ -35,35 +35,31 @@ import org.jetbrains.annotations.Nullable;
  *       the configured URL.</li>
  * </ul>
  *
- * Browser family selects the adapter (Firefox: vscode-firefox-debug;
- * Chromium: vscode-js-debug). The optional browser executable supports any
- * family fork (tested against ungoogled-chromium); blank lets the adapter
- * find the default installation.
+ * The browser comes from the IDE's browser registry (Settings | Tools | Web
+ * Browsers) and picks the adapter by its family: Firefox flavors get
+ * vscode-firefox-debug, Chromium flavors (incl. ungoogled-chromium) get
+ * vscode-js-debug; other families cannot be debugged. Executable paths are
+ * configured in the registry, not here.
  */
 public class BrowserRunConfiguration extends DapRunConfigurationBase {
-  /** Which adapter family drives the session. */
+  /** Which adapter family drives the session; derived from the selected browser. */
   public enum BrowserFamily {FIREFOX, CHROMIUM}
 
-  private static final String FAMILY = "browserFamily";
   private static final String URL = "url";
   private static final String SERVE_CONTENT = "serveContent";
   private static final String CONTENT_ROOT = "contentRoot";
-  private static final String BROWSER_EXECUTABLE = "browserExecutable";
+  private static final String BROWSER_ID = "browserId";
   private static final String NODE_PATH = "nodePath";
 
-  @Getter private BrowserFamily browserFamily = BrowserFamily.FIREFOX;
   @Getter private String url = "";
   @Getter private boolean serveContent = true;
   @Getter private String contentRoot = "";
-  @Getter private String browserExecutablePath = "";
+
+  @Getter private String browserId = "";
   @Getter private String nodePath = "";
 
   public BrowserRunConfiguration(String name, Project project, ConfigurationFactory factory) {
     super(name, project, factory);
-  }
-
-  public void setBrowserFamily(@Nullable BrowserFamily family) {
-    browserFamily = family == null ? BrowserFamily.FIREFOX : family;
   }
 
   public void setUrl(@Nullable String value) {
@@ -78,8 +74,8 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
     contentRoot = value == null ? "" : value;
   }
 
-  public void setBrowserExecutablePath(@Nullable String value) {
-    browserExecutablePath = value == null ? "" : value;
+  public void setBrowserId(@Nullable String value) {
+    browserId = value == null ? "" : value;
   }
 
   public void setNodePath(@Nullable String value) {
@@ -114,16 +110,45 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
         throw new RuntimeConfigurationError(
           HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
       }
-    } else if (url.isBlank()) {
-      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("browser.runner.no.url"));
+    } else {
+      if (url.isBlank()) {
+        throw new RuntimeConfigurationError(HaxeDebuggerBundle.message("browser.runner.no.url"));
+      }
+      // the web root is optional in URL mode, but a set-but-invalid path would
+      // become a bad webRoot - catch the typo here
+      if (!contentRoot.isBlank()) {
+        Path root = resolveContentRootOrNull();
+        if (root == null || !Files.isDirectory(root)) {
+          throw new RuntimeConfigurationError(
+            HaxeDebuggerBundle.message("browser.runner.content.root.missing", contentRoot));
+        }
+      }
     }
+    var browser = DebugBrowser.resolve(browserId);
+
+    if (browser == null) {
+      throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
+        browserId.isBlank() ? "browser.runner.browser.none" : "browser.runner.browser.selection.gone"));
+    }
+    BrowserFamily family = DebugBrowser.familyOf(browser);
+
+    if (family == null) {
+      throw new RuntimeConfigurationError(
+        HaxeDebuggerBundle.message("browser.runner.browser.unsupported", browser.getName()));
+    }
+
+    if (DebugBrowser.executableOf(browser) == null) {
+      throw new RuntimeConfigurationError(
+        HaxeDebuggerBundle.message("browser.runner.browser.no.exe", browser.getName()));
+    }
+
     // downloading the adapter is the USER's explicit decision (the editor's
     // Download link) - a session never downloads, so a missing adapter is an
     // incorrect configuration, not a launch-time surprise
-    AdapterPin pin = adapterPinFor(browserFamily);
+    AdapterPin pin = adapterPinFor(family);
     if (!new AdapterStore(BrowserDebugBackend.adapterStoreRoot()).isInstalled(pin)) {
       throw new RuntimeConfigurationError(HaxeDebuggerBundle.message(
-        "browser.runner.adapter.missing", adapterDisplayName(browserFamily) + " " + pin.version()));
+        "browser.runner.adapter.missing", adapterDisplayName(family) + " " + pin.version()));
     }
   }
 
@@ -164,11 +189,6 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
   public void readExternal(@NotNull Element element) throws InvalidDataException {
     super.readExternal(element);
     readModule(element);
-    try {
-      browserFamily = BrowserFamily.valueOf(orEmpty(JDOMExternalizerUtil.readField(element, FAMILY)));
-    } catch (IllegalArgumentException notStored) {
-      browserFamily = BrowserFamily.FIREFOX;
-    }
     url = orEmpty(JDOMExternalizerUtil.readField(element, URL));
     // absent field keeps the field default (serve mode) - parsing "" would
     // silently turn it off
@@ -177,18 +197,17 @@ public class BrowserRunConfiguration extends DapRunConfigurationBase {
       serveContent = Boolean.parseBoolean(storedServeContent);
     }
     contentRoot = orEmpty(JDOMExternalizerUtil.readField(element, CONTENT_ROOT));
-    browserExecutablePath = orEmpty(JDOMExternalizerUtil.readField(element, BROWSER_EXECUTABLE));
+    browserId = orEmpty(JDOMExternalizerUtil.readField(element, BROWSER_ID));
     nodePath = orEmpty(JDOMExternalizerUtil.readField(element, NODE_PATH));
   }
 
   @Override
   public void writeExternal(@NotNull Element element) throws WriteExternalException {
     super.writeExternal(element); // also serializes the module
-    JDOMExternalizerUtil.writeField(element, FAMILY, browserFamily.name());
     JDOMExternalizerUtil.writeField(element, URL, url);
     JDOMExternalizerUtil.writeField(element, SERVE_CONTENT, Boolean.toString(serveContent));
     JDOMExternalizerUtil.writeField(element, CONTENT_ROOT, contentRoot);
-    JDOMExternalizerUtil.writeField(element, BROWSER_EXECUTABLE, browserExecutablePath);
+    JDOMExternalizerUtil.writeField(element, BROWSER_ID, browserId);
     JDOMExternalizerUtil.writeField(element, NODE_PATH, nodePath);
   }
 }

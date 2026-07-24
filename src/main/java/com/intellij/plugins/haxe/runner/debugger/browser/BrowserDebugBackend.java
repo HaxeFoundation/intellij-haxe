@@ -61,9 +61,12 @@ public class BrowserDebugBackend implements DapBackend {
 
   private final BrowserFamily family;
   private final String configuredNodePath;
-  private final String configuredBrowserExecutable;
+  private final String browserExecutable;
   private final boolean serveContent;
-  private final Path contentRoot; // when serving
+  // The local web root: the served directory in serve mode, or (URL mode)
+  // the local files the external server hosts. Sent to the adapter as webRoot
+  // so source-mapped breakpoints bind to local sources; null when unset.
+  private final Path contentRoot;
   private final String url;       // when not serving
 
   private volatile ContentHttpServer contentServer;
@@ -78,13 +81,13 @@ public class BrowserDebugBackend implements DapBackend {
 
   public BrowserDebugBackend(BrowserFamily family,
                              String configuredNodePath,
-                             String configuredBrowserExecutable,
+                             String browserExecutable,
                              boolean serveContent,
                              Path contentRoot,
                              String url) {
     this.family = family;
     this.configuredNodePath = configuredNodePath;
-    this.configuredBrowserExecutable = configuredBrowserExecutable;
+    this.browserExecutable = browserExecutable;
     this.serveContent = serveContent;
     this.contentRoot = contentRoot;
     this.url = url;
@@ -160,11 +163,13 @@ public class BrowserDebugBackend implements DapBackend {
     // WinNAT reservations), where the bind fails and the launch dies with an
     // empty adapter message.
     config.put("port", NetUtils.findAvailableSocketPort());
-    if (serveContent) {
+    // webRoot maps the served files back to local sources for breakpoints; sent
+    // whenever a local root is known, serving or pointing at an external server
+    if (contentRoot != null) {
       config.put("webRoot", contentRoot.toString());
     }
-    if (!configuredBrowserExecutable.isBlank()) {
-      config.put("firefoxExecutable", configuredBrowserExecutable);
+    if (!browserExecutable.isBlank()) {
+      config.put("firefoxExecutable", browserExecutable);
     }
     return config;
   }
@@ -239,11 +244,14 @@ public class BrowserDebugBackend implements DapBackend {
     config.put("request", "launch");
     config.put("name", "IntelliJ Haxe browser session");
     config.put("url", targetUrl);
-    if (serveContent) {
+    // js-debug REQUIRES webRoot (or pathMappings) for a url launch, and it maps
+    // the served files back to local sources for breakpoints - send it whenever
+    // a local root is known
+    if (contentRoot != null) {
       config.put("webRoot", contentRoot.toString());
     }
-    if (!configuredBrowserExecutable.isBlank()) {
-      config.put("runtimeExecutable", configuredBrowserExecutable);
+    if (!browserExecutable.isBlank()) {
+      config.put("runtimeExecutable", browserExecutable);
     }
     return config;
   }
