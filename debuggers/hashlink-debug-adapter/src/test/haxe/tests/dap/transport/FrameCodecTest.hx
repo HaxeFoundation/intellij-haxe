@@ -1,7 +1,7 @@
 package tests.dap.transport;
 
-import dap.transport.FrameCodec;
-import dap.transport.MessageReader;
+import ijhaxe.dap.transport.FrameCodec;
+import ijhaxe.dap.transport.MessageReader;
 import haxe.io.Bytes;
 import haxe.io.BytesBuffer;
 import haxe.io.BytesInput;

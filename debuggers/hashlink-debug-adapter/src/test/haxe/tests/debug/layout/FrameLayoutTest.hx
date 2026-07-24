@@ -1,7 +1,7 @@
 package tests.debug.layout;
 
-import debug.layout.Align;
-import debug.layout.FrameLayout;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.layout.FrameLayout;
 
 import format.hl.Data.HLType;
 

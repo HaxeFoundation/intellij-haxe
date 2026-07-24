@@ -1,8 +1,8 @@
 package tests.debug.layout;
 
-import debug.layout.Align;
-import debug.layout.FieldLayout;
-import debug.layout.ObjectLayout;
+import ijhaxe.debug.layout.Align;
+import ijhaxe.debug.layout.FieldLayout;
+import ijhaxe.debug.layout.ObjectLayout;
 
 import format.hl.Data.HLType;
 import format.hl.Data.ObjPrototype;
@@ -20,7 +20,7 @@ class ObjectLayoutTest {
 		return {name: name, tsuper: tsuper, fields: fields, proto: [], globalValue: null, bindings: []};
 	}
 
-	static function offsetOf(layout:Array<debug.layout.FieldLayout>, name:String):Int {
+	static function offsetOf(layout:Array<ijhaxe.debug.layout.FieldLayout>, name:String):Int {
 		for (f in layout) {
 			if (f.name == name) {
 				return f.offset;

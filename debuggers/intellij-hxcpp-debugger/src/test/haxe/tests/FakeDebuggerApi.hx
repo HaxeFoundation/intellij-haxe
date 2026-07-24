@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.DebuggerApi;
+import ijhaxe.hxcpp.debug.DebuggerApi;
 
 /**
 	Scriptable DebuggerApi for the interpreter-run tests: canned thread lists,

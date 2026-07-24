@@ -293,7 +293,7 @@ public class EvalDebugAdapterLiveTest {
     // `var nested = outer(inner(3));` — smart-step to OUTER must walk the
     // line's sub-expressions, step THROUGH inner() without reporting it, and
     // land inside outer() (the eval protocol has no smart-step; the adapter
-    // emulates intellij/stepIntoFunction with sub-expression steps).
+    // emulates custom/stepIntoFunction with sub-expression steps).
     InitializeRequest initialize = new InitializeRequest();
     initialize.setArguments(new InitializeRequestArguments());
     assertTrue("initialize", request(initialize).isSuccess());

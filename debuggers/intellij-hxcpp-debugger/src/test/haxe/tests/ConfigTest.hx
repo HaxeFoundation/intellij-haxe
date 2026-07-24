@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.Config;
+import ijhaxe.hxcpp.debug.Config;
 
 class ConfigTest {
 	public static function run(assert:Assert):Void {

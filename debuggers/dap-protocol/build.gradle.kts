@@ -28,6 +28,28 @@ dependencies {
     testImplementation(libs.junit)
 }
 
+// Haxelib upload zip: the library sits at the ZIP ROOT with its sources under
+// src/ (classPath "src"), so the repo's src/main/haxe tree is remapped and
+// haxelib.json's classPath rewritten to match. Lands in the project root
+// (git-ignored).
+val haxelibVersion = Regex("\"version\"\\s*:\\s*\"([^\"]+)\"")
+    .find(file("haxelib.json").readText())!!.groupValues[1]
+
+tasks.register<Zip>("buildHaxelibZip") {
+    group = "haxelib"
+    description = "Builds the intellij-dap-protocol haxelib upload zip into the project root"
+    archiveFileName = "intellij-dap-protocol-$haxelibVersion.zip"
+    destinationDirectory = rootProject.layout.projectDirectory
+    from("haxelib.json") {
+        filter { line: String ->
+            line.replace(Regex("\"classPath\"\\s*:\\s*\"[^\"]*\""), "\"classPath\": \"src\"")
+        }
+    }
+    from("src/main/haxe") {
+        into("src")
+    }
+}
+
 // Debugger tests are OPT-IN (-PdebuggerTests=true): most plugin work does not
 // touch the debuggers, and the compat-matrix tool passes the flag itself.
 // Compilation still runs in every build.

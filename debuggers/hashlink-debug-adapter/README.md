@@ -36,15 +36,15 @@ communicates with the rest of the adapter only through queues.
 
 | Path | Contents |
 |---|---|
-| `src/main/haxe/adapter/` | adapter entry point, thread wiring, request dispatcher |
-| `src/main/haxe/dap/protocol/` | DAP base messages + shared types (Source, Breakpoint, Variable, …); `requests/`, `responses/`, `events/` hold the per-command arguments/bodies |
-| `src/main/haxe/dap/transport/` | Content-Length framing, frame reader/writer |
-| `src/main/haxe/debug/` | shared primitives (`Pointer`, `DebugError`) |
-| `src/main/haxe/debug/target/` | the live debuggee: `debug_*` API, process spawn/pumps, memory reads, registers, stack walker |
-| `src/main/haxe/debug/module/` | static `.hl`/jit metadata: bytecode debug tables, handshake reader, control-flow graph, locals resolver |
-| `src/main/haxe/debug/layout/` | pure memory-layout arithmetic: frame/object/enum offsets, globals table, alignment rules |
-| `src/main/haxe/debug/values/` | runtime value decoding: readers, children, runtime types, the per-stop variable inspector |
-| `src/main/haxe/debug/session/` | orchestration: the session thread/state machine, commands/events, breakpoints, stepping |
+| `src/main/haxe/ijhaxe/adapter/` | adapter entry point, thread wiring, request dispatcher |
+| `src/main/haxe/ijhaxe/dap/protocol/` | DAP base messages + shared types (Source, Breakpoint, Variable, …); `requests/`, `responses/`, `events/` hold the per-command arguments/bodies |
+| `src/main/haxe/ijhaxe/dap/transport/` | Content-Length framing, frame reader/writer |
+| `src/main/haxe/ijhaxe/debug/` | shared primitives (`Pointer`, `DebugError`) |
+| `src/main/haxe/ijhaxe/debug/target/` | the live debuggee: `debug_*` API, process spawn/pumps, memory reads, registers, stack walker |
+| `src/main/haxe/ijhaxe/debug/module/` | static `.hl`/jit metadata: bytecode debug tables, handshake reader, control-flow graph, locals resolver |
+| `src/main/haxe/ijhaxe/debug/layout/` | pure memory-layout arithmetic: frame/object/enum offsets, globals table, alignment rules |
+| `src/main/haxe/ijhaxe/debug/values/` | runtime value decoding: readers, children, runtime types, the per-stop variable inspector |
+| `src/main/haxe/ijhaxe/debug/session/` | orchestration: the session thread/state machine, commands/events, breakpoints, stepping |
 | `test-fixtures/` | a tiny debuggee compiled with `-debug` (one class per file), used by the integration tests |
 | `src/test/haxe/` | Haxe-side tests, run with the Haxe interpreter (`haxe test.hxml`) |
 | `src/main/java/.../dap/protocol/` | DAP base messages + shared types (Lombok); `requests/`, `responses/`, `events/` mirror the Haxe side |

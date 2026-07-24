@@ -20,7 +20,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class SetToStringRenderingRequest extends Request {
-  public static final String COMMAND = "intellij/setToStringRendering";
+  public static final String COMMAND = "custom/setToStringRendering";
 
   private SetToStringRenderingArguments arguments;
 

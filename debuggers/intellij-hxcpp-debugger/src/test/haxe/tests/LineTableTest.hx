@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.breakpoints.LineTable;
+import ijhaxe.hxcpp.debug.breakpoints.LineTable;
 
 class LineTableTest {
 	public static function run(assert:Assert):Void {

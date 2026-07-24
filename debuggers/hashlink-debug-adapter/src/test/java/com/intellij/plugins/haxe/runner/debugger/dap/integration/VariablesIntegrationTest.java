@@ -123,7 +123,7 @@ public class VariablesIntegrationTest extends DapIntegrationTestBase {
 
   @Test
   public void toStringRenderingToggleIsAcceptedAndInertForNow() throws Exception {
-    // The custom intellij/setToStringRendering request is part of the wire
+    // The custom custom/setToStringRendering request is part of the wire
     // contract (the IDE's live gear toggle sends it), but the adapter only
     // STORES the flag: labels must stay class names until the fault-proof
     // (hl_dyn_call_safe) rendering lands — a plain injected toString that

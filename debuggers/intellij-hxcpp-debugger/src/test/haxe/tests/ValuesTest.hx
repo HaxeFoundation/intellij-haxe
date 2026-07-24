@@ -1,6 +1,6 @@
 package tests;
 
-import intellij.hxcpp.debug.values.Values;
+import ijhaxe.hxcpp.debug.values.Values;
 
 private class Point {
 	public var x:Int;

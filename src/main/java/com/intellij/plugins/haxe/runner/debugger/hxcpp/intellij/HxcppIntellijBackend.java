@@ -66,12 +66,12 @@ public class HxcppIntellijBackend implements DapBackend {
 
   @Override
   public boolean supportsSmartStepInto() {
-    return true; // the server implements intellij/stepIntoFunction
+    return true; // the server implements custom/stepIntoFunction
   }
 
   @Override
   public boolean supportsToStringRendering() {
-    return true; // the server implements intellij/setToStringRendering
+    return true; // the server implements custom/setToStringRendering
   }
 
   @Override
