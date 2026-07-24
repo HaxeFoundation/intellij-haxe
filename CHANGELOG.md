@@ -2,6 +2,9 @@
 ## 1.9.0
 * Added: New (experimental) debugger support for Eval, hashlink and hxcpp. 
 
+## 1.8.9
+* Fixed: Allow typeTags to be wrapped in parentheses
+
 ## 1.8.8
 * Added: Statusbar widget for quick change of haxe target.
 * Fixed: Stop button should now work for build jobs.
@@ -17,10 +20,6 @@
 * Fixed: IllegalArgumentException during highlighting when a switch, call expression or object-literal member is still incomplete while editing.
 * Fixed: The unused-method inspection crashed with a NullPointerException on module-level functions.
 * Added: Go-to-declaration (Ctrl/Cmd+Click) on object literal keys, jumping to the matching field of the type the literal is used as (including extended and intersection typedefs).
-
-## Unreleased
-* Added: New HXCPP debugger (experimental): a dedicated "HXCPP Application" run configuration that runs/debugs native executables via the vshaxe hxcpp debug server (compile with `-debug` and `-lib hxcpp-debug-server`). Supports breakpoints (with conditions), stepping, run to cursor, pause, threads, variables with Set Value, watches/hover evaluation including assignments, and uncaught-exception stops.
-* Changed: The old hxcpp debugger (used by the generic Haxe Application configuration) is now labeled "legacy" in its messages; it remains fully functional, as does the Flash/Flex debugging it also provides.
 
 ## 1.8.6
 * Changed: Completion suggestions inside `@:forward` will now only show suggestions for unerlying type members. 

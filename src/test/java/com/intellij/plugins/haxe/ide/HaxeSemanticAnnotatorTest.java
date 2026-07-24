@@ -1153,6 +1153,10 @@ public class HaxeSemanticAnnotatorTest extends HaxeSemanticAnnotatorTestBase {
     myFixture.enableInspections(HaxeUnresolvedSymbolInspection.class);
     doTestNoFixWithWarnings();
   }
+  @Test
+  public void testTypeTagsTypesInParentheses() throws Throwable {
+    doTestNoFixWithWarnings();
+  }
 
   @Test
   public void testUnificationRules() throws Exception {
