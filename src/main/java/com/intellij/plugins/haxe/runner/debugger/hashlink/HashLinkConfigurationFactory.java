@@ -29,7 +29,7 @@ public class HashLinkConfigurationFactory extends ConfigurationFactory {
 
   @Override
   public Icon getIcon() {
-    return HaxeIcons.HASHLINK;
+    return HaxeIcons.DEBUGGER_HASHLINK;
   }
 
   @Override

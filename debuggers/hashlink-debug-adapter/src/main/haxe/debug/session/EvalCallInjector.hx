@@ -95,6 +95,29 @@ class EvalCallInjector {
 		return result;
 	}
 
+	/**
+		linux float-register-write workaround: loads Xmm0 on the stopped thread
+		by running a two-instruction injected stub — hl's linux debug natives
+		cannot WRITE float registers (their ptrace write path never handled the
+		FP pseudo-offsets the read path defines), but code injection is exactly
+		how eval-calls already run. Same breakpoint-lift discipline as call():
+		the stub cannot hit one (it is straight-line), but the saved original
+		bytes must be clean of our 0xCC patches.
+	**/
+	public function writeXmm0(threadId:Int, bits:Pointer):Void {
+		breakpoints.suspendAll();
+		var error:Null<Dynamic> = null;
+		try {
+			runInjectedCall(threadId, X64CallEmitter.buildXmm0Load(bits), 0);
+		} catch (e:Dynamic) {
+			error = e;
+		}
+		breakpoints.rearmAll(hooks.keepSuspended());
+		if (error != null) {
+			throw error;
+		}
+	}
+
 	// The inject/run/restore core of an eval-call: writes the trampoline over the
 	// stopped thread's Eip, runs it on a scratch stack to its trailing INT3, and
 	// restores the original code and the Eax/Eip/Esp registers. Exception-safe by

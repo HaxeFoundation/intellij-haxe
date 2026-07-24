@@ -15,4 +15,14 @@ public class SetVariableRequest extends Request {
   public SetVariableRequest() {
     super(COMMAND);
   }
+
+  public static SetVariableRequest of(int variablesReference, String name, String value) {
+    SetVariableRequest request = new SetVariableRequest();
+    SetVariableArguments arguments = new SetVariableArguments();
+    arguments.setVariablesReference(variablesReference);
+    arguments.setName(name);
+    arguments.setValue(value);
+    request.setArguments(arguments);
+    return request;
+  }
 }

@@ -25,10 +25,10 @@ import com.intellij.plugins.haxe.ide.inspections.intentions.HaxeIntroduceFieldIn
 import com.intellij.plugins.haxe.lang.psi.*;
 import com.intellij.plugins.haxe.metadata.psi.HaxeMetadataCompileTimeMeta;
 import com.intellij.plugins.haxe.model.HaxeClassModel;
-import com.intellij.plugins.haxe.model.type.ResultHolder;
-import com.intellij.plugins.haxe.model.type.SpecificFunctionReference;
-import com.intellij.plugins.haxe.model.type.SpecificHaxeClassReference;
-import com.intellij.plugins.haxe.model.type.SpecificTypeReference;
+import com.intellij.plugins.haxe.model.type.*;
+import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugProcess;
+import com.intellij.xdebugger.XDebugSession;
+import com.intellij.xdebugger.XDebuggerManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -76,6 +76,20 @@ public class HaxeUnresolvedSymbolInspection extends LocalInspectionTool {
   @Override
   public ProblemDescriptor[] checkFile(@NotNull PsiFile file, @NotNull final InspectionManager manager, final boolean isOnTheFly) {
     if (!(file instanceof HaxeFile)) return null;
+    // Debugger evaluate/watch fragments: when the running session's adapter
+    // evaluates against the LIVE runtime (js-debug), the runtime legitimately
+    // knows identifiers the PSI cannot — browser globals behind incomplete
+    // externs, dynamically attached fields. "Unresolved" is not an error
+    // there: the expression evaluates fine and the runtime provides the
+    // completion, so the red markers would only cry wolf.
+    if (file instanceof HaxeExpressionCodeFragment) {
+      XDebugSession session = XDebuggerManager.getInstance(file.getProject()).getCurrentSession();
+      if (session != null
+          && session.getDebugProcess() instanceof DapDebugProcess process
+          && process.evaluatesAgainstForeignRuntime()) {
+        return null;
+      }
+    }
     final List<ProblemDescriptor> result = new ArrayList<>();
     new HaxeAnnotatingVisitor() {
       @Override

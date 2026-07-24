@@ -54,6 +54,12 @@ public class HaxeIcons {
   public static final Icon HASHLINK = load("/icons/other/HashLink_logo.svg");
   public static final Icon VSHAXE= load("/icons/other/VsHaxe-logo.svg");
 
+  public static final Icon DEBUGGER_VSHAXE= load("/icons/debugger/Haxe_logo_vshaxe.svg");
+  public static final Icon DEBUGGER_EVAL= load("/icons/debugger/Haxe_logo_eval.svg");
+  public static final Icon DEBUGGER_WEB= load("/icons/debugger/Haxe_logo_web.svg");
+  public static final Icon DEBUGGER_HASHLINK= load("/icons/debugger/Haxe_logo_hashlink.svg");
+  public static final Icon DEBUGGER_HXCPP= load("/icons/debugger/Haxe_logo_hxcpp.svg");
+
 
 
 

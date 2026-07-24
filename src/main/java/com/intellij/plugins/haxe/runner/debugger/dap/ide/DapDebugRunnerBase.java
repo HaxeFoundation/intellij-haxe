@@ -43,7 +43,11 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
   /** Builds the backend; it starts listening in its constructor. */
   protected abstract B createBackend(C configuration) throws ExecutionException;
 
-  /** The debuggee invocation, including anything the backend contributes (env vars, defines). */
+  /**
+   * The debuggee invocation, including anything the backend contributes (env
+   * vars, defines) — or null when the ADAPTER owns the debuggee (the web
+   * adapters launch the browser themselves; nothing is spawned here).
+   */
   protected abstract GeneralCommandLine createCommandLine(C configuration, B backend) throws ExecutionException;
 
   @Override
@@ -62,13 +66,17 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
     ColoredProcessHandler debuggeeHandler;
     try {
       GeneralCommandLine commandLine = createCommandLine(configuration, backend);
-      debuggeeHandler = new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString());
+      debuggeeHandler = commandLine != null
+                        ? new ColoredProcessHandler(commandLine.createProcess(), commandLine.getCommandLineString())
+                        : null;
     } catch (ExecutionException | RuntimeException e) {
       closeQuietly(backend);
       throw e;
     }
-    ProcessTerminatedListener.attach(debuggeeHandler, environment.getProject());
-    backend.debuggeeSpawned(debuggeeHandler);
+    if (debuggeeHandler != null) {
+      ProcessTerminatedListener.attach(debuggeeHandler, environment.getProject());
+      backend.debuggeeSpawned(debuggeeHandler);
+    }
 
     try {
       // the session builder is the split-debugger-safe way to hand the
@@ -87,7 +95,9 @@ public abstract class DapDebugRunnerBase<C extends RunConfiguration, B extends D
         .startSession();
       return started.getRunContentDescriptor();
     } catch (ExecutionException | RuntimeException e) {
-      debuggeeHandler.destroyProcess();
+      if (debuggeeHandler != null) {
+        debuggeeHandler.destroyProcess();
+      }
       closeQuietly(backend);
       throw e;
     }

@@ -8,30 +8,17 @@ import com.intellij.execution.process.ProcessOutputTypes;
 import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.ExecutionConsole;
-import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.plugins.haxe.runner.debugger.exceptions.HaxeExceptionBreakpointProperties;
 import com.intellij.plugins.haxe.runner.debugger.exceptions.HaxeExceptionBreakpointType;
-import com.intellij.plugins.haxe.runner.debugger.HaxeBreakpointType;
-import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerEditorsProvider;
-import com.intellij.plugins.haxe.runner.debugger.HaxeDebuggerSettings;
-import com.intellij.plugins.haxe.runner.debugger.HaxeToStringRenderToggleAction;
-import com.intellij.plugins.haxe.runner.debugger.dap.client.DapClient;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.DapThread;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Scope;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StackFrame;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Variable;
+import com.intellij.plugins.haxe.runner.debugger.*;
+import com.intellij.plugins.haxe.runner.debugger.dap.client.DapEndpoint;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
-import com.intellij.plugins.haxe.runner.debugger.HaxeExpressionPointHighlighter;
-import com.intellij.plugins.haxe.runner.debugger.HaxeExpressionSteppingToggleAction;
 import com.intellij.xdebugger.XDebugSessionListener;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.transport.DapConnection;
 import com.intellij.xdebugger.XDebugProcess;
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.XSourcePosition;
@@ -43,27 +30,29 @@ import com.intellij.xdebugger.evaluation.XDebuggerEditorsProvider;
 import com.intellij.xdebugger.frame.XExecutionStack;
 import com.intellij.xdebugger.frame.XStackFrame;
 import com.intellij.xdebugger.frame.XSuspendContext;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.StepInTarget;
 import com.intellij.xdebugger.stepping.XSmartStepIntoHandler;
 import com.intellij.xdebugger.ui.XDebugTabLayouter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import com.intellij.xdebugger.DefaultDebugProcessHandler;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The shared XDebugger process for every DAP-based debugger: a DAP client
  * over a {@link DapBackend} (the in-process vshaxe adapter, the debuggee's
  * embedded intellij-hxcpp-debug-server, or the eval adapter), bridging its
- * events into the IDE. Mirrors the
- * HashLink debug process, but simpler in two ways: the peer is reached over a
- * loopback socket (no external process to manage), and the debuggee is a
- * plain child process (no OS-level debug attachment, so killing it needs no
- * special ceremony).
+ * events into the IDE. Mirrors the HashLink debug process, but simpler in two
+ * ways: the peer is reached over a loopback socket (no external process to
+ * manage), and the debuggee is a plain child process (no OS-level debug
+ * attachment, so killing it needs no special ceremony).
  *
  * The debuggee is spawned by the debug runner; its {@link ProcessHandler} is
  * the session's process handler, so console output, stdin and the exit code
@@ -87,7 +76,9 @@ public class DapDebugProcess extends XDebugProcess {
   private final ExecutorService requestExecutor =
     Executors.newSingleThreadExecutor(r -> daemon(r, "DAP requests"));
 
-  private volatile DapClient client;
+  private volatile DapEndpoint client;
+  /** The adapter's declared capabilities (from the initialize response). */
+  private volatile Capabilities capabilities;
   // the DAP frame id of the newest frame at the current stop (-1 before the
   // first); smart-step handlers that query the adapter need it
   private volatile int topFrameId = -1;
@@ -98,12 +89,31 @@ public class DapDebugProcess extends XDebugProcess {
   private volatile int currentThreadId = 0;
   private volatile boolean shuttingDown = false;
   private volatile boolean launched = false;
+  /**
+   * Whether a pause is currently presented to the user. Tracked here and NOT
+   * via XDebugSession.isSuspended(): the platform reflects the suspended
+   * state asynchronously, so two near-simultaneous stops (both workers'
+   * ticking breakpoints) could each see "not suspended" and fight over the
+   * views (duplicated thread combo entries, a frames list stuck on
+   * "Loading..."). While a pause is on screen, another thread's stop leaves
+   * that thread paused but does not touch the views — it is inspectable
+   * through the thread list, and Resume releases it.
+   */
+  private volatile boolean pauseOnScreen = false;
 
   public DapDebugProcess(@NotNull XDebugSession session,
-                           DapBackend backend, ProcessHandler debuggeeHandler) {
+                           DapBackend backend, @Nullable ProcessHandler debuggeeHandler) {
     super(session);
     this.backend = backend;
-    this.processHandler = debuggeeHandler;
+    // A backend whose ADAPTER owns the debuggee (the web adapters launch the
+    // browser themselves) has no runner-spawned process; a no-op handler keeps
+    // the session/console plumbing uniform (Stop still goes through stop()).
+    this.processHandler = debuggeeHandler != null
+                          ? debuggeeHandler
+                          : new DefaultDebugProcessHandler();
+    if (debuggeeHandler == null) {
+      return;
+    }
     // A debuggee dying BEFORE the session is up is always a startup failure
     // (not compiled with the debug server, or its port is poisoned by a
     // leftover instance) — fail immediately with the exit code instead of
@@ -144,7 +154,8 @@ public class DapDebugProcess extends XDebugProcess {
   @Override
   public @NotNull ExecutionConsole createConsole() {
     ConsoleView console = TextConsoleBuilderFactory.getInstance()
-      .createBuilder(getSession().getProject()).getConsole();
+      .createBuilder(getSession().getProject())
+      .getConsole();
     console.attachToProcess(processHandler);
     return console;
   }
@@ -156,42 +167,11 @@ public class DapDebugProcess extends XDebugProcess {
       client = backend.connect();
       backend.onConnected(this);
 
-      InitializeRequest initialize = new InitializeRequest();
-      InitializeRequestArguments initializeArguments = new InitializeRequestArguments();
-      initializeArguments.setAdapterID("intellij-haxe");
-      initializeArguments.setClientID("intellij");
-      initialize.setArguments(initializeArguments);
-      client.sendRequest(initialize, REQUEST_TIMEOUT_MILLIS);
-      client.pollEvent(REQUEST_TIMEOUT_MILLIS); // the initialized event
-
-      if (backend.requiresLaunchRequest()) {
-        // launch = "the debuggee's server connected"; it is held before main
-        Response launchResponse = client.sendRequest(backend.launchRequest(), REQUEST_TIMEOUT_MILLIS);
-        if (!launchResponse.isSuccess()) {
-          fail("Cannot start the debug session: " + launchResponse.getMessage());
-          return;
-        }
+      performInitializeHandshake();
+      if (!performLaunch()) {
+        return;
       }
-      // either way the debuggee is attached now (a connected in-process server
-      // holds the program before main until configurationDone)
-      launched = true;
-
-      breakpoints.flushAll();
-      // Exception filters go IN-PHASE (before configurationDone), built by
-      // reading the breakpoint manager: a breakpoint already enabled from a
-      // previous IDE run arms here — the registerBreakpoint callbacks alone
-      // fire on the EDT and would race startup (the HashLink lesson).
-      if (backend.supportsExceptionFilters()) {
-        sendRequest(exceptionFiltersRequest());
-      }
-      // object labels via toString: an off-default project setting; only a
-      // non-default needs announcing (the server starts with it off)
-      if (backend.supportsToStringRendering()
-          && HaxeDebuggerSettings.getInstance(getSession().getProject()).isRenderObjectsWithToString()) {
-        sendRequest(SetToStringRenderingRequest.of(true));
-      }
-      // releases the debuggee held by the server's startup break
-      client.sendRequest(new ConfigurationDoneRequest(), REQUEST_TIMEOUT_MILLIS);
+      sendStartupConfiguration();
 
       Thread pump = daemon(this::pumpEvents, "DAP events");
       pump.start();
@@ -202,17 +182,107 @@ public class DapDebugProcess extends XDebugProcess {
     }
   }
 
+  /** initialize + capability capture (and, for pre-launch adapters, the initialized event). */
+  private void performInitializeHandshake() throws IOException, InterruptedException {
+    Response initializeResponse =
+      client.sendRequest(InitializeRequest.standard("intellij-haxe", false), REQUEST_TIMEOUT_MILLIS);
+    if (initializeResponse instanceof InitializeResponse ok && ok.getBody() != null) {
+      capabilities = ok.getBody();
+    }
+    if (!backend.initializedEventAfterLaunch()) {
+      awaitInitializedEvent();
+    }
+  }
+
+  /**
+   * The launch request, in the backend's flavour. False = the session failed
+   * and is already being torn down.
+   */
+  private boolean performLaunch() throws IOException, InterruptedException {
+    if (backend.requiresLaunchRequest()) {
+      // launch = "the debuggee's server connected" (haxe-side servers hold
+      // the program before main) or "the adapter started the debuggee"
+      // (web adapters launch the browser here)
+      if (backend.awaitsLaunchResponse()) {
+        Response launchResponse = client.sendRequest(backend.launchRequest(), REQUEST_TIMEOUT_MILLIS);
+        if (!launchResponse.isSuccess()) {
+          fail("Cannot start the debug session: " + launchResponse.getMessage());
+          return false;
+        }
+      } else {
+        // js-debug answers launch only after configurationDone; a launch
+        // failure surfaces as an error output/terminated event instead
+        client.sendRequestNoWait(backend.launchRequest());
+      }
+    }
+    launched = true;
+    if (backend.initializedEventAfterLaunch()) {
+      // the vscode web adapters signal readiness for breakpoints only once
+      // the browser side is up — after the launch response
+      awaitInitializedEvent();
+    }
+    return true;
+  }
+
+  /** Breakpoints, exception filters and settings, then configurationDone. */
+  private void sendStartupConfiguration() throws IOException, InterruptedException {
+    breakpoints.flushAll();
+    // Exception filters go IN-PHASE (before configurationDone), built by
+    // reading the breakpoint manager: a breakpoint already enabled from a
+    // previous IDE run arms here — the registerBreakpoint callbacks alone
+    // fire on the EDT and would race startup (the HashLink lesson).
+    if (backend.supportsExceptionFilters()) {
+      sendRequest(exceptionFiltersRequest());
+    }
+    // object labels via toString: an off-default project setting; only a
+    // non-default needs announcing (the server starts with it off)
+    if (backend.supportsToStringRendering()
+        && HaxeDebuggerSettings.getInstance(getSession().getProject()).isRenderObjectsWithToString()) {
+      sendRequest(SetToStringRenderingRequest.of(true));
+    }
+    if (backend.sendsConfigurationDone()) {
+      // releases the debuggee held by the server's startup break
+      client.sendRequest(new ConfigurationDoneRequest(), REQUEST_TIMEOUT_MILLIS);
+    }
+  }
+
+  /**
+   * Waits for the adapter's {@code initialized} event, forwarding any output
+   * events that precede it (the web adapters chatter during browser startup)
+   * and ignoring the rest — the pump is not running yet, so events consumed
+   * here would otherwise be lost.
+   */
+  private void awaitInitializedEvent() throws InterruptedException {
+    long deadline = System.currentTimeMillis() + REQUEST_TIMEOUT_MILLIS;
+    while (System.currentTimeMillis() < deadline) {
+      Event event = client.pollEvent(EVENT_POLL_MILLIS);
+      if (event instanceof InitializedEvent) {
+        return;
+      }
+      if (event instanceof OutputEvent output) {
+        handleOutput(output);
+      }
+    }
+    LOG.warn("No DAP initialized event within " + REQUEST_TIMEOUT_MILLIS + "ms; continuing anyway");
+  }
+
   // --- event pump (sole pollEvent caller) ---
 
   private void pumpEvents() {
     try {
       while (!shuttingDown) {
         Event event = client.pollEvent(EVENT_POLL_MILLIS);
+        if (event != null && DapConsoleTracer.ENABLED && !(event instanceof OutputEvent)) {
+          trace("ev " + DapConsoleTracer.describeEvent(event));
+        }
         switch (event) {
           case null -> { /* poll again */ }
           case StoppedEvent stopped -> handleStopped(stopped);
-          case ContinuedEvent ignored -> getSession().sessionResumed();
+          case ContinuedEvent continued -> handleContinued(continued);
           case OutputEvent output -> handleOutput(output);
+          // adapters with source-map-lazy verification (the web adapters)
+          // upgrade breakpoints asynchronously once the mapping loads
+          case BreakpointEvent breakpointEvent -> breakpoints.onBreakpointEvent(breakpointEvent);
           case ExitedEvent ignored -> {
             // the debuggee's own ProcessHandler reports termination (with the
             // real exit code); an adapter-reported code would be a guess
@@ -232,9 +302,21 @@ public class DapDebugProcess extends XDebugProcess {
     }
   }
 
+  // A continue for some OTHER thread (a worker resuming in a multi-target
+  // session) must not clear the pause the user is inspecting; without a
+  // pause on screen it just confirms the running state.
+  private void handleContinued(ContinuedEvent continued) {
+    if (continued.getBody() != null
+        && continued.getBody().getThreadId() != currentThreadId
+        && pauseOnScreen) {
+      return;
+    }
+    pauseOnScreen = false;
+    getSession().sessionResumed();
+  }
+
   private void handleStopped(StoppedEvent stopped) {
     Integer threadId = stopped.getBody().getThreadId();
-    currentThreadId = threadId != null ? threadId : 0;
     String exceptionText = null;
     if ("exception".equals(stopped.getBody().getReason())) {
       // prefer the runtime's own message (text) over the category (description)
@@ -245,7 +327,28 @@ public class DapDebugProcess extends XDebugProcess {
       // user is already looking
       print(exceptionText + "\n", true);
     }
-    reportStopped(currentThreadId, exceptionText);
+    if (pauseOnScreen && (threadId == null || threadId != currentThreadId)) {
+      // another thread stopped while a pause is on screen: it stays paused
+      // (inspectable through the thread list) but must not yank the views
+      // mid-inspection; Resume releases it together with everything else
+      return;
+    }
+    currentThreadId = threadId != null ? threadId : 0;
+    presentStop(currentThreadId, exceptionText);
+    // NO "freeze the world" here for the per-thread-pausing backends, however
+    // tempting: the firefox adapter's actor proxies answer requests through a
+    // per-thread FIFO queue, and firefox never answers an interrupt that
+    // RACES a breakpoint pause - the unanswered request wedges that thread's
+    // queue FOREVER (every later stackTrace/evaluate for it times out;
+    // verified in the adapter's base actor proxy source).
+    // Threads that pause independently therefore also keep RUNNING
+    // independently while one of them is on screen.
+  }
+
+  private void presentStop(int threadId, @Nullable String exceptionText) {
+    pauseOnScreen = true;
+    unresponsiveVariableRefs.clear(); // variablesReferences are pause-lifetime
+    reportStopped(threadId, exceptionText);
     // run-to-cursor is one-shot: any stop (including a breakpoint reached before
     // the cursor) cancels a pending run-to breakpoint
     breakpoints.clearRunToBreakpoint();
@@ -255,6 +358,11 @@ public class DapDebugProcess extends XDebugProcess {
   private void reportStopped(int threadId, String exceptionText) {
     List<DapThread> threads = requestThreads();
     List<StackFrame> activeFrames = requestStackTrace(threadId);
+    if (activeFrames.isEmpty()) {
+      // an empty pause is a bug's symptom, not a state worth silently showing
+      LOG.warn("stop for thread " + threadId + " presented WITHOUT frames"
+               + " (threads=" + threads.size() + ") - the adapter did not consider it paused?");
+    }
     topFrameId = activeFrames.isEmpty() ? -1 : activeFrames.get(0).getId();
     DapSuspendContext context =
       new DapSuspendContext(this, threads, threadId, activeFrames, exceptionText);
@@ -288,6 +396,16 @@ public class DapDebugProcess extends XDebugProcess {
         public void sessionStopped() {
           expressionHighlighter.clear();
         }
+
+        // The user picked a frame (possibly of ANOTHER thread) in the frames
+        // view: stepping/resume must target the selected frame's thread, not
+        // whichever thread happened to report the latest stop.
+        @Override
+        public void stackFrameChanged() {
+          if (getSession().getCurrentStackFrame() instanceof DapStackFrame selected) {
+            currentThreadId = selected.threadId();
+          }
+        }
       });
     }
     if (!expressionStepping || activeFrames.isEmpty()) {
@@ -305,11 +423,7 @@ public class DapDebugProcess extends XDebugProcess {
   }
 
   List<StackFrame> requestStackTrace(int threadId) {
-    StackTraceRequest request = new StackTraceRequest();
-    StackTraceArguments arguments = new StackTraceArguments();
-    arguments.setThreadId(threadId);
-    request.setArguments(arguments);
-    return sendRequest(request) instanceof StackTraceResponse response && response.isSuccess()
+    return sendRequest(StackTraceRequest.of(threadId)) instanceof StackTraceResponse response && response.isSuccess()
            ? response.getBody().getStackFrames() : List.of();
   }
 
@@ -347,6 +461,7 @@ public class DapDebugProcess extends XDebugProcess {
   }
 
   private void terminateSession() {
+    pauseOnScreen = false;
     teardown();
     getSession().stop();
   }
@@ -355,11 +470,29 @@ public class DapDebugProcess extends XDebugProcess {
 
   @Override
   public void resume(@Nullable XSuspendContext context) {
-    ContinueRequest request = new ContinueRequest();
-    ContinueArguments arguments = new ContinueArguments();
-    arguments.setThreadId(currentThreadId);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    onRequestThread(() -> {
+      pauseOnScreen = false;
+      if (backend.threadsPauseIndependently()) {
+        // Resume means "let the PROGRAM run": browser threads pause
+        // independently, so every listed thread gets its continue - the one
+        // on screen, workers paused at their own breakpoints in the
+        // background, and any zombie a page reload left behind. This also
+        // self-heals a paused-in-browser/running-in-IDE desync. The
+        // continues are FIRE-AND-FORGET: a running thread answers with a
+        // harmless error, but a zombie's actor never answers at all, and
+        // awaiting it would block Resume for a full timeout per zombie.
+        List<DapThread> threads = requestThreads();
+        if (threads.isEmpty()) {
+          sendRequest(ContinueRequest.of(currentThreadId));
+        }
+        for (DapThread thread : threads) {
+          sendRequestNoWait(ContinueRequest.of(thread.getId()));
+        }
+      } else {
+        // suspend-all servers resume everything on the one continue
+        sendRequest(ContinueRequest.of(currentThreadId));
+      }
+    });
   }
 
   // Run to cursor: plant a transient breakpoint at the target line and resume.
@@ -372,11 +505,8 @@ public class DapDebugProcess extends XDebugProcess {
     int threadId = currentThreadId;
     onRequestThread(() -> {
       if (breakpoints.setRunToBreakpoint(path, line)) {
-        ContinueRequest request = new ContinueRequest();
-        ContinueArguments arguments = new ContinueArguments();
-        arguments.setThreadId(threadId);
-        request.setArguments(arguments);
-        sendRequest(request);
+        pauseOnScreen = false;
+        sendRequest(ContinueRequest.of(threadId));
       } else {
         breakpoints.clearRunToBreakpoint();
         reportStopped(threadId, null);
@@ -388,38 +518,35 @@ public class DapDebugProcess extends XDebugProcess {
   public void startPausing() {
     // the server interrupts the debuggee and reports a stopped(reason:"pause")
     // event; the thread id rides along for servers that pause per-thread
-    PauseRequest request = new PauseRequest();
-    PauseArguments arguments = new PauseArguments();
-    arguments.setThreadId(currentThreadId);
-    request.setArguments(arguments);
+    PauseRequest request = PauseRequest.of(currentThreadId);
     onRequestThread(() -> sendRequest(request));
   }
 
   @Override
   public void startStepOver(@Nullable XSuspendContext context) {
-    NextRequest request = new NextRequest();
-    NextArguments arguments = new NextArguments();
-    arguments.setThreadId(currentThreadId);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    NextRequest request = NextRequest.of(currentThreadId);
+    onRequestThread(() -> {
+      pauseOnScreen = false; // the step's landing must present, not queue
+      sendRequest(request);
+    });
   }
 
   @Override
   public void startStepInto(@Nullable XSuspendContext context) {
-    StepInRequest request = new StepInRequest();
-    StepInArguments arguments = new StepInArguments();
-    arguments.setThreadId(currentThreadId);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    StepInRequest request = StepInRequest.of(currentThreadId);
+    onRequestThread(() -> {
+      pauseOnScreen = false;
+      sendRequest(request);
+    });
   }
 
   @Override
   public void startStepOut(@Nullable XSuspendContext context) {
-    StepOutRequest request = new StepOutRequest();
-    StepOutArguments arguments = new StepOutArguments();
-    arguments.setThreadId(currentThreadId);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    StepOutRequest request = StepOutRequest.of(currentThreadId);
+    onRequestThread(() -> {
+      pauseOnScreen = false;
+      sendRequest(request);
+    });
   }
 
   @Override
@@ -488,21 +615,19 @@ public class DapDebugProcess extends XDebugProcess {
    * same function is called more than once (1-based).
    */
   void stepIntoFunction(String className, String functionName, int occurrence) {
-    StepIntoFunctionRequest request = new StepIntoFunctionRequest();
-    StepIntoFunctionArguments arguments = new StepIntoFunctionArguments();
-    arguments.setThreadId(currentThreadId);
-    arguments.setClassName(className);
-    arguments.setFunctionName(functionName);
-    arguments.setOccurrence(occurrence);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    StepIntoFunctionRequest request =
+      StepIntoFunctionRequest.of(currentThreadId, className, functionName, occurrence);
+    onRequestThread(() -> {
+      pauseOnScreen = false;
+      sendRequest(request);
+    });
   }
 
   @Override
   public void stop() {
     shuttingDown = true;
     requestExecutor.execute(() -> {
-      DapClient dapClient = client;
+      DapEndpoint dapClient = client;
       if (dapClient != null) {
         try {
           dapClient.sendRequest(new DisconnectRequest(), DISCONNECT_TIMEOUT_MILLIS);
@@ -519,7 +644,7 @@ public class DapDebugProcess extends XDebugProcess {
 
   private synchronized void teardown() {
     shuttingDown = true;
-    DapClient dapClient = client;
+    DapEndpoint dapClient = client;
     client = null;
     if (dapClient != null) {
       try {
@@ -568,15 +693,39 @@ public class DapDebugProcess extends XDebugProcess {
     onRejected.run();
   }
 
+  /** Fire-and-forget request: the response (or its absence) is ignored. */
+  private void sendRequestNoWait(Request request) {
+    DapEndpoint dapClient = client;
+    if (dapClient == null) {
+      return;
+    }
+    trace(">> " + DapConsoleTracer.describeRequest(request) + " (no-wait)");
+    try {
+      dapClient.sendRequestNoWait(request);
+    } catch (IOException e) {
+      if (!shuttingDown) {
+        LOG.warn("DAP request '" + request.getCommand() + "' could not be sent", e);
+      }
+    }
+  }
+
   /** Blocking request; only call on the request executor or the event pump. */
   @Nullable Response sendRequest(Request request) {
-    DapClient dapClient = client;
+    DapEndpoint dapClient = client;
     if (dapClient == null) {
       return null;
     }
+    trace(">> " + DapConsoleTracer.describeRequest(request));
+    long start = System.currentTimeMillis();
     try {
-      return dapClient.sendRequest(request, REQUEST_TIMEOUT_MILLIS);
+      Response response = dapClient.sendRequest(request, backend.requestTimeoutMillis());
+      trace("<< " + request.getCommand() + " seq=" + response.getRequest_seq()
+            + (response.isSuccess() ? " ok" : " ERROR: " + response.getMessage())
+            + " (" + (System.currentTimeMillis() - start) + "ms)");
+      return response;
     } catch (IOException e) {
+      trace("!! " + request.getCommand() + " FAILED after " + (System.currentTimeMillis() - start)
+            + "ms: " + e.getMessage());
       if (!shuttingDown) {
         LOG.warn("DAP request '" + request.getCommand() + "' failed", e);
       }
@@ -587,22 +736,41 @@ public class DapDebugProcess extends XDebugProcess {
     }
   }
 
+  // Tracing lives in DapConsoleTracer (flip its ENABLED constant in code).
+  private void trace(String line) {
+    if (DapConsoleTracer.ENABLED) {
+      printSystem("[dap] " + line + "\n");
+    }
+  }
+
   public List<Scope> requestScopes(int frameId) {
-    ScopesRequest request = new ScopesRequest();
-    ScopesArguments arguments = new ScopesArguments();
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
-    return sendRequest(request) instanceof ScopesResponse response && response.isSuccess()
+    return sendRequest(ScopesRequest.of(frameId)) instanceof ScopesResponse response && response.isSuccess()
            ? response.getBody().getScopes() : List.of();
   }
 
+  /**
+   * References whose variables request TIMED OUT at this stop. Firefox's
+   * worker devtools can crash while enumerating a specific object's
+   * properties (broken getter/previewer handling) - that object's actor then
+   * never answers, at all, ever. The platform re-requests
+   * on every tree rebuild; without this cache each rebuild would stall the
+   * request thread for a full timeout PER poisoned object. Pause-scoped:
+   * cleared when a new stop is presented (references are pause-lifetime).
+   */
+  private final Set<Integer> unresponsiveVariableRefs = ConcurrentHashMap.newKeySet();
+
   public List<Variable> requestVariables(int variablesReference) {
-    VariablesRequest request = new VariablesRequest();
-    VariablesArguments arguments = new VariablesArguments();
-    arguments.setVariablesReference(variablesReference);
-    request.setArguments(arguments);
-    return sendRequest(request) instanceof VariablesResponse response && response.isSuccess()
-           ? response.getBody().getVariables() : List.of();
+    if (unresponsiveVariableRefs.contains(variablesReference)) {
+      trace("~~ variables ref=" + variablesReference + " skipped (timed out at this stop before)");
+      return List.of();
+    }
+    Response response = sendRequest(VariablesRequest.of(variablesReference));
+    if (response == null) {
+      unresponsiveVariableRefs.add(variablesReference);
+      return List.of();
+    }
+    return response instanceof VariablesResponse ok && ok.isSuccess()
+           ? ok.getBody().getVariables() : List.of();
   }
 
   /**
@@ -615,28 +783,85 @@ public class DapDebugProcess extends XDebugProcess {
     if (frameId < 0) {
       return List.of();
     }
-    StepInTargetsRequest request = new StepInTargetsRequest();
-    StepInTargetsArguments arguments = new StepInTargetsArguments();
-    arguments.setFrameId(frameId);
-    request.setArguments(arguments);
-    return sendRequest(request) instanceof StepInTargetsResponse response && response.isSuccess()
-           && response.getBody() != null && response.getBody().getTargets() != null
-           ? response.getBody().getTargets() : List.of();
+    Response response = sendRequest(StepInTargetsRequest.of(frameId));
+    if (response instanceof StepInTargetsResponse ok && ok.isSuccess()
+        && ok.getBody() != null && ok.getBody().getTargets() != null) {
+      return ok.getBody().getTargets();
+    }
+    LOG.warn("smart-step: stepInTargets yielded no usable response for frame " + frameId
+             + " (response=" + (response == null ? "null"
+                                : response.getClass().getSimpleName() + " success=" + response.isSuccess()
+                                  + " message=" + response.getMessage()) + ")");
+    return List.of();
   }
 
   /** Smart step into: enter the specific call chosen from the step-in targets. */
   public void stepIntoTarget(int targetId) {
-    StepInRequest request = new StepInRequest();
-    StepInArguments arguments = new StepInArguments();
-    arguments.setThreadId(currentThreadId);
-    arguments.setTargetId(targetId);
-    request.setArguments(arguments);
-    onRequestThread(() -> sendRequest(request));
+    StepInRequest request = StepInRequest.of(currentThreadId, targetId);
+    onRequestThread(() -> {
+      pauseOnScreen = false;
+      sendRequest(request);
+    });
   }
 
   /** The backend driving this session (for same-package collaborators). */
   DapBackend backend() {
     return backend;
+  }
+
+  /**
+   * Whether the adapter offers runtime completions (DAP {@code completions};
+   * js-debug does, the firefox adapter and the haxe-side servers do not).
+   */
+  public boolean supportsRuntimeCompletions() {
+    Capabilities caps = capabilities;
+    return caps != null && Boolean.TRUE.equals(caps.getSupportsCompletionsRequest());
+  }
+
+  /**
+   * Whether this session evaluates against a foreign runtime that knows more
+   * than the Haxe PSI (the browser) — so the evaluate/watch views should not
+   * flag "unresolved" identifiers. Independent of runtime-completion support:
+   * evaluation is runtime-truth even where DAP completions are unavailable
+   * (the firefox adapter).
+   */
+  public boolean evaluatesAgainstForeignRuntime() {
+    return backend.evaluatesAgainstForeignRuntime();
+  }
+
+  /**
+   * Runtime completions for the evaluate view: the ADAPTER completes the text
+   * against the live runtime, which knows identifiers the Haxe PSI cannot —
+   * browser globals behind incomplete externs, dynamically attached fields.
+   * Safe to call from a completion thread: the request runs on the DAP
+   * request executor with a short bounded wait, and an unavailable session
+   * (running, busy, torn down) yields an empty list rather than blocking.
+   *
+   * @param text   the full expression text being edited
+   * @param column 1-based caret position within {@code text}
+   */
+  public List<CompletionItem>
+  requestRuntimeCompletions(String text, int column) {
+    if (!supportsRuntimeCompletions() || !getSession().isSuspended()) {
+      return List.of();
+    }
+    int frameId = topFrameId;
+    CompletableFuture<List<CompletionItem>>
+      future = new CompletableFuture<>();
+    onRequestThread(() -> {
+      CompletionsRequest request = CompletionsRequest.of(frameId >= 0 ? frameId : null, text, column);
+      future.complete(sendRequest(request) instanceof CompletionsResponse response && response.isSuccess()
+                      && response.getBody() != null && response.getBody().getTargets() != null
+                      ? response.getBody().getTargets() : List.of());
+    }, () -> future.complete(List.of()));
+    try {
+      return future.get(2, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      if (e instanceof InterruptedException) {
+        Thread.currentThread().interrupt();
+      }
+      return List.of(); // busy session or teardown: completion just has no extras
+    }
   }
 
   /**
@@ -647,13 +872,7 @@ public class DapDebugProcess extends XDebugProcess {
    * with the server's message on failure.
    */
   SetVariableResponseBody requestSetVariable(int containerReference, String name, String value) {
-    SetVariableRequest request = new SetVariableRequest();
-    SetVariableArguments arguments = new SetVariableArguments();
-    arguments.setVariablesReference(containerReference);
-    arguments.setName(name);
-    arguments.setValue(value);
-    request.setArguments(arguments);
-    Response response = sendRequest(request);
+    Response response = sendRequest(SetVariableRequest.of(containerReference, name, value));
     if (response instanceof SetVariableResponse ok && response.isSuccess() && ok.getBody() != null) {
       return ok.getBody();
     }
@@ -675,35 +894,38 @@ public class DapDebugProcess extends XDebugProcess {
 
   @Override
   public XBreakpointHandler<?> @NotNull [] getBreakpointHandlers() {
-    XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>> lineHandler =
-      new XBreakpointHandler<>(HaxeBreakpointType.class) {
-        @Override
-        public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint) {
-          breakpoints.register(breakpoint);
-        }
-
-        @Override
-        public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
-          breakpoints.unregister(breakpoint);
-        }
-      };
     if (!backend.supportsExceptionFilters()) {
-      return new XBreakpointHandler<?>[]{lineHandler};
+      return new XBreakpointHandler<?>[]{lineBreakpointHandler()};
     }
-    return new XBreakpointHandler<?>[]{
-      lineHandler,
-      // the single shared Haxe exception category: any change (a toggle, a
-      // Notifications checkbox, a per-class add) recomputes the filters
-      new XBreakpointHandler<XBreakpoint<HaxeExceptionBreakpointProperties>>(HaxeExceptionBreakpointType.class) {
-        @Override
-        public void registerBreakpoint(@NotNull XBreakpoint<HaxeExceptionBreakpointProperties> breakpoint) {
-          updateExceptionFilters();
-        }
+    return new XBreakpointHandler<?>[]{lineBreakpointHandler(), exceptionBreakpointHandler()};
+  }
 
-        @Override
-        public void unregisterBreakpoint(@NotNull XBreakpoint<HaxeExceptionBreakpointProperties> breakpoint, boolean temporary) {
-          updateExceptionFilters();
-        }
+  private XBreakpointHandler<XLineBreakpoint<XBreakpointProperties>> lineBreakpointHandler() {
+    return new XBreakpointHandler<>(HaxeBreakpointType.class) {
+      @Override
+      public void registerBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint) {
+        breakpoints.register(breakpoint);
+      }
+
+      @Override
+      public void unregisterBreakpoint(@NotNull XLineBreakpoint<XBreakpointProperties> breakpoint, boolean temporary) {
+        breakpoints.unregister(breakpoint);
+      }
+    };
+  }
+
+  // The single shared Haxe exception category: any change (a toggle, a
+  // Notifications checkbox, a per-class add) recomputes the filters.
+  private XBreakpointHandler<XBreakpoint<HaxeExceptionBreakpointProperties>> exceptionBreakpointHandler() {
+    return new XBreakpointHandler<>(HaxeExceptionBreakpointType.class) {
+      @Override
+      public void registerBreakpoint(@NotNull XBreakpoint<HaxeExceptionBreakpointProperties> breakpoint) {
+        updateExceptionFilters();
+      }
+
+      @Override
+      public void unregisterBreakpoint(@NotNull XBreakpoint<HaxeExceptionBreakpointProperties> breakpoint, boolean temporary) {
+        updateExceptionFilters();
       }
     };
   }

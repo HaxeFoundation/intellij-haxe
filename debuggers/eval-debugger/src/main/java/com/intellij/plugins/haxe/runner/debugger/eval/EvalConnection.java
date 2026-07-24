@@ -37,6 +37,12 @@ public final class EvalConnection implements AutoCloseable {
   private volatile BiConsumer<String, JsonNode> eventListener = (method, params) -> { };
   private volatile Runnable onDisconnected = () -> { };
   private volatile boolean closed;
+  // Set by the reader thread just before it exits (VM closed the socket or the
+  // transport died). Once true, no future can ever be completed again, so
+  // request() must fail fast instead of letting an orphaned future burn its
+  // full timeout — a linux write to a half-closed socket SUCCEEDS (EPIPE only
+  // arrives on a later write), so the send itself is no death signal.
+  private volatile boolean vmGone;
   private Thread reader;
 
   public EvalConnection(InputStream in, OutputStream out) {
@@ -74,6 +80,13 @@ public final class EvalConnection implements AutoCloseable {
     int id = nextId.getAndIncrement();
     CompletableFuture<JsonNode> future = new CompletableFuture<>();
     pending.put(id, future);
+    // Checked AFTER registering the future so every interleaving is covered:
+    // reader died before this line -> vmGone is set -> fail fast here; reader
+    // dies after it -> failPending finds the future in `pending` and fails it.
+    if (vmGone) {
+      pending.remove(id);
+      throw new EvalConnectionClosedException("Eval debug connection closed by the VM");
+    }
     ObjectNode envelope = MAPPER.createObjectNode();
     envelope.put("jsonrpc", "2.0");
     envelope.put("id", id);
@@ -110,11 +123,13 @@ public final class EvalConnection implements AutoCloseable {
       while ((payload = EvalFraming.readResponse(in)) != null) {
         dispatch(MAPPER.readTree(payload));
       }
+      vmGone = true;
       failPending(new EvalConnectionClosedException("Eval debug connection closed by the VM"));
       if (!closed) {
         onDisconnected.run();
       }
     } catch (Exception e) {
+      vmGone = true;
       if (!closed) {
         failPending(new EvalConnectionClosedException("Eval debug connection lost: " + e));
         onDisconnected.run();

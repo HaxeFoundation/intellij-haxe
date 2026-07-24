@@ -24,4 +24,15 @@ public class StepIntoFunctionRequest extends Request {
   public StepIntoFunctionRequest() {
     super(COMMAND);
   }
+
+  public static StepIntoFunctionRequest of(int threadId, String className, String functionName, int occurrence) {
+    StepIntoFunctionRequest request = new StepIntoFunctionRequest();
+    StepIntoFunctionArguments arguments = new StepIntoFunctionArguments();
+    arguments.setThreadId(threadId);
+    arguments.setClassName(className);
+    arguments.setFunctionName(functionName);
+    arguments.setOccurrence(occurrence);
+    request.setArguments(arguments);
+    return request;
+  }
 }

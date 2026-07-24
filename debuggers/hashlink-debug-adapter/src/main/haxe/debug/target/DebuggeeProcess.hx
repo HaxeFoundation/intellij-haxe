@@ -29,8 +29,27 @@ import sys.thread.Thread;
 class DebuggeeProcess {
 	public var pid(default, null):Int;
 
+	/**
+		Set when the VM's FIRST stderr output is its "Could not start debugger
+		on port" startup banner: the reserved debug port was taken between the
+		reservation being released (findFreePort) and the VM binding it. The
+		session retries the launch on a fresh port when this is set. Only the
+		first chunk is ever inspected - it is emitted before the program can
+		run (the debuggee is still held by --debug-wait), so program output
+		containing the same words can never set the flag.
+	**/
+	public var debugBindFailed(default, null) = false;
+
+	var stderrSeen = false;
+
 	final process:Process;
 	final onOutput:(category:String, text:String) -> Void;
+	// released by each pump thread when its stream reaches EOF; lets the
+	// session drain the tail output BEFORE reporting the exit (the pipes of a
+	// dead process still hold their buffered bytes, surfacing as the
+	// final stdout lines arriving AFTER the exited event under machine load)
+	final stdoutDrained = new sys.thread.Lock();
+	final stderrDrained = new sys.thread.Lock();
 
 	public function new(hlPath:String, program:String, programArgs:Array<String>, cwd:Null<String>, debugPort:Int,
 			onOutput:(category:String, text:String) -> Void) {
@@ -70,11 +89,22 @@ class DebuggeeProcess {
 		Starts the stdout/stderr pump threads.
 	**/
 	public function startOutputPumps():Void {
-		pump(process.stdout, "stdout");
-		pump(process.stderr, "stderr");
+		pump(process.stdout, "stdout", stdoutDrained);
+		pump(process.stderr, "stderr", stderrDrained);
 	}
 
-	function pump(input:Input, category:String):Void {
+	/**
+		Blocks until both pumps hit EOF (all buffered output was forwarded) or
+		the per-stream timeout passes — a dead process EOFs its pipes promptly,
+		so the timeout is a guard, not an expected path. Call BEFORE reporting
+		the process's exit so no output event trails the exited event.
+	**/
+	public function awaitOutputDrained(timeoutSec:Float):Void {
+		stdoutDrained.wait(timeoutSec);
+		stderrDrained.wait(timeoutSec);
+	}
+
+	function pump(input:Input, category:String, drained:sys.thread.Lock):Void {
 		Thread.create(() -> {
 			var buffer = Bytes.alloc(4096);
 			try {
@@ -85,13 +115,19 @@ class DebuggeeProcess {
 					if (read <= 0) {
 						break;
 					}
-					onOutput(category, buffer.getString(0, read));
+					var text = buffer.getString(0, read);
+					if (category == "stderr" && !stderrSeen) {
+						stderrSeen = true;
+						debugBindFailed = text.indexOf("Could not start debugger") >= 0;
+					}
+					onOutput(category, text);
 				}
 			} catch (e:Eof) {
 				// stream closed: pump done
 			} catch (e:Dynamic) {
 				// process gone: pump done
 			}
+			drained.release();
 		});
 	}
 

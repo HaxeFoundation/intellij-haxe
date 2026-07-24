@@ -15,4 +15,12 @@ public class StackTraceRequest extends Request {
   public StackTraceRequest() {
     super(COMMAND);
   }
+
+  public static StackTraceRequest of(int threadId) {
+    StackTraceRequest request = new StackTraceRequest();
+    StackTraceArguments arguments = new StackTraceArguments();
+    arguments.setThreadId(threadId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

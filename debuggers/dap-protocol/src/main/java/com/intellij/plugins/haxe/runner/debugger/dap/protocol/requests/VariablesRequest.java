@@ -15,4 +15,12 @@ public class VariablesRequest extends Request {
   public VariablesRequest() {
     super(COMMAND);
   }
+
+  public static VariablesRequest of(int variablesReference) {
+    VariablesRequest request = new VariablesRequest();
+    VariablesArguments arguments = new VariablesArguments();
+    arguments.setVariablesReference(variablesReference);
+    request.setArguments(arguments);
+    return request;
+  }
 }

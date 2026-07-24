@@ -15,4 +15,12 @@ public class StepInTargetsRequest extends Request {
   public StepInTargetsRequest() {
     super(COMMAND);
   }
+
+  public static StepInTargetsRequest of(int frameId) {
+    StepInTargetsRequest request = new StepInTargetsRequest();
+    StepInTargetsArguments arguments = new StepInTargetsArguments();
+    arguments.setFrameId(frameId);
+    request.setArguments(arguments);
+    return request;
+  }
 }

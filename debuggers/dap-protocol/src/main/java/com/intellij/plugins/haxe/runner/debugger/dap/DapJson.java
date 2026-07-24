@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.events.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.requests.*;
 import com.intellij.plugins.haxe.runner.debugger.dap.protocol.responses.*;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Event;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.ProtocolMessage;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Request;
-import com.intellij.plugins.haxe.runner.debugger.dap.protocol.Response;
+import com.intellij.plugins.haxe.runner.debugger.dap.protocol.*;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -78,6 +75,8 @@ public final class DapJson {
       // smart step into); the haxe-side servers decode it themselves
       case StepIntoFunctionRequest.COMMAND        -> StepIntoFunctionRequest.class;
       case SetExpressionSteppingRequest.COMMAND   -> SetExpressionSteppingRequest.class;
+      // reverse request (adapter -> client): js-debug child sessions
+      case StartDebuggingRequest.COMMAND          -> StartDebuggingRequest.class;
       default                                     -> Request.class;
     };
     // @formatter:on
@@ -111,6 +110,7 @@ public final class DapJson {
       case VariablesRequest.COMMAND               -> VariablesResponse.class;
       case SetVariableRequest.COMMAND             -> SetVariableResponse.class;
       case EvaluateRequest.COMMAND                -> EvaluateResponse.class;
+      case CompletionsRequest.COMMAND             -> CompletionsResponse.class;
       case DisconnectRequest.COMMAND              -> DisconnectResponse.class;
       default                                     -> Response.class;
     };

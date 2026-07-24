@@ -1,5 +1,6 @@
 package debug.target;
 
+import debug.HostPlatform;
 import debug.Pointer;
 import debug.module.JitInfo;
 import debug.target.DebugApi;
@@ -31,6 +32,13 @@ class StackWalker {
 		this.jit = jit;
 		this.pointerSize = jit.is64 ? 8 : 4;
 	}
+
+	/**
+		Set by DebugSession once the exception control exists: the VM's own
+		throw-time stack capture for a thread (exc_stack_trace, top first).
+		Enables the linux VM-capture recovery in seedFromCEntry.
+	**/
+	public var capturedStack:Null<Int->Array<Pointer>> = null;
 
 	public function walk(threadId:Int):Array<StackFrameLocation> {
 		var frames:Array<StackFrameLocation> = [];
@@ -98,16 +106,82 @@ class StackWalker {
 			}
 			// a C caller: unwind it through its RBP (== frameBase)
 			if (Int64.eq(frameBase, Int64.ofInt(0))) {
-				return Int64.ofInt(0);
+				return recoverThroughSignalFrame(threadId, frames);
 			}
 			returnAddress = readPointer(Int64.add(frameBase, Int64.ofInt(pointerSize)));
 			var nextBase = readPointer(frameBase);
 			if (Int64.compare(nextBase, frameBase) <= 0) {
-				return Int64.ofInt(0); // not strictly ascending: bail rather than loop
+				return recoverThroughSignalFrame(threadId, frames); // chain broken
 			}
 			frameBase = nextBase;
 		}
+		return recoverThroughSignalFrame(threadId, frames);
+	}
+
+	/**
+		Linux fallback for stops whose C call chain has no frame pointers: a
+		signal-delivered VM error (null access) reaches hl_throw through
+		-fomit-frame-pointer C frames the RBP unwind above cannot cross. No
+		register or signal frame survives to lean on - hl's SIGSEGV handler
+		patches the context and returns (sigreturn dismantles the sigframe
+		before the error path runs), and by the throw break the C code has
+		repurposed RBP (in practice a heap pointer). What DOES survive is
+		the stack itself plus the VM's own throw capture (exc_stack_trace):
+
+		- the top frame's IDENTITY is exc_stack_trace[0];
+		- its BASE is found by scanning the stack for the return address into
+		  the CALLER's function (exc_stack_trace[1]) - that word sits at
+		  [top_rbp+8] by the JIT's frame layout, so the base is one slot
+		  below. The candidate must hold a plausible saved-RBP (a stack
+		  address above itself) or the scan moves on - spilled copies of code
+		  pointers fail that test. The outer walk then chains every caller
+		  frame from the recovered base as usual.
+	**/
+	function recoverThroughSignalFrame(threadId:Int, frames:Array<StackFrameLocation>):Pointer {
+		// linux-only by construction: the capture offset in Align is the
+		// GLIBC layout, and on Windows the seed's RBP unwind works anyway
+		if (capturedStack == null || HostPlatform.IS_WINDOWS) {
+			return Int64.ofInt(0);
+		}
+		var captured = capturedStack(threadId);
+		if (captured.length == 0) {
+			return Int64.ofInt(0);
+		}
+		var top = jit.resolveAddress(captured[0]);
+		if (top == null) {
+			return Int64.ofInt(0);
+		}
+		var callerFn = captured.length > 1 ? jit.resolveAddress(captured[1]) : null;
+		var esp = api.readRegister(pid, threadId, Esp);
+		var span = 16384;
+		var buf = Bytes.alloc(span);
+		if (!api.readMemory(pid, esp, buf, span)) {
+			return Int64.ofInt(0);
+		}
+		var stackLimit = Int64.add(esp, Int64.ofInt(8 * 1024 * 1024));
+		var words = span >> 3;
+		for (i in 1...words) {
+			var word = wordAt(buf, i);
+			var resolved = jit.resolveAddress(word);
+			if (resolved == null || (callerFn != null && resolved.fidx != callerFn.fidx)) {
+				continue;
+			}
+			var base = Int64.add(esp, Int64.ofInt((i - 1) << 3));
+			var savedRbp = wordAt(buf, i - 1); // [base] = the caller's saved RBP
+			if (Int64.compare(savedRbp, base) <= 0 || Int64.compare(savedRbp, stackLimit) > 0) {
+				continue;
+			}
+			frames.push({fidx: top.fidx, op: top.op, address: captured[0], ebp: base});
+			return base; // the outer walk chains the caller frames from here
+		}
 		return Int64.ofInt(0);
+	}
+
+	function wordAt(buf:Bytes, index:Int):Pointer {
+		var base = index << 3;
+		var low = buf.get(base) | (buf.get(base + 1) << 8) | (buf.get(base + 2) << 16) | (buf.get(base + 3) << 24);
+		var high = buf.get(base + 4) | (buf.get(base + 5) << 8) | (buf.get(base + 6) << 16) | (buf.get(base + 7) << 24);
+		return Int64.make(high, low);
 	}
 
 	function readPointer(addr:Pointer):Pointer {

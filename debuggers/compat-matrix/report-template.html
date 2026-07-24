@@ -59,7 +59,8 @@
 <div class="legend">
   <span><span class="sw" style="background:var(--ok-bg);border:1px solid var(--ok-border)"></span>all tests passed</span>
   <span><span class="sw" style="background:var(--bad-bg);border:1px solid var(--bad-border)"></span>failures (count shown)</span>
-  <span><span class="sw" style="background:var(--warn-bg);border:1px solid var(--warn-border)"></span>lane problem (compile-fail / timeout)</span>
+  <span><span class="sw" style="background:var(--warn-bg);border:1px solid var(--warn-border)"></span>lane problem (compile-fail / timeout / all skipped)</span>
+  <span>n/m &mdash; the shortfall is skips, not failures (lists under each grid)</span>
   <span>&mdash; not run (smart-reduced grid)</span>
 </div>
 <script>
@@ -69,29 +70,80 @@ if (!DATA) {
     "This is the raw template - run run-matrix.ps1 (or `gradlew debuggerCompatibilityReport`) to generate a filled report.";
   throw new Error("template without data");
 }
-const LANE_TITLES = { eval: "Eval / interpreter debugger", hashlink: "HashLink debugger", hxcpp: "HXCPP debugger" };
+const LANE_TITLES = { eval: "Eval / interpreter debugger", hashlink: "HashLink debugger", hxcpp: "HXCPP debugger",
+                      firefox: "Web / Firefox debugger (vscode-firefox-debug)",
+                      chromium: "Web / Chromium debugger (vscode-js-debug)" };
 
 function shortHaxe(v) { return v.replace(/^haxe_/, "").replace(/_/g, "."); }
 function shortHl(v) { return v.replace(/^hashlink-/, "").replace(/-win(32|64)?$/, m => m.replace("-win", " ")); }
 function cellTotals(cell) {
-  let t = 0, f = 0;
-  for (const c of cell.classes) { t += c.tests; f += c.failures + c.errors; }
-  return { tests: t, fails: f };
+  let t = 0, f = 0, s = 0;
+  for (const c of cell.classes) { t += c.tests; f += c.failures + c.errors; s += c.skipped; }
+  return { tests: t, fails: f, skips: s };
+}
+// passed/total; a shortfall in the fraction is skips, never failures
+// (failures render as their own red pill)
+function okPill(passed, total, skips, flaky) {
+  if (passed === 0 && total > 0) {
+    return '<span class="pill warn" title="every test skipped (missing runtime?)">skipped</span>';
+  }
+  const title = (skips > 0 ? skips + ' skipped (see list below the grid)' : '')
+    + (skips > 0 && flaky > 0 ? '; ' : '')
+    + (flaky > 0 ? flaky + ' flaky test(s) passed on retry' : '');
+  return '<span class="pill ok"' + (title ? ' title="' + title + '"' : '') + '>'
+    + passed + '/' + total + (flaky > 0 ? ' ~' : '') + '</span>';
 }
 function pill(cell) {
   if (!cell) return '<span class="pill na">&mdash;</span>';
   if (cell.status === "compile-fail") return '<span class="pill warn">no build</span>';
   if (cell.status === "timeout") return '<span class="pill warn">timeout</span>';
-  const { tests, fails } = cellTotals(cell);
+  const { tests, fails, skips } = cellTotals(cell);
   if (tests === 0) return '<span class="pill warn">no tests</span>';
   if (fails > 0) return '<span class="pill bad">' + fails + ' fail</span>';
-  const flaky = (cell.flaky || []).length;
-  if (flaky > 0) {
-    return '<span class="pill ok" title="' + flaky + ' flaky test(s) passed on retry">'
-      + tests + '/' + tests + ' ~</span>';
-  }
-  return '<span class="pill ok">' + tests + '/' + tests + '</span>';
+  return okPill(tests - skips, tests, skips, (cell.flaky || []).length);
 }
+// The skip lists under a lane's grid, in two honestly-separated classes:
+// "known limitations" are tests that FLAGGED themselves as deliberately not
+// applicable to an OS / haxe version (Assume message marked
+// "known limitation:", e.g. the HashLink pre-4.3 exception tests or the
+// multi-thread tests on linux); everything else merely lacked a prerequisite
+// in THIS pass (runtime not provisioned, fixture not built) and is labeled
+// as exactly that, never as something that cannot run.
+// Grouped by test + reason; the cells are spelled out unless it is all of them.
+function skipGroups(cells, wantKnown) {
+  const groups = new Map();
+  for (const cell of cells) {
+    const where = shortHaxe(cell.haxe) + (cell.runtime ? " × " + shortHl(cell.runtime) : "");
+    for (const c of cell.classes) {
+      for (const s of (c.skippedTests || [])) {
+        if (!!s.known !== wantKnown) continue;
+        const key = c.name + "::" + s.test + " " + (s.message || "");
+        if (!groups.has(key)) groups.set(key, { what: c.name + "::" + s.test, message: s.message || "", wheres: [] });
+        groups.get(key).wheres.push(where);
+      }
+    }
+  }
+  return [...groups.values()];
+}
+function skipDetails(cells, groups, summary) {
+  if (groups.length === 0) return "";
+  const esc = t => t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  let total = 0;
+  for (const g of groups) total += g.wheres.length;
+  return "<details><summary style='color: var(--text-2);'>" + total + " skipped test run"
+    + (total > 1 ? "s" : "") + " — " + summary + "</summary>"
+    + groups.map(g => "<div class='fail-item'><code>" + esc(g.what) + "</code>"
+        + (g.message ? " — " + esc(g.message) : "")
+        + "<br>" + (g.wheres.length === cells.length ? "every cell" : "on " + g.wheres.join(", ")) + "</div>").join("")
+    + "</details>";
+}
+function skipSection(cells) {
+  return skipDetails(cells, skipGroups(cells, true),
+      "known limitations (flagged not to run on this OS / toolchain version)")
+    + skipDetails(cells, skipGroups(cells, false),
+      "prerequisite missing in this pass (runtime not provisioned or fixture not built)");
+}
+
 function failuresOf(cells) {
   const out = [];
   for (const cell of cells) {
@@ -117,17 +169,20 @@ const cards = document.getElementById("cards");
 for (const lane of Object.keys(LANE_TITLES)) {
   const cells = byLane[lane];
   if (!cells) continue;
-  let tests = 0, fails = 0, problems = 0, seconds = 0;
+  let tests = 0, fails = 0, skips = 0, problems = 0, seconds = 0;
   for (const cell of cells) {
     if (cell.status !== "ok" && cell.status !== "fail") problems++;
-    const t = cellTotals(cell); tests += t.tests; fails += t.fails;
+    const t = cellTotals(cell); tests += t.tests; fails += t.fails; skips += t.skips;
     seconds += cell.seconds || 0;
   }
+  const passed = tests - skips;
   const good = fails === 0 && problems === 0;
+  const allSkipped = good && passed === 0 && tests > 0;
   cards.insertAdjacentHTML("beforeend",
-    '<div class="card"><p class="label">' + LANE_TITLES[lane] + '</p><p class="value ' + (good ? "ok" : "bad") + '">'
-    + (good ? tests + "/" + tests : fails + " failing") + '</p>'
-    + '<p class="label" style="margin-top:4px">runtime ' + fmtDuration(seconds) + '</p></div>');
+    '<div class="card"><p class="label">' + LANE_TITLES[lane] + '</p><p class="value ' + (good ? (allSkipped ? "" : "ok") : "bad") + '">'
+    + (good ? (allSkipped ? "all skipped" : passed + "/" + passed) : fails + " failing") + '</p>'
+    + '<p class="label" style="margin-top:4px">runtime ' + fmtDuration(seconds)
+    + (skips > 0 ? ' · ' + skips + ' skipped' : '') + '</p></div>');
 }
 
 // "runtime" = summed cell durations (compute time; with -PmatrixParallel the
@@ -142,9 +197,14 @@ for (const lane of Object.keys(LANE_TITLES)) {
   const cells = byLane[lane];
   if (!cells) continue;
   let html = "<h2>" + LANE_TITLES[lane] + "</h2><div class='gridwrap'><table>";
-  if (lane === "hashlink") {
-    const runtimes = DATA.meta.hlRuntimes;
-    html += "<tr><th class='rowhead'>haxe \\ runtime</th>" + runtimes.map(r => "<th>" + shortHl(r) + "</th>").join("") + "</tr>";
+  // a lane whose cells carry a runtime dimension (hashlink: HL runtimes;
+  // web lanes: node runtimes) renders the haxe x runtime grid
+  const laneRuntimes = lane === "hashlink" ? DATA.meta.hlRuntimes
+    : [...new Set(cells.map(c => c.runtime).filter(r => r))].sort();
+  if (laneRuntimes.length > 0) {
+    const runtimes = laneRuntimes;
+    const shortRuntime = r => r.startsWith("hashlink-") ? shortHl(r) : r.replace(/^node-/, "node ");
+    html += "<tr><th class='rowhead'>haxe \\ runtime</th>" + runtimes.map(r => "<th>" + shortRuntime(r) + "</th>").join("") + "</tr>";
     for (const haxe of DATA.meta.haxeVersions) {
       const row = cells.filter(c => c.haxe === haxe);
       if (row.length === 0) continue;
@@ -163,12 +223,10 @@ for (const lane of Object.keys(LANE_TITLES)) {
         if (!cell || cell.status === "compile-fail" || cell.status === "timeout") { html += "<td>" + pill(cell) + "</td>"; continue; }
         if (!cls) { html += "<td><span class='pill na'>&mdash;</span></td>"; continue; }
         const fails = cls.failures + cls.errors;
-        const flakyHere = (cell.flaky || []).some(t => t.startsWith(name + "::"));
+        const flakyHere = (cell.flaky || []).some(t => t.startsWith(name + "::")) ? 1 : 0;
         html += "<td>" + (fails > 0
           ? "<span class='pill bad'>" + fails + " fail</span>"
-          : (flakyHere
-             ? "<span class='pill ok' title='flaky: passed on retry'>" + cls.tests + "/" + cls.tests + " ~</span>"
-             : "<span class='pill ok'>" + cls.tests + "/" + cls.tests + "</span>")) + "</td>";
+          : okPill(cls.tests - cls.skipped, cls.tests, cls.skipped, flakyHere)) + "</td>";
       }
       html += "</tr>";
     }
@@ -189,6 +247,7 @@ for (const lane of Object.keys(LANE_TITLES)) {
       + flakies.map(f => "<div class='fail-item'><code>" + f.what + "</code> on " + f.where + "</div>").join("")
       + "</details>";
   }
+  html += skipSection(cells);
   lanes.insertAdjacentHTML("beforeend", html);
 }
 </script>

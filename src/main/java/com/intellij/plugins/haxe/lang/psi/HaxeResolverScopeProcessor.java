@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import com.intellij.plugins.haxe.HaxeLanguage;
 
 
 class HaxeResolverScopeProcessor implements PsiScopeProcessor {
@@ -27,6 +28,15 @@ class HaxeResolverScopeProcessor implements PsiScopeProcessor {
 
     @Override
     public boolean execute(@NotNull PsiElement element, ResolveState state) {
+        // the tree walk can cross into foreign-language PSI (e.g. a debugger
+        // fragment resolving near a JavaScript context makes the JS plugin's
+        // functions feed their implicit `arguments` light element, whose
+        // getText() is null and NPEs textMatches); only Haxe elements can be
+        // declarations this processor matches, so skip everything else
+        if (!element.getLanguage().isKindOf(HaxeLanguage.INSTANCE)) {
+            return true;
+        }
+
         //TODO: should probably make a better solution for this using a HaxeComponentName
         if (element.getParent() instanceof HaxeEnumObjectLiteralElement || element.getParent() instanceof HaxeEnumExtractArrayLiteral) {
             // avoids adding target to list

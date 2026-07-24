@@ -54,6 +54,21 @@ class Align {
 	public final threadFlags:Int;
 
 	/**
+		Offset of `hl_thread_info.exc_stack_count` — the i32 right after flags.
+	**/
+	public final threadExcStackCount:Int;
+
+	/**
+		Offset of `hl_thread_info.exc_stack_trace[0]` on a LINUX glibc debuggee:
+		flags/exc_stack_count (two i32s), thread_name[128], then jmp_buf gc_regs —
+		sizeof(jmp_buf) is 200 on glibc x86_64 and 156 on glibc x86. Only the
+		signal-frame stack recovery reads this, and it self-validates (the entry
+		must resolve into JIT code), so a wrong offset degrades to "no frames",
+		exactly today's behaviour — never to garbage frames.
+	**/
+	public final threadExcStackTraceLinux:Int;
+
+	/**
 		Offset of `hl_type_obj.name`. SHRINKS on 32-bit: three i32 fields then the
 		`const uchar*` name, padded to the pointer's alignment — +16 on 64-bit,
 		+12 on 32-bit.
@@ -73,6 +88,8 @@ class Align {
 		this.boolSize = boolSize4 ? 4 : 1;
 		this.threadExcValue = ptr * 5 + 8;
 		this.threadFlags = ptr * 6 + 8;
+		this.threadExcStackCount = threadFlags + 4;
+		this.threadExcStackTraceLinux = threadFlags + 8 + 128 + (is64 ? 200 : 156);
 		this.objTypeName = is64 ? 16 : 12;
 		this.fieldLookupStride = ptr + 8;
 	}
