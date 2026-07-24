@@ -6,10 +6,10 @@
 	"description": "DAP debug server for HXCPP applications, used by the intellij-haxe plugin's HXCPP debugger.",
 	"version": "0.1.0",
 	"releasenote": "Initial release",
-	"contributors": ["intellij-haxe"],
+	"contributors": ["m0rkeulv"],
 	"classPath": "src",
 	"dependencies": {
-		"intellij-dap-protocol": "",
-		"hscript": ""
+		"intellij-dap-protocol": "0.1.0",
+		"hscript": "2.7.0"
 	}
 }
