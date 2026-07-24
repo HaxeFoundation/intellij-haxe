@@ -65,7 +65,7 @@ jobs:
         run: haxe -version
 
       - name: Cache intelliJ downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: $GITHUB_WORKSPACE/idea
           key: ${{ matrix.IDEA_VERSION }}-idea
