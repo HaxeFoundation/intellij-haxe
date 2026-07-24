@@ -3,6 +3,8 @@ package com.intellij.plugins.haxe.runner.debugger.browser;
 import com.intellij.execution.ExecutionException;
 import com.intellij.execution.configurations.GeneralCommandLine;
 import com.intellij.execution.configurations.RuntimeConfigurationException;
+import com.intellij.plugins.haxe.HaxeDebuggerBundle;
+import com.intellij.plugins.haxe.runner.debugger.browser.BrowserRunConfiguration.BrowserFamily;
 import com.intellij.plugins.haxe.runner.debugger.dap.ide.DapDebugRunnerBase;
 import java.nio.file.Path;
 import org.jetbrains.annotations.NotNull;
@@ -40,12 +42,19 @@ public class BrowserDebugRunner extends DapDebugRunnerBase<BrowserRunConfigurati
   }
 
   @Override
-  protected BrowserDebugBackend createBackend(BrowserRunConfiguration configuration) {
+  protected BrowserDebugBackend createBackend(BrowserRunConfiguration configuration) throws ExecutionException {
     Path contentRoot = configuration.resolveContentRootOrNull();
+    var browser = DebugBrowser.resolve(configuration.getBrowserId());
+    BrowserFamily family = DebugBrowser.familyOf(browser);
+    Path executable = browser != null ? DebugBrowser.executableOf(browser) : null;
+
+    if (family == null || executable == null) {
+      throw new ExecutionException(HaxeDebuggerBundle.message("browser.runner.browser.none"));
+    }
     return new BrowserDebugBackend(
-      configuration.getBrowserFamily(),
+      family,
       configuration.getNodePath(),
-      configuration.getBrowserExecutablePath(),
+      executable.toString(),
       configuration.isServeContent(),
       contentRoot,
       configuration.getUrl());
