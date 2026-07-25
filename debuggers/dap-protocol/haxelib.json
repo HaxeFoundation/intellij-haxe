@@ -6,7 +6,7 @@
 	"description": "Debug Adapter Protocol message typedefs, used by the debugger servers for intellij-haxe",
 	"version": "0.1.0",
 	"releasenote": "Initial release",
-	"contributors": ["intellij-haxe"],
+	"contributors": ["m0rkeulv"],
 	"classPath": "src/main/haxe",
 	"dependencies": {}
 }

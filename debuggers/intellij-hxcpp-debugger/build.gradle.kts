@@ -114,13 +114,12 @@ tasks.register<Exec>("registerServerHaxelib") {
     commandLine = listOf("haxelib", "dev", "intellij-hxcpp-debug-server", File(projectDir, "hxcpp-debug-server").absolutePath)
 }
 
-// hscript powers watch/hover/condition evaluation (M5); it is a released
-// haxelib, so pull it in when absent rather than assuming a primed machine
+// hscript powers watch/hover/condition evaluation.
 tasks.register<Exec>("installHscript") {
     group = "hxcpp"
     description = "Installs the hscript haxelib if it is not already present"
     onlyIf { haxeAvailable }
-    commandLine = listOf("haxelib", "install", "hscript", "--always", "--quiet")
+    commandLine = listOf("haxelib", "install", "hscript", "2.7.0",  "--always", "--quiet")
     isIgnoreExitValue = true
 }
 
