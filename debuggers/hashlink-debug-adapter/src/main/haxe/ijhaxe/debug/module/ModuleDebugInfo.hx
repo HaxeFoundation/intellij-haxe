@@ -443,16 +443,35 @@ class ModuleDebugInfo {
 		return byFindex;
 	}
 
+	/**
+		The statics container type name of a class: hl `$`-prefixes the LAST
+		path segment, so `pkg.Cls` keeps its statics on `pkg.$Cls` — NOT on
+		`$pkg.Cls`. A top-level class has no dot, which is why the naive
+		prefix happens to work there and only PACKAGED classes broke.
+	**/
+	public static function staticsContainerName(className:String):String {
+		var dot = className.lastIndexOf(".");
+		return dot < 0
+			? "$" + className
+			: className.substr(0, dot + 1) + "$" + className.substr(dot + 1);
+	}
+
+	/** Whether a type name IS such a container (its last segment is `$`-prefixed). */
+	public static function isStaticsContainerName(typeName:String):Bool {
+		var dot = typeName.lastIndexOf(".");
+		return dot + 1 < typeName.length && typeName.charCodeAt(dot + 1) == "$".code;
+	}
+
 	// Maps a function's findex to the "$Class" statics container of the class
 	// that owns it, so a stopped frame can find the statics to show:
 	//  - static methods are bindings of the container itself (binding.mid);
 	//  - instance methods live in the INSTANCE type's virtual table (proto.proto);
-	//    their container is the "$" + class-name type, resolved by name.
+	//    their container is resolved by name (staticsContainerName).
 	function buildStaticsIndex():Map<Int, ObjPrototype> {
 		var containersByName = new Map<String, ObjPrototype>();
 		for (type in data.types) {
 			switch (type) {
-				case HObj(proto) | HStruct(proto) if (StringTools.startsWith(proto.name, "$")):
+				case HObj(proto) | HStruct(proto) if (isStaticsContainerName(proto.name)):
 					containersByName.set(proto.name, proto);
 				default:
 			}
@@ -467,8 +486,8 @@ class ModuleDebugInfo {
 							byFindex.set(binding.mid, proto);
 						}
 					}
-					if (!StringTools.startsWith(proto.name, "$")) {
-						var container = containersByName.get("$" + proto.name);
+					if (!isStaticsContainerName(proto.name)) {
+						var container = containersByName.get(staticsContainerName(proto.name));
 						if (container != null) {
 							for (entry in proto.proto) {
 								if (entry.findex >= 0 && !byFindex.exists(entry.findex)) {

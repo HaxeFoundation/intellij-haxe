@@ -172,13 +172,26 @@ class ValueChildren {
 	// vvirtual: the field's indirect slot pointer (null slot = lives on the
 	// wrapped dynobj, not directly addressable here)
 	function virtualFieldTarget(pointer:Pointer, fields:Array<{name:String, t:HLType}>, name:String):Null<AddressedValue> {
+		var objectBacked = !Int64.eq(mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr))), Int64.ofInt(0));
 		for (i in 0...fields.length) {
 			if (fields[i].name == name) {
 				var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
-				return Int64.eq(slot, Int64.ofInt(0)) ? null : {address: slot, type: fields[i].t};
+				if (Int64.eq(slot, Int64.ofInt(0))) {
+					return null;
+				}
+				// an object-backed method slot holds CODE, not a value: writing
+				// through it would patch the jit
+				return objectBacked && isFunctionField(fields[i].t) ? null : {address: slot, type: fields[i].t};
 			}
 		}
 		return null;
+	}
+
+	static function isFunctionField(t:HLType):Bool {
+		return switch (t) {
+			case HFun(_), HMethod(_): true;
+			default: false;
+		}
 	}
 
 	static function asIndex(name:String):Int {
@@ -203,8 +216,15 @@ class ValueChildren {
 	function virtualFields(pointer:Pointer, fields:Array<{name:String, t:HLType}>):Array<VariableInfo> {
 		var variables:Array<VariableInfo> = [];
 		var wrapped = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr)));
+		var objectBacked = !Int64.eq(wrapped, Int64.ofInt(0));
 		for (i in 0...fields.length) {
 			var slot = mem.readPointer(Int64.add(pointer, Int64.ofInt(align.ptr * (3 + i))));
+			if (objectBacked && isFunctionField(fields[i].t) && !Int64.eq(slot, Int64.ofInt(0))) {
+				// the slot IS the method's code pointer, not an address to read
+				var method = reader.readMethodPointer(slot, fields[i].t);
+				variables.push({name: fields[i].name, value: method.value, type: method.type, reference: 0, kind: VariableKind.Field});
+				continue;
+			}
 			if (Int64.eq(slot, Int64.ofInt(0))) {
 				var fallback = wrappedField(wrapped, fields[i].name);
 				if (fallback != null) {
@@ -285,6 +305,14 @@ class ValueChildren {
 		}
 		var variables:Array<VariableInfo> = [];
 		for (field in objectLayout.fields(proto, t.match(HStruct(_)))) {
+			// genhl emits one EMPTY-NAMED HVirtual field per implemented
+			// interface: the runtime cache for that interface view of the
+			// object (hl_to_virtual). Compiler-internal, and skipped for
+			// DISPLAY only - the LAYOUT must keep it or every field after it
+			// lands at the wrong offset.
+			if (field.name == "" && field.type.match(HVirtual(_))) {
+				continue;
+			}
 			var address = Int64.add(pointer, Int64.ofInt(field.offset));
 			var decoded = reader.read(address, field.type);
 			variables.push({name: field.name, value: decoded.value, type: decoded.type, reference: decoded.reference, kind: VariableKind.Field});

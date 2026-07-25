@@ -226,10 +226,51 @@ class ValueReader {
 
 	// vvirtual: header t/value/next, then one indirect field pointer per field
 	function readVirtual(ptr:Pointer, t:HLType, fields:Array<{name:String, t:HLType}>):DecodedValue {
+		// An object-backed virtual (a class instance seen through an interface)
+		// is presented AS the instance: its fields carry real values and its
+		// class name drives source navigation, where the structural member
+		// list has neither - the interface's own members are properties and
+		// methods, which hold no data. Falls back to the member list when the
+		// virtual is standalone (an anonymous structure: value is null) or the
+		// runtime class cannot be resolved.
+		var wrapped = wrappedInstance(ptr);
+		if (wrapped != null) {
+			return expandableOrRaw(wrapped.ptr, wrapped.type);
+		}
 		var names = [for (f in fields) f.name];
 		var display = "{" + names.join(", ") + "}";
 		var reference = (referenceAllocator == null || fields.length == 0) ? 0 : referenceAllocator(ptr, t);
 		return {value: display, type: typeName(t), reference: reference};
+	}
+
+	/**
+		The instance a virtual wraps (`vvirtual.value` @ +ptr) with its RUNTIME
+		class, or null when the virtual carries its own data instead (an
+		anonymous structure) or the class is unresolvable.
+	**/
+	public function wrappedInstance(ptr:Pointer):Null<{ptr:Pointer, type:HLType}> {
+		if (runtimeTypes == null) {
+			return null;
+		}
+		var value = mem.readPointer(ptr.offset(align.ptr));
+		if (value.isNull()) {
+			return null;
+		}
+		var runtime = runtimeTypes.typeAt(mem.readPointer(value));
+		return switch (runtime) {
+			case HObj(_), HStruct(_): {ptr: value, type: runtime};
+			default: null;
+		}
+	}
+
+	/**
+		A METHOD entry of an object-backed virtual: hl stores the function's
+		CODE pointer directly in the slot (a data field's slot holds the
+		field's ADDRESS instead), so it is named, never dereferenced.
+	**/
+	public function readMethodPointer(code:Pointer, t:HLType):DecodedValue {
+		var name = functionNameResolver == null ? null : functionNameResolver(code);
+		return leaf(name != null ? "function " + name : "function @ " + hex(code), typeName(t));
 	}
 
 	// vdynamic: runtime type @ +0, payload @ +ptr. Whether the vdynamic address
@@ -436,8 +477,16 @@ class ValueReader {
 		}
 	}
 
+	// hl `$`-prefixes the LAST segment of a statics container (`pkg.$Cls`), so
+	// the `$` is not always leading.
 	static function displayName(name:String):String {
-		return (name != null && StringTools.startsWith(name, "$")) ? name.substr(1) : name;
+		if (name == null) {
+			return name;
+		}
+		var dot = name.lastIndexOf(".");
+		return dot + 1 < name.length && name.charCodeAt(dot + 1) == "$".code
+			? name.substr(0, dot + 1) + name.substr(dot + 2)
+			: name;
 	}
 
 	// A function/method type rendered as its Haxe signature: `(Arg, Arg) -> Ret`
