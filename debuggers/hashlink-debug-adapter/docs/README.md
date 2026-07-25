@@ -712,10 +712,51 @@ the indirection:
   is omitted entirely when a class has no static data).
 
 The "Statics" scope is shown for the class owning the stopped frame — static
-AND instance methods (instance methods map back to their `$Class` container
-via the container's `bindings`, `binding.mid` = the method's findex). The
-compiler's `__name__`/`__constructs__`/`__meta__` bookkeeping fields are
-hidden.
+AND instance methods. The compiler's `__name__`/`__constructs__`/`__meta__`
+bookkeeping fields are hidden.
+
+**The container's name `$`-prefixes the LAST segment**: `pkg.Cls` keeps its
+statics on `pkg.$Cls`, never `$pkg.Cls` (`ModuleDebugInfo.staticsContainerName`
+is the one place that rule lives — it was duplicated, and the copy that got it
+wrong is what this section documents). The two frame kinds reach the container
+differently, which is why only one of them broke:
+
+- a STATIC method is a binding of the container itself (`binding.mid` = its
+  findex), so it needs no name lookup and worked everywhere;
+- an INSTANCE method lives in the instance type's virtual table
+  (`proto.proto`) and is mapped to its container BY NAME — so with the naive
+  `"$" + name` a packaged class resolved nothing: an instance frame there had
+  no Statics scope, and `myStaticField` (which Haxe source may write
+  unqualified) failed to evaluate while `pkg.Cls.myStaticField` worked.
+
+Covered by `PackagedStaticsIntegrationTest` against the packaged `pkg.Deep`
+fixture, with the top-level shapes guarded alongside.
+
+### Interfaces are virtuals, and a virtual's slots mean three things
+
+A class that implements an interface carries one **empty-named `HVirtual`
+field per interface** — genhl's cache for that interface view of the object
+(`hl_to_virtual`). It is emitted whether or not the program ever casts, sits
+between the declared fields (a class that only `extends` has none), and is
+skipped for DISPLAY only: the LAYOUT must keep it or every field after it
+lands at the wrong offset.
+
+A `vvirtual` is `{t, value, next}` followed by one slot per member, and the
+slot's meaning depends on the member kind:
+
+| member | `fields_data[i]` holds |
+|---|---|
+| real data field | the field's ADDRESS inside the wrapped object |
+| method | the function's CODE pointer (never dereference it) |
+| accessor-backed property | null — there is no storage to point at |
+
+So an interface view is a poor thing to show structurally: its members are
+mostly properties and methods, which carry no data. When `value` is non-null
+the virtual is presented AS the wrapped instance instead (real field values,
+and the class name drives source navigation); a standalone virtual — an
+anonymous structure, `value` null, slots pointing into its own data area —
+keeps the member-list rendering. Verified live in
+`IfaceVirtualIntegrationTest` against the `Iface.hx` fixture.
 
 ### The per-stop reference registry
 
@@ -737,6 +778,16 @@ calls, `new`, map/array brackets, and operators — `n * 2 + 1`,
 fields of `this` (implicit member access) → the owning class's statics → a
 class named by a leading dotted prefix (`MyClass.someValue`, `pkg.Cls.member`
 — the statics container `pkg.$Cls`).
+
+That order is a chain of PROBES, so each step must be able to answer "no".
+`tryChildTarget` (the "is <root> a field of `this`?" step) returns null for an
+unknown member rather than throwing: it used to throw, which only surfaced in
+an INSTANCE frame and only for an operator expression — a bare path is read
+through the evaluator's own tolerant lookup, while an operand of `a + b` is
+read through the write-target resolver. `Cls.member + 1` therefore died on the
+`this` probe with `"this.Cls" cannot be resolved to a writable location`
+(`"this.net"` for a packaged root) instead of falling through to the
+class-prefix step. A static frame has no `this` to probe and never hit it.
 
 Architecture (see `debug/eval/ExprParser|ExprAst|EvalValue|Operators`): a
 Pratt parser (HAXE precedence: bitwise ops in ONE tier binding tighter than

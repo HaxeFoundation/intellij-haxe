@@ -17,7 +17,7 @@ class Main {
 		for (i in 0...count) {
 			total = add(total, i); // FIXTURE_LOOP_LINE = 18
 		}
-		throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); ClosureCalls.demo(); slowDemo(); pkg.Deep.touch(); // same line: keeps the line constants below stable
+		throwDemo(); inspectDemo(); Rich.demo(); Shadowed.demo(); Mutate.demo(); Call.demo(); ClosureCalls.demo(); Iface.demo(); slowDemo(); pkg.Deep.touch(); // same line: keeps the line constants below stable
 		Sys.println("fixture-total:" + total);
 	}
 

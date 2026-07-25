@@ -160,8 +160,7 @@ class SymbolResolver {
 	// A class `pkg.Cls` keeps its statics on a container type named `pkg.$Cls`
 	// ($ prefixes the LAST segment, not the whole qualified name).
 	public static function staticsContainerName(className:String):String {
-		var lastDot = className.lastIndexOf(".");
-		return lastDot < 0 ? "$" + className : className.substr(0, lastDot + 1) + "$" + className.substr(lastDot + 1);
+		return ModuleDebugInfo.staticsContainerName(className);
 	}
 
 	// The live statics singleton of the class named `className`, or null when
@@ -272,7 +271,7 @@ class SymbolResolver {
 				// and descend as the runtime type, so `dynArray[1].length` reaches the
 				// String fields even though the STATIC element type is Dynamic
 				// (vdynamic-boxed primitives refine to non-object types and fall out
-				// through childTargetFromBase like any other memberless value)
+				// through as a null child like any other memberless value)
 				base = memory.readPointer(parent.address);
 				if (Int64.eq(base, Int64.ofInt(0))) {
 					throw new DebugError('"' + parent.name + '" is null');
@@ -281,7 +280,15 @@ class SymbolResolver {
 			default:
 				return null;
 		}
-		return childTargetFromBase('${parent.name}.$childName', base, effectiveType, childName);
+		// a genuine PROBE: callers ask "is <childName> a member of this?" while
+		// resolving a root, and an unknown member is an answer (null), not an
+		// error - throwing here made `Cls.member + x` in an instance frame fail
+		// on the "is Cls a field of this?" question instead of falling through
+		// to the class-prefix resolution
+		var child = valueChildren.targetOf(base, effectiveType, childName);
+		return child == null
+			? null
+			: {name: '${parent.name}.$childName', address: child.address, type: child.type};
 	}
 
 	function childTargetFromBase(displayName:String, base:Pointer, type:HLType, childName:String):WriteTarget {
