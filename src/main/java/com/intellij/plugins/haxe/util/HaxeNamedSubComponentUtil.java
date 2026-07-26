@@ -178,7 +178,8 @@ public class HaxeNamedSubComponentUtil {
                     case HaxeInterfaceDeclaration declaration -> getMembersFromClassType(declaration, includeInherited, excludeTypes);
                     case HaxeExternInterfaceDeclaration declaration -> getMembersFromClassType(declaration, includeInherited, excludeTypes);
                     case HaxeEnumDeclaration declaration -> getMembersFromClassType(declaration, includeInherited, excludeTypes);
-                    case HaxeAbstractTypeDeclaration declaration -> getMembersFromAbstractType(declaration, true, classReference);
+                    // Note: that includeInherited must be true to include forwarded members
+                    case HaxeAbstractTypeDeclaration declaration -> getMembersFromAbstractType(declaration, includeInherited, classReference);
 
                     // types that inherit their members (should not be cached)
                     case HaxeTypedefDeclaration typedef -> getMembersFromTypeDef(typedef,includeInherited, classReference.getGenericResolver(), excludeTypes);

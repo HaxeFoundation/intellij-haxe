@@ -37,10 +37,9 @@ final class FqnNavigateLink {
         public void run(@NotNull ProgressIndicator indicator) {
           FullyQualifiedInfo qualifiedInfo = new FullyQualifiedInfo(possibleQname);
           PsiElement element = resolve(project, possibleQname);
-          if (element instanceof HaxeNamedComponent) {
-            String targetName = qualifiedInfo.hasMemberName() ? qualifiedInfo.memberName : qualifiedInfo.className;
+          if (element instanceof HaxeNamedComponent component) {
             String message = HaxeDebuggerBundle.message("dap.debugger.value.navigate.link");
-            String tooltip = HaxeDebuggerBundle.message("dap.debugger.value.navigate.tooltip", targetName);
+            String tooltip = HaxeDebuggerBundle.message("dap.debugger.value.navigate.tooltip", component.getName());
             node.setFullValueEvaluator(new NavigatableValue(message, tooltip, possibleQname, project).setShowValuePopup(false));
           }
         }

@@ -84,6 +84,14 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
                         DirtyFilesHolder<JavaSourceRootDescriptor, ModuleBuildTarget> dirtyFilesHolder,
                         OutputConsumer outputConsumer)
     throws ProjectBuildException, IOException {
+    // JPS gives every module a production AND a test build target, this causes a race condition
+    // for our builds. since we currently do not support Test scope, we just skip it here.
+    // we could maybe fix this with a mutex or something like that if we need to support running
+    // build for both scopes in the future.
+    if (chunk.containsTests()) {
+      return ExitCode.NOTHING_DONE;
+    }
+
     boolean doneSomething = false;
 
     for (final JpsModule module : chunk.getModules()) {
@@ -305,10 +313,13 @@ public class HaxeModuleLevelBuilder extends ModuleLevelBuilder {
   }
 
   private static BuildMessage.Kind toBuildMessageKind(HaxeCompilerMessage.Category category) {
-    return switch (category) {
-      case ERROR -> BuildMessage.Kind.ERROR;
-      case WARNING -> BuildMessage.Kind.WARNING;
-      default -> BuildMessage.Kind.INFO;
-    };
+    switch (category) {
+      case ERROR:
+        return BuildMessage.Kind.ERROR;
+      case WARNING:
+        return BuildMessage.Kind.WARNING;
+      default:
+        return BuildMessage.Kind.INFO;
+    }
   }
 }
