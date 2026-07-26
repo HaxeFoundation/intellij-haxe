@@ -28,10 +28,10 @@ public class HaxeCodeFragmentCompletionTest extends HaxeCodeInsightFixtureTestCa
   private PsiElement frameContext() {
     myFixture.addFileToProject("Base.hx",
                                "class Base { public var inherited:Int = 2; public function baseAction():Void {} }");
-    myFixture.configureByText("Widget.hx",
-                              "class Widget extends Base { var count:Int = 1;\n"
-                              + "  function update() { trace<caret>(count); }\n"
-                              + "  static function main() { new Widget().update(); } }");
+    myFixture.configureByText("Widget.hx", """
+      class Widget extends Base { var count:Int = 1;
+        function update() { trace<caret>(count); }
+        static function main() { new Widget().update(); } }""");
     PsiElement context = myFixture.getFile().findElementAt(myFixture.getCaretOffset());
     assertNotNull("context element at the breakpoint", context);
     return context;

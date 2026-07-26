@@ -12,6 +12,11 @@ import java.util.concurrent.TimeUnit;
  * compilation, adapter connection with retry, and process-tree teardown.
  */
 final class LiveProbeUtil {
+  /** The one-page host for the compiled fixture; every probe writes the same file. */
+  static final String INDEX_HTML = """
+    <!DOCTYPE html><html><head><meta charset='utf-8'></head>\
+    <body><script src='app.js'></script></body></html>""";
+
   private LiveProbeUtil() {
   }
 

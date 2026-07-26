@@ -177,9 +177,7 @@ public class JsDebugAdapterLiveProbe {
   private static Path buildFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-jsdbg-probe");
     Files.writeString(dir.resolve("WebMain.hx"), WEB_MAIN_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebMain", "app.js");
     return dir;
   }
@@ -234,9 +232,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-load");
     Files.writeString(fixture.resolve("WebLoad.hx"), WEB_LOAD_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebLoad", "app.js");
 
     StackFrame top = driveSessionToStop(fixture, "WebLoad.hx", LOAD_BP_LINE);
@@ -276,9 +272,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-smart");
     Files.writeString(fixture.resolve("WebSmart.hx"), WEB_SMART_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebSmart", "app.js");
 
     atStop = (child, top) -> {
@@ -370,9 +364,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-idelike");
     Files.writeString(fixture.resolve("WebSmart.hx"), WEB_SMART_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebSmart", "app.js");
 
     try (ContentHttpServer content = new ContentHttpServer(fixture)) {
@@ -593,9 +585,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-expr");
     Files.writeString(fixture.resolve("WebExpr.hx"), WEB_EXPR_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebExpr", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -629,9 +619,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-lastline");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_LAST_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebClick", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -656,9 +644,7 @@ public class JsDebugAdapterLiveProbe {
     Assume.assumeTrue("haxe not on PATH - skipping", haxeOnPath());
     Path fixture = Files.createTempDirectory("haxe-jsdbg-click");
     Files.writeString(fixture.resolve("WebClick.hx"), WEB_CLICK_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebClick", "app.js");
 
     final int[] targetsAtStop = {-2};
@@ -722,9 +708,7 @@ public class JsDebugAdapterLiveProbe {
     Path fixture = Files.createTempDirectory("haxe-jsdbg-worker");
     Files.writeString(fixture.resolve("WebPage.hx"), WEB_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), WORKER_MAIN_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 

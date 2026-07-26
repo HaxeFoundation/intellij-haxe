@@ -228,9 +228,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-probe");
     Files.writeString(dir.resolve("WebMain.hx"), WEB_MAIN_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebMain", "app.js");
     return dir;
   }
@@ -610,9 +608,7 @@ public class FirefoxAdapterLiveProbe {
     System.out.println("[probe] fixture dir: " + fixture);
     Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), FF_WORKER_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
@@ -702,9 +698,7 @@ public class FirefoxAdapterLiveProbe {
     Path fixture = Files.createTempDirectory("haxe-ff-refresh-probe");
     Files.writeString(fixture.resolve("WebPage.hx"), FF_PAGE_HX);
     Files.writeString(fixture.resolve("WorkerMain.hx"), FF_WORKER_HX);
-    Files.writeString(fixture.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(fixture.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(fixture, "WebPage", "app.js");
     LiveProbeUtil.compileHaxeJs(fixture, "WorkerMain", "worker.js");
 
@@ -867,9 +861,7 @@ public class FirefoxAdapterLiveProbe {
   private static Path buildLoadFixture() throws Exception {
     Path dir = Files.createTempDirectory("haxe-web-load-probe");
     Files.writeString(dir.resolve("WebLoad.hx"), WEB_LOAD_HX);
-    Files.writeString(dir.resolve("index.html"),
-                      "<!DOCTYPE html><html><head><meta charset='utf-8'></head>"
-                      + "<body><script src='app.js'></script></body></html>");
+    Files.writeString(dir.resolve("index.html"), LiveProbeUtil.INDEX_HTML);
     LiveProbeUtil.compileHaxeJs(dir, "WebLoad", "app.js");
     return dir;
   }

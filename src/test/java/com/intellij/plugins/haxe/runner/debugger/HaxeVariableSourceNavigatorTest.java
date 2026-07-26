@@ -40,9 +40,10 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
                                "package shapes;\nclass Shape { public var base:Int = 0; }");
     myFixture.addFileToProject("shapes/Circle.hx",
                                "package shapes;\nclass Circle extends Shape { public var radius:Float = 1; }");
-    myFixture.configureByText("Main.hx",
-                              "import shapes.Shape;\nimport shapes.Circle;\n"
-                              + "class Main { static function main() { var s:Shape = new Circle(); trace<caret>(s); } }");
+    myFixture.configureByText("Main.hx", """
+      import shapes.Shape;
+      import shapes.Circle;
+      class Main { static function main() { var s:Shape = new Circle(); trace<caret>(s); } }""");
   }
 
   private XSourcePosition framePosition() {
@@ -114,10 +115,10 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
   /** Instance frame: stopped inside Widget.update(), where `this` is a Widget extends Base. */
   private void instanceFrameProject() {
     myFixture.addFileToProject("Base.hx", "class Base { public var inherited:Int = 2; }");
-    myFixture.configureByText("Widget.hx",
-                              "class Widget extends Base { var count:Int = 1;\n"
-                              + "  function update() { trace<caret>(count); }\n"
-                              + "  static function main() { new Widget().update(); } }");
+    myFixture.configureByText("Widget.hx", """
+      class Widget extends Base { var count:Int = 1;
+        function update() { trace<caret>(count); }
+        static function main() { new Widget().update(); } }""");
   }
 
   public void testThisMemberResolvesThroughTheFragment() {
@@ -147,10 +148,10 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
    */
   private void objectLiteralFrameProject() {
     myFixture.addFileToProject("Base.hx", "class Base { public var inherited:Int = 2; }");
-    myFixture.configureByText("Widget.hx",
-                              "class Widget extends Base { var count:Int = 1;\n"
-                              + "  function update() { var o = { cb: function() { trace<caret>(0); } }; }\n"
-                              + "  static function main() { new Widget().update(); } }");
+    myFixture.configureByText("Widget.hx", """
+      class Widget extends Base { var count:Int = 1;
+        function update() { var o = { cb: function() { trace<caret>(0); } }; }
+        static function main() { new Widget().update(); } }""");
   }
 
   public void testThisOwnMemberFromAFrameInsideAnObjectLiteral() {
@@ -167,9 +168,9 @@ public class HaxeVariableSourceNavigatorTest extends HaxeCodeInsightFixtureTestC
 
   /** The parity baseline the two tests above must match: real-file resolution skips literals. */
   public void testRealFileThisMemberInsideAnObjectLiteralResolves() {
-    myFixture.configureByText("Widget.hx",
-                              "class Widget { var count:Int = 1;\n"
-                              + "  function update() { var o = { cb: function() { trace(this.cou<caret>nt); } }; } }");
+    myFixture.configureByText("Widget.hx", """
+      class Widget { var count:Int = 1;
+        function update() { var o = { cb: function() { trace(this.cou<caret>nt); } }; } }""");
     assertNotNull("this.count written in a REAL file inside an object-literal closure",
                   myFixture.getFile().findReferenceAt(myFixture.getCaretOffset()).resolve());
   }
